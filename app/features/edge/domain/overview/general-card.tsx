@@ -10,6 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent, LinkButton, Badge, Tooltip } from '@datum-ui/components';
 import { useMemo } from 'react';
+import { Link } from 'react-router';
 
 export const DomainGeneralCard = ({
   domain,
@@ -77,11 +78,12 @@ export const DomainGeneralCard = ({
         label: 'DNS Zone',
         content: dnsZone ? (
           <LinkButton
+            as={Link}
             type="primary"
             theme="link"
             size="link"
             className="font-semibold"
-            to={getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+            href={getPathWithParams(paths.project.detail.dnsZones.detail.root, {
               projectId: projectId ?? '',
               dnsZoneId: dnsZone?.name,
             })}>
@@ -89,11 +91,12 @@ export const DomainGeneralCard = ({
           </LinkButton>
         ) : (
           <LinkButton
+            as={Link}
             type="primary"
             theme="link"
             size="link"
             className="font-semibold"
-            to={getPathWithParams(
+            href={getPathWithParams(
               paths.project.detail.dnsZones.new,
               {
                 projectId,

@@ -1,4 +1,3 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { ExportPolicyActivityCard } from '@/features/metric/export-policies/card/activity-card';
 import { ExportPolicyDangerCard } from '@/features/metric/export-policies/card/danger-card';
 import { ExportPolicyGeneralCard } from '@/features/metric/export-policies/card/general-card';
@@ -7,6 +6,7 @@ import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {

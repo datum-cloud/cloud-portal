@@ -6,8 +6,6 @@ import { defineStepper } from '@datum-ui/components/stepper';
 import { cn } from '@shadcn/lib/utils';
 import type * as Stepperize from '@stepperize/react';
 import * as React from 'react';
-import { Form as RouterForm } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import type { z } from 'zod';
 
 // ============================================================================
@@ -144,7 +142,12 @@ export function FormStepper({
   className,
   defaultValues,
   id,
-}: FormStepperProps & { defaultValues?: Record<string, unknown>; id?: string }) {
+  formComponent,
+}: FormStepperProps & {
+  defaultValues?: Record<string, unknown>;
+  id?: string;
+  formComponent?: React.ElementType;
+}) {
   // Create stepperize definition - memoized to prevent recreation
   const stepperDef = React.useMemo(() => {
     const stepperizeSteps = toStepperizeSteps(steps);
@@ -172,7 +175,8 @@ export function FormStepper({
         onStepChange={onStepChange}
         className={className}
         defaultValues={defaultValues}
-        id={id}>
+        id={id}
+        formComponent={formComponent}>
         {children}
       </FormStepperContent>
     </Stepper.Provider>
@@ -194,6 +198,7 @@ interface FormStepperContentProps {
   className?: string;
   defaultValues?: Record<string, unknown>;
   id?: string;
+  formComponent?: React.ElementType;
 }
 
 function FormStepperContent({
@@ -205,6 +210,7 @@ function FormStepperContent({
   className,
   defaultValues,
   id,
+  formComponent,
 }: FormStepperContentProps) {
   const { useStepper } = stepperDef;
   const stepper = useStepper();
@@ -241,7 +247,8 @@ function FormStepperContent({
       onComplete={onComplete}
       onStepChange={onStepChange}
       className={className}
-      id={id}>
+      id={id}
+      formComponent={formComponent}>
       {children}
     </StepForm>
   );
@@ -262,6 +269,7 @@ interface StepFormProps {
   onStepChange?: FormStepperProps['onStepChange'];
   className?: string;
   id?: string;
+  formComponent?: React.ElementType;
 }
 
 function StepForm({
@@ -275,6 +283,7 @@ function StepForm({
   onStepChange,
   className,
   id,
+  formComponent: FormComp = 'form',
 }: StepFormProps) {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -349,7 +358,7 @@ function StepForm({
       const formData = new FormData(formRef.current);
       const currentData: Record<string, unknown> = {};
       formData.forEach((value, key) => {
-        if (key !== 'csrf' && !key.startsWith('$')) {
+        if (!key.startsWith('$')) {
           currentData[key] = value;
         }
       });
@@ -451,15 +460,14 @@ function StepForm({
     <FormStepperContext.Provider value={stepperContextValue}>
       <FormProvider value={formContextValue}>
         <ConformFormProvider context={form.context}>
-          <RouterForm
+          <FormComp
             ref={formRef}
             {...getFormProps(form)}
             method="POST"
             className={cn('space-y-6', className)}
             autoComplete="off">
-            <AuthenticityTokenInput />
             {resolvedChildren}
-          </RouterForm>
+          </FormComp>
         </ConformFormProvider>
       </FormProvider>
     </FormStepperContext.Provider>

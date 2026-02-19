@@ -23,6 +23,7 @@ import { DownloadIcon, PlusIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import {
   data,
+  Link,
   type LoaderFunctionArgs,
   useLoaderData,
   useRevalidator,
@@ -143,18 +144,20 @@ export default function ProjectHomePage() {
             primaryButton={
               !hasDomains ? (
                 <LinkButton
+                  as={Link}
                   icon={<Icon icon={PlusIcon} className="size-4" />}
-                  to={getPathWithParams(paths.project.detail.proxy.root, {
+                  href={getPathWithParams(paths.project.detail.proxy.root, {
                     projectId: project.name,
                   })}>
                   Setup a Proxy
                 </LinkButton>
               ) : (
                 <LinkButton
+                  as={Link}
                   theme="outline"
                   type="secondary"
                   className="border-card-success-border hover:border-secondary"
-                  to={getPathWithParams(paths.project.detail.proxy.root, {
+                  href={getPathWithParams(paths.project.detail.proxy.root, {
                     projectId: project.name,
                   })}>
                   Go to Proxies
@@ -229,7 +232,8 @@ export default function ProjectHomePage() {
             primaryButton={
               !hasMetrics ? (
                 <LinkButton
-                  to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
+                  as={Link}
+                  href={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
                     projectId: project.name,
                   })}
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
@@ -237,10 +241,11 @@ export default function ProjectHomePage() {
                 </LinkButton>
               ) : (
                 <LinkButton
+                  as={Link}
                   className="border-card-success-border hover:border-secondary"
                   theme="outline"
                   type="secondary"
-                  to={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+                  href={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
                     projectId: project.name,
                   })}>
                   Go to Policies
@@ -267,10 +272,11 @@ export default function ProjectHomePage() {
                 <span className="text-lg font-medium">Latest Activity</span>
 
                 <LinkButton
+                  as={Link}
                   type="secondary"
                   size="xs"
                   theme="outline"
-                  to={getPathWithParams(paths.project.detail.activity, {
+                  href={getPathWithParams(paths.project.detail.activity, {
                     projectId: project.name,
                   })}>
                   View all project activity

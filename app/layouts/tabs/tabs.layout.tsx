@@ -1,9 +1,9 @@
 import { TabsProps } from './tabs.types';
-import { PageTitle } from '@/components/page-title/page-title';
 import { Tabs, TabsLinkTrigger, TabsList } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { cn } from '@shadcn/lib/utils';
 import { useMemo } from 'react';
-import { useLocation } from 'react-router';
+import { Link, useLocation } from 'react-router';
 
 export default function TabsLayout({
   children,
@@ -42,7 +42,8 @@ export default function TabsLayout({
                   <TabsLinkTrigger
                     key={nav.value}
                     value={nav.value}
-                    to={nav.to}
+                    href={nav.to}
+                    linkComponent={Link}
                     className={cn(
                       'flex h-full w-fit items-center gap-2 rounded-none border-b-2 border-transparent px-0',
                       'bg-background focus-visible:ring-0 focus-visible:outline-hidden',

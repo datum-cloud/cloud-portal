@@ -59,7 +59,13 @@ const MobileNavSheetContent = ({
 
   return (
     <SidebarProvider defaultOpen={true} className="h-full">
-      <NavMain className="h-fit py-2" items={navItems} closeOnNavigation />
+      <NavMain
+        className="h-fit py-2"
+        items={navItems}
+        closeOnNavigation
+        currentPath={pathname}
+        linkComponent={Link}
+      />
     </SidebarProvider>
   );
 };

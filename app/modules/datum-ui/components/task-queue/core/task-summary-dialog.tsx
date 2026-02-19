@@ -1,7 +1,7 @@
 import { useTaskQueue } from '../hooks/use-task-queue';
 import type { TaskSummaryItem } from '../types';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { Button } from '@datum-ui/components/button/button';
+import { DataTable } from '@datum-ui/components/data-table';
 import { Dialog } from '@datum-ui/components/dialog';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';

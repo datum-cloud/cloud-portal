@@ -1,6 +1,6 @@
 import { DataTableRowActionsProps } from '../../core/data-table.types';
 import { DataTableInlineActions } from './data-table-inline-actions';
-import { MoreActions, MoreActionsProps } from '@/components/more-actions/more-actions';
+import { MoreActions, MoreActionsProps } from '@datum-ui/components/more-actions';
 
 const RowMoreActions = <TData,>({
   row,

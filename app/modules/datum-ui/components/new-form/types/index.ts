@@ -3,6 +3,45 @@ import { ButtonProps } from '@datum-ui/components';
 import type { z } from 'zod';
 
 // ============================================================================
+// Telemetry Types
+// ============================================================================
+
+/**
+ * Optional telemetry interface for form lifecycle tracking.
+ * When provided, callbacks fire on form events (submit, success, error, etc.).
+ * When omitted, forms work silently without any tracking.
+ *
+ * @example Wiring Sentry in the consuming app
+ * ```tsx
+ * const sentryTelemetry: FormTelemetry = {
+ *   onSubmit: ({ formName, formId }) => trackFormSubmit({ formName, formId }),
+ *   onSuccess: ({ formName, formId }) => trackFormSuccess({ formName, formId }),
+ *   onError: ({ formName, formId, error }) => trackFormError({ formName, formId, error }),
+ *   onValidationError: ({ formName, formId, fieldErrors }) => trackFormValidationError({ formName, formId, fieldErrors }),
+ *   captureError: (error, context) => Sentry.captureException(error, { extra: context }),
+ * };
+ *
+ * <Form.Root schema={schema} telemetry={sentryTelemetry} onSubmit={handleSubmit} />
+ * ```
+ */
+export interface FormTelemetry {
+  /** Called when a form submission is attempted */
+  onSubmit?: (info: { formName: string; formId?: string }) => void;
+  /** Called after a successful form submission */
+  onSuccess?: (info: { formName: string; formId?: string }) => void;
+  /** Called when a form submission throws an error */
+  onError?: (info: { formName: string; formId?: string; error: Error }) => void;
+  /** Called when form validation fails */
+  onValidationError?: (info: {
+    formName: string;
+    formId?: string;
+    fieldErrors: Record<string, string[]>;
+  }) => void;
+  /** Called to capture an error with additional context (e.g. Sentry) */
+  captureError?: (error: Error, context: Record<string, unknown>) => void;
+}
+
+// ============================================================================
 // Form Types
 // ============================================================================
 
@@ -62,15 +101,26 @@ export interface FormRootProps<T extends z.ZodType> {
   /** HTTP method for form submission */
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
+  /**
+   * Custom form component to render (defaults to native `<form>`).
+   * Use to integrate with framework-specific forms (e.g. React Router's `<Form>`).
+   */
+  formComponent?: React.ElementType;
+
   // Configuration
   /** Unique form ID */
   id?: string;
   /**
    * Form name for analytics and error tracking.
-   * Used in Sentry breadcrumbs to identify which form the user interacted with.
+   * Used in telemetry callbacks to identify which form the user interacted with.
    * @example "http-proxy-create", "dns-zone-edit", "project-settings"
    */
   name?: string;
+  /**
+   * Optional telemetry callbacks for form lifecycle tracking.
+   * When omitted, forms work silently without any tracking.
+   */
+  telemetry?: FormTelemetry;
   /** Default values for form fields */
   defaultValues?: Partial<z.infer<T>>;
   /** When to validate: onBlur, onChange, or onSubmit */
@@ -614,6 +664,12 @@ export interface FormDialogProps<T extends z.ZodType> {
    * ```
    */
   loading?: boolean;
+
+  // Form customization
+  /** Custom form element (e.g., React Router's Form). Defaults to native <form>. */
+  formComponent?: React.ElementType;
+  /** Optional telemetry callbacks for form submission tracking */
+  telemetry?: FormTelemetry;
 
   // Styling
   /** Dialog content className */

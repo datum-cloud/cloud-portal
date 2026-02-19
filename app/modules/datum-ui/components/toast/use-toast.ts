@@ -3,7 +3,7 @@
  * Implementation based on github.com/epicweb-dev/epic-stack
  */
 import { toast } from './toast';
-import type { Toast } from '@/utils/cookies';
+import type { Toast } from './types';
 import { useEffect } from 'react';
 
 export function useToast(toastData?: Toast | null) {

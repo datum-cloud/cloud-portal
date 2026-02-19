@@ -13,7 +13,6 @@ import { SVCBRecordField } from './types/svcb-record-field';
 import { TLSARecordField } from './types/tlsa-record-field';
 import { TXTRecordField } from './types/txt-record-field';
 import { Field } from '@/components/field/field';
-import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { SelectBox } from '@/components/select-box/select-box';
 import {
   CreateDnsRecordSchema,
@@ -34,6 +33,7 @@ import {
 } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { Button, toast } from '@datum-ui/components';
+import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import { Input } from '@shadcn/ui/input';
 import { useMemo } from 'react';

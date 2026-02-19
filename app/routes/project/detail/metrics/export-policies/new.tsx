@@ -1,8 +1,8 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { ExportPolicyComingSoonCard } from '@/features/metric/export-policies/card/coming-soon-card';
 import { ExportPolicyGrafanaCard } from '@/features/metric/export-policies/card/grafana-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { MetaFunction, useParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

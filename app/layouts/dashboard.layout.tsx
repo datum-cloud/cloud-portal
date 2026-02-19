@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components'
 import { AppSidebar, NavItem } from '@datum-ui/components/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import React, { useLayoutEffect, useState } from 'react';
+import { Link, useLocation, useSearchParams } from 'react-router';
 
 /**
  * Internal component that handles dashboard-specific logic
@@ -74,6 +75,9 @@ export function DashboardLayout({
   showBackdrop?: boolean;
   closeOnNavigation?: boolean;
 }) {
+  const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
+
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden overscroll-none">
       {/* Header at the top - outside sidebar context */}
@@ -105,6 +109,9 @@ export function DashboardLayout({
             collapsible={sidebarCollapsible}
             className="top-12"
             closeOnNavigation={closeOnNavigation}
+            currentPath={pathname}
+            linkComponent={Link}
+            defaultOpen={searchParams.get('sidebar') !== 'false'}
           />
         )}
         <SidebarInset>
