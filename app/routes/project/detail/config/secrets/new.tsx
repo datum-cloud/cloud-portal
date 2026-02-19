@@ -1,4 +1,5 @@
 import { SecretForm } from '@/features/secret/form/form';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useCreateSecret, type SecretNewSchema, type CreateSecretInput } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -17,9 +18,11 @@ export const meta: MetaFunction = mergeMeta(() => {
 export default function ConfigSecretsNewPage() {
   const navigate = useNavigate();
   const { projectId } = useParams();
+  const { trackAction } = useAnalytics();
 
   const createSecret = useCreateSecret(projectId ?? '', {
     onSuccess: (secret) => {
+      trackAction(AnalyticsAction.AddSecret);
       navigate(
         getPathWithParams(paths.project.detail.config.secrets.detail.root, {
           projectId,

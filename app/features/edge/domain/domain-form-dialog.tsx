@@ -1,3 +1,4 @@
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { type DomainSchema, domainSchema, useCreateDomain } from '@/resources/domains';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
@@ -20,6 +21,7 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
     const [defaultValues, setDefaultValues] = useState<Partial<DomainSchema>>();
 
     const createDomainMutation = useCreateDomain(projectId);
+    const { trackAction } = useAnalytics();
 
     const show = useCallback((initialValues?: Partial<DomainSchema>) => {
       setDefaultValues(initialValues);
@@ -38,6 +40,7 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
         toast.success('Domain', {
           description: 'The domain has been added to your project',
         });
+        trackAction(AnalyticsAction.AddDomain);
         setOpen(false);
         onSuccess?.(formData.domain);
       } catch (error) {

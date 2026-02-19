@@ -1,4 +1,5 @@
 import { clearSentryOrgContext, clearSentryProjectContext } from '@/modules/sentry';
+import { useApp } from '@/providers/app.provider';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useEffect } from 'react';
@@ -10,12 +11,14 @@ export const handle = {
 };
 
 export default function AccountLayout() {
-  // Clear org/project context when entering account pages
-  // (account pages are outside org/project scope)
+  const { setOrganization, setProject } = useApp();
+
   useEffect(() => {
+    setOrganization(undefined);
+    setProject(undefined);
     clearSentryOrgContext();
     clearSentryProjectContext();
-  }, []);
+  }, [setOrganization, setProject]);
 
   return <Outlet />;
 }
