@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   organizationFormSchema,
   useCreateOrganization,
@@ -51,6 +52,7 @@ export default function AccountOrganizations() {
   const { orgs, alertClosed } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const revalidator = useRevalidator();
+  const { trackAction } = useAnalytics();
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
@@ -67,6 +69,7 @@ export default function AccountOrganizations() {
 
   const createMutation = useCreateOrganization({
     onSuccess: (newOrg) => {
+      trackAction(AnalyticsAction.CreateOrg, { orgId: newOrg.name });
       setTimeout(() => {
         setOpenDialog(false);
         navigate(getPathWithParams(paths.org.detail.root, { orgId: newOrg.name }));

@@ -13,8 +13,8 @@ interface AppContextType {
   project: Project | undefined;
   orgId: string | undefined;
   setUser: (user: User) => void;
-  setOrganization: (organization: Organization) => void;
-  setProject: (project: Project) => void;
+  setOrganization: (organization: Organization | undefined) => void;
+  setProject: (project: Project | undefined) => void;
 }
 
 const AppContext = createContext<AppContextType>({

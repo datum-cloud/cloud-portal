@@ -1,5 +1,6 @@
 import { DnsZoneDiscoveryPreview } from '@/features/edge/dns-zone/discovery-preview';
 import { DnsZoneForm } from '@/features/edge/dns-zone/form';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useCreateDnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
 import type { DnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
 import { useCreateDnsZone, type CreateDnsZoneInput, type DnsZone } from '@/resources/dns-zones';
@@ -17,6 +18,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export default function DnsZoneNewPage() {
   const { projectId } = useParams();
+  const { trackAction } = useAnalytics();
   const [createdData, setCreatedData] = useState<{
     dnsZone: DnsZone;
     dnsDiscovery: DnsZoneDiscovery;
@@ -36,6 +38,7 @@ export default function DnsZoneNewPage() {
 
   const createDnsZone = useCreateDnsZone(projectId ?? '', {
     onSuccess: (dnsZone) => {
+      trackAction(AnalyticsAction.AddDnsZone);
       // After creating DNS zone, create the discovery
       createDnsZoneDiscovery.mutate(dnsZone.name, {
         onSuccess: (dnsDiscovery) => {

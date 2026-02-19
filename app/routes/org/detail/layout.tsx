@@ -42,7 +42,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 export default function OrgLayout() {
   const initialOrg = useLoaderData<typeof loader>();
 
-  const { organization, setOrganization } = useApp();
+  const { organization, setOrganization, setProject } = useApp();
 
   // Use app state (updated by mutations), fallback to SSR data
   const org = organization?.name === initialOrg?.name ? organization : initialOrg;
@@ -94,9 +94,10 @@ export default function OrgLayout() {
   useEffect(() => {
     if (initialOrg) {
       setOrganization(initialOrg);
+      setProject(undefined);
       setSentryOrgContext(initialOrg);
     }
-  }, [initialOrg, setOrganization]);
+  }, [initialOrg, setOrganization, setProject]);
 
   return (
     <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentOrg={org}>

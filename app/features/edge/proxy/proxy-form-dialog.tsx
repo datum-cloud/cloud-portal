@@ -1,5 +1,6 @@
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useApp } from '@/providers/app.provider';
 import {
   type HttpProxy,
@@ -120,6 +121,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { project, organization } = useApp();
+    const { trackAction } = useAnalytics();
     const updateMutation = useUpdateHttpProxy(projectId, editProxyName);
     const httpProxyService = createHttpProxyService();
 
@@ -275,6 +277,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           onComplete: (outcome) => {
             queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
             if (outcome.status === 'completed' && outcome.result) {
+              trackAction(AnalyticsAction.AddProxy);
               onCreateSuccess?.(outcome.result);
             } else if (outcome.status === 'failed') {
               const errorMessage =

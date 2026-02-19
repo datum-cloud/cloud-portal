@@ -1,4 +1,5 @@
 import { CreateDNSSetupResponse } from '@/modules/cloudvalid';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -24,6 +25,8 @@ type DnsSetupResponse = {
 };
 
 export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domain: Domain }) => {
+  const { trackAction } = useAnalytics();
+
   const dnsSetupMutation = useMutation<DnsSetupResponse, Error, DnsSetupInput>({
     mutationFn: async (input) => {
       const response = await fetch(CLOUD_VALIDATION_DNS_PATH, {
@@ -48,6 +51,7 @@ export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domai
       return data;
     },
     onSuccess: (data) => {
+      trackAction(AnalyticsAction.VerifyDomain);
       if (data.data?.public_url) {
         window.open(data.data.public_url, '_blank');
       }
