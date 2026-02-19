@@ -1,4 +1,5 @@
 import { InvitationForm } from '@/features/organization/team/invitation-form';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { createRbacMiddleware } from '@/modules/rbac';
 import {
   useCreateInvitation,
@@ -44,6 +45,7 @@ interface InvitationResult {
 export default function OrgTeamInvitePage() {
   const { orgId } = useParams();
   const navigate = useNavigate();
+  const { trackAction } = useAnalytics();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const createInvitation = useCreateInvitation(orgId ?? '');
@@ -127,6 +129,7 @@ export default function OrgTeamInvitePage() {
 
       if (hasSuccess && !hasFailed) {
         // All invitations succeeded
+        trackAction(AnalyticsAction.InviteCollaborator);
         const message =
           successCount === 1
             ? 'Invitation sent successfully!'
@@ -156,7 +159,7 @@ export default function OrgTeamInvitePage() {
         });
       }
     },
-    [orgId, createInvitation, navigate]
+    [orgId, createInvitation, navigate, trackAction]
   );
 
   return (

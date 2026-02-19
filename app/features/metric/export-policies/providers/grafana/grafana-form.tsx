@@ -3,6 +3,7 @@ import { CodeEditor } from '@/components/code-editor/code-editor';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkTypeEnum,
@@ -75,6 +76,7 @@ const steps = [
 export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps) {
   const createSecretMutation = useCreateSecret(projectId);
   const createExportPolicyMutation = useCreateExportPolicy(projectId);
+  const { trackAction } = useAnalytics();
 
   const isPending = createSecretMutation.isPending || createExportPolicyMutation.isPending;
 
@@ -132,6 +134,8 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
     try {
       const secret = await createSecretMutation.mutateAsync(secretPayload);
       const exportPolicy = await createExportPolicyMutation.mutateAsync(exportPolicyPayload);
+
+      trackAction(AnalyticsAction.CreateExportPolicy);
 
       if (onSuccess) {
         onSuccess({

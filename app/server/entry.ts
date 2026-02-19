@@ -87,6 +87,7 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
+        'https://*.usefathom.com', // Fathom
       ],
       fontSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.gstatic.com'],
       frameSrc: [
@@ -96,6 +97,7 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
+        'https://*.usefathom.com', // Fathom
       ],
       imgSrc: [
         "'self'",
@@ -106,6 +108,7 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
         'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
+        'https://*.usefathom.com', // Fathom
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
       scriptSrc: [

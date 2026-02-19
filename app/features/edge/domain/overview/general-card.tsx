@@ -4,6 +4,7 @@ import { List, ListItem } from '@/components/list/list';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
@@ -21,6 +22,8 @@ export const DomainGeneralCard = ({
   dnsZone?: DnsZone;
   projectId?: string;
 }) => {
+  const { trackAction } = useAnalytics();
+
   const listItems: ListItem[] = useMemo(() => {
     if (!domain) return [];
 
@@ -96,6 +99,7 @@ export const DomainGeneralCard = ({
             theme="link"
             size="link"
             className="font-semibold"
+            onClick={() => trackAction(AnalyticsAction.TransferDnsToDatum)}
             href={getPathWithParams(
               paths.project.detail.dnsZones.new,
               {
@@ -110,7 +114,7 @@ export const DomainGeneralCard = ({
         ),
       },
     ];
-  }, [domain, dnsZone]);
+  }, [domain, dnsZone, trackAction]);
 
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">

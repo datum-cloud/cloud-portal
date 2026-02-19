@@ -1,12 +1,14 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { useTheme } from '@/modules/datum-themes';
+import { FathomProvider } from '@/modules/fathom';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { WatchProvider } from '@/modules/watch';
-import { AppProvider } from '@/providers/app.provider';
+import { AppProvider, useApp } from '@/providers/app.provider';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
-import { env } from '@/utils/env/env.server';
+import { env } from '@/utils/env';
+import { env as serverEnv } from '@/utils/env/env.server';
 import {
   authMiddleware,
   registrationApprovalMiddleware,
@@ -15,6 +17,7 @@ import {
 import { TaskQueueProvider } from '@datum-ui/components/task-queue';
 import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';
+import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
@@ -30,8 +33,8 @@ export const loader = withMiddleware(
        * Generate Help Scout signature for secure mode
        */
       let helpscoutSignature = null;
-      if (env.isProd && env.public.helpscoutBeaconId && user?.email) {
-        helpscoutSignature = createHmac('sha256', env.server.helpscoutSecretKey ?? '')
+      if (serverEnv.isProd && serverEnv.public.helpscoutBeaconId && user?.email) {
+        helpscoutSignature = createHmac('sha256', serverEnv.server.helpscoutSecretKey ?? '')
           .update(user?.email)
           .digest('hex');
       }
@@ -47,6 +50,22 @@ export const loader = withMiddleware(
   authMiddleware,
   registrationApprovalMiddleware
 );
+
+function FathomWrapper({ children }: { children: ReactNode }) {
+  const { user, orgId, project } = useApp();
+
+  if (!env.public.fathomId || !env.isProd) {
+    return <>{children}</>;
+  }
+
+  return (
+    <FathomProvider
+      siteId={env.public.fathomId}
+      identity={user?.sub ? { sub: user.sub, orgId, projectId: project?.name } : null}>
+      {children}
+    </FathomProvider>
+  );
+}
 
 export default function PrivateLayout() {
   const data: { user: User; helpscoutSignature: string | null; ENV: any } =
@@ -83,25 +102,27 @@ export default function PrivateLayout() {
   return (
     <WatchProvider>
       <AppProvider initialUser={data?.user}>
-        <TaskQueueProvider config={{ storageType: 'memory' }}>
-          <TooltipProvider>
-            <ConfirmationDialogProvider>
-              <Outlet />
-            </ConfirmationDialogProvider>
-          </TooltipProvider>
+        <FathomWrapper>
+          <TaskQueueProvider config={{ storageType: 'memory' }}>
+            <TooltipProvider>
+              <ConfirmationDialogProvider>
+                <Outlet />
+              </ConfirmationDialogProvider>
+            </TooltipProvider>
 
-          {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
-            <HelpScoutBeacon
-              beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
-              displayStyle="manual"
-              user={{
-                name: `${data?.user?.givenName} ${data?.user?.familyName}`,
-                email: data?.user?.email,
-                signature: helpscoutEnv.userSignature ?? '',
-              }}
-            />
-          )}
-        </TaskQueueProvider>
+            {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
+              <HelpScoutBeacon
+                beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+                displayStyle="manual"
+                user={{
+                  name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+                  email: data?.user?.email,
+                  signature: helpscoutEnv.userSignature ?? '',
+                }}
+              />
+            )}
+          </TaskQueueProvider>
+        </FathomWrapper>
       </AppProvider>
     </WatchProvider>
   );

@@ -4,7 +4,6 @@ import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { ThemeProvider, ThemeScript, useTheme } from '@/modules/datum-themes';
-import { FathomAnalytics } from '@/modules/fathom/fathom';
 import MarkerIoEmbed from '@/modules/markerio';
 import { queryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
@@ -111,9 +110,6 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
       <body className="h-auto w-full">
         {children}
 
-        {data?.ENV.fathomId && data?.ENV.nodeEnv === 'production' && (
-          <FathomAnalytics privateKey={data?.ENV.fathomId} />
-        )}
         <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
         <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />

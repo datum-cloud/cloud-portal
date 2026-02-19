@@ -3,6 +3,7 @@ import { DateTime } from '@/components/date-time';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { Organization } from '@/resources/organizations';
 import {
   createProjectService,
@@ -95,6 +96,7 @@ export default function OrgProjectsPage() {
 
   const navigate = useNavigate();
   const revalidator = useRevalidator();
+  const { trackAction } = useAnalytics();
 
   const { enqueue } = useTaskQueue();
   const queryClient = useQueryClient();
@@ -205,7 +207,12 @@ export default function OrgProjectsPage() {
         ctx.setResult(readyProject);
         ctx.succeed();
       },
-      onComplete: () => queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId ?? '') }),
+      onComplete: (outcome) => {
+        if (outcome.status === 'completed') {
+          trackAction(AnalyticsAction.CreateProject);
+        }
+        queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId ?? '') });
+      },
       completionActions: (result: Project) => [
         {
           children: 'View Project',

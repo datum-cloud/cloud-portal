@@ -1,6 +1,7 @@
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useApp } from '@/providers/app.provider';
 import {
   type HttpProxy,
@@ -73,6 +74,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { project, organization } = useApp();
+    const { trackAction } = useAnalytics();
     const updateMutation = useUpdateHttpProxy(projectId, editProxyName);
     const httpProxyService = createHttpProxyService();
 
@@ -240,8 +242,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           },
           onComplete: (outcome) => {
             queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-            if (outcome.status === 'failed') {
-              const errorMessage = outcome.failedItems[0]?.message || 'Failed to create AI Edge';
+            if (outcome.status === 'completed') {
+              trackAction(AnalyticsAction.AddProxy);
+            } else if (outcome.status === 'failed') {
+              const errorMessage =
+                outcome.failedItems[0]?.message || 'Failed to create Edge endpoint';
               onError?.(new Error(errorMessage));
             }
           },

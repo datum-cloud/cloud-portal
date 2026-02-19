@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { ActivityLogTable } from '@/features/activity-log';
 import { ActionCard } from '@/features/project/dashboard';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { createDomainService } from '@/resources/domains';
 import { createExportPolicyService } from '@/resources/export-policies';
 import { createProjectService, useUpdateProject } from '@/resources/projects';
@@ -87,6 +88,7 @@ export default function ProjectHomePage() {
   const { project } = useRouteLoaderData('project-detail');
   const { hasDomains, hasDesktop, hasMetrics } = useLoaderData<typeof loader>();
   const revalidator = useRevalidator();
+  const { trackAction } = useAnalytics();
 
   const updateMutation = useUpdateProject(project?.name ?? '', {
     onSuccess: () => {
@@ -191,7 +193,9 @@ export default function ProjectHomePage() {
             primaryButton={
               <Tooltip message="Coming soon">
                 {!hasDesktop ? (
-                  <Button icon={<Icon icon={DownloadIcon} className="size-4" />}>
+                  <Button
+                    icon={<Icon icon={DownloadIcon} className="size-4" />}
+                    onClick={() => trackAction(AnalyticsAction.DownloadDesktopApp)}>
                     Install Datum Desktop
                   </Button>
                 ) : (
@@ -199,7 +203,8 @@ export default function ProjectHomePage() {
                     className="border-card-success-border hover:border-secondary"
                     theme="outline"
                     type="secondary"
-                    icon={<Icon icon={DownloadIcon} className="size-4" />}>
+                    icon={<Icon icon={DownloadIcon} className="size-4" />}
+                    onClick={() => trackAction(AnalyticsAction.DownloadDesktopApp)}>
                     Install Datum Desktop
                   </Button>
                 )}
