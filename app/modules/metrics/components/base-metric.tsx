@@ -1,8 +1,8 @@
-import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { type PrometheusError } from '@/modules/prometheus';
 import { Alert, AlertDescription, SpinnerIcon } from '@datum-ui/components';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { AlertCircle, Minus } from 'lucide-react';
 import React from 'react';
 

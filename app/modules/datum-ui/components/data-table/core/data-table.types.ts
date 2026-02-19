@@ -1,6 +1,6 @@
 import type { InlineContentRenderParams } from '../features/inline-content/data-table-inline-content';
-import { EmptyContentProps } from '@/components/empty-content/empty-content';
 import type { ButtonProps } from '@datum-ui/components/button/button';
+import { EmptyContentProps } from '@datum-ui/components/empty-content';
 import { ColumnDef, ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 // Re-export InlineContentRenderParams from data-table-inline-content for convenience

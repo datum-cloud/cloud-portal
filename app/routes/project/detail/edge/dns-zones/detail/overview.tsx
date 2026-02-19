@@ -1,4 +1,3 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { DnsRecordCard } from '@/features/edge/dns-records';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
 import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
@@ -12,9 +11,10 @@ import { getDnsSetupStatus, getNameserverSetupStatus } from '@/utils/helpers/dns
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, LinkButton, Row } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { useParams, useRouteLoaderData } from 'react-router';
+import { Link, useParams, useRouteLoaderData } from 'react-router';
 
 export default function DnsZoneOverviewPage() {
   const { dnsZone, dnsRecordSets } =
@@ -57,7 +57,8 @@ export default function DnsZoneOverviewPage() {
             title="DNS Records"
             actions={
               <LinkButton
-                to={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
+                as={Link}
+                href={getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
                   projectId: projectId ?? '',
                   dnsZoneId: dnsZone?.name ?? '',
                 })}
@@ -91,7 +92,8 @@ export default function DnsZoneOverviewPage() {
                     />
                   )}
                   <LinkButton
-                    to={getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
+                    as={Link}
+                    href={getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
                       projectId: projectId ?? '',
                       dnsZoneId: dnsZone?.name ?? '',
                     })}

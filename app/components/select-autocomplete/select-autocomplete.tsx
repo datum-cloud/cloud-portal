@@ -1,7 +1,7 @@
 import { Option, SelectAutocompleteProps } from './select-autocomplete.types';
 import { VirtualizedList } from './virtualized-list';
-import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { Button } from '@datum-ui/components';
+import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ChevronDown } from 'lucide-react';

@@ -1,18 +1,9 @@
 import { FormProvider } from '../context/form-context';
 import type { FormRootProps, FormRootRenderProps } from '../types';
-import {
-  trackFormError,
-  trackFormSubmit,
-  trackFormSuccess,
-  trackFormValidationError,
-  captureError,
-} from '@/modules/sentry';
 import { FormProvider as ConformFormProvider, useForm, getFormProps } from '@conform-to/react';
 import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
 import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
-import { Form as RouterForm } from 'react-router';
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react';
 import type { z } from 'zod';
 
 /**
@@ -20,9 +11,8 @@ import type { z } from 'zod';
  *
  * Provides form context to all children with built-in:
  * - Zod schema validation
- * - CSRF protection
  * - Conform integration
- * - React Router form support
+ * - Optional telemetry callbacks
  *
  * Supports two patterns:
  * 1. ReactNode children - for standard forms
@@ -64,6 +54,7 @@ export function FormRoot<T extends z.ZodType>({
   onSubmit,
   action,
   method = 'POST',
+  formComponent: FormComp = 'form',
   id,
   name,
   defaultValues,
@@ -71,6 +62,7 @@ export function FormRoot<T extends z.ZodType>({
   isSubmitting: externalIsSubmitting,
   onError,
   onSuccess,
+  telemetry,
   className,
 }: FormRootProps<T>) {
   const [internalIsSubmitting, setInternalIsSubmitting] = React.useState(false);
@@ -94,7 +86,7 @@ export function FormRoot<T extends z.ZodType>({
       const formName = name || id || 'unnamed-form';
 
       // Track form submission attempt
-      trackFormSubmit({ formName, formId: id });
+      telemetry?.onSubmit?.({ formName, formId: id });
 
       // If no onSubmit handler is provided, let React Router handle the submission
       // This allows the form to submit to the current route's action or a specified action
@@ -112,20 +104,20 @@ export function FormRoot<T extends z.ZodType>({
         try {
           await onSubmit(submission.value as z.infer<T>);
           onSuccess?.(submission.value as z.infer<T>);
-          trackFormSuccess({ formName, formId: id });
+          telemetry?.onSuccess?.({ formName, formId: id });
         } catch (error) {
-          trackFormError({ formName, formId: id, error: error as Error });
-          captureError(error as Error, {
+          telemetry?.onError?.({ formName, formId: id, error: error as Error });
+          telemetry?.captureError?.(error as Error, {
             message: `Form submission error: ${formName}`,
             tags: { 'form.name': formName, 'form.id': id || 'unknown' },
           });
-          console.error('Form submission error:', error);
+          onError?.(error as z.ZodError<z.infer<T>>);
         } finally {
           setInternalIsSubmitting(false);
         }
       } else if (submission?.status === 'error') {
         // Track validation errors
-        trackFormValidationError({
+        telemetry?.onValidationError?.({
           formName,
           formId: id,
           fieldErrors: (submission.error as Record<string, string[]>) ?? {},
@@ -201,10 +193,10 @@ export function FormRoot<T extends z.ZodType>({
   return (
     <FormProvider value={contextValue}>
       <ConformFormProvider context={form.context}>
-        <RouterForm
+        <FormComp
           ref={formRef}
           {...conformFormProps}
-          onSubmit={(e) => {
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.stopPropagation();
             conformOnSubmit(e);
           }}
@@ -212,9 +204,8 @@ export function FormRoot<T extends z.ZodType>({
           action={action}
           className={cn('space-y-6', className)}
           autoComplete="off">
-          <AuthenticityTokenInput />
           {renderChildren()}
-        </RouterForm>
+        </FormComp>
       </ConformFormProvider>
     </FormProvider>
   );

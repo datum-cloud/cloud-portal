@@ -1,11 +1,10 @@
+import { CalendarDatePicker, type DateRangePreset } from '@datum-ui/components';
+import { Label } from '@datum-ui/components';
 import {
   useDateFilter,
   useDateRangeFilter,
-} from '@/modules/datum-ui/components/data-table/hooks/useFilterQueryState';
-import { useApp } from '@/providers/app.provider';
-import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@/utils/helpers/timezone.helper';
-import { CalendarDatePicker, type DateRangePreset } from '@datum-ui/components';
-import { Label } from '@datum-ui/components';
+} from '@datum-ui/components/data-table/hooks/useFilterQueryState';
+import { toUTCTimestampStartOfDay, toUTCTimestampEndOfDay } from '@datum-ui/utils/timezone';
 import { cn } from '@shadcn/lib/utils';
 import { useCallback, useMemo } from 'react';
 import { DateRange } from 'react-day-picker';
@@ -31,7 +30,7 @@ export interface DatePickerFilterProps {
   maxRange?: number; // Maximum number of days between start and end date
   // Timezone-aware options
   applyDayBoundaries?: boolean; // Apply start/end of day in user's timezone
-  useUserTimezone?: boolean; // Use user's timezone preference for day boundary calculation
+  timezone?: string; // Timezone for day boundary calculation (defaults to browser timezone)
 }
 
 export function DatePickerFilter({
@@ -53,7 +52,7 @@ export function DatePickerFilter({
   disablePast = false,
   maxRange,
   applyDayBoundaries = false,
-  useUserTimezone = false,
+  timezone: timezoneProp,
 }: DatePickerFilterProps) {
   // Use appropriate hook based on mode
   const singleFilter = useDateFilter(
@@ -67,12 +66,11 @@ export function DatePickerFilter({
 
   const { value, setValue } = mode === 'range' ? rangeFilter : singleFilter;
 
-  // Get user's timezone preference if needed
-  const { userPreferences } = useApp();
+  // Resolve timezone: use provided value or fall back to browser timezone
   const timezone = useMemo(() => {
-    if (!useUserTimezone) return undefined;
-    return userPreferences?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
-  }, [useUserTimezone, userPreferences]);
+    if (!applyDayBoundaries) return undefined;
+    return timezoneProp ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }, [applyDayBoundaries, timezoneProp]);
 
   const isRange = mode === 'range';
   const dateValue = value;
@@ -128,7 +126,7 @@ export function DatePickerFilter({
           range.to && range.to instanceof Date && !isNaN(range.to.getTime()) ? range.to : undefined;
 
         // Apply timezone-aware day boundaries if enabled
-        if (applyDayBoundaries && useUserTimezone && timezone && validFrom && validTo) {
+        if (applyDayBoundaries && timezone && validFrom && validTo) {
           const startTimestamp = toUTCTimestampStartOfDay(validFrom, timezone);
           const endTimestamp = toUTCTimestampEndOfDay(validTo, timezone);
 
@@ -151,7 +149,7 @@ export function DatePickerFilter({
         // Ensure we have a valid date before setting
         if (range.from && range.from instanceof Date && !isNaN(range.from.getTime())) {
           // Apply timezone-aware start of day if enabled
-          if (applyDayBoundaries && useUserTimezone && timezone) {
+          if (applyDayBoundaries && timezone) {
             const startTimestamp = toUTCTimestampStartOfDay(range.from, timezone);
             setValue(new Date(startTimestamp * 1000) as any);
           } else {
@@ -163,7 +161,7 @@ export function DatePickerFilter({
         }
       }
     },
-    [setValue, isRange, filterKey, applyDayBoundaries, useUserTimezone, timezone]
+    [setValue, isRange, filterKey, applyDayBoundaries, timezone]
   );
 
   return (

@@ -1,12 +1,11 @@
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
-import { Link } from 'react-router';
 
 /**
  * Datum Tabs Component
  * Extends shadcn Tabs with:
- * - TabsLinkTrigger for react-router integration
+ * - TabsLinkTrigger for router-agnostic link integration
  * - Dark mode customizations
  */
 
@@ -48,20 +47,30 @@ const TabsContent = ({
   return <TabsPrimitive.Content className={cn('flex-1 outline-none', className)} {...props} />;
 };
 
+interface TabsLinkTriggerProps extends React.ComponentProps<typeof TabsPrimitive.Trigger> {
+  /** Destination URL — mapped to `href` for native `<a>`, `to` for router Links */
+  href: string;
+  /** Link component to use (defaults to native `<a>`) */
+  linkComponent?: React.ElementType;
+}
+
 const TabsLinkTrigger = ({
   value,
-  to,
+  href,
+  linkComponent: LinkComp = 'a',
   children,
   className,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger> & {
-  to: string;
-}) => {
+}: TabsLinkTriggerProps) => {
+  // Map href to the appropriate prop for the component
+  const linkProps = LinkComp === 'a' ? { href } : { to: href };
+
   return (
     <TabsTrigger value={value} asChild className={className} {...props}>
-      <Link to={to}>{children}</Link>
+      <LinkComp {...linkProps}>{children}</LinkComp>
     </TabsTrigger>
   );
 };
 
 export { Tabs, TabsList, TabsTrigger, TabsContent, TabsLinkTrigger };
+export type { TabsLinkTriggerProps };

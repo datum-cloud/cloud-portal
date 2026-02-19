@@ -1,4 +1,3 @@
-import { PageTitle } from '@/components/page-title/page-title';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
@@ -7,6 +6,7 @@ import { useDomain, useDomainWatch } from '@/resources/domains';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Col, Row, toast } from '@datum-ui/components';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { useMemo, useRef, useEffect } from 'react';
 import {
   LoaderFunctionArgs,

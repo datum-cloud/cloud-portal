@@ -255,6 +255,7 @@ export type {
   UseFieldReturn,
   UseWatchReturn,
   FormDialogProps,
+  FormTelemetry,
   AutocompleteOption,
   AutocompleteGroup,
   AutocompleteProps,

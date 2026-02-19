@@ -1,4 +1,4 @@
-import { useDebounce } from '@/hooks/useDebounce';
+import { useDebounce } from '@datum-ui/hooks/use-debounce';
 import { useCallback, useEffect, useState } from 'react';
 
 /**

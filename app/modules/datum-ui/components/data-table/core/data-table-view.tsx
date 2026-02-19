@@ -3,7 +3,7 @@ import {
   InlineContentRenderParams,
 } from '../features/inline-content/data-table-inline-content';
 import { useDataTable } from './data-table.context';
-import { EmptyContent } from '@/components/empty-content/empty-content';
+import { EmptyContent } from '@datum-ui/components/empty-content';
 import { cn } from '@shadcn/lib/utils';
 import { TableBody, TableCell, TableRow } from '@shadcn/ui/table';
 import { Table as TTable, flexRender } from '@tanstack/react-table';

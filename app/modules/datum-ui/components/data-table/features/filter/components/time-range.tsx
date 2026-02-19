@@ -1,6 +1,5 @@
 // app/modules/datum-ui/components/data-table/features/filter/components/time-range.tsx
 import { useTimeRangeFilter } from '../../../hooks/useFilterQueryState';
-import { useApp } from '@/providers/app.provider';
 import {
   TimeRangePicker,
   type PresetConfig,
@@ -26,6 +25,8 @@ export interface TimeRangeFilterProps {
   className?: string;
   /** Disabled state */
   disabled?: boolean;
+  /** Timezone for time range calculations (defaults to browser timezone) */
+  timezone?: string;
 }
 
 export function TimeRangeFilter({
@@ -34,14 +35,10 @@ export function TimeRangeFilter({
   disableFuture = true,
   className,
   disabled,
+  timezone: timezoneProp,
 }: TimeRangeFilterProps) {
-  const { userPreferences } = useApp();
-
-  // Effective timezone
-  const timezone = useMemo(
-    () => userPreferences?.timezone ?? getBrowserTimezone(),
-    [userPreferences?.timezone]
-  );
+  // Effective timezone: use provided value or fall back to browser timezone
+  const timezone = useMemo(() => timezoneProp ?? getBrowserTimezone(), [timezoneProp]);
 
   // Sync time range with DataTable filter state + URL
   const { value: timeRange, setValue: setTimeRange } = useTimeRangeFilter(filterKey, null);

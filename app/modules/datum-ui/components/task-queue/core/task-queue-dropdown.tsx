@@ -10,7 +10,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/modules/datum-ui/components/dropdown';
+} from '@datum-ui/components/dropdown';
 import { CheckCircle2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

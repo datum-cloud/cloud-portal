@@ -1,6 +1,6 @@
 // src/components/multi-select.tsx
-import { LoaderOverlay } from '@/components/loader-overlay/loader-overlay';
 import { Badge } from '@datum-ui/components';
+import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
