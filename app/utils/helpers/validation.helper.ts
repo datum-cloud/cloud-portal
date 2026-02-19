@@ -170,6 +170,102 @@ export const createHostnameSchema = (fieldName = 'Hostname') =>
     );
 
 /**
+ * Creates a reusable Zod schema for validating subdomains with flexible formatting.
+ *
+ * This schema is more permissive than RFC 1123 to allow custom subdomains
+ * (e.g., 'api.staging.example.com', 'my-service.prod.example.com').
+ * Useful for proxy hostnames where users want to specify any valid subdomain.
+ *
+ * @param fieldName The name of the field to be used in validation messages. Defaults to 'Hostname'.
+ *
+ * Validation rules:
+ * 1. Maximum length of 253 characters (DNS limit)
+ * 2. Can include wildcard prefix (e.g., '*.example.com')
+ * 3. Wildcard (*) must appear by itself as the first label only
+ * 4. IP addresses (IPv4/IPv6) are explicitly not allowed
+ * 5. Must contain at least one dot (fully qualified)
+ * 6. Each label must be 1-63 characters
+ * 7. Labels can contain letters, numbers, dots, and hyphens
+ * 8. Labels cannot start or end with hyphens
+ * 9. Allows flexible subdomain patterns (e.g., multiple levels: api.staging.example.com)
+ */
+export const createSubdomainSchema = (fieldName = 'Hostname') =>
+  z
+    .string({ error: `${fieldName} is required` })
+    .trim()
+    .min(1, { message: `${fieldName} cannot be empty` })
+    .max(253, { message: `${fieldName} must not exceed 253 characters` })
+    .transform((val) => val.toLowerCase())
+    // Allow wildcard prefix
+    .refine(
+      (val) => {
+        if (!val) return true;
+        // Wildcard can only be at the start
+        if (val.includes('*')) {
+          return val.startsWith('*.') && val.indexOf('*', 2) === -1;
+        }
+        return true;
+      },
+      {
+        message:
+          'Wildcard (*) must appear only at the beginning as a separate label (e.g., *.example.com)',
+      }
+    )
+    // Reject IPv4 addresses
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const ipv4Pattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+        return !ipv4Pattern.test(val);
+      },
+      {
+        message: 'IP addresses are not allowed as hostnames',
+      }
+    )
+    // Reject IPv6 addresses
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const ipv6Pattern = /^([0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4}$/i;
+        return !ipv6Pattern.test(val);
+      },
+      {
+        message: 'IP addresses are not allowed as hostnames',
+      }
+    )
+    // Ensure hostname has at least one dot (fully qualified)
+    .refine(
+      (val) => {
+        if (!val) return true;
+        if (val.startsWith('*.')) return val.substring(2).includes('.');
+        return val.includes('.');
+      },
+      {
+        message: `${fieldName} must be fully qualified (e.g., 'example.com' or 'api.example.com')`,
+      }
+    )
+    // Validate labels (flexible DNS format: alphanumeric, hyphens, max 63 chars each)
+    .refine(
+      (val) => {
+        if (!val) return true;
+        const hostname = val.startsWith('*.') ? val.substring(2) : val;
+        const labels = hostname.split('.');
+        // Each label must be 1-63 chars, contain only alphanumeric and hyphens
+        return labels.every(
+          (label) =>
+            label.length > 0 &&
+            label.length <= 63 &&
+            /^[a-z0-9-]+$/.test(label) &&
+            !label.startsWith('-') &&
+            !label.endsWith('-')
+        );
+      },
+      {
+        message: `${fieldName} labels must be 1-63 characters, contain only letters, numbers, and hyphens, and cannot start or end with hyphens (e.g., 'api.staging.example.com')`,
+      }
+    );
+
+/**
  * RFC 3986 URI format - scheme must be present, followed by ://
  * Catches obviously invalid formats before URL parse
  */

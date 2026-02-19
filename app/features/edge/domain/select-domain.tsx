@@ -140,6 +140,26 @@ export function SelectDomain({
     [domainOptions, value]
   );
 
+  // In creatable mode, preserve the full typed subdomain instead of truncating to parent domain
+  const handleValueChange = useCallback(
+    (selectedValue: string) => {
+      if (creatable && searchTerm && selectedValue) {
+        const typedValue = searchTerm.trim().toLowerCase();
+        const selectedDomain = selectedValue.toLowerCase();
+
+        // If the typed value is a subdomain of the selected domain,
+        // use the full typed value (e.g., "api.staging.example.com" instead of "example.com")
+        if (typedValue !== selectedDomain && typedValue.endsWith(`.${selectedDomain}`)) {
+          onValueChange?.(typedValue);
+          return;
+        }
+      }
+
+      onValueChange?.(selectedValue);
+    },
+    [creatable, searchTerm, onValueChange]
+  );
+
   const handleDomainCreated = useCallback(
     async (domainName: string) => {
       // Refetch the domains list so the new domain appears in options
@@ -177,7 +197,7 @@ export function SelectDomain({
       <Autocomplete<DomainOption>
         options={searchFilteredOptions}
         value={value}
-        onValueChange={onValueChange}
+        onValueChange={handleValueChange}
         onSearchChange={creatable ? setSearchTerm : undefined}
         loading={externalLoading ?? isLoading}
         disabled={disabled}
