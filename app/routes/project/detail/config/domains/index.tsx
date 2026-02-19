@@ -503,7 +503,18 @@ export default function DomainsPage() {
         rowActions={rowActions}
       />
 
-      <DomainFormDialog ref={domainFormRef} projectId={projectId!} />
+      <DomainFormDialog
+        ref={domainFormRef}
+        projectId={projectId!}
+        onSuccess={(domain) => {
+          navigate(
+            getPathWithParams(paths.project.detail.domains.detail.overview, {
+              projectId,
+              domainId: domain.name,
+            })
+          );
+        }}
+      />
     </>
   );
 }

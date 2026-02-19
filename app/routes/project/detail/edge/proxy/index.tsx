@@ -4,10 +4,6 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
 import {
-  ProxyAdvancedConfigDialog,
-  type ProxyAdvancedConfigDialogRef,
-} from '@/features/edge/proxy/proxy-advanced-config-dialog';
-import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
@@ -28,7 +24,7 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, toast, Tooltip } from '@datum-ui/components';
+import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
@@ -80,7 +76,6 @@ export default function HttpProxyPage() {
 
   const { confirm } = useConfirmationDialog();
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
-  const advancedConfigRef = useRef<ProxyAdvancedConfigDialogRef>(null);
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {
@@ -194,7 +189,14 @@ export default function HttpProxyPage() {
         accessorKey: 'trafficProtectionMode',
         meta: { tooltip: 'What level of WAF protection is applied to this Edge' },
         cell: ({ row }) => {
-          return <span className="capitalize">{formatWafProtectionDisplay(row.original)}</span>;
+          return (
+            <Badge
+              type="quaternary"
+              theme="outline"
+              className="rounded-xl text-xs font-normal capitalize">
+              {formatWafProtectionDisplay(row.original)}
+            </Badge>
+          );
         },
       },
 
@@ -241,7 +243,7 @@ export default function HttpProxyPage() {
           );
         }}
         emptyContent={{
-          title: "let's add an Edge endpoint to get you started",
+          title: "let's add an AI Edge to get you started",
           actions: [
             {
               type: 'button',
@@ -276,7 +278,6 @@ export default function HttpProxyPage() {
       />
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
-      <ProxyAdvancedConfigDialog ref={advancedConfigRef} projectId={projectId!} />
     </>
   );
 }

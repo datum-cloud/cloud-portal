@@ -11,15 +11,39 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
  * Watch HTTP proxies list for real-time updates.
  */
 export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boolean }) {
+  const queryKey = httpProxyKeys.list(projectId);
+
   // Watch HTTPProxy resources
   useResourceWatch<HttpProxy>({
     resourceType: 'apis/networking.datumapis.com/v1alpha/httpproxies',
     projectId,
     namespace: 'default',
-    queryKey: httpProxyKeys.list(projectId),
+    queryKey,
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
     enabled: options?.enabled ?? true,
     getItemKey: (proxy) => proxy.name,
+    updateListCache: (oldData, newItem) => {
+      // Preserve existing WAF protection mode and paranoia levels when updating from watch events
+      if (Array.isArray(oldData)) {
+        const existingItem = oldData.find((item) => item.name === newItem.name);
+        if (existingItem?.trafficProtectionMode !== undefined) {
+          return oldData.map((item) =>
+            item.name === newItem.name
+              ? {
+                  ...newItem,
+                  trafficProtectionMode: existingItem.trafficProtectionMode,
+                  paranoiaLevels: existingItem.paranoiaLevels,
+                }
+              : item
+          );
+        }
+      }
+      // Default behavior: find and replace
+      if (Array.isArray(oldData)) {
+        return oldData.map((item) => (item.name === newItem.name ? newItem : item));
+      }
+      return oldData;
+    },
   });
 }
 
@@ -31,15 +55,33 @@ export function useHttpProxyWatch(
   name: string,
   options?: { enabled?: boolean }
 ) {
+  const queryKey = httpProxyKeys.detail(projectId, name);
+
   // Watch HTTPProxy resource
   useResourceWatch<HttpProxy>({
     resourceType: 'apis/networking.datumapis.com/v1alpha/httpproxies',
     projectId,
     namespace: 'default',
     name,
-    queryKey: httpProxyKeys.detail(projectId, name),
+    queryKey,
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
     enabled: options?.enabled ?? true,
+    updateSingleCache: (oldData, newItem) => {
+      // Preserve existing WAF protection mode and paranoia levels when updating from watch events
+      // because watch events don't include TrafficProtectionPolicy data
+      if (!oldData) return newItem;
+
+      // If old data has WAF protection mode, preserve it
+      if (oldData.trafficProtectionMode !== undefined) {
+        return {
+          ...newItem,
+          trafficProtectionMode: oldData.trafficProtectionMode,
+          paranoiaLevels: oldData.paranoiaLevels,
+        };
+      }
+
+      return newItem;
+    },
   });
 }
 

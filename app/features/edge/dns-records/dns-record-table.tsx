@@ -104,13 +104,16 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
               const [preference, exchange] = value.split('|');
               return (
                 <div className="flex items-center gap-2">
-                  <Tooltip side="bottom" message={exchange} contentClassName="max-w-96">
+                  <Tooltip
+                    side="bottom"
+                    message={exchange}
+                    contentClassName="max-w-96 overflow-x-auto">
                     <span className="truncate text-sm">{exchange}</span>
                   </Tooltip>
                   <Tooltip
                     side="bottom"
                     message="Priority of mail servers defined by MX records. Lowest value = highest priority."
-                    contentClassName="max-w-64">
+                    contentClassName="max-w-64 overflow-x-auto">
                     <Badge
                       type="success"
                       theme="light"
@@ -128,7 +131,10 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
                 const soa = JSON.parse(value);
                 const formattedValue = `${soa.mname} ${soa.rname} ${soa.refresh || 0} ${soa.retry || 0} ${soa.expire || 0} ${soa.ttl || 0}`;
                 return (
-                  <Tooltip side="bottom" message={formattedValue} contentClassName="max-w-96">
+                  <Tooltip
+                    side="bottom"
+                    message={formattedValue}
+                    contentClassName="max-w-96 overflow-x-auto">
                     <span className="truncate text-sm">
                       {soa.mname} {soa.rname} {soa.refresh || 0} {soa.retry || 0} {soa.expire || 0}{' '}
                       {soa.ttl || 0}
@@ -138,7 +144,10 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
               } catch {
                 // Fallback if JSON parsing fails
                 return (
-                  <Tooltip side="bottom" message={value} contentClassName="max-w-96">
+                  <Tooltip
+                    side="bottom"
+                    message={value}
+                    contentClassName="max-w-96 overflow-x-auto">
                     <span className="truncate text-sm">{value}</span>
                   </Tooltip>
                 );
@@ -146,7 +155,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
             }
 
             return (
-              <Tooltip side="bottom" message={value} contentClassName="max-w-96">
+              <Tooltip side="bottom" message={value} contentClassName="max-w-96 overflow-x-auto">
                 <span className="truncate text-sm">{value}</span>
               </Tooltip>
             );

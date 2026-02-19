@@ -8,6 +8,8 @@ proxyHealth.get('/check', async (c) => {
   try {
     const hostname = c.req.query('hostname');
 
+    console.log('hostname PROXY', hostname);
+
     if (!hostname) {
       return c.json({ error: 'hostname query parameter is required' }, 400);
     }

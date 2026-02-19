@@ -80,4 +80,11 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
    * @example (oldData, newItem) => ({ ...oldData, items: oldData.items.map(...) })
    */
   updateListCache?: (oldData: unknown, newItem: T) => unknown;
+  /**
+   * Update the single resource cache with a modified item.
+   * Allows merging existing data with new data from watch events.
+   * Defaults to direct replacement with new item.
+   * @example (oldData, newItem) => ({ ...newItem, preservedField: oldData.preservedField })
+   */
+  updateSingleCache?: (oldData: T | undefined, newItem: T) => T;
 }

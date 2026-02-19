@@ -8,7 +8,7 @@ import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Card, CardContent, LinkButton, Badge } from '@datum-ui/components';
+import { Card, CardContent, LinkButton, Badge, Tooltip } from '@datum-ui/components';
 import { useMemo } from 'react';
 
 export const DomainGeneralCard = ({
@@ -23,6 +23,9 @@ export const DomainGeneralCard = ({
   const listItems: ListItem[] = useMemo(() => {
     if (!domain) return [];
 
+    const registrationFetching = !!domain.status && !domain.status?.registration;
+    const nameserversFetching = !!domain.status && !domain.status?.nameservers?.length;
+
     return [
       {
         label: 'Resource Name',
@@ -30,17 +33,33 @@ export const DomainGeneralCard = ({
       },
       {
         label: 'Registrar',
-        content: domain.status?.registration?.registrar?.name ? (
+        content: registrationFetching ? (
+          <Tooltip message="Registrar information is being fetched and will appear shortly.">
+            <span className="text-muted-foreground animate-pulse text-sm">Looking up...</span>
+          </Tooltip>
+        ) : domain.status?.registration?.registrar?.name ? (
           <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
             {domain.status?.registration?.registrar?.name}
           </Badge>
+        ) : domain.status?.registration ? (
+          <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
+              Private
+            </Badge>
+          </Tooltip>
         ) : (
           '-'
         ),
       },
       {
         label: 'DNS Host',
-        content: <NameserverChips data={domain?.status?.nameservers} maxVisible={99} wrap />,
+        content: nameserversFetching ? (
+          <Tooltip message="DNS host information is being fetched and will appear shortly.">
+            <span className="text-muted-foreground animate-pulse text-sm">Looking up...</span>
+          </Tooltip>
+        ) : (
+          <NameserverChips data={domain?.status?.nameservers} maxVisible={99} wrap />
+        ),
       },
       {
         label: 'Status',

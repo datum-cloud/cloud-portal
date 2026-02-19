@@ -1,9 +1,13 @@
 import { getRegionCoordinates } from './region-coordinates';
 import { usePrometheusLabels } from '@/modules/metrics';
 import { buildPrometheusLabelSelector } from '@/modules/metrics/utils/query-builders';
+import { ControlPlaneStatus } from '@/resources/base';
+import { useHttpProxy } from '@/resources/http-proxies';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { SpinnerIcon } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Skeleton } from '@shadcn/ui/skeleton';
 import { MapPinIcon } from 'lucide-react';
 import { lazy, Suspense, useMemo } from 'react';
 
@@ -52,6 +56,20 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
       .filter((r): r is typeof r & { coords: [number, number] } => r.coords !== null);
   }, [regionOptions]);
 
+  // Check if proxy is still being created (Pending status)
+  const { data: proxy } = useHttpProxy(projectId, proxyId, {
+    enabled: !!projectId && !!proxyId,
+  });
+
+  const isProxyPending = useMemo(() => {
+    if (!proxy?.status) return true;
+    const transformedStatus = transformControlPlaneStatus(proxy.status);
+    return transformedStatus.status === ControlPlaneStatus.Pending;
+  }, [proxy?.status]);
+
+  // Show skeleton when proxy is pending and no POPs data yet
+  const showSkeleton = isProxyPending && !isLoading && regionOptions.length === 0 && !error;
+
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
       <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
@@ -70,7 +88,8 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
             </div>
           </div>
         )}
-        {!isLoading && !error && regionOptions.length > 0 && (
+        {showSkeleton && <Skeleton className="h-64 w-full rounded-lg border" />}
+        {!isLoading && !showSkeleton && !error && regionOptions.length > 0 && (
           <div className="flex flex-col gap-4">
             {regionsWithCoords.length > 0 && (
               <Suspense
@@ -85,7 +104,7 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
             )}
           </div>
         )}
-        {!isLoading && (error || regionOptions.length === 0) && (
+        {!isLoading && !showSkeleton && (error || regionOptions.length === 0) && (
           <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
             <p className="text-muted-foreground text-center text-sm">
               {error ? 'Unable to load active regions.' : 'No active POPs found.'}

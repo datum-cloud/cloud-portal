@@ -122,6 +122,6 @@ export interface DomainStatusConfig {
 
 export const DOMAIN_VERIFICATION_STATUS: Record<ControlPlaneStatus, DomainStatusConfig> = {
   [ControlPlaneStatus.Success]: { badgeStatus: 'success', label: 'Verified' },
-  [ControlPlaneStatus.Pending]: { badgeStatus: 'pending', label: 'Verifying' },
+  [ControlPlaneStatus.Pending]: { badgeStatus: 'error', label: 'Unverified' },
   [ControlPlaneStatus.Error]: { badgeStatus: 'error', label: 'Unverified' },
 };

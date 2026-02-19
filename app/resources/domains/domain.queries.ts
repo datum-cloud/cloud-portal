@@ -48,6 +48,7 @@ export function useCreateDomain(
       const [newDomain] = args;
       // Set detail cache - Watch handles list update
       queryClient.setQueryData(domainKeys.detail(projectId, newDomain.name), newDomain);
+      queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -68,6 +69,7 @@ export function useUpdateDomain(
       const [data] = args;
       // Update detail cache with server response - Watch handles list sync
       queryClient.setQueryData(domainKeys.detail(projectId, name), data);
+      queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -87,7 +89,7 @@ export function useDeleteDomain(
       const [, name] = args;
       // Cancel in-flight queries - Watch handles list update
       await queryClient.cancelQueries({ queryKey: domainKeys.detail(projectId, name) });
-
+      queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
   });

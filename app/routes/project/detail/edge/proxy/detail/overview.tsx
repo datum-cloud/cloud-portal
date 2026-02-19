@@ -6,7 +6,6 @@ import { HttpProxyUpstreamResponse } from '@/features/edge/proxy/metrics/upstrea
 import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
 import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
-import { GrafanaSetupCard } from '@/features/edge/proxy/overview/grafana-setup-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import {
@@ -88,7 +87,7 @@ export default function HttpProxyOverviewPage() {
     <MetricsProvider>
       <Row gutter={[24, 32]}>
         <Col span={24}>
-          <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'Edge endpoint'} />
+          <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'AI Edge'} />
         </Col>
         <Col span={24}>
           <HttpProxyGeneralCard
@@ -105,10 +104,7 @@ export default function HttpProxyOverviewPage() {
           />
         </Col>
         <Col span={24} lg={12}>
-          <HttpProxyOriginsCard
-            proxy={effectiveProxy}
-            onEdit={() => proxyFormRef.current?.show(effectiveProxy)}
-          />
+          <HttpProxyOriginsCard proxy={effectiveProxy} projectId={projectId} />
         </Col>
         <Col span={24}>
           <ActivePopsCard projectId={projectId ?? ''} proxyId={effectiveProxy.name ?? ''} />
@@ -146,13 +142,11 @@ export default function HttpProxyOverviewPage() {
             </CardContent>
           </Card>
         </Col>
-        <Col span={12}>
-          <GrafanaSetupCard projectId={projectId ?? ''} />
-        </Col>
+
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete Edge endpoint</h3>
+          <h3 className="mb-4 text-base font-medium">Delete AI Edge</h3>
           <DangerCard
-            deleteText="Delete edge endpoint"
+            deleteText="Delete AI Edge"
             loading={deleteMutation.isPending}
             onDelete={deleteHttpProxy}
           />

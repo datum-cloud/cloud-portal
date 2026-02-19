@@ -1,10 +1,13 @@
-import { ProxyAdvancedConfigDialog } from '@/features/edge/proxy/proxy-advanced-config-dialog';
-import type { ProxyAdvancedConfigDialogRef } from '@/features/edge/proxy/proxy-advanced-config-dialog';
+import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
+import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { ControlPlaneStatus } from '@/resources/base';
 import { type HttpProxy } from '@/resources/http-proxies';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge, Button, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
+import { Skeleton } from '@shadcn/ui/skeleton';
 import { CopyIcon, GlobeIcon, PencilIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 
@@ -13,13 +16,15 @@ export const HttpProxyHostnamesCard = ({
   customHostnames,
   proxy,
   projectId,
+  disabled,
 }: {
   status: HttpProxy['status'];
   customHostnames?: string[];
   proxy?: HttpProxy;
   projectId?: string;
+  disabled?: boolean;
 }) => {
-  const advancedConfigDialogRef = useRef<ProxyAdvancedConfigDialogRef>(null);
+  const hostnamesConfigDialogRef = useRef<ProxyHostnamesConfigDialogRef>(null);
   const [_, copy] = useCopyToClipboard();
   const [copiedText, setCopiedText] = useState('');
   const [copied, setCopied] = useState(false);
@@ -74,6 +79,16 @@ export const HttpProxyHostnamesCard = ({
       return [...system, ...custom];
     }, [status, customHostnames, verifiedHostnames]);
 
+  // Check if proxy is still being created (Pending status)
+  const isPending = useMemo(() => {
+    if (!status) return true;
+    const transformedStatus = transformControlPlaneStatus(status);
+    return transformedStatus.status === ControlPlaneStatus.Pending;
+  }, [status]);
+
+  // Show skeleton when pending and no hostnames
+  const showSkeleton = isPending;
+
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
       <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
@@ -87,58 +102,76 @@ export const HttpProxyHostnamesCard = ({
             className="ml-auto"
             onClick={() => {
               if (proxy) {
-                advancedConfigDialogRef.current?.show(proxy);
+                hostnamesConfigDialogRef.current?.show(proxy);
               }
-            }}>
+            }}
+            disabled={disabled ?? isPending}>
             <Icon icon={PencilIcon} size={12} />
             Edit hostnames
           </Button>
         </div>
 
-        {(hostnames ?? [])?.length > 0 && (
+        {showSkeleton ? (
           <div className="flex flex-col gap-2.5">
-            {hostnames?.map((val) => {
-              return (
-                <div
-                  key={val.hostname}
-                  className="border-input bg-background flex items-center justify-between gap-2 rounded-md border p-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Tooltip message={val.valid ? 'Valid' : val.message}>
-                      <Badge
-                        type={val.valid ? 'primary' : 'danger'}
-                        className={cn(
-                          'text-xs!',
-                          val.valid ? 'pointer-events-none' : 'cursor-pointer'
-                        )}>
-                        {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
-                      </Badge>
-                    </Tooltip>
-                    {val.verified && (
-                      <Badge type="success" theme="solid" className="text-xs!">
-                        Verified
-                      </Badge>
-                    )}
-                    <Tooltip message={val.hostname}>
-                      <span className="text-xs font-medium wrap-anywhere">{val.hostname}</span>
-                    </Tooltip>
-                  </div>
-                  <Button
-                    type="quaternary"
-                    theme="outline"
-                    size="small"
-                    className="h-7"
-                    onClick={() => copyToClipboard(val.hostname)}>
-                    <Icon icon={CopyIcon} className="size-4" />
-                    {copied && copiedText === val.hostname ? 'Copied' : 'Copy'}
-                  </Button>
+            {Array.from({ length: 1 }).map((_, index) => (
+              <div
+                key={index}
+                className="border-input dark:bg-background flex items-center justify-between gap-2 rounded-md border bg-white p-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Skeleton className="h-6 w-20 rounded-md" />
+                  <Skeleton className="h-6 w-16 rounded-md" />
+                  <Skeleton className="h-5 w-80" />
                 </div>
-              );
-            })}
+                <Skeleton className="h-7 w-20 rounded-md" />
+              </div>
+            ))}
           </div>
+        ) : (
+          (hostnames ?? [])?.length > 0 && (
+            <div className="flex flex-col gap-2.5">
+              {hostnames?.map((val) => {
+                return (
+                  <div
+                    key={val.hostname}
+                    className="border-input bg-background flex items-center justify-between gap-2 rounded-md border p-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Tooltip message={val.valid ? 'Valid' : val.message}>
+                        <Badge
+                          type={val.valid ? 'primary' : 'danger'}
+                          className={cn(
+                            'text-xs!',
+                            val.valid ? 'pointer-events-none' : 'cursor-pointer'
+                          )}>
+                          {val.valid ? 'HTTP/HTTPS' : 'Invalid'}
+                        </Badge>
+                      </Tooltip>
+                      {val.verified && (
+                        <Badge type="success" theme="solid" className="text-xs!">
+                          Verified
+                        </Badge>
+                      )}
+                      <Tooltip message={val.hostname}>
+                        <span className="text-xs font-medium wrap-anywhere">{val.hostname}</span>
+                      </Tooltip>
+                    </div>
+                    <Button
+                      type="quaternary"
+                      theme="outline"
+                      size="small"
+                      className="h-7"
+                      onClick={() => copyToClipboard(val.hostname)}>
+                      <Icon icon={CopyIcon} className="size-4" />
+                      {copied && copiedText === val.hostname ? 'Copied' : 'Copy'}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+          )
         )}
       </CardContent>
       {proxy && projectId && (
-        <ProxyAdvancedConfigDialog ref={advancedConfigDialogRef} projectId={projectId} />
+        <ProxyHostnamesConfigDialog ref={hostnamesConfigDialogRef} projectId={projectId} />
       )}
     </Card>
   );
