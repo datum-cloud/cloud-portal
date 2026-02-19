@@ -4,8 +4,9 @@ import { setSentryOrgContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { createOrganizationService, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
-import { redirectWithToast } from '@/utils/cookies';
+import { clearProjectSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
 import { NotFoundError } from '@/utils/errors';
+import { combineHeaders } from '@/utils/helpers/path.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
@@ -16,7 +17,7 @@ export const handle = {
   breadcrumb: (data: Organization) => <span>{data?.displayName}</span>,
 };
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { orgId } = params;
 
   if (!orgId) {
@@ -29,7 +30,14 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
     const org = await orgService.get(orgId);
 
-    return data(org);
+    // Set org cookie and clear project cookie (projects belong to orgs)
+    const orgSession = await setOrgSession(request, org.name);
+    const projectSession = await clearProjectSession(request);
+
+    // Combine headers from both cookie operations
+    const headers = combineHeaders(orgSession.headers, projectSession.headers);
+
+    return data(org, { headers });
   } catch {
     return redirectWithToast(paths.account.organizations.root, {
       title: 'Error',
