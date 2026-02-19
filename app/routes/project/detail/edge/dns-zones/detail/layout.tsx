@@ -84,14 +84,14 @@ export default function DnsZoneDetailLayout() {
 
   const navItems: NavItem[] = useMemo(() => {
     return [
-      {
+      /* {
         title: 'Overview',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
           projectId,
           dnsZoneId: dnsZone?.name ?? '',
         }),
         type: 'link',
-      },
+      }, */
       {
         title: 'DNS Records',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {

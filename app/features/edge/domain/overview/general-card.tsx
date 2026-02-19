@@ -62,7 +62,7 @@ export const DomainGeneralCard = ({
             theme="link"
             size="link"
             className="font-semibold"
-            to={getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
+            to={getPathWithParams(paths.project.detail.dnsZones.detail.root, {
               projectId: projectId ?? '',
               dnsZoneId: dnsZone?.name,
             })}>

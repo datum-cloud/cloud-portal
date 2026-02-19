@@ -205,7 +205,7 @@ export default function DomainsPage() {
   const handleManageDnsZone = async (domain: FormattedDomain) => {
     if (domain.dnsZone) {
       navigate(
-        getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
+        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
           projectId,
           dnsZoneId: domain.dnsZone.name ?? '',
         })
