@@ -7,7 +7,7 @@ export interface EmptyContentAction {
   label: string;
   onClick?: () => void;
   to?: string;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'outline';
   icon?: React.ReactNode;
   iconPosition?: 'start' | 'end';
 }
@@ -75,7 +75,7 @@ const subtitleVariants = cva('text-muted-foreground text-center text-xs font-nor
 });
 
 // Actions container variants
-const actionsContainerVariants = cva('flex items-center', {
+const actionsContainerVariants = cva('flex items-center flex-col', {
   variants: {
     size: {
       xs: 'gap-1',
@@ -155,7 +155,7 @@ export const EmptyContent = ({
       <Button
         size={buttonSize}
         type={action.variant === 'destructive' ? 'danger' : 'secondary'}
-        theme="solid"
+        theme={action.variant === 'outline' ? 'outline' : 'solid'}
         className={actionButtonVariants({ size })}>
         {actionIcon && iconPosition === 'start' && actionIcon}
         <span>{action.label}</span>
@@ -183,7 +183,7 @@ export const EmptyContent = ({
         size={buttonSize}
         onClick={action.onClick}
         type={action.variant === 'destructive' ? 'danger' : 'secondary'}
-        theme="solid"
+        theme={action.variant === 'outline' ? 'outline' : 'solid'}
         className={actionButtonVariants({ size })}>
         {actionIcon && iconPosition === 'start' && actionIcon}
         <span>{action.label}</span>

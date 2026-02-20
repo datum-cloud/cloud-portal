@@ -1,3 +1,4 @@
+import { useDataTable } from '../../core/data-table.context';
 import {
   DataTableSearchConfig,
   DataTableTitleProps,
@@ -163,6 +164,17 @@ export const DataTableToolbar = ({
   rightSectionClassName,
   multiActions,
 }: DataTableToolbarProps) => {
+  // Access table context to check for data and search query
+  const { table, globalFilter, getFilterValue } = useDataTable();
+
+  // Check if there's data (rows in the table)
+  const hasData = table.getRowModel().rows.length > 0;
+
+  // Check for search query: either globalFilter (for global-search) or filter 'q' (for single-column search)
+  const searchQuery = globalFilter?.trim() || '';
+  const filterSearchQuery = getFilterValue<string>('q')?.trim() || '';
+  const hasSearchQuery = searchQuery.length > 0 || filterSearchQuery.length > 0;
+
   // Merge title/description/actions from both old and new API
   const finalTitle = title || tableTitle?.title;
   const finalDescription = description || tableTitle?.description;
@@ -307,49 +319,53 @@ export const DataTableToolbar = ({
         <PageTitle title={finalTitle} description={finalDescription} />
       )}
 
-      {/* Compact Toolbar Row */}
+      {/* Compact Toolbar Row - Only show if there's data or a search query */}
+      {(hasData || hasSearchQuery) && (
+        <DataTableFilter className="flex w-full flex-row items-start justify-between gap-4">
+          {/* Left Section: Search */}
+          <div className={cn('flex w-full items-center gap-3 md:w-auto', leftSectionClassName)}>
+            {searchConfig && (
+              <DataTableToolbarSearch config={searchConfig} className="rounded-md" />
+            )}
+          </div>
 
-      <DataTableFilter className="flex w-full flex-row items-start justify-between gap-4">
-        {/* Left Section: Search */}
-        <div className={cn('flex w-full items-center gap-3 md:w-auto', leftSectionClassName)}>
-          {searchConfig && <DataTableToolbarSearch config={searchConfig} className="rounded-md" />}
-        </div>
+          {/* Right Section: Row Count + Multi-actions + Inline/Primary Filters + Dropdown Filters + Actions */}
+          <div
+            className={cn('flex flex-wrap items-center justify-end gap-3', rightSectionClassName)}>
+            {/* Row count (shows "X of Y selected" when rows are selected) */}
+            {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
 
-        {/* Right Section: Row Count + Multi-actions + Inline/Primary Filters + Dropdown Filters + Actions */}
-        <div className={cn('flex flex-wrap items-center justify-end gap-3', rightSectionClassName)}>
-          {/* Row count (shows "X of Y selected" when rows are selected) */}
-          {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
+            {/* Multi-actions (shown when rows are selected) */}
+            {multiActions && multiActions.length > 0 && (
+              <DataTableToolbarMultiActions actions={multiActions} />
+            )}
 
-          {/* Multi-actions (shown when rows are selected) */}
-          {multiActions && multiActions.length > 0 && (
-            <DataTableToolbarMultiActions actions={multiActions} />
-          )}
+            {/* Primary/Inline filters next to dropdown */}
+            {inlineFilters && inlineFilters.length > 0 && (
+              <div className="flex items-center gap-2">
+                {inlineFilters.map((filter, index) => (
+                  <div key={`inline-filter-${index}`}>{filter}</div>
+                ))}
+              </div>
+            )}
 
-          {/* Primary/Inline filters next to dropdown */}
-          {inlineFilters && inlineFilters.length > 0 && (
-            <div className="flex items-center gap-2">
-              {inlineFilters.map((filter, index) => (
-                <div key={`inline-filter-${index}`}>{filter}</div>
-              ))}
-            </div>
-          )}
+            {/* Dropdown filters button */}
+            {dropdownFilters && dropdownFilters.length > 0 && (
+              <DataTableToolbarFilterDropdown
+                showFilterCount={toolbarConfig.showFilterCount}
+                excludeColumns={['q', 'search']}>
+                {dropdownFilters.map((filter, index) => (
+                  <div key={`filter-${index}`} className="border-b pb-5 last:border-b-0 last:pb-0">
+                    {filter}
+                  </div>
+                ))}
+              </DataTableToolbarFilterDropdown>
+            )}
 
-          {/* Dropdown filters button */}
-          {dropdownFilters && dropdownFilters.length > 0 && (
-            <DataTableToolbarFilterDropdown
-              showFilterCount={toolbarConfig.showFilterCount}
-              excludeColumns={['q', 'search']}>
-              {dropdownFilters.map((filter, index) => (
-                <div key={`filter-${index}`} className="border-b pb-5 last:border-b-0 last:pb-0">
-                  {filter}
-                </div>
-              ))}
-            </DataTableToolbarFilterDropdown>
-          )}
-
-          {finalActions && <div className="flex items-center gap-2">{finalActions}</div>}
-        </div>
-      </DataTableFilter>
+            {finalActions && <div className="flex items-center gap-2">{finalActions}</div>}
+          </div>
+        </DataTableFilter>
+      )}
     </div>
   );
 };

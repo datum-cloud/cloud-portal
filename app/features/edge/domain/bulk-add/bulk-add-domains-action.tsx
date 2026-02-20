@@ -4,7 +4,7 @@ import { readFileAsText } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { parseDomainsFromFile } from '@/utils/helpers/parse.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, toast, useTaskQueue, createProjectMetadata } from '@datum-ui/components';
+import { Button, Dialog, toast, useTaskQueue, createProjectMetadata } from '@datum-ui/components';
 import { FileInputButton } from '@datum-ui/components/file-input-button/file-input-button';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Form } from '@datum-ui/components/new-form';
@@ -14,8 +14,22 @@ import { ArrowRightIcon, GlobeIcon, ListChecksIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
-export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
-  const [popoverOpen, setPopoverOpen] = useState(false);
+interface BulkAddDomainsActionProps {
+  projectId: string;
+  popoverOpen?: boolean;
+  onPopoverOpenChange?: (open: boolean) => void;
+}
+
+export const BulkAddDomainsAction = ({
+  projectId,
+  popoverOpen: controlledPopoverOpen,
+  onPopoverOpenChange,
+}: BulkAddDomainsActionProps) => {
+  const [internalPopoverOpen, setInternalPopoverOpen] = useState(false);
+
+  // Use controlled state if provided, otherwise use internal state
+  const popoverOpen = controlledPopoverOpen ?? internalPopoverOpen;
+  const setPopoverOpen = onPopoverOpenChange ?? setInternalPopoverOpen;
 
   const { enqueue, showSummary } = useTaskQueue();
   const navigate = useNavigate();
@@ -108,6 +122,84 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
     submitDomains(data.domains);
   };
 
+  // Use Dialog when controlled (for empty content), Popover when uncontrolled (for toolbar)
+  const isControlled = controlledPopoverOpen !== undefined;
+
+  const content = (
+    <>
+      {!isControlled && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-semibold">Bulk Add Domains</h2>
+          <p className="text-xs">
+            Paste a list of domains below, separated by new lines or commas.
+          </p>
+        </div>
+      )}
+
+      <Form.Root
+        schema={bulkDomainsSchema}
+        mode="onSubmit"
+        onSubmit={handleFormSubmit}
+        className="space-y-4">
+        {({ fields }) => {
+          const domains = fields.domains?.value;
+          const domainsCount = domains ? parseDomains(domains as string).length : 0;
+          return (
+            <>
+              <Form.Field name="domains" required>
+                <Form.Textarea
+                  placeholder={'example.com, example.org\nexample.net'}
+                  className="h-48 resize-none"
+                />
+              </Form.Field>
+              <Form.Submit
+                icon={<Icon icon={ArrowRightIcon} className="size-4" />}
+                iconPosition="right"
+                type="secondary"
+                theme="solid"
+                size="small"
+                htmlType="submit"
+                disabled={domainsCount === 0}>
+                {domainsCount > 0
+                  ? `Add ${domainsCount === 1 ? 'domain' : 'domains'} (${domainsCount})`
+                  : 'Add domains'}
+              </Form.Submit>
+            </>
+          );
+        }}
+      </Form.Root>
+
+      <div className="mt-6 space-y-4">
+        <h2 className="text-sm font-semibold">Import from file</h2>
+        <FileInputButton
+          htmlType="button"
+          accept={{ 'text/csv': ['.csv'] }}
+          type="quaternary"
+          theme="outline"
+          size="small"
+          onFileSelect={handleFileSelect}
+          onFileError={(error) => toast.error('Domains', { description: error.message })}>
+          Choose file
+        </FileInputButton>
+      </div>
+    </>
+  );
+
+  if (isControlled) {
+    return (
+      <Dialog open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <Dialog.Content className="w-96">
+          <Dialog.Header
+            title="Bulk Add Domains"
+            description="Paste a list of domains below, separated by new lines or commas."
+            onClose={() => setPopoverOpen(false)}
+          />
+          <Dialog.Body className="space-y-4 p-5 pt-0">{content}</Dialog.Body>
+        </Dialog.Content>
+      </Dialog>
+    );
+  }
+
   return (
     <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
       <PopoverTrigger asChild>
@@ -121,61 +213,7 @@ export const BulkAddDomainsAction = ({ projectId }: { projectId: string }) => {
           Bulk add domains
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-96 space-y-4 rounded-xl p-7">
-        <div className="space-y-3">
-          <h2 className="text-sm font-semibold">Bulk Add Domains</h2>
-          <p className="text-xs">
-            Paste a list of domains below, separated by new lines or commas.
-          </p>
-        </div>
-
-        <Form.Root
-          schema={bulkDomainsSchema}
-          mode="onSubmit"
-          onSubmit={handleFormSubmit}
-          className="space-y-4">
-          {({ fields }) => {
-            const domains = fields.domains?.value;
-            const domainsCount = domains ? parseDomains(domains as string).length : 0;
-            return (
-              <>
-                <Form.Field name="domains" required>
-                  <Form.Textarea
-                    placeholder={'example.com, example.org\nexample.net'}
-                    className="h-48 resize-none"
-                  />
-                </Form.Field>
-                <Form.Submit
-                  icon={<Icon icon={ArrowRightIcon} className="size-4" />}
-                  iconPosition="right"
-                  type="secondary"
-                  theme="solid"
-                  size="small"
-                  htmlType="submit"
-                  disabled={domainsCount === 0}>
-                  {domainsCount > 0
-                    ? `Add ${domainsCount === 1 ? 'domain' : 'domains'} (${domainsCount})`
-                    : 'Add domains'}
-                </Form.Submit>
-              </>
-            );
-          }}
-        </Form.Root>
-
-        <div className="mt-6 space-y-4">
-          <h2 className="text-sm font-semibold">Import from file</h2>
-          <FileInputButton
-            htmlType="button"
-            accept={{ 'text/csv': ['.csv'] }}
-            type="quaternary"
-            theme="outline"
-            size="small"
-            onFileSelect={handleFileSelect}
-            onFileError={(error) => toast.error('Domains', { description: error.message })}>
-            Choose file
-          </FileInputButton>
-        </div>
-      </PopoverContent>
+      <PopoverContent className="w-96 space-y-4 rounded-xl p-7">{content}</PopoverContent>
     </Popover>
   );
 };
