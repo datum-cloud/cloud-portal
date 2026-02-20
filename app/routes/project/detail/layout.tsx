@@ -21,6 +21,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import {
+  CableIcon,
   ChartSplineIcon,
   FileLockIcon,
   GaugeIcon,
@@ -135,13 +136,15 @@ export default function ProjectLayout() {
         type: 'link',
         showSeparatorAbove: true,
       },
-      // {
-      //   title: 'Tunnels',
-      //   href: '/',
-      //   icon: NetworkIcon,
-      //   disabled: true,
-      //   type: 'link',
-      // },
+      {
+        title: 'Connectors',
+        href: getPathWithParams(paths.project.detail.connectors.root, {
+          projectId,
+        }),
+        type: 'link',
+        icon: CableIcon,
+        disabled: !isReady,
+      },
       {
         title: 'DNS',
         href: getPathWithParams(paths.project.detail.dnsZones.root, {
@@ -167,6 +170,7 @@ export default function ProjectLayout() {
         icon: ChartSplineIcon,
         disabled: !isReady,
       },
+
       {
         title: 'Secrets',
         href: getPathWithParams(paths.project.detail.config.secrets.root, {

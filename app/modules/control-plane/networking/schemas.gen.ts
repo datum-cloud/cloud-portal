@@ -2109,6 +2109,11 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
             ],
           },
         },
+        canonicalHostname: {
+          description:
+            'CanonicalHostname is the platform-managed stable hostname assigned to this\nHTTPProxy (e.g., "<uid>.datumproxy.net"). Users may create external CNAME\nor ALIAS records pointing to this hostname to route traffic through the\nplatform. The platform manages A/AAAA records for this hostname in the\ndatumproxy.net zone.',
+          type: 'string',
+        },
         conditions: {
           description: 'Conditions describe the current conditions of the HTTPProxy.',
           type: 'array',
@@ -2162,9 +2167,82 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
           'x-kubernetes-list-map-keys': ['type'],
           'x-kubernetes-list-type': 'map',
         },
+        hostnameStatuses: {
+          description:
+            'HostnameStatuses lists the per-hostname status for each hostname configured\non this HTTPProxy. Each entry includes verification and DNS record\nprogramming conditions. Use this field instead of the deprecated Hostnames\nfield for detailed per-hostname lifecycle information.',
+          type: 'array',
+          items: {
+            description:
+              'HostnameStatus captures the per-hostname verification and DNS programming status.\nEach hostname configured on an HTTPProxy has a corresponding entry tracking\nits lifecycle from domain ownership verification through DNS record creation.',
+            type: 'object',
+            required: ['hostname'],
+            properties: {
+              conditions: {
+                description:
+                  'Conditions contains the current status conditions for this hostname.\nStandard condition types include Verified and DNSRecordProgrammed.',
+                type: 'array',
+                items: {
+                  description:
+                    'Condition contains details for one aspect of the current state of this API Resource.',
+                  type: 'object',
+                  required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+                  properties: {
+                    lastTransitionTime: {
+                      description:
+                        'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                      type: 'string',
+                      format: 'date-time',
+                    },
+                    message: {
+                      description:
+                        'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                      type: 'string',
+                      maxLength: 32768,
+                    },
+                    observedGeneration: {
+                      description:
+                        'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                      type: 'integer',
+                      format: 'int64',
+                      minimum: 0,
+                    },
+                    reason: {
+                      description:
+                        "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                      type: 'string',
+                      maxLength: 1024,
+                      minLength: 1,
+                      pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+                    },
+                    status: {
+                      description: 'status of the condition, one of True, False, Unknown.',
+                      type: 'string',
+                      enum: ['True', 'False', 'Unknown'],
+                    },
+                    type: {
+                      description:
+                        'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                      type: 'string',
+                      maxLength: 316,
+                      pattern:
+                        '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+                    },
+                  },
+                },
+                'x-kubernetes-list-map-keys': ['type'],
+                'x-kubernetes-list-type': 'map',
+              },
+              hostname: {
+                description:
+                  'Hostname is the fully qualified domain name being tracked.\nMust be a valid RFC 1123 hostname without a trailing dot.',
+                type: 'string',
+              },
+            },
+          },
+        },
         hostnames: {
           description:
-            'Hostnames lists the hostnames that have been bound to the HTTPProxy.\n\nIf this list does not match that defined in the HTTPProxy, see the\n`HostnamesVerified` condition message for details.',
+            'Hostnames lists the hostnames that have been bound to the HTTPProxy.\n\nIf this list does not match that defined in the HTTPProxy, see the\n`HostnamesVerified` condition message for details.\n\nDeprecated: Use HostnameStatuses for detailed per-hostname status.\nThis field will be removed in a future API version.',
           type: 'array',
           items: {
             description:

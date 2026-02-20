@@ -54,12 +54,14 @@ export const ProxyHostnamesConfigDialog = forwardRef<
   const handleSubmit = async (data: HostnamesConfigSchema) => {
     if (!proxy) return;
 
+    console.log('DATA', data);
+
     try {
       await updateMutation.mutateAsync({
-        hostnames: data.hostnames,
+        hostnames: data.hostnames ?? [],
         tlsHostname: data.tlsHostname,
-        endpoint: proxy.endpoint ?? '', // Required field, use existing value
-        chosenName: proxy.chosenName, // Required field, use existing value
+        endpoint: proxy.endpoint,
+        enableHttpRedirect: proxy.enableHttpRedirect,
       });
       toast.success('AI Edge', {
         description: 'Hostnames and TLS settings have been updated successfully',

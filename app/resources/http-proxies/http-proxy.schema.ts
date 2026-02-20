@@ -3,6 +3,22 @@ import { nameSchema } from '@/resources/base';
 import { createSubdomainSchema, isIPAddress } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
+const hostnameStatusConditionSchema = z.object({
+  type: z.string(),
+  status: z.enum(['True', 'False', 'Unknown']),
+  reason: z.string(),
+  message: z.string(),
+  lastTransitionTime: z.string(),
+  observedGeneration: z.number().optional(),
+});
+
+export const hostnameStatusSchema = z.object({
+  hostname: z.string(),
+  conditions: z.array(hostnameStatusConditionSchema).optional(),
+});
+
+export type HostnameStatus = z.infer<typeof hostnameStatusSchema>;
+
 // HTTP Proxy resource schema (from API)
 export const httpProxyResourceSchema = z.object({
   uid: z.string(),
@@ -16,6 +32,8 @@ export const httpProxyResourceSchema = z.object({
   tlsHostname: z.string().optional(),
   status: z.any().optional(),
   chosenName: z.string().optional(),
+  canonicalHostname: z.string().optional(),
+  hostnameStatuses: z.array(hostnameStatusSchema).optional(),
   /** WAF mode from the linked TrafficProtectionPolicy (if present) */
   trafficProtectionMode: z.enum(['Observe', 'Enforce', 'Disabled']).optional(),
   /** Paranoia levels from the linked TrafficProtectionPolicy (if present) */
@@ -80,7 +98,7 @@ export type CreateHttpProxyInput = {
 };
 
 export type UpdateHttpProxyInput = {
-  endpoint: string;
+  endpoint?: string;
   hostnames?: string[];
   tlsHostname?: string;
   /**
@@ -147,11 +165,6 @@ export const httpProxySchema = z
       }),
     tlsHostname: z.string().min(1).max(253).optional(),
     trafficProtectionMode: trafficProtectionModeSchema.default('Enforce'),
-    // Combined WAF mode + paranoia level selection
-    wafModeWithParanoia: z
-      .enum(['Observe', 'Enforce (Basic)', 'Enforce (Medium)', 'Enforce (High)', 'Disabled'])
-      .optional(),
-    // Keep these for backward compatibility but they'll be derived from wafModeWithParanoia
     paranoiaLevelBlocking: z.preprocess((val) => {
       if (val === undefined || val === null || val === '') return undefined;
       const num = typeof val === 'string' ? Number.parseInt(val, 10) : Number(val);

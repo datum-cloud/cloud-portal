@@ -6,7 +6,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId, proxyId } = params;
 
   return redirect(
-    getPathWithParams(paths.project.detail.proxy.detail.overview, {
+    getPathWithParams(paths.project.detail.proxy.detail.root, {
       projectId,
       proxyId,
     })

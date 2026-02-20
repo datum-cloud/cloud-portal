@@ -4,13 +4,10 @@ import { HttpProxyGlobalUpstreamLatency } from '@/features/edge/proxy/metrics/gl
 import { HttpProxyUpstreamResponse } from '@/features/edge/proxy/metrics/upstream-response';
 import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
 import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
+import { HttpProxyConfigCard } from '@/features/edge/proxy/overview/config-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
-import {
-  HttpProxyFormDialog,
-  type HttpProxyFormDialogRef,
-} from '@/features/edge/proxy/proxy-form-dialog';
 import { MetricsProvider, MetricsToolbar } from '@/modules/metrics';
 import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filter';
 import {
@@ -21,11 +18,10 @@ import {
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Icon, toast } from '@datum-ui/components';
+import { Button, Icon, toast } from '@datum-ui/components';
 import { Card, CardContent, Col, Row } from '@datum-ui/components';
 import { PageTitle } from '@datum-ui/components/page-title';
-import { ChartSplineIcon } from 'lucide-react';
-import { useRef } from 'react';
+import { ChartSplineIcon, Trash2Icon } from 'lucide-react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export default function HttpProxyOverviewPage() {
@@ -33,17 +29,14 @@ export default function HttpProxyOverviewPage() {
   const { projectId, proxyId } = useParams();
   const navigate = useNavigate();
 
-  // Live React Query data with SSR fallback
   const { data: httpProxy } = useHttpProxy(projectId ?? '', proxyId ?? '', {
     initialData: loaderData,
     refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Subscribe to real-time updates via SSE
   useHttpProxyWatch(projectId ?? '', proxyId ?? '');
 
-  const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
   const { confirm } = useConfirmationDialog();
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
@@ -85,23 +78,29 @@ export default function HttpProxyOverviewPage() {
 
   return (
     <MetricsProvider>
-      <Row gutter={[24, 32]}>
+      <Row type="flex" gutter={[24, 32]}>
         <Col span={24}>
-          <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'AI Edge'} />
-        </Col>
-        <Col span={24}>
-          <HttpProxyGeneralCard
-            httpProxy={effectiveProxy}
-            onEdit={() => proxyFormRef.current?.show(effectiveProxy)}
-          />
+          <div className="flex items-center justify-between">
+            <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'AI Edge'} />
+            <Button
+              type="danger"
+              theme="outline"
+              size="small"
+              loading={deleteMutation.isPending}
+              onClick={deleteHttpProxy}>
+              <Icon icon={Trash2Icon} size={14} />
+              Delete
+            </Button>
+          </div>
         </Col>
         <Col span={24} lg={12}>
-          <HttpProxyHostnamesCard
-            customHostnames={effectiveProxy?.hostnames ?? []}
-            status={effectiveProxy?.status}
-            proxy={effectiveProxy}
-            projectId={projectId}
-          />
+          <HttpProxyGeneralCard httpProxy={effectiveProxy} />
+        </Col>
+        <Col span={24} lg={12}>
+          <HttpProxyConfigCard httpProxy={effectiveProxy} projectId={projectId} />
+        </Col>
+        <Col span={24} lg={12}>
+          <HttpProxyHostnamesCard proxy={effectiveProxy} projectId={projectId} />
         </Col>
         <Col span={24} lg={12}>
           <HttpProxyOriginsCard proxy={effectiveProxy} projectId={projectId} />
@@ -142,7 +141,6 @@ export default function HttpProxyOverviewPage() {
             </CardContent>
           </Card>
         </Col>
-
         <Col span={24}>
           <h3 className="mb-4 text-base font-medium">Delete AI Edge</h3>
           <DangerCard
@@ -152,8 +150,6 @@ export default function HttpProxyOverviewPage() {
           />
         </Col>
       </Row>
-
-      <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
     </MetricsProvider>
   );
 }

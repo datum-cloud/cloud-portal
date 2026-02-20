@@ -128,10 +128,7 @@ export default [
               ':proxyId',
               'routes/project/detail/edge/proxy/detail/layout.tsx',
               { id: 'proxy-detail' },
-              [
-                index('routes/project/detail/edge/proxy/detail/index.tsx'),
-                route('overview', 'routes/project/detail/edge/proxy/detail/overview.tsx'),
-              ]
+              [index('routes/project/detail/edge/proxy/detail/overview.tsx')]
             ),
           ]),
         ]),
@@ -157,6 +154,11 @@ export default [
               ]
             ),
           ]),
+        ]),
+
+        // Connectors
+        route('connectors', 'routes/project/detail/connectors/layout.tsx', [
+          index('routes/project/detail/connectors/index.tsx'),
         ]),
 
         // Assets Group

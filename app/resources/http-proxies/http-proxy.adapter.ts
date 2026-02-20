@@ -157,6 +157,8 @@ export function toHttpProxy(
     hostnames: raw.spec?.hostnames,
     tlsHostname: backend?.tls?.hostname,
     status: raw.status,
+    canonicalHostname: raw.status?.canonicalHostname,
+    hostnameStatuses: raw.status?.hostnameStatuses,
     chosenName: raw.metadata?.annotations?.['app.kubernetes.io/name'] ?? '',
     enableHttpRedirect: hasRedirectRule,
     ...(options?.trafficProtectionMode !== undefined && {
@@ -307,37 +309,30 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
   };
 }
 
+type RedirectRule = {
+  filters: Array<{
+    type: 'RequestRedirect';
+    requestRedirect: { scheme: 'https'; statusCode: 301 };
+  }>;
+};
+type BackendRule = {
+  backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+};
+
 /**
- * Transform UpdateHttpProxyInput to API payload
+ * Transform UpdateHttpProxyInput to API merge-patch payload.
+ * Only includes `spec` fields that are actually provided so partial
+ * updates (e.g. toggling Force HTTPS alone) don't clobber other fields.
  */
 export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
   kind: string;
   apiVersion: string;
   metadata?: { annotations: Record<string, string> };
-  spec: {
-    hostnames: string[];
-    rules: Array<
-      | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
-      | {
-          filters: Array<{
-            type: 'RequestRedirect';
-            requestRedirect: { scheme: 'https'; statusCode: 301 };
-          }>;
-        }
-    >;
+  spec?: {
+    hostnames?: string[];
+    rules?: Array<BackendRule | RedirectRule>;
   };
 } {
-  const backend: { endpoint: string; tls?: { hostname: string } } = {
-    endpoint: input.endpoint,
-  };
-
-  // Add TLS configuration if provided
-  if (input.tlsHostname) {
-    backend.tls = {
-      hostname: input.tlsHostname,
-    };
-  }
-
   const annotations: Record<string, string> = {};
 
   if (input.chosenName !== undefined) {
@@ -346,43 +341,50 @@ export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
 
   const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
 
-  const rules: Array<
-    | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
-    | {
-        filters: Array<{
-          type: 'RequestRedirect';
-          requestRedirect: { scheme: 'https'; statusCode: 301 };
-        }>;
+  // Only build rules when endpoint or enableHttpRedirect is explicitly provided
+  const hasRulesChange = input.endpoint !== undefined || input.enableHttpRedirect !== undefined;
+
+  let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
+
+  if (hasRulesChange || input.hostnames !== undefined) {
+    spec = {};
+
+    if (input.hostnames !== undefined) {
+      spec.hostnames = input.hostnames;
+    }
+
+    if (hasRulesChange) {
+      const rules: Array<BackendRule | RedirectRule> = [];
+
+      if (input.enableHttpRedirect) {
+        rules.push({
+          filters: [
+            {
+              type: 'RequestRedirect',
+              requestRedirect: { scheme: 'https', statusCode: 301 },
+            },
+          ],
+        });
       }
-  > = [];
 
-  // Add redirect rule first if HTTP redirect is enabled
-  if (input.enableHttpRedirect) {
-    rules.push({
-      filters: [
-        {
-          type: 'RequestRedirect',
-          requestRedirect: {
-            scheme: 'https',
-            statusCode: 301,
-          },
-        },
-      ],
-    });
+      if (input.endpoint) {
+        const backend: { endpoint: string; tls?: { hostname: string } } = {
+          endpoint: input.endpoint,
+        };
+        if (input.tlsHostname) {
+          backend.tls = { hostname: input.tlsHostname };
+        }
+        rules.push({ backends: [backend] });
+      }
+
+      spec.rules = rules;
+    }
   }
-
-  // Add backend rule
-  rules.push({
-    backends: [backend],
-  });
 
   return {
     kind: 'HTTPProxy',
     apiVersion: 'networking.datumapis.com/v1alpha',
     ...(metadata ? { metadata } : {}),
-    spec: {
-      hostnames: input.hostnames ?? [],
-      rules,
-    },
+    ...(spec ? { spec } : {}),
   };
 }

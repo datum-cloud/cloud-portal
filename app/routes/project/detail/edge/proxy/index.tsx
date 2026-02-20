@@ -214,12 +214,6 @@ export default function HttpProxyPage() {
   const rowActions: DataTableRowActionsProps<HttpProxy>[] = useMemo(
     () => [
       {
-        key: 'edit',
-        label: 'Edit',
-        variant: 'default',
-        action: (row) => proxyFormRef.current?.show(row),
-      },
-      {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
@@ -236,7 +230,7 @@ export default function HttpProxyPage() {
         data={data ?? []}
         onRowClick={(row) => {
           navigate(
-            getPathWithParams(paths.project.detail.proxy.detail.overview, {
+            getPathWithParams(paths.project.detail.proxy.detail.root, {
               projectId,
               proxyId: row.name,
             })

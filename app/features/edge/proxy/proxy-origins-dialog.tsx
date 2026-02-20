@@ -61,6 +61,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       try {
         await updateMutation.mutateAsync({
           endpoint: fullEndpoint,
+          enableHttpRedirect: proxy.enableHttpRedirect,
         });
         toast.success('AI Edge', {
           description: 'Origin has been updated successfully',

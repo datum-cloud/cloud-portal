@@ -14,6 +14,8 @@ export {
   httpProxySchema,
   type HttpProxySchema,
   type HttpProxyHostnameSchema,
+  hostnameStatusSchema,
+  type HostnameStatus,
 } from './http-proxy.schema';
 
 // Adapter exports
@@ -42,11 +44,4 @@ export {
 export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from './http-proxy.watch';
 
 // Utility exports
-export {
-  getWafModeWithParanoia,
-  parseWafModeWithParanoia,
-  formatWafProtectionDisplay,
-} from './http-proxy.utils';
-
-// Health check exports
-export { checkProxyHealth, type ProxyHealthCheckResult } from './http-proxy.health';
+export { getParanoiaLevelLabel, formatWafProtectionDisplay } from './http-proxy.utils';

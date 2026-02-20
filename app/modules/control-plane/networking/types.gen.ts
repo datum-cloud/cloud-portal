@@ -2014,6 +2014,14 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
       value: string;
     }>;
     /**
+     * CanonicalHostname is the platform-managed stable hostname assigned to this
+     * HTTPProxy (e.g., "<uid>.datumproxy.net"). Users may create external CNAME
+     * or ALIAS records pointing to this hostname to route traffic through the
+     * platform. The platform manages A/AAAA records for this hostname in the
+     * datumproxy.net zone.
+     */
+    canonicalHostname?: string;
+    /**
      * Conditions describe the current conditions of the HTTPProxy.
      */
     conditions?: Array<{
@@ -2051,10 +2059,64 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
       type: string;
     }>;
     /**
+     * HostnameStatuses lists the per-hostname status for each hostname configured
+     * on this HTTPProxy. Each entry includes verification and DNS record
+     * programming conditions. Use this field instead of the deprecated Hostnames
+     * field for detailed per-hostname lifecycle information.
+     */
+    hostnameStatuses?: Array<{
+      /**
+       * Conditions contains the current status conditions for this hostname.
+       * Standard condition types include Verified and DNSRecordProgrammed.
+       */
+      conditions?: Array<{
+        /**
+         * lastTransitionTime is the last time the condition transitioned from one status to another.
+         * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+         */
+        lastTransitionTime: string;
+        /**
+         * message is a human readable message indicating details about the transition.
+         * This may be an empty string.
+         */
+        message: string;
+        /**
+         * observedGeneration represents the .metadata.generation that the condition was set based upon.
+         * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+         * with respect to the current state of the instance.
+         */
+        observedGeneration?: number;
+        /**
+         * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+         * Producers of specific condition types may define expected values and meanings for this field,
+         * and whether the values are considered a guaranteed API.
+         * The value should be a CamelCase string.
+         * This field may not be empty.
+         */
+        reason: string;
+        /**
+         * status of the condition, one of True, False, Unknown.
+         */
+        status: 'True' | 'False' | 'Unknown';
+        /**
+         * type of condition in CamelCase or in foo.example.com/CamelCase.
+         */
+        type: string;
+      }>;
+      /**
+       * Hostname is the fully qualified domain name being tracked.
+       * Must be a valid RFC 1123 hostname without a trailing dot.
+       */
+      hostname: string;
+    }>;
+    /**
      * Hostnames lists the hostnames that have been bound to the HTTPProxy.
      *
      * If this list does not match that defined in the HTTPProxy, see the
      * `HostnamesVerified` condition message for details.
+     *
+     * Deprecated: Use HostnameStatuses for detailed per-hostname status.
+     * This field will be removed in a future API version.
      */
     hostnames?: Array<string>;
   };
