@@ -1,7 +1,6 @@
 import { paths } from '@/utils/config/paths.config';
 import { getOrgSession, getProjectSession } from '@/utils/cookies';
-import { combineHeaders } from '@/utils/helpers/path.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {

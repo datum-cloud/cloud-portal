@@ -6,8 +6,7 @@ import { createOrganizationService, type Organization } from '@/resources/organi
 import { paths } from '@/utils/config/paths.config';
 import { clearProjectSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
 import { NotFoundError } from '@/utils/errors';
-import { combineHeaders } from '@/utils/helpers/path.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
