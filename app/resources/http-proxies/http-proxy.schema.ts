@@ -1,6 +1,6 @@
 import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
 import { nameSchema } from '@/resources/base';
-import { createHostnameSchema, isIPAddress } from '@/utils/helpers/validation.helper';
+import { createSubdomainSchema, isIPAddress } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 // HTTP Proxy resource schema (from API)
@@ -100,7 +100,7 @@ export type UpdateHttpProxyInput = {
 
 // Form validation schemas
 export const httpProxyHostnameSchema = z.object({
-  hostnames: z.array(createHostnameSchema('Hostname')).optional(),
+  hostnames: z.array(createSubdomainSchema('Hostname')).optional(),
 });
 
 // Helper function to validate hostname:port (without protocol)
