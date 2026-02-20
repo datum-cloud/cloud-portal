@@ -98,7 +98,7 @@ export default function OrgProjectsPage() {
   const revalidator = useRevalidator();
   const { trackAction } = useAnalytics();
 
-  const { enqueue } = useTaskQueue();
+  const { enqueue, showSummary } = useTaskQueue();
   const queryClient = useQueryClient();
 
   // Alert close fetcher - native useFetcher with effect-based callback
@@ -180,8 +180,11 @@ export default function OrgProjectsPage() {
   const handleSubmit = async (formData: z.infer<typeof projectFormSchema>) => {
     setOpenDialog(false); // Close dialog immediately
 
+    let failureMessage = '';
+    const taskTitle = `Create project "${formData.description}"`;
+
     enqueue({
-      title: `Create project "${formData.description}"`,
+      title: taskTitle,
       icon: <Icon icon={FolderRoot} className="size-4" />,
       cancelable: false,
       metadata: {
@@ -190,22 +193,27 @@ export default function OrgProjectsPage() {
         orgName: organization?.displayName,
       },
       processor: async (ctx) => {
-        // 1. Create via API (returns 200 immediately)
-        await createProject({
-          name: formData.name,
-          description: formData.description,
-          organizationId: orgId as string,
-        });
+        try {
+          // 1. Create via API (returns 200 immediately)
+          await createProject({
+            name: formData.name,
+            description: formData.description,
+            organizationId: orgId as string,
+          });
 
-        // 2. Wait for K8s reconciliation
-        const { promise, cancel } = waitForProjectReady(orgId as string, formData.name);
-        ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
+          // 2. Wait for K8s reconciliation
+          const { promise, cancel } = waitForProjectReady(orgId as string, formData.name);
+          ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
 
-        const readyProject = await promise;
+          const readyProject = await promise;
 
-        // 3. Task completes when Ready
-        ctx.setResult(readyProject);
-        ctx.succeed();
+          // 3. Task completes when Ready
+          ctx.setResult(readyProject);
+          ctx.succeed();
+        } catch (error) {
+          failureMessage = error instanceof Error ? error.message : 'Project creation failed';
+          throw error;
+        }
       },
       onComplete: (outcome) => {
         if (outcome.status === 'completed') {
@@ -213,16 +221,39 @@ export default function OrgProjectsPage() {
         }
         queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId ?? '') });
       },
-      completionActions: (result: Project) => [
-        {
-          children: 'View Project',
-          type: 'primary',
-          theme: 'outline',
-          size: 'xs',
-          onClick: () =>
-            navigate(getPathWithParams(paths.project.detail.root, { projectId: result.name })),
-        },
-      ],
+      completionActions: (_result, info) => {
+        if (info.status === 'failed') {
+          return [
+            {
+              children: 'Summary',
+              type: 'quaternary' as const,
+              theme: 'outline' as const,
+              size: 'xs' as const,
+              onClick: () =>
+                showSummary(taskTitle, [
+                  {
+                    id: formData.name,
+                    label: formData.description,
+                    status: 'failed',
+                    message: failureMessage || 'Project creation failed',
+                  },
+                ]),
+            },
+          ];
+        }
+
+        const result = _result as Project;
+        return [
+          {
+            children: 'View Project',
+            type: 'primary',
+            theme: 'outline',
+            size: 'xs',
+            onClick: () =>
+              navigate(getPathWithParams(paths.project.detail.root, { projectId: result.name })),
+          },
+        ];
+      },
     });
   };
 

@@ -8,6 +8,7 @@ export {
   RateLimitError,
   type ErrorDetail,
   type SerializedError,
+  type K8sErrorDetails,
 } from './app-error';
 
 export {
@@ -32,3 +33,5 @@ export {
 export { formatZodError, fromZodError, parseOrThrow } from './error-formatter';
 
 export { mapApiError } from './error-mapper';
+
+export { parseK8sMessage } from './error-parser';
