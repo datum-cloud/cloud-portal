@@ -10,10 +10,15 @@ import {
   type Project,
 } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
-import { getOrgSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
+import {
+  getOrgSession,
+  redirectWithToast,
+  setOrgSession,
+  setProjectSession,
+} from '@/utils/cookies';
 import { ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import {
   ChartSplineIcon,
@@ -56,9 +61,14 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
     }
     const org = await orgService.get(orgId);
 
+    // Set both org and project cookies
     const orgSession = await setOrgSession(request, org.name);
+    const projectSession = await setProjectSession(request, project.name);
 
-    return data({ project, org }, { headers: orgSession.headers });
+    // Combine headers from both cookie operations
+    const headers = combineHeaders(orgSession.headers, projectSession.headers);
+
+    return data({ project, org }, { headers });
   } catch (error: any) {
     const orgSession = await getOrgSession(request);
 
