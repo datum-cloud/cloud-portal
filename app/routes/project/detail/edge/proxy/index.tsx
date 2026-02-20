@@ -80,17 +80,17 @@ export default function HttpProxyPage() {
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {
       toast.success('AI Edge', {
-        description: 'Edge endpoint has been deleted successfully',
+        description: 'AI Edge has been deleted successfully',
       });
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete edge');
+      toast.error(error.message || 'Failed to delete AI Edge');
     },
   });
 
   const deleteHttpProxy = async (httpProxy: HttpProxy) => {
     await confirm({
-      title: 'Delete Edge Endpoint',
+      title: 'Delete AI Edge',
       description: (
         <span>
           Are you sure you want to delete&nbsp;

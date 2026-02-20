@@ -17,6 +17,7 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { useInputControl } from '@conform-to/react';
 import { toast, useTaskQueue } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
@@ -82,28 +83,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       if (initialValues?.uid) {
         setEditProxyName(initialValues.name);
 
-        // Parse existing endpoint to extract protocol and hostname:port
-        let protocol: 'http' | 'https' = 'https';
-        let endpointHost = '';
-
-        if (initialValues.endpoint) {
-          try {
-            const url = new URL(initialValues.endpoint);
-            protocol = url.protocol === 'http:' ? 'http' : 'https';
-            endpointHost = url.port ? `${url.hostname}:${url.port}` : url.hostname;
-          } catch {
-            // If parsing fails, try to extract protocol manually
-            if (initialValues.endpoint.startsWith('http://')) {
-              protocol = 'http';
-              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
-            } else if (initialValues.endpoint.startsWith('https://')) {
-              protocol = 'https';
-              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
-            } else {
-              endpointHost = initialValues.endpoint;
-            }
-          }
-        }
+        const { protocol, endpointHost } = parseEndpoint(initialValues.endpoint);
 
         const wafModeWithParanoia = getWafModeWithParanoia(
           initialValues.trafficProtectionMode,

@@ -12,7 +12,7 @@ import { SpinnerIcon } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Skeleton } from '@shadcn/ui/skeleton';
 import { CircleHelp, PencilIcon, RefreshCw, SquareLibrary } from 'lucide-react';
-import { useMemo, useEffect, useState } from 'react';
+import { useMemo, useEffect } from 'react';
 
 export const HttpProxyGeneralCard = ({
   httpProxy,
@@ -21,7 +21,7 @@ export const HttpProxyGeneralCard = ({
   httpProxy: HttpProxy;
   onEdit?: () => void;
 }) => {
-  const [hostname, setHostname] = useState<string | undefined>(httpProxy.status?.hostnames?.[0]);
+  const hostname = useMemo(() => httpProxy.status?.hostnames?.[0], [httpProxy.status?.hostnames]);
   const { isChecking, result, performCheck } = useProxyHealthCheck();
 
   // Perform health check on mount and when hostname changes
@@ -29,7 +29,7 @@ export const HttpProxyGeneralCard = ({
     if (hostname) {
       performCheck(hostname);
     }
-  }, [hostname]); // Only depend on hostname to re-check when it changes
+  }, [hostname, performCheck]); // Only depend on hostname to re-check when it changes
 
   // Check if proxy is still being created (Pending status)
   const isPending = useMemo(() => {
@@ -37,12 +37,6 @@ export const HttpProxyGeneralCard = ({
     const transformedStatus = transformControlPlaneStatus(httpProxy.status);
     return transformedStatus.status === ControlPlaneStatus.Pending;
   }, [httpProxy?.status]);
-
-  useEffect(() => {
-    if (httpProxy.status?.hostnames) {
-      setHostname(httpProxy.status.hostnames[0]);
-    }
-  }, [httpProxy.status?.hostnames]);
 
   const listItems: ListItem[] = useMemo(() => {
     if (!httpProxy) return [];

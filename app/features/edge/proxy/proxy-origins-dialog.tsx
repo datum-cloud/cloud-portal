@@ -1,5 +1,6 @@
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
+import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
@@ -36,28 +37,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       setProxy(proxyData);
       setProxyName(proxyData.name);
 
-      // Parse existing endpoint to extract protocol and hostname:port
-      let protocol: 'http' | 'https' = 'https';
-      let endpointHost = '';
-
-      if (proxyData.endpoint) {
-        try {
-          const url = new URL(proxyData.endpoint);
-          protocol = url.protocol === 'http:' ? 'http' : 'https';
-          endpointHost = url.port ? `${url.hostname}:${url.port}` : url.hostname;
-        } catch {
-          // If parsing fails, try to extract protocol manually
-          if (proxyData.endpoint.startsWith('http://')) {
-            protocol = 'http';
-            endpointHost = proxyData.endpoint.replace(/^https?:\/\//, '');
-          } else if (proxyData.endpoint.startsWith('https://')) {
-            protocol = 'https';
-            endpointHost = proxyData.endpoint.replace(/^https?:\/\//, '');
-          } else {
-            endpointHost = proxyData.endpoint;
-          }
-        }
-      }
+      const { protocol, endpointHost } = parseEndpoint(proxyData.endpoint);
 
       setDefaultValues({
         protocol,
