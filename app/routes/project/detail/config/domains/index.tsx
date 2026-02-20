@@ -44,8 +44,8 @@ import {
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import { useMemo, useEffect, useRef } from 'react';
+import { GlobeIcon, ListChecksIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { useMemo, useEffect, useRef, useState } from 'react';
 import {
   data,
   LoaderFunctionArgs,
@@ -153,6 +153,7 @@ export default function DomainsPage() {
   const { enqueue, showSummary } = useTaskQueue();
   const { project, organization } = useApp();
   const domainFormRef = useRef<DomainFormDialogRef>(null);
+  const [bulkAddPopoverOpen, setBulkAddPopoverOpen] = useState(false);
   const tableRef = useRef<DataTableRef<FormattedDomain>>(null);
 
   const deleteDomainMutation = useDeleteDomain(projectId ?? '');
@@ -463,6 +464,14 @@ export default function DomainsPage() {
               icon: <Icon icon={PlusIcon} className="size-3" />,
               iconPosition: 'start',
             },
+            {
+              type: 'button',
+              label: 'Bulk add domains',
+              onClick: () => setBulkAddPopoverOpen(true),
+              variant: 'outline',
+              icon: <Icon icon={ListChecksIcon} className="size-3" />,
+              iconPosition: 'start',
+            },
           ],
         }}
         tableTitle={{
@@ -514,6 +523,13 @@ export default function DomainsPage() {
             })
           );
         }}
+      />
+
+      {/* Controlled BulkAddDomainsAction for empty content button - renders as Dialog */}
+      <BulkAddDomainsAction
+        projectId={projectId!}
+        popoverOpen={bulkAddPopoverOpen}
+        onPopoverOpenChange={setBulkAddPopoverOpen}
       />
     </>
   );
