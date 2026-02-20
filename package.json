@@ -84,7 +84,7 @@
     "leaflet-draw": "^1.0.4",
     "leaflet.fullscreen": "^5.3.0",
     "leaflet.markercluster": "^1.5.3",
-    "lucide-react": "^0.574.0",
+    "lucide-react": "^0.575.0",
     "morgan": "^1.10.1",
     "motion": "^12.34.0",
     "nprogress": "^0.2.0",
