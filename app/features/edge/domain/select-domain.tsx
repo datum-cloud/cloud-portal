@@ -1,7 +1,12 @@
 import { DomainFormDialog, type DomainFormDialogRef } from './domain-form-dialog';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/base';
-import { DOMAIN_VERIFICATION_STATUS, domainKeys, useDomains } from '@/resources/domains';
+import {
+  DOMAIN_VERIFICATION_STATUS,
+  domainKeys,
+  useDomains,
+  type Domain,
+} from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useInputControl } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
@@ -161,10 +166,10 @@ export function SelectDomain({
   );
 
   const handleDomainCreated = useCallback(
-    async (domainName: string) => {
+    async (domain: Domain) => {
       // Refetch the domains list so the new domain appears in options
       await queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
-      onValueChange?.(domainName);
+      onValueChange?.(domain.domainName);
     },
     [queryClient, projectId, onValueChange]
   );

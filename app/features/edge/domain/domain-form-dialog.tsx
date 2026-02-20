@@ -1,5 +1,5 @@
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { type DomainSchema, domainSchema, useCreateDomain } from '@/resources/domains';
+import { type DomainSchema, domainSchema, useCreateDomain, type Domain } from '@/resources/domains';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
@@ -11,7 +11,7 @@ export interface DomainFormDialogRef {
 
 interface DomainFormDialogProps {
   projectId: string;
-  onSuccess?: (domainName: string) => void;
+  onSuccess?: (domain: Domain) => void;
   onError?: (error: Error) => void;
 }
 
@@ -36,13 +36,16 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
 
     const handleSubmit = async (formData: DomainSchema) => {
       try {
-        await createDomainMutation.mutateAsync({ domainName: formData.domain });
+        const domain = await createDomainMutation.mutateAsync({ domainName: formData.domain });
         toast.success('Domain', {
           description: 'The domain has been added to your project',
         });
         trackAction(AnalyticsAction.AddDomain);
         setOpen(false);
-        onSuccess?.(formData.domain);
+
+        if (onSuccess && domain.name) {
+          onSuccess?.(domain);
+        }
       } catch (error) {
         toast.error('Domain', {
           description: (error as Error).message || 'Failed to add domain',

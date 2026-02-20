@@ -271,7 +271,7 @@ export default function ProjectHomePage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.45, ease: 'easeOut' }}
           className="col-span-1 md:col-span-2 xl:col-span-3">
-          <Card className="p-8">
+          <Card className="p-4 md:p-8">
             <CardHeader className="px-0">
               <CardTitle className="flex items-center justify-between gap-2">
                 <span className="text-lg font-medium">Latest Activity</span>

@@ -149,7 +149,7 @@ export const httpProxySchema = z
     trafficProtectionMode: trafficProtectionModeSchema.default('Enforce'),
     // Combined WAF mode + paranoia level selection
     wafModeWithParanoia: z
-      .enum(['Observe (none)', 'Enforce (Basic)', 'Enforce (Medium)', 'Enforce (High)', 'Disabled'])
+      .enum(['Observe', 'Enforce (Basic)', 'Enforce (Medium)', 'Enforce (High)', 'Disabled'])
       .optional(),
     // Keep these for backward compatibility but they'll be derived from wafModeWithParanoia
     paranoiaLevelBlocking: z.preprocess((val) => {

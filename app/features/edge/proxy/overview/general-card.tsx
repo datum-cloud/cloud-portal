@@ -7,10 +7,11 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { type HttpProxy, formatWafProtectionDisplay } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getShortId } from '@/utils/helpers/text.helper';
-import { Button, Card, CardContent, Tooltip } from '@datum-ui/components';
+import { Badge, Button, Card, CardContent, Tooltip } from '@datum-ui/components';
 import { SpinnerIcon } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { CircleHelp, PencilIcon, SquareLibrary } from 'lucide-react';
+import { Skeleton } from '@shadcn/ui/skeleton';
+import { CircleHelp, PencilIcon, RefreshCw, SquareLibrary } from 'lucide-react';
 import { useMemo, useEffect } from 'react';
 
 export const HttpProxyGeneralCard = ({
@@ -20,15 +21,22 @@ export const HttpProxyGeneralCard = ({
   httpProxy: HttpProxy;
   onEdit?: () => void;
 }) => {
-  const firstHostname = httpProxy.status?.hostnames?.[0];
+  const hostname = useMemo(() => httpProxy.status?.hostnames?.[0], [httpProxy.status?.hostnames]);
   const { isChecking, result, performCheck } = useProxyHealthCheck();
 
   // Perform health check on mount and when hostname changes
   useEffect(() => {
-    if (firstHostname) {
-      performCheck(firstHostname);
+    if (hostname) {
+      performCheck(hostname);
     }
-  }, [firstHostname]); // Only depend on hostname to re-check when it changes
+  }, [hostname, performCheck]); // Only depend on hostname to re-check when it changes
+
+  // Check if proxy is still being created (Pending status)
+  const isPending = useMemo(() => {
+    if (!httpProxy?.status) return true;
+    const transformedStatus = transformControlPlaneStatus(httpProxy.status);
+    return transformedStatus.status === ControlPlaneStatus.Pending;
+  }, [httpProxy?.status]);
 
   const listItems: ListItem[] = useMemo(() => {
     if (!httpProxy) return [];
@@ -65,22 +73,25 @@ export const HttpProxyGeneralCard = ({
       },
       // Row 2
       {
-        label: 'Resource name',
-        content: (
-          <BadgeCopy
-            value={httpProxy.name ?? ''}
-            text={httpProxy.name}
-            badgeType="muted"
-            badgeTheme="solid"
-          />
-        ),
+        label: 'Resource Name',
+        content:
+          isPending && !httpProxy.name ? (
+            <Skeleton className="h-6 w-32 rounded-md" />
+          ) : (
+            <BadgeCopy
+              value={httpProxy.name ?? ''}
+              text={httpProxy.name}
+              badgeType="muted"
+              badgeTheme="solid"
+            />
+          ),
       },
       {
         label: (
           <div className="flex items-center gap-1.5">
             <span>Protection</span>
             <Tooltip
-              message="What level of WAF protection is applied to this Edge"
+              message="What level of WAF protection is applied to this AI Edge"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -90,7 +101,17 @@ export const HttpProxyGeneralCard = ({
             </Tooltip>
           </div>
         ),
-        content: <span className="capitalize">{formatWafProtectionDisplay(httpProxy)}</span>,
+        content:
+          isPending && !httpProxy.trafficProtectionMode ? (
+            <Skeleton className="h-5 w-24 rounded-md" />
+          ) : (
+            <Badge
+              type="quaternary"
+              theme="outline"
+              className="rounded-xl text-xs font-normal capitalize">
+              {formatWafProtectionDisplay(httpProxy)}
+            </Badge>
+          ),
       },
       // Row 3
       {
@@ -98,7 +119,7 @@ export const HttpProxyGeneralCard = ({
           <div className="flex items-center gap-1.5">
             <span>UID</span>
             <Tooltip
-              message="Unique identifier for this Edge"
+              message="Unique identifier for this AI Edge"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -108,21 +129,24 @@ export const HttpProxyGeneralCard = ({
             </Tooltip>
           </div>
         ),
-        content: (
-          <BadgeCopy
-            value={httpProxy.uid ?? ''}
-            text={getShortId(httpProxy.uid ?? '')}
-            badgeType="muted"
-            badgeTheme="solid"
-          />
-        ),
+        content:
+          isPending && !httpProxy.uid ? (
+            <Skeleton className="h-6 w-24 rounded-md" />
+          ) : (
+            <BadgeCopy
+              value={httpProxy.uid ?? ''}
+              text={getShortId(httpProxy.uid ?? '')}
+              badgeType="muted"
+              badgeTheme="solid"
+            />
+          ),
       },
       {
         label: (
           <div className="flex items-center gap-1.5">
             <span>Health Check</span>
             <Tooltip
-              message="Click the badge to perform a health check and verify if the edge proxy is responding"
+              message="Click the badge to perform a health check and verify if the AI Edge proxy is responding"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -132,11 +156,16 @@ export const HttpProxyGeneralCard = ({
             </Tooltip>
           </div>
         ),
-        hidden: !firstHostname,
-        content: (
-          <div className="flex items-center gap-2" onClick={() => performCheck(firstHostname)}>
+
+        content: isPending ? (
+          <Skeleton className="h-6 w-24 rounded-md" />
+        ) : (
+          <div
+            className="flex cursor-pointer items-center gap-2"
+            onClick={() => performCheck(hostname)}>
             {result ? (
               <BadgeStatus
+                className="cursor-pointer"
                 status={{
                   status: result.success ? ControlPlaneStatus.Success : ControlPlaneStatus.Error,
                   message: result.success ? 'Healthy' : 'Unhealthy',
@@ -145,6 +174,7 @@ export const HttpProxyGeneralCard = ({
               />
             ) : (
               <BadgeStatus
+                className="cursor-pointer"
                 status={{
                   status: ControlPlaneStatus.Pending,
                   message: isChecking ? 'Checking...' : 'Click to refresh',
@@ -153,27 +183,34 @@ export const HttpProxyGeneralCard = ({
               />
             )}
 
-            {isChecking && <SpinnerIcon size="sm" className="animate-spin" />}
+            {isChecking ? (
+              <SpinnerIcon size="sm" className="animate-spin" />
+            ) : (
+              <Icon icon={RefreshCw} size={16} />
+            )}
           </div>
         ),
       },
       // Row 4
       {
         label: 'Created At',
-        content: (
-          <DateTime
-            className="text-left text-sm"
-            date={httpProxy?.createdAt ?? ''}
-            variant="detailed"
-          />
-        ),
+        content:
+          isPending && !httpProxy?.createdAt ? (
+            <Skeleton className="h-5 w-32 rounded-md" />
+          ) : (
+            <DateTime
+              className="text-left text-sm"
+              date={httpProxy?.createdAt ?? ''}
+              variant="detailed"
+            />
+          ),
       },
       {
         label: (
           <div className="flex items-center gap-1.5">
             <span>Force HTTPS</span>
             <Tooltip
-              message="Is force HTTPS enabled"
+              message="Is force HTTPS enabled for this AI Edge"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -183,23 +220,26 @@ export const HttpProxyGeneralCard = ({
             </Tooltip>
           </div>
         ),
-        hidden: httpProxy.enableHttpRedirect === undefined,
-        content: (
-          <BadgeStatus
-            status={{
-              status: httpProxy.enableHttpRedirect
-                ? ControlPlaneStatus.Success
-                : ControlPlaneStatus.Error,
-              message: httpProxy.enableHttpRedirect
-                ? 'Force HTTPS is enabled'
-                : 'Force HTTPS is disabled',
-            }}
-            label={httpProxy.enableHttpRedirect ? 'Enabled' : 'Disabled'}
-          />
-        ),
+        hidden: isPending ? false : httpProxy.enableHttpRedirect === undefined,
+        content:
+          isPending && httpProxy.enableHttpRedirect === undefined ? (
+            <Skeleton className="h-6 w-20 rounded-md" />
+          ) : (
+            <BadgeStatus
+              status={{
+                status: httpProxy.enableHttpRedirect
+                  ? ControlPlaneStatus.Success
+                  : ControlPlaneStatus.Error,
+                message: httpProxy.enableHttpRedirect
+                  ? 'Force HTTPS is enabled for this AI Edge'
+                  : 'Force HTTPS is disabled for this AI Edge',
+              }}
+              label={httpProxy.enableHttpRedirect ? 'Enabled' : 'Disabled'}
+            />
+          ),
       },
     ];
-  }, [httpProxy, firstHostname, result, isChecking, performCheck]);
+  }, [httpProxy, hostname, result, isChecking, performCheck, isPending]);
 
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
@@ -214,7 +254,8 @@ export const HttpProxyGeneralCard = ({
               theme="solid"
               size="xs"
               className="ml-auto"
-              onClick={onEdit}>
+              onClick={onEdit}
+              disabled={isPending}>
               <Icon icon={PencilIcon} size={12} />
               Edit
             </Button>

@@ -1,4 +1,5 @@
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
+import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useApp } from '@/providers/app.provider';
@@ -16,61 +17,14 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { useInputControl } from '@conform-to/react';
 import { toast, useTaskQueue } from '@datum-ui/components';
-import { InputWithAddons } from '@datum-ui/components/input-with-addons';
 import { Form } from '@datum-ui/components/new-form';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronDownIcon, GaugeIcon } from 'lucide-react';
+import { GaugeIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
-
-// Custom component that combines protocol selector with endpoint input
-const ProtocolEndpointInput = ({ autoFocus }: { autoFocus?: boolean }) => {
-  const { fields } = Form.useFormContext();
-  const protocolField = fields.protocol as any;
-  const endpointField = fields.endpointHost as any;
-
-  const protocolControl = useInputControl(protocolField);
-  const endpointControl = useInputControl(endpointField);
-
-  const protocolValue =
-    (Array.isArray(protocolControl.value) ? protocolControl.value[0] : protocolControl.value) ||
-    'https';
-  const endpointValue =
-    (Array.isArray(endpointControl.value) ? endpointControl.value[0] : endpointControl.value) || '';
-
-  return (
-    <InputWithAddons
-      leading={
-        <Select
-          value={protocolValue}
-          onValueChange={protocolControl.change}
-          name={protocolField.name}>
-          <SelectTrigger
-            id={protocolField.id}
-            className="bg-accent h-6 min-h-6 gap-1 border px-2 py-0 shadow-none focus:ring-0 focus-visible:ring-0">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="http">http</SelectItem>
-            <SelectItem value="https">https</SelectItem>
-          </SelectContent>
-        </Select>
-      }
-      value={endpointValue}
-      onChange={(e) => endpointControl.change(e.target.value)}
-      onBlur={endpointControl.blur}
-      name={endpointField.name}
-      id={endpointField.id}
-      autoFocus={autoFocus}
-      placeholder="e.g. api.example.com or 192.168.1.1:8080"
-      className="text-xs!"
-    />
-  );
-};
 
 // Component that conditionally disables HTTP redirect option based on protocol
 const ConditionalHttpRedirectField = () => {
@@ -103,13 +57,12 @@ export interface HttpProxyFormDialogRef {
 
 interface HttpProxyFormDialogProps {
   projectId: string;
-  onCreateSuccess?: (proxy: HttpProxy) => void;
   onEditSuccess?: () => void;
   onError?: (error: Error) => void;
 }
 
 export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyFormDialogProps>(
-  ({ projectId, onCreateSuccess, onEditSuccess, onError }, ref) => {
+  ({ projectId, onEditSuccess, onError }, ref) => {
     const [open, setOpen] = useState(false);
     const [defaultValues, setDefaultValues] = useState<Partial<HttpProxySchema>>();
     const [editProxyName, setEditProxyName] = useState('');
@@ -129,28 +82,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       if (initialValues?.uid) {
         setEditProxyName(initialValues.name);
 
-        // Parse existing endpoint to extract protocol and hostname:port
-        let protocol: 'http' | 'https' = 'https';
-        let endpointHost = '';
-
-        if (initialValues.endpoint) {
-          try {
-            const url = new URL(initialValues.endpoint);
-            protocol = url.protocol === 'http:' ? 'http' : 'https';
-            endpointHost = url.port ? `${url.hostname}:${url.port}` : url.hostname;
-          } catch {
-            // If parsing fails, try to extract protocol manually
-            if (initialValues.endpoint.startsWith('http://')) {
-              protocol = 'http';
-              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
-            } else if (initialValues.endpoint.startsWith('https://')) {
-              protocol = 'https';
-              endpointHost = initialValues.endpoint.replace(/^https?:\/\//, '');
-            } else {
-              endpointHost = initialValues.endpoint;
-            }
-          }
-        }
+        const { protocol, endpointHost } = parseEndpoint(initialValues.endpoint);
 
         const wafModeWithParanoia = getWafModeWithParanoia(
           initialValues.trafficProtectionMode,
@@ -244,13 +176,13 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
             : undefined;
 
         enqueue({
-          title: `Creating Edge endpoint "${data.chosenName || resourceName}"`,
+          title: `Creating AI Edge "${data.chosenName || resourceName}"`,
           icon: <GaugeIcon className="size-4" />,
           cancelable: false,
           metadata,
           processor: async (ctx) => {
             try {
-              await httpProxyService.create(projectId, {
+              const createdProxy = await httpProxyService.create(projectId, {
                 name: resourceName,
                 chosenName: data.chosenName,
                 endpoint: fullEndpoint,
@@ -261,6 +193,19 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
                   wafConfig.blocking !== undefined ? { blocking: wafConfig.blocking } : undefined,
                 enableHttpRedirect: data.enableHttpRedirect ?? false,
               });
+
+              // Navigate immediately once we have the proxy name
+              const proxyName =
+                typeof createdProxy === 'object' && createdProxy !== null && 'name' in createdProxy
+                  ? (createdProxy as HttpProxy).name
+                  : resourceName;
+
+              navigate(
+                getPathWithParams(paths.project.detail.proxy.detail.overview, {
+                  projectId,
+                  proxyId: proxyName,
+                })
+              );
 
               const { promise, cancel } = waitForHttpProxyReady(projectId, resourceName);
               ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
@@ -276,32 +221,14 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           },
           onComplete: (outcome) => {
             queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-            if (outcome.status === 'completed' && outcome.result) {
+            if (outcome.status === 'completed') {
               trackAction(AnalyticsAction.AddProxy);
-              onCreateSuccess?.(outcome.result);
             } else if (outcome.status === 'failed') {
               const errorMessage =
                 outcome.failedItems[0]?.message || 'Failed to create Edge endpoint';
               onError?.(new Error(errorMessage));
             }
           },
-          completionActions: (result: HttpProxy) => [
-            {
-              children: 'View Edge Overview',
-              type: 'primary',
-              theme: 'outline',
-              size: 'xs',
-              onClick: () => {
-                navigate(
-                  getPathWithParams(paths.project.detail.proxy.detail.overview, {
-                    projectId,
-                    proxyId: result.name,
-                  })
-                );
-                onCreateSuccess?.(result);
-              },
-            },
-          ],
         });
       }
     };
@@ -369,7 +296,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
               const wafConfig = field.value
                 ? parseWafModeWithParanoia(
                     field.value as
-                      | 'Observe (none)'
+                      | 'Observe'
                       | 'Enforce (Basic)'
                       | 'Enforce (Medium)'
                       | 'Enforce (High)'
@@ -380,7 +307,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
               return (
                 <>
                   <Form.RadioGroup orientation="vertical">
-                    <Form.RadioItem value="Observe (none)" label="Observe (none)" />
+                    <Form.RadioItem value="Observe" label="Observe" />
                     <Form.RadioItem value="Enforce (Basic)" label="Enforce (Basic)" />
                     <Form.RadioItem value="Enforce (Medium)" label="Enforce (Medium)" />
                     <Form.RadioItem value="Enforce (High)" label="Enforce (High)" />
@@ -394,17 +321,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           </Form.Field>
 
           {isEdit && (
-            <Collapsible defaultOpen={false}>
-              <CollapsibleTrigger className="text-foreground hover:text-foreground/80 flex items-center gap-2 text-sm font-medium transition-colors [&[data-state=open]>svg]:rotate-180">
-                <ChevronDownIcon className="size-4 shrink-0 transition-transform duration-200" />
-                Advanced Config
-              </CollapsibleTrigger>
-              <CollapsibleContent className="flex flex-col gap-5 pt-5">
-                <ProxyHostnamesField projectId={projectId} />
-                <ProxyTlsField />
-                <ConditionalHttpRedirectField />
-              </CollapsibleContent>
-            </Collapsible>
+            <div className="flex flex-col gap-5">
+              <ProxyHostnamesField projectId={projectId} />
+              <ProxyTlsField />
+              <ConditionalHttpRedirectField />
+            </div>
           )}
         </div>
       </Form.Dialog>

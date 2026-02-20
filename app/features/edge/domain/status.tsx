@@ -64,7 +64,7 @@ export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] 
         <BadgeStatus
           status={currentStatus}
           label={statusLabel}
-          showIcon={true}
+          showIcon={false}
           showTooltip={false}
         />
       </HoverCardTrigger>

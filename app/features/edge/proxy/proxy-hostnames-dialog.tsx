@@ -7,31 +7,31 @@ import { Form } from '@datum-ui/components/new-form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
 
-const advancedConfigSchema = httpProxyHostnameSchema.extend({
+const hostnamesConfigSchema = httpProxyHostnameSchema.extend({
   tlsHostname: z.string().min(1).max(253).optional(),
 });
 
-type AdvancedConfigSchema = z.infer<typeof advancedConfigSchema>;
+type HostnamesConfigSchema = z.infer<typeof hostnamesConfigSchema>;
 
-export interface ProxyAdvancedConfigDialogRef {
+export interface ProxyHostnamesConfigDialogRef {
   show: (proxy: HttpProxy) => void;
   hide: () => void;
 }
 
-interface ProxyAdvancedConfigDialogProps {
+interface ProxyHostnamesConfigDialogProps {
   projectId: string;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
 
-export const ProxyAdvancedConfigDialog = forwardRef<
-  ProxyAdvancedConfigDialogRef,
-  ProxyAdvancedConfigDialogProps
+export const ProxyHostnamesConfigDialog = forwardRef<
+  ProxyHostnamesConfigDialogRef,
+  ProxyHostnamesConfigDialogProps
 >(({ projectId, onSuccess, onError }, ref) => {
   const [open, setOpen] = useState(false);
   const [proxyName, setProxyName] = useState('');
   const [proxy, setProxy] = useState<HttpProxy | null>(null);
-  const [defaultValues, setDefaultValues] = useState<Partial<AdvancedConfigSchema>>();
+  const [defaultValues, setDefaultValues] = useState<Partial<HostnamesConfigSchema>>();
 
   const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
@@ -51,7 +51,7 @@ export const ProxyAdvancedConfigDialog = forwardRef<
 
   useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
-  const handleSubmit = async (data: AdvancedConfigSchema) => {
+  const handleSubmit = async (data: HostnamesConfigSchema) => {
     if (!proxy) return;
 
     try {
@@ -62,13 +62,13 @@ export const ProxyAdvancedConfigDialog = forwardRef<
         chosenName: proxy.chosenName, // Required field, use existing value
       });
       toast.success('AI Edge', {
-        description: 'Advanced configuration has been updated successfully',
+        description: 'Hostnames and TLS settings have been updated successfully',
       });
       setOpen(false);
       onSuccess?.();
     } catch (error) {
       toast.error('AI Edge', {
-        description: (error as Error).message || 'Failed to update advanced configuration',
+        description: (error as Error).message || 'Failed to update hostnames and TLS settings',
       });
       onError?.(error as Error);
     }
@@ -78,9 +78,9 @@ export const ProxyAdvancedConfigDialog = forwardRef<
     <Form.Dialog
       open={open}
       onOpenChange={setOpen}
-      title="Edit Advanced Config"
-      description="Configure hostnames and TLS settings for your Edge endpoint."
-      schema={advancedConfigSchema}
+      title="Edit AI Edge Hostnames and TLS"
+      description="Configure hostnames and TLS settings for your AI Edge."
+      schema={hostnamesConfigSchema}
       defaultValues={defaultValues}
       onSubmit={handleSubmit}
       submitText="Save"
@@ -96,4 +96,4 @@ export const ProxyAdvancedConfigDialog = forwardRef<
   );
 });
 
-ProxyAdvancedConfigDialog.displayName = 'ProxyAdvancedConfigDialog';
+ProxyHostnamesConfigDialog.displayName = 'ProxyHostnamesConfigDialog';

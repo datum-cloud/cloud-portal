@@ -46,6 +46,7 @@ export function useResourceWatch<T>({
   skipInitialSync = true,
   getItemKey,
   updateListCache,
+  updateSingleCache,
   ...watchOptions
 }: UseResourceWatchOptions<T>) {
   const queryClient = useQueryClient();
@@ -54,6 +55,7 @@ export function useResourceWatch<T>({
   const queryKeyRef = useRef(queryKey);
   const getItemKeyRef = useRef(getItemKey);
   const updateListCacheRef = useRef(updateListCache);
+  const updateSingleCacheRef = useRef(updateSingleCache);
   const invalidateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const subscriptionStartTimeRef = useRef<number>(0);
   const lastRefetchTimeRef = useRef<number>(0);
@@ -69,6 +71,7 @@ export function useResourceWatch<T>({
   queryKeyRef.current = queryKey;
   getItemKeyRef.current = getItemKey;
   updateListCacheRef.current = updateListCache;
+  updateSingleCacheRef.current = updateSingleCache;
   throttleMsRef.current = throttleMs;
   debounceMsRef.current = debounceMs;
   skipInitialSyncRef.current = skipInitialSync;
@@ -142,8 +145,14 @@ export function useResourceWatch<T>({
               return;
             }
             if (name) {
-              // Single resource: update cache directly
-              queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
+              // Single resource: update cache directly or use custom updater
+              if (updateSingleCacheRef.current) {
+                queryClient.setQueryData(queryKeyRef.current, (oldData: T | undefined) =>
+                  updateSingleCacheRef.current!(oldData, transformedEvent.object)
+                );
+              } else {
+                queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
+              }
             } else {
               // List: debounced invalidate to batch multiple events
               debouncedInvalidate();
@@ -152,8 +161,14 @@ export function useResourceWatch<T>({
 
           case 'MODIFIED':
             if (name) {
-              // Single resource: update cache directly
-              queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
+              // Single resource: update cache directly or use custom updater
+              if (updateSingleCacheRef.current) {
+                queryClient.setQueryData(queryKeyRef.current, (oldData: T | undefined) =>
+                  updateSingleCacheRef.current!(oldData, transformedEvent.object)
+                );
+              } else {
+                queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
+              }
             } else if (getItemKeyRef.current) {
               // List with key extractor: in-place update (no network call)
               queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {

@@ -6,9 +6,9 @@ import type { HttpProxy } from './http-proxy.schema';
 export function getWafModeWithParanoia(
   mode?: 'Observe' | 'Enforce' | 'Disabled',
   blocking?: number
-): 'Observe (none)' | 'Enforce (Basic)' | 'Enforce (Medium)' | 'Enforce (High)' | 'Disabled' {
+): 'Observe' | 'Enforce (Basic)' | 'Enforce (Medium)' | 'Enforce (High)' | 'Disabled' {
   if (mode === 'Disabled') return 'Disabled';
-  if (mode === 'Observe') return 'Observe (none)';
+  if (mode === 'Observe') return 'Observe';
   if (mode === 'Enforce') {
     if (blocking === 2) return 'Enforce (Medium)';
     if (blocking === 3 || blocking === 4) return 'Enforce (High)';
@@ -21,10 +21,10 @@ export function getWafModeWithParanoia(
  * Parse the combined WAF mode + paranoia level format back to mode and blocking level
  */
 export function parseWafModeWithParanoia(
-  value: 'Observe (none)' | 'Enforce (Basic)' | 'Enforce (Medium)' | 'Enforce (High)' | 'Disabled'
+  value: 'Observe' | 'Enforce (Basic)' | 'Enforce (Medium)' | 'Enforce (High)' | 'Disabled'
 ): { mode: 'Observe' | 'Enforce' | 'Disabled'; blocking?: number } {
   if (value === 'Disabled') return { mode: 'Disabled' };
-  if (value === 'Observe (none)') return { mode: 'Observe' };
+  if (value === 'Observe') return { mode: 'Observe' };
   if (value === 'Enforce (Basic)') return { mode: 'Enforce', blocking: 1 };
   if (value === 'Enforce (Medium)') return { mode: 'Enforce', blocking: 2 };
   if (value === 'Enforce (High)') return { mode: 'Enforce', blocking: 3 };
