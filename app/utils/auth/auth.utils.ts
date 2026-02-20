@@ -6,6 +6,7 @@ import {
   destroyAlertState,
   destroyIdTokenSession,
   destroyOrgSession,
+  destroyProjectSession,
   destroyRefreshToken,
   destroySession,
 } from '@/utils/cookies';
@@ -26,6 +27,7 @@ export const destroyLocalSessions = async (request: Request) => {
   const { headers: sessionHeaders } = await destroySession(request);
   const { headers: refreshHeaders } = await destroyRefreshToken(request);
   const { headers: orgHeaders } = await destroyOrgSession(request);
+  const { headers: projectHeaders } = await destroyProjectSession(request);
   const { headers: idTokenHeaders } = await destroyIdTokenSession(request);
   const { headers: alertHeaders } = await destroyAlertState(request);
 
@@ -34,6 +36,7 @@ export const destroyLocalSessions = async (request: Request) => {
       sessionHeaders,
       refreshHeaders,
       orgHeaders,
+      projectHeaders,
       idTokenHeaders,
       alertHeaders
     ),
