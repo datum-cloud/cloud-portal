@@ -45,7 +45,7 @@ export const ProtocolEndpointInput = ({ autoFocus }: { autoFocus?: boolean }) =>
       name={endpointField.name}
       id={endpointField.id}
       autoFocus={autoFocus}
-      placeholder="e.g. api.example.com or 192.168.1.1:8080"
+      placeholder="e.g. api.example.com or 203.0.113.1:8080"
       className="text-xs!"
     />
   );

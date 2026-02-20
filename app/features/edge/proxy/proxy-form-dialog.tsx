@@ -21,9 +21,8 @@ import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { useInputControl } from '@conform-to/react';
 import { toast, useTaskQueue } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/new-form';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { useQueryClient } from '@tanstack/react-query';
-import { ChevronDownIcon, GaugeIcon } from 'lucide-react';
+import { GaugeIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -322,17 +321,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           </Form.Field>
 
           {isEdit && (
-            <Collapsible defaultOpen={false}>
-              <CollapsibleTrigger className="text-foreground hover:text-foreground/80 flex items-center gap-2 text-sm font-medium transition-colors [&[data-state=open]>svg]:rotate-180">
-                <ChevronDownIcon className="size-4 shrink-0 transition-transform duration-200" />
-                Advanced Config
-              </CollapsibleTrigger>
-              <CollapsibleContent className="flex flex-col gap-5 pt-5">
-                <ProxyHostnamesField projectId={projectId} />
-                <ProxyTlsField />
-                <ConditionalHttpRedirectField />
-              </CollapsibleContent>
-            </Collapsible>
+            <div className="flex flex-col gap-5">
+              <ProxyHostnamesField projectId={projectId} />
+              <ProxyTlsField />
+              <ConditionalHttpRedirectField />
+            </div>
           )}
         </div>
       </Form.Dialog>
