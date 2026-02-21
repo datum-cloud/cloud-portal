@@ -128,7 +128,7 @@ export default [
               ':proxyId',
               'routes/project/detail/edge/proxy/detail/layout.tsx',
               { id: 'proxy-detail' },
-              [index('routes/project/detail/edge/proxy/detail/overview.tsx')]
+              [index('routes/project/detail/edge/proxy/detail/index.tsx')]
             ),
           ]),
         ]),

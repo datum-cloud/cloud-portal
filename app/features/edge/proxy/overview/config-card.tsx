@@ -25,6 +25,7 @@ export const HttpProxyConfigCard = ({
   httpProxy: HttpProxy;
   projectId?: string;
 }) => {
+  console.log('httpProxy', httpProxy);
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
   const updateMutation = useUpdateHttpProxy(projectId ?? '', httpProxy.name);
@@ -112,22 +113,28 @@ export const HttpProxyConfigCard = ({
             <Skeleton className="h-6 w-20 rounded-md" />
           ) : (
             <Switch
+              key={`force-https-${httpProxy.enableHttpRedirect ?? false}`}
               checked={httpProxy.enableHttpRedirect ?? false}
-              disabled={isPending || updateMutation.isPending}
-              onCheckedChange={async (checked) => {
-                try {
-                  await updateMutation.mutateAsync({
+              disabled={isPending}
+              onCheckedChange={(checked) => {
+                updateMutation.mutate(
+                  {
                     endpoint: httpProxy.endpoint,
                     enableHttpRedirect: checked,
-                  });
-                  toast.success('AI Edge', {
-                    description: `Force HTTPS ${checked ? 'enabled' : 'disabled'}`,
-                  });
-                } catch (error) {
-                  toast.error('AI Edge', {
-                    description: (error as Error).message || 'Failed to update Force HTTPS',
-                  });
-                }
+                  },
+                  {
+                    onSuccess: () => {
+                      toast.success('AI Edge', {
+                        description: `Force HTTPS ${checked ? 'enabled' : 'disabled'}`,
+                      });
+                    },
+                    onError: (error) => {
+                      toast.error('AI Edge', {
+                        description: (error as Error).message || 'Failed to update Force HTTPS',
+                      });
+                    },
+                  }
+                );
               }}
             />
           ),

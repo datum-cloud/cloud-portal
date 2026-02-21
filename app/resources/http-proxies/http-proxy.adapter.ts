@@ -133,16 +133,18 @@ export function toHttpProxy(
     }
   }
 
-  // Check if HTTP redirect is enabled by looking for a redirect rule
-  const hasRedirectRule = raw.spec?.rules?.some(
-    (rule) =>
-      !rule.backends &&
-      rule.filters?.some(
-        (filter) =>
-          filter.requestRedirect?.scheme === 'https' &&
-          (filter.requestRedirect?.statusCode === 301 || filter.requestRedirect?.statusCode === 302)
-      )
-  );
+  // Check if HTTP redirect is enabled by looking for a redirect rule.
+  // Rule has no backends (undefined or []) and a filter that redirects to HTTPS (301/302).
+  const hasRedirectRule = raw.spec?.rules?.some((rule) => {
+    const noBackends = !rule.backends || rule.backends.length === 0;
+    if (!noBackends || !rule.filters?.length) return false;
+    return rule.filters.some((filter) => {
+      const redirect = filter.requestRedirect;
+      if (!redirect || redirect.scheme !== 'https') return false;
+      const code = Number(redirect.statusCode);
+      return code === 301 || code === 302;
+    });
+  });
 
   return {
     uid: raw.metadata?.uid ?? '',
@@ -275,7 +277,7 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
       }
   > = [];
 
-  // Add redirect rule first if HTTP redirect is enabled
+  // Force HTTPS: redirect incoming HTTP traffic to HTTPS (client → gateway). Always scheme 'https'; origin URL is irrelevant.
   if (input.enableHttpRedirect) {
     rules.push({
       filters: [

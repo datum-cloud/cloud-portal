@@ -65,6 +65,20 @@ export function useUpdateHttpProxy(
     mutationFn: (input: UpdateHttpProxyInput) =>
       createHttpProxyService().update(projectId, name, input) as Promise<HttpProxy>,
     ...options,
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+      const previous = queryClient.getQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name));
+      queryClient.setQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name), (old) =>
+        old ? { ...old, ...input } : old
+      );
+      return { previous };
+    },
+    onError: (err, _input, context, mutationContext) => {
+      if (context?.previous != null) {
+        queryClient.setQueryData(httpProxyKeys.detail(projectId, name), context.previous);
+      }
+      options?.onError?.(err, _input, context, mutationContext);
+    },
     onSuccess: async (...args) => {
       // Invalidate and refetch both detail and list queries to ensure WAF mode and paranoia levels are refreshed
       // We refetch because paranoia levels come from a separate TrafficProtectionPolicy that's fetched in get()
