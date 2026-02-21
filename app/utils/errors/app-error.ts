@@ -6,6 +6,12 @@ export interface ErrorDetail {
   code?: string;
 }
 
+export interface K8sErrorDetails {
+  kind?: string;
+  name?: string;
+  group?: string;
+}
+
 export interface SerializedError {
   code: string;
   message: string;
@@ -13,6 +19,9 @@ export interface SerializedError {
   details?: ErrorDetail[];
   requestId?: string;
   sentryEventId?: string;
+  originalMessage?: string;
+  k8sReason?: string;
+  k8sDetails?: K8sErrorDetails;
 }
 
 export class AppError extends Error {
@@ -21,6 +30,9 @@ export class AppError extends Error {
   public readonly details?: ErrorDetail[];
   public readonly requestId?: string;
   public readonly sentryEventId?: string;
+  public readonly originalMessage?: string;
+  public readonly k8sReason?: string;
+  public readonly k8sDetails?: K8sErrorDetails;
 
   constructor(
     message: string,
@@ -31,6 +43,9 @@ export class AppError extends Error {
       requestId?: string;
       cause?: unknown;
       captureToSentry?: boolean;
+      originalMessage?: string;
+      k8sReason?: string;
+      k8sDetails?: K8sErrorDetails;
     } = {}
   ) {
     super(message, { cause: options.cause });
@@ -39,6 +54,9 @@ export class AppError extends Error {
     this.status = options.status ?? 500;
     this.details = options.details;
     this.requestId = options.requestId;
+    this.originalMessage = options.originalMessage;
+    this.k8sReason = options.k8sReason;
+    this.k8sDetails = options.k8sDetails;
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -71,6 +89,9 @@ export class AppError extends Error {
       details: this.details,
       requestId: this.requestId,
       sentryEventId: this.sentryEventId,
+      originalMessage: this.originalMessage,
+      k8sReason: this.k8sReason,
+      k8sDetails: this.k8sDetails,
     };
   }
 

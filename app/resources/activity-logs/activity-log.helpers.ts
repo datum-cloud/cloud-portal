@@ -1,60 +1,49 @@
 import type { ActivityLogFilterParams, ActivityLogScope } from './activity-log.schema';
+import { getResourceLabel } from '@/utils/helpers/resource-labels';
+
+// Re-export for consumers that imported from this module
+export { getResourceLabel };
 
 // ============================================
-// RESOURCE REGISTRY (Single Source of Truth)
+// RESOURCE SCOPES (Scope Membership Only)
 // ============================================
 
 type ScopeType = ActivityLogScope['type'];
 
-interface ResourceDefinition {
-  /** Human-readable label (singular form) */
-  label: string;
-  /** Scopes where this resource appears in filter options */
-  scopes: ScopeType[];
-}
-
 /**
- * Central registry of all resources.
- * Single source of truth for labels and scope membership.
+ * Maps resource keys to the scopes where they appear in filter options.
+ * Labels come from the shared resource-labels utility.
  *
  * To add a new resource:
- * 1. Add entry here with label and applicable scopes
- * 2. That's it - filter options and humanization will pick it up automatically
+ * 1. Add its label in app/utils/helpers/resource-labels.ts
+ * 2. Add its scope membership here
  */
-const RESOURCE_REGISTRY: Record<string, ResourceDefinition> = {
+const RESOURCE_SCOPES: Record<string, ScopeType[]> = {
   // Organization-level resources
-  organizations: { label: 'Organization', scopes: ['organization'] },
-  users: { label: 'User', scopes: ['organization'] },
-  groups: { label: 'Group', scopes: ['organization'] },
-  roles: { label: 'Role', scopes: ['organization'] },
-  projects: { label: 'Project', scopes: ['organization'] },
-  invitations: { label: 'Invitation', scopes: ['organization'] },
-  members: { label: 'Member', scopes: ['organization'] },
+  organizations: ['organization'],
+  users: ['organization'],
+  groups: ['organization'],
+  roles: ['organization'],
+  projects: ['organization'],
+  invitations: ['organization'],
+  members: ['organization'],
 
   // Project-level resources
-  domains: { label: 'Domain', scopes: ['project'] },
-  dnszones: { label: 'DNS zone', scopes: ['project'] },
-  dnsrecords: { label: 'DNS record', scopes: ['project'] },
-  dnsrecordsets: { label: 'DNS record set', scopes: ['project'] },
-  httpproxies: { label: 'HTTP proxy', scopes: ['project'] },
-  secrets: { label: 'Secret', scopes: ['project'] },
-  dnszonediscoveries: { label: 'DNS zone discovery', scopes: ['project'] },
+  domains: ['project'],
+  dnszones: ['project'],
+  dnsrecords: ['project'],
+  dnsrecordsets: ['project'],
+  httpproxies: ['project'],
+  secrets: ['project'],
+  dnszonediscoveries: ['project'],
 };
-
-/**
- * Gets the human-readable label for a resource.
- * Falls back to the raw key if not registered.
- */
-export function getResourceLabel(resource: string): string {
-  return RESOURCE_REGISTRY[resource]?.label ?? resource;
-}
 
 /**
  * Gets all resource keys that belong to a specific scope.
  */
 export function getResourcesByScope(scopeType: ScopeType): string[] {
-  return Object.entries(RESOURCE_REGISTRY)
-    .filter(([, def]) => def.scopes.includes(scopeType))
+  return Object.entries(RESOURCE_SCOPES)
+    .filter(([, scopes]) => scopes.includes(scopeType))
     .map(([key]) => key);
 }
 
@@ -62,7 +51,7 @@ export function getResourcesByScope(scopeType: ScopeType): string[] {
  * Gets all registered resource keys.
  */
 export function getAllResources(): string[] {
-  return Object.keys(RESOURCE_REGISTRY);
+  return Object.keys(RESOURCE_SCOPES);
 }
 
 // ============================================
@@ -161,13 +150,13 @@ export function getResourceFilterOptions(scopeType: ScopeType): FilterOption[] {
  *
  * @example
  * humanizeAction('create', 'domains') // "Added a Domain"
- * humanizeAction('delete', 'dnszones') // "Deleted a DNS zone"
+ * humanizeAction('delete', 'dnszones') // "Deleted a DNS Zone"
  */
 export function humanizeAction(verb: string, resource: string): string {
   const verbText = VERB_PAST_TENSE[verb] || verb.charAt(0).toUpperCase() + verb.slice(1);
-  // Use registry label if available, otherwise remove trailing 's' for singular form
-  const registeredLabel = RESOURCE_REGISTRY[resource]?.label;
-  const singularLabel = registeredLabel ?? resource.replace(/s$/, '');
+  // Use shared label if available, otherwise remove trailing 's' for singular form
+  const label = getResourceLabel(resource);
+  const singularLabel = label !== resource ? label : resource.replace(/s$/, '');
 
   return `${verbText} a ${singularLabel}`;
 }

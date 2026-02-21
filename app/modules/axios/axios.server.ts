@@ -1,3 +1,4 @@
+import { isK8sStatus, parseK8sStatusError } from './k8s-error';
 import { getRequestContext } from './request-context';
 import { logger } from '@/modules/logger';
 import { generateCurl } from '@/modules/logger/curl.generator';
@@ -100,6 +101,17 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
   return response;
 };
 
+/** Extract a fallback message from non-K8s response data. */
+function resolveRawMessage(data: unknown, error: AxiosError): string {
+  if (typeof data === 'object' && data !== null) {
+    const obj = data as Record<string, unknown>;
+    if (typeof obj.message === 'string') return obj.message;
+    if (typeof obj.reason === 'string') return obj.reason;
+    if (typeof obj.error === 'string') return obj.error;
+  }
+  return error.message;
+}
+
 const onResponseError = (error: AxiosError): Promise<never> => {
   const config = error.config as any;
   const ctx = getRequestContext();
@@ -120,30 +132,27 @@ const onResponseError = (error: AxiosError): Promise<never> => {
     });
   }
 
-  // Map HTTP status to AppError classes
-  const data = error.response?.data as
-    | {
-        message?: string;
-        reason?: string;
-        error?: string;
-        error_description?: string;
-      }
-    | undefined;
+  const responseData = error.response?.data;
+  const httpStatus = error.response?.status ?? 500;
 
-  const message = data?.message || data?.reason || data?.error || error.message;
+  // Parse K8s Status for user-friendly message
+  const parsed = isK8sStatus(responseData) ? parseK8sStatusError(responseData, httpStatus) : null;
+
+  const message = parsed?.message ?? resolveRawMessage(responseData, error);
 
   // Capture API error to Sentry with resource context and fingerprinting
   captureApiError({
     error,
     method: config?.method,
     url: config?.url,
-    status: error.response?.status ?? 500,
-    message,
+    status: httpStatus,
+    message: parsed?.originalMessage ?? message,
     requestId,
   });
 
-  switch (error.response?.status) {
+  switch (httpStatus) {
     case 401: {
+      const data = responseData as { error?: string; error_description?: string } | undefined;
       if (data?.error === 'access_denied' && data?.error_description === 'access token invalid') {
         throw new AuthenticationError('Session expired', requestId);
       }
@@ -153,15 +162,33 @@ const onResponseError = (error: AxiosError): Promise<never> => {
       throw new AuthorizationError(message || 'Permission denied', requestId);
     }
     case 404: {
+      // K8s Status: use AppError with parsed message (e.g., 'DNS Zone "example" not found')
+      // Non-K8s: NotFoundError constructs "Resource not found" from scratch
+      if (parsed) {
+        throw new AppError(message, {
+          code: parsed.code,
+          status: 404,
+          requestId,
+          originalMessage: parsed.originalMessage,
+          k8sReason: parsed.k8sReason,
+          k8sDetails: parsed.k8sDetails,
+          captureToSentry: false,
+        });
+      }
       throw new NotFoundError('Resource', undefined, requestId);
     }
     case 422: {
-      throw new ValidationError(message || 'Validation failed', undefined, requestId);
+      throw new ValidationError(message || 'Validation failed', parsed?.details, requestId);
     }
     default: {
       throw new AppError(message || 'An unexpected error occurred', {
-        status: error.response?.status || 500,
+        code: parsed?.code,
+        status: httpStatus,
         requestId,
+        originalMessage: parsed?.originalMessage,
+        k8sReason: parsed?.k8sReason,
+        k8sDetails: parsed?.k8sDetails,
+        details: parsed?.details,
       });
     }
   }
