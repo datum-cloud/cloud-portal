@@ -11,11 +11,9 @@ import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
-  createHttpProxyService,
   type HttpProxy,
   useDeleteHttpProxy,
   useHttpProxies,
-  useHydrateHttpProxies,
   useHttpProxiesWatch,
   formatWafProtectionDisplay,
 } from '@/resources/http-proxies';
@@ -29,55 +27,30 @@ import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import {
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { MetaFunction, useNavigate, useParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('AI Edge');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
+export default function HttpProxyPage() {
+  const { projectId } = useParams();
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const httpProxyService = createHttpProxyService();
-  const httpProxies = await httpProxyService.list(projectId);
-  return httpProxies;
-};
-
-export default function HttpProxyPage() {
-  const { projectId } = useParams();
-  const initialData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateHttpProxies(projectId ?? '', initialData ?? []);
+  useHttpProxiesWatch(projectId);
 
-  // Subscribe to watch for real-time updates
-  useHttpProxiesWatch(projectId ?? '');
-
-  // Read from React Query cache (gets updates from watch!)
-  const { data: queryData } = useHttpProxies(projectId ?? '', {
-    refetchOnMount: true,
+  const { data, isLoading } = useHttpProxies(projectId, {
+    refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
-
-  // Use React Query data, fallback to SSR data
-  const data = queryData ?? initialData ?? [];
 
   const { confirm } = useConfirmationDialog();
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
 
-  const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
+  const deleteMutation = useDeleteHttpProxy(projectId, {
     onSuccess: () => {
       toast.success('AI Edge', {
         description: 'AI Edge has been deleted successfully',
@@ -226,6 +199,7 @@ export default function HttpProxyPage() {
   return (
     <>
       <DataTable
+        isLoading={isLoading}
         columns={columns}
         data={data ?? []}
         onRowClick={(row) => {

@@ -2,6 +2,11 @@ import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus } from '@/resources/base';
+import { connectorKeys, createConnectorService } from '@/resources/connectors';
+import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
+import { createDomainService, domainKeys } from '@/resources/domains';
+import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
+import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
 import { createOrganizationService, type Organization } from '@/resources/organizations';
 import {
   createProjectService,
@@ -9,6 +14,7 @@ import {
   useProject,
   type Project,
 } from '@/resources/projects';
+import { createSecretService, secretKeys } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import {
   getOrgSession,
@@ -20,6 +26,7 @@ import { ValidationError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   CableIcon,
   ChartSplineIcon,
@@ -86,8 +93,23 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   }
 };
 
+/** Skip re-running the loader when navigating within the same project (e.g. Home → AI Edge → Connectors). */
+export function shouldRevalidate({
+  currentParams,
+  nextParams,
+  defaultShouldRevalidate,
+}: {
+  currentParams: Record<string, string | undefined>;
+  nextParams: Record<string, string | undefined>;
+  defaultShouldRevalidate: boolean;
+}) {
+  if (currentParams.projectId === nextParams.projectId) return false;
+  return defaultShouldRevalidate;
+}
+
 export default function ProjectLayout() {
   const { project: initialProject, org } = useLoaderData<ProjectLayoutLoaderData>();
+  const queryClient = useQueryClient();
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateProject(initialProject.name, initialProject);
@@ -125,6 +147,16 @@ export default function ProjectLayout() {
         href: getPathWithParams(paths.project.detail.home, { projectId }),
         type: 'link',
         icon: HomeIcon,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: domainKeys.list(projectId),
+            queryFn: () => createDomainService().list(projectId),
+          });
+          void queryClient.prefetchQuery({
+            queryKey: exportPolicyKeys.list(projectId),
+            queryFn: () => createExportPolicyService().list(projectId),
+          });
+        },
       },
       {
         title: 'AI Edge',
@@ -135,6 +167,12 @@ export default function ProjectLayout() {
         disabled: !isReady,
         type: 'link',
         showSeparatorAbove: true,
+        onPrefetch: () => {
+          queryClient.prefetchQuery({
+            queryKey: httpProxyKeys.list(projectId),
+            queryFn: () => createHttpProxyService().list(projectId),
+          });
+        },
       },
       {
         title: 'Connectors',
@@ -144,6 +182,12 @@ export default function ProjectLayout() {
         type: 'link',
         icon: CableIcon,
         disabled: !isReady,
+        onPrefetch: () => {
+          queryClient.prefetchQuery({
+            queryKey: connectorKeys.list(projectId),
+            queryFn: () => createConnectorService().list(projectId),
+          });
+        },
       },
       {
         title: 'DNS',
@@ -153,6 +197,12 @@ export default function ProjectLayout() {
         icon: SignpostIcon,
         disabled: !isReady,
         type: 'link',
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: dnsZoneKeys.list(projectId),
+            queryFn: () => createDnsZoneService().list(projectId),
+          });
+        },
       },
       {
         title: 'Domains',
@@ -162,6 +212,12 @@ export default function ProjectLayout() {
         type: 'link',
         icon: LayersIcon,
         disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: domainKeys.list(projectId),
+            queryFn: () => createDomainService().list(projectId),
+          });
+        },
       },
       {
         title: 'Metrics',
@@ -169,6 +225,12 @@ export default function ProjectLayout() {
         type: 'link',
         icon: ChartSplineIcon,
         disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: exportPolicyKeys.list(projectId),
+            queryFn: () => createExportPolicyService().list(projectId),
+          });
+        },
       },
 
       {
@@ -179,6 +241,12 @@ export default function ProjectLayout() {
         type: 'link',
         icon: FileLockIcon,
         disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: secretKeys.list(projectId),
+            queryFn: () => createSecretService().list(projectId),
+          });
+        },
       },
       {
         title: 'Project Settings',
@@ -191,7 +259,7 @@ export default function ProjectLayout() {
         tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
       },
     ];
-  }, [project]);
+  }, [project, queryClient]);
 
   useEffect(() => {
     if (org) {

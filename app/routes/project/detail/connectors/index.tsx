@@ -2,36 +2,18 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
-import {
-  createConnectorService,
-  type Connector,
-  useConnectors,
-  useConnectorsWatch,
-  useHydrateConnectors,
-} from '@/resources/connectors';
+import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/connectors';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
-import { LoaderFunctionArgs, MetaFunction, useLoaderData, useParams } from 'react-router';
+import { MetaFunction, useParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Connectors');
 });
-
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-
-  const connectorService = createConnectorService();
-  const connectors = await connectorService.list(projectId);
-  return connectors;
-};
 
 function getConnectorStatus(connector: Connector) {
   return transformControlPlaneStatus(connector.status);
@@ -45,18 +27,17 @@ function getCapabilitySummary(connector: Connector): string {
 
 export default function ConnectorsPage() {
   const { projectId } = useParams();
-  const initialData = useLoaderData<typeof loader>();
 
-  useHydrateConnectors(projectId ?? '', initialData ?? []);
+  if (!projectId) {
+    throw new BadRequestError('Project ID is required');
+  }
 
-  useConnectorsWatch(projectId ?? '');
+  useConnectorsWatch(projectId);
 
-  const { data: queryData } = useConnectors(projectId ?? '', {
-    refetchOnMount: true,
+  const { data, isLoading } = useConnectors(projectId, {
+    refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
-
-  const data = queryData ?? initialData ?? [];
 
   const columns: ColumnDef<Connector>[] = useMemo(
     () => [
@@ -117,6 +98,7 @@ export default function ConnectorsPage() {
 
   return (
     <DataTable
+      isLoading={isLoading}
       columns={columns}
       data={data ?? []}
       emptyContent={{

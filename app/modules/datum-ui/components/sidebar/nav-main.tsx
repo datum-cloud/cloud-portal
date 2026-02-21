@@ -50,6 +50,9 @@ export type NavItem = {
   // Mixed layout scenario: `/account/preferences` and `/account/activity` use tabs layout,
   // while `/account/organizations` uses sidebar layout, but all share the same parent sidebar nav
   tabChildLinks?: string[];
+
+  /** Called when the user hovers over the link (e.g. to prefetch route data). */
+  onPrefetch?: () => void;
 };
 
 // Centralized style constants for nav menu buttons
@@ -627,7 +630,8 @@ export const NavMain = forwardRef<
                 ) : (
                   <LinkComp
                     {...(LinkComp === 'a' ? { href: item.href || '' } : { to: item.href || '' })}
-                    onClick={handleNavigation}>
+                    onClick={handleNavigation}
+                    onMouseEnter={() => item.onPrefetch?.()}>
                     {item?.icon && (
                       <Icon
                         icon={item.icon}
