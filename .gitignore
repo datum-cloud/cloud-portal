@@ -9,6 +9,7 @@ node_modules
 .cursor/
 .windsurf/
 .claude/
+!.claude/settings.json
 CLAUDE.MD
 
 cypress/screenshots
