@@ -29,8 +29,8 @@ import {
   CardFooter,
   CardTitle,
 } from '@datum-ui/components';
+import { Form } from '@datum-ui/components/form';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Form } from '@datum-ui/components/new-form';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';

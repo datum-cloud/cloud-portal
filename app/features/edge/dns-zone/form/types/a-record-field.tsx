@@ -1,4 +1,4 @@
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export const ARecordField = () => (
   <Form.Field name="a.content" label="IPv4 Address" required>

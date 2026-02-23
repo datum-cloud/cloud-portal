@@ -1,5 +1,5 @@
 import { isIPAddress } from '@/utils/helpers/validation.helper';
-import { Form, useWatch } from '@datum-ui/components/new-form';
+import { Form, useWatch } from '@datum-ui/components/form';
 import { useMemo } from 'react';
 
 export const ProxyTlsField = () => {

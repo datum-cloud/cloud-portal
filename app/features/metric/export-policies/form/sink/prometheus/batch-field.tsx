@@ -1,6 +1,6 @@
 import { FieldLabel } from '@/components/field/field-label';
 import { InputWithAddons } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export const BatchField = ({ baseName }: { baseName: string }) => {
   return (

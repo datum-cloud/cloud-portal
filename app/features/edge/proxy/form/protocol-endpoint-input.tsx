@@ -1,6 +1,6 @@
 import { useInputControl } from '@conform-to/react';
+import { Form } from '@datum-ui/components/form';
 import { InputWithAddons } from '@datum-ui/components/input-with-addons';
-import { Form } from '@datum-ui/components/new-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 
 /**

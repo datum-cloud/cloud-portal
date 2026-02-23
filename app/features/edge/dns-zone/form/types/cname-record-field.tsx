@@ -1,4 +1,4 @@
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export const CNAMERecordField = () => (
   <Form.Field name="cname.content" label="Target Domain" required>

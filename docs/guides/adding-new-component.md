@@ -254,7 +254,7 @@ app/features/{feature}/components/
 
 ```tsx
 // app/features/dns/components/zone-record-editor.tsx
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { z } from 'zod';
 
 const recordSchema = z.object({

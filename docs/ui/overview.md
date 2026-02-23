@@ -67,7 +67,7 @@ Need a UI component?
 | ---------------------------------- | -------------------------- | --------------------------------- |
 | Basic button, input, card          | `modules/shadcn/ui/`       | `@shadcn/ui/button`               |
 | Data table with filtering          | `modules/datum-ui/`        | `@datum-ui/components/data-table` |
-| Form with validation               | `modules/datum-ui/`        | `@datum-ui/components/new-form`   |
+| Form with validation               | `modules/datum-ui/`        | `@datum-ui/components/form`   |
 | Datum badge variants               | `modules/datum-ui/`        | `@datum-ui/components`            |
 | Page header (shared)               | `components/`              | `@/components/page-header`        |
 | DNS zone wizard (feature-specific) | `features/dns/components/` | Relative import                   |
@@ -164,7 +164,7 @@ import { PageHeader } from '@/components/page-header';
 import { Badge, Alert } from '@datum-ui/components';
 // datum-ui components
 import { DataTable } from '@datum-ui/components/data-table';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 import { Button } from '@shadcn/ui/button';
 import { Dialog, DialogContent } from '@shadcn/ui/dialog';

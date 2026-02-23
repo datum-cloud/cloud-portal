@@ -161,7 +161,7 @@ export function WidgetCard({ widget, onEdit, onDelete }: WidgetCardProps) {
 ```tsx
 // app/features/widgets/components/widget-form.tsx
 import type { WidgetFormValues } from '../types';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { z } from 'zod';
 
 const schema = z.object({

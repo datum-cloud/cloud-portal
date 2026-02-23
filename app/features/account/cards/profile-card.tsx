@@ -2,7 +2,7 @@ import { useApp } from '@/providers/app.provider';
 import { useUpdateUser, userSchema } from '@/resources/users';
 import { Button, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 /**
  * Account Profile Settings Card Component

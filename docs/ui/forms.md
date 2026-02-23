@@ -17,7 +17,7 @@ The form library is built on:
 ## Basic Usage
 
 ```tsx
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { z } from 'zod';
 
 // 1. Define schema
@@ -443,4 +443,4 @@ function UserForm() {
 ## Related Documentation
 
 - [datum-ui Guide](./datum-ui-guide.md) - Full component docs
-- Full form docs: `app/modules/datum-ui/components/new-form/README.md`
+- Full form docs: `app/modules/datum-ui/components/form/README.md`

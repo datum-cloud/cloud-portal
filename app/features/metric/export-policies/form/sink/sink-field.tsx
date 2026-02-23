@@ -2,8 +2,8 @@ import { PrometheusField } from './prometheus/prometheus-field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
 import { POLICY_SINK_TYPES } from '@/features/metric/constants';
 import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
-import { Form } from '@datum-ui/components/new-form';
-import type { FormFieldRenderProps } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
+import type { FormFieldRenderProps } from '@datum-ui/components/form';
 import { isEqual } from 'es-toolkit/compat';
 import { useState, useEffect, useRef } from 'react';
 

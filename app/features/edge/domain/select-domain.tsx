@@ -10,9 +10,9 @@ import {
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useInputControl } from '@conform-to/react';
 import { Button } from '@datum-ui/components';
-import type { AutocompleteOption, AutocompleteProps } from '@datum-ui/components/new-form';
-import { useFieldContext } from '@datum-ui/components/new-form';
-import { Autocomplete } from '@datum-ui/components/new-form/primitives';
+import type { AutocompleteOption, AutocompleteProps } from '@datum-ui/components/form';
+import { useFieldContext } from '@datum-ui/components/form';
+import { Autocomplete } from '@datum-ui/components/form/primitives';
 import { cn } from '@shadcn/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangleIcon, CheckIcon, PlusIcon } from 'lucide-react';

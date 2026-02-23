@@ -1,4 +1,4 @@
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export const NSRecordField = () => (
   <Form.Field name="ns.content" label="Nameserver" required>

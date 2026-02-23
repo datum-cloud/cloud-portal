@@ -244,7 +244,7 @@ export async function action({ params, request }: ActionFunctionArgs) {
 ### Using with Form Component
 
 ```tsx
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export default function CreateWidgetPage() {
   return (

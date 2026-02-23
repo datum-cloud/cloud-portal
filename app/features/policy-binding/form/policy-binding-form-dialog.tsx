@@ -16,9 +16,9 @@ import {
   useUpdatePolicyBinding,
 } from '@/resources/policy-bindings';
 import { Button, toast } from '@datum-ui/components';
+import { Form } from '@datum-ui/components/form';
+import { Input } from '@datum-ui/components/form/primitives/input';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Form } from '@datum-ui/components/new-form';
-import { Input } from '@datum-ui/components/new-form/primitives/input';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 

@@ -1,4 +1,4 @@
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export const TXTRecordField = () => (
   <Form.Field name="txt.content" label="Text Content" required className="col-span-4">

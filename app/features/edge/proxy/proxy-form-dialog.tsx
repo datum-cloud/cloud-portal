@@ -20,7 +20,7 @@ import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { useInputControl } from '@conform-to/react';
 import { toast, useTaskQueue } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { GaugeIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';

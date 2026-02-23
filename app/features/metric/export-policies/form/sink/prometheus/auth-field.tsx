@@ -4,7 +4,7 @@ import { SINK_AUTH_TYPES } from '@/features/metric/constants';
 import { ExportPolicyAuthenticationType } from '@/resources/export-policies';
 import { SecretType } from '@/resources/secrets';
 import { Label, Switch } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 
 export const AuthField = ({ baseName, projectId }: { baseName: string; projectId?: string }) => {

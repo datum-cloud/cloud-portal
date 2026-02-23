@@ -1,7 +1,7 @@
 import { InputName } from '@/components/input-name/input-name';
 import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 export const MetadataForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   return (

@@ -1,7 +1,7 @@
 import { NotificationCheckboxItem } from './notification-checkbox-item';
 import type { NotificationSettingsCardProps } from './types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import type { z } from 'zod';
 
 export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
