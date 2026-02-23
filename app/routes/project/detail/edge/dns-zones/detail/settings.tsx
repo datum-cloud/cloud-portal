@@ -5,7 +5,7 @@ import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/descripti
 import { useDeleteDnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Col, Row } from '@datum-ui/components';
+import { Col, Row, toast } from '@datum-ui/components';
 import { PageTitle } from '@datum-ui/components/page-title';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
@@ -20,6 +20,9 @@ export default function DnsZoneSettingsPage() {
 
   const deleteMutation = useDeleteDnsZone(projectId ?? '', {
     onSuccess: () => {
+      toast.success('DNS Zone', {
+        description: 'The DNS Zone has been deleted successfully',
+      });
       navigate(
         getPathWithParams(paths.project.detail.dnsZones.root, {
           projectId,

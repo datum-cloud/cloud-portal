@@ -23,8 +23,13 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
   // Use secretId from URL params to ensure query key matches useSecret in overview
   const updateSecretMutation = useUpdateSecret(projectId ?? '', secretId ?? '', {
     onSuccess: () => {
-      toast.success('Key deleted successfully', {
-        description: 'The key has been deleted successfully',
+      toast.success('Key', {
+        description: 'Key has been deleted successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error('Key', {
+        description: error.message ?? 'An error occurred while deleting the key',
       });
     },
   });
@@ -41,9 +46,7 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
-      showConfirmInput: true,
-      confirmValue: variable,
-      confirmInputLabel: `Type "${variable}" to confirm.`,
+      showConfirmInput: false,
       onSubmit: async () => {
         await updateSecretMutation.mutateAsync({
           data: {
@@ -115,12 +118,7 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
           </div>
         </CardContent>
       </Card>
-      <KeysFormDialog
-        ref={variablesFormDialogRef}
-        projectId={projectId}
-        secretId={secretId}
-        onSuccess={() => toast.success('Key added successfully')}
-      />
+      <KeysFormDialog ref={variablesFormDialogRef} projectId={projectId} secretId={secretId} />
       <EditKeyValueDialog ref={editKeyValueDialogRef} projectId={projectId} secretId={secretId} />
     </>
   );

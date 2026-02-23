@@ -1,27 +1,22 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { PolicyBindingTable } from '@/features/policy-binding';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import {
+  PolicyBindingFormDialog,
+  type PolicyBindingFormDialogRef,
+} from '@/features/policy-binding/form/policy-binding-form-dialog';
+import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
   createPolicyBindingService,
   useDeletePolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
-import {
-  Link,
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { useCallback, useMemo, useRef } from 'react';
+import { LoaderFunctionArgs, MetaFunction, useLoaderData, useParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Policy Bindings');
@@ -43,13 +38,13 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 export default function OrgPolicyBindingsPage() {
   const { orgId } = useParams();
   const bindings = useLoaderData<typeof loader>() as PolicyBinding[];
-  const navigate = useNavigate();
+  const dialogRef = useRef<PolicyBindingFormDialogRef>(null);
 
   const { confirm } = useConfirmationDialog();
 
   const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
     onSuccess: () => {
-      toast.success('Policy binding deleted successfully', {
+      toast.success('Policy binding', {
         description: 'The policy binding has been deleted successfully',
       });
     },
@@ -58,26 +53,27 @@ export default function OrgPolicyBindingsPage() {
     },
   });
 
-  const deletePolicyBinding = async (policyBinding: PolicyBinding) => {
-    await confirm({
-      title: 'Delete Policy Binding',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>{policyBinding.name}</strong>?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: true,
-      confirmValue: policyBinding.name,
-      confirmInputLabel: `Type "${policyBinding.name}" to confirm.`,
-      onSubmit: async () => {
-        deleteMutation.mutate(policyBinding.name);
-      },
-    });
-  };
+  const deletePolicyBinding = useCallback(
+    async (policyBinding: PolicyBinding) => {
+      await confirm({
+        title: 'Delete Policy Binding',
+        description: (
+          <span>
+            Are you sure you want to delete&nbsp;
+            <strong>{policyBinding.name}</strong>?
+          </span>
+        ),
+        submitText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          deleteMutation.mutate(policyBinding.name);
+        },
+      });
+    },
+    [confirm, deleteMutation]
+  );
 
   const rowActions: DataTableRowActionsProps<PolicyBinding>[] = useMemo(
     () => [
@@ -85,13 +81,7 @@ export default function OrgPolicyBindingsPage() {
         key: 'edit',
         label: 'Edit',
         variant: 'default',
-        action: (row) =>
-          navigate(
-            getPathWithParams(paths.org.detail.policyBindings.edit, {
-              orgId,
-              policyBindingId: row.name,
-            })
-          ),
+        action: (row) => dialogRef.current?.show(row),
       },
       {
         key: 'delete',
@@ -100,31 +90,29 @@ export default function OrgPolicyBindingsPage() {
         action: (row) => deletePolicyBinding(row),
       },
     ],
-    [orgId]
+    [orgId, deletePolicyBinding]
   );
 
   return (
-    <PolicyBindingTable
-      bindings={bindings ?? []}
-      onRowClick={(row) => {
-        navigate(
-          getPathWithParams(paths.org.detail.policyBindings.edit, {
-            orgId,
-            policyBindingId: row.name,
-          })
-        );
-      }}
-      tableTitle={{
-        actions: (
-          <Link to={getPathWithParams(paths.org.detail.policyBindings.new, { orgId })}>
-            <Button type="primary" theme="solid" size="small">
+    <>
+      <PolicyBindingTable
+        bindings={bindings ?? []}
+        onRowClick={(row) => dialogRef.current?.show(row)}
+        tableTitle={{
+          actions: (
+            <Button
+              type="primary"
+              theme="solid"
+              size="small"
+              onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add policy binding
             </Button>
-          </Link>
-        ),
-      }}
-      rowActions={rowActions}
-    />
+          ),
+        }}
+        rowActions={rowActions}
+      />
+      <PolicyBindingFormDialog ref={dialogRef} orgId={orgId ?? ''} />
+    </>
   );
 }

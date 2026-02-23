@@ -1,69 +1,36 @@
-import { Field } from '@/components/field/field';
 import { FieldLabel } from '@/components/field/field-label';
-import { ExportPolicySinkPrometheusFieldSchema } from '@/resources/export-policies';
-import { getInputProps, useForm, useInputControl } from '@conform-to/react';
 import { InputWithAddons } from '@datum-ui/components';
-import { Input } from '@datum-ui/components';
-import { useEffect } from 'react';
+import { Form } from '@datum-ui/components/new-form';
 
-export const RetryField = ({
-  fields,
-  defaultValue,
-}: {
-  fields: ReturnType<typeof useForm<ExportPolicySinkPrometheusFieldSchema['retry']>>[1];
-  defaultValue?: ExportPolicySinkPrometheusFieldSchema['retry'];
-}) => {
-  const backoffDurationControl = useInputControl(fields.backoffDuration);
-  const maxAttemptsControl = useInputControl(fields.maxAttempts);
-
-  useEffect(() => {
-    if (defaultValue) {
-      if (defaultValue.backoffDuration && !fields.backoffDuration.value) {
-        backoffDurationControl.change(String(defaultValue.backoffDuration));
-      }
-      if (defaultValue.maxAttempts && !fields.maxAttempts.value) {
-        maxAttemptsControl.change(String(defaultValue.maxAttempts));
-      }
-    }
-  }, [
-    defaultValue,
-    backoffDurationControl,
-    fields.backoffDuration.value,
-    maxAttemptsControl,
-    fields.maxAttempts.value,
-  ]);
-
+export const RetryField = ({ baseName }: { baseName: string }) => {
   return (
     <div className="flex w-full flex-col gap-2">
       <FieldLabel label="Retry Configuration" />
       <div className="flex w-full gap-4">
-        <Field isRequired label="Max Attempts" errors={fields.maxAttempts.errors} className="w-1/2">
-          <Input
-            {...getInputProps(fields.maxAttempts, { type: 'number' })}
-            key={fields.maxAttempts.id}
-            placeholder="e.g. 1"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value;
-              maxAttemptsControl.change(value);
-            }}
-          />
-        </Field>
-        <Field
-          isRequired
-          label="Backoff Duration"
-          errors={fields.backoffDuration.errors}
+        <Form.Field
+          name={`${baseName}.retry.maxAttempts`}
+          label="Max Attempts"
+          required
           className="w-1/2">
-          <InputWithAddons
-            {...getInputProps(fields.backoffDuration, { type: 'number' })}
-            key={fields.backoffDuration.id}
-            placeholder="e.g. 5s"
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = (e.target as HTMLInputElement).value;
-              backoffDurationControl.change(value);
-            }}
-            trailing={<span className="text-muted-foreground">s</span>}
-          />
-        </Field>
+          <Form.Input type="number" placeholder="e.g. 1" />
+        </Form.Field>
+        <Form.Field
+          name={`${baseName}.retry.backoffDuration`}
+          label="Backoff Duration"
+          required
+          className="w-1/2">
+          {({ control }) => (
+            <InputWithAddons
+              type="number"
+              placeholder="e.g. 5s"
+              value={(control.value as string) ?? ''}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => control.change(e.target.value)}
+              onBlur={control.blur}
+              onFocus={control.focus}
+              trailing={<span className="text-muted-foreground">s</span>}
+            />
+          )}
+        </Form.Field>
       </div>
     </div>
   );

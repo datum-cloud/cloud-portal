@@ -215,7 +215,9 @@ function DataTableInternal<TData, TValue>(
       const ids = Object.keys(newSelection).filter((id) => newSelection[id]);
 
       // Look up full row data from the data array
-      const selectedRows = getRowId ? data.filter((row) => ids.includes(getRowId(row))) : [];
+      const selectedRows = getRowId
+        ? data.filter((row, index) => ids.includes(getRowId(row, index)))
+        : [];
 
       onSelectionChange?.(ids, selectedRows);
     },

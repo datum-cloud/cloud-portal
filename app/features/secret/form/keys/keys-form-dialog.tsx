@@ -1,12 +1,10 @@
-import { KeysForm } from './keys-form';
-import { SecretVariablesSchema, secretVariablesSchema, useUpdateSecret } from '@/resources/secrets';
+import { KeyValueFieldArray } from '@/features/secret/form/key-value-field-array';
+import type { SecretVariablesSchema } from '@/resources/secrets';
+import { secretVariablesSchema, useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
-import { FormMetadata, FormProvider, getFormProps, useForm } from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button } from '@datum-ui/components';
-import { Dialog } from '@datum-ui/components/dialog';
+import { toast } from '@datum-ui/components';
+import { Form } from '@datum-ui/components/new-form';
 import { useImperativeHandle, useRef, useState } from 'react';
-import { Form } from 'react-router';
 
 interface VariablesFormDialogProps {
   projectId?: string;
@@ -30,7 +28,7 @@ export const KeysFormDialog = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const resolveRef = useRef<(value: boolean) => void>(null);
-  const [defaultValue, setDefaultValue] = useState<SecretVariablesSchema | undefined>({
+  const [defaultValues, setDefaultValues] = useState<SecretVariablesSchema | undefined>({
     variables: [{ key: '', value: '' }],
   });
 
@@ -38,40 +36,22 @@ export const KeysFormDialog = ({
     onSuccess: () => {
       resolveRef.current?.(false);
       setIsOpen(false);
+      toast.success('Key', {
+        description: `Keys have been added successfully`,
+      });
       onSuccess?.();
     },
-  });
-
-  const [form, fields] = useForm({
-    id: 'secret-variables-form',
-    constraint: getZodConstraint(secretVariablesSchema),
-    defaultValue: defaultValue,
-    shouldValidate: 'onBlur',
-    shouldRevalidate: 'onInput',
-    onValidate({ formData }) {
-      return parseWithZod(formData, { schema: secretVariablesSchema });
-    },
-    onSubmit(event, { submission }) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (submission?.status === 'success') {
-        const data = (submission?.value?.variables ?? []).reduce(
-          (acc, vars) => {
-            acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
-            return acc;
-          },
-          {} as Record<string, string>
-        );
-        updateSecretMutation.mutate({ data });
-      }
+    onError: (error) => {
+      toast.error('Key', {
+        description: error.message ?? 'An error occurred while updating the key-value pair',
+      });
     },
   });
 
   useImperativeHandle(ref, () => ({
     show: (value?: SecretVariablesSchema) => {
+      setDefaultValues(value ?? { variables: [{ key: '', value: '' }] });
       setIsOpen(true);
-      setDefaultValue(value);
       return new Promise<boolean>((resolve) => {
         resolveRef.current = resolve;
       });
@@ -79,9 +59,6 @@ export const KeysFormDialog = ({
   }));
 
   const handleOpenChange = (open: boolean) => {
-    // Reset form
-    form.reset({ name: fields.variables.name });
-
     if (!open) {
       resolveRef.current?.(false);
       onCancel?.();
@@ -89,51 +66,36 @@ export const KeysFormDialog = ({
     setIsOpen(open);
   };
 
+  const handleSubmit = async (data: SecretVariablesSchema) => {
+    const encodedData = (data.variables ?? []).reduce(
+      (acc, vars) => {
+        acc[vars.key] = isBase64(vars.value) ? vars.value : toBase64(vars.value);
+        return acc;
+      },
+      {} as Record<string, string>
+    );
+
+    await updateSecretMutation.mutateAsync({ data: encodedData });
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <Dialog.Content className="w-2xl max-w-3xl!">
-        <Dialog.Header
-          title="Add Key-Value Pairs"
-          description="If not already base64-encoded, values will be encoded automatically."
-          onClose={() => handleOpenChange(false)}
-        />
-        <Dialog.Body className="px-5">
-          <FormProvider context={form.context}>
-            <Form
-              {...getFormProps(form)}
-              id={form.id}
-              method="POST"
-              autoComplete="off"
-              className="flex flex-col gap-6">
-              <KeysForm
-                mode="dialog"
-                defaultValue={defaultValue}
-                form={form as FormMetadata<SecretVariablesSchema>}
-                fields={fields as unknown as ReturnType<typeof useForm<SecretVariablesSchema>>[1]}
-              />
-            </Form>
-          </FormProvider>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <Button
-            type="quaternary"
-            theme="borderless"
-            disabled={updateSecretMutation.isPending}
-            onClick={() => {
-              handleOpenChange(false);
-            }}>
-            Cancel
-          </Button>
-          <Button
-            htmlType="submit"
-            form={form.id}
-            disabled={updateSecretMutation.isPending}
-            loading={updateSecretMutation.isPending}>
-            {updateSecretMutation.isPending ? 'Creating' : 'Create'}
-          </Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+    <Form.Dialog
+      key={isOpen ? 'open' : 'closed'}
+      open={isOpen}
+      onOpenChange={handleOpenChange}
+      title="Add Key-Value Pairs"
+      description="If not already base64-encoded, values will be encoded automatically."
+      schema={secretVariablesSchema}
+      defaultValues={defaultValues}
+      onSubmit={handleSubmit}
+      loading={updateSecretMutation.isPending}
+      submitText="Create"
+      submitTextLoading="Creating..."
+      className="w-2xl max-w-3xl!">
+      <div className="px-5">
+        <KeyValueFieldArray />
+      </div>
+    </Form.Dialog>
   );
 };
 

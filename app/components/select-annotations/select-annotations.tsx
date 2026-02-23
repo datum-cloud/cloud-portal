@@ -1,6 +1,6 @@
-import { AnnotationFormDialog, AnnotationFormDialogRef } from './annotations-form-dialog';
+import { KeyValueFormDialog, KeyValueFormDialogRef } from '@/components/key-value-form-dialog';
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
-import { LabelFormSchema } from '@/resources/base';
+import { annotationFormSchema, AnnotationFormSchema } from '@/resources/base';
 import { splitOption } from '@/utils/helpers/object.helper';
 import { toast } from '@datum-ui/components';
 import { PlusIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ export const SelectAnnotations = ({
   defaultValue?: string[];
   onChange?: (value: string[]) => void;
 }) => {
-  const annotationFormDialogRef = useRef<AnnotationFormDialogRef>(null!);
+  const dialogRef = useRef<KeyValueFormDialogRef>(null!);
   const [options, setOptions] = useState<MultiSelectOption[]>();
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [activeOption, setActiveOption] = useState<string>();
@@ -39,7 +39,7 @@ export const SelectAnnotations = ({
     }
   }, [defaultValue, options]);
 
-  const handleSubmit = (value: LabelFormSchema) => {
+  const handleSubmit = (value: AnnotationFormSchema) => {
     const newOption = `${value.key}:${value.value}`;
     const newOptionObj = { label: newOption, value: newOption };
     const currentOptions = options ?? [];
@@ -50,7 +50,7 @@ export const SelectAnnotations = ({
     );
 
     if (isDuplicate) {
-      toast.error('Label already exists');
+      toast.error('Annotation already exists');
       return;
     }
 
@@ -98,7 +98,7 @@ export const SelectAnnotations = ({
             className: 'text-primary cursor-pointer',
             onClick: () => {
               setActiveOption(undefined);
-              annotationFormDialogRef.current?.show();
+              dialogRef.current?.show();
             },
           },
         ]}
@@ -106,12 +106,15 @@ export const SelectAnnotations = ({
           const { key, value } = splitOption(option.value);
 
           setActiveOption(option.value);
-          annotationFormDialogRef.current?.show({ key, value });
+          dialogRef.current?.show({ key, value });
         }}
       />
 
-      <AnnotationFormDialog
-        ref={annotationFormDialogRef}
+      <KeyValueFormDialog
+        ref={dialogRef}
+        schema={annotationFormSchema}
+        title="Add Annotation"
+        description="Create annotations to organize resources. Use key/value pairs to categorize and filter objects."
         onSubmit={handleSubmit}
         onClose={() => setActiveOption(undefined)}
       />

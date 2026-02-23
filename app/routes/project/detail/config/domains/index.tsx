@@ -214,11 +214,12 @@ export default function DomainsPage() {
     } else {
       navigate(
         getPathWithParams(
-          paths.project.detail.dnsZones.new,
+          paths.project.detail.dnsZones.root,
           {
             projectId,
           },
           new URLSearchParams({
+            action: 'create',
             domainName: domain.domainName,
           })
         )

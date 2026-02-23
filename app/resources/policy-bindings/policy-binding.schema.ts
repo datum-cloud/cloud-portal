@@ -104,20 +104,20 @@ export const policyBindingSubjectSchema = z.object({
   kind: z.enum(Object.values(PolicyBindingSubjectKind) as [string, ...string[]], {
     error: 'Kind is required.',
   }),
-  name: z.string({ error: 'Subject is required.' }),
+  name: z.string({ error: 'Subject is required.' }).min(1, 'Subject is required.'),
   uid: z.string().optional(),
 });
 
 export const policyBindingResourceValidationSchema = z.object({
-  ref: z.string({ error: 'Resource name is required.' }),
-  name: z.string({ error: 'Resource is required.' }),
+  ref: z.string({ error: 'Resource name is required.' }).min(1, 'Resource name is required.'),
+  name: z.string({ error: 'Resource is required.' }).min(1, 'Resource is required.'),
   namespace: z.string().optional(),
   uid: z.string().optional(),
 });
 
 export const newPolicyBindingSchema = z.object({
   resource: policyBindingResourceValidationSchema,
-  role: z.string({ error: 'Role is required.' }),
+  role: z.string({ error: 'Role is required.' }).min(1, 'Role is required.'),
   roleNamespace: z.string().optional(),
   subjects: z
     .array(policyBindingSubjectSchema)

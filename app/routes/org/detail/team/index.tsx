@@ -522,7 +522,7 @@ export default function OrgTeamPage() {
         ref={manageRoleModalForm}
         orgId={orgId ?? ''}
         onSuccess={() => {
-          toast.success('Member role updated successfully', {
+          toast.success('Member role', {
             description: 'The member role has been updated successfully',
           });
         }}

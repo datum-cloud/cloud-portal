@@ -1,6 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { SECRET_TYPES } from '@/features/secret/constants';
+import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/secret-form-dialog';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
@@ -19,8 +20,8 @@ import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
-import { LoaderFunctionArgs, useLoaderData, useParams, Link, useNavigate } from 'react-router';
+import { useMemo, useRef } from 'react';
+import { LoaderFunctionArgs, useLoaderData, useParams, useNavigate } from 'react-router';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
@@ -39,6 +40,7 @@ export default function SecretsPage() {
   const initialData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
+  const secretFormDialogRef = useRef<SecretFormDialogRef>(null);
   const { projectId } = useParams();
 
   // Hydrate cache with SSR data (runs once on mount)
@@ -130,52 +132,54 @@ export default function SecretsPage() {
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data ?? []}
-      emptyContent={{
-        title: "let's add a secret to get you started",
-        actions: [
-          {
-            type: 'link',
-            label: 'Add secret',
-            to: getPathWithParams(paths.project.detail.config.secrets.new, { projectId }),
-            variant: 'default',
-            icon: <Icon icon={PlusIcon} className="size-3" />,
-            iconPosition: 'start',
-          },
-        ],
-      }}
-      tableTitle={{
-        title: 'Secrets',
-        actions: (
-          <Link
-            to={getPathWithParams(paths.project.detail.config.secrets.new, {
-              projectId,
-            })}>
-            <Button type="primary" theme="solid" size="small">
+    <>
+      <DataTable
+        columns={columns}
+        data={data ?? []}
+        emptyContent={{
+          title: "let's add a secret to get you started",
+          actions: [
+            {
+              type: 'button',
+              label: 'Add secret',
+              onClick: () => secretFormDialogRef.current?.show(),
+              variant: 'default',
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              iconPosition: 'start',
+            },
+          ],
+        }}
+        tableTitle={{
+          title: 'Secrets',
+          actions: (
+            <Button
+              type="primary"
+              theme="solid"
+              size="small"
+              onClick={() => secretFormDialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add secret
             </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search secrets',
-        },
-      }}
-      defaultSorting={[{ id: 'createdAt', desc: true }]}
-      rowActions={rowActions}
-      onRowClick={(row) => {
-        navigate(
-          getPathWithParams(paths.project.detail.config.secrets.detail.overview, {
-            projectId,
-            secretId: row.name,
-          })
-        );
-      }}
-    />
+          ),
+        }}
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search secrets',
+          },
+        }}
+        defaultSorting={[{ id: 'createdAt', desc: true }]}
+        rowActions={rowActions}
+        onRowClick={(row) => {
+          navigate(
+            getPathWithParams(paths.project.detail.config.secrets.detail.overview, {
+              projectId,
+              secretId: row.name,
+            })
+          );
+        }}
+      />
+      <SecretFormDialog ref={secretFormDialogRef} />
+    </>
   );
 }

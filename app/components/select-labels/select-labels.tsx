@@ -1,6 +1,6 @@
-import { LabelFormDialog, LabelFormDialogRef } from './label-form-dialog';
+import { KeyValueFormDialog, KeyValueFormDialogRef } from '@/components/key-value-form-dialog';
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
-import { LabelFormSchema } from '@/resources/base';
+import { labelFormSchema, LabelFormSchema } from '@/resources/base';
 import { splitOption } from '@/utils/helpers/object.helper';
 import { toast } from '@datum-ui/components';
 import { PlusIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ export const SelectLabels = ({
   defaultValue?: string[];
   onChange?: (value: string[]) => void;
 }) => {
-  const labelFormDialogRef = useRef<LabelFormDialogRef>(null!);
+  const dialogRef = useRef<KeyValueFormDialogRef>(null!);
   const [options, setOptions] = useState<MultiSelectOption[]>();
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [activeOption, setActiveOption] = useState<string>();
@@ -97,7 +97,7 @@ export const SelectLabels = ({
             className: 'text-primary cursor-pointer',
             onClick: () => {
               setActiveOption(undefined);
-              labelFormDialogRef.current?.show();
+              dialogRef.current?.show();
             },
           },
         ]}
@@ -105,12 +105,15 @@ export const SelectLabels = ({
           const { key, value } = splitOption(option.value);
 
           setActiveOption(option.value);
-          labelFormDialogRef.current?.show({ key, value });
+          dialogRef.current?.show({ key, value });
         }}
       />
 
-      <LabelFormDialog
-        ref={labelFormDialogRef}
+      <KeyValueFormDialog
+        ref={dialogRef}
+        schema={labelFormSchema}
+        title="Add Label"
+        description="Create labels to organize resources. Use key/value pairs to categorize and filter objects."
         onSubmit={handleSubmit}
         onClose={() => setActiveOption(undefined)}
       />

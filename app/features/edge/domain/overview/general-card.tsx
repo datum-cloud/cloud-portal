@@ -101,11 +101,12 @@ export const DomainGeneralCard = ({
             className="font-semibold"
             onClick={() => trackAction(AnalyticsAction.TransferDnsToDatum)}
             href={getPathWithParams(
-              paths.project.detail.dnsZones.new,
+              paths.project.detail.dnsZones.root,
               {
                 projectId,
               },
               new URLSearchParams({
+                action: 'create',
                 domainName: domain.domainName ?? '',
               })
             )}>
@@ -114,7 +115,7 @@ export const DomainGeneralCard = ({
         ),
       },
     ];
-  }, [domain, dnsZone, trackAction]);
+  }, [domain, dnsZone, trackAction, projectId]);
 
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">

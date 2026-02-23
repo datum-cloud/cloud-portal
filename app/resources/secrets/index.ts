@@ -19,6 +19,8 @@ export {
   secretVariablesSchema,
   secretBaseSchema,
   secretNewSchema,
+  secretCreateSchema,
+  type SecretCreateSchema,
   secretEditSchema,
   type SecretBaseSchema,
   type SecretEnvSchema,

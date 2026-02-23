@@ -2,6 +2,10 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
+import {
+  DnsZoneFormDialog,
+  type DnsZoneFormDialogRef,
+} from '@/features/edge/dns-zone/dns-zone-form-dialog';
 import { IExtendedControlPlaneStatus } from '@/resources/base';
 import {
   createDnsZoneService,
@@ -17,19 +21,25 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, DataTable, DataTableRowActionsProps, Tooltip, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
-import { useCallback, useMemo } from 'react';
 import {
-  Link,
+  Button,
+  DataTable,
+  type DataTableRowActionsProps,
+  Tooltip,
+  toast,
+} from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import type { ColumnDef } from '@tanstack/react-table';
+import { PlusIcon } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
   LoaderFunctionArgs,
   MetaFunction,
   data,
   useLoaderData,
   useNavigate,
   useParams,
+  useSearchParams,
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -82,6 +92,24 @@ export default function DnsZonesPage() {
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
+  const dialogRef = useRef<DnsZoneFormDialogRef>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Sync dialog state from URL search params (for external links like ?action=create&domainName=...)
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      const domainName = searchParams.get('domainName') ?? undefined;
+      dialogRef.current?.show(domainName);
+      setSearchParams(
+        (prev) => {
+          prev.delete('action');
+          prev.delete('domainName');
+          return prev;
+        },
+        { replace: true }
+      );
+    }
+  }, [searchParams, setSearchParams]);
 
   // Pre-compute status for all zones (called once per zones change)
   const zonesWithStatus = useMemo<DnsZoneWithComputed[]>(() => {
@@ -302,46 +330,46 @@ export default function DnsZonesPage() {
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={zonesWithStatus}
-      rowActions={rowActions}
-      onRowClick={handleRowClick}
-      emptyContent={{
-        title: "let's add a DNS to get you started",
-        actions: [
-          {
-            type: 'link',
-            label: 'Add zone',
-            to: getPathWithParams(paths.project.detail.dnsZones.new, {
-              projectId,
-            }),
-            variant: 'default',
-            icon: <Icon icon={PlusIcon} className="size-3" />,
-            iconPosition: 'start',
-          },
-        ],
-      }}
-      tableTitle={{
-        title: 'DNS',
-        actions: (
-          <Link
-            to={getPathWithParams(paths.project.detail.dnsZones.new, {
-              projectId,
-            })}>
-            <Button type="primary" theme="solid" size="small">
+    <>
+      <DnsZoneFormDialog ref={dialogRef} projectId={projectId ?? ''} />
+      <DataTable
+        columns={columns}
+        data={zonesWithStatus}
+        rowActions={rowActions}
+        onRowClick={handleRowClick}
+        emptyContent={{
+          title: "let's add a DNS to get you started",
+          actions: [
+            {
+              type: 'button',
+              label: 'Add zone',
+              onClick: () => dialogRef.current?.show(),
+              variant: 'default',
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              iconPosition: 'start',
+            },
+          ],
+        }}
+        tableTitle={{
+          title: 'DNS',
+          actions: (
+            <Button
+              type="primary"
+              theme="solid"
+              size="small"
+              onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add zone
             </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search DNS',
-        },
-      }}
-    />
+          ),
+        }}
+        toolbar={{
+          layout: 'compact',
+          includeSearch: {
+            placeholder: 'Search DNS',
+          },
+        }}
+      />
+    </>
   );
 }

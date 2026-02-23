@@ -6,7 +6,7 @@ import { defineStepper } from '@datum-ui/components/stepper';
 import { cn } from '@shadcn/lib/utils';
 import type * as Stepperize from '@stepperize/react';
 import * as React from 'react';
-import type { z } from 'zod';
+import { z } from 'zod';
 
 // ============================================================================
 // Types
@@ -58,8 +58,39 @@ export function useFormStepperContext(): FormStepperContextValue {
 // ============================================================================
 
 /**
- * Merge multiple zod object schemas into one
- * All step schemas must be z.object() types
+ * Recursively unwrap ZodIntersection (from .and()) to extract the base ZodObject.
+ *
+ * Zod v4 schema types use `def.type` as a string discriminant:
+ * - "intersection" (from .and()): merge left + right base objects
+ * - "object": return directly
+ *
+ * Note: In Zod v4, .superRefine() and .refine() return `this` (no wrapper),
+ * so only ZodIntersection needs unwrapping.
+ */
+function getBaseObject(schema: z.ZodType): z.ZodObject<any> {
+  if (schema.def.type === 'intersection') {
+    // Zod v4's `def` is typed as an opaque union; cast to access `left`/`right` branches.
+    const intersectionDef = schema.def as unknown as { left: z.ZodType; right: z.ZodType };
+    const left = getBaseObject(intersectionDef.left);
+    const right = getBaseObject(intersectionDef.right);
+    return left.merge(right);
+  }
+
+  if (schema.def.type !== 'object') {
+    console.warn(
+      `mergeSchemas: expected ZodObject or ZodIntersection but got "${schema.def.type}". ` +
+        'Falling back to empty object.'
+    );
+    return z.object({});
+  }
+
+  return schema as z.ZodObject<any>;
+}
+
+/**
+ * Merge multiple zod schemas into one ZodObject for HTML constraint generation.
+ * Handles ZodIntersection (.and()) by unwrapping to base ZodObject shapes.
+ * Per-step validation still uses the original schemas with all refinements intact.
  */
 function mergeSchemas(steps: StepConfig[]): z.ZodObject<any> {
   if (steps.length === 0) {
@@ -67,22 +98,13 @@ function mergeSchemas(steps: StepConfig[]): z.ZodObject<any> {
   }
 
   return steps.reduce((acc, step, index) => {
-    const schema = step.schema;
-
-    // Verify schema is a ZodObject
-    if (!schema || typeof (schema as any).shape !== 'object') {
-      console.warn(
-        `Form.Stepper: Step "${step.id}" schema should be a z.object(). ` +
-          'Auto-merge may not work correctly.'
-      );
-    }
+    const base = getBaseObject(step.schema);
 
     if (index === 0) {
-      return schema as z.ZodObject<any>;
+      return base;
     }
 
-    // Merge schemas
-    return acc.merge(schema as z.ZodObject<any>);
+    return acc.merge(base);
   }, {} as z.ZodObject<any>);
 }
 
