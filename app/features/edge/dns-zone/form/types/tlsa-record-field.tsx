@@ -1,62 +1,25 @@
-import { Field } from '@/components/field/field';
-import { TLSARecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
-import { Textarea } from '@shadcn/ui/textarea';
+import { Form } from '@datum-ui/components/new-form';
 
-export const TLSARecordField = ({
-  fields,
-}: {
-  fields: ReturnType<typeof useForm<TLSARecordSchema>>[1];
-  defaultValue?: TLSARecordSchema;
-}) => {
-  const tlsaFields = fields.tlsa.getFieldset();
+export const TLSARecordField = () => (
+  <>
+    <Form.Field name="tlsa.usage" label="Usage" required>
+      <Form.Input type="number" placeholder="3" min={0} max={3} />
+    </Form.Field>
 
-  return (
-    <>
-      <Field isRequired label="Usage" errors={tlsaFields.usage.errors}>
-        <Input
-          {...getInputProps(tlsaFields.usage, { type: 'number' })}
-          key={tlsaFields.usage.id}
-          placeholder="3"
-          min={0}
-          max={3}
-        />
-      </Field>
+    <Form.Field name="tlsa.selector" label="Selector" required>
+      <Form.Input type="number" placeholder="1" min={0} max={1} />
+    </Form.Field>
 
-      <Field isRequired label="Selector" errors={tlsaFields.selector.errors}>
-        <Input
-          {...getInputProps(tlsaFields.selector, { type: 'number' })}
-          key={tlsaFields.selector.id}
-          placeholder="1"
-          min={0}
-          max={1}
-        />
-      </Field>
+    <Form.Field name="tlsa.matchingType" label="Matching Type" required>
+      <Form.Input type="number" placeholder="1" min={0} max={2} />
+    </Form.Field>
 
-      <Field isRequired label="Matching Type" errors={tlsaFields.matchingType.errors}>
-        <Input
-          {...getInputProps(tlsaFields.matchingType, { type: 'number' })}
-          key={tlsaFields.matchingType.id}
-          placeholder="1"
-          min={0}
-          max={2}
-        />
-      </Field>
-
-      <Field
-        isRequired
-        label="Certificate Data (Hex)"
-        errors={tlsaFields.certData.errors}
-        className="col-span-4">
-        <Textarea
-          {...getInputProps(tlsaFields.certData, { type: 'text' })}
-          key={tlsaFields.certData.id}
-          placeholder="e.g., 0EED2700D3F228FDB..."
-          className="font-mono text-xs"
-          rows={3}
-        />
-      </Field>
-    </>
-  );
-};
+    <Form.Field name="tlsa.certData" label="Certificate Data (Hex)" required className="col-span-4">
+      <Form.Textarea
+        placeholder="e.g., 0EED2700D3F228FDB..."
+        className="font-mono text-xs"
+        rows={3}
+      />
+    </Form.Field>
+  </>
+);

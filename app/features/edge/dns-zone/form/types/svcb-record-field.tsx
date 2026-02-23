@@ -1,45 +1,17 @@
-import { Field } from '@/components/field/field';
-import { SVCBRecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
+import { Form } from '@datum-ui/components/new-form';
 
-export const SVCBRecordField = ({
-  fields,
-}: {
-  fields: ReturnType<typeof useForm<SVCBRecordSchema>>[1];
-  defaultValue?: SVCBRecordSchema;
-}) => {
-  const svcbFields = fields.svcb.getFieldset();
+export const SVCBRecordField = () => (
+  <>
+    <Form.Field name="svcb.priority" label="Priority" required>
+      <Form.Input type="number" placeholder="1" min={0} max={65535} />
+    </Form.Field>
 
-  if (!svcbFields) return null;
+    <Form.Field name="svcb.target" label="Target" required>
+      <Form.Input placeholder="e.g., example.com or ." />
+    </Form.Field>
 
-  return (
-    <>
-      <Field isRequired label="Priority" errors={svcbFields.priority.errors}>
-        <Input
-          {...getInputProps(svcbFields.priority, { type: 'number' })}
-          key={svcbFields.priority.id}
-          placeholder="1"
-          min={0}
-          max={65535}
-        />
-      </Field>
-
-      <Field isRequired label="Target" errors={svcbFields.target.errors}>
-        <Input
-          {...getInputProps(svcbFields.target, { type: 'text' })}
-          key={svcbFields.target.id}
-          placeholder="e.g., example.com or ."
-        />
-      </Field>
-
-      <Field label="Value" errors={svcbFields.params?.errors} className="col-span-2">
-        <Input
-          {...getInputProps(svcbFields.params, { type: 'text' })}
-          key={svcbFields.params?.id}
-          placeholder='E.g. alpn="h3,h2" ipv4hint="127.0.0.1" ipv6hint="::1"'
-        />
-      </Field>
-    </>
-  );
-};
+    <Form.Field name="svcb.params" label="Value" className="col-span-2">
+      <Form.Input placeholder='E.g. alpn="h3,h2" ipv4hint="127.0.0.1" ipv6hint="::1"' />
+    </Form.Field>
+  </>
+);

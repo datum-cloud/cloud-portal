@@ -15,6 +15,7 @@ export * from './data-table';
 export * from './dialog';
 export * from './dropdown';
 export * from './form';
+export * from './label';
 export * from './input-number';
 export * from './input-with-addons';
 export * from './sheet';

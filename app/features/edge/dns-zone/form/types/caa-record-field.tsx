@@ -1,7 +1,4 @@
-import { Field } from '@/components/field/field';
-import { CAARecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
+import { Form } from '@datum-ui/components/new-form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
 
 const CAA_TAGS = [
@@ -10,28 +7,18 @@ const CAA_TAGS = [
   { value: 'iodef', label: 'iodef - URL for incident reporting' },
 ];
 
-export const CAARecordField = ({
-  fields,
-}: {
-  fields: ReturnType<typeof useForm<CAARecordSchema>>[1];
-  defaultValue?: CAARecordSchema;
-}) => {
-  const caaFields = fields.caa.getFieldset();
+export const CAARecordField = () => (
+  <>
+    <Form.Field name="caa.flag" label="Flag" required>
+      <Form.Input type="number" placeholder="0" min={0} max={255} />
+    </Form.Field>
 
-  return (
-    <>
-      <Field isRequired label="Flag" errors={caaFields.flag.errors}>
-        <Input
-          {...getInputProps(caaFields.flag, { type: 'number' })}
-          key={caaFields.flag.id}
-          placeholder="0"
-          min={0}
-          max={255}
-        />
-      </Field>
-
-      <Field isRequired label="Tag" errors={caaFields.tag.errors} className="col-span-2">
-        <Select key={caaFields.tag.id} name={caaFields.tag.name} defaultValue="issue">
+    <Form.Field name="caa.tag" label="Tag" required className="col-span-2">
+      {({ control, meta }) => (
+        <Select
+          name={meta.name}
+          defaultValue="issue"
+          onValueChange={(value) => control.change(value)}>
           <SelectTrigger>
             <SelectValue placeholder="Select tag" />
           </SelectTrigger>
@@ -43,15 +30,11 @@ export const CAARecordField = ({
             ))}
           </SelectContent>
         </Select>
-      </Field>
+      )}
+    </Form.Field>
 
-      <Field isRequired label="Value" errors={caaFields.value.errors}>
-        <Input
-          {...getInputProps(caaFields.value, { type: 'text' })}
-          key={caaFields.value.id}
-          placeholder="e.g., letsencrypt.org"
-        />
-      </Field>
-    </>
-  );
-};
+    <Form.Field name="caa.value" label="Value" required>
+      <Form.Input placeholder="e.g., letsencrypt.org" />
+    </Form.Field>
+  </>
+);
