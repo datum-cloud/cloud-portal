@@ -36,7 +36,7 @@ import { spawn, execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 
-const OUTPUT_DIR = 'app/modules/gqlts/generated';
+const OUTPUT_DIR = 'app/modules/graphql/generated';
 const TEMP_SCHEMA_FILE = 'temp-filtered-schema.graphql';
 const CONFIG_FILE = 'graphql.config.json';
 

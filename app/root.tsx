@@ -4,6 +4,7 @@ import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { ThemeProvider, ThemeScript, useTheme } from '@/modules/datum-themes';
+import { GraphQLProvider } from '@/modules/graphql/provider';
 import MarkerIoEmbed from '@/modules/markerio';
 import { queryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
@@ -17,6 +18,7 @@ import { Toaster, useToast } from '@datum-ui/components';
 import { configureProgress, startProgress, stopProgress } from '@datum-ui/components/nprogress';
 import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
+import type { SSRData } from '@urql/core';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
 import React, { useEffect, useMemo } from 'react';
 import {
@@ -30,6 +32,7 @@ import {
   isRouteErrorResponse,
   useFetchers,
   useLoaderData,
+  useMatches,
   useNavigation,
   useRouteError,
 } from 'react-router';
@@ -131,6 +134,17 @@ export default function AppWithProviders() {
   const nonce = useNonce();
   const navigation = useNavigation();
   const fetchers = useFetchers();
+  const matches = useMatches();
+
+  const urqlState = useMemo<SSRData>(() => {
+    return matches.reduce<SSRData>((acc, match) => {
+      const state = (match.data as Record<string, unknown> | null)?.urqlState;
+      if (state && typeof state === 'object') {
+        return { ...acc, ...(state as SSRData) };
+      }
+      return acc;
+    }, {});
+  }, [matches]);
 
   // Renders toast (if any).
   useToast(toast);
@@ -172,9 +186,11 @@ export default function AppWithProviders() {
     <Document nonce={nonce}>
       <AuthenticityTokenProvider token={csrfToken}>
         <QueryClientProvider client={queryClient}>
-          <NuqsAdapter>
-            <Outlet />
-          </NuqsAdapter>
+          <GraphQLProvider urqlState={urqlState}>
+            <NuqsAdapter>
+              <Outlet />
+            </NuqsAdapter>
+          </GraphQLProvider>
         </QueryClientProvider>
       </AuthenticityTokenProvider>
     </Document>

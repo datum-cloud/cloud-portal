@@ -54,8 +54,6 @@ export {
 // GraphQL Query hook exports
 export {
   useOrganizationsGql,
-  useOrganizationsInfiniteGql,
-  useOrganizationGql,
   useCreateOrganizationGql,
   useUpdateOrganizationGql,
   useDeleteOrganizationGql,

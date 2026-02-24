@@ -7,7 +7,8 @@ import {
   RateLimitError,
   ValidationError,
 } from './app-error';
-import { isGqlError, getGqlErrorCode, getGqlErrorMessage } from '@/modules/gqlts/errors';
+import { isGqlError, getGqlErrorCode, getGqlErrorMessage } from '@/modules/graphql/errors';
+import { CombinedError } from '@urql/core';
 import { AxiosError } from 'axios';
 
 interface ApiErrorResponse {
@@ -54,6 +55,30 @@ export function mapApiError(error: unknown, requestId?: string): AppError {
     const gqlError = error.errors![0];
     const code = getGqlErrorCode(gqlError);
     const message = getGqlErrorMessage(error);
+
+    switch (code) {
+      case 'UNAUTHENTICATED':
+        return new AuthenticationError(message, requestId);
+      case 'FORBIDDEN':
+        return new AuthorizationError(message, requestId);
+      case 'NOT_FOUND':
+        return new NotFoundError('Resource', undefined, requestId);
+      case 'BAD_USER_INPUT':
+        return new ValidationError(message, undefined, requestId);
+      default:
+        return new AppError(message, {
+          code: code ?? 'GRAPHQL_ERROR',
+          status: 500,
+          requestId,
+          cause: error,
+        });
+    }
+  }
+
+  if (error instanceof CombinedError) {
+    const gqlError = error.graphQLErrors[0];
+    const code = gqlError?.extensions?.code as string | undefined;
+    const message = gqlError?.message ?? error.message;
 
     switch (code) {
       case 'UNAUTHENTICATED':

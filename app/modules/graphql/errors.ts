@@ -1,4 +1,3 @@
-// app/modules/gqlts/errors.ts
 import type { GraphQLError, GraphqlResponse } from './generated';
 
 /**

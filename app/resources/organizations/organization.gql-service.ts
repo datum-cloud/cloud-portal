@@ -10,13 +10,14 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1Organization,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
-import { createGqlClient } from '@/modules/gqlts/client';
+import { createGqlClient } from '@/modules/graphql/client';
+import { generateQueryOp, generateMutationOp } from '@/modules/graphql/generated';
 import type {
   QueryRequest,
   MutationRequest,
   com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
   com_miloapis_resourcemanager_v1alpha1_OrganizationRequest,
-} from '@/modules/gqlts/generated';
+} from '@/modules/graphql/generated';
 import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import { mapApiError } from '@/utils/errors/error-mapper';
@@ -48,7 +49,7 @@ const organizationSelection = {
 
 /**
  * GraphQL service for organizations.
- * Uses Gqlts with typed client for GraphQL operations.
+ * Uses URQL with generateQueryOp/generateMutationOp for GraphQL operations.
  */
 export function createOrganizationGqlService() {
   return {
@@ -59,7 +60,7 @@ export function createOrganizationGqlService() {
         // Use user scope like REST API - 'me' gets resolved by the API
         const client = createGqlClient({ type: 'user', userId: 'me' });
 
-        const query = {
+        const op = generateQueryOp({
           listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
             {}, // variables
             {
@@ -86,9 +87,11 @@ export function createOrganizationGqlService() {
               metadata: { continue: true, remainingItemCount: true },
             } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
           ],
-        } satisfies QueryRequest;
+        } satisfies QueryRequest);
 
-        const result = await client.query(query);
+        const result = await client.query(op.query, op.variables).toPromise();
+
+        if (result.error) throw mapApiError(result.error);
 
         const data =
           result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
@@ -98,13 +101,14 @@ export function createOrganizationGqlService() {
         }
 
         // Transform using existing adapter, filter and sort
-        const items = data.items
-          .filter((item): item is NonNullable<typeof item> => item !== null)
-          .map((item) =>
-            toOrganizationFromMembership(
-              item as unknown as ComMiloapisResourcemanagerV1Alpha1OrganizationMembership
-            )
+        const items = (
+          data.items as (ComMiloapisResourcemanagerV1Alpha1OrganizationMembership | null)[]
+        )
+          .filter(
+            (item): item is ComMiloapisResourcemanagerV1Alpha1OrganizationMembership =>
+              item !== null
           )
+          .map((item) => toOrganizationFromMembership(item))
           .filter((org: Organization) => org.status === 'Active')
           .sort((a: Organization, b: Organization) => {
             if (a.type === 'Personal' && b.type !== 'Personal') return -1;
@@ -136,11 +140,13 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'org', orgId: name });
 
-        const query = {
+        const op = generateQueryOp({
           readResourcemanagerMiloapisComV1alpha1Organization: [{ name }, organizationSelection],
-        } satisfies QueryRequest;
+        } satisfies QueryRequest);
 
-        const result = await client.query(query);
+        const result = await client.query(op.query, op.variables).toPromise();
+
+        if (result.error) throw mapApiError(result.error);
 
         const data = result.data?.readResourcemanagerMiloapisComV1alpha1Organization;
 
@@ -166,7 +172,7 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'global' });
 
-        const mutation = {
+        const op = generateMutationOp({
           createResourcemanagerMiloapisComV1alpha1Organization: [
             {
               input: {
@@ -182,9 +188,11 @@ export function createOrganizationGqlService() {
             },
             organizationSelection,
           ],
-        } satisfies MutationRequest;
+        } satisfies MutationRequest);
 
-        const result = await client.mutation(mutation);
+        const result = await client.mutation(op.query, op.variables).toPromise();
+
+        if (result.error) throw mapApiError(result.error);
 
         const data = result.data?.createResourcemanagerMiloapisComV1alpha1Organization;
 
@@ -210,7 +218,7 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'org', orgId: name });
 
-        const mutation = {
+        const op = generateMutationOp({
           patchResourcemanagerMiloapisComV1alpha1Organization: [
             {
               name,
@@ -225,9 +233,11 @@ export function createOrganizationGqlService() {
             },
             organizationSelection,
           ],
-        } satisfies MutationRequest;
+        } satisfies MutationRequest);
 
-        const result = await client.mutation(mutation);
+        const result = await client.mutation(op.query, op.variables).toPromise();
+
+        if (result.error) throw mapApiError(result.error);
 
         const data = result.data?.patchResourcemanagerMiloapisComV1alpha1Organization;
 
@@ -253,11 +263,13 @@ export function createOrganizationGqlService() {
       try {
         const client = createGqlClient({ type: 'org', orgId: name });
 
-        const mutation = {
+        const op = generateMutationOp({
           deleteResourcemanagerMiloapisComV1alpha1Organization: [{ name }, { status: true }],
-        } satisfies MutationRequest;
+        } satisfies MutationRequest);
 
-        await client.mutation(mutation);
+        const result = await client.mutation(op.query, op.variables).toPromise();
+
+        if (result.error) throw mapApiError(result.error);
 
         logger.service(SERVICE_NAME, 'delete', {
           input: { name },
