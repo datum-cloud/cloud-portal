@@ -1,7 +1,8 @@
 import { DnsRecordTable } from '@/features/edge/dns-records';
-import { IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
-import { useDnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
+import { type IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
+import { useCreateDnsZoneDiscovery, useDnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
 import { paths } from '@/utils/config/paths.config';
+import { transformFlattenedToRecordSets } from '@/utils/helpers/dns';
 import { flattenDnsRecordSets, type ImportResult } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -25,34 +26,56 @@ const MAX_POLL_ATTEMPTS = 5;
 
 export const DnsZoneDiscoveryPreview = ({
   projectId,
-  dnsZoneDiscoveryId,
   dnsZoneId,
 }: {
   projectId: string;
-  dnsZoneDiscoveryId: string;
   dnsZoneId: string;
 }) => {
   const navigate = useNavigate();
   const [dnsRecords, setDnsRecords] = useState<IFlattenedDnsRecord[]>([]);
-  const [rawRecordSets, setRawRecordSets] = useState<any[]>([]); // Store raw discovery recordSets
+  const [selectedRecords, setSelectedRecords] = useState<IFlattenedDnsRecord[]>([]);
+  const [discoveryId, setDiscoveryId] = useState('');
 
   const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pollCountRef = useRef<number>(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showEmpty, setShowEmpty] = useState(false);
-  const [shouldPoll, setShouldPoll] = useState(true);
+  const [shouldPoll, setShouldPoll] = useState(false);
 
-  // Use React Query for polling DNS zone discovery
+  // Create discovery on mount
+  const createDiscovery = useCreateDnsZoneDiscovery(projectId, {
+    onSuccess: (discovery) => {
+      setDiscoveryId(discovery.name);
+      setShouldPoll(true);
+    },
+    onError: (error) => {
+      toast.error('DNS', {
+        description: error.message || 'Failed to create DNS zone discovery',
+      });
+      setIsLoading(false);
+      setShowEmpty(true);
+    },
+  });
+
+  const hasTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (projectId && dnsZoneId && !hasTriggeredRef.current) {
+      hasTriggeredRef.current = true;
+      createDiscovery.mutate(dnsZoneId);
+    }
+  }, [projectId, dnsZoneId]);
+
+  // Poll discovery results
   const { data: discoveryData, error: discoveryError } = useDnsZoneDiscovery(
     projectId,
-    dnsZoneDiscoveryId,
+    discoveryId,
     {
-      enabled: !!projectId && !!dnsZoneDiscoveryId && shouldPoll,
+      enabled: !!discoveryId && shouldPoll,
       refetchInterval: shouldPoll ? 2000 : false,
     }
   );
 
-  // Use React Query mutation for bulk import
+  // Bulk import mutation
   const bulkImportMutation = useBulkImportDnsRecords(projectId, dnsZoneId, {
     onSuccess: (result: ImportResult) => {
       const { summary } = result;
@@ -77,7 +100,6 @@ export const DnsZoneDiscoveryPreview = ({
         });
       }
 
-      // Navigate to DNS zone detail after successful import
       navigateToZoneDetails();
     },
     onError: (error: Error) => {
@@ -109,13 +131,10 @@ export const DnsZoneDiscoveryPreview = ({
 
     pollCountRef.current += 1;
 
-    // Stop polling after MAX_POLL_ATTEMPTS
     if (pollCountRef.current > MAX_POLL_ATTEMPTS) {
       setShouldPoll(false);
-      // Wait 2.5 seconds before hiding loading
       loadingTimeoutRef.current = setTimeout(() => {
         setIsLoading(false);
-        // Show empty state only if no records found after all attempts
         if (dnsRecords.length === 0) {
           setShowEmpty(true);
         }
@@ -123,21 +142,17 @@ export const DnsZoneDiscoveryPreview = ({
       return;
     }
 
-    // Process discovery data when available
     if (discoveryData?.recordSets && discoveryData.recordSets.length > 0) {
       const flattened = flattenDnsRecordSets(discoveryData.recordSets, dnsZoneId);
 
-      // Update both states together to ensure they're in sync
-      setRawRecordSets(discoveryData.recordSets);
       setDnsRecords(flattened);
       setShouldPoll(false);
       setIsLoading(false);
     }
 
     return cleanUp;
-  }, [discoveryData, shouldPoll, dnsRecords.length, dnsZoneId]);
+  }, [discoveryData, shouldPoll, dnsZoneId]);
 
-  // Handle discovery errors
   useEffect(() => {
     if (discoveryError) {
       toast.error(discoveryError.message || 'An unexpected error occurred');
@@ -145,19 +160,16 @@ export const DnsZoneDiscoveryPreview = ({
   }, [discoveryError]);
 
   const handleBulkImport = () => {
-    if (rawRecordSets.length === 0) {
-      toast.error('No records to import');
-      return;
-    }
+    if (selectedRecords.length === 0) return;
 
+    const recordSets = transformFlattenedToRecordSets(selectedRecords);
     bulkImportMutation.mutate({
-      discoveryRecordSets: rawRecordSets,
+      discoveryRecordSets: recordSets,
       importOptions: { skipDuplicates: true, mergeStrategy: 'append' },
     });
   };
 
   const handleSkip = () => {
-    // Stop polling and cleanup
     setShouldPoll(false);
     cleanUp();
     navigateToZoneDetails();
@@ -193,8 +205,8 @@ export const DnsZoneDiscoveryPreview = ({
             <CardHeader className="px-5">
               <CardTitle>Add DNS records</CardTitle>
               <CardDescription>
-                We found some records from your existing provider. These may be incomplete. Shall we
-                import them?
+                We found some records from your existing provider. These may be incomplete. Select
+                the records you want to import.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-5">
@@ -205,6 +217,13 @@ export const DnsZoneDiscoveryPreview = ({
                 tableContainerClassName="max-h-[400px] overflow-y-auto rounded-xl"
                 data={dnsRecords}
                 mode="compact"
+                enableMultiSelect
+                getRowId={(row, index) => {
+                  return `${row.type}-${row.name}-${row.value}-${index + 1}`;
+                }}
+                onSelectionChange={(_selectedIds, rows) => {
+                  setSelectedRecords(rows);
+                }}
               />
             </CardContent>
 
@@ -221,11 +240,13 @@ export const DnsZoneDiscoveryPreview = ({
                 htmlType="button"
                 type="primary"
                 theme="solid"
-                disabled={dnsRecords.length === 0}
+                disabled={selectedRecords.length === 0 || bulkImportMutation.isPending}
                 onClick={handleBulkImport}
                 loading={bulkImportMutation.isPending}
                 icon={<Icon icon={PlusIcon} className="size-4" />}>
-                {bulkImportMutation.isPending ? 'Importing...' : `Add ${dnsRecords.length} records`}
+                {bulkImportMutation.isPending
+                  ? 'Importing...'
+                  : `Add ${selectedRecords.length} record${selectedRecords.length !== 1 ? 's' : ''}`}
               </Button>
             </CardFooter>
           </motion.div>

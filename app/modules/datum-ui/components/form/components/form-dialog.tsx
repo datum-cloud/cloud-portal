@@ -1,6 +1,6 @@
 import type { FormDialogProps, FormRootRenderProps } from '../types';
 import { Dialog } from '@datum-ui/components/dialog';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 import * as React from 'react';
 import type { z } from 'zod';

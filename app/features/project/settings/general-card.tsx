@@ -3,7 +3,7 @@ import type { Project } from '@/resources/projects';
 import { updateProjectSchema, useUpdateProject } from '@/resources/projects';
 import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 /**
  * Project General Settings Card Component

@@ -16,7 +16,7 @@ import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helper
 import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { LinkButton, toast } from '@datum-ui/components';
 import { Dialog } from '@datum-ui/components/dialog';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import { z } from 'zod';

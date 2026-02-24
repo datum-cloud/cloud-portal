@@ -1,35 +1,7 @@
-import { Field } from '@/components/field/field';
-import { AAAARecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
-import { useEffect } from 'react';
+import { Form } from '@datum-ui/components/form';
 
-export const AAAARecordField = ({
-  fields,
-  defaultValue,
-}: {
-  fields: ReturnType<typeof useForm<AAAARecordSchema>>[1];
-  defaultValue?: AAAARecordSchema;
-}) => {
-  const aaaaFields = fields.aaaa.getFieldset();
-  const contentControl = useInputControl(aaaaFields.content);
-
-  useEffect(() => {
-    if (defaultValue?.aaaa?.content && !aaaaFields.content.value) {
-      contentControl.change(defaultValue.aaaa.content);
-    }
-  }, [defaultValue, contentControl, aaaaFields.content.value]);
-
-  return (
-    <Field isRequired label="IPv6 Address" errors={aaaaFields.content.errors}>
-      <Input
-        {...getInputProps(aaaaFields.content, { type: 'text' })}
-        key={aaaaFields.content.id}
-        placeholder="e.g., 2001:0db8:85a3:0000:0000:8a2e:0370:7334"
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          contentControl.change(e.target.value);
-        }}
-      />
-    </Field>
-  );
-};
+export const AAAARecordField = () => (
+  <Form.Field name="aaaa.content" label="IPv6 Address" required>
+    <Form.Input placeholder="e.g., 2001:0db8:85a3:0000:0000:8a2e:0370:7334" />
+  </Form.Field>
+);

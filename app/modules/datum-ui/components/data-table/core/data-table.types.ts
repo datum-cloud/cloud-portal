@@ -80,7 +80,7 @@ export interface DataTableProps<TData, TValue> {
    * Returns unique identifier for each row
    * Required when enableMultiSelect is true
    */
-  getRowId?: (row: TData) => string;
+  getRowId?: (row: TData, index: number) => string;
 
   /**
    * Bulk actions shown in toolbar when rows are selected

@@ -64,13 +64,6 @@ export default [
           route('invite', 'routes/org/detail/team/invite.tsx'),
         ]),
 
-        // Policy Bindings of an organization
-        /* route('policy-bindings/new', 'routes/org/detail/policy-bindings/new.tsx'),
-        route(
-          'policy-bindings/:policyBindingId/edit',
-          'routes/org/detail/policy-bindings/edit.tsx'
-        ), */
-
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('general', 'routes/org/detail/settings/general.tsx'),
@@ -105,7 +98,7 @@ export default [
           // DNS Zones
           route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
             index('routes/project/detail/edge/dns-zones/index.tsx'),
-            route('new', 'routes/project/detail/edge/dns-zones/new.tsx'),
+            route(':dnsZoneId/discovery', 'routes/project/detail/edge/dns-zones/discovery.tsx'),
             route(
               ':dnsZoneId',
               'routes/project/detail/edge/dns-zones/detail/layout.tsx',
@@ -180,7 +173,6 @@ export default [
           // Config
           route('secrets', 'routes/project/detail/config/secrets/layout.tsx', [
             index('routes/project/detail/config/secrets/index.tsx'),
-            route('new', 'routes/project/detail/config/secrets/new.tsx'),
             route(
               ':secretId',
               'routes/project/detail/config/secrets/detail/layout.tsx',

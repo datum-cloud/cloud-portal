@@ -34,7 +34,7 @@ app/modules/datum-ui/
 │   ├── grid/
 │   ├── input-number/
 │   ├── input-with-addons/
-│   ├── new-form/             # New form library
+│   ├── form/             # New form library
 │   ├── nprogress/
 │   ├── sidebar/
 │   ├── stepper/
@@ -56,7 +56,7 @@ import { Badge, Alert, Button } from '@datum-ui/components';
 // Direct component imports (for complex components)
 import { DataTable } from '@datum-ui/components/data-table';
 import { Row, Col } from '@datum-ui/components/grid';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 ```
 
 ---
@@ -111,7 +111,7 @@ const columns = [
 Compound component form with Conform.js + Zod validation.
 
 ```tsx
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -141,7 +141,7 @@ const schema = z.object({
 - Field arrays
 - Conditional fields
 
-→ Full docs: `app/modules/datum-ui/components/new-form/README.md`
+→ Full docs: `app/modules/datum-ui/components/form/README.md`
 → See also: [Forms Guide](./forms.md)
 
 ### Badge
@@ -372,7 +372,7 @@ Complex components have their own README:
 
 - `data-table/README.md` - DataTable with filtering
 - `data-table/TOOLBAR_GUIDE.md` - Toolbar customization
-- `new-form/README.md` - Form library
+- `form/README.md` - Form library
 - `grid/README.md` - Grid system
 - `badge/README.md` - Badge variants
 

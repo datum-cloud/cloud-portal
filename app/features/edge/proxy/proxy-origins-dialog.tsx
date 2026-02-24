@@ -2,7 +2,7 @@ import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpo
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { toast } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
 

@@ -1,18 +1,10 @@
-import { Field } from '@/components/field/field';
 import { SelectRole } from '@/components/select-role/select-role';
 import { memberUpdateRoleSchema, useUpdateMemberRole } from '@/resources/members';
-import {
-  FormProvider,
-  getFormProps,
-  getSelectProps,
-  useForm,
-  useInputControl,
-} from '@conform-to/react';
-import { getZodConstraint, parseWithZod } from '@conform-to/zod/v4';
-import { Button, toast } from '@datum-ui/components';
-import { Dialog } from '@datum-ui/components/dialog';
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { Form } from 'react-router';
+import { getSelectProps, useInputControl } from '@conform-to/react';
+import { toast } from '@datum-ui/components';
+import { Form } from '@datum-ui/components/form';
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
+import type { z } from 'zod';
 
 interface ManageRoleModalFormShowProps {
   id: string;
@@ -29,137 +21,114 @@ export interface ManageRoleModalFormProps {
   orgId: string;
 }
 
+type MemberUpdateRoleSchema = z.infer<typeof memberUpdateRoleSchema>;
+
 export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRoleModalFormProps>(
   ({ orgId, onSuccess }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const [memberId, setMemberId] = useState<string | undefined>(undefined);
+    const [defaultValues, setDefaultValues] = useState<Partial<MemberUpdateRoleSchema>>();
     const resolveRef = useRef<(value: boolean) => void>(null);
 
     const updateMemberRole = useUpdateMemberRole(orgId, {
-      onSuccess: () => {
-        resolveRef.current?.(true);
-        onSuccess?.();
-        setIsOpen(false);
-      },
       onError: (error) => {
         toast.error(error.message);
       },
     });
 
-    const [form, fields] = useForm({
-      id: 'invitation-form',
-      constraint: getZodConstraint(memberUpdateRoleSchema),
-      shouldValidate: 'onSubmit',
-      shouldRevalidate: 'onSubmit',
-      onValidate({ formData }) {
-        return parseWithZod(formData, { schema: memberUpdateRoleSchema });
-      },
-      defaultValue: {
-        role: '',
-        roleNamespace: '',
-      },
-      onSubmit(event, { submission }) {
-        event.preventDefault();
-        event.stopPropagation();
+    const show = useCallback(({ id, roleName, roleNamespace }: ManageRoleModalFormShowProps) => {
+      setMemberId(id);
+      setDefaultValues({
+        role: roleName,
+        roleNamespace: roleNamespace ?? 'datum-cloud',
+      });
+      setIsOpen(true);
 
-        if (submission?.status === 'success' && memberId) {
-          updateMemberRole.mutate({
-            name: memberId,
-            roleRef: {
-              role: submission.value.role,
-              roleNamespace: submission.value.roleNamespace,
-            },
-          });
-        }
-      },
-    });
+      return new Promise<boolean>((resolve) => {
+        resolveRef.current = resolve;
+      });
+    }, []);
 
-    const roleControl = useInputControl(fields.role);
-    const roleNamespaceControl = useInputControl(fields.roleNamespace);
+    useImperativeHandle(ref, () => ({ show }), [show]);
 
-    useImperativeHandle(ref, () => ({
-      show: ({ id, roleName, roleNamespace }: ManageRoleModalFormShowProps) => {
-        setIsOpen(true);
-        setMemberId(id);
-        roleControl.change(roleName);
-        roleNamespaceControl.change(roleNamespace ?? 'datum-cloud');
-
-        return new Promise<boolean>((resolve) => {
-          resolveRef.current = resolve;
-        });
-      },
-    }));
-
-    const handleOpenChange = (open: boolean) => {
+    const handleOpenChange = useCallback((open: boolean) => {
       if (!open) {
         resolveRef.current?.(false);
       }
       setIsOpen(open);
-    };
+    }, []);
 
-    const handleClose = () => {
-      setIsOpen(false);
-    };
+    const handleSubmit = useCallback(
+      async (data: MemberUpdateRoleSchema) => {
+        if (!memberId) return;
 
-    const loading = updateMemberRole.isPending;
+        await updateMemberRole.mutateAsync({
+          name: memberId,
+          roleRef: {
+            role: data.role,
+            roleNamespace: data.roleNamespace,
+          },
+        });
+
+        resolveRef.current?.(true);
+        onSuccess?.();
+        setIsOpen(false);
+      },
+      [memberId, updateMemberRole, onSuccess]
+    );
 
     return (
-      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-        <Dialog.Content>
-          <FormProvider context={form.context}>
-            <Form {...getFormProps(form)} id={form.id} method="POST" autoComplete="off">
-              <Dialog.Header
-                title="Edit Member Role"
-                description="Edit the role of the member in the organization."
-                onClose={handleClose}
-                className="border-b"
-              />
-              <Dialog.Body className="flex flex-col gap-5 px-5">
-                <Field isRequired label="Role" errors={fields.role.errors}>
-                  <SelectRole
-                    {...getSelectProps(fields.role)}
-                    modal
-                    name={fields.role.name}
-                    id={fields.role.id}
-                    key={fields.role.id}
-                    defaultValue={roleControl.value}
-                    onSelect={(value) => {
-                      roleControl.change(value.value);
-                      roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
-                    }}
-                  />
-                </Field>
-
-                <input
-                  type="hidden"
-                  name={fields.roleNamespace.name}
-                  value={roleNamespaceControl.value}
-                />
-              </Dialog.Body>
-              <Dialog.Footer className="border-t">
-                <Button
-                  htmlType="button"
-                  type="quaternary"
-                  theme="borderless"
-                  onClick={handleClose}
-                  disabled={loading}>
-                  Cancel
-                </Button>
-                <Button
-                  htmlType="submit"
-                  form={form.id}
-                  type="primary"
-                  disabled={loading}
-                  loading={loading}>
-                  {loading ? 'Saving' : 'Save'}
-                </Button>
-              </Dialog.Footer>
-            </Form>
-          </FormProvider>
-        </Dialog.Content>
-      </Dialog>
+      <Form.Dialog
+        key={isOpen ? `open-${memberId}` : 'closed'}
+        open={isOpen}
+        onOpenChange={handleOpenChange}
+        title="Edit Member Role"
+        description="Edit the role of the member in the organization."
+        schema={memberUpdateRoleSchema}
+        defaultValues={defaultValues}
+        onSubmit={handleSubmit}
+        loading={updateMemberRole.isPending}
+        submitText="Save"
+        submitTextLoading="Saving...">
+        <div className="space-y-5 px-5">
+          <RoleField />
+          <RoleNamespaceHiddenField />
+        </div>
+      </Form.Dialog>
     );
   }
 );
 
 ManageRoleModalForm.displayName = 'ManageRoleModalForm';
+
+const RoleField = () => {
+  const { fields } = Form.useFormContext();
+  const roleNamespaceField = fields.roleNamespace as any;
+  const roleNamespaceControl = useInputControl(roleNamespaceField);
+
+  return (
+    <Form.Field name="role" label="Role" required>
+      {({ control, field }) => (
+        <SelectRole
+          {...getSelectProps(field, { value: false })}
+          modal
+          defaultValue={control.value as string}
+          onSelect={(value) => {
+            control.change(value.value);
+            roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
+          }}
+        />
+      )}
+    </Form.Field>
+  );
+};
+
+const RoleNamespaceHiddenField = () => {
+  const { fields } = Form.useFormContext();
+  const roleNamespaceField = fields.roleNamespace as any;
+  const control = useInputControl(roleNamespaceField);
+
+  return (
+    <input type="hidden" name={roleNamespaceField.name} value={control.value ?? 'datum-cloud'} />
+  );
+};

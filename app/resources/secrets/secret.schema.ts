@@ -1,4 +1,5 @@
 import { metadataSchema } from '@/resources/base';
+import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
 // Secret types as const array for Zod validation
@@ -112,11 +113,34 @@ export const secretEnvSchema = z.object({
   value: z.string({ error: 'Value is required' }).min(1, { message: 'Value is required' }),
 });
 
-export const secretVariablesSchema = z.object({
-  variables: z.array(secretEnvSchema).min(1, {
-    message: 'At least one secret entry is required',
-  }),
-});
+/**
+ * Shared refinement that prevents duplicate keys in the variables array.
+ */
+const noDuplicateKeys = (data: { variables?: { key: string }[] }, ctx: z.RefinementCtx) => {
+  const keys = new Set<string>();
+  data?.variables?.forEach((variable, index) => {
+    const name = variable.key?.trim();
+    if (name) {
+      if (keys.has(name)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Key "${name}" is already used`,
+          path: ['variables', index, 'key'],
+        });
+      } else {
+        keys.add(name);
+      }
+    }
+  });
+};
+
+export const secretVariablesSchema = z
+  .object({
+    variables: z.array(secretEnvSchema).min(1, {
+      message: 'At least one secret entry is required',
+    }),
+  })
+  .superRefine(noDuplicateKeys);
 
 export const secretBaseSchema = z
   .object({
@@ -128,23 +152,22 @@ export const secretBaseSchema = z
 
 export const secretNewSchema = secretBaseSchema
   .and(secretVariablesSchema)
-  .superRefine((data, ctx) => {
-    const keys = new Set<string>();
-    data?.variables?.forEach((variable, index) => {
-      const name = variable.key?.trim();
-      if (name) {
-        if (keys.has(name)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: `Key "${name}" is already used`,
-            path: ['variables', index, 'key'],
-          });
-        } else {
-          keys.add(name);
-        }
-      }
-    });
-  });
+  .superRefine(noDuplicateKeys);
+
+// Simplified create schema for Form.Dialog (no labels/annotations)
+export const secretCreateSchema = z
+  .object({
+    name: createNameSchema(),
+    type: z.enum(Object.values(SecretType) as [string, ...string[]], {
+      error: 'Type is required.',
+    }),
+    variables: z.array(secretEnvSchema).min(1, {
+      message: 'At least one secret entry is required',
+    }),
+  })
+  .superRefine(noDuplicateKeys);
+
+export type SecretCreateSchema = z.infer<typeof secretCreateSchema>;
 
 export const secretEditSchema = z.object({
   data: z.record(z.string(), z.string().nullable().optional()).optional(),

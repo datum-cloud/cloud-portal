@@ -58,7 +58,6 @@ export const paths = {
         root: '/project/[projectId]/secrets',
         secrets: {
           root: '/project/[projectId]/secrets',
-          new: '/project/[projectId]/secrets/new',
           detail: {
             root: '/project/[projectId]/secrets/[secretId]',
             overview: '/project/[projectId]/secrets/[secretId]/overview',
@@ -82,10 +81,10 @@ export const paths = {
       },
       dnsZones: {
         root: '/project/[projectId]/dns-zones',
-        new: '/project/[projectId]/dns-zones/new',
         detail: {
           root: '/project/[projectId]/dns-zones/[dnsZoneId]',
           // overview: '/project/[projectId]/dns-zones/[dnsZoneId]/overview',
+          discovery: '/project/[projectId]/dns-zones/[dnsZoneId]/discovery',
           dnsRecords: '/project/[projectId]/dns-zones/[dnsZoneId]/dns-records',
           nameservers: '/project/[projectId]/dns-zones/[dnsZoneId]/nameservers',
           settings: '/project/[projectId]/dns-zones/[dnsZoneId]/settings',

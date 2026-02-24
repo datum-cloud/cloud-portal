@@ -20,7 +20,7 @@ export interface DnsRecordTableBaseProps {
   emptyContent?: EmptyContentProps;
   showStatus?: boolean;
   enableMultiSelect?: boolean;
-  getRowId?: (row: IFlattenedDnsRecord) => string;
+  getRowId?: (row: IFlattenedDnsRecord, index: number) => string;
   onSelectionChange?: (selectedIds: string[], selectedRows: IFlattenedDnsRecord[]) => void;
 }
 

@@ -1,35 +1,7 @@
-import { Field } from '@/components/field/field';
-import { NSRecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
-import { useEffect } from 'react';
+import { Form } from '@datum-ui/components/form';
 
-export const NSRecordField = ({
-  fields,
-  defaultValue,
-}: {
-  fields: ReturnType<typeof useForm<NSRecordSchema>>[1];
-  defaultValue?: NSRecordSchema;
-}) => {
-  const nsFields = fields.ns.getFieldset();
-  const contentControl = useInputControl(nsFields.content);
-
-  useEffect(() => {
-    if (defaultValue?.ns?.content && !nsFields.content.value) {
-      contentControl.change(defaultValue.ns.content);
-    }
-  }, [defaultValue, contentControl, nsFields.content.value]);
-
-  return (
-    <Field isRequired label="Nameserver" errors={nsFields.content.errors}>
-      <Input
-        {...getInputProps(nsFields.content, { type: 'text' })}
-        key={nsFields.content.id}
-        placeholder="e.g., ns1.example.com"
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          contentControl.change(e.target.value);
-        }}
-      />
-    </Field>
-  );
-};
+export const NSRecordField = () => (
+  <Form.Field name="ns.content" label="Nameserver" required>
+    <Form.Input placeholder="e.g., ns1.example.com" />
+  </Form.Field>
+);

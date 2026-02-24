@@ -1,153 +1,100 @@
 import { PrometheusField } from './prometheus/prometheus-field';
-import { Field } from '@/components/field/field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
 import { POLICY_SINK_TYPES } from '@/features/metric/constants';
 import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
-import {
-  ExportPolicySinkFieldSchema,
-  ExportPolicySinkPrometheusFieldSchema,
-} from '@/resources/export-policies';
-import { getInputProps, getSelectProps, useForm, useInputControl } from '@conform-to/react';
-import {
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@datum-ui/components';
+import { Form } from '@datum-ui/components/form';
+import type { FormFieldRenderProps } from '@datum-ui/components/form';
 import { isEqual } from 'es-toolkit/compat';
-import { useEffect, useRef, useState } from 'react';
-import { useHydrated } from 'remix-utils/use-hydrated';
+import { useState, useEffect, useRef } from 'react';
 
-export const SinkField = ({
-  fields,
-  isEdit = false,
-  defaultValue,
-  sourceList = [],
-  projectId,
-}: {
-  fields: ReturnType<typeof useForm<ExportPolicySinkFieldSchema>>[1];
-  isEdit?: boolean;
-  defaultValue?: ExportPolicySinkFieldSchema;
-  sourceList: string[];
-  projectId?: string;
-}) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const isHydrated = useHydrated();
-
-  const nameControl = useInputControl(fields.name);
-  const typeControl = useInputControl(fields.type);
-  const sourcesControl = useInputControl(fields.sources);
-
-  const [sourcesName, setSourcesName] = useState<string[]>(sourceList);
+/** Extracted component so hooks are valid inside Form.Field render */
+const SourcesMultiSelect = ({
+  control,
+  meta,
+  sourceList,
+}: Pick<FormFieldRenderProps, 'control' | 'meta'> & { sourceList: string[] }) => {
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const prevSourceListRef = useRef(sourceList);
 
+  // Sync selected sources when sourceList changes (source was renamed/removed)
   useEffect(() => {
-    if (defaultValue) {
-      // Only set values if they exist in defaultValue and current fields are empty
-      if (defaultValue.name && fields.name.value === '') {
-        nameControl.change(defaultValue?.name);
-      }
-
-      if (defaultValue.type && !fields.type.value) {
-        typeControl.change(defaultValue?.type);
-      }
-    }
-  }, [defaultValue, nameControl, fields.name.value, typeControl, fields.type.value]);
-
-  useEffect(() => {
-    if (defaultValue?.sources && !fields.sources.value) {
-      setSelectedSources(defaultValue?.sources);
-      sourcesControl.change(defaultValue?.sources);
-    }
-  }, [defaultValue]);
-
-  // Focus the input when the form is hydrated
-  useEffect(() => {
-    isHydrated && inputRef.current?.focus();
-  }, [isHydrated]);
-
-  useEffect(() => {
-    const isSame = isEqual(sourceList, sourcesName);
-
-    if (!isSame) {
-      const filteredSources = selectedSources.filter((source) => sourceList.includes(source));
-      setSourcesName(sourceList);
-      setSelectedSources(filteredSources);
-      sourcesControl.change(filteredSources);
+    if (!isEqual(sourceList, prevSourceListRef.current)) {
+      prevSourceListRef.current = sourceList;
+      const filtered = selectedSources.filter((s) => sourceList.includes(s));
+      setSelectedSources(filtered);
+      control.change(filtered);
     }
   }, [sourceList]);
 
+  // Initialize from form value
+  useEffect(() => {
+    if (control.value && Array.isArray(control.value) && selectedSources.length === 0) {
+      setSelectedSources(control.value as string[]);
+    }
+  }, [control.value]);
+
+  return (
+    <MultiSelect
+      name={meta.name}
+      placeholder="Select Sources"
+      disabled={sourceList.length === 0}
+      defaultValue={selectedSources}
+      options={sourceList.map((source) => ({
+        value: source,
+        label: source,
+      }))}
+      onValueChange={(value) => {
+        setSelectedSources(value);
+        control.change(value);
+      }}
+    />
+  );
+};
+
+export const SinkField = ({
+  index,
+  isEdit = false,
+  sourceList = [],
+  projectId,
+}: {
+  index: number;
+  isEdit?: boolean;
+  sourceList: string[];
+  projectId?: string;
+}) => {
+  const baseName = `sinks.${index}`;
+
   return (
     <div className="relative flex flex-1 flex-col items-start gap-4">
-      <Field isRequired label="Name" errors={fields.name.errors} className="w-full">
-        <Input
-          {...getInputProps(fields.name, { type: 'text' })}
-          ref={isEdit ? undefined : inputRef}
-          key={fields.name.id}
-          placeholder="e.g. my-sink-3sd122"
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const value = (e.target as HTMLInputElement).value;
-            nameControl.change(value);
-          }}
-        />
-      </Field>
+      <Form.Field name={`${baseName}.name`} label="Name" required className="w-full">
+        <Form.Input placeholder="e.g. my-sink-3sd122" readOnly={isEdit} autoFocus={!isEdit} />
+      </Form.Field>
 
       <div className="flex w-full gap-4">
-        <Field isRequired label="Type" errors={fields.type.errors} className="w-1/2">
-          <Select
-            {...getSelectProps(fields.type)}
-            key={fields.type.id}
-            value={typeControl.value}
-            defaultValue={defaultValue?.type}
-            onValueChange={typeControl.change}>
-            <SelectTrigger disabled>
-              <SelectValue placeholder="Select a sink type" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(POLICY_SINK_TYPES).map((type) => (
-                <SelectItem key={type} value={type}>
-                  {POLICY_SINK_TYPES[type as keyof typeof POLICY_SINK_TYPES].label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
+        <Form.Field name={`${baseName}.type`} label="Type" required className="w-1/2">
+          <Form.Select disabled>
+            {Object.keys(POLICY_SINK_TYPES).map((type) => (
+              <Form.SelectItem key={type} value={type}>
+                {POLICY_SINK_TYPES[type as keyof typeof POLICY_SINK_TYPES].label}
+              </Form.SelectItem>
+            ))}
+          </Form.Select>
+        </Form.Field>
 
-        {/* Remove debug output */}
-        <Field isRequired label="Sources" errors={fields.sources.errors} className="w-1/2">
-          <MultiSelect
-            {...getSelectProps(fields.sources, { value: false })}
-            name={fields.sources.name}
-            placeholder="Select Sources"
-            disabled={sourcesName.length === 0}
-            defaultValue={selectedSources}
-            options={sourcesName.map((source) => ({
-              value: source,
-              label: source,
-            }))}
-            onValueChange={(value) => {
-              setSelectedSources(value);
-              sourcesControl.change(value);
-            }}
-          />
-        </Field>
+        <Form.Field name={`${baseName}.sources`} label="Sources" required className="w-1/2">
+          {({ control, meta }) => (
+            <SourcesMultiSelect control={control} meta={meta} sourceList={sourceList} />
+          )}
+        </Form.Field>
       </div>
 
-      {typeControl.value === ExportPolicySinkTypeEnum.PROMETHEUS && (
-        <PrometheusField
-          projectId={projectId}
-          fields={
-            fields.prometheusRemoteWrite.getFieldset() as unknown as ReturnType<
-              typeof useForm<ExportPolicySinkPrometheusFieldSchema>
-            >[1]
-          }
-          defaultValue={
-            defaultValue?.prometheusRemoteWrite as ExportPolicySinkPrometheusFieldSchema
-          }
-        />
-      )}
+      <Form.Field name={`${baseName}.type`}>
+        {({ control: typeControl }) =>
+          typeControl.value === ExportPolicySinkTypeEnum.PROMETHEUS ? (
+            <PrometheusField baseName={`${baseName}.prometheusRemoteWrite`} projectId={projectId} />
+          ) : null
+        }
+      </Form.Field>
     </div>
   );
 };

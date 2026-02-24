@@ -3,7 +3,7 @@ import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { httpProxyHostnameSchema } from '@/resources/http-proxies/http-proxy.schema';
 import { toast } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
 

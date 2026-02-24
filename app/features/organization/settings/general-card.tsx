@@ -3,7 +3,7 @@ import { type Organization, useUpdateOrganization } from '@/resources/organizati
 import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/new-form';
+import { Form } from '@datum-ui/components/form';
 
 const schema = updateOrganizationSchema.pick({ description: true, name: true });
 

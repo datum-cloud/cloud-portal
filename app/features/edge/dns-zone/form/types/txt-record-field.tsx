@@ -1,36 +1,7 @@
-import { Field } from '@/components/field/field';
-import { TXTRecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm, useInputControl } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
-import { useEffect } from 'react';
+import { Form } from '@datum-ui/components/form';
 
-export const TXTRecordField = ({
-  fields,
-  defaultValue,
-}: {
-  fields: ReturnType<typeof useForm<TXTRecordSchema>>[1];
-  defaultValue?: TXTRecordSchema;
-}) => {
-  const txtFields = fields.txt.getFieldset();
-  const contentControl = useInputControl(txtFields.content);
-
-  useEffect(() => {
-    if (defaultValue?.txt?.content && !txtFields.content.value) {
-      contentControl.change(defaultValue.txt.content);
-    }
-  }, [defaultValue, contentControl, txtFields.content.value]);
-
-  return (
-    <Field isRequired label="Text Content" errors={txtFields.content.errors} className="col-span-4">
-      <Input
-        {...getInputProps(txtFields.content, { type: 'text' })}
-        key={txtFields.content.id}
-        placeholder="e.g., v=spf1 include:_spf.example.com ~all"
-        maxLength={255}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          contentControl.change(e.target.value);
-        }}
-      />
-    </Field>
-  );
-};
+export const TXTRecordField = () => (
+  <Form.Field name="txt.content" label="Text Content" required className="col-span-4">
+    <Form.Input placeholder="e.g., v=spf1 include:_spf.example.com ~all" maxLength={255} />
+  </Form.Field>
+);

@@ -1,55 +1,21 @@
-import { Field } from '@/components/field/field';
-import { SRVRecordSchema } from '@/resources/dns-records';
-import { getInputProps, useForm } from '@conform-to/react';
-import { Input } from '@shadcn/ui/input';
+import { Form } from '@datum-ui/components/form';
 
-export const SRVRecordField = ({
-  fields,
-}: {
-  fields: ReturnType<typeof useForm<SRVRecordSchema>>[1];
-  defaultValue?: SRVRecordSchema;
-}) => {
-  const srvFields = fields.srv.getFieldset();
+export const SRVRecordField = () => (
+  <>
+    <Form.Field name="srv.target" label="Target Server" required>
+      <Form.Input placeholder="e.g., server.example.com" />
+    </Form.Field>
 
-  return (
-    <>
-      <Field isRequired label="Target Server" errors={srvFields.target.errors}>
-        <Input
-          {...getInputProps(srvFields.target, { type: 'text' })}
-          key={srvFields.target.id}
-          placeholder="e.g., server.example.com"
-        />
-      </Field>
+    <Form.Field name="srv.priority" label="Priority" required>
+      <Form.Input type="number" placeholder="10" min={0} max={65535} />
+    </Form.Field>
 
-      <Field isRequired label="Priority" errors={srvFields.priority.errors}>
-        <Input
-          {...getInputProps(srvFields.priority, { type: 'number' })}
-          key={srvFields.priority.id}
-          placeholder="10"
-          min={0}
-          max={65535}
-        />
-      </Field>
+    <Form.Field name="srv.weight" label="Weight" required>
+      <Form.Input type="number" placeholder="5" min={0} max={65535} />
+    </Form.Field>
 
-      <Field isRequired label="Weight" errors={srvFields.weight.errors}>
-        <Input
-          {...getInputProps(srvFields.weight, { type: 'number' })}
-          key={srvFields.weight.id}
-          placeholder="5"
-          min={0}
-          max={65535}
-        />
-      </Field>
-
-      <Field isRequired label="Port" errors={srvFields.port.errors}>
-        <Input
-          {...getInputProps(srvFields.port, { type: 'number' })}
-          key={srvFields.port.id}
-          placeholder="443"
-          min={1}
-          max={65535}
-        />
-      </Field>
-    </>
-  );
-};
+    <Form.Field name="srv.port" label="Port" required>
+      <Form.Input type="number" placeholder="443" min={1} max={65535} />
+    </Form.Field>
+  </>
+);

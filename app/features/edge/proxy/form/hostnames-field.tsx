@@ -1,7 +1,7 @@
 import { FormSelectDomain } from '@/features/edge/domain/select-domain';
 import { Button } from '@datum-ui/components';
+import { Form, useFormContext } from '@datum-ui/components/form';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Form, useFormContext } from '@datum-ui/components/new-form';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 
