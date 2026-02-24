@@ -3,3 +3,4 @@ resources:
   - service.yaml
   - http-route.yaml
   - service-monitor.yaml
+  - backend-traffic-policy.yaml
