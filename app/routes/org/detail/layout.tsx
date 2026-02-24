@@ -10,7 +10,30 @@ import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
-import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
+import {
+  LoaderFunctionArgs,
+  Outlet,
+  ShouldRevalidateFunctionArgs,
+  data,
+  useLoaderData,
+} from 'react-router';
+
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs): boolean {
+  // Navigating within the same org — URQL cache is warm, skip re-fetching
+  // URL pattern: /org/{orgId}/... → split('/') gives ['', 'org', '{orgId}', ...]
+  const currentOrgId = currentUrl.pathname.split('/')[2];
+  const nextOrgId = nextUrl.pathname.split('/')[2];
+
+  if (currentOrgId && nextOrgId && currentOrgId === nextOrgId) {
+    return false;
+  }
+
+  return defaultShouldRevalidate;
+}
 
 export const handle = {
   breadcrumb: (data: Organization) => <span>{data?.displayName}</span>,

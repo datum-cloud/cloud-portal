@@ -3,11 +3,15 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { createGqlClient } from '@/modules/graphql/client';
+import { generateQueryOp } from '@/modules/graphql/generated';
+import type { com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest } from '@/modules/graphql/generated';
+import { createSsrExchange, extractSsrData } from '@/modules/graphql/ssr';
 import {
   organizationFormSchema,
   useCreateOrganization,
+  useOrganizationsGql,
   type Organization,
-  createOrganizationGqlService,
 } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
@@ -31,16 +35,49 @@ import {
 import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  // Services now use global axios client with AsyncLocalStorage
-  const orgService = createOrganizationGqlService();
-  const orgList = await orgService.list();
+  const ssr = createSsrExchange();
+  const client = createGqlClient({ type: 'user', userId: 'me' }, ssr);
+
+  const op = generateQueryOp({
+    listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
+      {},
+      {
+        items: {
+          metadata: {
+            uid: true,
+            name: true,
+            namespace: true,
+            creationTimestamp: true,
+            resourceVersion: true,
+            labels: true,
+            annotations: true,
+          },
+          spec: {
+            organizationRef: { name: true },
+            roles: { name: true, namespace: true },
+            userRef: { name: true },
+          },
+          status: {
+            organization: { displayName: true, type: true },
+            conditions: { reason: true, status: true, type: true },
+          },
+        },
+        metadata: { continue: true, remainingItemCount: true },
+      } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
+    ],
+  });
+
+  const prefetchResult = await client.query(op.query, op.variables).toPromise();
+  if (prefetchResult.error) {
+    console.error('[SSR] org list prefetch failed:', prefetchResult.error.message);
+  }
 
   const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
     request,
     'organizations_understanding'
   );
 
-  return data({ orgs: orgList.items, alertClosed }, { headers: alertHeaders });
+  return data({ urqlState: extractSsrData(ssr), alertClosed }, { headers: alertHeaders });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -49,7 +86,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function AccountOrganizations() {
-  const { orgs, alertClosed } = useLoaderData<typeof loader>();
+  const { alertClosed } = useLoaderData<typeof loader>();
+  const { data: orgList, isLoading: _isLoading, refetch: refetchOrgs } = useOrganizationsGql();
+  const orgs = orgList?.items ?? [];
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const { trackAction } = useAnalytics();
@@ -70,6 +109,7 @@ export default function AccountOrganizations() {
   const createMutation = useCreateOrganization({
     onSuccess: (newOrg) => {
       trackAction(AnalyticsAction.CreateOrg, { orgId: newOrg.name });
+      refetchOrgs();
       setTimeout(() => {
         setOpenDialog(false);
         navigate(getPathWithParams(paths.org.detail.root, { orgId: newOrg.name }));
@@ -82,11 +122,9 @@ export default function AccountOrganizations() {
     },
   });
 
-  const orgsList = (orgs ?? []) as Organization[];
-
   const hasStandardOrg = useMemo(() => {
-    return orgsList.some((org) => org.type === 'Standard');
-  }, [orgsList]);
+    return orgs.some((org) => org.type === 'Standard');
+  }, [orgs]);
 
   const showAlert = !alertClosed && !hasStandardOrg;
 
@@ -149,7 +187,7 @@ export default function AccountOrganizations() {
             mode="card"
             hidePagination
             columns={columns}
-            data={orgsList}
+            data={orgs}
             tableCardClassName={(row: Organization) => {
               return row.type === 'Personal' ? 'text-primary border-primary ' : '';
             }}

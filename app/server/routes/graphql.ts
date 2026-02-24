@@ -1,5 +1,5 @@
 // app/server/routes/graphql.ts
-import { parseScope, buildScopedEndpoint } from '@/modules/gqlts/endpoints';
+import { parseScope, buildScopedEndpoint } from '@/modules/graphql/endpoints';
 import type { Variables } from '@/server/types';
 import { env } from '@/utils/env/env.server';
 import { Hono } from 'hono';
