@@ -2,9 +2,10 @@ import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field'
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { httpProxyHostnameSchema } from '@/resources/http-proxies/http-proxy.schema';
+import { isIPAddress } from '@/utils/helpers/validation.helper';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
-import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
 import { z } from 'zod';
 
 const hostnamesConfigSchema = httpProxyHostnameSchema.extend({
@@ -35,6 +36,16 @@ export const ProxyHostnamesConfigDialog = forwardRef<
 
   const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
+  const isIPEndpoint = useMemo(() => {
+    if (!proxy?.endpoint) return false;
+    try {
+      const url = new URL(proxy.endpoint);
+      return isIPAddress(url.hostname);
+    } catch {
+      return false;
+    }
+  }, [proxy?.endpoint]);
+
   const show = useCallback((proxyData: HttpProxy) => {
     setProxy(proxyData);
     setProxyName(proxyData.name);
@@ -56,10 +67,8 @@ export const ProxyHostnamesConfigDialog = forwardRef<
 
     try {
       await updateMutation.mutateAsync({
-        hostnames: data.hostnames,
+        hostnames: data.hostnames ?? [],
         tlsHostname: data.tlsHostname,
-        endpoint: proxy.endpoint ?? '', // Required field, use existing value
-        chosenName: proxy.chosenName, // Required field, use existing value
       });
       toast.success('AI Edge', {
         description: 'Hostnames and TLS settings have been updated successfully',
@@ -89,7 +98,7 @@ export const ProxyHostnamesConfigDialog = forwardRef<
       <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
         <div className="flex flex-col gap-5">
           <ProxyHostnamesField projectId={projectId} />
-          <ProxyTlsField />
+          <ProxyTlsField required={isIPEndpoint} />
         </div>
       </div>
     </Form.Dialog>

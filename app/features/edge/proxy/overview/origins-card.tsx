@@ -57,7 +57,7 @@ export const HttpProxyOriginsCard = ({
   }, [proxy?.status]);
 
   return (
-    <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+    <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
       <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
         <div className="flex items-center gap-2.5">
           <Icon icon={ServerIcon} size={20} className="text-secondary stroke-2" />
@@ -99,7 +99,9 @@ export const HttpProxyOriginsCard = ({
             })}
           </div>
         ) : (
-          <div className="text-muted-foreground text-sm">No origins configured</div>
+          <div className="border-input bg-background flex min-h-[44px] items-center rounded-md border p-2">
+            <span className="text-muted-foreground text-xs font-medium">No origins configured</span>
+          </div>
         )}
       </CardContent>
       {proxy && projectId && <ProxyOriginsDialog ref={originsDialogRef} projectId={projectId} />}

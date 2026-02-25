@@ -28,7 +28,7 @@ const FieldLabel = ({
   className?: string;
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = React.useState(false);
-  const [isHovering, setIsHovering] = React.useState(false);
+  const [_isHovering, setIsHovering] = React.useState(false);
 
   return (
     <div

@@ -43,6 +43,12 @@ const SERVICE_NAME = 'HttpProxyService';
 
 export function createHttpProxyService() {
   return {
+    /** Extract HTTP status from an error (AppError from interceptor, or AxiosError). */
+    getErrorStatus(error: unknown): number | undefined {
+      const e = error as { status?: number; response?: { status?: number } };
+      return e?.status ?? e?.response?.status;
+    },
+
     /**
      * List all HTTP proxies in a project
      */
@@ -112,8 +118,9 @@ export function createHttpProxyService() {
           path: { namespace: 'default', name },
         });
       } catch (error: unknown) {
-        // Ignore 404 - policy may not exist for older proxies
-        const status = (error as { response?: { status?: number } })?.response?.status;
+        const status =
+          (error as { status?: number })?.status ??
+          (error as { response?: { status?: number } })?.response?.status;
         if (status !== 404) throw error;
       }
     },
@@ -125,52 +132,50 @@ export function createHttpProxyService() {
       paranoiaLevels?: { blocking?: number; detection?: number }
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
-      try {
-        const specBody: {
-          mode?: any;
-          ruleSets?: Array<{
-            type: 'OWASPCoreRuleSet';
-            owaspCoreRuleSet?: {
-              paranoiaLevels?: {
-                blocking?: number;
-                detection?: number;
-              };
-            };
-          }>;
-        } = { mode };
 
-        if (
-          paranoiaLevels &&
-          (paranoiaLevels.blocking !== undefined || paranoiaLevels.detection !== undefined)
-        ) {
-          specBody.ruleSets = [
-            {
-              type: 'OWASPCoreRuleSet',
-              owaspCoreRuleSet: {
-                paranoiaLevels: {
-                  ...(paranoiaLevels.blocking !== undefined && {
-                    blocking: paranoiaLevels.blocking,
-                  }),
-                  ...(paranoiaLevels.detection !== undefined && {
-                    detection: paranoiaLevels.detection,
-                  }),
-                },
+      const specBody: {
+        mode?: any;
+        ruleSets?: Array<{
+          type: 'OWASPCoreRuleSet';
+          owaspCoreRuleSet?: {
+            paranoiaLevels?: {
+              blocking?: number;
+              detection?: number;
+            };
+          };
+        }>;
+      } = { mode };
+
+      if (
+        paranoiaLevels &&
+        (paranoiaLevels.blocking !== undefined || paranoiaLevels.detection !== undefined)
+      ) {
+        specBody.ruleSets = [
+          {
+            type: 'OWASPCoreRuleSet',
+            owaspCoreRuleSet: {
+              paranoiaLevels: {
+                ...(paranoiaLevels.blocking !== undefined && {
+                  blocking: paranoiaLevels.blocking,
+                }),
+                ...(paranoiaLevels.detection !== undefined && {
+                  detection: paranoiaLevels.detection,
+                }),
               },
             },
-          ];
-        }
+          },
+        ];
+      }
 
+      try {
         await patchNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
           baseURL,
           path: { namespace: 'default', name },
-          // Merge patch updating spec.mode and/or paranoia levels
           body: { spec: specBody },
           headers: { 'Content-Type': 'application/merge-patch+json' },
         });
       } catch (error: unknown) {
-        const status = (error as { response?: { status?: number } })?.response?.status;
-        if (status === 404) {
-          // If policy doesn't exist (older proxy), create it instead
+        if (this.getErrorStatus(error) === 404) {
           await this.createTrafficProtectionPolicy(projectId, name, mode, paranoiaLevels);
         } else {
           throw error;
@@ -291,12 +296,12 @@ export function createHttpProxyService() {
       projectId: string,
       name: string,
       input: UpdateHttpProxyInput,
-      options?: ServiceOptions
+      options?: ServiceOptions & { currentProxy?: HttpProxy }
     ): Promise<HttpProxy | ComDatumapisNetworkingV1AlphaHttpProxy> {
       const startTime = Date.now();
 
       try {
-        const payload = toUpdateHttpProxyPayload(input);
+        const payload = toUpdateHttpProxyPayload(input, options?.currentProxy);
 
         const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
           baseURL: getProjectScopedBase(projectId),
