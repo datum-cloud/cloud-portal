@@ -4,10 +4,14 @@ import { useState } from 'react';
 
 interface ExportPolicyGrafanaCardProps {
   projectId: string;
+  defaultOpen?: boolean;
 }
 
-export const ExportPolicyGrafanaCard = ({ projectId }: ExportPolicyGrafanaCardProps) => {
-  const [open, setOpen] = useState(false);
+export const ExportPolicyGrafanaCard = ({
+  projectId,
+  defaultOpen = false,
+}: ExportPolicyGrafanaCardProps) => {
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <>

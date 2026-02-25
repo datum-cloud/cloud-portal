@@ -1,56 +1,62 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { DateTime } from '@/components/date-time';
-import { ActivityLogTable } from '@/features/activity-log';
+import DiscordIcon from '@/components/icon/discord';
+import { GitHubLineIcon } from '@/components/icon/github-line';
 import { ActionCard } from '@/features/project/dashboard';
+import { AIEdgeIllustration } from '@/features/project/illustrations/ai-edge';
+import { DnsIllustration } from '@/features/project/illustrations/dns';
+import { DomainIllustration } from '@/features/project/illustrations/domain';
+import { MetricsIllustration } from '@/features/project/illustrations/metrics';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { useApp } from '@/providers/app.provider';
+import { createDnsZoneService } from '@/resources/dns-zones';
 import { createDomainService } from '@/resources/domains';
 import { createExportPolicyService } from '@/resources/export-policies';
-import { createProjectService, useUpdateProject } from '@/resources/projects';
+import { createHttpProxyService } from '@/resources/http-proxies';
 import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  LinkButton,
-  toast,
-  Tooltip,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { DownloadIcon, PlusIcon } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Col, Icon, Row } from '@datum-ui/components';
+import { CalendarFold } from 'lucide-react';
+import type { ReactNode } from 'react';
 import {
   data,
-  Link,
   type LoaderFunctionArgs,
   useLoaderData,
-  useRevalidator,
   useRouteLoaderData,
+  useNavigate,
 } from 'react-router';
 
-/**
- * Check if a dashboard item is considered completed
- * An item is considered completed if:
- * - There are resources for that item (e.g., domains.length > 0)
- * - OR the project annotation indicates it was skipped
- *
- * @param project - The project object with annotations
- * @param hasResources - Whether resources exist for this dashboard item
- * @param annotationKey - The annotation key to check (e.g., 'dashboard.domains.skipped')
- * @returns true if the dashboard item is completed (has resources or is skipped)
- *
- * @example
- * isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped')
- * // Returns true if domains exist OR if the annotation is set to 'true'
- */
-const isDashboardItemCompleted = (
-  project: { annotations?: Record<string, string> },
-  hasResources: boolean,
-  annotationKey: string
-): boolean => hasResources || project.annotations?.[annotationKey] === 'true';
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type DashboardCardConfig = {
+  key: string;
+  isCompleted: boolean;
+  illustration: ReactNode;
+  completedTitle: string;
+  pendingTitle: string;
+  buttonLabel: string;
+  viewPath: string;
+  createPath: string;
+  analyticsAction: (typeof AnalyticsAction)[keyof typeof AnalyticsAction];
+};
+
+type CommunityLink = {
+  href: string;
+  icon: ReactNode;
+  label: string;
+};
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+const NEW_USER_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+
+// ---------------------------------------------------------------------------
+// Route config
+// ---------------------------------------------------------------------------
 
 export const handle = {
   breadcrumb: () => <span>Home</span>,
@@ -60,246 +66,228 @@ export const handle = {
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
   if (!projectId) {
-    return data({ hasDomains: false, hasDesktop: false, hasMetrics: false });
+    return data({ hasAiEdge: false, hasDomains: false, hasDnsZones: false, hasMetrics: false });
   }
 
-  const domainService = createDomainService();
-  const projectService = createProjectService();
-  const exportPolicyService = createExportPolicyService();
-
-  const [project, domains, exportPolicies] = await Promise.all([
-    projectService.get(projectId),
-    domainService.list(projectId, { limit: 1 }),
-    exportPolicyService.list(projectId),
-  ]);
+  const [httpProxiesResult, domainsResult, dnsZonesResult, exportPoliciesResult] =
+    await Promise.allSettled([
+      createHttpProxyService().list(projectId, { limit: 1 }),
+      createDomainService().list(projectId, { limit: 1 }),
+      createDnsZoneService().list(projectId, { limit: 1 }),
+      createExportPolicyService().list(projectId, { limit: 1 }),
+    ]);
 
   return data({
-    hasDomains: isDashboardItemCompleted(project, domains.length > 0, 'dashboard.domains.skipped'),
-    hasDesktop: isDashboardItemCompleted(project, false, 'dashboard.desktop.skipped'),
-    hasMetrics: isDashboardItemCompleted(
-      project,
-      exportPolicies.length > 0,
-      'dashboard.metrics.skipped'
-    ),
+    hasAiEdge: httpProxiesResult.status === 'fulfilled' && httpProxiesResult.value.length > 0,
+    hasDomains: domainsResult.status === 'fulfilled' && domainsResult.value.length > 0,
+    hasDnsZones: dnsZonesResult.status === 'fulfilled' && dnsZonesResult.value.length > 0,
+    hasMetrics:
+      exportPoliciesResult.status === 'fulfilled' && exportPoliciesResult.value.length > 0,
   });
 };
 
+// ---------------------------------------------------------------------------
+// Page component
+// ---------------------------------------------------------------------------
+
 export default function ProjectHomePage() {
   const { project } = useRouteLoaderData('project-detail');
-  const { hasDomains, hasDesktop, hasMetrics } = useLoaderData<typeof loader>();
-  const revalidator = useRevalidator();
+  const { hasAiEdge, hasDomains, hasDnsZones, hasMetrics } = useLoaderData<typeof loader>();
   const { trackAction } = useAnalytics();
+  const navigate = useNavigate();
+  const { user } = useApp();
 
-  const updateMutation = useUpdateProject(project?.name ?? '', {
-    onSuccess: () => {
-      revalidator.revalidate();
-    },
-    onError: (error) => {
-      toast.error('Project', {
-        description: error.message || 'Failed to update project',
-      });
-    },
-  });
+  const isNewUser = Boolean(
+    user?.createdAt && Date.now() - new Date(user.createdAt).getTime() < NEW_USER_THRESHOLD_MS
+  );
 
   if (!project) {
     return <NotFound />;
   }
 
+  const projectName = project.name;
+
+  const cards: DashboardCardConfig[] = [
+    {
+      key: 'ai-edge',
+      isCompleted: hasAiEdge,
+      illustration: <AIEdgeIllustration variant={hasAiEdge ? 'completed' : 'default'} />,
+      completedTitle: 'AI Edge deployed',
+      pendingTitle: 'Deploy an AI Edge',
+      buttonLabel: 'Go to AI Edge',
+      viewPath: getPathWithParams(paths.project.detail.proxy.root, { projectId: projectName }),
+      createPath: getPathWithParams(
+        paths.project.detail.proxy.root,
+        { projectId: projectName },
+        new URLSearchParams({ action: 'create' })
+      ),
+      analyticsAction: AnalyticsAction.AddProxy,
+    },
+    {
+      key: 'domains',
+      isCompleted: hasDomains,
+      illustration: <DomainIllustration variant={hasDomains ? 'completed' : 'default'} />,
+      completedTitle: 'Domains added',
+      pendingTitle: 'Add a Domain',
+      buttonLabel: 'Go to Domains',
+      viewPath: getPathWithParams(paths.project.detail.domains.root, { projectId: projectName }),
+      createPath: getPathWithParams(
+        paths.project.detail.domains.root,
+        { projectId: projectName },
+        new URLSearchParams({ action: 'create' })
+      ),
+      analyticsAction: AnalyticsAction.AddDomain,
+    },
+    {
+      key: 'dns',
+      isCompleted: hasDnsZones,
+      illustration: <DnsIllustration variant={hasDnsZones ? 'completed' : 'default'} />,
+      completedTitle: 'DNS migrated',
+      pendingTitle: 'Migrate DNS to Datum',
+      buttonLabel: 'Go to DNS',
+      viewPath: getPathWithParams(paths.project.detail.dnsZones.root, { projectId: projectName }),
+      createPath: getPathWithParams(
+        paths.project.detail.dnsZones.root,
+        { projectId: projectName },
+        new URLSearchParams({ action: 'create' })
+      ),
+      analyticsAction: AnalyticsAction.TransferDnsToDatum,
+    },
+    {
+      key: 'metrics',
+      isCompleted: hasMetrics,
+      illustration: <MetricsIllustration variant={hasMetrics ? 'completed' : 'default'} />,
+      completedTitle: 'Metrics sent to Grafana',
+      pendingTitle: 'Send metrics to Grafana',
+      buttonLabel: 'Go to Metrics',
+      viewPath: getPathWithParams(paths.project.detail.metrics.root, { projectId: projectName }),
+      createPath: getPathWithParams(
+        paths.project.detail.metrics.exportPolicies.new,
+        { projectId: projectName },
+        new URLSearchParams({ action: 'create', provider: 'grafana' })
+      ),
+      analyticsAction: AnalyticsAction.CreateExportPolicy,
+    },
+  ];
+
+  const handleCardClick = (card: DashboardCardConfig) => {
+    if (card.isCompleted) {
+      navigate(card.viewPath);
+    } else {
+      trackAction(card.analyticsAction);
+      navigate(card.createPath);
+    }
+  };
+
+  const communityLinks: CommunityLink[] = [
+    {
+      href: 'https://link.datum.net/events',
+      icon: (
+        <Icon icon={CalendarFold} size={20} className="dark:text-icon-tertiary text-icon-primary" />
+      ),
+      label: 'Huddles & meetups',
+    },
+    {
+      href: 'https://link.datum.net/discord',
+      icon: <DiscordIcon className="dark:text-icon-tertiary text-icon-primary size-5" />,
+      label: 'Join us on Discord',
+    },
+    {
+      href: 'https://github.com/datum-cloud',
+      icon: <GitHubLineIcon className="dark:text-icon-tertiary text-icon-primary size-5" />,
+      label: 'Find us on GitHub',
+    },
+  ];
+
   return (
-    <div className="mx-auto w-full">
+    <div className="mx-auto flex w-full flex-col gap-8">
       {/* Header */}
-      <div className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-4">
-        <div className="flex min-w-0 flex-1 flex-col gap-1 md:flex-row md:items-center">
-          <h1 className="truncate text-2xl font-medium">{project?.description}</h1>
-          <p className="text-icon-primary text-xs md:ml-auto">
-            Project created: <DateTime date={project.createdAt} variant="relative" />
-          </p>
-        </div>
+      <Row gutter={[16, 8]}>
+        <Col md={12} xs={24}>
+          <div className="flex flex-col gap-2">
+            <h1 className="text-foreground text-2xl font-semibold">
+              {isNewUser
+                ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
+                : `Welcome back, ${user?.givenName ?? 'there'}`}
+            </h1>
+            <p className="dark:text-card-quaternary text-foreground/60 text-sm font-normal">
+              {isNewUser
+                ? "If you're ready to get going, here are some great places to start..."
+                : "Here's an overview of your project."}
+            </p>
+          </div>
+        </Col>
+        <Col md={12} xs={24}>
+          <div className="flex justify-start sm:justify-end">
+            <BadgeCopy
+              value={project.name ?? ''}
+              text={project.name ?? ''}
+              badgeTheme="solid"
+              badgeType="muted"
+              className="bg-table-accent"
+            />
+          </div>
+        </Col>
+      </Row>
 
-        <div className="shrink-0">
-          <BadgeCopy
-            value={project.name ?? ''}
-            text={project.name ?? ''}
-            badgeTheme="solid"
-            badgeType="muted"
-          />
-        </div>
-      </div>
+      {/* Action cards */}
+      <Row
+        gutter={[
+          { xs: 8, sm: 16, md: 24, xl: 32 },
+          { xs: 8, sm: 16, md: 24, xl: 32 },
+        ]}>
+        {cards.map((card) => (
+          <Col key={card.key} xs={24} sm={12} md={12} xl={6} className="h-full max-h-[380px]">
+            <ActionCard
+              isCompleted={card.isCompleted}
+              image={card.illustration}
+              className="h-full"
+              title={card.isCompleted ? card.completedTitle : card.pendingTitle}
+              onClick={() => handleCardClick(card)}
+              buttonLabel={card.buttonLabel}
+            />
+          </Col>
+        ))}
+      </Row>
 
-      {/* Grid */}
-      <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 xl:gap-8">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0, ease: 'easeOut' }}>
-          <ActionCard
-            completed={hasDomains}
-            image="/images/dashboard/domain-dashboard-image.png"
-            className="h-full"
-            title="Protect your app"
-            text={
-              <p>
-                Activate a powerful reverse proxy on Datum&apos;s edge to protect your origin and
-                block common attacks with a web app firewall.
-              </p>
-            }
-            primaryButton={
-              !hasDomains ? (
-                <LinkButton
-                  as={Link}
-                  icon={<Icon icon={PlusIcon} className="size-4" />}
-                  href={getPathWithParams(paths.project.detail.proxy.root, {
-                    projectId: project.name,
-                  })}>
-                  Setup a Proxy
-                </LinkButton>
-              ) : (
-                <LinkButton
-                  as={Link}
-                  theme="outline"
-                  type="secondary"
-                  className="border-card-success-border hover:border-secondary"
-                  href={getPathWithParams(paths.project.detail.proxy.root, {
-                    projectId: project.name,
-                  })}>
-                  Go to Proxies
-                </LinkButton>
-              )
-            }
-            onSkip={async () => {
-              await updateMutation.mutateAsync({
-                annotations: { 'dashboard.domains.skipped': 'true' },
-              });
-            }}
-            showSkip={!hasDomains}
-          />
-        </motion.div>
+      {/* Community */}
+      <Row>
+        <Col span={24}>
+          <div className="dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center bg-white/50 p-9 pb-8 shadow dark:bg-[#18273A]">
+            <h2 className="mb-2 text-lg font-medium">Datum community</h2>
+            <p className="dark:text-card-quaternary text-foreground/60 text-sm font-normal">
+              Looking for some help or share some knowledge? We&apos;d love to see you!
+            </p>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.15, ease: 'easeOut' }}>
-          <ActionCard
-            completed={hasDesktop}
-            image="/images/dashboard/desktop-dashboard-image.png"
-            className="h-full"
-            title="Develop locally, share globally"
-            text={
-              <p>
-                Supercharge your development workflows and securely expose internal services with
-                zero-trust tunnels.
-              </p>
-            }
-            primaryButton={
-              <Tooltip message="Coming soon">
-                {!hasDesktop ? (
-                  <Button
-                    icon={<Icon icon={DownloadIcon} className="size-4" />}
-                    onClick={() => trackAction(AnalyticsAction.DownloadDesktopApp)}>
-                    Install Datum Desktop
-                  </Button>
-                ) : (
-                  <Button
-                    className="border-card-success-border hover:border-secondary"
-                    theme="outline"
-                    type="secondary"
-                    icon={<Icon icon={DownloadIcon} className="size-4" />}
-                    onClick={() => trackAction(AnalyticsAction.DownloadDesktopApp)}>
-                    Install Datum Desktop
-                  </Button>
-                )}
-              </Tooltip>
-            }
-            onSkip={async () => {
-              await updateMutation.mutateAsync({
-                annotations: { 'dashboard.desktop.skipped': 'true' },
-              });
-            }}
-          />
-        </motion.div>
+            <div className="bg-card border-card-quaternary dark:border-quaternary shadow-tooltip mt-7 flex min-w-[224px] flex-col gap-3.5 rounded-lg border px-6 py-7">
+              {communityLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-center justify-center gap-3.5">
+                  {link.icon}
+                  <span className="text-xs transition-all group-hover:underline">{link.label}</span>
+                </a>
+              ))}
+            </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.3, ease: 'easeOut' }}
-          className="md:col-span-2 xl:col-span-1">
-          <ActionCard
-            completed={hasMetrics}
-            image="/images/dashboard/proxy-dashboard-image.png"
-            className="h-full"
-            title="Export metrics to Grafana"
-            text={
-              <p>
-                Gain real-time visibility into your Datum infrastructure and traffic by exporting
-                OTel compatible metrics to Grafana Cloud.
-              </p>
-            }
-            primaryButton={
-              !hasMetrics ? (
-                <LinkButton
-                  as={Link}
-                  href={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
-                    projectId: project.name,
-                  })}
-                  icon={<Icon icon={PlusIcon} className="size-4" />}>
-                  Set up a Policy
-                </LinkButton>
-              ) : (
-                <LinkButton
-                  as={Link}
-                  className="border-card-success-border hover:border-secondary"
-                  theme="outline"
-                  type="secondary"
-                  href={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
-                    projectId: project.name,
-                  })}>
-                  Go to Policies
-                </LinkButton>
-              )
-            }
-            onSkip={async () => {
-              await updateMutation.mutateAsync({
-                annotations: { 'dashboard.metrics.skipped': 'true' },
-              });
-            }}
-            showSkip={!hasMetrics}
-          />
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.45, ease: 'easeOut' }}
-          className="col-span-1 md:col-span-2 xl:col-span-3">
-          <Card className="p-4 md:p-8">
-            <CardHeader className="px-0">
-              <CardTitle className="flex items-center justify-between gap-2">
-                <span className="text-lg font-medium">Latest Activity</span>
-
-                <LinkButton
-                  as={Link}
-                  type="secondary"
-                  size="xs"
-                  theme="outline"
-                  href={getPathWithParams(paths.project.detail.activity, {
-                    projectId: project.name,
-                  })}>
-                  View all project activity
-                </LinkButton>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <ActivityLogTable
-                scope={{ type: 'project', projectId: project.name }}
-                defaultPageSize={5}
-                hidePagination
-                hideFilters
-                initialActions={['Added', 'Modified', 'Deleted']}
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+            <img
+              src="/images/scene-9.png"
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-0 left-1/2 h-auto max-w-[70px] -translate-x-[calc(50%+120px)] select-none"
+            />
+            <img
+              src="/images/scene-10.png"
+              alt=""
+              aria-hidden="true"
+              className="pointer-events-none absolute right-1/2 bottom-0 h-auto max-w-[80px] translate-x-[calc(50%+125px)] select-none sm:max-w-[110px] sm:translate-x-[calc(50%+145px)]"
+            />
+          </div>
+        </Col>
+      </Row>
     </div>
   );
 }

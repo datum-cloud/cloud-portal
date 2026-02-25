@@ -18,6 +18,7 @@ import {
   readTelemetryDatumapisComV1Alpha1NamespacedExportPolicyStatus,
   type ComDatumapisTelemetryV1Alpha1ExportPolicyList,
   type ComDatumapisTelemetryV1Alpha1ExportPolicy,
+  ListTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData,
 } from '@/modules/control-plane/telemetry';
 import { logger } from '@/modules/logger';
 import type { IExtendedControlPlaneStatus } from '@/resources/base';
@@ -42,11 +43,15 @@ export function createExportPolicyService() {
     /**
      * List all export policies in a project
      */
-    async list(projectId: string, _options?: ServiceOptions): Promise<ExportPolicy[]> {
+    async list(
+      projectId: string,
+      query?: ListTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData['query'],
+      _options?: ServiceOptions
+    ): Promise<ExportPolicy[]> {
       const startTime = Date.now();
 
       try {
-        const result = await this.fetchList(projectId);
+        const result = await this.fetchList(projectId, query);
 
         logger.service(SERVICE_NAME, 'list', {
           input: { projectId },
@@ -60,10 +65,14 @@ export function createExportPolicyService() {
       }
     },
 
-    async fetchList(projectId: string): Promise<ExportPolicy[]> {
+    async fetchList(
+      projectId: string,
+      query?: ListTelemetryDatumapisComV1Alpha1NamespacedExportPolicyData['query']
+    ): Promise<ExportPolicy[]> {
       const response = await listTelemetryDatumapisComV1Alpha1NamespacedExportPolicy({
         baseURL: getProjectScopedBase(projectId),
         path: { namespace: 'default' },
+        query,
       });
 
       const data = response.data as ComDatumapisTelemetryV1Alpha1ExportPolicyList;

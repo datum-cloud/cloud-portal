@@ -53,6 +53,7 @@ import {
   useLoaderData,
   useNavigate,
   useParams,
+  useSearchParams,
 } from 'react-router';
 
 type FormattedDomain = {
@@ -103,7 +104,7 @@ export default function DomainsPage() {
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateDomains(projectId ?? '', initialDomains);
-  useHydrateDnsZones(projectId ?? '', initialDnsZones.items);
+  useHydrateDnsZones(projectId ?? '', initialDnsZones);
 
   // Subscribe to watch for real-time updates
   useDomainsWatch(projectId ?? '');
@@ -122,7 +123,7 @@ export default function DomainsPage() {
 
   // Use React Query data, fallback to SSR data
   const domains = domainsData ?? initialDomains;
-  const dnsZones = dnsZonesData?.items ?? initialDnsZones.items;
+  const dnsZones = dnsZonesData ?? initialDnsZones;
 
   // Build O(1) lookup map for DNS zones by domain name
   const dnsZoneMap = useMemo(() => {
@@ -149,12 +150,23 @@ export default function DomainsPage() {
     }));
   }, [domains, dnsZoneMap]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const { confirm } = useConfirmationDialog();
   const { enqueue, showSummary } = useTaskQueue();
   const { project, organization } = useApp();
   const domainFormRef = useRef<DomainFormDialogRef>(null);
   const [bulkAddPopoverOpen, setBulkAddPopoverOpen] = useState(false);
   const tableRef = useRef<DataTableRef<FormattedDomain>>(null);
+
+  // Open create dialog from URL search params (e.g. ?action=create)
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      domainFormRef.current?.show();
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('action');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const deleteDomainMutation = useDeleteDomain(projectId ?? '');
 

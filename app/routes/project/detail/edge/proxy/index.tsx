@@ -28,13 +28,14 @@ import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   LoaderFunctionArgs,
   MetaFunction,
   useLoaderData,
   useNavigate,
   useParams,
+  useSearchParams,
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -74,8 +75,19 @@ export default function HttpProxyPage() {
   // Use React Query data, fallback to SSR data
   const data = queryData ?? initialData ?? [];
 
+  const [searchParams, setSearchParams] = useSearchParams();
   const { confirm } = useConfirmationDialog();
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
+
+  // Open create dialog from URL search params (e.g. ?action=create)
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      proxyFormRef.current?.show();
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('action');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
     onSuccess: () => {

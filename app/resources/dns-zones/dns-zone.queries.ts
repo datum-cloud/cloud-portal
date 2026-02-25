@@ -1,9 +1,4 @@
-import type {
-  DnsZone,
-  DnsZoneList,
-  CreateDnsZoneInput,
-  UpdateDnsZoneInput,
-} from './dns-zone.schema';
+import type { DnsZone, CreateDnsZoneInput, UpdateDnsZoneInput } from './dns-zone.schema';
 import { createDnsZoneService, dnsZoneKeys } from './dns-zone.service';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
@@ -18,7 +13,7 @@ import { useRef, useEffect } from 'react';
 export function useDnsZones(
   projectId: string,
   params?: PaginationParams,
-  options?: Omit<UseQueryOptions<DnsZoneList>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<DnsZone[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: dnsZoneKeys.list(projectId, params),
@@ -44,7 +39,7 @@ export function useDnsZone(
 export function useDnsZonesByDomainRef(
   projectId: string,
   domainRef: string,
-  options?: Omit<UseQueryOptions<DnsZoneList>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<DnsZone[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: dnsZoneKeys.byDomainRef(projectId, domainRef),
@@ -122,7 +117,7 @@ export function useHydrateDnsZones(projectId: string, initialData: DnsZone[]) {
 
   useEffect(() => {
     if (!hydrated.current && initialData) {
-      queryClient.setQueryData(dnsZoneKeys.list(projectId), { items: initialData });
+      queryClient.setQueryData(dnsZoneKeys.list(projectId), initialData);
       hydrated.current = true;
     }
   }, [queryClient, projectId, initialData]);
