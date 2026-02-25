@@ -46,7 +46,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   let dnsZone: DnsZone | null = null;
   if (domain?.name) {
     const dnsZoneList = await dnsZoneService.listByDomainRef(projectId, domain.name, 1);
-    dnsZone = dnsZoneList.items[0] ?? null;
+    dnsZone = dnsZoneList?.[0] ?? null;
   }
 
   return data({ domain, dnsZone });
