@@ -33,7 +33,12 @@ export const loader = withMiddleware(
        * Generate Help Scout signature for secure mode
        */
       let helpscoutSignature = null;
-      if (serverEnv.isProd && serverEnv.public.helpscoutBeaconId && user?.email) {
+      if (
+        serverEnv.isProd &&
+        serverEnv.public.helpscoutBeaconId &&
+        user?.email &&
+        serverEnv.server.helpscoutSecretKey
+      ) {
         helpscoutSignature = createHmac('sha256', serverEnv.server.helpscoutSecretKey ?? '')
           .update(user?.email)
           .digest('hex');
@@ -68,17 +73,17 @@ function FathomWrapper({ children }: { children: ReactNode }) {
 }
 
 export default function PrivateLayout() {
-  const data: { user: User; helpscoutSignature: string | null; ENV: any } =
+  const data: { user: User; helpscoutSignature?: string; ENV: any } =
     useLoaderData<typeof loader>();
 
   const [helpscoutEnv, setHelpscoutEnv] = useState<{
-    HELPSCOUT_BEACON_ID: string;
+    beaconId?: string;
     isProd: boolean;
-    userSignature: string;
+    userSignature?: string;
   }>({
-    HELPSCOUT_BEACON_ID: '',
+    beaconId: undefined,
     isProd: false,
-    userSignature: '',
+    userSignature: undefined,
   });
 
   const { setTheme } = useTheme();
@@ -93,9 +98,9 @@ export default function PrivateLayout() {
     }
 
     setHelpscoutEnv({
-      HELPSCOUT_BEACON_ID: window.ENV?.helpscoutBeaconId ?? '',
-      isProd: window.ENV?.nodeEnv === 'production',
-      userSignature: data?.helpscoutSignature ?? '',
+      beaconId: window.ENV?.helpscoutBeaconId,
+      isProd: env.isProd,
+      userSignature: data?.helpscoutSignature,
     });
   }, [data]);
 
@@ -110,14 +115,14 @@ export default function PrivateLayout() {
               </ConfirmationDialogProvider>
             </TooltipProvider>
 
-            {helpscoutEnv.HELPSCOUT_BEACON_ID && helpscoutEnv.isProd && (
+            {helpscoutEnv.beaconId && helpscoutEnv.isProd && helpscoutEnv.userSignature && (
               <HelpScoutBeacon
-                beaconId={helpscoutEnv.HELPSCOUT_BEACON_ID}
+                beaconId={helpscoutEnv.beaconId}
                 displayStyle="manual"
                 user={{
                   name: `${data?.user?.givenName} ${data?.user?.familyName}`,
                   email: data?.user?.email,
-                  signature: helpscoutEnv.userSignature ?? '',
+                  signature: helpscoutEnv.userSignature,
                 }}
               />
             )}
