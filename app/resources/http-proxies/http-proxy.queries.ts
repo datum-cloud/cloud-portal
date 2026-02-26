@@ -62,14 +62,45 @@ export function useUpdateHttpProxy(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateHttpProxyInput) =>
-      createHttpProxyService().update(projectId, name, input) as Promise<HttpProxy>,
+    mutationFn: (input: UpdateHttpProxyInput) => {
+      const currentProxy = queryClient.getQueryData<HttpProxy>(
+        httpProxyKeys.detail(projectId, name)
+      );
+      return createHttpProxyService().update(projectId, name, input, {
+        currentProxy,
+      }) as Promise<HttpProxy>;
+    },
     ...options,
+    onMutate: async (input) => {
+      await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+      const previous = queryClient.getQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name));
+      queryClient.setQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          ...(input.endpoint !== undefined && { endpoint: input.endpoint }),
+          ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
+          ...(input.tlsHostname !== undefined && { tlsHostname: input.tlsHostname }),
+          ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
+          ...(input.trafficProtectionMode !== undefined && {
+            trafficProtectionMode: input.trafficProtectionMode,
+          }),
+          ...(input.paranoiaLevels !== undefined && { paranoiaLevels: input.paranoiaLevels }),
+          ...(input.enableHttpRedirect !== undefined && {
+            enableHttpRedirect: input.enableHttpRedirect,
+          }),
+        };
+      });
+      return { previous };
+    },
+    onError: (err, _input, context, mutationContext) => {
+      if (context?.previous != null) {
+        queryClient.setQueryData(httpProxyKeys.detail(projectId, name), context.previous);
+      }
+      options?.onError?.(err, _input, context, mutationContext);
+    },
     onSuccess: async (...args) => {
-      // Invalidate and refetch both detail and list queries to ensure WAF mode and paranoia levels are refreshed
-      // We refetch because paranoia levels come from a separate TrafficProtectionPolicy that's fetched in get()
       await queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-      await queryClient.refetchQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);

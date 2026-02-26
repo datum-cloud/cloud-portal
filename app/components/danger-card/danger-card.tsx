@@ -7,14 +7,17 @@ export const DangerCard = ({
   description = 'This action cannot be undone. Once deleted, the resource and all associated data will be permanently removed.',
   deleteText = 'Delete',
   loading = false,
+  disabled = false,
   onDelete,
 }: {
   title?: string;
   description?: string | React.ReactNode;
   deleteText?: string;
   loading?: boolean;
+  disabled?: boolean;
   onDelete: () => void;
 }) => {
+  const isDisabled = loading || disabled;
   return (
     <Card className="border-destructive overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
       <CardContent className="flex flex-col items-end justify-between gap-4 p-0 sm:px-6 sm:pb-4 md:flex-row md:items-center md:justify-between md:gap-2">
@@ -35,7 +38,7 @@ export const DangerCard = ({
             type="danger"
             theme="solid"
             size="xs"
-            disabled={loading}
+            disabled={isDisabled}
             loading={loading}
             onClick={onDelete}>
             {loading ? 'Deleting...' : deleteText}

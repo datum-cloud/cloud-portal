@@ -1,6 +1,8 @@
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
+import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { parseEndpoint } from '@/utils/helpers/url.helper';
+import { isIPAddress } from '@/utils/helpers/validation.helper';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
@@ -9,6 +11,7 @@ import { z } from 'zod';
 const originsConfigSchema = z.object({
   protocol: z.enum(['http', 'https']).default('https'),
   endpointHost: z.string().min(1, 'Origin is required'),
+  tlsHostname: z.string().min(1).max(253).optional(),
 });
 
 type OriginsConfigSchema = z.infer<typeof originsConfigSchema>;
@@ -30,6 +33,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
     const [proxyName, setProxyName] = useState('');
     const [proxy, setProxy] = useState<HttpProxy | null>(null);
     const [defaultValues, setDefaultValues] = useState<Partial<OriginsConfigSchema>>();
+    const [isIPOrigin, setIsIPOrigin] = useState(false);
 
     const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
@@ -38,10 +42,13 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       setProxyName(proxyData.name);
 
       const { protocol, endpointHost } = parseEndpoint(proxyData.endpoint);
+      const hostname = endpointHost.split(':')[0];
+      setIsIPOrigin(isIPAddress(hostname));
 
       setDefaultValues({
         protocol,
         endpointHost,
+        tlsHostname: proxyData.tlsHostname,
       });
       setOpen(true);
     }, []);
@@ -61,6 +68,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       try {
         await updateMutation.mutateAsync({
           endpoint: fullEndpoint,
+          tlsHostname: data.tlsHostname,
         });
         toast.success('AI Edge', {
           description: 'Origin has been updated successfully',
@@ -93,8 +101,10 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
             name="endpointHost"
             label="Origin"
             required>
-            <ProtocolEndpointInput autoFocus />
+            <ProtocolEndpointInput autoFocus onIPChange={setIsIPOrigin} />
           </Form.Field>
+
+          {isIPOrigin && <ProxyTlsField required />}
         </div>
       </Form.Dialog>
     );

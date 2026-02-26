@@ -1,27 +1,17 @@
-import { isIPAddress } from '@/utils/helpers/validation.helper';
-import { Form, useWatch } from '@datum-ui/components/form';
-import { useMemo } from 'react';
+import { Form } from '@datum-ui/components/form';
 
-export const ProxyTlsField = () => {
-  const endpoint = useWatch<string>('endpoint');
+interface ProxyTlsFieldProps {
+  required?: boolean;
+}
 
-  const isTLSRequired = useMemo(() => {
-    if (!endpoint) return false;
-    try {
-      const url = new URL(endpoint);
-      return url.protocol === 'https:' && isIPAddress(url.hostname);
-    } catch {
-      return false;
-    }
-  }, [endpoint]);
-
+export const ProxyTlsField = ({ required = false }: ProxyTlsFieldProps) => {
   return (
     <Form.Field
       name="tlsHostname"
       label="TLS Hostname"
-      required={isTLSRequired}
+      required={required}
       description={
-        isTLSRequired
+        required
           ? 'The hostname to use for TLS certificate validation with your IP-based endpoint (required for SNI and certificate hostname matching)'
           : 'The hostname to use for TLS certificate validation (SNI and certificate hostname matching). Leave empty to use the hostname from the endpoint URL.'
       }>
