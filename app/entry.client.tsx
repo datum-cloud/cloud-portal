@@ -1,6 +1,6 @@
 // Configure @hey-api clients before any React code runs
 import '@/modules/control-plane/setup.client';
-import { isNoiseEvent } from '@/modules/sentry/filters';
+import { isKnownSystemEvent } from '@/modules/sentry/filters';
 import { env } from '@/utils/env';
 import * as Sentry from '@sentry/react-router';
 import { StrictMode, startTransition } from 'react';
@@ -62,7 +62,7 @@ Sentry.init({
   release: env.public.version || 'dev',
 
   beforeSend: (event) => {
-    if (isNoiseEvent(event)) return null;
+    if (isKnownSystemEvent(event)) return null;
     return event;
   },
 });

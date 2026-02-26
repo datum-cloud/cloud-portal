@@ -1,4 +1,4 @@
-import { isNoiseEvent } from '../../app/modules/sentry/filters';
+import { isKnownSystemEvent } from '../../app/modules/sentry/filters';
 import { env } from '../../app/utils/env/env.server';
 import { BaseProvider } from './base';
 import { trace } from '@opentelemetry/api';
@@ -165,7 +165,9 @@ export class SentryProvider extends BaseProvider {
         return null;
       }
 
-      if (isNoiseEvent(event)) {
+      // Suppress events from known system actors — they fire frequently
+      // and make it harder to see actual user errors in Sentry.
+      if (isKnownSystemEvent(event)) {
         return null;
       }
 
