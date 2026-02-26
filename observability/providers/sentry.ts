@@ -1,3 +1,4 @@
+import { isNoiseEvent } from '../../app/modules/sentry/filters';
 import { env } from '../../app/utils/env/env.server';
 import { BaseProvider } from './base';
 import { trace } from '@opentelemetry/api';
@@ -158,9 +159,13 @@ export class SentryProvider extends BaseProvider {
   }
 
   private createBeforeSendHandler() {
-    return (event: any, hint: any) => {
+    return (event: any, _hint: any) => {
       if (this.circuitBreakerOpen) {
         console.warn('⚠️ Sentry circuit breaker open, skipping event');
+        return null;
+      }
+
+      if (isNoiseEvent(event)) {
         return null;
       }
 
