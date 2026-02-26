@@ -1,7 +1,7 @@
-import { useCopyWithFeedback } from '@/features/edge/proxy/hooks/use-copy-with-feedback';
 import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import {
   type HttpProxy,
   getCertificateReadyCondition,
@@ -22,7 +22,7 @@ export const HttpProxyHostnamesCard = ({
   disabled?: boolean;
 }) => {
   const hostnamesConfigDialogRef = useRef<ProxyHostnamesConfigDialogRef>(null);
-  const { copyToClipboard, isCopied } = useCopyWithFeedback();
+  const [_, copy, isCopied] = useCopyToClipboard();
 
   const hostnames = useMemo(() => {
     const customHostnames = proxy?.hostnames ?? [];
@@ -100,7 +100,7 @@ export const HttpProxyHostnamesCard = ({
                       theme="outline"
                       size="small"
                       className="h-7 shrink-0"
-                      onClick={() => copyToClipboard(val.hostname)}>
+                      onClick={() => copy(val.hostname, { withToast: true })}>
                       <Icon icon={CopyIcon} className="size-4" />
                       {isCopied(val.hostname) ? 'Copied' : 'Copy'}
                     </Button>

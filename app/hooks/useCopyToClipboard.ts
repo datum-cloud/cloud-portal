@@ -8,8 +8,8 @@ interface CopyOptions {
 
 type CopyFn = (text: string, options?: CopyOptions) => Promise<boolean>;
 
-export function useCopyToClipboard(): [boolean, CopyFn] {
-  const [isCopied, setIsCopied] = useState(false);
+export function useCopyToClipboard(): [boolean, CopyFn, (value: string) => boolean] {
+  const [copiedText, setCopiedText] = useState('');
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -27,22 +27,27 @@ export function useCopyToClipboard(): [boolean, CopyFn] {
 
     try {
       await navigator.clipboard.writeText(text);
-      setIsCopied(true);
+      setCopiedText(text);
 
       if (options?.withToast) {
         toast.success(options.toastMessage ?? 'Copied to clipboard');
       }
 
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       timeoutRef.current = setTimeout(() => {
-        setIsCopied(false);
+        setCopiedText('');
       }, 2000);
 
       return true;
     } catch {
-      setIsCopied(false);
+      setCopiedText('');
       return false;
     }
   }, []);
 
-  return [isCopied, copy];
+  const isCopiedValue = useCallback((value: string) => copiedText === value, [copiedText]);
+
+  return [copiedText !== '', copy, isCopiedValue];
 }

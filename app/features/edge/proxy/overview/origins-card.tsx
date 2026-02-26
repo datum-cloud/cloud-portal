@@ -1,9 +1,9 @@
-import { useCopyWithFeedback } from '@/features/edge/proxy/hooks/use-copy-with-feedback';
 import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
   ProxyOriginsDialog,
   type ProxyOriginsDialogRef,
 } from '@/features/edge/proxy/proxy-origins-dialog';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { type HttpProxy } from '@/resources/http-proxies';
 import { Button, Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -18,7 +18,7 @@ export const HttpProxyOriginsCard = ({
   projectId?: string;
 }) => {
   const originsDialogRef = useRef<ProxyOriginsDialogRef>(null);
-  const { copyToClipboard, isCopied } = useCopyWithFeedback();
+  const [_, copy, isCopied] = useCopyToClipboard();
 
   const origins = useMemo(() => {
     // Use origins array if available (contains all backends)
@@ -68,7 +68,7 @@ export const HttpProxyOriginsCard = ({
                     theme="outline"
                     size="small"
                     className="h-8 shrink-0"
-                    onClick={() => copyToClipboard(origin)}>
+                    onClick={() => copy(origin, { withToast: true })}>
                     <Icon icon={CopyIcon} className="size-4" />
                     {isCopied(origin) ? 'Copied' : 'Copy'}
                   </Button>
