@@ -1,16 +1,15 @@
 import { List, ListItem } from '@/components/list/list';
+import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
   ProxyDisplayNameDialog,
   type ProxyDisplayNameDialogRef,
 } from '@/features/edge/proxy/proxy-display-name-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
-import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
   formatWafProtectionDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Skeleton } from '@shadcn/ui/skeleton';
@@ -19,39 +18,35 @@ import { CircleHelp, PencilIcon, SettingsIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 
 export const HttpProxyConfigCard = ({
-  httpProxy,
+  proxy,
   projectId,
 }: {
-  httpProxy: HttpProxy;
+  proxy: HttpProxy;
   projectId?: string;
 }) => {
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
-  const updateMutation = useUpdateHttpProxy(projectId ?? '', httpProxy.name);
+  const updateMutation = useUpdateHttpProxy(projectId ?? '', proxy.name);
 
-  const isPending = useMemo(() => {
-    if (!httpProxy?.status) return true;
-    const transformedStatus = transformControlPlaneStatus(httpProxy.status);
-    return transformedStatus.status === ControlPlaneStatus.Pending;
-  }, [httpProxy?.status]);
+  const isPending = useProxyPending(proxy?.status);
 
   const listItems: ListItem[] = useMemo(() => {
-    if (!httpProxy) return [];
+    if (!proxy) return [];
 
     return [
       {
         label: 'Name',
         content:
-          isPending && !httpProxy.chosenName ? (
+          isPending && !proxy.chosenName ? (
             <Skeleton className="h-5 w-32 rounded-md" />
           ) : (
             <div className="flex items-center gap-1.5">
-              <span className="text-sm">{httpProxy.chosenName || httpProxy.name}</span>
+              <span className="text-sm">{proxy.chosenName || proxy.name}</span>
               {projectId && !isPending && (
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => displayNameDialogRef.current?.show(httpProxy)}>
+                  onClick={() => displayNameDialogRef.current?.show(proxy)}>
                   <Icon icon={PencilIcon} size={12} />
                 </button>
               )}
@@ -74,18 +69,18 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          isPending && !httpProxy.trafficProtectionMode ? (
+          isPending && !proxy.trafficProtectionMode ? (
             <Skeleton className="h-5 w-24 rounded-md" />
           ) : (
             <div className="flex items-center gap-1.5">
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-                {formatWafProtectionDisplay(httpProxy)}
+                {formatWafProtectionDisplay(proxy)}
               </Badge>
               {projectId && !isPending && (
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => wafDialogRef.current?.show(httpProxy)}>
+                  onClick={() => wafDialogRef.current?.show(proxy)}>
                   <Icon icon={PencilIcon} size={12} />
                 </button>
               )}
@@ -108,12 +103,12 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          isPending && httpProxy.enableHttpRedirect === undefined ? (
+          isPending && proxy.enableHttpRedirect === undefined ? (
             <Skeleton className="h-6 w-20 rounded-md" />
           ) : (
             <Switch
-              key={`force-https-${httpProxy.enableHttpRedirect ?? false}`}
-              checked={httpProxy.enableHttpRedirect ?? false}
+              key={`force-https-${proxy.enableHttpRedirect ?? false}`}
+              checked={proxy.enableHttpRedirect ?? false}
               disabled={isPending}
               onCheckedChange={(checked) => {
                 updateMutation.mutate(
@@ -138,7 +133,7 @@ export const HttpProxyConfigCard = ({
           ),
       },
     ];
-  }, [httpProxy, isPending, projectId]);
+  }, [proxy, isPending, projectId, updateMutation]);
 
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">

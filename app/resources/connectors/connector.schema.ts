@@ -31,6 +31,12 @@ export const connectorConnectionDetailsSchema = z.object({
     .optional(),
 });
 
+const connectorStatusSchema = z.object({
+  conditions: z.array(connectorCapabilityConditionSchema).optional(),
+  capabilities: z.array(connectorCapabilitySchema).optional(),
+  connectionDetails: connectorConnectionDetailsSchema.optional(),
+});
+
 export const connectorResourceSchema = z.object({
   uid: z.string(),
   name: z.string(),
@@ -46,7 +52,7 @@ export const connectorResourceSchema = z.object({
       })
     )
     .optional(),
-  status: z.any().optional(),
+  status: connectorStatusSchema.optional(),
   deviceName: z.string().optional(),
   deviceOs: z.string().optional(),
 });

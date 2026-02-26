@@ -1,17 +1,16 @@
+import { useCopyWithFeedback } from '@/features/edge/proxy/hooks/use-copy-with-feedback';
+import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
 } from '@/resources/http-proxies';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Button, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
+import { Button, Card, CardContent, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CopyIcon, GlobeIcon, LockIcon, PencilIcon } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 
 export const HttpProxyHostnamesCard = ({
   proxy,
@@ -23,23 +22,7 @@ export const HttpProxyHostnamesCard = ({
   disabled?: boolean;
 }) => {
   const hostnamesConfigDialogRef = useRef<ProxyHostnamesConfigDialogRef>(null);
-  const [_, copy] = useCopyToClipboard();
-  const [copiedText, setCopiedText] = useState('');
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = (value: string) => {
-    if (!value) return;
-
-    copy(value).then(() => {
-      setCopiedText(value);
-      toast.success('Copied to clipboard');
-      setCopied(true);
-      setTimeout(() => {
-        setCopiedText('');
-        setCopied(false);
-      }, 2000);
-    });
-  };
+  const { copyToClipboard, isCopied } = useCopyWithFeedback();
 
   const hostnames = useMemo(() => {
     const customHostnames = proxy?.hostnames ?? [];
@@ -63,11 +46,7 @@ export const HttpProxyHostnamesCard = ({
     });
   }, [proxy?.hostnames, proxy?.hostnameStatuses]);
 
-  const isPending = useMemo(() => {
-    if (!proxy?.status) return true;
-    const transformedStatus = transformControlPlaneStatus(proxy.status);
-    return transformedStatus.status === ControlPlaneStatus.Pending;
-  }, [proxy?.status]);
+  const isPending = useProxyPending(proxy?.status);
 
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
@@ -123,7 +102,7 @@ export const HttpProxyHostnamesCard = ({
                       className="h-7 shrink-0"
                       onClick={() => copyToClipboard(val.hostname)}>
                       <Icon icon={CopyIcon} className="size-4" />
-                      {copied && copiedText === val.hostname ? 'Copied' : 'Copy'}
+                      {isCopied(val.hostname) ? 'Copied' : 'Copy'}
                     </Button>
                   </div>
                   <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px]">

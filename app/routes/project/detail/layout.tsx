@@ -166,7 +166,7 @@ export default function ProjectLayout() {
         type: 'link',
         showSeparatorAbove: true,
         onPrefetch: () => {
-          queryClient.prefetchQuery({
+          void queryClient.prefetchQuery({
             queryKey: httpProxyKeys.list(projectId),
             queryFn: () => createHttpProxyService().list(projectId),
           });

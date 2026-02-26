@@ -9,7 +9,12 @@ import {
   toTrafficProtectionModeMap,
   toParanoiaLevelsMap,
 } from './http-proxy.adapter';
-import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
+import type {
+  HttpProxy,
+  CreateHttpProxyInput,
+  UpdateHttpProxyInput,
+  TrafficProtectionMode,
+} from './http-proxy.schema';
 import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
@@ -128,13 +133,13 @@ export function createHttpProxyService() {
     async updateTrafficProtectionPolicyMode(
       projectId: string,
       name: string,
-      mode: any,
+      mode: TrafficProtectionMode,
       paranoiaLevels?: { blocking?: number; detection?: number }
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
 
       const specBody: {
-        mode?: any;
+        mode?: TrafficProtectionMode;
         ruleSets?: Array<{
           type: 'OWASPCoreRuleSet';
           owaspCoreRuleSet?: {
@@ -273,8 +278,6 @@ export function createHttpProxyService() {
             `${SERVICE_NAME}.createTrafficProtectionPolicy failed`,
             policyError as Error
           );
-          // Proxy was created; surface policy error but don't fail the create
-          throw mapApiError(policyError as Error);
         }
 
         logger.service(SERVICE_NAME, 'create', {
@@ -333,7 +336,7 @@ export function createHttpProxyService() {
             await this.updateTrafficProtectionPolicyMode(
               projectId,
               name,
-              input.trafficProtectionMode,
+              input.trafficProtectionMode!,
               input.paranoiaLevels
             );
           } catch (policyError) {

@@ -28,13 +28,9 @@ const FieldLabel = ({
   className?: string;
 }) => {
   const [isTooltipVisible, setIsTooltipVisible] = React.useState(false);
-  const [_isHovering, setIsHovering] = React.useState(false);
 
   return (
-    <div
-      className="relative flex w-fit items-center space-x-2"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}>
+    <div className="relative flex w-fit items-center space-x-2">
       <Label
         htmlFor={htmlFor}
         className={cn(

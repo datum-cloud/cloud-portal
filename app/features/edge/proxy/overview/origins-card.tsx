@@ -1,15 +1,14 @@
+import { useCopyWithFeedback } from '@/features/edge/proxy/hooks/use-copy-with-feedback';
+import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
   ProxyOriginsDialog,
   type ProxyOriginsDialogRef,
 } from '@/features/edge/proxy/proxy-origins-dialog';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { ControlPlaneStatus } from '@/resources/base';
 import { type HttpProxy } from '@/resources/http-proxies';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Button, Card, CardContent, toast } from '@datum-ui/components';
+import { Button, Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { CopyIcon, PencilIcon, ServerIcon } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 
 export const HttpProxyOriginsCard = ({
   proxy,
@@ -19,23 +18,7 @@ export const HttpProxyOriginsCard = ({
   projectId?: string;
 }) => {
   const originsDialogRef = useRef<ProxyOriginsDialogRef>(null);
-  const [_, copy] = useCopyToClipboard();
-  const [copiedText, setCopiedText] = useState('');
-  const [copied, setCopied] = useState(false);
-
-  const copyToClipboard = (value: string) => {
-    if (!value) return;
-
-    copy(value).then(() => {
-      setCopiedText(value);
-      toast.success('Copied to clipboard');
-      setCopied(true);
-      setTimeout(() => {
-        setCopiedText('');
-        setCopied(false);
-      }, 2000);
-    });
-  };
+  const { copyToClipboard, isCopied } = useCopyWithFeedback();
 
   const origins = useMemo(() => {
     // Use origins array if available (contains all backends)
@@ -49,12 +32,7 @@ export const HttpProxyOriginsCard = ({
     return [];
   }, [proxy]);
 
-  // Check if proxy is still being created (Pending status)
-  const isPending = useMemo(() => {
-    if (!proxy?.status) return true;
-    const transformedStatus = transformControlPlaneStatus(proxy.status);
-    return transformedStatus.status === ControlPlaneStatus.Pending;
-  }, [proxy?.status]);
+  const isPending = useProxyPending(proxy?.status);
 
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
@@ -92,7 +70,7 @@ export const HttpProxyOriginsCard = ({
                     className="h-8 shrink-0"
                     onClick={() => copyToClipboard(origin)}>
                     <Icon icon={CopyIcon} className="size-4" />
-                    {copied && copiedText === origin ? 'Copied' : 'Copy'}
+                    {isCopied(origin) ? 'Copied' : 'Copy'}
                   </Button>
                 </div>
               );

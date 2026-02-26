@@ -111,7 +111,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
           <Form.Field
             name="paranoiaLevelBlocking"
             label="Paranoia Level"
-            tooltip="Higher levels provider stronger protection but may result in false positives."
+            tooltip="Higher levels provide stronger protection but may result in false positives."
             required>
             <Form.Select placeholder="Select paranoia level" className="w-1/2">
               <Form.SelectItem value="1">Level 1 — Relaxed (Recommended)</Form.SelectItem>

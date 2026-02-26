@@ -255,14 +255,8 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
 } {
   const backend: { endpoint: string; tls?: { hostname: string } } = {
     endpoint: input.endpoint,
+    ...(input.tlsHostname && { tls: { hostname: input.tlsHostname } }),
   };
-
-  // Add TLS configuration if provided
-  if (input.tlsHostname) {
-    backend.tls = {
-      hostname: input.tlsHostname,
-    };
-  }
 
   const annotations: Record<string, string> = {};
 
@@ -402,16 +396,12 @@ export function toUpdateHttpProxyPayload(
 
       const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
       if (effectiveEndpoint) {
+        const effectiveTls = input.tlsHostname ?? currentProxy?.tlsHostname;
         const backend: BackendRule['backends'][0] = {
           endpoint: effectiveEndpoint,
+          ...(effectiveTls && { tls: { hostname: effectiveTls } }),
+          ...(currentProxy?.connector && { connector: currentProxy.connector }),
         };
-        const effectiveTls = input.tlsHostname ?? currentProxy?.tlsHostname;
-        if (effectiveTls) {
-          backend.tls = { hostname: effectiveTls };
-        }
-        if (currentProxy?.connector) {
-          backend.connector = currentProxy.connector;
-        }
         rules.push({ backends: [backend] });
       }
 

@@ -10,8 +10,10 @@ import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { MetricsProvider, MetricsToolbar } from '@/modules/metrics';
 import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filter';
+import { ControlPlaneStatus } from '@/resources/base';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Icon, toast, Tooltip } from '@datum-ui/components';
 import { Card, CardContent, Col, Row } from '@datum-ui/components';
@@ -33,9 +35,9 @@ export default function HttpProxyDetailPage() {
   useHttpProxyWatch(projectId ?? '', proxyId ?? '');
 
   const effectiveProxy = httpProxy ?? loaderData;
-  const isDeleteDisabled = false;
-  // effectiveProxy &&
-  // transformControlPlaneStatus(effectiveProxy.status)?.status !== ControlPlaneStatus.Success;
+  const isDeleteDisabled =
+    !!effectiveProxy &&
+    transformControlPlaneStatus(effectiveProxy.status)?.status !== ControlPlaneStatus.Success;
 
   const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId ?? '', {
     onSuccess: () => {
@@ -83,10 +85,10 @@ export default function HttpProxyDetailPage() {
           </div>
         </Col>
         <Col span={24} lg={12}>
-          <HttpProxyGeneralCard httpProxy={effectiveProxy} />
+          <HttpProxyGeneralCard proxy={effectiveProxy} />
         </Col>
         <Col span={24} lg={12}>
-          <HttpProxyConfigCard httpProxy={effectiveProxy} projectId={projectId} />
+          <HttpProxyConfigCard proxy={effectiveProxy} projectId={projectId} />
         </Col>
         <Col span={24} lg={12}>
           <HttpProxyHostnamesCard proxy={effectiveProxy} projectId={projectId} />

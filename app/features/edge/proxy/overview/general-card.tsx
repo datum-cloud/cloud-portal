@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
+import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
@@ -15,20 +16,16 @@ import { Skeleton } from '@shadcn/ui/skeleton';
 import { CircleHelp, ShieldCheckIcon, ShieldOffIcon, SquareLibrary } from 'lucide-react';
 import { useMemo } from 'react';
 
-export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: HttpProxy }) => {
+export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
   const hostname = useMemo(
-    () => httpProxy.canonicalHostname ?? httpProxy.status?.hostnames?.[0],
-    [httpProxy.canonicalHostname, httpProxy.status?.hostnames]
+    () => proxy.canonicalHostname ?? proxy.status?.hostnames?.[0],
+    [proxy.canonicalHostname, proxy.status?.hostnames]
   );
 
-  const isPending = useMemo(() => {
-    if (!httpProxy?.status) return true;
-    const transformedStatus = transformControlPlaneStatus(httpProxy.status);
-    return transformedStatus.status === ControlPlaneStatus.Pending;
-  }, [httpProxy?.status]);
+  const isPending = useProxyPending(proxy?.status);
 
   const listItems: ListItem[] = useMemo(() => {
-    if (!httpProxy) return [];
+    if (!proxy) return [];
 
     return [
       {
@@ -47,7 +44,7 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: HttpProxy }) =>
           </div>
         ),
         content: (() => {
-          const transformedStatus = transformControlPlaneStatus(httpProxy.status);
+          const transformedStatus = transformControlPlaneStatus(proxy.status);
           return (
             <BadgeStatus
               status={transformedStatus}
@@ -57,7 +54,7 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: HttpProxy }) =>
         })(),
       },
       ...((): ListItem[] => {
-        const certCondition = getCertificatesReadyCondition(httpProxy?.status);
+        const certCondition = getCertificatesReadyCondition(proxy?.status);
         const certDisplay = getCertificatesReadyDisplay(certCondition);
         return [
           {
@@ -115,12 +112,12 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: HttpProxy }) =>
       {
         label: 'Resource Name',
         content:
-          isPending && !httpProxy.name ? (
+          isPending && !proxy.name ? (
             <Skeleton className="h-6 w-32 rounded-md" />
           ) : (
             <BadgeCopy
-              value={httpProxy.name ?? ''}
-              text={httpProxy.name}
+              value={proxy.name ?? ''}
+              text={proxy.name}
               badgeType="muted"
               badgeTheme="solid"
             />
@@ -157,18 +154,18 @@ export const HttpProxyGeneralCard = ({ httpProxy }: { httpProxy: HttpProxy }) =>
       {
         label: 'Created At',
         content:
-          isPending && !httpProxy?.createdAt ? (
+          isPending && !proxy?.createdAt ? (
             <Skeleton className="h-5 w-32 rounded-md" />
           ) : (
             <DateTime
               className="text-left text-sm"
-              date={httpProxy?.createdAt ?? ''}
+              date={proxy?.createdAt ?? ''}
               variant="detailed"
             />
           ),
       },
     ];
-  }, [httpProxy, hostname, isPending]);
+  }, [proxy, hostname, isPending]);
 
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">

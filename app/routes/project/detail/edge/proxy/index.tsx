@@ -150,7 +150,7 @@ export default function HttpProxyPage() {
         accessorKey: 'hostnames',
         meta: { tooltip: 'Verified hostnames that are pointing to your origin' },
         cell: ({ row }) => {
-          const hostnames = row.original.status.hostnames?.map((hostname: string) => hostname);
+          const hostnames = row.original.status?.hostnames;
           const hasMultipleHostnames = (hostnames?.length ?? 0) > 1;
           return (
             <div className="flex flex-wrap gap-2">
@@ -215,7 +215,7 @@ export default function HttpProxyPage() {
         action: (row) => confirmDelete(row),
       },
     ],
-    [projectId]
+    [projectId, confirmDelete]
   );
 
   return (

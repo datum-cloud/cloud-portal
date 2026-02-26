@@ -74,9 +74,23 @@ export function useUpdateHttpProxy(
     onMutate: async (input) => {
       await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       const previous = queryClient.getQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name));
-      queryClient.setQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name), (old) =>
-        old ? { ...old, ...input } : old
-      );
+      queryClient.setQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name), (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          ...(input.endpoint !== undefined && { endpoint: input.endpoint }),
+          ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
+          ...(input.tlsHostname !== undefined && { tlsHostname: input.tlsHostname }),
+          ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
+          ...(input.trafficProtectionMode !== undefined && {
+            trafficProtectionMode: input.trafficProtectionMode,
+          }),
+          ...(input.paranoiaLevels !== undefined && { paranoiaLevels: input.paranoiaLevels }),
+          ...(input.enableHttpRedirect !== undefined && {
+            enableHttpRedirect: input.enableHttpRedirect,
+          }),
+        };
+      });
       return { previous };
     },
     onError: (err, _input, context, mutationContext) => {
@@ -86,10 +100,7 @@ export function useUpdateHttpProxy(
       options?.onError?.(err, _input, context, mutationContext);
     },
     onSuccess: async (...args) => {
-      // Invalidate and refetch both detail and list queries to ensure WAF mode and paranoia levels are refreshed
-      // We refetch because paranoia levels come from a separate TrafficProtectionPolicy that's fetched in get()
       await queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-      await queryClient.refetchQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
