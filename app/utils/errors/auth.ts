@@ -69,11 +69,21 @@ export function categorizeRefreshError(error: unknown): RefreshError {
   const errorMessage = error instanceof Error ? error.message : String(error);
   const errorString = errorMessage.toLowerCase();
 
+  // Also check OAuth2 structured fields (.code / .description) that Zitadel returns
+  const oauthCode =
+    error instanceof Error && 'code' in error ? String((error as any).code).toLowerCase() : '';
+  const oauthDesc =
+    error instanceof Error && 'description' in error
+      ? String((error as any).description).toLowerCase()
+      : '';
+
   // Token revoked or invalid
   if (
     errorString.includes('invalid_grant') ||
     errorString.includes('token has been revoked') ||
-    errorString.includes('refresh token is invalid')
+    errorString.includes('refresh token is invalid') ||
+    oauthDesc.includes('refreshtokeninvalid') || // Zitadel: Errors.OIDCSession.RefreshTokenInvalid
+    oauthCode === 'invalid_grant'
   ) {
     return new RefreshError(
       RefreshErrorType.REFRESH_TOKEN_REVOKED,
