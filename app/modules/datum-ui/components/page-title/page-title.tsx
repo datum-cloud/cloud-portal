@@ -33,7 +33,11 @@ export const PageTitle = ({
       <div
         className={cn('flex', isInline ? 'flex-col justify-start gap-1' : 'w-full flex-col gap-1')}>
         {title && (
-          <span className={cn('text-2xl leading-none font-medium', titleClassName)}>{title}</span>
+          <span
+            data-e2e="page-title"
+            className={cn('text-2xl leading-none font-medium', titleClassName)}>
+            {title}
+          </span>
         )}
         {description && (
           <div className={cn('text-sm font-normal', descriptionClassName)}>{description}</div>
