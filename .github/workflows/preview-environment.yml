@@ -40,7 +40,6 @@ jobs:
     uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@v1.9.0
     with:
       image-name: cloud-portal
-      image-tag: pr-${{ github.event.pull_request.number }}
     secrets: inherit
 
   publish-kustomize-bundles:
@@ -57,8 +56,6 @@ jobs:
       bundle-path: config
       image-overlays: config/base
       image-name: ghcr.io/datum-cloud/cloud-portal
-      image-tag: pr-${{ github.event.pull_request.number }}
-      bundle-tag: pr-${{ github.event.pull_request.number }}
     secrets: inherit
 
   trigger-preview-environment:
@@ -80,8 +77,7 @@ jobs:
               "external_pr_number": ${{ github.event.pull_request.number }},
               "head_ref": "${{ github.head_ref }}",
               "sha": "${{ github.event.pull_request.head.sha }}",
-              "image_tag": "pr-${{ github.event.pull_request.number }}",
-              "bundle_tag": "pr-${{ github.event.pull_request.number }}"
+              "image_tag": "${{ needs.publish-container-image.outputs.tag }}"
             }
 
   run-tests-against-preview:
