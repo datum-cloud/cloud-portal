@@ -20,17 +20,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-trigger-preview:
-    if: github.event_name == 'pull_request'
-    name: Build and Trigger Preview
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
   publish-container-image:
     if: github.event_name == 'pull_request'
-    needs: build-and-trigger-preview
     name: Build and Publish Container Image
     permissions:
       id-token: write
