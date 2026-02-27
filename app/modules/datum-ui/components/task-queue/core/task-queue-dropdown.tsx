@@ -45,8 +45,6 @@ export function TaskQueueDropdown() {
   // If there are any tasks that are not running or pending, show the dismiss button.
   const hasDismissable = tasks.some((t) => t.status !== 'running' && t.status !== 'pending');
 
-  // if (tasks.length === 0) return null;
-
   return (
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -54,7 +52,10 @@ export function TaskQueueDropdown() {
           <TaskQueueTrigger tasks={tasks} />
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="end" className="w-96 rounded-lg p-0">
+        <DropdownMenuContent
+          align="end"
+          className="w-96 rounded-lg p-0"
+          onCloseAutoFocus={(e) => e.preventDefault()}>
           <TaskPanelHeader />
           <div className="max-h-[350px] overflow-y-auto">
             {tasks.length === 0 && !activeSummary ? (
