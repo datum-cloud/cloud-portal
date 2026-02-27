@@ -1,3 +1,4 @@
+import { useTaskQueue } from '../hooks/use-task-queue';
 import type { Task } from '../types';
 import { extractItemId } from '../utils';
 import { Button, type ButtonProps } from '@datum-ui/components/button/button';
@@ -7,7 +8,36 @@ interface TaskPanelActionsProps {
 }
 
 export function TaskPanelActions({ task }: TaskPanelActionsProps) {
+  const { showSummary } = useTaskQueue();
   const actions = resolveActions(task);
+
+  const hasBatch = task.total != null;
+  const hasFailedMessages = task.failedItems.length > 0 && task.failedItems.some((f) => f.message);
+
+  if (!hasBatch && task.status === 'failed' && hasFailedMessages && actions.length === 0) {
+    return (
+      <div className="flex items-center justify-end gap-1.5">
+        <Button
+          htmlType="button"
+          type="quaternary"
+          theme="outline"
+          size="xs"
+          onClick={() =>
+            showSummary(
+              task.title,
+              task.failedItems.map((item, i) => ({
+                id: item.id ?? `error-${i}`,
+                label: item.id ?? 'Error',
+                status: 'failed',
+                message: item.message,
+              }))
+            )
+          }>
+          Details
+        </Button>
+      </div>
+    );
+  }
 
   if (actions.length === 0) return null;
 
