@@ -1,3 +1,4 @@
+import { NotesSection } from '@/features/edge/domain/notes';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
@@ -92,6 +93,9 @@ export default function DomainOverviewPage() {
       </Col>
       <Col span={24}>
         <DomainGeneralCard domain={effectiveDomain} dnsZone={dnsZone} projectId={projectId} />
+      </Col>
+      <Col span={24}>
+        <NotesSection projectId={projectId ?? ''} domainName={effectiveDomain?.name ?? ''} />
       </Col>
       {isPending && (
         <>
