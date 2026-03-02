@@ -1,5 +1,5 @@
 import type { Variables } from '@/server/types';
-import { AuthService } from '@/utils/auth/auth.service';
+import { sessionManager } from '@/utils/auth';
 import { AuthenticationError } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import { createMiddleware } from 'hono/factory';
@@ -13,7 +13,7 @@ export function sessionMiddleware() {
   return createMiddleware<{ Variables: Variables }>(async (c, next) => {
     const cookieHeader = c.req.header('Cookie') ?? null;
 
-    const { session, headers, refreshed } = await AuthService.getValidSession(cookieHeader);
+    const { session, headers, refreshed } = await sessionManager.getValidSession(cookieHeader);
 
     if (session) {
       c.set('session', session);
@@ -27,6 +27,10 @@ export function sessionMiddleware() {
       }
 
       Sentry.setUser({ id: session.sub });
+    } else {
+      // Reset Sentry user to prevent scope leaking from a previous request
+      // on the same server instance into this unauthenticated request.
+      Sentry.setUser(null);
     }
 
     await next();

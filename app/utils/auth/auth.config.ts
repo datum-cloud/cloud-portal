@@ -8,9 +8,9 @@ import { env } from '@/utils/env';
 export const AUTH_CONFIG = {
   /**
    * Refresh token when access token expires within this window
-   * Default: 1 hour before expiry
+   * Default: 10 minutes before expiry
    */
-  REFRESH_WINDOW_MS: 60 * 60 * 1000,
+  REFRESH_WINDOW_MS: 10 * 60 * 1000,
 
   /**
    * Session cookie lifetime (slightly longer than access token)

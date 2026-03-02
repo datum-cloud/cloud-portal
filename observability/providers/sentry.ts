@@ -158,7 +158,7 @@ export class SentryProvider extends BaseProvider {
   }
 
   private createBeforeSendHandler() {
-    return (event: any, hint: any) => {
+    return (event: any, _hint: any) => {
       if (this.circuitBreakerOpen) {
         console.warn('⚠️ Sentry circuit breaker open, skipping event');
         return null;
