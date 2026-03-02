@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
 import {
   HttpProxyFormDialog,
@@ -11,13 +11,12 @@ import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
-  createHttpProxyService,
   type HttpProxy,
-  useDeleteHttpProxy,
   useHttpProxies,
-  useHydrateHttpProxies,
   useHttpProxiesWatch,
   formatWafProtectionDisplay,
+  getCertificatesReadyCondition,
+  getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
@@ -27,57 +26,41 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
-import { useMemo, useRef } from 'react';
-import {
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { PlusIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
+import { useEffect, useMemo, useRef } from 'react';
+import { MetaFunction, useNavigate, useParams, useSearchParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('AI Edge');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
+export default function HttpProxyPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { projectId } = useParams();
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const httpProxyService = createHttpProxyService();
-  const httpProxies = await httpProxyService.list(projectId);
-  return httpProxies;
-};
-
-export default function HttpProxyPage() {
-  const { projectId } = useParams();
-  const initialData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateHttpProxies(projectId ?? '', initialData ?? []);
+  useHttpProxiesWatch(projectId);
 
-  // Subscribe to watch for real-time updates
-  useHttpProxiesWatch(projectId ?? '');
-
-  // Read from React Query cache (gets updates from watch!)
-  const { data: queryData } = useHttpProxies(projectId ?? '', {
-    refetchOnMount: true,
+  const { data, isLoading } = useHttpProxies(projectId, {
+    refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Use React Query data, fallback to SSR data
-  const data = queryData ?? initialData ?? [];
-
-  const { confirm } = useConfirmationDialog();
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
 
-  const deleteMutation = useDeleteHttpProxy(projectId ?? '', {
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      proxyFormRef.current?.show();
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('action');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  const { confirmDelete } = useDeleteProxy(projectId, {
     onSuccess: () => {
       toast.success('AI Edge', {
         description: 'AI Edge has been deleted successfully',
@@ -87,27 +70,6 @@ export default function HttpProxyPage() {
       toast.error(error.message || 'Failed to delete AI Edge');
     },
   });
-
-  const deleteHttpProxy = async (httpProxy: HttpProxy) => {
-    await confirm({
-      title: 'Delete AI Edge',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>{httpProxy.name}</strong>?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: true,
-      confirmValue: httpProxy.name,
-      confirmInputLabel: `Type "${httpProxy.name}" to confirm.`,
-      onSubmit: async () => {
-        await deleteMutation.mutateAsync(httpProxy.name);
-      },
-    });
-  };
 
   const columns: ColumnDef<HttpProxy>[] = useMemo(
     () => [
@@ -127,19 +89,42 @@ export default function HttpProxyPage() {
         header: 'Status',
         accessorKey: 'status',
         cell: ({ row }) => {
+          if (!row.original.status) return null;
+          const transformedStatus = transformControlPlaneStatus(row.original.status);
+          const certCondition = getCertificatesReadyCondition(row.original?.status);
+          const certDisplay = getCertificatesReadyDisplay(certCondition);
           return (
-            row.original.status &&
-            (() => {
-              const transformedStatus = transformControlPlaneStatus(row.original.status);
-              return (
-                <BadgeStatus
-                  status={transformedStatus}
-                  label={
-                    transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined
+            <div className="flex items-center gap-2">
+              <BadgeStatus
+                status={transformedStatus}
+                label={
+                  transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined
+                }
+              />
+              {certDisplay === 'ready' && (
+                <Tooltip
+                  message="All hostnames have valid TLS certificates and are secure"
+                  side="top"
+                  contentClassName="max-w-xs text-wrap">
+                  <span className="text-primary inline-flex items-center">
+                    <Icon icon={ShieldCheckIcon} size={18} className="shrink-0" />
+                  </span>
+                </Tooltip>
+              )}
+              {(certDisplay === 'pending' || certDisplay === 'failed') && (
+                <Tooltip
+                  message={
+                    certCondition?.message ||
+                    'One or more hostnames do not have a valid TLS certificate yet'
                   }
-                />
-              );
-            })()
+                  side="top"
+                  contentClassName="max-w-xs text-wrap">
+                  <span className="text-destructive inline-flex items-center">
+                    <Icon icon={ShieldOffIcon} size={16} className="shrink-0" />
+                  </span>
+                </Tooltip>
+              )}
+            </div>
           );
         },
       },
@@ -165,7 +150,7 @@ export default function HttpProxyPage() {
         accessorKey: 'hostnames',
         meta: { tooltip: 'Verified hostnames that are pointing to your origin' },
         cell: ({ row }) => {
-          const hostnames = row.original.status.hostnames?.map((hostname: string) => hostname);
+          const hostnames = row.original.status?.hostnames;
           const hasMultipleHostnames = (hostnames?.length ?? 0) > 1;
           return (
             <div className="flex flex-wrap gap-2">
@@ -214,29 +199,34 @@ export default function HttpProxyPage() {
   const rowActions: DataTableRowActionsProps<HttpProxy>[] = useMemo(
     () => [
       {
-        key: 'edit',
-        label: 'Edit',
-        variant: 'default',
-        action: (row) => proxyFormRef.current?.show(row),
-      },
-      {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteHttpProxy(row),
+        disabled: (row) => {
+          const status = transformControlPlaneStatus(row.status);
+          return status?.status !== ControlPlaneStatus.Success;
+        },
+        tooltip: (row) => {
+          const status = transformControlPlaneStatus(row.status);
+          return status?.status !== ControlPlaneStatus.Success
+            ? 'Delete is available when the AI Edge is active'
+            : undefined;
+        },
+        action: (row) => confirmDelete(row),
       },
     ],
-    [projectId]
+    [projectId, confirmDelete]
   );
 
   return (
     <>
       <DataTable
+        isLoading={isLoading}
         columns={columns}
         data={data ?? []}
         onRowClick={(row) => {
           navigate(
-            getPathWithParams(paths.project.detail.proxy.detail.overview, {
+            getPathWithParams(paths.project.detail.proxy.detail.root, {
               projectId,
               proxyId: row.name,
             })

@@ -3,7 +3,8 @@ import { ExportPolicyGrafanaCard } from '@/features/metric/export-policies/card/
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
 import { PageTitle } from '@datum-ui/components/page-title';
-import { MetaFunction, useParams } from 'react-router';
+import { useEffect, useRef } from 'react';
+import { MetaFunction, useParams, useSearchParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Create an Export Policy');
@@ -15,13 +16,33 @@ export const handle = {
 
 export default function ExportPoliciesNewPage() {
   const { projectId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Capture initial open state from search params (read once via ref)
+  const initialOpenRef = useRef(
+    searchParams.get('action') === 'create' && searchParams.get('provider') === 'grafana'
+  );
+
+  // Clean up search params after mount
+  useEffect(() => {
+    if (searchParams.get('action') === 'create' && searchParams.get('provider') === 'grafana') {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.delete('action');
+      nextParams.delete('provider');
+      setSearchParams(nextParams, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
   return (
     <div className="flex w-full flex-col gap-8">
       <PageTitle title="Create an Export Policy" />
 
       <Row gutter={28}>
         <Col span={12} className="h-full">
-          <ExportPolicyGrafanaCard projectId={projectId as string} />
+          <ExportPolicyGrafanaCard
+            projectId={projectId as string}
+            defaultOpen={initialOpenRef.current}
+          />
         </Col>
         <Col span={12} className="h-full">
           <ExportPolicyComingSoonCard />

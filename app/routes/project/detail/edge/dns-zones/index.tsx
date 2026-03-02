@@ -55,9 +55,9 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   // Services now use global axios client with AsyncLocalStorage
   const dnsZoneService = createDnsZoneService();
-  const zoneList = await dnsZoneService.list(projectId);
+  const zones = await dnsZoneService.list(projectId);
 
-  return data({ zones: zoneList.items });
+  return data({ zones });
 };
 
 interface DnsZoneWithComputed extends DnsZone {
@@ -80,7 +80,7 @@ export default function DnsZonesPage() {
   useDnsZonesWatch(projectId ?? '');
 
   // Read from React Query cache (gets updates from watch!)
-  const { data } = useDnsZones(projectId ?? '', undefined, {
+  const { data: zonesData = [] } = useDnsZones(projectId ?? '', undefined, {
     // Don't refetch on mount - hydration already seeded the cache
     refetchOnMount: false,
     // Consider data fresh for 5 minutes (watch keeps it updated)
@@ -88,7 +88,7 @@ export default function DnsZonesPage() {
   });
 
   // Use React Query data, fallback to SSR data
-  const zones = data?.items ?? initialZones;
+  const zones = zonesData ?? initialZones;
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();

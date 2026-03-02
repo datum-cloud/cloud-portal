@@ -13,6 +13,7 @@ import { Logger } from '@/modules/logger';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
 import { watchHub } from '@/server/watch';
+import { sessionManager } from '@/utils/auth';
 import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
@@ -28,6 +29,13 @@ const beginShutdown = () => {
 
 process.once('SIGTERM', beginShutdown);
 process.once('SIGINT', beginShutdown);
+
+// Sync refreshed tokens to WatchHub SSE connections.
+// When sessionMiddleware refreshes a token, all SSE clients for that user
+// get the new token so upstream reconnections use fresh credentials.
+sessionManager.registerRefreshHook(({ userId, accessToken }) => {
+  watchHub.updateTokensByUserId(userId, accessToken);
+});
 
 // Initialize observability (OTEL + Sentry + error handlers)
 initializeObservability().catch((error: unknown) => {

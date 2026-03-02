@@ -7,7 +7,6 @@ import {
 import {
   createDnsZoneSchema,
   type DnsZone,
-  type DnsZoneList,
   type CreateDnsZoneInput,
   type UpdateDnsZoneInput,
 } from './dns-zone.schema';
@@ -45,7 +44,7 @@ export function createDnsZoneService() {
       projectId: string,
       params?: PaginationParams,
       _options?: ServiceOptions
-    ): Promise<DnsZoneList> {
+    ): Promise<DnsZone[]> {
       const startTime = Date.now();
 
       try {
@@ -63,7 +62,7 @@ export function createDnsZoneService() {
       }
     },
 
-    async fetchList(projectId: string, params?: PaginationParams): Promise<DnsZoneList> {
+    async fetchList(projectId: string, params?: PaginationParams): Promise<DnsZone[]> {
       const response = await listDnsNetworkingMiloapisComV1Alpha1NamespacedDnsZone({
         baseURL: getProjectScopedBase(projectId),
         path: { namespace: 'default' },
@@ -74,7 +73,7 @@ export function createDnsZoneService() {
       });
 
       const data = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
-      return toDnsZoneList(data?.items ?? [], data?.metadata?.continue);
+      return toDnsZoneList(data?.items ?? [], data?.metadata?.continue)?.items ?? [];
     },
 
     async get(projectId: string, name: string, _options?: ServiceOptions): Promise<DnsZone> {
@@ -210,7 +209,7 @@ export function createDnsZoneService() {
       projectId: string,
       domainRef: string,
       limit: number = 1
-    ): Promise<DnsZoneList> {
+    ): Promise<DnsZone[]> {
       const startTime = Date.now();
 
       try {
@@ -224,7 +223,7 @@ export function createDnsZoneService() {
         });
 
         const data = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsZoneList;
-        const result = toDnsZoneList(data?.items ?? [], data?.metadata?.continue);
+        const result = toDnsZoneList(data?.items ?? [], data?.metadata?.continue).items;
 
         logger.service(SERVICE_NAME, 'listByDomainRef', {
           input: { projectId, domainRef, limit },

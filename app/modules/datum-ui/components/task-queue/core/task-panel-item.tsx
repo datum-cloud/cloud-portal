@@ -48,7 +48,7 @@ export function TaskPanelItem({ task, contextLabel, onCancel }: TaskPanelItemPro
             <TaskPanelCounter total={task.total} completed={task.completed} failed={task.failed} />
           )}
 
-          {hasBatch && isTerminal && (
+          {isTerminal && (
             <TaskPanelCounter
               total={task.total}
               completed={task.completed}

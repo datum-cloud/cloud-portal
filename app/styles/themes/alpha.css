@@ -145,6 +145,8 @@ Scope variables to the theme class so we can swap themes by class
   --card-success: #f4f9f5;
   --card-success-secondary: #adbab0;
   --card-border: var(--glacier-mist-900);
+  --card-tertiary: var(--aurora-moss);
+  --card-quaternary: var(--app-dark-utility-5);
 
   --btn-primary: rgba(156, 121, 121, 0.9);
   --btn-secondary: rgba(56, 69, 85, 0.9);
@@ -293,6 +295,8 @@ Scope variables to the theme class so we can swap themes by class
     --card-success: #f4f9f53f;
     --card-success-secondary: #adbab0;
     --card-border: var(--app-dark-utility-2);
+    --card-tertiary: var(--pine-forge);
+    --card-quaternary: var(--app-dark-utility-5);
 
     --btn-primary: rgba(230, 245, 159, 0.9);
     --btn-secondary: var(--btn-primary);
@@ -396,6 +400,8 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-card-success: var(--card-success);
   --color-card-success-secondary: var(--card-success-secondary);
   --color-card-border: var(--card-border);
+  --color-card-tertiary: var(--card-tertiary);
+  --color-card-quaternary: var(--card-quaternary);
 
   --color-btn-primary: var(--btn-primary);
   --color-btn-secondary: var(--btn-secondary);

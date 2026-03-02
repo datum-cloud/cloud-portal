@@ -68,7 +68,6 @@ export const paths = {
         root: '/project/[projectId]/edge',
         detail: {
           root: '/project/[projectId]/edge/[proxyId]',
-          overview: '/project/[projectId]/edge/[proxyId]/overview',
         },
       },
       domains: {
@@ -100,6 +99,12 @@ export const paths = {
             overview: '/project/[projectId]/export-policies/[exportPolicyId]/overview',
             edit: '/project/[projectId]/export-policies/[exportPolicyId]/edit',
           },
+        },
+      },
+      connectors: {
+        root: '/project/[projectId]/connectors',
+        detail: {
+          root: '/project/[projectId]/connectors/[connectorId]',
         },
       },
       activity: '/project/[projectId]/activity',

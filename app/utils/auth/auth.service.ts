@@ -292,6 +292,13 @@ export class AuthService {
         } catch (error) {
           debugLog('Failed to restore session', { error: String(error) });
 
+          console.warn(
+            '[AuthService] Session restore failed — refresh token rejected. Clearing refresh cookie.',
+            {
+              error: String(error),
+            }
+          );
+
           // Clean up invalid refresh token
           const destroyHeader = await refreshTokenStorage.destroySession(refreshRaw);
           const headers = new Headers();
@@ -335,10 +342,11 @@ export class AuthService {
             minutesUntilExpiry,
           });
 
-          // If token has enough time left (> 5 minutes), continue with current session
-          // This handles both network errors and other transient failures gracefully
-          const MIN_BUFFER_MS = 5 * 60 * 1000; // 5 minutes minimum buffer
-          if (!isExpired && timeUntilExpiry > MIN_BUFFER_MS) {
+          // If token is not yet expired, return the current session.
+          // Covers multi-pod refresh races (Zitadel rotation): another pod may have already
+          // rotated the refresh token (REFRESH_TOKEN_REVOKED / invalid_grant), but our
+          // access token is still valid — no reason to log the user out.
+          if (!isExpired) {
             return { session, headers: defaultHeaders, refreshed: false };
           }
 
@@ -346,6 +354,14 @@ export class AuthService {
           if (refreshError instanceof RefreshError && refreshError.type === 'NETWORK_ERROR') {
             debugLog('Network error during refresh of expired token');
           }
+
+          console.warn(
+            '[AuthService] Token refresh failed and access token is expired. User will be logged out.',
+            {
+              type: refreshError instanceof RefreshError ? refreshError.type : 'UNKNOWN',
+              error: String(error),
+            }
+          );
 
           // Clean up invalid refresh token and return null session
           const destroyHeader = await refreshTokenStorage.destroySession(refreshRaw);
@@ -360,6 +376,9 @@ export class AuthService {
       // Token expired and no refresh token
       if (isExpired) {
         debugLog('Token expired and no refresh token available');
+        console.warn('[AuthService] Access token expired with no refresh token available.', {
+          expiredAt: session.expiredAt,
+        });
         return { session: null, headers: defaultHeaders, refreshed: false };
       }
     }

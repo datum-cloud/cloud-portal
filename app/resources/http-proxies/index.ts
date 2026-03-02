@@ -14,6 +14,8 @@ export {
   httpProxySchema,
   type HttpProxySchema,
   type HttpProxyHostnameSchema,
+  hostnameStatusSchema,
+  type HostnameStatus,
 } from './http-proxy.schema';
 
 // Adapter exports
@@ -42,11 +44,23 @@ export {
 export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from './http-proxy.watch';
 
 // Utility exports
-export {
-  getWafModeWithParanoia,
-  parseWafModeWithParanoia,
-  formatWafProtectionDisplay,
-} from './http-proxy.utils';
+export { getParanoiaLevelLabel, formatWafProtectionDisplay } from './http-proxy.utils';
 
-// Health check exports
-export { checkProxyHealth, type ProxyHealthCheckResult } from './http-proxy.health';
+// Condition constants and helpers for TLS/certificate status (network-services-operator)
+export {
+  HTTP_PROXY_CONDITION_CERTIFICATES_READY,
+  HOSTNAME_CONDITION_CERTIFICATE_READY,
+  CertificatesReadyReason,
+  CertificateReadyReason,
+  getCertificatesReadyCondition,
+  getCertificateReadyCondition,
+  getCertificatesReadyDisplay,
+  getCertificateReadyDisplay,
+} from './http-proxy.conditions';
+export type {
+  CertificatesReadyReasonType,
+  CertificateReadyReasonType,
+  ConditionLike,
+  HttpProxyStatusLike,
+  HostnameStatusLike,
+} from './http-proxy.conditions';

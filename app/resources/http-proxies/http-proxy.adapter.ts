@@ -116,7 +116,7 @@ export function toHttpProxy(
   // Find the backend rule (skip redirect rules which have no backends)
   const backendRule = raw.spec?.rules?.find((rule) => rule.backends && rule.backends.length > 0);
   const backend = backendRule?.backends?.[0] as
-    | { endpoint?: string; tls?: { hostname?: string } }
+    | { endpoint?: string; tls?: { hostname?: string }; connector?: { name: string } }
     | undefined;
 
   // Extract all origins from all backend rules
@@ -133,16 +133,18 @@ export function toHttpProxy(
     }
   }
 
-  // Check if HTTP redirect is enabled by looking for a redirect rule
-  const hasRedirectRule = raw.spec?.rules?.some(
-    (rule) =>
-      !rule.backends &&
-      rule.filters?.some(
-        (filter) =>
-          filter.requestRedirect?.scheme === 'https' &&
-          (filter.requestRedirect?.statusCode === 301 || filter.requestRedirect?.statusCode === 302)
-      )
-  );
+  // Check if HTTP redirect is enabled by looking for a redirect rule.
+  // Rule has no backends (undefined or []) and a filter that redirects to HTTPS (301/302).
+  const hasRedirectRule = raw.spec?.rules?.some((rule) => {
+    const noBackends = !rule.backends || rule.backends.length === 0;
+    if (!noBackends || !rule.filters?.length) return false;
+    return rule.filters.some((filter) => {
+      const redirect = filter.requestRedirect;
+      if (!redirect || redirect.scheme !== 'https') return false;
+      const code = Number(redirect.statusCode);
+      return code === 301 || code === 302;
+    });
+  });
 
   return {
     uid: raw.metadata?.uid ?? '',
@@ -157,8 +159,11 @@ export function toHttpProxy(
     hostnames: raw.spec?.hostnames,
     tlsHostname: backend?.tls?.hostname,
     status: raw.status,
+    canonicalHostname: raw.status?.canonicalHostname,
+    hostnameStatuses: raw.status?.hostnameStatuses,
     chosenName: raw.metadata?.annotations?.['app.kubernetes.io/name'] ?? '',
     enableHttpRedirect: hasRedirectRule,
+    ...(backend?.connector && { connector: backend.connector }),
     ...(options?.trafficProtectionMode !== undefined && {
       trafficProtectionMode: options.trafficProtectionMode,
     }),
@@ -236,6 +241,10 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
     rules: Array<
       | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
       | {
+          matches?: Array<{
+            path?: { type: 'PathPrefix'; value: string };
+            headers?: Array<{ name: string; type: 'Exact'; value: string }>;
+          }>;
           filters: Array<{
             type: 'RequestRedirect';
             requestRedirect: { scheme: 'https'; statusCode: 301 };
@@ -246,14 +255,8 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
 } {
   const backend: { endpoint: string; tls?: { hostname: string } } = {
     endpoint: input.endpoint,
+    ...(input.tlsHostname && { tls: { hostname: input.tlsHostname } }),
   };
-
-  // Add TLS configuration if provided
-  if (input.tlsHostname) {
-    backend.tls = {
-      hostname: input.tlsHostname,
-    };
-  }
 
   const annotations: Record<string, string> = {};
 
@@ -266,6 +269,10 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
   const rules: Array<
     | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
     | {
+        matches?: Array<{
+          path?: { type: 'PathPrefix'; value: string };
+          headers?: Array<{ name: string; type: 'Exact'; value: string }>;
+        }>;
         filters: Array<{
           type: 'RequestRedirect';
           requestRedirect: { scheme: 'https'; statusCode: 301 };
@@ -273,9 +280,15 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
       }
   > = [];
 
-  // Add redirect rule first if HTTP redirect is enabled
+  // Force HTTPS: redirect only when request was received as HTTP (x-forwarded-proto: http) to avoid redirect loops behind TLS-terminating load balancers.
   if (input.enableHttpRedirect) {
     rules.push({
+      matches: [
+        {
+          path: { type: 'PathPrefix', value: '/' },
+          headers: [{ name: 'x-forwarded-proto', type: 'Exact', value: 'http' }],
+        },
+      ],
       filters: [
         {
           type: 'RequestRedirect',
@@ -307,37 +320,40 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
   };
 }
 
+type RedirectRule = {
+  matches?: Array<{
+    path?: { type: 'PathPrefix'; value: string };
+    headers?: Array<{ name: string; type: 'Exact'; value: string }>;
+  }>;
+  filters: Array<{
+    type: 'RequestRedirect';
+    requestRedirect: { scheme: 'https'; statusCode: 301 };
+  }>;
+};
+type BackendRule = {
+  backends: Array<{ endpoint: string; tls?: { hostname: string }; connector?: { name: string } }>;
+};
+
 /**
- * Transform UpdateHttpProxyInput to API payload
+ * Transform UpdateHttpProxyInput to API merge-patch payload.
+ *
+ * When `currentProxy` is provided, its values are used as defaults so that
+ * callers only need to pass the fields they're changing. This prevents
+ * accidental removal of fields like `connector` or `tls` that the caller
+ * didn't intend to touch.
  */
-export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
+export function toUpdateHttpProxyPayload(
+  input: UpdateHttpProxyInput,
+  currentProxy?: HttpProxy
+): {
   kind: string;
   apiVersion: string;
   metadata?: { annotations: Record<string, string> };
-  spec: {
-    hostnames: string[];
-    rules: Array<
-      | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
-      | {
-          filters: Array<{
-            type: 'RequestRedirect';
-            requestRedirect: { scheme: 'https'; statusCode: 301 };
-          }>;
-        }
-    >;
+  spec?: {
+    hostnames?: string[];
+    rules?: Array<BackendRule | RedirectRule>;
   };
 } {
-  const backend: { endpoint: string; tls?: { hostname: string } } = {
-    endpoint: input.endpoint,
-  };
-
-  // Add TLS configuration if provided
-  if (input.tlsHostname) {
-    backend.tls = {
-      hostname: input.tlsHostname,
-    };
-  }
-
   const annotations: Record<string, string> = {};
 
   if (input.chosenName !== undefined) {
@@ -346,43 +362,57 @@ export function toUpdateHttpProxyPayload(input: UpdateHttpProxyInput): {
 
   const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
 
-  const rules: Array<
-    | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
-    | {
-        filters: Array<{
-          type: 'RequestRedirect';
-          requestRedirect: { scheme: 'https'; statusCode: 301 };
-        }>;
+  const hasRulesChange = input.endpoint !== undefined || input.enableHttpRedirect !== undefined;
+
+  let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
+
+  if (hasRulesChange || input.hostnames !== undefined) {
+    spec = {};
+
+    if (input.hostnames !== undefined) {
+      spec.hostnames = input.hostnames;
+    }
+
+    if (hasRulesChange) {
+      const rules: Array<BackendRule | RedirectRule> = [];
+
+      const effectiveRedirect = input.enableHttpRedirect ?? currentProxy?.enableHttpRedirect;
+      if (effectiveRedirect) {
+        rules.push({
+          matches: [
+            {
+              path: { type: 'PathPrefix', value: '/' },
+              headers: [{ name: 'x-forwarded-proto', type: 'Exact', value: 'http' }],
+            },
+          ],
+          filters: [
+            {
+              type: 'RequestRedirect',
+              requestRedirect: { scheme: 'https', statusCode: 301 },
+            },
+          ],
+        });
       }
-  > = [];
 
-  // Add redirect rule first if HTTP redirect is enabled
-  if (input.enableHttpRedirect) {
-    rules.push({
-      filters: [
-        {
-          type: 'RequestRedirect',
-          requestRedirect: {
-            scheme: 'https',
-            statusCode: 301,
-          },
-        },
-      ],
-    });
+      const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
+      if (effectiveEndpoint) {
+        const effectiveTls = input.tlsHostname ?? currentProxy?.tlsHostname;
+        const backend: BackendRule['backends'][0] = {
+          endpoint: effectiveEndpoint,
+          ...(effectiveTls && { tls: { hostname: effectiveTls } }),
+          ...(currentProxy?.connector && { connector: currentProxy.connector }),
+        };
+        rules.push({ backends: [backend] });
+      }
+
+      spec.rules = rules;
+    }
   }
-
-  // Add backend rule
-  rules.push({
-    backends: [backend],
-  });
 
   return {
     kind: 'HTTPProxy',
     apiVersion: 'networking.datumapis.com/v1alpha',
     ...(metadata ? { metadata } : {}),
-    spec: {
-      hostnames: input.hostnames ?? [],
-      rules,
-    },
+    ...(spec ? { spec } : {}),
   };
 }

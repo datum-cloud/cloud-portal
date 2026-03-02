@@ -23,16 +23,21 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
     enabled: options?.enabled ?? true,
     getItemKey: (proxy) => proxy.name,
     updateListCache: (oldData, newItem) => {
-      // Preserve existing WAF protection mode and paranoia levels when updating from watch events
+      // Preserve fields that watch events may omit or send partially
       if (Array.isArray(oldData)) {
         const existingItem = oldData.find((item) => item.name === newItem.name);
-        if (existingItem?.trafficProtectionMode !== undefined) {
+        if (existingItem) {
           return oldData.map((item) =>
             item.name === newItem.name
               ? {
                   ...newItem,
-                  trafficProtectionMode: existingItem.trafficProtectionMode,
-                  paranoiaLevels: existingItem.paranoiaLevels,
+                  ...(existingItem.trafficProtectionMode !== undefined && {
+                    trafficProtectionMode: existingItem.trafficProtectionMode,
+                    paranoiaLevels: existingItem.paranoiaLevels,
+                  }),
+                  ...(existingItem.enableHttpRedirect !== undefined && {
+                    enableHttpRedirect: existingItem.enableHttpRedirect,
+                  }),
                 }
               : item
           );
@@ -67,20 +72,20 @@ export function useHttpProxyWatch(
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
     enabled: options?.enabled ?? true,
     updateSingleCache: (oldData, newItem) => {
-      // Preserve existing WAF protection mode and paranoia levels when updating from watch events
-      // because watch events don't include TrafficProtectionPolicy data
+      // Preserve fields that watch events may omit or send partially (WAF from separate policy,
+      // enableHttpRedirect derived from spec.rules which may be missing in partial watch payloads)
       if (!oldData) return newItem;
 
-      // If old data has WAF protection mode, preserve it
-      if (oldData.trafficProtectionMode !== undefined) {
-        return {
-          ...newItem,
+      return {
+        ...newItem,
+        ...(oldData.trafficProtectionMode !== undefined && {
           trafficProtectionMode: oldData.trafficProtectionMode,
           paranoiaLevels: oldData.paranoiaLevels,
-        };
-      }
-
-      return newItem;
+        }),
+        ...(oldData.enableHttpRedirect !== undefined && {
+          enableHttpRedirect: oldData.enableHttpRedirect,
+        }),
+      };
     },
   });
 }

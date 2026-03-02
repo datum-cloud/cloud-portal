@@ -76,29 +76,31 @@ const SidebarProvider = ({
   const hoverLockRef = React.useRef(false);
   const userClosedSidebarRef = React.useRef(false);
 
-  // Below md (768px): start collapsed. At md and above: use defaultOpen (e.g. true).
-  const getInitialOpen = () => {
-    if (typeof window === 'undefined') return defaultOpen;
-    return window.innerWidth >= 768 ? defaultOpen : false;
-  };
-
-  // This is the internal state of the sidebar.
-  // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(getInitialOpen);
+  // Use defaultOpen as initial state for both server and client to avoid hydration mismatch.
+  // Viewport-based adjustments happen in useLayoutEffect (synchronous, before paint).
+  const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
 
-  // When viewport goes below md, collapse the sidebar (and close mobile sheet).
-  // Reset "user closed" when entering mobile so that when we reach lg again we auto-open.
-  React.useEffect(() => {
+  // Synchronously adjust sidebar state based on viewport before first paint.
+  // This prevents both hydration mismatch and visual flash.
+  const LG_BREAKPOINT = 1024;
+  React.useLayoutEffect(() => {
     if (isMobile) {
-      userClosedSidebarRef.current = false;
       _setOpen(false);
       setOpenMobile(false);
+    } else if (window.innerWidth < LG_BREAKPOINT) {
+      _setOpen(false);
     }
   }, [isMobile]);
 
-  // Below lg (1024px): close sidebar. At lg+: open if the user didn't explicitly close it.
-  const LG_BREAKPOINT = 1024;
+  // When viewport goes below md, reset "user closed" so sidebar auto-opens at lg+.
+  React.useEffect(() => {
+    if (isMobile) {
+      userClosedSidebarRef.current = false;
+    }
+  }, [isMobile]);
+
+  // Respond to viewport changes: collapse below lg, restore at lg+ (unless user explicitly closed).
   React.useEffect(() => {
     if (isMobile) return;
     const mql = window.matchMedia(`(min-width: ${LG_BREAKPOINT}px)`);
@@ -110,11 +112,6 @@ const SidebarProvider = ({
       }
     };
     mql.addEventListener('change', onChange);
-    if (window.innerWidth < LG_BREAKPOINT) {
-      _setOpen(false);
-    } else if (!userClosedSidebarRef.current && !open) {
-      _setOpen(true);
-    }
     return () => mql.removeEventListener('change', onChange);
   }, [isMobile]);
 

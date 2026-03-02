@@ -12,6 +12,8 @@ const isTestEnv =
   process.env.CYPRESS === 'true' ||
   process.env.VITEST === 'true';
 
+const isProdEnv = process.env.NODE_ENV === 'production';
+
 // ═══════════════════════════════════════════════════════════
 // HELPER: Create URL schema with test default (Zod v4)
 // ═══════════════════════════════════════════════════════════
@@ -66,7 +68,7 @@ const publicSchema = z.object({
   // Optional: Analytics & Support (graceful degradation)
   // ─────────────────────────────────────────────────────────
   FATHOM_ID: z.string().optional(),
-  HELPSCOUT_BEACON_ID: z.string().optional(),
+  HELPSCOUT_BEACON_ID: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
@@ -113,7 +115,7 @@ const serverSchema = z.object({
   // Optional: External Integrations (graceful degradation)
   // ─────────────────────────────────────────────────────────
   GRAFANA_URL: urlSchemaOptional(),
-  HELPSCOUT_SECRET_KEY: z.string().optional(),
+  HELPSCOUT_SECRET_KEY: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
