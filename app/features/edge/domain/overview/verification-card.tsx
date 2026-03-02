@@ -29,6 +29,7 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
               date={domain.status.verification.nextVerificationAttempt}
               className="text-foreground w-fit font-semibold"
               showTooltip={false}
+              format="EEEE d MMMM yyyy HH:mm zzz"
             />
           )}
         </p>
