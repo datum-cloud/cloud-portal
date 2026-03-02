@@ -58,10 +58,19 @@ export const QuotasTable = ({
     });
   };
   const columns: ColumnDef<AllowanceBucket>[] = useMemo(() => {
+    const e2ePrefix = resourceType === 'organization' ? 'org-quota' : 'project-quota';
+
     return [
       {
         header: 'Resource Type',
         accessorKey: 'resourceType',
+        cell: ({ row }) => {
+          return (
+            <div data-e2e={`${e2ePrefix}-card`}>
+              <span data-e2e={`${e2ePrefix}-resource-type`}>{row.original.resourceType}</span>
+            </div>
+          );
+        },
       },
       {
         header: 'Usage',
@@ -69,23 +78,34 @@ export const QuotasTable = ({
         accessorKey: 'status',
         cell: ({ row }) => {
           if (!row.original.status) {
-            return <div>-</div>;
+            return (
+              <div data-e2e={`${e2ePrefix}-usage`}>
+                <span>-</span>
+              </div>
+            );
           }
           const { used, total, percentage } = calculateUsage(row.original.status);
 
           return (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4" data-e2e={`${e2ePrefix}-usage`}>
               <div className="flex flex-1 flex-col gap-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold">
+                  <span className="text-xs font-semibold" data-e2e={`${e2ePrefix}-usage-amount`}>
                     {used} / {total}
                   </span>
-                  <span className="text-muted-foreground text-xs font-medium">({percentage}%)</span>
+                  <span
+                    className="text-muted-foreground text-xs font-medium"
+                    data-e2e={`${e2ePrefix}-usage-percentage`}>
+                    ({percentage}%)
+                  </span>
                 </div>
-                <div className="bg-muted h-2 w-full rounded-full">
+                <div
+                  className="bg-muted h-2 w-full rounded-full"
+                  data-e2e={`${e2ePrefix}-usage-bar`}>
                   <div
                     className={`${getProgressBarColor(percentage, total)} h-2 rounded-full transition-all`}
                     style={{ width: `${Math.min(percentage, 100)}%` }}
+                    data-e2e={`${e2ePrefix}-usage-bar-fill`}
                   />
                 </div>
               </div>
@@ -95,7 +115,8 @@ export const QuotasTable = ({
                   theme="outline"
                   size="small"
                   className="h-7 gap-1 px-2 text-xs"
-                  onClick={() => handleRequestIncrease(row.original)}>
+                  onClick={() => handleRequestIncrease(row.original)}
+                  data-e2e={`${e2ePrefix}-request-limit-button`}>
                   <Icon icon={ArrowUpIcon} className="h-4 w-4" />
                   Request Limit
                 </Button>
@@ -105,7 +126,7 @@ export const QuotasTable = ({
         },
       },
     ];
-  }, [data]);
+  }, [data, resourceType]);
 
   return (
     <DataTable

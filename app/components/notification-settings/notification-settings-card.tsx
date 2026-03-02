@@ -16,7 +16,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
   const ItemRenderer = renderItem ?? NotificationCheckboxItem;
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
+    <Card data-e2e="notification-settings-card" className="gap-0 rounded-xl py-0 shadow-none">
       <CardHeader className="border-b px-5 py-4">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>

@@ -36,8 +36,10 @@ export function getActivityLogColumns(
       cell: ({ row }) => {
         const { user: userName, userId } = row.original;
         return (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-foreground text-xs font-medium">{userName ?? '-'}</span>
+          <div className="flex items-center justify-between gap-2" data-e2e="activity-card">
+            <span className="text-foreground text-xs font-medium" data-e2e="activity-user">
+              {userName ?? '-'}
+            </span>
             {user && userId === user?.sub && (
               <Badge
                 type="quaternary"
@@ -58,7 +60,23 @@ export function getActivityLogColumns(
     header: 'Action',
     accessorKey: 'action',
     size: 180,
-    cell: ({ row }) => <span className="text-xs font-medium">{row.original.action}</span>,
+    cell: ({ row }) => {
+      // If user column is hidden, add activity-card to action column (first column)
+      if (hideUserColumn) {
+        return (
+          <div data-e2e="activity-card">
+            <span className="text-xs font-medium" data-e2e="activity-action">
+              {row.original.action}
+            </span>
+          </div>
+        );
+      }
+      return (
+        <span className="text-xs font-medium" data-e2e="activity-action">
+          {row.original.action}
+        </span>
+      );
+    },
   });
 
   // Details/Target column
@@ -69,7 +87,7 @@ export function getActivityLogColumns(
     cell: ({ row }) => {
       const { details, resourceName } = row.original;
       return (
-        <span className="text-xs" title={resourceName}>
+        <span className="text-xs" title={resourceName} data-e2e="activity-target">
           {details}
         </span>
       );
@@ -84,7 +102,11 @@ export function getActivityLogColumns(
     size: 150,
     cell: ({ row }) => {
       const { timestamp } = row.original;
-      return <DateTime date={timestamp} className="text-xs" />;
+      return (
+        <span data-e2e="activity-date">
+          <DateTime date={timestamp} className="text-xs" />
+        </span>
+      );
     },
   });
 
