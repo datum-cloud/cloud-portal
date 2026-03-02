@@ -56,7 +56,6 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
   return (
     <DangerCard
       title="Warning: This action is irreversible"
-      description="Make sure you have made a backup if you want to keep your data."
       deleteText="Delete project"
       loading={deleteMutation.isPending}
       onDelete={deleteProject}
