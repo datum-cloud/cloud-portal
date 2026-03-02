@@ -105,6 +105,19 @@ class WatchHub {
     if (client) client.token = token;
   }
 
+  /**
+   * Update the auth token for all SSE clients owned by a specific user.
+   * Called after a successful token refresh so that upstream reconnections
+   * use the newly rotated access token instead of the stale one.
+   */
+  updateTokensByUserId(userId: string, accessToken: string): void {
+    for (const client of this.clients.values()) {
+      if (client.userId === userId) {
+        client.token = accessToken;
+      }
+    }
+  }
+
   /** Check whether a client belongs to the given user (for ownership validation). */
   isClientOwnedBy(clientId: string, userId: string): boolean {
     const client = this.clients.get(clientId);
