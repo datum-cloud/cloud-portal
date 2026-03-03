@@ -4,16 +4,13 @@ import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   type HttpProxySchema,
   httpProxySchema,
-  createHttpProxyService,
-  httpProxyKeys,
-  HttpProxy,
+  useCreateHttpProxy,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
-import { useQueryClient } from '@tanstack/react-query';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -33,10 +30,26 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [nameRandomSuffix] = useState(() => generateRandomString(6));
     const [isIPOrigin, setIsIPOrigin] = useState(false);
 
-    const queryClient = useQueryClient();
     const navigate = useNavigate();
     const { trackAction } = useAnalytics();
-    const httpProxyService = createHttpProxyService();
+
+    const createProxyMutation = useCreateHttpProxy(projectId, {
+      onSuccess: (createdProxy) => {
+        trackAction(AnalyticsAction.AddProxy);
+        navigate(
+          getPathWithParams(paths.project.detail.proxy.detail.root, {
+            projectId,
+            proxyId: createdProxy.name,
+          })
+        );
+      },
+      onError: (error) => {
+        toast.error('AI Edge', {
+          description: error.message || 'Failed to create AI Edge',
+        });
+        onError?.(error);
+      },
+    });
 
     const defaultValues: Partial<HttpProxySchema> = {
       protocol: 'https',
@@ -55,7 +68,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
-    const handleSubmit = async (data: HttpProxySchema) => {
+    const handleSubmit = (data: HttpProxySchema) => {
       const protocol = data.protocol || 'https';
       const fullEndpoint = `${protocol}://${data.endpointHost}`;
 
@@ -66,39 +79,16 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           })
         : data.name;
 
-      try {
-        const createdProxy = await httpProxyService.create(projectId, {
-          name: resourceName,
-          chosenName: data.chosenName,
-          endpoint: fullEndpoint,
-          hostnames: data.hostnames,
-          tlsHostname: data.tlsHostname,
-          trafficProtectionMode: 'Enforce',
-          paranoiaLevels: { blocking: 1 },
-          enableHttpRedirect: true,
-        });
-
-        const proxyName =
-          typeof createdProxy === 'object' && createdProxy !== null && 'name' in createdProxy
-            ? (createdProxy as HttpProxy).name
-            : resourceName;
-
-        queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-        trackAction(AnalyticsAction.AddProxy);
-
-        navigate(
-          getPathWithParams(paths.project.detail.proxy.detail.root, {
-            projectId,
-            proxyId: proxyName,
-          })
-        );
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        toast.error('AI Edge', {
-          description: errorMessage || 'Failed to create AI Edge',
-        });
-        onError?.(new Error(errorMessage));
-      }
+      createProxyMutation.mutate({
+        name: resourceName,
+        chosenName: data.chosenName,
+        endpoint: fullEndpoint,
+        hostnames: data.hostnames,
+        tlsHostname: data.tlsHostname,
+        trafficProtectionMode: 'Enforce',
+        paranoiaLevels: { blocking: 1 },
+        enableHttpRedirect: true,
+      });
     };
 
     return (
@@ -111,6 +101,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         schema={httpProxySchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
+        loading={createProxyMutation.isPending}
         submitText="Create"
         submitTextLoading="Creating..."
         className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
