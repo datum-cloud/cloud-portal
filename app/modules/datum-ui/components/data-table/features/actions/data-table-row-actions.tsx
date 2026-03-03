@@ -12,13 +12,15 @@ const RowMoreActions = <TData,>({
   disabled?: boolean;
 }) => {
   return (
-    <MoreActions
-      row={row}
-      actions={actions}
-      disabled={disabled}
-      className="size-6 border"
-      iconClassName="size-3.5"
-    />
+    <div data-slot="actions" className="inline-flex">
+      <MoreActions
+        row={row}
+        actions={actions}
+        disabled={disabled}
+        className="size-6 border"
+        iconClassName="size-3.5"
+      />
+    </div>
   );
 };
 
@@ -76,18 +78,20 @@ export const DataTableRowActions = <TData,>({
   // If only inline actions
   if (dropdownActions.length === 0) {
     return (
-      <DataTableInlineActions
-        row={row}
-        rowId={rowId}
-        actions={inlineActions}
-        disabled={isDisabled}
-      />
+      <div data-slot="actions" className="inline-flex">
+        <DataTableInlineActions
+          row={row}
+          rowId={rowId}
+          actions={inlineActions}
+          disabled={isDisabled}
+        />
+      </div>
     );
   }
 
   // Mixed mode: both inline and dropdown
   return (
-    <div className="flex items-center justify-end gap-2">
+    <div data-slot="actions" className="flex items-center justify-end gap-2">
       <DataTableInlineActions
         row={row}
         rowId={rowId}

@@ -48,7 +48,6 @@ export const MoreActions = <TData,>({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
-          onClick={() => setOpen(!open)}
           type="quaternary"
           theme="borderless"
           size="icon"
