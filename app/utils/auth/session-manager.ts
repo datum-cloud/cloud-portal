@@ -28,7 +28,7 @@ class SessionManager {
   /**
    * Register a callback to be called after every successful token refresh.
    * Only one hook is active at a time; calling again replaces the previous hook
-   * (e.g. in dev when the server module is re-executed).
+   * (e.g. in dev when the server module is re-executed, or with Vite HMR).
    */
   registerRefreshHook(callback: RefreshHook): void {
     this.refreshHook = callback;
