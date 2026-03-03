@@ -27,14 +27,10 @@ class SessionManager {
 
   /**
    * Register a callback to be called after every successful token refresh.
-   * Throws if a hook is already registered to prevent multiple token consumers.
+   * Only one hook is allowed — repeated calls replace the previous hook
+   * (necessary for Vite HMR, where entry.ts re-executes on the same singleton).
    */
   registerRefreshHook(callback: RefreshHook): void {
-    if (this.refreshHook !== undefined) {
-      throw new Error(
-        '[SessionManager] Refresh hook already registered. Only one hook is allowed.'
-      );
-    }
     this.refreshHook = callback;
   }
 
