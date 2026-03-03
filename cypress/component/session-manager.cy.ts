@@ -29,11 +29,6 @@ class TestSessionManager {
   private refreshHook: RefreshHook | undefined;
 
   registerRefreshHook(callback: RefreshHook): void {
-    if (this.refreshHook !== undefined) {
-      throw new Error(
-        '[SessionManager] Refresh hook already registered. Only one hook is allowed.'
-      );
-    }
     this.refreshHook = callback;
   }
 
@@ -126,13 +121,22 @@ describe('SessionManager — registerRefreshHook contract', () => {
     }).not.to.throw();
   });
 
-  it('throws when a second hook is registered', () => {
+  it('replaces the previous hook when re-registered (HMR-safe)', () => {
     const manager = new TestSessionManager();
-    manager.registerRefreshHook(() => {});
+    const firstTokens: string[] = [];
+    const secondTokens: string[] = [];
 
-    expect(() => {
-      manager.registerRefreshHook(() => {});
-    }).to.throw('[SessionManager] Refresh hook already registered. Only one hook is allowed.');
+    manager.registerRefreshHook(({ accessToken }) => firstTokens.push(accessToken));
+    manager.registerRefreshHook(({ accessToken }) => secondTokens.push(accessToken));
+
+    manager.simulateSessionResult({
+      refreshed: true,
+      session: { sub: 'user-1', accessToken: 'tok-1' },
+    });
+
+    // Only the replacement hook should fire
+    expect(firstTokens).to.have.length(0);
+    expect(secondTokens).to.deep.equal(['tok-1']);
   });
 
   it('calls the hook multiple times across successive refreshes', () => {
