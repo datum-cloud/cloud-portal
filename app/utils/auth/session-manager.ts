@@ -12,8 +12,8 @@ type RefreshHook = (event: TokenRefreshEvent) => void;
  * SessionManager wraps AuthService.getValidSession() and notifies
  * a single registered hook whenever a token is successfully refreshed.
  *
- * Only one hook may be registered (enforced at runtime) to prevent
- * uncontrolled access to raw access tokens by arbitrary subscribers.
+ * Only one hook is active at a time; calling registerRefreshHook again
+ * replaces the previous hook (e.g. in dev when the server module is re-executed).
  *
  * Usage:
  * ```ts
@@ -27,8 +27,8 @@ class SessionManager {
 
   /**
    * Register a callback to be called after every successful token refresh.
-   * Only one hook is allowed — repeated calls replace the previous hook
-   * (necessary for Vite HMR, where entry.ts re-executes on the same singleton).
+   * Only one hook is active at a time; calling again replaces the previous hook
+   * (e.g. in dev when the server module is re-executed, or with Vite HMR).
    */
   registerRefreshHook(callback: RefreshHook): void {
     this.refreshHook = callback;

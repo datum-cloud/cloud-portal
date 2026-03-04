@@ -1,22 +1,16 @@
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { useApp } from '@/providers/app.provider';
 import {
-  type HttpProxy,
   type HttpProxySchema,
   httpProxySchema,
-  createHttpProxyService,
-  waitForHttpProxyReady,
-  httpProxyKeys,
+  useCreateHttpProxy,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
-import { useTaskQueue } from '@datum-ui/components';
+import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
-import { useQueryClient } from '@tanstack/react-query';
-import { GaugeIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -36,12 +30,26 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [nameRandomSuffix] = useState(() => generateRandomString(6));
     const [isIPOrigin, setIsIPOrigin] = useState(false);
 
-    const { enqueue } = useTaskQueue();
-    const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const { project, organization } = useApp();
     const { trackAction } = useAnalytics();
-    const httpProxyService = createHttpProxyService();
+
+    const createProxyMutation = useCreateHttpProxy(projectId, {
+      onSuccess: (createdProxy) => {
+        trackAction(AnalyticsAction.AddProxy);
+        navigate(
+          getPathWithParams(paths.project.detail.proxy.detail.root, {
+            projectId,
+            proxyId: createdProxy.name,
+          })
+        );
+      },
+      onError: (error) => {
+        toast.error('AI Edge', {
+          description: error.message || 'Failed to create AI Edge',
+        });
+        onError?.(error);
+      },
+    });
 
     const defaultValues: Partial<HttpProxySchema> = {
       protocol: 'https',
@@ -60,11 +68,9 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
-    const handleSubmit = async (data: HttpProxySchema) => {
+    const handleSubmit = (data: HttpProxySchema) => {
       const protocol = data.protocol || 'https';
       const fullEndpoint = `${protocol}://${data.endpointHost}`;
-
-      setOpen(false);
 
       const resourceName = data.chosenName
         ? generateId(data.chosenName as string, {
@@ -73,69 +79,15 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           })
         : data.name;
 
-      const metadata =
-        project && organization
-          ? {
-              scope: 'edge',
-              projectId: project.name,
-              projectName: project.displayName || project.name,
-              orgId: organization.name,
-              orgName: organization.displayName || organization.name,
-            }
-          : undefined;
-
-      enqueue({
-        title: `Creating AI Edge "${data.chosenName || resourceName}"`,
-        icon: <GaugeIcon className="size-4" />,
-        cancelable: false,
-        metadata,
-        processor: async (ctx) => {
-          try {
-            const createdProxy = await httpProxyService.create(projectId, {
-              name: resourceName,
-              chosenName: data.chosenName,
-              endpoint: fullEndpoint,
-              hostnames: data.hostnames,
-              tlsHostname: data.tlsHostname,
-              trafficProtectionMode: 'Enforce',
-              paranoiaLevels: { blocking: 1 },
-              enableHttpRedirect: true,
-            });
-
-            const proxyName =
-              typeof createdProxy === 'object' && createdProxy !== null && 'name' in createdProxy
-                ? (createdProxy as HttpProxy).name
-                : resourceName;
-
-            navigate(
-              getPathWithParams(paths.project.detail.proxy.detail.root, {
-                projectId,
-                proxyId: proxyName,
-              })
-            );
-
-            const { promise, cancel } = waitForHttpProxyReady(projectId, resourceName);
-            ctx.onCancel(cancel);
-
-            const readyProxy = await promise;
-
-            ctx.setResult(readyProxy);
-            ctx.succeed();
-          } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            ctx.fail(undefined, errorMessage);
-          }
-        },
-        onComplete: (outcome) => {
-          queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-          if (outcome.status === 'completed') {
-            trackAction(AnalyticsAction.AddProxy);
-          } else if (outcome.status === 'failed') {
-            const errorMessage =
-              outcome.failedItems[0]?.message || 'Failed to create Edge endpoint';
-            onError?.(new Error(errorMessage));
-          }
-        },
+      createProxyMutation.mutate({
+        name: resourceName,
+        chosenName: data.chosenName,
+        endpoint: fullEndpoint,
+        hostnames: data.hostnames,
+        tlsHostname: data.tlsHostname,
+        trafficProtectionMode: 'Enforce',
+        paranoiaLevels: { blocking: 1 },
+        enableHttpRedirect: true,
       });
     };
 
@@ -149,6 +101,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         schema={httpProxySchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
+        loading={createProxyMutation.isPending}
         submitText="Create"
         submitTextLoading="Creating..."
         className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">

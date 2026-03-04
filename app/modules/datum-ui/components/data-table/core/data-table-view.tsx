@@ -78,9 +78,10 @@ export const DataTableView = <TData,>({
                 data-state={row.getIsSelected() && 'selected'}
                 onClick={(e) => {
                   e.stopPropagation();
-                  // Skip row click when clicking on checkbox/select column
+                  // Skip row click when clicking on checkbox/select or actions
                   const target = e.target as HTMLElement;
                   if (target.closest('[data-slot="checkbox"]')) return;
+                  if (target.closest('[data-slot="actions"]')) return;
                   onRowClick?.(row.original);
                 }}
                 className={cn(
