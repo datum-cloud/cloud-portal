@@ -192,11 +192,7 @@ export default function DomainOverviewPage() {
                 <Icon icon={RefreshCcwIcon} size={14} />
                 Refresh
               </Button>
-              <Button
-                type="secondary"
-                theme="outline"
-                size="small"
-                onClick={handleManageDnsZone}>
+              <Button type="secondary" theme="outline" size="small" onClick={handleManageDnsZone}>
                 <Icon icon={GlobeIcon} size={14} />
                 Manage DNS Zone
               </Button>

@@ -377,7 +377,7 @@ export default function ButtonDemo() {
                 <h4 className="text-sm font-medium capitalize">{type}</h4>
                 {['solid', 'light', 'outline', 'borderless'].map((theme) => (
                   <div key={theme} className="flex items-center gap-3">
-                    <span className="w-24 text-xs font-medium capitalize text-muted-foreground">
+                    <span className="text-muted-foreground w-24 text-xs font-medium capitalize">
                       {theme}
                     </span>
                     <Button type={type as any} theme={theme as any}>
