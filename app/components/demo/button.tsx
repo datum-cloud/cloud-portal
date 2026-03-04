@@ -12,6 +12,7 @@ export const buttonDemoSections = [
   { id: 'loading-states', label: 'Loading States' },
   { id: 'block-buttons', label: 'Block Buttons' },
   { id: 'disabled-states', label: 'Disabled States' },
+  { id: 'state-transitions', label: 'State Transitions' },
 ];
 
 export default function ButtonDemo() {
@@ -360,6 +361,36 @@ export default function ButtonDemo() {
               Disabled with Icon
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* State Transitions */}
+      <Card id="state-transitions">
+        <CardHeader>
+          <CardTitle>State Transitions</CardTitle>
+          <CardDescription>Compare default and disabled styles side by side.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {['primary', 'secondary', 'tertiary', 'quaternary', 'warning', 'danger', 'success'].map(
+            (type) => (
+              <div key={type} className="space-y-2">
+                <h4 className="text-sm font-medium capitalize">{type}</h4>
+                {['solid', 'light', 'outline', 'borderless'].map((theme) => (
+                  <div key={theme} className="flex items-center gap-3">
+                    <span className="text-muted-foreground w-24 text-xs font-medium capitalize">
+                      {theme}
+                    </span>
+                    <Button type={type as any} theme={theme as any}>
+                      Default (hover me)
+                    </Button>
+                    <Button type={type as any} theme={theme as any} disabled>
+                      Disabled
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
         </CardContent>
       </Card>
     </div>

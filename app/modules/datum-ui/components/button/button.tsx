@@ -42,25 +42,31 @@ const buttonVariants = cva(
         type: 'primary',
         theme: 'solid',
         className:
-          'bg-btn-primary border border-primary text-primary-foreground hover:bg-primary active:bg-primary disabled:bg-primary/60',
+          'bg-btn-primary border border-btn-primary-border text-btn-primary-foreground hover:bg-btn-primary-hover active:bg-btn-primary-active disabled:bg-btn-primary/60',
       },
       {
         type: 'primary',
         theme: 'light',
-        className:
-          'bg-gray-200 text-primary hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+        className: cn(
+          'bg-btn-neutral-bg text-primary hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-primary',
+          'dark:text-foreground'
+        ),
       },
       {
         type: 'primary',
         theme: 'outline',
-        className:
-          'border-primary text-primary hover:bg-primary hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground',
+        className: cn(
+          'border border-btn-primary-border/60 text-primary hover:border-btn-primary-border active:border-btn-primary-border disabled:bg-transparent disabled:text-primary disabled:border-btn-primary-border/60',
+          'dark:text-foreground dark:border-foreground/60 dark:hover:border-foreground dark:active:border-foreground/80'
+        ),
       },
       {
         type: 'primary',
         theme: 'borderless',
-        className:
-          'text-primary hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+        className: cn(
+          'text-primary hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-primary',
+          'dark:text-foreground'
+        ),
       },
 
       // Secondary button variants
@@ -68,25 +74,31 @@ const buttonVariants = cva(
         type: 'secondary',
         theme: 'solid',
         className:
-          'bg-btn-secondary border border-secondary text-secondary-foreground hover:bg-secondary active:bg-secondary disabled:bg-secondary/60',
+          'bg-btn-secondary border border-btn-secondary-border text-btn-secondary-foreground hover:bg-btn-secondary-hover active:bg-btn-secondary-active disabled:bg-btn-secondary/60',
       },
       {
         type: 'secondary',
         theme: 'light',
-        className:
-          'bg-gray-200 text-secondary hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+        className: cn(
+          'bg-btn-neutral-bg text-secondary hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-secondary',
+          'dark:text-foreground'
+        ),
       },
       {
         type: 'secondary',
         theme: 'outline',
-        className:
-          'border-secondary/90 hover:border-secondary text-secondary active:bg-secondary/90 active:text-secondary-foreground',
+        className: cn(
+          'border border-btn-secondary-border/60 text-secondary hover:border-btn-secondary-border active:border-btn-secondary-border disabled:bg-transparent disabled:text-secondary disabled:border-btn-secondary-border/60',
+          'dark:text-foreground dark:border-foreground/60 dark:hover:border-foreground dark:active:border-foreground/80'
+        ),
       },
       {
         type: 'secondary',
         theme: 'borderless',
-        className:
-          'text-secondary hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+        className: cn(
+          'text-secondary hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-secondary',
+          'dark:text-foreground'
+        ),
       },
 
       // Tertiary button variants
@@ -94,25 +106,31 @@ const buttonVariants = cva(
         type: 'tertiary',
         theme: 'solid',
         className:
-          'bg-btn-tertiary border border-tertiary text-tertiary-foreground hover:bg-tertiary active:bg-tertiary disabled:bg-tertiary/60',
+          'bg-btn-tertiary border border-btn-tertiary-border text-btn-tertiary-foreground hover:bg-btn-tertiary-hover active:bg-btn-tertiary-active disabled:bg-btn-tertiary/60',
       },
       {
         type: 'tertiary',
         theme: 'light',
-        className:
-          'bg-gray-200 text-tertiary hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+        className: cn(
+          'bg-btn-neutral-bg text-tertiary hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-tertiary',
+          'dark:text-foreground'
+        ),
       },
       {
         type: 'tertiary',
         theme: 'outline',
-        className:
-          'border-tertiary text-tertiary hover:bg-tertiary hover:text-tertiary-foreground active:bg-tertiary/90 active:text-tertiary-foreground',
+        className: cn(
+          'border border-btn-tertiary-border/60 text-tertiary hover:border-btn-tertiary-border active:border-btn-tertiary-border disabled:bg-transparent disabled:text-tertiary disabled:border-btn-tertiary-border/60',
+          'dark:text-foreground dark:border-foreground/60 dark:hover:border-foreground dark:active:border-foreground/80'
+        ),
       },
       {
         type: 'tertiary',
         theme: 'borderless',
-        className:
-          'text-tertiary hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+        className: cn(
+          'text-tertiary hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-tertiary',
+          'dark:text-foreground'
+        ),
       },
 
       // Quaternary button variants
@@ -120,25 +138,31 @@ const buttonVariants = cva(
         type: 'quaternary',
         theme: 'solid',
         className:
-          'bg-btn-quaternary border border-quaternary text-quaternary-foreground hover:bg-quaternary active:bg-quaternary disabled:bg-quaternary/60',
+          'bg-btn-quaternary border border-btn-quaternary text-btn-quaternary-foreground hover:bg-btn-quaternary-hover active:bg-btn-quaternary-active disabled:bg-btn-quaternary/60',
       },
       {
         type: 'quaternary',
         theme: 'light',
-        className:
-          'bg-gray-200 text-quaternary-foreground hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:text-quaternary-foreground',
+        className: cn(
+          'bg-btn-neutral-bg text-btn-quaternary-foreground hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-btn-quaternary-foreground',
+          'dark:text-foreground'
+        ),
       },
       {
         type: 'quaternary',
         theme: 'outline',
-        className:
-          'border-quaternary text-quaternary-foreground hover:border-btn-quaternary-hover hover:text-quaternary-foreground active:bg-quaternary/90 active:text-quaternary-foreground',
+        className: cn(
+          'border border-btn-quaternary-border/60 text-btn-quaternary-foreground hover:border-btn-quaternary-border active:border-btn-quaternary-border disabled:bg-transparent disabled:text-btn-quaternary-foreground disabled:border-btn-quaternary-border/60',
+          'dark:text-foreground dark:border-foreground/60 dark:hover:border-foreground dark:active:border-foreground/80'
+        ),
       },
       {
         type: 'quaternary',
         theme: 'borderless',
-        className:
-          'text-quaternary-foreground hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+        className: cn(
+          'text-btn-quaternary-foreground hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-btn-quaternary-foreground',
+          'dark:text-foreground'
+        ),
       },
 
       // Warning button variants
@@ -146,25 +170,25 @@ const buttonVariants = cva(
         type: 'warning',
         theme: 'solid',
         className:
-          'bg-yellow-600 text-white hover:bg-yellow-700 active:bg-yellow-800 dark:bg-yellow-500 dark:hover:bg-yellow-600 dark:active:bg-yellow-700',
+          'bg-btn-warning text-btn-warning-foreground border border-btn-warning-border hover:bg-btn-warning-hover active:bg-btn-warning-active disabled:bg-btn-warning/60',
       },
       {
         type: 'warning',
         theme: 'light',
         className:
-          'bg-gray-200 text-yellow-600 hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:text-yellow-400 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+          'bg-btn-neutral-bg text-btn-warning hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-btn-warning',
       },
       {
         type: 'warning',
         theme: 'outline',
         className:
-          'border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white active:bg-yellow-700 active:text-white dark:border-yellow-500 dark:text-yellow-500 dark:hover:bg-yellow-500 dark:hover:text-white dark:active:bg-yellow-600 dark:active:text-white',
+          'border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-white active:bg-yellow-700 active:text-white dark:border-yellow-500 dark:text-yellow-500 dark:hover:bg-yellow-500 dark:hover:text-white dark:active:bg-yellow-600 dark:active:text-white disabled:bg-transparent disabled:text-yellow-600 disabled:border-yellow-600 disabled:hover:bg-transparent disabled:hover:text-yellow-600',
       },
       {
         type: 'warning',
         theme: 'borderless',
         className:
-          'text-yellow-600 hover:bg-gray-200 active:bg-gray-300 dark:text-yellow-400 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+          'text-btn-warning hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-btn-warning',
       },
 
       // Danger button variants
@@ -172,25 +196,25 @@ const buttonVariants = cva(
         type: 'danger',
         theme: 'solid',
         className:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/80',
+          'bg-btn-danger text-btn-danger-foreground border border-btn-danger-border hover:bg-btn-danger-hover active:bg-btn-danger-active disabled:bg-btn-danger/60',
       },
       {
         type: 'danger',
         theme: 'light',
         className:
-          'bg-gray-200 text-destructive hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+          'bg-btn-neutral-bg text-btn-danger hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-btn-danger',
       },
       {
         type: 'danger',
         theme: 'outline',
         className:
-          'border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-destructive/90 active:text-destructive-foreground',
+          'border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground active:bg-destructive/90 active:text-destructive-foreground disabled:bg-transparent disabled:text-destructive disabled:border-destructive disabled:hover:bg-transparent disabled:hover:text-destructive',
       },
       {
         type: 'danger',
         theme: 'borderless',
         className:
-          'text-destructive hover:bg-gray-200 active:bg-gray-300 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+          'text-btn-danger hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-btn-danger',
       },
 
       // Success button variants
@@ -198,25 +222,25 @@ const buttonVariants = cva(
         type: 'success',
         theme: 'solid',
         className:
-          'bg-green-600 text-white hover:bg-green-700 active:bg-green-800 dark:bg-green-500 dark:hover:bg-green-600 dark:active:bg-green-700',
+          'bg-btn-success text-btn-success-foreground border border-btn-success-border hover:bg-btn-success-hover active:bg-btn-success-active disabled:bg-btn-success/60',
       },
       {
         type: 'success',
         theme: 'light',
         className:
-          'bg-gray-200 text-green-600 hover:bg-gray-300 active:bg-gray-400 dark:bg-gray-700 dark:text-green-400 dark:hover:bg-gray-600 dark:active:bg-gray-500',
+          'bg-btn-neutral-bg text-btn-success hover:bg-btn-neutral-bg-hover active:bg-btn-neutral-bg-active disabled:bg-btn-neutral-bg disabled:text-btn-success',
       },
       {
         type: 'success',
         theme: 'outline',
         className:
-          'border-green-600 text-green-600 hover:bg-green-600 hover:text-white active:bg-green-700 active:text-white dark:border-green-500 dark:text-green-500 dark:hover:bg-green-500 dark:hover:text-white dark:active:bg-green-600 dark:active:text-white',
+          'border-green-600 text-green-600 hover:bg-green-600 hover:text-white active:bg-green-700 active:text-white dark:border-green-500 dark:text-green-500 dark:hover:bg-green-500 dark:hover:text-white dark:active:bg-green-600 dark:active:text-white disabled:bg-transparent disabled:text-green-600 disabled:border-green-600 disabled:hover:bg-transparent disabled:hover:text-green-600',
       },
       {
         type: 'success',
         theme: 'borderless',
         className:
-          'text-green-600 hover:bg-gray-200 active:bg-gray-300 dark:text-green-400 dark:hover:bg-gray-700 dark:active:bg-gray-600',
+          'text-btn-success hover:bg-btn-neutral-bg active:bg-btn-neutral-bg-active disabled:bg-transparent disabled:text-btn-success',
       },
     ],
     defaultVariants: {
