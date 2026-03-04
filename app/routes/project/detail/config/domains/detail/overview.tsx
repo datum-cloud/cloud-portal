@@ -1,17 +1,28 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NotesSection } from '@/features/edge/domain/notes';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { ControlPlaneStatus } from '@/resources/base';
-import { useDomain, useDomainWatch } from '@/resources/domains';
+import {
+  useDeleteDomain,
+  useDomain,
+  useDomainWatch,
+  useRefreshDomainRegistration,
+} from '@/resources/domains';
+import { paths } from '@/utils/config/paths.config';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Col, Row, toast } from '@datum-ui/components';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button, Col, Row, toast } from '@datum-ui/components';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { PageTitle } from '@datum-ui/components/page-title';
+import { RefreshCcwIcon, GlobeIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useRef, useEffect } from 'react';
 import {
   LoaderFunctionArgs,
   data,
+  useNavigate,
   useParams,
   useRouteLoaderData,
   useSearchParams,
@@ -33,10 +44,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function DomainOverviewPage() {
   const { domain, dnsZone } = useRouteLoaderData('domain-detail');
-
   const { projectId } = useParams();
-
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { confirm } = useConfirmationDialog();
 
   // Get live domain data from React Query
   const { data: liveDomain } = useDomain(projectId ?? '', domain?.name ?? '', {
@@ -50,6 +61,85 @@ export default function DomainOverviewPage() {
 
   // Prefer live data from React Query, fall back to SSR loader data
   const effectiveDomain = liveDomain ?? domain;
+
+  const deleteDomainMutation = useDeleteDomain(projectId ?? '', {
+    onSuccess: () => {
+      navigate(
+        getPathWithParams(paths.project.detail.domains.root, {
+          projectId,
+        })
+      );
+    },
+    onError: (error) => {
+      toast.error('Domain', { description: error.message || 'Failed to delete domain' });
+    },
+  });
+
+  const refreshDomainMutation = useRefreshDomainRegistration(projectId ?? '', {
+    onSuccess: () => {
+      toast.success('Domain', {
+        description: 'The domain has been refreshed successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error('Domain', {
+        description: error.message || 'Failed to refresh domain',
+      });
+    },
+  });
+
+  const handleRefreshDomain = () => {
+    if (!effectiveDomain?.name) return;
+    refreshDomainMutation.mutate(effectiveDomain.name);
+  };
+
+  const handleManageDnsZone = () => {
+    if (!effectiveDomain?.domainName) return;
+
+    if (dnsZone) {
+      navigate(
+        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+          projectId,
+          dnsZoneId: dnsZone.name ?? '',
+        })
+      );
+      return;
+    }
+
+    navigate(
+      getPathWithParams(
+        paths.project.detail.dnsZones.root,
+        {
+          projectId,
+        },
+        new URLSearchParams({
+          action: 'create',
+          domainName: effectiveDomain.domainName,
+        })
+      )
+    );
+  };
+
+  const handleDeleteDomain = async () => {
+    if (!effectiveDomain?.name) return;
+
+    await confirm({
+      title: 'Delete Domain',
+      description: (
+        <span>
+          Are you sure you want to delete&nbsp;
+          <strong>{effectiveDomain.domainName}</strong>?
+        </span>
+      ),
+      submitText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      showConfirmInput: false,
+      onSubmit: async () => {
+        deleteDomainMutation.mutate(effectiveDomain.name);
+      },
+    });
+  };
 
   // Track previous status for transition detection
   const previousStatusRef = useRef<ControlPlaneStatus | null>(null);
@@ -89,7 +179,35 @@ export default function DomainOverviewPage() {
   return (
     <Row gutter={[24, 32]}>
       <Col span={24}>
-        <PageTitle title={effectiveDomain?.domainName ?? 'Domain'} />
+        <div className="flex items-center justify-between">
+          <PageTitle title={effectiveDomain?.domainName ?? 'Domain'} />
+          {effectiveDomain?.name && (
+            <div className="flex items-center gap-2">
+              <Button
+                type="secondary"
+                theme="outline"
+                size="small"
+                loading={refreshDomainMutation.isPending}
+                onClick={handleRefreshDomain}>
+                <Icon icon={RefreshCcwIcon} size={14} />
+                Refresh
+              </Button>
+              <Button type="secondary" theme="outline" size="small" onClick={handleManageDnsZone}>
+                <Icon icon={GlobeIcon} size={14} />
+                Manage DNS Zone
+              </Button>
+              <Button
+                type="danger"
+                theme="outline"
+                size="small"
+                loading={deleteDomainMutation.isPending}
+                onClick={handleDeleteDomain}>
+                <Icon icon={TrashIcon} size={14} />
+                Delete
+              </Button>
+            </div>
+          )}
+        </div>
       </Col>
       <Col span={24}>
         <DomainGeneralCard domain={effectiveDomain} dnsZone={dnsZone} projectId={projectId} />
