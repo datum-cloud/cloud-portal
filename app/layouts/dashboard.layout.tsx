@@ -79,7 +79,7 @@ export function DashboardLayout({
   const [searchParams] = useSearchParams();
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden overscroll-none">
+    <div className="flex h-svh w-full flex-col overflow-hidden">
       {/* Header at the top - outside sidebar context */}
       <Header currentProject={currentProject} currentOrg={currentOrg} />
 
@@ -88,13 +88,13 @@ export function DashboardLayout({
         <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
       )}
 
-      {/* Sidebar + Content area below header */}
+      {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
       <SidebarProvider
         defaultOpen={true}
         expandOnHover={false}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}
-        className="max-h-[calc(100vh-54px)] min-h-0 flex-1 overflow-hidden"
+        className="flex min-h-0 flex-1 overflow-hidden md:max-h-[calc(100svh-54px)]"
         style={
           {
             '--sidebar-width': '12.75rem', // Custom desktop width
@@ -114,7 +114,7 @@ export function DashboardLayout({
             defaultOpen={searchParams.get('sidebar') !== 'false'}
           />
         )}
-        <SidebarInset>
+        <SidebarInset className="min-h-0">
           <DashboardContent
             containerClassName={containerClassName}
             contentClassName={contentClassName}>

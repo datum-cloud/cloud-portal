@@ -112,6 +112,12 @@ export interface DataTableProps<TData, TValue> {
   // Empty state props
   emptyContent?: EmptyContentProps;
 
+  /** When set, the table shows errorContent (same layout as empty) instead of data or emptyContent */
+  error?: Error | string | null;
+
+  /** Content shown when error is set. Same shape as emptyContent (EmptyContentProps). Defaults to title + error message. */
+  errorContent?: EmptyContentProps;
+
   // ========================================
   // Inline Content Configuration
   // ========================================
@@ -328,6 +334,12 @@ export interface DataTableToolbarConfig {
 
   /** Show row count before filters (e.g., "Showing 5 records") */
   showRowCount?: boolean;
+
+  /**
+   * When true, always show the search/filters bar in compact layout even when the table has no data.
+   * When false (default), show only when there is data or an active search query.
+   */
+  alwaysShowSearchAndFilters?: boolean;
 
   /** Enable responsive behavior (auto-collapse on mobile) */
   responsive?: boolean;

@@ -10,9 +10,8 @@ import {
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Card, CardContent, Tooltip } from '@datum-ui/components';
+import { Card, CardContent, Tooltip, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Skeleton } from '@shadcn/ui/skeleton';
 import { CircleHelp, ShieldCheckIcon, ShieldOffIcon, SquareLibrary } from 'lucide-react';
 import { useMemo } from 'react';
 

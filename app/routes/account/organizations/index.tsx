@@ -3,10 +3,6 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { createGqlClient } from '@/modules/graphql/client';
-import { generateQueryOp } from '@/modules/graphql/generated';
-import type { com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest } from '@/modules/graphql/generated';
-import { createSsrExchange, extractSsrData } from '@/modules/graphql/ssr';
 import {
   organizationFormSchema,
   useCreateOrganization,
@@ -35,49 +31,12 @@ import {
 import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const ssr = createSsrExchange();
-  const client = createGqlClient({ type: 'user', userId: 'me' }, ssr);
-
-  const op = generateQueryOp({
-    listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
-      {},
-      {
-        items: {
-          metadata: {
-            uid: true,
-            name: true,
-            namespace: true,
-            creationTimestamp: true,
-            resourceVersion: true,
-            labels: true,
-            annotations: true,
-          },
-          spec: {
-            organizationRef: { name: true },
-            roles: { name: true, namespace: true },
-            userRef: { name: true },
-          },
-          status: {
-            organization: { displayName: true, type: true },
-            conditions: { reason: true, status: true, type: true },
-          },
-        },
-        metadata: { continue: true, remainingItemCount: true },
-      } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
-    ],
-  });
-
-  const prefetchResult = await client.query(op.query, op.variables).toPromise();
-  if (prefetchResult.error) {
-    console.error('[SSR] org list prefetch failed:', prefetchResult.error.message);
-  }
-
   const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
     request,
     'organizations_understanding'
   );
 
-  return data({ urqlState: extractSsrData(ssr), alertClosed }, { headers: alertHeaders });
+  return data({ alertClosed }, { headers: alertHeaders });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -87,7 +46,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function AccountOrganizations() {
   const { alertClosed } = useLoaderData<typeof loader>();
-  const { data: orgList, isLoading: _isLoading, refetch: refetchOrgs } = useOrganizationsGql();
+  const {
+    data: orgList,
+    isLoading: _isLoading,
+    refetch: refetchOrgs,
+    error: orgsError,
+  } = useOrganizationsGql();
   const orgs = orgList?.items ?? [];
   const navigate = useNavigate();
   const revalidator = useRevalidator();
@@ -183,6 +147,8 @@ export default function AccountOrganizations() {
       <Row gutter={[0, 24]}>
         <Col span={24}>
           <DataTable
+            error={orgsError}
+            isLoading={_isLoading}
             hideHeader
             mode="card"
             hidePagination
@@ -230,7 +196,8 @@ export default function AccountOrganizations() {
             }}
           />
         </Col>
-        {showAlert && (
+
+        {showAlert && !_isLoading && (
           <Col span={24}>
             <NoteCard
               closable

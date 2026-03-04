@@ -1,5 +1,5 @@
+import { Skeleton } from '@datum-ui/components';
 import { cn } from '@shadcn/lib/utils';
-import { Skeleton } from '@shadcn/ui/skeleton';
 
 interface IdentityItemSkeletonProps {
   /**

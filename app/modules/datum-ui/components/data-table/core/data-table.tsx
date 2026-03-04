@@ -2,10 +2,11 @@ import { DataTableRowActions } from '../features/actions/data-table-row-actions'
 import { DataTableColumnHeader } from '../features/columns/data-table-column-header';
 import { DataTablePagination } from '../features/pagination/data-table-pagination';
 import { DataTableToolbar } from '../features/toolbar/data-table-toolbar';
+import { DataTableToolbarSkeleton } from '../features/toolbar/data-table-toolbar-skeleton';
 import { createGlobalSearchFilter } from '../utils/global-search.helpers';
 import { createNestedAccessor, getSortingFnByType } from '../utils/sorting.helpers';
 import { DataTableCardView } from './data-table-card-view';
-import { DataTableLoadingContent } from './data-table-loading';
+import { DataTableLoadingCardSkeleton, DataTableLoadingTableSkeleton } from './data-table-loading';
 import { DataTableView } from './data-table-view';
 import { DataTableProvider, useDataTable } from './data-table.context';
 import { DataTableProps, DataTableRef, MultiAction } from './data-table.types';
@@ -126,6 +127,8 @@ function DataTableInternal<TData, TValue>(
     emptyContent = {
       title: 'No results.',
     },
+    error,
+    errorContent,
     tableContainerClassName,
     tableClassName,
     tableCardClassName,
@@ -452,6 +455,8 @@ function DataTableInternal<TData, TValue>(
         tableCardClassName={tableCardClassName}
         hidePagination={hidePagination}
         emptyContent={emptyContent}
+        error={error}
+        errorContent={errorContent}
         enableInlineContent={enableInlineContent}
         inlineContent={inlineContent}
         inlineContentClassName={inlineContentClassName}
@@ -498,6 +503,8 @@ interface DataTableContentProps<TData, TValue> {
   tableCardClassName?: string | ((row: TData) => string | undefined);
   hidePagination: boolean;
   emptyContent: any;
+  error?: Error | string | null;
+  errorContent?: any;
   enableInlineContent: boolean;
   inlineContent?: any;
   inlineContentClassName?: string;
@@ -523,7 +530,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     filters,
     toolbar,
     isLoading,
-    loadingText,
+    loadingText: _loadingText,
     hasData: _hasData,
     data,
     mode,
@@ -541,6 +548,8 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
     tableCardClassName,
     hidePagination,
     emptyContent,
+    error,
+    errorContent,
     enableInlineContent,
     inlineContent,
     inlineContentClassName,
@@ -607,21 +616,50 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
 
   return (
     <div className={cn('mx-auto flex h-full w-full flex-col gap-8', className)}>
-      {/* Toolbar Section: Page Title + Filters */}
-      {showToolbar && (
-        <DataTableToolbar
-          tableTitle={tableTitle}
-          filterComponent={filterComponent}
-          filters={filters}
-          config={toolbar}
-          multiActions={enableMultiSelect && multiActions.length > 0 ? multiActions : undefined}
-        />
-      )}
+      {/* Toolbar Section: skeleton when loading, otherwise real toolbar */}
+      {showToolbar &&
+        (isLoading ? (
+          <DataTableToolbarSkeleton
+            layout={toolbar?.layout ?? 'compact'}
+            title={tableTitle?.title}
+            description={tableTitle?.description}
+            showTitle={!!tableTitle?.title}
+            showDescription={!!tableTitle?.description}
+            showSearch={!!toolbar?.includeSearch}
+            showFilters={!!filters}
+            showActions={!!tableTitle?.actions}
+          />
+        ) : (
+          <DataTableToolbar
+            tableTitle={tableTitle}
+            filterComponent={filterComponent}
+            filters={filters}
+            config={toolbar}
+            multiActions={enableMultiSelect && multiActions.length > 0 ? multiActions : undefined}
+          />
+        ))}
 
       {isLoading ? (
-        <DataTableLoadingContent title={loadingText} />
+        <div key="data-table-loading" className="animate-data-table-fade-in space-y-6">
+          <div
+            className={cn(
+              'flex max-w-full flex-col overflow-x-auto',
+              mode === 'table' ? 'rounded-lg border' : '',
+              tableContainerClassName
+            )}>
+            {mode === 'table' ? (
+              <DataTableLoadingTableSkeleton
+                columnCount={Math.max(1, table.getVisibleLeafColumns().length)}
+                showHeader={!hideHeader}
+                className={tableClassName}
+              />
+            ) : (
+              <DataTableLoadingCardSkeleton className={tableClassName} />
+            )}
+          </div>
+        </div>
       ) : data?.length > 0 ? (
-        <div className="space-y-6">
+        <div key="data-table-content" className="animate-data-table-fade-in space-y-6">
           {/* Table Section */}
           <div
             className={cn(
@@ -677,6 +715,13 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
               />
             )}
         </div>
+      ) : error ? (
+        <EmptyContent
+          {...(errorContent ?? {
+            title: 'Something went wrong',
+            subtitle: typeof error === 'string' ? error : (error?.message ?? 'Please try again.'),
+          })}
+        />
       ) : (
         <EmptyContent {...emptyContent} />
       )}

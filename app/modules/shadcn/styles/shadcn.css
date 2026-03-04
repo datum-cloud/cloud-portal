@@ -145,8 +145,6 @@
 
 html,
 body {
-  @apply dark:bg-gray-950;
-
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
@@ -157,12 +155,6 @@ body {
     @apply border-border outline-ring/50;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
-  }
-  html {
-    @apply overflow-x-hidden;
-  }
-  body {
-    @apply bg-background text-foreground min-h-svh w-full;
   }
 
   button:not(:disabled),

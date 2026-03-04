@@ -10,11 +10,12 @@ export function MinimalLayout({
   className?: string;
 }) {
   return (
-    <div className="mx-auto flex h-screen w-full flex-col">
-      {/* Header at the top - outside sidebar context */}
+    <div className="mx-auto flex h-full w-full flex-col">
       <Header />
 
-      <ContentWrapper containerClassName="overflow-auto" contentClassName={className}>
+      <ContentWrapper
+        containerClassName="flex-1 min-h-0 overflow-auto"
+        contentClassName={className}>
         {/* <Breadcrumb /> - Future implementation */}
         {children}
       </ContentWrapper>

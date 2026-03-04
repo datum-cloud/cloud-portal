@@ -82,7 +82,7 @@ export function MobileMenu({
   const [open, setOpen] = React.useState(false);
 
   return (
-    <div className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full max-w-screen shrink-0 items-center border-b px-4 md:hidden">
+    <div className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full max-w-screen shrink-0 touch-pan-x items-center border-b px-4 md:hidden">
       <div className="flex shrink-0 items-center pr-4">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
