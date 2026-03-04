@@ -148,11 +148,60 @@ Scope variables to the theme class so we can swap themes by class
   --card-tertiary: var(--aurora-moss);
   --card-quaternary: var(--app-dark-utility-5);
 
+  /* Button colors - light mode */
+  /* Neutral surfaces used by "light" and "borderless" variants */
+  --btn-neutral-bg: #e5e7eb; /* gray-200 */
+  --btn-neutral-bg-hover: #d1d5db; /* gray-300 */
+  --btn-neutral-bg-active: #9ca3af; /* gray-400 */
+
+  /* Primary */
   --btn-primary: rgba(156, 121, 121, 0.9);
+  --btn-primary-hover: var(--primary);
+  --btn-primary-active: color-mix(in srgb, var(--btn-primary-hover) 80%, black 20%);
+  --btn-primary-foreground: var(--primary-foreground);
+  --btn-primary-border: var(--primary);
+
+  /* Secondary */
   --btn-secondary: rgba(56, 69, 85, 0.9);
+  --btn-secondary-hover: var(--secondary);
+  --btn-secondary-active: color-mix(in srgb, var(--btn-secondary-hover) 80%, black 20%);
+  --btn-secondary-foreground: var(--secondary-foreground);
+  --btn-secondary-border: var(--secondary);
+
+  /* Tertiary */
   --btn-tertiary: var(--tertiary);
+  --btn-tertiary-hover: color-mix(in srgb, var(--btn-tertiary) 80%, black 20%);
+  --btn-tertiary-active: color-mix(in srgb, var(--btn-tertiary-hover) 80%, black 20%);
+  --btn-tertiary-foreground: var(--tertiary-foreground);
+  --btn-tertiary-border: var(--tertiary);
+
+  /* Quaternary */
   --btn-quaternary: var(--quaternary);
-  --btn-quaternary-hover: var(--app-dark-utility-4);
+  --btn-quaternary-hover: color-mix(in srgb, var(--btn-quaternary) 80%, black 20%);
+  --btn-quaternary-active: color-mix(in srgb, var(--btn-quaternary-hover) 80%, black 20%);
+  --btn-quaternary-foreground: var(--quaternary-foreground);
+  --btn-quaternary-border: var(--app-dark-utility-4);
+
+  /* Warning */
+  --btn-warning: #ca8a04; /* yellow-600 */
+  --btn-warning-hover: #a16207; /* yellow-700 */
+  --btn-warning-active: #854d0e; /* yellow-800 */
+  --btn-warning-foreground: #ffffff;
+  --btn-warning-border: #ca8a04;
+
+  /* Danger */
+  --btn-danger: var(--destructive);
+  --btn-danger-hover: color-mix(in srgb, var(--btn-danger) 80%, black 20%);
+  --btn-danger-active: color-mix(in srgb, var(--btn-danger-hover) 80%, black 20%);
+  --btn-danger-foreground: var(--destructive-foreground);
+  --btn-danger-border: var(--destructive);
+
+  /* Success */
+  --btn-success: #16a34a; /* green-600 */
+  --btn-success-hover: #15803d; /* green-700 */
+  --btn-success-active: #166534; /* green-800 */
+  --btn-success-foreground: #ffffff;
+  --btn-success-border: #16a34a;
 
   /* Icon Colors */
   --icon-primary: var(--app-dark-utility-3);
@@ -298,11 +347,59 @@ Scope variables to the theme class so we can swap themes by class
     --card-tertiary: var(--pine-forge);
     --card-quaternary: var(--app-dark-utility-5);
 
+    /* Button colors - dark mode overrides */
+    --btn-neutral-bg: #374151; /* gray-700 */
+    --btn-neutral-bg-hover: #4b5563; /* gray-600 */
+    --btn-neutral-bg-active: #6b7280; /* gray-500 */
+
+    /* Primary */
     --btn-primary: rgba(230, 245, 159, 0.9);
-    --btn-secondary: var(--btn-primary);
-    --btn-tertiary: var(--btn-primary);
-    --btn-quaternary: var(--quaternary);
-    --btn-quaternary-hover: var(--app-dark-utility-3);
+    --btn-primary-hover: var(--aurora-moss);
+    --btn-primary-active: color-mix(in srgb, var(--btn-primary-hover) 80%, black 20%);
+    --btn-primary-foreground: var(--midnight-fjord);
+    --btn-primary-border: var(--aurora-moss);
+
+    /* Secondary */
+    --btn-secondary: rgba(230, 245, 159, 0.9);
+    --btn-secondary-hover: var(--aurora-moss);
+    --btn-secondary-active: color-mix(in srgb, var(--btn-secondary-hover) 80%, black 20%);
+    --btn-secondary-foreground: var(--midnight-fjord);
+    --btn-secondary-border: var(--aurora-moss);
+
+    /* Tertiary */
+    --btn-tertiary: rgba(230, 245, 159, 0.9);
+    --btn-tertiary-hover: var(--aurora-moss);
+    --btn-tertiary-active: color-mix(in srgb, var(--btn-tertiary-hover) 80%, black 20%);
+    --btn-tertiary-foreground: var(--midnight-fjord);
+    --btn-tertiary-border: var(--aurora-moss);
+
+    /* Quaternary */
+    --btn-quaternary: rgba(230, 245, 159, 0.9);
+    --btn-quaternary-hover: var(--aurora-moss);
+    --btn-quaternary-active: color-mix(in srgb, var(--btn-quaternary-hover) 80%, black 20%);
+    --btn-quaternary-foreground: var(--midnight-fjord);
+    --btn-quaternary-border: var(--aurora-moss);
+
+    /* Warning */
+    --btn-warning: #eab308; /* yellow-500 */
+    --btn-warning-hover: #ca8a04; /* yellow-600 */
+    --btn-warning-active: #a16207; /* yellow-700 */
+    --btn-warning-foreground: #111827; /* near gray-900 */
+    --btn-warning-border: #eab308;
+
+    /* Danger */
+    --btn-danger: var(--destructive);
+    --btn-danger-hover: color-mix(in srgb, var(--destructive) 82%, black 18%);
+    --btn-danger-active: color-mix(in srgb, var(--destructive) 70%, black 30%);
+    --btn-danger-foreground: var(--destructive-foreground);
+    --btn-danger-border: var(--destructive);
+
+    /* Success */
+    --btn-success: #22c55e; /* green-500 */
+    --btn-success-hover: #16a34a; /* green-600 */
+    --btn-success-active: #15803d; /* green-700 */
+    --btn-success-foreground: #111827; /* near gray-900 */
+    --btn-success-border: #22c55e;
 
     /* Icon Colors */
     --icon-primary: var(--app-dark-utility-4);
@@ -403,11 +500,52 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   --color-card-tertiary: var(--card-tertiary);
   --color-card-quaternary: var(--card-quaternary);
 
+  /* Button colors */
+  --color-btn-neutral-bg: var(--btn-neutral-bg);
+  --color-btn-neutral-bg-hover: var(--btn-neutral-bg-hover);
+  --color-btn-neutral-bg-active: var(--btn-neutral-bg-active);
+
   --color-btn-primary: var(--btn-primary);
+  --color-btn-primary-hover: var(--btn-primary-hover);
+  --color-btn-primary-active: var(--btn-primary-active);
+  --color-btn-primary-foreground: var(--btn-primary-foreground);
+  --color-btn-primary-border: var(--btn-primary-border);
+
   --color-btn-secondary: var(--btn-secondary);
+  --color-btn-secondary-hover: var(--btn-secondary-hover);
+  --color-btn-secondary-active: var(--btn-secondary-active);
+  --color-btn-secondary-foreground: var(--btn-secondary-foreground);
+  --color-btn-secondary-border: var(--btn-secondary-border);
+
   --color-btn-tertiary: var(--btn-tertiary);
+  --color-btn-tertiary-hover: var(--btn-tertiary-hover);
+  --color-btn-tertiary-active: var(--btn-tertiary-active);
+  --color-btn-tertiary-foreground: var(--btn-tertiary-foreground);
+  --color-btn-tertiary-border: var(--btn-tertiary-border);
+
   --color-btn-quaternary: var(--btn-quaternary);
   --color-btn-quaternary-hover: var(--btn-quaternary-hover);
+  --color-btn-quaternary-active: var(--btn-quaternary-active);
+  --color-btn-quaternary-foreground: var(--btn-quaternary-foreground);
+  --color-btn-quaternary-border: var(--btn-quaternary-border);
+
+  --color-btn-warning: var(--btn-warning);
+  --color-btn-warning-hover: var(--btn-warning-hover);
+  --color-btn-warning-active: var(--btn-warning-active);
+  --color-btn-warning-foreground: var(--btn-warning-foreground);
+  --color-btn-warning-border: var(--btn-warning-border);
+
+  --color-btn-danger: var(--btn-danger);
+  --color-btn-danger-hover: var(--btn-danger-hover);
+  --color-btn-danger-active: var(--btn-danger-active);
+  --color-btn-danger-foreground: var(--btn-danger-foreground);
+  --color-btn-danger-border: var(--btn-danger-border);
+
+  --color-btn-success: var(--btn-success);
+  --color-btn-success-hover: var(--btn-success-hover);
+  --color-btn-success-active: var(--btn-success-active);
+  --color-btn-success-foreground: var(--btn-success-foreground);
+  --color-btn-success-border: var(--btn-success-border);
 
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
