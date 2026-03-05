@@ -20,7 +20,6 @@ import type {
   TrafficProtectionMode,
   BasicAuthUser,
 } from './http-proxy.schema';
-import { client } from '@/modules/control-plane/shared/client.gen';
 import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
@@ -36,6 +35,7 @@ import {
   type ComDatumapisNetworkingV1AlphaHttpProxy,
   type ListNetworkingDatumapisComV1AlphaNamespacedHttpProxyData,
 } from '@/modules/control-plane/networking';
+import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getProjectScopedBase } from '@/resources/base/utils';
@@ -213,9 +213,7 @@ export function createHttpProxyService() {
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
-      const htpasswdBase64 = btoa(
-        String.fromCharCode(...new TextEncoder().encode(htpasswd))
-      );
+      const htpasswdBase64 = btoa(String.fromCharCode(...new TextEncoder().encode(htpasswd)));
 
       await client.post({
         url: `/api/v1/namespaces/default/secrets`,
@@ -253,9 +251,7 @@ export function createHttpProxyService() {
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
-      const htpasswdBase64 = btoa(
-        String.fromCharCode(...new TextEncoder().encode(htpasswd))
-      );
+      const htpasswdBase64 = btoa(String.fromCharCode(...new TextEncoder().encode(htpasswd)));
 
       try {
         await client.patch({

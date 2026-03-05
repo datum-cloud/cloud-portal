@@ -31,14 +31,30 @@ const basicAuthSchema = z
 
     data.users.forEach((user, i) => {
       if (!user.username) {
-        ctx.addIssue({ code: 'custom', message: 'Username is required', path: ['users', i, 'username'] });
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Username is required',
+          path: ['users', i, 'username'],
+        });
       } else if (user.username.length > 64) {
-        ctx.addIssue({ code: 'custom', message: 'Username must be 64 characters or less', path: ['users', i, 'username'] });
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Username must be 64 characters or less',
+          path: ['users', i, 'username'],
+        });
       } else if (/[\s:]/.test(user.username)) {
-        ctx.addIssue({ code: 'custom', message: 'Username must not contain spaces or colons', path: ['users', i, 'username'] });
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Username must not contain spaces or colons',
+          path: ['users', i, 'username'],
+        });
       }
       if (user.password.length < 4) {
-        ctx.addIssue({ code: 'custom', message: 'Password must be at least 4 characters', path: ['users', i, 'password'] });
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Password must be at least 4 characters',
+          path: ['users', i, 'password'],
+        });
       }
     });
 

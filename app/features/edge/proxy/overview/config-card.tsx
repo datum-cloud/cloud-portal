@@ -1,14 +1,14 @@
 import { List, ListItem } from '@/components/list/list';
 import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
+  ProxyBasicAuthDialog,
+  type ProxyBasicAuthDialogRef,
+} from '@/features/edge/proxy/proxy-basic-auth-dialog';
+import {
   ProxyDisplayNameDialog,
   type ProxyDisplayNameDialogRef,
 } from '@/features/edge/proxy/proxy-display-name-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
-import {
-  ProxyBasicAuthDialog,
-  type ProxyBasicAuthDialogRef,
-} from '@/features/edge/proxy/proxy-basic-auth-dialog';
 import {
   type HttpProxy,
   formatWafProtectionDisplay,
