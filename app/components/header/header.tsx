@@ -21,7 +21,7 @@ export const Header = ({
   currentOrg?: Organization;
 }) => {
   return (
-    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full items-center justify-between gap-4 border-b px-4">
+    <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full shrink-0 touch-none items-center justify-between gap-4 border-b px-4">
       {/* Left Section */}
       <div className="flex flex-1 items-center">
         <Link to={paths.account.root} className="mr-6 flex shrink-0 items-center justify-center">

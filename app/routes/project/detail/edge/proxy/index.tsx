@@ -44,7 +44,7 @@ export default function HttpProxyPage() {
 
   useHttpProxiesWatch(projectId);
 
-  const { data, isLoading } = useHttpProxies(projectId, {
+  const { data, isLoading, error } = useHttpProxies(projectId, {
     refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
@@ -233,6 +233,7 @@ export default function HttpProxyPage() {
   return (
     <>
       <DataTable
+        error={error}
         isLoading={isLoading}
         columns={columns}
         data={data ?? []}

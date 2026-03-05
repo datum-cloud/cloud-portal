@@ -5,9 +5,8 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { SpinnerIcon } from '@datum-ui/components';
-import { Card, CardContent } from '@datum-ui/components';
+import { Card, CardContent, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Skeleton } from '@shadcn/ui/skeleton';
 import { MapPinIcon } from 'lucide-react';
 import { lazy, Suspense, useMemo } from 'react';
 

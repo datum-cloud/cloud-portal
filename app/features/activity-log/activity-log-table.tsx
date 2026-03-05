@@ -208,6 +208,7 @@ export function ActivityLogTable({
       filtersDisplay: 'auto',
       maxInlineFilters: 1,
       primaryFilters: ['period'],
+      alwaysShowSearchAndFilters: !hideFilters,
     }),
     [hideFilters]
   );

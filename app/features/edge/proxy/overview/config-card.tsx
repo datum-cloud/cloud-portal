@@ -10,9 +10,8 @@ import {
   formatWafProtectionDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
-import { Badge, Card, CardContent, toast, Tooltip } from '@datum-ui/components';
+import { Badge, Card, CardContent, toast, Tooltip, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Skeleton } from '@shadcn/ui/skeleton';
 import { Switch } from '@shadcn/ui/switch';
 import { CircleHelp, PencilIcon, SettingsIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';

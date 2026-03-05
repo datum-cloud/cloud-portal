@@ -110,7 +110,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
         <Links />
       </head>
-      <body className="h-auto w-full">
+      <body className="bg-background h-auto w-full">
         {children}
 
         <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
@@ -201,7 +201,10 @@ function ErrorLayout({ children }: { children: React.ReactNode }) {
   const nonce = useNonce();
 
   return (
-    <html lang="en" className="theme-alpha overflow-x-hidden" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="theme-alpha bg-background overflow-x-hidden"
+      suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -209,7 +212,7 @@ function ErrorLayout({ children }: { children: React.ReactNode }) {
         <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
         <Links />
       </head>
-      <body className="h-auto w-full">
+      <body className="bg-background h-auto w-full">
         <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
           <div className="w-full max-w-sm md:max-w-3xl">{children}</div>
         </div>
