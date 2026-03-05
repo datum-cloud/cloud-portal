@@ -4,8 +4,12 @@ import {
   toCreateHttpProxyPayload,
   toUpdateHttpProxyPayload,
   toTrafficProtectionPolicyPayload,
+  toSecurityPolicyPayload,
   getTrafficProtectionMode,
   getParanoiaLevels,
+  getBasicAuthState,
+  parseHtpasswdUsernames,
+  generateHtpasswd,
   toTrafficProtectionModeMap,
   toParanoiaLevelsMap,
 } from './http-proxy.adapter';
@@ -14,7 +18,9 @@ import type {
   CreateHttpProxyInput,
   UpdateHttpProxyInput,
   TrafficProtectionMode,
+  BasicAuthUser,
 } from './http-proxy.schema';
+import { client } from '@/modules/control-plane/shared/client.gen';
 import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
@@ -86,18 +92,33 @@ export function createHttpProxyService() {
       const baseURL = getProjectScopedBase(projectId);
       const path = { namespace: 'default' as const };
 
-      const [proxyResponse, policyResponse] = await Promise.all([
+      const [proxyResponse, policyResponse, securityPoliciesResponse] = await Promise.all([
         listNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path, query }),
         listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({ baseURL, path }),
+        this.listSecurityPolicies(baseURL, 'default').catch(() => ({ data: null })),
       ]);
 
       const proxyData = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxyList;
       const modeMap = toTrafficProtectionModeMap(policyResponse.data);
       const paranoiaLevelsMap = toParanoiaLevelsMap(policyResponse.data);
 
+      const basicAuthByName = new Map<
+        string,
+        { enabled: boolean; userCount: number; usernames: string[] }
+      >();
+      const securityPolicyItems =
+        (securityPoliciesResponse.data as { items?: unknown[] } | null)?.items ?? [];
+      for (const sp of securityPolicyItems) {
+        const spName = (sp as { metadata?: { name?: string } })?.metadata?.name;
+        if (spName) {
+          basicAuthByName.set(spName, getBasicAuthState(sp));
+        }
+      }
+
       return toHttpProxyList(proxyData?.items ?? [], undefined, {
         trafficProtectionModeByName: modeMap,
         paranoiaLevelsByName: paranoiaLevelsMap,
+        basicAuthByName,
       }).items;
     },
 
@@ -114,6 +135,173 @@ export function createHttpProxyService() {
         path: { namespace: 'default' },
         body,
       });
+    },
+
+    /** GET a SecurityPolicy by name; returns { data: null } on 404. */
+    async readSecurityPolicy(
+      baseURL: string,
+      namespace: string,
+      name: string
+    ): Promise<{ data: unknown }> {
+      return client.get({
+        url: `/apis/gateway.envoyproxy.io/v1alpha1/namespaces/${namespace}/securitypolicies/${name}`,
+        baseURL,
+      }) as Promise<{ data: unknown }>;
+    },
+
+    /** POST a new SecurityPolicy. */
+    async callSecurityPolicyCreate(
+      baseURL: string,
+      namespace: string,
+      body: object
+    ): Promise<void> {
+      await client.post({
+        url: `/apis/gateway.envoyproxy.io/v1alpha1/namespaces/${namespace}/securitypolicies`,
+        baseURL,
+        body,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+
+    /** DELETE a SecurityPolicy; ignores 404. */
+    async callSecurityPolicyDelete(
+      baseURL: string,
+      namespace: string,
+      name: string
+    ): Promise<void> {
+      try {
+        await client.delete({
+          url: `/apis/gateway.envoyproxy.io/v1alpha1/namespaces/${namespace}/securitypolicies/${name}`,
+          baseURL,
+        });
+      } catch (error: unknown) {
+        if (this.getErrorStatus(error) !== 404) throw error;
+      }
+    },
+
+    /** GET the htpasswd Secret for a proxy; returns { data: null } on 404. */
+    async readBasicAuthSecret(
+      baseURL: string,
+      namespace: string,
+      name: string
+    ): Promise<{ data: unknown }> {
+      return client.get({
+        url: `/api/v1/namespaces/${namespace}/secrets/${name}-basic-auth`,
+        baseURL,
+      }) as Promise<{ data: unknown }>;
+    },
+
+    /** LIST SecurityPolicies in a namespace. */
+    async listSecurityPolicies(
+      baseURL: string,
+      namespace: string
+    ): Promise<{ data: { items?: unknown[] } | null }> {
+      return client.get({
+        url: `/apis/gateway.envoyproxy.io/v1alpha1/namespaces/${namespace}/securitypolicies`,
+        baseURL,
+      }) as Promise<{ data: { items?: unknown[] } | null }>;
+    },
+
+    /**
+     * Create the htpasswd Secret and SecurityPolicy for a proxy.
+     * Used when enabling basic auth for the first time.
+     */
+    async createBasicAuth(
+      projectId: string,
+      httpProxyName: string,
+      users: BasicAuthUser[]
+    ): Promise<void> {
+      const baseURL = getProjectScopedBase(projectId);
+      const htpasswd = await generateHtpasswd(users);
+      const htpasswdBase64 = btoa(
+        String.fromCharCode(...new TextEncoder().encode(htpasswd))
+      );
+
+      await client.post({
+        url: `/api/v1/namespaces/default/secrets`,
+        baseURL,
+        body: {
+          apiVersion: 'v1',
+          kind: 'Secret',
+          metadata: { name: `${httpProxyName}-basic-auth` },
+          type: 'Opaque',
+          data: { '.htpasswd': htpasswdBase64 },
+        },
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      try {
+        await this.callSecurityPolicyCreate(
+          baseURL,
+          'default',
+          toSecurityPolicyPayload(httpProxyName)
+        );
+      } catch (error: unknown) {
+        if (this.getErrorStatus(error) !== 409) throw error;
+      }
+    },
+
+    /**
+     * Update the htpasswd Secret with new credentials.
+     * The SecurityPolicy itself does not need to change.
+     * Falls back to createBasicAuth if the Secret or SecurityPolicy don't exist yet.
+     */
+    async updateBasicAuth(
+      projectId: string,
+      httpProxyName: string,
+      users: BasicAuthUser[]
+    ): Promise<void> {
+      const baseURL = getProjectScopedBase(projectId);
+      const htpasswd = await generateHtpasswd(users);
+      const htpasswdBase64 = btoa(
+        String.fromCharCode(...new TextEncoder().encode(htpasswd))
+      );
+
+      try {
+        await client.patch({
+          url: `/api/v1/namespaces/default/secrets/${httpProxyName}-basic-auth`,
+          baseURL,
+          body: { data: { '.htpasswd': htpasswdBase64 } },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+      } catch (error: unknown) {
+        if (this.getErrorStatus(error) === 404) {
+          // Secret doesn't exist yet — create everything from scratch
+          await this.createBasicAuth(projectId, httpProxyName, users);
+          return;
+        }
+        throw error;
+      }
+
+      // Ensure SecurityPolicy exists (idempotent — ignore 409 Conflict)
+      try {
+        await this.callSecurityPolicyCreate(
+          baseURL,
+          'default',
+          toSecurityPolicyPayload(httpProxyName)
+        );
+      } catch (error: unknown) {
+        if (this.getErrorStatus(error) !== 409) throw error;
+      }
+    },
+
+    /**
+     * Delete the SecurityPolicy and htpasswd Secret for a proxy.
+     * Both 404 responses are silently ignored.
+     */
+    async deleteBasicAuth(projectId: string, name: string): Promise<void> {
+      const baseURL = getProjectScopedBase(projectId);
+
+      await this.callSecurityPolicyDelete(baseURL, 'default', name);
+
+      try {
+        await client.delete({
+          url: `/api/v1/namespaces/default/secrets/${name}-basic-auth`,
+          baseURL,
+        });
+      } catch (error: unknown) {
+        if (this.getErrorStatus(error) !== 404) throw error;
+      }
     },
 
     async deleteTrafficProtectionPolicy(projectId: string, name: string): Promise<void> {
@@ -213,12 +401,16 @@ export function createHttpProxyService() {
       const baseURL = getProjectScopedBase(projectId);
       const path = { namespace: 'default' as const, name };
 
-      const [proxyResponse, policyResponse] = await Promise.all([
-        readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path }),
-        readNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({ baseURL, path }).catch(
-          () => ({ data: null })
-        ),
-      ]);
+      const [proxyResponse, policyResponse, securityPolicyResponse, secretResponse] =
+        await Promise.all([
+          readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path }),
+          readNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+            baseURL,
+            path,
+          }).catch(() => ({ data: null })),
+          this.readSecurityPolicy(baseURL, 'default', name).catch(() => ({ data: null })),
+          this.readBasicAuthSecret(baseURL, 'default', name).catch(() => ({ data: null })),
+        ]);
 
       const data = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
@@ -228,7 +420,9 @@ export function createHttpProxyService() {
 
       const wafMode = getTrafficProtectionMode(policyResponse.data);
       const paranoiaLevels = getParanoiaLevels(policyResponse.data);
-      return toHttpProxy(data, { trafficProtectionMode: wafMode, paranoiaLevels });
+      const usernames = parseHtpasswdUsernames(secretResponse.data);
+      const basicAuth = getBasicAuthState(securityPolicyResponse.data, usernames);
+      return toHttpProxy(data, { trafficProtectionMode: wafMode, paranoiaLevels, basicAuth });
     },
 
     /**
@@ -348,6 +542,20 @@ export function createHttpProxyService() {
           }
         }
 
+        // Handle basic auth changes
+        if (input.basicAuth !== undefined) {
+          try {
+            if (!input.basicAuth.users || input.basicAuth.users.length === 0) {
+              await this.deleteBasicAuth(projectId, name);
+            } else {
+              await this.updateBasicAuth(projectId, name, input.basicAuth.users);
+            }
+          } catch (basicAuthError) {
+            logger.error(`${SERVICE_NAME}.basicAuth update failed`, basicAuthError as Error);
+            throw mapApiError(basicAuthError);
+          }
+        }
+
         logger.service(SERVICE_NAME, 'update', {
           input: { projectId, name },
           duration: Date.now() - startTime,
@@ -374,6 +582,9 @@ export function createHttpProxyService() {
 
         // Remove WAF policy linked to this proxy (same name); ignore if missing
         await this.deleteTrafficProtectionPolicy(projectId, name);
+
+        // Remove basic auth SecurityPolicy + Secret linked to this proxy; ignore if missing
+        await this.deleteBasicAuth(projectId, name);
 
         logger.service(SERVICE_NAME, 'delete', {
           input: { projectId, name },

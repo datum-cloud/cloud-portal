@@ -47,6 +47,12 @@ export const httpProxyResourceSchema = z.object({
   enableHttpRedirect: z.boolean().optional(),
   /** Connector referenced by the backend rule (if any) */
   connector: z.object({ name: z.string() }).optional(),
+  /** Whether basic auth is currently enabled (SecurityPolicy exists) */
+  basicAuthEnabled: z.boolean().optional(),
+  /** Number of configured users (derived from the htpasswd Secret) */
+  basicAuthUserCount: z.number().int().min(0).optional(),
+  /** Usernames visible to the UI (never passwords) */
+  basicAuthUsernames: z.array(z.string()).optional(),
 });
 
 export type HttpProxy = z.infer<typeof httpProxyResourceSchema>;
@@ -76,6 +82,16 @@ export type HttpProxyList = z.infer<typeof httpProxyListSchema>;
 /** WAF / TrafficProtectionPolicy mode */
 export const trafficProtectionModeSchema = z.enum(['Observe', 'Enforce', 'Disabled']);
 export type TrafficProtectionMode = z.infer<typeof trafficProtectionModeSchema>;
+
+/**
+ * A single basic auth user credential.
+ * Passwords are write-only — never returned from the server.
+ */
+export type BasicAuthUser = {
+  username: string;
+  /** Present only on create/update; never returned by the server */
+  password: string;
+};
 
 // Input types for service operations
 export type CreateHttpProxyInput = {
@@ -116,6 +132,15 @@ export type UpdateHttpProxyInput = {
   };
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
+  /**
+   * Optional basic auth update.
+   * Pass `users: undefined` to disable (delete SecurityPolicy + Secret).
+   * Pass a non-empty users array to enable or update credentials.
+   */
+  basicAuth?: {
+    /** undefined = disable; non-empty array = enable/update */
+    users?: BasicAuthUser[];
+  };
 };
 
 // Form validation schemas

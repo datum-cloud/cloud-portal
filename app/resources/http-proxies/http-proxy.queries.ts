@@ -89,6 +89,11 @@ export function useUpdateHttpProxy(
           ...(input.enableHttpRedirect !== undefined && {
             enableHttpRedirect: input.enableHttpRedirect,
           }),
+          ...(input.basicAuth !== undefined && {
+            basicAuthEnabled: (input.basicAuth.users?.length ?? 0) > 0,
+            basicAuthUserCount: input.basicAuth.users?.length ?? 0,
+            basicAuthUsernames: input.basicAuth.users?.map((u) => u.username) ?? [],
+          }),
         };
       });
       return { previous };

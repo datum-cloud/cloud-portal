@@ -6,6 +6,10 @@ import {
 } from '@/features/edge/proxy/proxy-display-name-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
 import {
+  ProxyBasicAuthDialog,
+  type ProxyBasicAuthDialogRef,
+} from '@/features/edge/proxy/proxy-basic-auth-dialog';
+import {
   type HttpProxy,
   formatWafProtectionDisplay,
   useUpdateHttpProxy,
@@ -25,6 +29,7 @@ export const HttpProxyConfigCard = ({
 }) => {
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
+  const basicAuthDialogRef = useRef<ProxyBasicAuthDialogRef>(null);
   const updateMutation = useUpdateHttpProxy(projectId ?? '', proxy.name);
 
   const isPending = useProxyPending(proxy?.status);
@@ -110,6 +115,12 @@ export const HttpProxyConfigCard = ({
               checked={proxy.enableHttpRedirect ?? false}
               disabled={isPending}
               onCheckedChange={(checked) => {
+                if (!checked && proxy.basicAuthEnabled) {
+                  toast.warning('AI Edge', {
+                    description:
+                      'Basic Authentication is enabled. Disabling Force HTTPS will transmit credentials in plaintext.',
+                  });
+                }
                 updateMutation.mutate(
                   {
                     enableHttpRedirect: checked,
@@ -131,6 +142,42 @@ export const HttpProxyConfigCard = ({
             />
           ),
       },
+      {
+        label: (
+          <div className="flex items-center gap-1.5">
+            <span>Basic Authentication</span>
+            <Tooltip
+              message="Restrict access to this proxy with HTTP Basic Authentication"
+              side="bottom"
+              contentClassName="max-w-xs text-wrap">
+              <Icon
+                icon={CircleHelp}
+                className="text-muted-foreground size-3.5 shrink-0 cursor-help"
+              />
+            </Tooltip>
+          </div>
+        ),
+        content:
+          isPending && proxy.basicAuthEnabled === undefined ? (
+            <Skeleton className="h-5 w-24 rounded-md" />
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+                {proxy.basicAuthEnabled
+                  ? `${proxy.basicAuthUserCount ?? 0} user${proxy.basicAuthUserCount !== 1 ? 's' : ''}`
+                  : 'Disabled'}
+              </Badge>
+              {projectId && !isPending && (
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => basicAuthDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              )}
+            </div>
+          ),
+      },
     ];
   }, [proxy, isPending, projectId, updateMutation]);
 
@@ -147,6 +194,7 @@ export const HttpProxyConfigCard = ({
         <>
           <ProxyWafDialog ref={wafDialogRef} projectId={projectId} />
           <ProxyDisplayNameDialog ref={displayNameDialogRef} projectId={projectId} />
+          <ProxyBasicAuthDialog ref={basicAuthDialogRef} projectId={projectId} />
         </>
       )}
     </Card>
