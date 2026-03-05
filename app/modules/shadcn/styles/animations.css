@@ -98,17 +98,4 @@
   .animate-collapsible-up {
     animation: collapsibleUp 0.2s ease-out;
   }
-
-  @keyframes data-table-fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
-
-  .animate-data-table-fade-in {
-    animation: data-table-fade-in 0.2s ease-out;
-  }
 }

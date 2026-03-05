@@ -1,14 +1,20 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
-import { type Organization, useDeleteOrganization } from '@/resources/organizations';
+import {
+  type Organization,
+  useDeleteOrganization,
+  useOrganizationsGql,
+} from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { toast } from '@datum-ui/components';
 import { useNavigate } from 'react-router';
 
 export const OrganizationDangerCard = ({ organization }: { organization: Organization }) => {
   const navigate = useNavigate();
+  const { refetch: refetchOrgs } = useOrganizationsGql();
   const deleteOrganization = useDeleteOrganization({
     onSuccess: () => {
+      refetchOrgs();
       navigate(paths.account.organizations.root);
     },
     onError: (error) => {
