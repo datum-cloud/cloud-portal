@@ -1,11 +1,60 @@
 import { type BasicAuthUser, type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
-import { toast } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/form';
+import { Alert, AlertDescription, AlertTitle, Button, toast } from '@datum-ui/components';
+import { Form, useFormContext } from '@datum-ui/components/form';
 import { Input } from '@datum-ui/components/form/primitives/input';
+import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { InputWithAddons } from '@datum-ui/components/input-with-addons';
 import { Switch } from '@shadcn/ui/switch';
-import { Eye, EyeOff, PlusIcon, Trash2Icon } from 'lucide-react';
-import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { Eye, EyeOff, PlusIcon, TrashIcon, TriangleAlert } from 'lucide-react';
+import { forwardRef, useCallback, useMemo, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
+
+const FRIENDLY_ERROR_MAP: Record<string, string> = {
+  'Invalid input: expected string, received undefined':
+    'Please enter a username and password for each user.',
+  'expected string, received undefined': 'Please enter a username and password for each user.',
+};
+
+function toFriendlyError(message: string): string {
+  return FRIENDLY_ERROR_MAP[message] ?? message;
+}
+
+/** Collects and displays all errors for the users array in one block (used with showErrors={false} on item fields). */
+function UsersArrayErrors() {
+  const { fields } = useFormContext();
+  const errors = useMemo(() => {
+    const list: string[] = [];
+    const usersField = (
+      fields as Record<string, { errors?: string[]; getFieldList?: () => unknown[] }>
+    )?.['users'];
+    if (usersField?.errors?.length) list.push(...usersField.errors);
+    const userList = usersField?.getFieldList?.() ?? [];
+    for (let i = 0; i < userList.length; i++) {
+      const item = userList[i] as { getFieldset?: () => Record<string, { errors?: string[] }> };
+      const set = item?.getFieldset?.() ?? {};
+      ['username', 'password'].forEach((key) => {
+        const f = set[key];
+        if (f?.errors?.length) list.push(...f.errors);
+      });
+    }
+    return [...new Set(list)].map(toFriendlyError);
+  }, [fields]);
+  if (errors.length === 0) return null;
+  return (
+    <ul className="text-destructive space-y-1 text-xs font-medium" role="alert" aria-live="polite">
+      {errors.map((error) => (
+        <li key={error} className="text-wrap">
+          {error}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+const userEntrySchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
 
 const basicAuthSchema = z
   .object({
@@ -13,9 +62,20 @@ const basicAuthSchema = z
       if (typeof val === 'boolean') return val;
       return val === 'true' || val === 'on';
     }, z.boolean().default(false)),
-    // Field-level types only — validation rules are in superRefine so hidden
-    // rows (when enabled=false) don't block form submission.
-    users: z.array(z.object({ username: z.string(), password: z.string() })).optional(),
+    // Normalize array so undefined items/keys never reach the inner schema (avoids "expected string, received undefined")
+    users: z.preprocess((val) => {
+      if (!Array.isArray(val)) return val;
+      return val.map((item) => ({
+        username:
+          item != null && typeof item === 'object' && typeof item.username === 'string'
+            ? item.username
+            : '',
+        password:
+          item != null && typeof item === 'object' && typeof item.password === 'string'
+            ? item.password
+            : '',
+      }));
+    }, z.array(userEntrySchema).optional()),
   })
   .superRefine((data, ctx) => {
     if (!data.enabled) return;
@@ -161,10 +221,14 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
           {enabled && (
             <div className="space-y-3">
               {showHttpsWarning && (
-                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-                  <strong>Warning:</strong> Force HTTPS is not enabled. Credentials will be
-                  transmitted in plaintext over HTTP. Consider enabling Force HTTPS on this proxy.
-                </div>
+                <Alert variant="warning">
+                  <TriangleAlert className="size-4" />
+                  <AlertTitle>Warning</AlertTitle>
+                  <AlertDescription>
+                    Force HTTPS is not enabled. Credentials will be transmitted in plaintext over
+                    HTTP. Consider enabling Force HTTPS on this proxy.
+                  </AlertDescription>
+                </Alert>
               )}
 
               <p className="text-muted-foreground text-xs">
@@ -175,10 +239,11 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                 {({ fields, append, remove }) => (
                   <div className="space-y-2">
                     {fields.map((field, index) => (
-                      <div key={field.key} className="flex items-start gap-2">
+                      <div key={field.key} className="flex items-center gap-2">
                         <Form.Field
                           name={`users.${index}.username`}
                           label={index === 0 ? 'Username' : undefined}
+                          showErrors={false}
                           className="flex-1">
                           {({ control }) => (
                             <Input
@@ -190,51 +255,64 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                             />
                           )}
                         </Form.Field>
-                        <div className="relative flex-1">
-                          <Form.Field
-                            name={`users.${index}.password`}
-                            label={index === 0 ? 'Password' : undefined}
-                            className="flex-1">
-                            {({ control }) => (
-                              <Input
-                                type={showPasswordIndex === index ? 'text' : 'password'}
-                                value={(control.value as string) ?? ''}
-                                onChange={(e) => control.change(e.target.value)}
-                                onBlur={control.blur}
-                                onFocus={control.focus}
-                                placeholder="••••••••"
-                                className="pr-8"
-                              />
-                            )}
-                          </Form.Field>
-                          <button
-                            type="button"
-                            className={`text-muted-foreground hover:text-foreground absolute right-2 transition-colors ${index === 0 ? 'top-8' : 'top-1'}`}
-                            onClick={() =>
-                              setShowPasswordIndex(showPasswordIndex === index ? null : index)
-                            }>
-                            {showPasswordIndex === index ? (
-                              <EyeOff className="size-4" />
-                            ) : (
-                              <Eye className="size-4" />
-                            )}
-                          </button>
-                        </div>
-                        <button
-                          type="button"
-                          className={`text-muted-foreground hover:text-destructive transition-colors ${index === 0 ? 'mt-6' : 'mt-1'}`}
+
+                        <Form.Field
+                          name={`users.${index}.password`}
+                          label={index === 0 ? 'Password' : undefined}
+                          showErrors={false}
+                          className="flex-1">
+                          {({ control, field }) => (
+                            <InputWithAddons
+                              id={field.id}
+                              type={showPasswordIndex === index ? 'text' : 'password'}
+                              value={(control.value as string) ?? ''}
+                              onChange={(e) => control.change(e.target.value)}
+                              onBlur={control.blur}
+                              onFocus={control.focus}
+                              placeholder="••••••••"
+                              trailing={
+                                <Button
+                                  type="secondary"
+                                  theme="borderless"
+                                  size="icon"
+                                  htmlType="button"
+                                  className="h-5 w-5"
+                                  aria-label={
+                                    showPasswordIndex === index ? 'Hide password' : 'Show password'
+                                  }
+                                  onClick={() =>
+                                    setShowPasswordIndex(showPasswordIndex === index ? null : index)
+                                  }>
+                                  <Icon
+                                    icon={showPasswordIndex === index ? EyeOff : Eye}
+                                    className="size-4"
+                                  />
+                                </Button>
+                              }
+                            />
+                          )}
+                        </Form.Field>
+                        <Button
+                          type="danger"
+                          theme="borderless"
+                          size="icon"
+                          className="mb-0.5 self-end"
+                          aria-label="Remove user"
                           onClick={() => remove(index)}>
-                          <Trash2Icon className="size-4" />
-                        </button>
+                          <Icon icon={TrashIcon} className="size-4" />
+                        </Button>
                       </div>
                     ))}
-                    <button
-                      type="button"
-                      onClick={() => append({ username: '', password: '' })}
-                      className="text-primary hover:text-primary/80 flex items-center gap-1.5 text-sm transition-colors">
-                      <PlusIcon className="size-4" />
+                    <UsersArrayErrors />
+                    <Button
+                      type="secondary"
+                      theme="borderless"
+                      size="small"
+                      className="w-fit gap-1.5"
+                      onClick={() => append({ username: '', password: '' })}>
+                      <Icon icon={PlusIcon} className="size-4" />
                       Add User
-                    </button>
+                    </Button>
                   </div>
                 )}
               </Form.FieldArray>
