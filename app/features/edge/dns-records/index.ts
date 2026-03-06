@@ -1,5 +1,7 @@
+export { DnsRecordAiEdgeCell } from './dns-record-ai-edge-cell';
 export { DnsRecordTable } from './dns-record-table';
 export { DnsRecordCard } from './dns-record-card';
+export { isEligibleForProtect } from './dns-record-ai-edge-cell';
 
 export type {
   DnsRecordCardProps,
