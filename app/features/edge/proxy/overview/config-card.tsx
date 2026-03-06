@@ -164,7 +164,9 @@ export const HttpProxyConfigCard = ({
             <div className="flex items-center gap-1.5">
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                 {proxy.basicAuthEnabled
-                  ? `${proxy.basicAuthUserCount ?? 0} user${proxy.basicAuthUserCount !== 1 ? 's' : ''}`
+                  ? proxy.basicAuthUserCount
+                    ? `${proxy.basicAuthUserCount} user${proxy.basicAuthUserCount !== 1 ? 's' : ''}`
+                    : 'Enabled'
                   : 'Disabled'}
               </Badge>
               {projectId && !isPending && (

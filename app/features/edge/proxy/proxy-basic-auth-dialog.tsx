@@ -1,4 +1,10 @@
-import { type BasicAuthUser, type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
+import {
+  basicAuthSchema,
+  type BasicAuthSchema,
+  type BasicAuthUser,
+  type HttpProxy,
+  useUpdateHttpProxy,
+} from '@/resources/http-proxies';
 import { Alert, AlertDescription, AlertTitle, Button, toast } from '@datum-ui/components';
 import { Form, useFormContext } from '@datum-ui/components/form';
 import { Input } from '@datum-ui/components/form/primitives/input';
@@ -7,8 +13,6 @@ import { InputWithAddons } from '@datum-ui/components/input-with-addons';
 import { Switch } from '@shadcn/ui/switch';
 import { Eye, EyeOff, PlusIcon, TrashIcon, TriangleAlert } from 'lucide-react';
 import { forwardRef, useCallback, useMemo, useImperativeHandle, useState } from 'react';
-import { z } from 'zod';
-
 const FRIENDLY_ERROR_MAP: Record<string, string> = {
   'Invalid input: expected string, received undefined':
     'Please enter a username and password for each user.',
@@ -50,87 +54,6 @@ function UsersArrayErrors() {
     </ul>
   );
 }
-
-const userEntrySchema = z.object({
-  username: z.string(),
-  password: z.string(),
-});
-
-const basicAuthSchema = z
-  .object({
-    enabled: z.preprocess((val) => {
-      if (typeof val === 'boolean') return val;
-      return val === 'true' || val === 'on';
-    }, z.boolean().default(false)),
-    // Normalize array so undefined items/keys never reach the inner schema (avoids "expected string, received undefined")
-    users: z.preprocess((val) => {
-      if (!Array.isArray(val)) return val;
-      return val.map((item) => ({
-        username:
-          item != null && typeof item === 'object' && typeof item.username === 'string'
-            ? item.username
-            : '',
-        password:
-          item != null && typeof item === 'object' && typeof item.password === 'string'
-            ? item.password
-            : '',
-      }));
-    }, z.array(userEntrySchema).optional()),
-  })
-  .superRefine((data, ctx) => {
-    if (!data.enabled) return;
-
-    if (!data.users || data.users.length === 0) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'At least one user is required when authentication is enabled',
-        path: ['users'],
-      });
-      return;
-    }
-
-    data.users.forEach((user, i) => {
-      if (!user.username) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'Username is required',
-          path: ['users', i, 'username'],
-        });
-      } else if (user.username.length > 64) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'Username must be 64 characters or less',
-          path: ['users', i, 'username'],
-        });
-      } else if (/[\s:]/.test(user.username)) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'Username must not contain spaces or colons',
-          path: ['users', i, 'username'],
-        });
-      }
-      if (user.password.length < 4) {
-        ctx.addIssue({
-          code: 'custom',
-          message: 'Password must be at least 4 characters',
-          path: ['users', i, 'password'],
-        });
-      }
-    });
-
-    const names = data.users.map((u) => u.username);
-    names.forEach((name, i) => {
-      if (names.indexOf(name) !== i) {
-        ctx.addIssue({
-          code: 'custom',
-          message: `Username "${name}" is already used`,
-          path: ['users', i, 'username'],
-        });
-      }
-    });
-  });
-
-type BasicAuthSchema = z.infer<typeof basicAuthSchema>;
 
 export interface ProxyBasicAuthDialogRef {
   show: (proxy: HttpProxy) => void;

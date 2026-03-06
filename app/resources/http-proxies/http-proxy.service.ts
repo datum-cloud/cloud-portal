@@ -213,7 +213,9 @@ export function createHttpProxyService() {
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
-      const htpasswdBase64 = btoa(String.fromCharCode(...new TextEncoder().encode(htpasswd)));
+      const htpasswdBase64 = btoa(
+        new TextEncoder().encode(htpasswd).reduce((acc, byte) => acc + String.fromCharCode(byte), '')
+      );
 
       await client.post({
         url: `/api/v1/namespaces/default/secrets`,
@@ -251,7 +253,9 @@ export function createHttpProxyService() {
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
-      const htpasswdBase64 = btoa(String.fromCharCode(...new TextEncoder().encode(htpasswd)));
+      const htpasswdBase64 = btoa(
+        new TextEncoder().encode(htpasswd).reduce((acc, byte) => acc + String.fromCharCode(byte), '')
+      );
 
       try {
         await client.patch({

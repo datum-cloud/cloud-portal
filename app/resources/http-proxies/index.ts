@@ -17,6 +17,8 @@ export {
   type HttpProxyHostnameSchema,
   hostnameStatusSchema,
   type HostnameStatus,
+  basicAuthSchema,
+  type BasicAuthSchema,
 } from './http-proxy.schema';
 
 // Adapter exports
