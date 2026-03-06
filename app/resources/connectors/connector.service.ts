@@ -1,8 +1,10 @@
-import { toConnectorList } from './connector.adapter';
+import { toConnector, toConnectorList } from './connector.adapter';
 import type { Connector } from './connector.schema';
 import {
   listNetworkingDatumapisComV1Alpha1NamespacedConnector,
+  readNetworkingDatumapisComV1Alpha1NamespacedConnector,
   deleteNetworkingDatumapisComV1Alpha1NamespacedConnector,
+  type ComDatumapisNetworkingV1Alpha1Connector,
   type ComDatumapisNetworkingV1Alpha1ConnectorList,
   type ListNetworkingDatumapisComV1Alpha1NamespacedConnectorData,
 } from '@/modules/control-plane/networking-alpha1';
@@ -49,6 +51,32 @@ export function createConnectorService() {
         return toConnectorList(data?.items ?? []).items;
       } catch (error) {
         logger.error(`${SERVICE_NAME}.list failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async get(projectId: string, name: string): Promise<Connector> {
+      const startTime = Date.now();
+
+      try {
+        const baseURL = getProjectScopedBase(projectId);
+        const path = { namespace: 'default' as const, name };
+
+        const response = await readNetworkingDatumapisComV1Alpha1NamespacedConnector({
+          baseURL,
+          path,
+        });
+
+        const data = response.data as ComDatumapisNetworkingV1Alpha1Connector;
+
+        logger.service(SERVICE_NAME, 'get', {
+          input: { projectId, name },
+          duration: Date.now() - startTime,
+        });
+
+        return toConnector(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.get failed`, error as Error);
         throw mapApiError(error);
       }
     },

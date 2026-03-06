@@ -280,6 +280,8 @@ export interface DataTableTitleProps {
   title?: string;
   description?: string;
   actions?: React.ReactNode;
+  /** Renders in the top-right of the table header (e.g. download CTA). */
+  rightSide?: React.ReactNode;
 }
 
 // =============================================================================
