@@ -106,7 +106,7 @@
     "recharts": "^3.7.0",
     "remix-auth": "^4.2.0",
     "remix-auth-oauth2": "^3.4.1",
-    "remix-utils": "9.1.0",
+    "remix-utils": "9.2.0",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.1",
     "tailwind-scrollbar-hide": "^4.0.0",
