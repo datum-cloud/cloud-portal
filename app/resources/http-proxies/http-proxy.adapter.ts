@@ -3,6 +3,7 @@ import type {
   HttpProxyList,
   CreateHttpProxyInput,
   UpdateHttpProxyInput,
+  BasicAuthUser,
 } from './http-proxy.schema';
 import type { TrafficProtectionMode } from './http-proxy.schema';
 import {
@@ -10,6 +11,88 @@ import {
   type ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy,
   type ComDatumapisNetworkingV1AlphaTrafficProtectionPolicyList,
 } from '@/modules/control-plane/networking';
+
+/**
+ * Generate htpasswd file content from a list of users using SHA1 hashing.
+ * Uses the Web Crypto API (available in Node.js 15+, Bun, and browsers).
+ */
+export async function generateHtpasswd(users: BasicAuthUser[]): Promise<string> {
+  const lines = await Promise.all(
+    users.map(async (u) => {
+      const data = new TextEncoder().encode(u.password);
+      const hashBuffer = await globalThis.crypto.subtle.digest('SHA-1', data);
+      const hashBase64 = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
+      return `${u.username}:{SHA}${hashBase64}`;
+    })
+  );
+  return lines.join('\n');
+}
+
+/**
+ * Build a SecurityPolicy body targeting the Gateway backing the HTTP proxy.
+ * Policy name matches the proxy name for 1:1 lifecycle.
+ * The basicAuth.users field references the Secret `{httpProxyName}-basic-auth`.
+ */
+export function toSecurityPolicyPayload(httpProxyName: string): object {
+  return {
+    apiVersion: 'gateway.envoyproxy.io/v1alpha1',
+    kind: 'SecurityPolicy',
+    metadata: {
+      name: httpProxyName,
+    },
+    spec: {
+      targetRefs: [
+        {
+          group: 'gateway.networking.k8s.io',
+          kind: 'Gateway',
+          name: httpProxyName,
+        },
+      ],
+      basicAuth: {
+        users: {
+          name: `${httpProxyName}-basic-auth`,
+        },
+      },
+    },
+  };
+}
+
+/**
+ * Parse usernames from a Kubernetes Secret containing an htpasswd file.
+ * The Secret's data['.htpasswd'] is base64-encoded; each line is "username:hash".
+ */
+export function parseHtpasswdUsernames(secret: unknown): string[] {
+  const encoded = (secret as { data?: { '.htpasswd'?: string } } | null)?.data?.['.htpasswd'];
+  if (!encoded) return [];
+  try {
+    const content = atob(encoded);
+    return content
+      .split('\n')
+      .map((line) => line.split(':')[0])
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Extract basic auth state from a SecurityPolicy resource.
+ * Returns enabled: false when the argument is null/undefined (404 case).
+ * Pass usernames parsed from the associated htpasswd Secret to populate counts.
+ */
+export function getBasicAuthState(
+  securityPolicy: unknown,
+  usernames: string[] = []
+): {
+  enabled: boolean;
+  userCount: number;
+  usernames: string[];
+} {
+  if (!securityPolicy) {
+    return { enabled: false, userCount: 0, usernames: [] };
+  }
+  return { enabled: true, userCount: usernames.length, usernames };
+}
 
 /**
  * Build a TrafficProtectionPolicy that targets the Gateway backing the HTTP proxy.
@@ -111,6 +194,7 @@ export function toHttpProxy(
   options?: {
     trafficProtectionMode?: TrafficProtectionMode;
     paranoiaLevels?: { blocking?: number; detection?: number };
+    basicAuth?: { enabled: boolean; userCount: number; usernames: string[] };
   }
 ): HttpProxy {
   // Find the backend rule (skip redirect rules which have no backends)
@@ -170,6 +254,11 @@ export function toHttpProxy(
     ...(options?.paranoiaLevels !== undefined && {
       paranoiaLevels: options.paranoiaLevels,
     }),
+    ...(options?.basicAuth !== undefined && {
+      basicAuthEnabled: options.basicAuth.enabled,
+      basicAuthUserCount: options.basicAuth.userCount,
+      basicAuthUsernames: options.basicAuth.usernames,
+    }),
   };
 }
 
@@ -215,6 +304,7 @@ export function toHttpProxyList(
   options?: {
     trafficProtectionModeByName?: Map<string, TrafficProtectionMode>;
     paranoiaLevelsByName?: Map<string, { blocking?: number; detection?: number }>;
+    basicAuthByName?: Map<string, { enabled: boolean; userCount: number; usernames: string[] }>;
   }
 ): HttpProxyList {
   return {
@@ -222,7 +312,8 @@ export function toHttpProxyList(
       const proxyName = raw.metadata?.name ?? '';
       const mode = options?.trafficProtectionModeByName?.get(proxyName);
       const paranoiaLevels = options?.paranoiaLevelsByName?.get(proxyName);
-      return toHttpProxy(raw, { trafficProtectionMode: mode, paranoiaLevels });
+      const basicAuth = options?.basicAuthByName?.get(proxyName);
+      return toHttpProxy(raw, { trafficProtectionMode: mode, paranoiaLevels, basicAuth });
     }),
     nextCursor: nextCursor ?? null,
     hasMore: !!nextCursor,

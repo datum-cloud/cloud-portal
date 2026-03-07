@@ -57,7 +57,7 @@ export function useCreateHttpProxy(
 export function useUpdateHttpProxy(
   projectId: string,
   name: string,
-  options?: UseMutationOptions<HttpProxy, Error, UpdateHttpProxyInput>
+  options?: UseMutationOptions<HttpProxy, Error, UpdateHttpProxyInput, { previous: HttpProxy | undefined }>
 ) {
   const queryClient = useQueryClient();
 
@@ -88,6 +88,11 @@ export function useUpdateHttpProxy(
           ...(input.paranoiaLevels !== undefined && { paranoiaLevels: input.paranoiaLevels }),
           ...(input.enableHttpRedirect !== undefined && {
             enableHttpRedirect: input.enableHttpRedirect,
+          }),
+          ...(input.basicAuth !== undefined && {
+            basicAuthEnabled: (input.basicAuth.users?.length ?? 0) > 0,
+            basicAuthUserCount: input.basicAuth.users?.length ?? 0,
+            basicAuthUsernames: input.basicAuth.users?.map((u) => u.username) ?? [],
           }),
         };
       });

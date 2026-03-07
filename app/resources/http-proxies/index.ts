@@ -9,6 +9,7 @@ export {
   type UpdateHttpProxyInput,
   trafficProtectionModeSchema,
   type TrafficProtectionMode,
+  type BasicAuthUser,
   // Re-exported validation schemas
   httpProxyHostnameSchema,
   httpProxySchema,
@@ -16,6 +17,8 @@ export {
   type HttpProxyHostnameSchema,
   hostnameStatusSchema,
   type HostnameStatus,
+  basicAuthSchema,
+  type BasicAuthSchema,
 } from './http-proxy.schema';
 
 // Adapter exports

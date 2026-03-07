@@ -217,6 +217,8 @@ export interface FormFieldProps {
   required?: boolean;
   /** Disable the field */
   disabled?: boolean;
+  /** When false, do not render errors (e.g. for array items when showing array-level errors) */
+  showErrors?: boolean;
 
   // Styling
   /** Additional CSS classes for the field wrapper */

@@ -106,6 +106,7 @@ export function FormField({
   tooltip,
   required = false,
   disabled = false,
+  showErrors = true,
   className,
   labelClassName,
 }: FormFieldProps) {
@@ -225,7 +226,7 @@ export function FormField({
         )}
 
         {/* Errors */}
-        {hasErrors && (
+        {showErrors && hasErrors && (
           <ul
             id={errorId}
             className={cn(
