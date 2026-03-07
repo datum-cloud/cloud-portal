@@ -6,7 +6,7 @@ import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge, Icon, Tooltip } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
-import { InfoIcon } from 'lucide-react';
+import { InfoIcon, LockIcon } from 'lucide-react';
 import { forwardRef, useMemo } from 'react';
 
 /**
@@ -28,6 +28,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
       projectId,
       showStatus = true,
       getRowId,
+      renderAiEdgeCell,
       ...props
     },
     ref
@@ -40,7 +41,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           size: 120,
           filterFn: 'arrayOr', // Use OR logic for multi-select filter
           cell: ({ row }) => {
-            const { type, _meta } = row.original;
+            const { type, _meta, lockReason } = row.original;
             const wasTransformed = _meta?.transformedFrom;
 
             return (
@@ -68,6 +69,16 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
                     projectId={projectId}
                     className="rounded-lg px-2 py-0.5"
                   />
+                )}
+
+                {lockReason && (
+                  <Tooltip side="right" message={lockReason} contentClassName="max-w-64">
+                    <Icon
+                      icon={LockIcon}
+                      className="text-muted-foreground size-3.5 shrink-0"
+                      aria-label={`Locked: ${lockReason}`}
+                    />
+                  </Tooltip>
                 )}
               </div>
             );
@@ -161,6 +172,25 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
             );
           },
         },
+        ...(mode === 'full' && renderAiEdgeCell
+          ? [
+              {
+                id: 'aiEdge',
+                header: () => <span className="">AI Edge</span>,
+                cell: ({ row }) => (
+                  <div className="flex flex-wrap items-center">
+                    {renderAiEdgeCell(row.original)}
+                  </div>
+                ),
+
+                meta: {
+                  tooltip: "Protect your origin with Datum's AI Edge",
+                },
+                enableSorting: false,
+                size: 180,
+              } as ColumnDef<IFlattenedDnsRecord>,
+            ]
+          : []),
         {
           header: 'TTL',
           accessorKey: 'ttl',
@@ -174,7 +204,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           },
         },
       ],
-      []
+      [mode, renderAiEdgeCell, projectId, showStatus]
     );
 
     // Compact mode: Simple table without actions/pagination/toolbar

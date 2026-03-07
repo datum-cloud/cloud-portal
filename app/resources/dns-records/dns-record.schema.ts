@@ -545,6 +545,12 @@ export const dnsRecordSetResourceSchema = resourceMetadataSchema
     recordType: z.string(),
     records: z.array(z.any()),
     status: z.any().optional(),
+    /** True when this record set was created by the Gateway (AI Edge); used to hide "Protect with AI" for proxy-owned aliases */
+    managedByGateway: z.boolean().optional(),
+    /** Gateway name (source-name label) when managedByGateway; use as proxyId to link to proxy detail */
+    gatewaySourceName: z.string().optional(),
+    /** Hostname protected by this Gateway (annotation) when managedByGateway; for matching user records to proxy */
+    gatewayHostname: z.string().optional(),
   });
 
 export type DnsRecordSet = z.infer<typeof dnsRecordSetResourceSchema>;
@@ -564,6 +570,12 @@ export const flattenedDnsRecordSchema = z.object({
   ttl: z.number().optional(),
   status: z.any().optional(),
   rawData: z.any(),
+  /** True when this record was created by the Gateway (AI Edge); hide "Protect with AI" for these */
+  managedByGateway: z.boolean().optional(),
+  /** Gateway name when managedByGateway; use as proxyId to link to proxy detail */
+  gatewaySourceName: z.string().optional(),
+  /** Hostname protected by this Gateway when managedByGateway; for matching user records to proxy */
+  gatewayHostname: z.string().optional(),
 });
 
 export type FlattenedDnsRecord = z.infer<typeof flattenedDnsRecordSchema>;
@@ -586,6 +598,21 @@ export interface IFlattenedDnsRecord {
   ttl?: number;
   status?: IExtendedControlPlaneStatus;
   rawData: any;
+  /** True when this record was created by the Gateway (AI Edge); hide "Protect with AI" for these */
+  managedByGateway?: boolean;
+  /** Gateway name when managedByGateway; use as proxyId to link to proxy detail */
+  gatewaySourceName?: string;
+  /** Hostname protected by this Gateway when managedByGateway; for matching user records to proxy */
+  gatewayHostname?: string;
+  /** True when a proxy exists for this record's hostname (computed in UI from same-zone records) */
+  hasProxyForThisRecord?: boolean;
+  /** Proxy name to use for "Remove AI Edge" when hasProxyForThisRecord (computed in UI) */
+  linkedProxyId?: string;
+  /**
+   * When set, the row is locked: edit/delete disabled, row styling, and lock icon in Type column.
+   * Tooltip shows this reason. Expandable for future use cases (e.g. read-only zone, managed by X).
+   */
+  lockReason?: string;
   /** UI-only metadata, not persisted */
   _meta?: IFlattenedDnsRecordMeta;
 }

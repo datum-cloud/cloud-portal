@@ -10,10 +10,22 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { extractValue } from '@/utils/helpers/dns/flatten.helper';
 import { getDnsRecordTypePriority } from '@/utils/helpers/dns/record-type.helper';
 
+/** Labels/annotations set by the Gateway controller when a DNSRecordSet is created for AI Edge (proxy) */
+const DNS_SOURCE_KIND_LABEL = 'dns.datumapis.com/source-kind';
+const DNS_SOURCE_NAME_LABEL = 'dns.datumapis.com/source-name';
+const DNS_HOSTNAME_ANNOTATION = 'dns.datumapis.com/hostname';
+
 /**
  * Transform raw API DNS RecordSet to domain DnsRecordSet
  */
 export function toDnsRecordSet(raw: ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet): DnsRecordSet {
+  const labels = raw.metadata?.labels ?? {};
+  const annotations = raw.metadata?.annotations ?? {};
+  const sourceKind = labels[DNS_SOURCE_KIND_LABEL];
+  const managedByGateway = sourceKind === 'Gateway';
+  const gatewaySourceName = managedByGateway ? labels[DNS_SOURCE_NAME_LABEL] : undefined;
+  const gatewayHostname = managedByGateway ? annotations[DNS_HOSTNAME_ANNOTATION] : undefined;
+
   return {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
@@ -25,6 +37,9 @@ export function toDnsRecordSet(raw: ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet
     recordType: raw.spec?.recordType ?? '',
     records: raw.spec?.records ?? [],
     status: raw.status,
+    managedByGateway,
+    gatewaySourceName,
+    gatewayHostname,
   };
 }
 
@@ -73,6 +88,9 @@ export function toFlattenedDnsRecords(recordSets: DnsRecordSet[]): FlattenedDnsR
         ttl: ttl,
         status: statusInfo,
         rawData: record,
+        managedByGateway: recordSet.managedByGateway,
+        gatewaySourceName: recordSet.gatewaySourceName,
+        gatewayHostname: recordSet.gatewayHostname,
       });
     });
   });
