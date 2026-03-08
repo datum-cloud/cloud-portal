@@ -19,7 +19,7 @@ import { useQuery } from 'urql';
 // app/routes/account/organizations/index.tsx so the URQL cache key matches
 // and the CSR hook gets a cache hit on first render.
 // ============================================================================
-const orgListOp = generateQueryOp({
+export const orgListOp = generateQueryOp({
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
     {},
     {

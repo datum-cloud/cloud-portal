@@ -1,5 +1,6 @@
 import { MiddlewareContext, NextFunction } from './middleware';
 import { createUserService, RegistrationApproval } from '@/resources/users';
+import { getRequestContext } from '@/modules/axios/request-context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { redirect } from 'react-router';
@@ -46,6 +47,13 @@ export async function registrationApprovalMiddleware(
       // If user fetch fails, proceed to next middleware
       // The private layout will handle the error
       return next();
+    }
+
+    // Cache the user in the request context so the private layout loader can
+    // reuse it without making a second upstream API call.
+    const reqCtx = getRequestContext();
+    if (reqCtx) {
+      reqCtx.cachedUser = user;
     }
 
     // Check if user's registration is approved
