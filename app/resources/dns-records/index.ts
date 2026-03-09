@@ -7,6 +7,7 @@ export {
   type DnsRecordSetList,
   type FlattenedDnsRecord,
   type IFlattenedDnsRecord,
+  type IFlattenedDnsRecordComputed,
   type IDnsRecordSetControlResponse,
   type CreateDnsRecordSetInput,
   type UpdateDnsRecordSetInput,

@@ -1,26 +1,50 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DnsRecordTable } from '@/features/edge/dns-records';
+import {
+  DnsRecordAiEdgeCell,
+  DnsRecordTable,
+  isEligibleForProtect,
+} from '@/features/edge/dns-records';
 import { DnsRecordInlineForm } from '@/features/edge/dns-records/dns-record-inline-form';
 import {
   DnsRecordModalForm,
   DnsRecordModalFormRef,
 } from '@/features/edge/dns-records/dns-record-modal-form';
 import { DnsRecordImportAction } from '@/features/edge/dns-records/import-export/dns-record-import-action';
+import {
+  findProxyByEndpoint,
+  findProxyForRecord,
+  isRowLocked,
+} from '@/features/edge/dns-records/utils';
 import { DataTableFilter, DataTableRef } from '@/modules/datum-ui/components/data-table';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   DNS_RECORD_TYPES,
   IFlattenedDnsRecord,
+  dnsRecordKeys,
   useDeleteDnsRecord,
   useDnsRecords,
   useDnsRecordsWatch,
   useHydrateDnsRecords,
 } from '@/resources/dns-records';
 import type { DnsZone } from '@/resources/dns-zones';
+import {
+  type HttpProxy,
+  type UpdateHttpProxyInput,
+  createHttpProxyService,
+  httpProxyKeys,
+  useCreateHttpProxy,
+  useHttpProxies,
+} from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
+import { getRecordHostname } from '@/utils/helpers/dns';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
-import { useRef } from 'react';
-import { useParams, useRouteLoaderData } from 'react-router';
+import { useMemo, useRef } from 'react';
+import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
@@ -47,11 +71,41 @@ export default function DnsRecordsPage() {
     staleTime: 5 * 60 * 1000,
   });
 
+  const { data: proxies = [] } = useHttpProxies(projectId ?? '');
+
   // Use React Query data, fallback to SSR data
   const dnsRecords = queryData ?? initialDnsRecordSets;
 
+  const zoneDomain = dnsZone?.domainName ?? '';
+  const enrichedRecords = useMemo((): IFlattenedDnsRecord[] => {
+    return dnsRecords.map((record) => {
+      const hostname = getRecordHostname(record.name ?? '', zoneDomain);
+      // Match by hostname AND origin so the correct proxy is shown when multiple proxies use the same hostname.
+      const matchingProxy = findProxyForRecord(proxies, record, hostname, (r) =>
+        isEligibleForProtect(r.type)
+      );
+      const hasProxyForThisRecord = !!matchingProxy && !record.managedByGateway;
+      const linkedProxyId = matchingProxy?.name;
+      const lockReason = record.managedByGateway
+        ? 'Managed by AI Edge'
+        : hasProxyForThisRecord
+          ? 'Protected by AI Edge'
+          : undefined;
+      return {
+        ...record,
+        hasProxyForThisRecord,
+        linkedProxyId,
+        lockReason,
+      };
+    });
+  }, [dnsRecords, zoneDomain, proxies]);
+
   const tableRef = useRef<DataTableRef<IFlattenedDnsRecord>>(null);
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
+
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const { trackAction } = useAnalytics();
 
   const { confirm } = useConfirmationDialog();
   const deleteMutation = useDeleteDnsRecord(projectId!, dnsZoneId!, {
@@ -62,6 +116,63 @@ export default function DnsRecordsPage() {
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to delete DNS record');
+    },
+  });
+
+  const createProxyMutation = useCreateHttpProxy(projectId!, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: dnsRecordKeys.list(projectId!, dnsZoneId),
+      });
+      trackAction(AnalyticsAction.AddProxy);
+      toast.success('AI Edge created', {
+        description: 'DNS will update shortly.',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create AI Edge');
+    },
+  });
+
+  const addHostnameToProxyMutation = useMutation({
+    mutationFn: ({
+      name,
+      input,
+      currentProxy,
+    }: {
+      name: string;
+      input: UpdateHttpProxyInput;
+      currentProxy?: HttpProxy;
+      hostname?: string;
+      removalTitle?: string;
+      removalDescription?: string;
+    }) =>
+      createHttpProxyService().update(projectId!, name, input, {
+        currentProxy,
+      }) as Promise<HttpProxy>,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId!) });
+      queryClient.invalidateQueries({
+        queryKey: httpProxyKeys.detail(projectId!, variables.name),
+      });
+      queryClient.invalidateQueries({
+        queryKey: dnsRecordKeys.list(projectId!, dnsZoneId),
+      });
+      if (variables.removalTitle) {
+        toast.success(variables.removalTitle, {
+          description: variables.removalDescription,
+        });
+      } else {
+        trackAction(AnalyticsAction.AddProxy);
+        toast.success('Hostname added to AI Edge', {
+          description: variables.hostname
+            ? `"${variables.hostname}" was added to an existing proxy. DNS will update shortly.`
+            : 'DNS will update shortly.',
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to add hostname to AI Edge');
     },
   });
 
@@ -104,6 +215,97 @@ export default function DnsRecordsPage() {
     // Watch will automatically update the list with real-time changes
   };
 
+  const handleProtectWithEdge = async (record: IFlattenedDnsRecord) => {
+    const hostname = getRecordHostname(record.name ?? '', zoneDomain);
+    const backendHost = record.value.replace(/\.$/, '');
+    const resourceName = generateId(hostname, {
+      randomText: generateRandomString(6),
+      randomLength: 6,
+    });
+
+    // A/AAAA = IP origin: HTTPS to origin not supported, use HTTP (enhancement #613)
+    const isIpOrigin = record.type === 'A' || record.type === 'AAAA';
+    const endpoint = isIpOrigin ? `http://${backendHost}` : `https://${backendHost}`;
+
+    try {
+      const proxies = await queryClient.fetchQuery({
+        queryKey: httpProxyKeys.list(projectId!),
+        queryFn: () => createHttpProxyService().list(projectId!),
+      });
+      const existingProxy = findProxyByEndpoint(proxies, endpoint);
+
+      if (existingProxy) {
+        const currentHostnames = existingProxy.hostnames ?? [];
+        if (currentHostnames.includes(hostname)) {
+          toast.info('Already protected', {
+            description: `"${hostname}" is already on this AI Edge.`,
+          });
+          return;
+        }
+        const newHostnames = [...currentHostnames, hostname];
+        await addHostnameToProxyMutation.mutateAsync({
+          name: existingProxy.name,
+          input: { hostnames: newHostnames },
+          currentProxy: existingProxy,
+          hostname,
+        });
+      } else {
+        await createProxyMutation.mutateAsync({
+          name: resourceName,
+          chosenName: hostname,
+          endpoint,
+          hostnames: [hostname],
+          trafficProtectionMode: 'Enforce',
+          paranoiaLevels: { blocking: 1 },
+          enableHttpRedirect: true,
+        });
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to protect with AI Edge';
+      toast.error(message);
+    }
+  };
+
+  const handleRemoveEdge = async (
+    record: IFlattenedDnsRecord,
+    callbacks?: { onMutationStart?: () => void }
+  ) => {
+    const proxyId = record.linkedProxyId;
+    if (!proxyId) return;
+    const hostname = getRecordHostname(record.name ?? '', zoneDomain);
+    await confirm({
+      title: 'Remove AI Edge protection',
+      description: (
+        <span>
+          This will remove <strong>{hostname}</strong> from the AI Edge. Traffic to this hostname
+          will no longer be protected. The AI Edge proxy will be left in place for any other
+          hostnames it serves.
+        </span>
+      ),
+      submitText: 'Remove',
+      cancelText: 'Cancel',
+      variant: 'destructive',
+      onSubmit: async () => {
+        callbacks?.onMutationStart?.();
+        const proxy = await queryClient.fetchQuery({
+          queryKey: httpProxyKeys.detail(projectId!, proxyId),
+          queryFn: () => createHttpProxyService().get(projectId!, proxyId),
+        });
+        const normalizedHostname = hostname.toLowerCase();
+        const newHostnames = (proxy.hostnames ?? []).filter(
+          (h) => h?.replace(/\.$/, '').toLowerCase() !== normalizedHostname
+        );
+        await addHostnameToProxyMutation.mutateAsync({
+          name: proxyId,
+          input: { hostnames: newHostnames },
+          currentProxy: proxy,
+          removalTitle: 'Hostname removed from AI Edge',
+          removalDescription: 'The AI Edge proxy remains in place. DNS will update shortly.',
+        });
+      },
+    });
+  };
+
   return (
     <>
       <DnsRecordModalForm
@@ -117,8 +319,24 @@ export default function DnsRecordsPage() {
         ref={tableRef}
         mode="full"
         enableShowAll={true}
-        data={dnsRecords}
+        data={enrichedRecords}
         projectId={projectId!}
+        renderAiEdgeCell={(row) => (
+          <DnsRecordAiEdgeCell
+            record={row}
+            zoneDomain={zoneDomain}
+            onProtect={handleProtectWithEdge}
+            onRemove={handleRemoveEdge}
+            onViewProxy={(proxyId) =>
+              navigate(
+                getPathWithParams(paths.project.detail.proxy.detail.root, {
+                  projectId: projectId!,
+                  proxyId,
+                })
+              )
+            }
+          />
+        )}
         emptyContent={{
           title: 'No DNS records found',
           actions: [
@@ -170,12 +388,13 @@ export default function DnsRecordsPage() {
             triggerInlineEdit: true,
             showLabel: false,
             action: () => {},
-
             /**
              * TODO: SOA records are not editable
              * @see https://github.com/datum-cloud/cloud-portal/issues/901
              */
             hidden: (row) => row.type === 'SOA',
+            disabled: (row) => isRowLocked(row),
+            tooltip: (row) => (row.lockReason ? `${row.lockReason}` : undefined),
           },
           {
             key: 'delete',
@@ -189,6 +408,8 @@ export default function DnsRecordsPage() {
              * @see https://github.com/datum-cloud/cloud-portal/issues/901
              */
             hidden: (row) => row.type === 'SOA',
+            disabled: (row) => isRowLocked(row),
+            tooltip: (row) => (row.lockReason ? `${row.lockReason}` : undefined),
           },
         ]}
         // Toolbar configuration
