@@ -20,3 +20,24 @@ export function useConnectorsWatch(projectId: string, options?: { enabled?: bool
     getItemKey: (connector) => connector.name,
   });
 }
+
+/**
+ * Watch a single connector for real-time updates (e.g. status changes when it comes online/offline).
+ */
+export function useConnectorWatch(
+  projectId: string,
+  name: string | undefined,
+  options?: { enabled?: boolean }
+) {
+  const queryKey = connectorKeys.detail(projectId, name ?? '');
+
+  useResourceWatch<Connector>({
+    resourceType: 'apis/networking.datumapis.com/v1alpha1/connectors',
+    projectId,
+    namespace: 'default',
+    name: name ?? undefined,
+    queryKey,
+    transform: (item) => toConnector(item as ComDatumapisNetworkingV1Alpha1Connector),
+    enabled: (options?.enabled ?? true) && !!projectId && !!name,
+  });
+}

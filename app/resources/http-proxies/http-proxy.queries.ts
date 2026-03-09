@@ -21,6 +21,25 @@ export function useHttpProxies(
   });
 }
 
+/**
+ * Proxies that reference the given connector. Uses the same cache as useHttpProxies(projectId),
+ * so no extra network request when the list is already loaded; filtering is done in memory.
+ */
+export function useHttpProxiesByConnector(
+  projectId: string,
+  connectorName: string | undefined,
+  options?: Omit<UseQueryOptions<HttpProxy[]>, 'queryKey' | 'queryFn' | 'select'>
+) {
+  return useQuery({
+    queryKey: httpProxyKeys.list(projectId),
+    queryFn: () => createHttpProxyService().list(projectId),
+    select: (data) =>
+      connectorName ? data.filter((p) => p.connector?.name === connectorName) : [],
+    enabled: !!projectId && !!connectorName,
+    ...options,
+  });
+}
+
 export function useHttpProxy(
   projectId: string,
   name: string,

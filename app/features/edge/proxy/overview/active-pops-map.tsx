@@ -1,3 +1,4 @@
+import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { Map, MapMarker, MapTileLayer, MapTooltip, MapZoomControl } from '@shadcn/ui/map';
 import type { LatLngExpression } from 'leaflet';
 
@@ -7,13 +8,6 @@ interface RegionWithCoords {
   coords: LatLngExpression;
 }
 
-const GreenPulseDot = () => (
-  <div className="relative flex size-6 items-center justify-center">
-    <span className="size-2.5 rounded-full shadow-[0_0_0_3px_rgba(34,197,94,0.4)]" />
-    <span className="absolute size-2.5 animate-pulse rounded-full bg-green-500" />
-  </div>
-);
-
 export const ActivePopsMap = ({ regionsWithCoords }: { regionsWithCoords: RegionWithCoords[] }) => {
   return (
     <div className="h-64 min-h-64 w-full overflow-hidden rounded-lg border">
@@ -21,7 +15,11 @@ export const ActivePopsMap = ({ regionsWithCoords }: { regionsWithCoords: Region
         <MapTileLayer />
         <MapZoomControl />
         {regionsWithCoords.map(({ value, label, coords }) => (
-          <MapMarker key={value} position={coords} icon={<GreenPulseDot />} iconAnchor={[12, 12]}>
+          <MapMarker
+            key={value}
+            position={coords}
+            icon={<StatusPulseDot variant="active" />}
+            iconAnchor={[12, 12]}>
             <MapTooltip permanent={false}>{label}</MapTooltip>
           </MapMarker>
         ))}

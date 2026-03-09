@@ -73,7 +73,7 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
             ),
             content:
               certDisplay === undefined ? (
-                <Skeleton className="h-6 w-24 rounded-md" />
+                <Skeleton className="h-7 w-24 rounded-md" />
               ) : certDisplay === 'ready' ? (
                 <BadgeStatus
                   status={{
@@ -112,7 +112,7 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
         label: 'Resource Name',
         content:
           isPending && !proxy.name ? (
-            <Skeleton className="h-6 w-32 rounded-md" />
+            <Skeleton className="h-7 w-32 rounded-md" />
           ) : (
             <BadgeCopy
               value={proxy.name ?? ''}
@@ -139,7 +139,7 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
         ),
         content:
           isPending && !hostname ? (
-            <Skeleton className="h-6 w-48 rounded-md" />
+            <Skeleton className="h-7 w-48 rounded-md" />
           ) : hostname ? (
             <BadgeCopy
               value={hostname}

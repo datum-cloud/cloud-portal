@@ -122,7 +122,7 @@ export const HttpProxyHostnamesCard = ({
                         </span>
                       </Tooltip>
                     )}
-                    {val.dnsProgrammed && (
+                    {val.dnsProgrammed ? (
                       <>
                         <span className="text-muted-foreground/60" aria-hidden>
                           ·
@@ -130,6 +130,17 @@ export const HttpProxyHostnamesCard = ({
                         <Tooltip message="DNS records have been programmed for this hostname">
                           <span className="font-medium text-(--color-badge-success)">
                             DNS Ready
+                          </span>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-muted-foreground/60" aria-hidden>
+                          ·
+                        </span>
+                        <Tooltip message={'DNS record pending'}>
+                          <span className={'font-medium text-(--color-badge-warning)'}>
+                            DNS Pending
                           </span>
                         </Tooltip>
                       </>

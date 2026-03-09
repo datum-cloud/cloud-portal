@@ -153,7 +153,7 @@ export default function HttpProxyPage() {
           const hostnames = row.original.status?.hostnames;
           const hasMultipleHostnames = (hostnames?.length ?? 0) > 1;
           return (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2">
               {hostnames?.map((hostname: string) => (
                 <BadgeCopy
                   key={hostname}
