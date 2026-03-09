@@ -47,6 +47,12 @@ export const httpProxyResourceSchema = z.object({
   enableHttpRedirect: z.boolean().optional(),
   /** Connector referenced by the backend rule (if any) */
   connector: z.object({ name: z.string() }).optional(),
+  /** Whether basic auth is currently enabled (SecurityPolicy exists) */
+  basicAuthEnabled: z.boolean().optional(),
+  /** Number of configured users (derived from the htpasswd Secret) */
+  basicAuthUserCount: z.number().int().min(0).optional(),
+  /** Usernames visible to the UI (never passwords) */
+  basicAuthUsernames: z.array(z.string()).optional(),
 });
 
 export type HttpProxy = z.infer<typeof httpProxyResourceSchema>;
@@ -76,6 +82,16 @@ export type HttpProxyList = z.infer<typeof httpProxyListSchema>;
 /** WAF / TrafficProtectionPolicy mode */
 export const trafficProtectionModeSchema = z.enum(['Observe', 'Enforce', 'Disabled']);
 export type TrafficProtectionMode = z.infer<typeof trafficProtectionModeSchema>;
+
+/**
+ * A single basic auth user credential.
+ * Passwords are write-only — never returned from the server.
+ */
+export type BasicAuthUser = {
+  username: string;
+  /** Present only on create/update; never returned by the server */
+  password: string;
+};
 
 // Input types for service operations
 export type CreateHttpProxyInput = {
@@ -116,7 +132,105 @@ export type UpdateHttpProxyInput = {
   };
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
+  /**
+   * Optional basic auth update.
+   * Pass `users: undefined` to disable (delete SecurityPolicy + Secret).
+   * Pass a non-empty users array to enable or update credentials.
+   */
+  basicAuth?: {
+    /** undefined = disable; non-empty array = enable/update */
+    users?: BasicAuthUser[];
+  };
 };
+
+const userEntrySchema = z.object({
+  username: z.string(),
+  password: z.string(),
+});
+
+/**
+ * Form schema for the Basic Auth dialog.
+ * Encodes username format rules (no colons/spaces, max 64 chars),
+ * minimum password length, and duplicate username detection.
+ *
+ * NOTE: Only {SHA} htpasswd is supported by Envoy Gateway's BasicAuth filter,
+ * so hashing is intentionally limited to SHA-1 in the adapter.
+ */
+export const basicAuthSchema = z
+  .object({
+    enabled: z.preprocess((val) => {
+      if (typeof val === 'boolean') return val;
+      return val === 'true' || val === 'on';
+    }, z.boolean().default(false)),
+    // Normalize array so undefined items/keys never reach the inner schema (avoids "expected string, received undefined")
+    users: z.preprocess((val) => {
+      if (!Array.isArray(val)) return val;
+      return val.map((item) => ({
+        username:
+          item != null && typeof item === 'object' && typeof item.username === 'string'
+            ? item.username
+            : '',
+        password:
+          item != null && typeof item === 'object' && typeof item.password === 'string'
+            ? item.password
+            : '',
+      }));
+    }, z.array(userEntrySchema).optional()),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.enabled) return;
+
+    if (!data.users || data.users.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'At least one user is required when authentication is enabled',
+        path: ['users'],
+      });
+      return;
+    }
+
+    data.users.forEach((user, i) => {
+      if (!user.username) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Username is required',
+          path: ['users', i, 'username'],
+        });
+      } else if (user.username.length > 64) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Username must be 64 characters or less',
+          path: ['users', i, 'username'],
+        });
+      } else if (/[\s:]/.test(user.username)) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Username must not contain spaces or colons',
+          path: ['users', i, 'username'],
+        });
+      }
+      if (user.password.length < 4) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Password must be at least 4 characters',
+          path: ['users', i, 'password'],
+        });
+      }
+    });
+
+    const names = data.users.map((u) => u.username);
+    names.forEach((name, i) => {
+      if (names.indexOf(name) !== i) {
+        ctx.addIssue({
+          code: 'custom',
+          message: `Username "${name}" is already used`,
+          path: ['users', i, 'username'],
+        });
+      }
+    });
+  });
+
+export type BasicAuthSchema = z.infer<typeof basicAuthSchema>;
 
 // Form validation schemas
 export const httpProxyHostnameSchema = z.object({
