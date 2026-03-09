@@ -35,7 +35,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     request,
     'organizations_understanding'
   );
-
   return data({ alertClosed }, { headers: alertHeaders });
 };
 

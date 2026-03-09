@@ -1,4 +1,5 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { getRequestContext } from '@/modules/axios/request-context';
 import { useTheme } from '@/modules/datum-themes';
 import { FathomProvider } from '@/modules/fathom';
 import { HelpScoutBeacon } from '@/modules/helpscout';
@@ -26,8 +27,11 @@ export const loader = withMiddleware(
     try {
       // Services now use global axios client with AsyncLocalStorage
       const { session } = await getSession(request);
-      const userService = createUserService();
-      const user = await userService.get(session?.sub ?? '');
+
+      // Re-use the user fetched by registrationApprovalMiddleware when available,
+      // avoiding a second upstream API call on the same request.
+      const cachedUser = getRequestContext()?.cachedUser;
+      const user = cachedUser ?? (await createUserService().get(session?.sub ?? ''));
 
       /**
        * Generate Help Scout signature for secure mode

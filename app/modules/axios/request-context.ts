@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'async_hooks';
+import type { User } from '@/resources/users';
 
 /**
  * Request context for server-side axios/gqlts calls.
@@ -9,6 +10,12 @@ export interface RequestContext {
   requestId: string;
   token: string;
   userId?: string;
+  /**
+   * Per-request user cache. Written by registrationApprovalMiddleware after
+   * fetching the user for the approval check; read by the private layout loader
+   * to avoid a second upstream API call on the same request.
+   */
+  cachedUser?: User;
 }
 
 // Use globalThis to share the store across modules (axios, gqlts, etc.)
