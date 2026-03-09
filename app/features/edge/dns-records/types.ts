@@ -4,6 +4,7 @@
 import { DataTableProps } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { EmptyContentProps } from '@datum-ui/components/empty-content';
+import type { ReactNode } from 'react';
 
 // =============================================================================
 // Table Component Types
@@ -22,6 +23,8 @@ export interface DnsRecordTableBaseProps {
   enableMultiSelect?: boolean;
   getRowId?: (row: IFlattenedDnsRecord, index: number) => string;
   onSelectionChange?: (selectedIds: string[], selectedRows: IFlattenedDnsRecord[]) => void;
+  /** When set (full mode), adds an AI Edge column before TTL with this cell renderer. */
+  renderAiEdgeCell?: (record: IFlattenedDnsRecord) => ReactNode;
 }
 
 /**
