@@ -43,7 +43,7 @@ import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
@@ -102,7 +102,6 @@ export default function DnsRecordsPage() {
 
   const tableRef = useRef<DataTableRef<IFlattenedDnsRecord>>(null);
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
-  const [nameRandomSuffix] = useState(() => generateRandomString(6));
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -220,7 +219,7 @@ export default function DnsRecordsPage() {
     const hostname = getRecordHostname(record.name ?? '', zoneDomain);
     const backendHost = record.value.replace(/\.$/, '');
     const resourceName = generateId(hostname, {
-      randomText: nameRandomSuffix,
+      randomText: generateRandomString(6),
       randomLength: 6,
     });
 
@@ -251,7 +250,7 @@ export default function DnsRecordsPage() {
           hostname,
         });
       } else {
-        createProxyMutation.mutateAsync({
+        await createProxyMutation.mutateAsync({
           name: resourceName,
           chosenName: hostname,
           endpoint,
@@ -292,7 +291,10 @@ export default function DnsRecordsPage() {
           queryKey: httpProxyKeys.detail(projectId!, proxyId),
           queryFn: () => createHttpProxyService().get(projectId!, proxyId),
         });
-        const newHostnames = (proxy.hostnames ?? []).filter((h) => h !== hostname);
+        const normalizedHostname = hostname.toLowerCase();
+        const newHostnames = (proxy.hostnames ?? []).filter(
+          (h) => h?.replace(/\.$/, '').toLowerCase() !== normalizedHostname
+        );
         await addHostnameToProxyMutation.mutateAsync({
           name: proxyId,
           input: { hostnames: newHostnames },

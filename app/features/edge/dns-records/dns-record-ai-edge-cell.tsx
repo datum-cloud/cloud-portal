@@ -1,18 +1,9 @@
+import { isEligibleForProtect } from './utils';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { Button, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ExternalLinkIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useState } from 'react';
-
-export const ELIGIBLE_PROTECT_RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'ALIAS'] as const;
-
-export function isEligibleForProtect(
-  type: string
-): type is (typeof ELIGIBLE_PROTECT_RECORD_TYPES)[number] {
-  return ELIGIBLE_PROTECT_RECORD_TYPES.includes(
-    type as (typeof ELIGIBLE_PROTECT_RECORD_TYPES)[number]
-  );
-}
 
 export interface RemoveEdgeCallbacks {
   /** Called when the user confirms in the dialog (before the mutation runs). Used to disable the button only after confirm. */

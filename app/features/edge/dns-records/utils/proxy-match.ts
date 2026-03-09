@@ -1,6 +1,18 @@
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
 import type { HttpProxy } from '@/resources/http-proxies';
 
+/** Record types that can be protected with AI Edge (A, AAAA, CNAME, ALIAS). */
+export const ELIGIBLE_PROTECT_RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'ALIAS'] as const;
+
+/** Pure domain predicate: true when the record type is eligible for "Protect with AI Edge". */
+export function isEligibleForProtect(
+  type: string
+): type is (typeof ELIGIBLE_PROTECT_RECORD_TYPES)[number] {
+  return ELIGIBLE_PROTECT_RECORD_TYPES.includes(
+    type as (typeof ELIGIBLE_PROTECT_RECORD_TYPES)[number]
+  );
+}
+
 /** Row is locked when lockReason is set (generic; e.g. AI Edge, future read-only zone, etc.) */
 export function isRowLocked(row: IFlattenedDnsRecord): boolean {
   return !!row.lockReason;

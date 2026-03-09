@@ -1,5 +1,4 @@
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
-import type { IExtendedControlPlaneStatus } from '@/resources/base';
 import { resourceMetadataSchema, paginatedResponseSchema } from '@/resources/base/base.schema';
 import {
   DNS_RECORD_TYPES,
@@ -549,8 +548,6 @@ export const dnsRecordSetResourceSchema = resourceMetadataSchema
     managedByGateway: z.boolean().optional(),
     /** Gateway name (source-name label) when managedByGateway; use as proxyId to link to proxy detail */
     gatewaySourceName: z.string().optional(),
-    /** Hostname protected by this Gateway (annotation) when managedByGateway; for matching user records to proxy */
-    gatewayHostname: z.string().optional(),
   });
 
 export type DnsRecordSet = z.infer<typeof dnsRecordSetResourceSchema>;
@@ -574,8 +571,6 @@ export const flattenedDnsRecordSchema = z.object({
   managedByGateway: z.boolean().optional(),
   /** Gateway name when managedByGateway; use as proxyId to link to proxy detail */
   gatewaySourceName: z.string().optional(),
-  /** Hostname protected by this Gateway when managedByGateway; for matching user records to proxy */
-  gatewayHostname: z.string().optional(),
 });
 
 export type FlattenedDnsRecord = z.infer<typeof flattenedDnsRecordSchema>;
@@ -586,24 +581,12 @@ export interface IFlattenedDnsRecordMeta {
   transformedFrom?: SupportedDnsRecordType;
 }
 
-// Interface for flattened DNS record from API (includes SOA from auto-created records)
-export interface IFlattenedDnsRecord {
-  recordSetId?: string;
-  recordSetName?: string;
-  createdAt?: Date;
-  dnsZoneId: string;
-  type: DNSRecordType;
-  name: string;
-  value: string;
-  ttl?: number;
-  status?: IExtendedControlPlaneStatus;
-  rawData: any;
-  /** True when this record was created by the Gateway (AI Edge); hide "Protect with AI" for these */
-  managedByGateway?: boolean;
-  /** Gateway name when managedByGateway; use as proxyId to link to proxy detail */
-  gatewaySourceName?: string;
-  /** Hostname protected by this Gateway when managedByGateway; for matching user records to proxy */
-  gatewayHostname?: string;
+/**
+ * UI-only fields computed after fetching (e.g. in dns-records route). Not present in API or
+ * schema. Any flattenedDnsRecordSchema.parse() returns only FlattenedDnsRecord and will strip
+ * these; use this type where the record has been enriched with proxy/lock state.
+ */
+export interface IFlattenedDnsRecordComputed {
   /** True when a proxy exists for this record's hostname (computed in UI from same-zone records) */
   hasProxyForThisRecord?: boolean;
   /** Proxy name to use for "Remove AI Edge" when hasProxyForThisRecord (computed in UI) */
@@ -616,6 +599,14 @@ export interface IFlattenedDnsRecord {
   /** UI-only metadata, not persisted */
   _meta?: IFlattenedDnsRecordMeta;
 }
+
+/**
+ * Flattened DNS record from API/schema plus UI-computed fields. Base shape comes from
+ * flattenedDnsRecordSchema (FlattenedDnsRecord); .parse() yields only that and strips computed
+ * fields. Use IFlattenedDnsRecord where the record has been enriched (e.g. hasProxyForThisRecord,
+ * linkedProxyId, lockReason).
+ */
+export type IFlattenedDnsRecord = FlattenedDnsRecord & IFlattenedDnsRecordComputed;
 
 // Legacy DNS Record Set control response
 export interface IDnsRecordSetControlResponse {

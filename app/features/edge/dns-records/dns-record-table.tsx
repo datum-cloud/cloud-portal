@@ -176,7 +176,7 @@ export const DnsRecordTable = forwardRef<DataTableRef<IFlattenedDnsRecord>, DnsR
           ? [
               {
                 id: 'aiEdge',
-                header: () => <span className="">AI Edge</span>,
+                header: () => <span>AI Edge</span>,
                 cell: ({ row }) => (
                   <div className="flex flex-wrap items-center">
                     {renderAiEdgeCell(row.original)}
