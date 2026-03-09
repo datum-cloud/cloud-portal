@@ -3,16 +3,12 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { createGqlClient } from '@/modules/graphql/client';
-import { createSsrExchange, extractSsrData } from '@/modules/graphql/ssr';
-import { logger } from '@/modules/logger';
 import {
   organizationFormSchema,
   useCreateOrganization,
   useOrganizationsGql,
   type Organization,
 } from '@/resources/organizations';
-import { orgListOp } from '@/resources/organizations/organization.gql-queries';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -35,20 +31,11 @@ import {
 import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const ssr = createSsrExchange();
-  const gqlClient = createGqlClient({ type: 'user', userId: 'me' }, ssr);
-
-  const [{ isClosed: alertClosed, headers: alertHeaders }] = await Promise.all([
-    getAlertState(request, 'organizations_understanding'),
-    gqlClient
-      .query(orgListOp.query, orgListOp.variables)
-      .toPromise()
-      .catch((err) => {
-        logger.error('[SSR] organizations prefetch failed', err);
-      }),
-  ]);
-
-  return data({ alertClosed, urqlState: extractSsrData(ssr) }, { headers: alertHeaders });
+  const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
+    request,
+    'organizations_understanding'
+  );
+  return data({ alertClosed }, { headers: alertHeaders });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {

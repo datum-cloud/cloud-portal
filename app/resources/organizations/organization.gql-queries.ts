@@ -13,13 +13,8 @@ import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/
 import { useMemo } from 'react';
 import { useQuery } from 'urql';
 
-// ============================================================================
 // Module-level constant — computed once, not per render.
-// Field selection is byte-for-byte identical to the SSR loader in
-// app/routes/account/organizations/index.tsx so the URQL cache key matches
-// and the CSR hook gets a cache hit on first render.
-// ============================================================================
-export const orgListOp = generateQueryOp({
+const orgListOp = generateQueryOp({
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
     {},
     {
