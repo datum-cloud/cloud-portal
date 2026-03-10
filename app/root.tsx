@@ -81,6 +81,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
   );
 }
 
+/** Skip root revalidation for client-side Link navigations.
+ * Root loader only provides toast, csrf, ENV — none change per-route.
+ * Form submissions still revalidate (e.g. logout) via defaultShouldRevalidate. */
+export function shouldRevalidate({
+  currentUrl: _currentUrl,
+  nextUrl: _nextUrl,
+  defaultShouldRevalidate,
+  formData,
+}: {
+  currentUrl: URL;
+  nextUrl: URL;
+  defaultShouldRevalidate: boolean;
+  formData?: FormData;
+}) {
+  // Form submissions (logout, etc.) — revalidate to get fresh root data
+  if (formData) return defaultShouldRevalidate;
+
+  // Link navigation — skip; root data doesn't change
+  return false;
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider defaultTheme="light" attribute="class">
@@ -136,6 +157,9 @@ export default function AppWithProviders() {
   const fetchers = useFetchers();
   const matches = useMatches();
 
+  /** Fetcher keys that run in the background and should not trigger the progress bar */
+  const BACKGROUND_FETCHER_KEYS = ['session-cookies'];
+
   const urqlState = useMemo<SSRData>(() => {
     return matches.reduce<SSRData>((acc, match) => {
       const state = (match.data as Record<string, unknown> | null)?.urqlState;
@@ -157,11 +181,15 @@ export default function AppWithProviders() {
    *
    * We filter fetchers to only include those that are actively submitting or loading
    * with form data, excluding stale or cancelled fetchers that may not transition cleanly.
+   * Background fetchers (e.g. session cookie sync) are excluded from progress.
    */
   const state = useMemo<'idle' | 'loading'>(
     function getGlobalState() {
       const activeFetchers = fetchers.filter(
-        (fetcher) => fetcher.state !== 'idle' && fetcher.formData
+        (fetcher) =>
+          fetcher.state !== 'idle' &&
+          fetcher.formData &&
+          !BACKGROUND_FETCHER_KEYS.includes(fetcher.key)
       );
       const states = [navigation.state, ...activeFetchers.map((fetcher) => fetcher.state)];
       if (states.every((state) => state === 'idle')) return 'idle';

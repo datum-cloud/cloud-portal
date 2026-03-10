@@ -1,15 +1,20 @@
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
+import { useProjectContext } from '@/providers/project.provider';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-ui/components';
-import { MetaFunction, useRouteLoaderData } from 'react-router';
+import { MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('General');
 });
 
 export default function ProjectGeneralSettingsPage() {
-  const { project } = useRouteLoaderData('project-detail');
+  const { project } = useProjectContext();
+
+  if (!project) {
+    return null;
+  }
 
   return (
     <div className="flex w-full flex-col gap-8">

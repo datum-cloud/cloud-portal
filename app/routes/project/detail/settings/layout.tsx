@@ -1,12 +1,13 @@
 import TabsLayout from '@/layouts/tabs/tabs.layout';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
+import { useProjectContext } from '@/providers/project.provider';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import { Outlet, useRouteLoaderData } from 'react-router';
+import { Outlet } from 'react-router';
 
-export default function OrgSettingsLayout() {
-  const { project } = useRouteLoaderData('project-detail');
+export default function ProjectSettingsLayout() {
+  const { project } = useProjectContext();
 
   const navItems: TabsNavProps[] = useMemo(() => {
     const projectId = project?.name;
@@ -33,6 +34,7 @@ export default function OrgSettingsLayout() {
       },
     ];
   }, [project]);
+
   return (
     <TabsLayout tabsTitle={{ title: 'Project Settings' }} navItems={navItems}>
       <Outlet />

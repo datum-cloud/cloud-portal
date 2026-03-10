@@ -8,23 +8,18 @@ import { DomainIllustration } from '@/features/project/illustrations/domain';
 import { MetricsIllustration } from '@/features/project/illustrations/metrics';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useApp } from '@/providers/app.provider';
-import { createDnsZoneService } from '@/resources/dns-zones';
-import { createDomainService } from '@/resources/domains';
-import { createExportPolicyService } from '@/resources/export-policies';
-import { createHttpProxyService } from '@/resources/http-proxies';
+import { useProjectContext } from '@/providers/project.provider';
+import { useDnsZones } from '@/resources/dns-zones';
+import { useDomains } from '@/resources/domains';
+import { useExportPolicies } from '@/resources/export-policies';
+import { useHttpProxies } from '@/resources/http-proxies';
 import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Icon, Row } from '@datum-ui/components';
 import { CalendarFold } from 'lucide-react';
 import type { ReactNode } from 'react';
-import {
-  data,
-  type LoaderFunctionArgs,
-  useLoaderData,
-  useRouteLoaderData,
-  useNavigate,
-} from 'react-router';
+import { useNavigate } from 'react-router';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -33,6 +28,7 @@ import {
 type DashboardCardConfig = {
   key: string;
   isCompleted: boolean;
+  isLoading: boolean;
   illustration: ReactNode;
   completedTitle: string;
   pendingTitle: string;
@@ -63,43 +59,45 @@ export const handle = {
   hideBreadcrumb: true,
 };
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-  if (!projectId) {
-    return data({ hasAiEdge: false, hasDomains: false, hasDnsZones: false, hasMetrics: false });
-  }
-
-  const [httpProxiesResult, domainsResult, dnsZonesResult, exportPoliciesResult] =
-    await Promise.allSettled([
-      createHttpProxyService().list(projectId, { limit: 1 }),
-      createDomainService().list(projectId, { limit: 1 }),
-      createDnsZoneService().list(projectId, { limit: 1 }),
-      createExportPolicyService().list(projectId, { limit: 1 }),
-    ]);
-
-  return data({
-    hasAiEdge: httpProxiesResult.status === 'fulfilled' && httpProxiesResult.value.length > 0,
-    hasDomains: domainsResult.status === 'fulfilled' && domainsResult.value.length > 0,
-    hasDnsZones: dnsZonesResult.status === 'fulfilled' && dnsZonesResult.value.length > 0,
-    hasMetrics:
-      exportPoliciesResult.status === 'fulfilled' && exportPoliciesResult.value.length > 0,
-  });
-};
-
 // ---------------------------------------------------------------------------
 // Page component
 // ---------------------------------------------------------------------------
 
 export default function ProjectHomePage() {
-  const { project } = useRouteLoaderData('project-detail');
-  const { hasAiEdge, hasDomains, hasDnsZones, hasMetrics } = useLoaderData<typeof loader>();
+  const { project, isLoading } = useProjectContext();
   const { trackAction } = useAnalytics();
   const navigate = useNavigate();
   const { user } = useApp();
 
+  const { data: httpProxies = [], isLoading: httpProxiesLoading } = useHttpProxies(
+    project?.name ?? '',
+    { staleTime: 5 * 60 * 1000 }
+  );
+  const { data: domains = [], isLoading: domainsLoading } = useDomains(project?.name ?? '', {
+    staleTime: 5 * 60 * 1000,
+  });
+  const { data: dnsZones = [], isLoading: dnsZonesLoading } = useDnsZones(
+    project?.name ?? '',
+    undefined,
+    { staleTime: 5 * 60 * 1000 }
+  );
+  const { data: exportPolicies = [], isLoading: exportPoliciesLoading } = useExportPolicies(
+    project?.name ?? '',
+    { staleTime: 5 * 60 * 1000 }
+  );
+
+  const hasAiEdge = httpProxies.length > 0;
+  const hasDomains = domains.length > 0;
+  const hasDnsZones = dnsZones.length > 0;
+  const hasMetrics = exportPolicies.length > 0;
+
   const isNewUser = Boolean(
     user?.createdAt && Date.now() - new Date(user.createdAt).getTime() < NEW_USER_THRESHOLD_MS
   );
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!project) {
     return <NotFound />;
@@ -111,6 +109,7 @@ export default function ProjectHomePage() {
     {
       key: 'ai-edge',
       isCompleted: hasAiEdge,
+      isLoading: httpProxiesLoading,
       illustration: <AIEdgeIllustration variant={hasAiEdge ? 'completed' : 'default'} />,
       completedTitle: 'AI Edge deployed',
       pendingTitle: 'Deploy an AI Edge',
@@ -126,6 +125,7 @@ export default function ProjectHomePage() {
     {
       key: 'domains',
       isCompleted: hasDomains,
+      isLoading: domainsLoading,
       illustration: <DomainIllustration variant={hasDomains ? 'completed' : 'default'} />,
       completedTitle: 'Domains added',
       pendingTitle: 'Add a Domain',
@@ -141,6 +141,7 @@ export default function ProjectHomePage() {
     {
       key: 'dns',
       isCompleted: hasDnsZones,
+      isLoading: dnsZonesLoading,
       illustration: <DnsIllustration variant={hasDnsZones ? 'completed' : 'default'} />,
       completedTitle: 'DNS migrated',
       pendingTitle: 'Migrate DNS to Datum',
@@ -156,6 +157,7 @@ export default function ProjectHomePage() {
     {
       key: 'metrics',
       isCompleted: hasMetrics,
+      isLoading: exportPoliciesLoading,
       illustration: <MetricsIllustration variant={hasMetrics ? 'completed' : 'default'} />,
       completedTitle: 'Metrics sent to Grafana',
       pendingTitle: 'Send metrics to Grafana',
@@ -232,14 +234,22 @@ export default function ProjectHomePage() {
 
       {/* Action cards */}
       <Row
+        className="overflow-hidden"
         gutter={[
           { xs: 8, sm: 16, md: 24, xl: 32 },
           { xs: 8, sm: 16, md: 24, xl: 32 },
         ]}>
         {cards.map((card) => (
-          <Col key={card.key} xs={24} sm={12} md={12} xl={6} className="h-full max-h-[380px]">
+          <Col
+            key={card.key}
+            xs={24}
+            sm={12}
+            md={12}
+            xl={6}
+            className="h-[350px] min-h-[380px] overflow-hidden">
             <ActionCard
               isCompleted={card.isCompleted}
+              isLoading={card.isLoading}
               image={card.illustration}
               className="h-full"
               title={card.isCompleted ? card.completedTitle : card.pendingTitle}
@@ -251,11 +261,11 @@ export default function ProjectHomePage() {
       </Row>
 
       {/* Community */}
-      <Row>
+      <Row className="shrink-0">
         <Col span={24}>
           <div className="dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center rounded-lg bg-white/50 p-9 pb-8 shadow dark:bg-[#18273A]">
             <h2 className="mb-2 text-lg font-medium">Datum community</h2>
-            <p className="dark:text-card-quaternary text-foreground/60 text-sm font-normal">
+            <p className="dark:text-card-quaternary text-foreground/60 text-center text-sm font-normal">
               Looking for some help or share some knowledge? We&apos;d love to see you!
             </p>
 

@@ -1,9 +1,10 @@
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
-import { updateProjectSchema, useUpdateProject } from '@/resources/projects';
+import { projectKeys, updateProjectSchema, useUpdateProject } from '@/resources/projects';
 import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
 import { Card, CardContent, CardFooter } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Project General Settings Card Component
@@ -11,13 +12,19 @@ import { Form } from '@datum-ui/components/form';
  */
 export const ProjectGeneralCard = ({ project }: { project: Project }) => {
   const { setProject } = useApp();
+  const queryClient = useQueryClient();
 
   const updateMutation = useUpdateProject(project?.name ?? '', {
-    onSuccess: (updatedProject) => {
+    onSuccess: async (updatedProject) => {
       setProject(updatedProject);
       toast.success('Project', {
         description: 'The Project has been updated successfully',
       });
+      if (updatedProject.organizationId) {
+        const listKey = projectKeys.list(updatedProject.organizationId);
+        queryClient.invalidateQueries({ queryKey: listKey });
+        await queryClient.refetchQueries({ queryKey: listKey });
+      }
     },
     onError: (error) => {
       toast.error('Project', {

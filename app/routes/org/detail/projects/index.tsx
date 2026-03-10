@@ -6,10 +6,8 @@ import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { Organization } from '@/resources/organizations';
 import {
-  createProjectService,
   projectFormSchema,
   useCreateProject,
-  useHydrateProjects,
   useProjects,
   type Project,
   projectKeys,
@@ -39,37 +37,12 @@ import {
 } from 'react-router';
 import z from 'zod';
 
-export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-  try {
-    const { orgId } = params;
-    // Services now use global axios client with AsyncLocalStorage
-    const projectService = createProjectService();
-
-    if (!orgId) {
-      const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
-        request,
-        'projects_understanding'
-      );
-      return data({ projects: [], alertClosed }, { headers: alertHeaders });
-    }
-
-    // Fetch fresh data from API
-    const projectList = await projectService.list(orgId);
-
-    // Get alert state from server-side cookie
-    const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
-      request,
-      'projects_understanding'
-    );
-
-    return data({ projects: projectList.items, alertClosed }, { headers: alertHeaders });
-  } catch {
-    const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
-      request,
-      'projects_understanding'
-    );
-    return data({ projects: [], alertClosed }, { headers: alertHeaders });
-  }
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
+    request,
+    'projects_understanding'
+  );
+  return data({ alertClosed }, { headers: alertHeaders });
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -79,20 +52,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 export default function OrgProjectsPage() {
   const { orgId } = useParams();
-  const { projects: initialProjects, alertClosed } = useLoaderData<typeof loader>();
+  const { alertClosed } = useLoaderData<typeof loader>();
   const organization = useRouteLoaderData<Organization>('org-detail');
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateProjects(orgId ?? '', initialProjects ?? []);
+  if (!orgId) {
+    throw new Error('Organization ID is required');
+  }
 
-  // Read from React Query cache
-  const { data: queryData } = useProjects(orgId ?? '', undefined, {
-    refetchOnMount: false,
+  const { data: queryData, isLoading: projectsLoading } = useProjects(orgId, undefined, {
     staleTime: 5 * 60 * 1000,
   });
-
-  // Use React Query data, fallback to SSR data
-  const projects = queryData?.items ?? initialProjects ?? [];
+  const projects = queryData?.items ?? [];
 
   const navigate = useNavigate();
   const revalidator = useRevalidator();
@@ -101,7 +71,6 @@ export default function OrgProjectsPage() {
   const { enqueue, showSummary } = useTaskQueue();
   const queryClient = useQueryClient();
 
-  // Alert close fetcher - native useFetcher with effect-based callback
   const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
   const alertSubmittedRef = useRef(false);
 
@@ -172,7 +141,6 @@ export default function OrgProjectsPage() {
   );
 
   const handleAlertClose = () => {
-    // Save the close state via server-side cookie
     alertSubmittedRef.current = true;
     alertFetcher.submit({}, { method: 'POST' });
   };
@@ -189,7 +157,7 @@ export default function OrgProjectsPage() {
       cancelable: false,
       metadata: {
         scope: 'org',
-        orgId,
+        orgId: orgId as string,
         orgName: organization?.displayName,
       },
       processor: async (ctx) => {
@@ -218,6 +186,11 @@ export default function OrgProjectsPage() {
       onComplete: (outcome) => {
         if (outcome.status === 'completed') {
           trackAction(AnalyticsAction.CreateProject);
+          // Update project detail cache with ready project so nav items become enabled when user clicks "View Project"
+          if (outcome.result) {
+            const readyProject = outcome.result as Project;
+            queryClient.setQueryData(projectKeys.detail(readyProject.name), readyProject);
+          }
         }
         queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId ?? '') });
       },
@@ -262,6 +235,7 @@ export default function OrgProjectsPage() {
       <Row gutter={[0, 24]}>
         <Col span={24}>
           <DataTable
+            isLoading={projectsLoading}
             hideHeader
             mode="card"
             hidePagination
@@ -312,7 +286,7 @@ export default function OrgProjectsPage() {
             defaultSorting={[{ id: 'name', desc: true }]}
           />
         </Col>
-        {showAlert && (
+        {showAlert && !projectsLoading && (
           <Col span={24}>
             <NoteCard
               closable

@@ -10,7 +10,7 @@ export const handle = {
   breadcrumb: () => <span>Metrics</span>,
   path: (data: ProjectLayoutLoaderData) => {
     return getPathWithParams(paths.project.detail.metrics.root, {
-      projectId: data?.project?.name,
+      projectId: data?.project?.name ?? data?.projectId,
     });
   },
 };

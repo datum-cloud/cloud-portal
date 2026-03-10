@@ -16,9 +16,11 @@ import { Link } from 'react-router';
 export const Header = ({
   currentProject,
   currentOrg,
+  switcherLoading = false,
 }: {
   currentProject?: Project;
   currentOrg?: Organization;
+  switcherLoading?: boolean;
 }) => {
   return (
     <header className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full shrink-0 touch-none items-center justify-between gap-4 border-b px-4">
@@ -28,7 +30,11 @@ export const Header = ({
           <LogoIcon width={21} />
         </Link>
         <div className="hidden md:block">
-          <OrgProjectSwitcher currentOrg={currentOrg} currentProject={currentProject} />
+          <OrgProjectSwitcher
+            currentOrg={currentOrg}
+            currentProject={currentProject}
+            switcherLoading={switcherLoading}
+          />
         </div>
       </div>
       {/* Right Section */}
