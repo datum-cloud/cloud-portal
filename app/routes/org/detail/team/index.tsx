@@ -7,23 +7,10 @@ import {
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
-import {
-  createInvitationService,
-  useCancelInvitation,
-  useResendInvitation,
-  useHydrateInvitations,
-  useInvitations,
-} from '@/resources/invitations';
-import {
-  createMemberService,
-  useRemoveMember,
-  useLeaveOrganization,
-  useHydrateMembers,
-  useMembers,
-} from '@/resources/members';
+import { useCancelInvitation, useResendInvitation, useInvitations } from '@/resources/invitations';
+import { useRemoveMember, useLeaveOrganization, useMembers } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
@@ -39,14 +26,7 @@ import {
   UserPlusIcon,
 } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import {
-  Link,
-  LoaderFunctionArgs,
-  data,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 
 // Generic interface for combined team data
 interface ITeamMember {
@@ -65,50 +45,23 @@ interface ITeamMember {
   avatarUrl?: string;
 }
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { orgId } = params;
-
-  if (!orgId) {
-    throw new BadRequestError('Organization ID is required');
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const invitationService = createInvitationService();
-  const memberService = createMemberService();
-
-  // Fetch raw data - transformation happens in component
-  const [invitations, members] = await Promise.all([
-    invitationService.list(orgId),
-    memberService.list(orgId),
-  ]);
-
-  return data({ members, invitations });
-};
-
 export default function OrgTeamPage() {
-  const { members: initialMembers, invitations: initialInvitations } =
-    useLoaderData<typeof loader>();
   const { orgId } = useParams();
   const { user } = useApp();
   const navigate = useNavigate();
 
-  // Hydrate React Query cache with SSR data (runs once on mount)
-  useHydrateMembers(orgId ?? '', initialMembers);
-  useHydrateInvitations(orgId ?? '', initialInvitations);
+  if (!orgId) {
+    throw new Error('Organization ID is required');
+  }
 
-  // Read from React Query cache (gets updates from mutations)
-  const { data: liveMembers } = useMembers(orgId ?? '', {
-    refetchOnMount: false,
+  const { data: members = [], isLoading: membersLoading } = useMembers(orgId, {
     staleTime: 5 * 60 * 1000,
   });
-  const { data: liveInvitations } = useInvitations(orgId ?? '', {
-    refetchOnMount: false,
+  const { data: invitations = [], isLoading: invitationsLoading } = useInvitations(orgId, {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Use live data, fallback to SSR data
-  const members = liveMembers ?? initialMembers;
-  const invitations = liveInvitations ?? initialInvitations;
+  const isLoading = membersLoading || invitationsLoading;
 
   // Transform members to team members format
   const memberTeamMembers: ITeamMember[] = useMemo(() => {
@@ -528,6 +481,7 @@ export default function OrgTeamPage() {
         }}
       />
       <DataTable
+        isLoading={isLoading}
         columns={columns}
         data={orderedTeamMembers ?? []}
         tableTitle={{

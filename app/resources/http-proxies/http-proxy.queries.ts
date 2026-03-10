@@ -76,7 +76,12 @@ export function useCreateHttpProxy(
 export function useUpdateHttpProxy(
   projectId: string,
   name: string,
-  options?: UseMutationOptions<HttpProxy, Error, UpdateHttpProxyInput, { previous: HttpProxy | undefined }>
+  options?: UseMutationOptions<
+    HttpProxy,
+    Error,
+    UpdateHttpProxyInput,
+    { previous: HttpProxy | undefined }
+  >
 ) {
   const queryClient = useQueryClient();
 

@@ -1,6 +1,7 @@
 import { QuotasTable } from '@/features/quotas/quotas-table';
+import { useProjectContext } from '@/providers/project.provider';
 import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
-import { LoaderFunctionArgs, useLoaderData, useRouteLoaderData } from 'react-router';
+import { LoaderFunctionArgs, useLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Quotas</span>,
@@ -20,8 +21,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export default function ProjectQuotasPage() {
-  const { project } = useRouteLoaderData('project-detail');
+  const { project } = useProjectContext();
   const allowanceBuckets = useLoaderData<typeof loader>() as AllowanceBucket[];
 
-  return <QuotasTable data={allowanceBuckets} resourceType="project" resource={project!} />;
+  if (!project) {
+    return null;
+  }
+
+  return <QuotasTable data={allowanceBuckets} resourceType="project" resource={project} />;
 }

@@ -214,7 +214,9 @@ export function createHttpProxyService() {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
       const htpasswdBase64 = btoa(
-        new TextEncoder().encode(htpasswd).reduce((acc, byte) => acc + String.fromCharCode(byte), '')
+        new TextEncoder()
+          .encode(htpasswd)
+          .reduce((acc, byte) => acc + String.fromCharCode(byte), '')
       );
 
       await client.post({
@@ -254,7 +256,9 @@ export function createHttpProxyService() {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
       const htpasswdBase64 = btoa(
-        new TextEncoder().encode(htpasswd).reduce((acc, byte) => acc + String.fromCharCode(byte), '')
+        new TextEncoder()
+          .encode(htpasswd)
+          .reduce((acc, byte) => acc + String.fromCharCode(byte), '')
       );
 
       try {

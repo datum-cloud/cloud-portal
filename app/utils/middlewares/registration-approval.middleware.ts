@@ -1,6 +1,6 @@
 import { MiddlewareContext, NextFunction } from './middleware';
-import { createUserService, RegistrationApproval } from '@/resources/users';
 import { getRequestContext } from '@/modules/axios/request-context';
+import { createUserService, RegistrationApproval } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { redirect } from 'react-router';

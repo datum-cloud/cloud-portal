@@ -62,6 +62,8 @@ export function DashboardLayout({
   expandBehavior = 'push',
   showBackdrop = false,
   closeOnNavigation = false,
+  sidebarLoading = false,
+  switcherLoading = false,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -74,6 +76,10 @@ export function DashboardLayout({
   expandBehavior?: 'push' | 'overlay';
   showBackdrop?: boolean;
   closeOnNavigation?: boolean;
+  /** Show skeleton in sidebar while loading */
+  sidebarLoading?: boolean;
+  /** Show skeleton in org/project switchers while loading (prevents layout shift) */
+  switcherLoading?: boolean;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -81,12 +87,14 @@ export function DashboardLayout({
   return (
     <div className="flex h-svh w-full flex-col overflow-hidden">
       {/* Header at the top - outside sidebar context */}
-      <Header currentProject={currentProject} currentOrg={currentOrg} />
+      <Header
+        currentProject={currentProject}
+        currentOrg={currentOrg}
+        switcherLoading={switcherLoading}
+      />
 
       {/* Mobile menu */}
-      {navItems.length > 0 && (
-        <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
-      )}
+      <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
       <SidebarProvider
@@ -102,7 +110,7 @@ export function DashboardLayout({
             '--sidebar-width-mobile': '18.75rem', // Custom desktop width
           } as React.CSSProperties
         }>
-        {(navItems.length > 0 || sidebarHeader != null) && (
+        {(navItems.length > 0 || sidebarHeader != null || sidebarLoading) && (
           <AppSidebar
             title={sidebarHeader as any}
             navItems={navItems}
@@ -112,6 +120,7 @@ export function DashboardLayout({
             currentPath={pathname}
             linkComponent={Link}
             defaultOpen={searchParams.get('sidebar') !== 'false'}
+            loading={sidebarLoading}
           />
         )}
         <SidebarInset className="min-h-0">

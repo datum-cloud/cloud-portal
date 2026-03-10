@@ -1,4 +1,4 @@
-import { Button, Card, CardContent, CardHeader } from '@datum-ui/components';
+import { Button, Card, CardContent, CardHeader, Skeleton, SpinnerIcon } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowRightIcon, CheckIcon } from 'lucide-react';
@@ -10,6 +10,7 @@ const ActionCard = ({
   onClick,
   buttonLabel,
   isCompleted,
+  isLoading,
   className,
 }: {
   image: ReactNode;
@@ -17,21 +18,26 @@ const ActionCard = ({
   onClick?: () => void;
   buttonLabel?: string;
   isCompleted?: boolean;
+  isLoading?: boolean;
   className?: string;
 }) => {
   return (
     <Card
       className={cn(
         'h-full w-full gap-0 rounded-lg bg-white p-0 shadow dark:bg-[#18273A]',
-        isCompleted && 'dark:border-card-tertiary border-primary/40',
+        isCompleted && !isLoading && 'dark:border-card-tertiary border-primary/40',
+        isLoading && 'opacity-95',
         className
       )}>
       <CardHeader
         className={cn(
           'bg-card-tertiary relative flex h-[170px] items-center justify-center gap-6 rounded-t-lg p-8',
-          isCompleted && 'dark:bg-card bg-background'
+          isCompleted && 'dark:bg-card bg-background',
+          isLoading && 'dark:bg-card bg-background'
         )}>
-        {typeof image === 'string' ? (
+        {isLoading ? (
+          <Skeleton className="h-[80px] w-[120px] rounded-lg" />
+        ) : typeof image === 'string' ? (
           <img
             src={image}
             alt={title}
@@ -41,7 +47,7 @@ const ActionCard = ({
           image
         )}
 
-        {isCompleted && (
+        {isCompleted && !isLoading && (
           <Icon
             icon={CheckIcon}
             className="text-primary absolute top-2.5 right-2.5"
@@ -51,11 +57,29 @@ const ActionCard = ({
         )}
       </CardHeader>
       <CardContent className="flex flex-1 flex-col items-center justify-between gap-4 p-8">
-        <span className="dark:text-card-foreground text-foreground text-center text-base font-semibold">
-          {title}
-        </span>
+        {isLoading ? (
+          <Skeleton className="h-6 w-32 rounded" />
+        ) : (
+          <span className="dark:text-card-foreground text-foreground text-center text-base font-semibold">
+            {title}
+          </span>
+        )}
 
-        {isCompleted ? (
+        {isLoading ? (
+          <Button
+            type={isCompleted ? 'quaternary' : 'primary'}
+            theme="outline"
+            size="xs"
+            disabled
+            className={cn(
+              isCompleted &&
+                'dark:border-card-foreground dark:hover:bg-card-foreground dark:hover:text-card dark:text-card-foreground text-foreground border-foreground hover:border-foreground hover:bg-foreground hover:text-background',
+              !isCompleted && 'size-10 rounded-full'
+            )}
+            icon={<SpinnerIcon size="sm" aria-hidden />}>
+            {isCompleted ? buttonLabel : null}
+          </Button>
+        ) : isCompleted ? (
           <Button
             type="quaternary"
             theme="outline"

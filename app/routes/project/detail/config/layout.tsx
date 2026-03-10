@@ -7,7 +7,7 @@ export const handle = {
   breadcrumb: () => <span>Assets</span>,
   path: (data: ProjectLayoutLoaderData) => {
     return getPathWithParams(paths.project.detail.domains.root, {
-      projectId: data?.project?.name,
+      projectId: data?.project?.name ?? data?.projectId,
     });
   },
 };

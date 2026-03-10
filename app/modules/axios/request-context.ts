@@ -1,5 +1,5 @@
-import { AsyncLocalStorage } from 'async_hooks';
 import type { User } from '@/resources/users';
+import { AsyncLocalStorage } from 'async_hooks';
 
 /**
  * Request context for server-side axios/gqlts calls.

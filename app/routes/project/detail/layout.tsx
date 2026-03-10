@@ -1,30 +1,21 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
+import { ProjectProvider } from '@/providers/project.provider';
 import { ControlPlaneStatus } from '@/resources/base';
 import { connectorKeys, createConnectorService } from '@/resources/connectors';
 import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
-import { createOrganizationService, type Organization } from '@/resources/organizations';
-import {
-  createProjectService,
-  useHydrateProject,
-  useProject,
-  type Project,
-} from '@/resources/projects';
+import { useOrganization, type Organization } from '@/resources/organizations';
+import { useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
-import {
-  getOrgSession,
-  redirectWithToast,
-  setOrgSession,
-  setProjectSession,
-} from '@/utils/cookies';
-import { ValidationError } from '@/utils/errors';
+import { setOrgSession, setProjectSession } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
+import { toast } from '@datum-ui/components';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -37,61 +28,47 @@ import {
   SettingsIcon,
   SignpostIcon,
 } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
-import { LoaderFunctionArgs, Outlet, data, useLoaderData } from 'react-router';
+import { useEffect, useMemo, useRef } from 'react';
+import {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  Outlet,
+  data,
+  useFetcher,
+  useNavigate,
+  useParams,
+} from 'react-router';
 
-export interface ProjectLayoutLoaderData {
-  project: Project;
-  org: Organization;
-}
-
-export const loader = async ({ params, request }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
-  // Services now use global axios client with AsyncLocalStorage
-  const projectService = createProjectService();
-  const orgService = createOrganizationService();
-
-  try {
-    if (!projectId) {
-      throw new ValidationError('Project ID is required');
-    }
-
-    const project = await projectService.get(projectId);
-
-    if (!project.name) {
-      throw new ValidationError('Project not found');
-    }
-
-    const orgId = project.organizationId;
-    if (!orgId) {
-      throw new ValidationError('Organization ID not found for project');
-    }
-    const org = await orgService.get(orgId);
-
-    // Set both org and project cookies
-    const orgSession = await setOrgSession(request, org.name);
-    const projectSession = await setProjectSession(request, project.name);
-
-    // Combine headers from both cookie operations
-    const headers = combineHeaders(orgSession.headers, projectSession.headers);
-
-    return data({ project, org }, { headers });
-  } catch (error: any) {
-    const orgSession = await getOrgSession(request);
-
-    return redirectWithToast(
-      orgSession.orgId
-        ? getPathWithParams(paths.org.detail.projects.root, { orgId: orgSession.orgId })
-        : paths.account.organizations.root,
-      {
-        title: 'Project unavailable',
-        description: error.message,
-        type: 'error',
-      }
-    );
-  }
+/** Minimal loader - returns projectId for breadcrumbs only. No blocking fetch. */
+export const loader = async ({ params }: LoaderFunctionArgs) => {
+  return data({ projectId: params.projectId });
 };
+
+/** Sets org and project session cookies when user enters a project. Used for "return to last project" on next visit. */
+export const action = async ({ request }: ActionFunctionArgs) => {
+  if (request.method !== 'POST') return new Response(null, { status: 405 });
+
+  const formData = await request.formData();
+  const projectId = formData.get('projectId') as string | null;
+  const orgId = formData.get('orgId') as string | null;
+
+  if (!projectId || !orgId) {
+    return new Response(null, { status: 400 });
+  }
+
+  const orgSession = await setOrgSession(request, orgId);
+  const projectSession = await setProjectSession(request, projectId);
+  const headers = combineHeaders(orgSession.headers, projectSession.headers);
+
+  return new Response(null, { status: 204, headers });
+};
+
+/** @deprecated Use useProjectContext for project/org. Kept for breadcrumb handle.path compatibility. */
+export interface ProjectLayoutLoaderData {
+  project?: Project;
+  org?: Organization;
+  projectId?: string;
+}
 
 /** Skip re-running the loader when navigating within the same project (e.g. Home → AI Edge → Connectors). */
 export function shouldRevalidate({
@@ -107,150 +84,171 @@ export function shouldRevalidate({
   return defaultShouldRevalidate;
 }
 
-export default function ProjectLayout() {
-  const { project: initialProject, org } = useLoaderData<ProjectLayoutLoaderData>();
+function ProjectLayoutContent() {
+  const { projectId } = useParams();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const sessionFetcher = useFetcher({ key: 'session-cookies' });
+  const lastSessionProjectRef = useRef<string | null>(null);
+  const { organization: appOrg, setOrganization, setProject } = useApp();
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateProject(initialProject.name, initialProject);
-
-  // Read from React Query cache
-  const { data: queryData } = useProject(initialProject.name, {
+  const {
+    data: project,
+    isLoading: projectLoading,
+    isError: projectError,
+    error: projectErrorDetail,
+  } = useProject(projectId ?? '', {
+    staleTime: 5 * 60 * 1000,
     refetchOnMount: false,
+  });
+
+  const { data: org } = useOrganization(project?.organizationId ?? '', {
+    enabled: !!project?.organizationId,
     staleTime: 5 * 60 * 1000,
   });
 
-  // Use React Query data, fallback to SSR data
-  const project = queryData ?? initialProject;
+  // Redirect on error (invalid project, not found, etc.)
+  useEffect(() => {
+    if (projectError && projectId) {
+      toast.error('Project unavailable', {
+        description: projectErrorDetail?.message ?? 'Project not found',
+      });
+      const redirectPath = appOrg?.name
+        ? getPathWithParams(paths.org.detail.projects.root, { orgId: appOrg.name })
+        : paths.account.organizations.root;
+      navigate(redirectPath);
+    }
+  }, [projectError, projectErrorDetail, projectId, appOrg?.name, navigate]);
 
-  const { setOrganization, setProject } = useApp();
+  const projectContextValue = useMemo(
+    () => ({
+      project,
+      org: org ?? undefined,
+      isLoading: projectLoading,
+      error: projectError ? (projectErrorDetail ?? new Error('Project unavailable')) : null,
+    }),
+    [project, org, projectLoading, projectError, projectErrorDetail]
+  );
 
   const navItems: NavItem[] = useMemo(() => {
+    if (!project?.name) return [];
+
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
-    const projectId = project.name;
+    const pid = project.name;
 
     const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
-      projectId,
+      projectId: pid,
     });
     const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
-      projectId,
+      projectId: pid,
     });
     const settingsNotifications = getPathWithParams(paths.project.detail.settings.notifications, {
-      projectId,
+      projectId: pid,
     });
-    const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, { projectId });
+    const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, {
+      projectId: pid,
+    });
 
     return [
       {
         title: 'Home',
-        href: getPathWithParams(paths.project.detail.home, { projectId }),
+        href: getPathWithParams(paths.project.detail.home, { projectId: pid }),
         type: 'link',
         icon: HomeIcon,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: domainKeys.list(projectId),
-            queryFn: () => createDomainService().list(projectId),
+            queryKey: domainKeys.list(pid),
+            queryFn: () => createDomainService().list(pid),
           });
           void queryClient.prefetchQuery({
-            queryKey: exportPolicyKeys.list(projectId),
-            queryFn: () => createExportPolicyService().list(projectId),
+            queryKey: exportPolicyKeys.list(pid),
+            queryFn: () => createExportPolicyService().list(pid),
           });
         },
       },
       {
         title: 'AI Edge',
-        href: getPathWithParams(paths.project.detail.proxy.root, {
-          projectId,
-        }),
+        href: getPathWithParams(paths.project.detail.proxy.root, { projectId: pid }),
         icon: GaugeIcon,
         disabled: !isReady,
         type: 'link',
         showSeparatorAbove: true,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: httpProxyKeys.list(projectId),
-            queryFn: () => createHttpProxyService().list(projectId),
+            queryKey: httpProxyKeys.list(pid),
+            queryFn: () => createHttpProxyService().list(pid),
           });
         },
       },
       {
         title: 'Connectors',
-        href: getPathWithParams(paths.project.detail.connectors.root, {
-          projectId,
-        }),
+        href: getPathWithParams(paths.project.detail.connectors.root, { projectId: pid }),
         type: 'link',
         icon: CableIcon,
         disabled: !isReady,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: connectorKeys.list(projectId),
-            queryFn: () => createConnectorService().list(projectId),
+            queryKey: connectorKeys.list(pid),
+            queryFn: () => createConnectorService().list(pid),
           });
         },
       },
       {
         title: 'DNS',
-        href: getPathWithParams(paths.project.detail.dnsZones.root, {
-          projectId,
-        }),
+        href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId: pid }),
         icon: SignpostIcon,
         disabled: !isReady,
         type: 'link',
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: dnsZoneKeys.list(projectId),
-            queryFn: () => createDnsZoneService().list(projectId),
+            queryKey: dnsZoneKeys.list(pid),
+            queryFn: () => createDnsZoneService().list(pid),
           });
         },
       },
       {
         title: 'Domains',
-        href: getPathWithParams(paths.project.detail.domains.root, {
-          projectId,
-        }),
+        href: getPathWithParams(paths.project.detail.domains.root, { projectId: pid }),
         type: 'link',
         icon: LayersIcon,
         disabled: !isReady,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: domainKeys.list(projectId),
-            queryFn: () => createDomainService().list(projectId),
+            queryKey: domainKeys.list(pid),
+            queryFn: () => createDomainService().list(pid),
           });
         },
       },
       {
         title: 'Metrics',
-        href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
+        href: getPathWithParams(paths.project.detail.metrics.root, { projectId: pid }),
         type: 'link',
         icon: ChartSplineIcon,
         disabled: !isReady,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: exportPolicyKeys.list(projectId),
-            queryFn: () => createExportPolicyService().list(projectId),
+            queryKey: exportPolicyKeys.list(pid),
+            queryFn: () => createExportPolicyService().list(pid),
           });
         },
       },
-
       {
         title: 'Secrets',
-        href: getPathWithParams(paths.project.detail.config.secrets.root, {
-          projectId,
-        }),
+        href: getPathWithParams(paths.project.detail.config.secrets.root, { projectId: pid }),
         type: 'link',
         icon: FileLockIcon,
         disabled: !isReady,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: secretKeys.list(projectId),
-            queryFn: () => createSecretService().list(projectId),
+            queryKey: secretKeys.list(pid),
+            queryFn: () => createSecretService().list(pid),
           });
         },
       },
       {
         title: 'Project Settings',
-        href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.general, { projectId: pid }),
         type: 'link',
         disabled: !isReady,
         icon: SettingsIcon,
@@ -262,28 +260,54 @@ export default function ProjectLayout() {
   }, [project, queryClient]);
 
   useEffect(() => {
-    if (org) {
-      setOrganization(org);
-      setSentryOrgContext(org);
+    const currentOrg = org ?? appOrg;
+    if (currentOrg) {
+      setOrganization(currentOrg);
+      setSentryOrgContext(currentOrg);
     }
-  }, [org]);
+  }, [org, appOrg, setOrganization]);
 
   useEffect(() => {
     if (project) {
       setProject(project);
       setSentryProjectContext(project);
     }
-  }, [project]);
+  }, [project, setProject]);
+
+  // Set org/project session cookies when project loads - enables "return to last project" on next visit
+  useEffect(() => {
+    const orgId = org?.name ?? appOrg?.name;
+    if (project?.name && orgId && lastSessionProjectRef.current !== project.name) {
+      lastSessionProjectRef.current = project.name;
+      sessionFetcher.submit({ projectId: project.name, orgId }, { method: 'POST' });
+    }
+  }, [project?.name, org?.name, appOrg?.name, sessionFetcher]);
+
+  // Don't render content while redirecting on error
+  if (projectError && projectId) {
+    return null;
+  }
+
+  const currentOrg = org ?? appOrg;
+  const currentProject = project ?? undefined;
 
   return (
-    <DashboardLayout
-      navItems={navItems}
-      sidebarCollapsible="icon"
-      currentProject={project}
-      currentOrg={org}
-      expandBehavior="push"
-      showBackdrop={false}>
-      <Outlet />
-    </DashboardLayout>
+    <ProjectProvider value={projectContextValue}>
+      <DashboardLayout
+        navItems={navItems}
+        sidebarCollapsible="icon"
+        currentProject={currentProject}
+        currentOrg={currentOrg}
+        expandBehavior="push"
+        showBackdrop={false}
+        sidebarLoading={projectLoading}
+        switcherLoading={projectLoading}>
+        <Outlet />
+      </DashboardLayout>
+    </ProjectProvider>
   );
+}
+
+export default function ProjectLayout() {
+  return <ProjectLayoutContent />;
 }
