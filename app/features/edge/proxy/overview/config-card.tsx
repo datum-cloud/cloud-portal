@@ -1,4 +1,6 @@
+import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { List, ListItem } from '@/components/list/list';
+import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
   ProxyBasicAuthDialog,
@@ -9,11 +11,14 @@ import {
   type ProxyDisplayNameDialogRef,
 } from '@/features/edge/proxy/proxy-display-name-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
+import { ControlPlaneStatus } from '@/resources/base';
+import { useConnector, useConnectorWatch } from '@/resources/connectors';
 import {
   type HttpProxy,
   formatWafProtectionDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge, Card, CardContent, toast, Tooltip, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Switch } from '@shadcn/ui/switch';
@@ -31,6 +36,12 @@ export const HttpProxyConfigCard = ({
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
   const basicAuthDialogRef = useRef<ProxyBasicAuthDialogRef>(null);
   const updateMutation = useUpdateHttpProxy(projectId ?? '', proxy.name);
+  const { data: connector, isLoading: isConnectorLoading } = useConnector(
+    projectId ?? '',
+    proxy.connector?.name
+  );
+
+  useConnectorWatch(projectId ?? '', proxy.connector?.name);
 
   const isPending = useProxyPending(proxy?.status);
 
@@ -57,6 +68,7 @@ export const HttpProxyConfigCard = ({
             </div>
           ),
       },
+
       {
         label: (
           <div className="flex items-center gap-1.5">
@@ -96,7 +108,11 @@ export const HttpProxyConfigCard = ({
           <div className="flex items-center gap-1.5">
             <span>Force HTTPS</span>
             <Tooltip
-              message="Force all HTTP requests to be redirected to HTTPS using a 301 permanent redirect"
+              message={
+                proxy.connector
+                  ? 'HTTPS is only supported when using a connector'
+                  : 'Force all HTTP requests to be redirected to HTTPS using a 301 permanent redirect'
+              }
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -113,7 +129,7 @@ export const HttpProxyConfigCard = ({
             <Switch
               key={`force-https-${proxy.enableHttpRedirect ?? false}`}
               checked={proxy.enableHttpRedirect ?? false}
-              disabled={isPending}
+              disabled={isPending || !!proxy.connector}
               onCheckedChange={(checked) => {
                 if (!checked && proxy.basicAuthEnabled) {
                   toast.warning('AI Edge', {
@@ -183,6 +199,56 @@ export const HttpProxyConfigCard = ({
     ];
   }, [proxy, isPending, projectId, updateMutation]);
 
+  const connectorBlock =
+    proxy.connector &&
+    (isConnectorLoading || !connector ? (
+      <Skeleton className="h-20 w-full rounded-lg" />
+    ) : (
+      (() => {
+        const connectorStatus = transformControlPlaneStatus(connector!.status);
+        const isActive = connectorStatus?.status === ControlPlaneStatus.Success;
+        const showDevice = connector!.deviceName || connector!.deviceOs;
+        return (
+          <div className="border-primary/25 bg-primary/2 ring-primary/10 flex w-fit flex-col gap-2 rounded-lg border p-3 ring-1 lg:h-20">
+            <div className="flex min-w-0 flex-col items-start gap-2 md:flex-row md:items-center">
+              <Tooltip message={isActive ? 'Connector is active' : 'Connector is offline'}>
+                <StatusPulseDot variant={isActive ? 'active' : 'offline'} />
+              </Tooltip>
+
+              {showDevice && (
+                <div className="text-primary flex min-w-0 items-center gap-1.5 text-sm">
+                  <Tooltip
+                    message={[connector!.deviceName, getOsLabel(connector!.deviceOs)]
+                      .filter(Boolean)
+                      .join(' · ')}>
+                    <span className="flex min-w-0 flex-col items-start gap-2 lg:flex-row lg:items-center">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        {connector!.deviceOs && (
+                          <OsIcon os={connector!.deviceOs} size={14} className="shrink-0" />
+                        )}
+                        {connector!.deviceName ?? getOsLabel(connector!.deviceOs)}
+                      </span>
+                      <span className="text-primary/80 text-xs">{connector!.name}</span>
+                    </span>
+                  </Tooltip>
+                </div>
+              )}
+            </div>
+            <p className="text-primary/70 mt-1 p-0 text-xs">
+              Connector created via{' '}
+              <a
+                href="https://datum.net/downloads"
+                className="underline"
+                target="_blank"
+                rel="noreferrer">
+                Datum Desktop
+              </a>
+            </p>
+          </div>
+        );
+      })()
+    ));
+
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
       <CardContent className="p-0 sm:px-6 sm:pb-4">
@@ -191,6 +257,7 @@ export const HttpProxyConfigCard = ({
           <span className="text-base font-semibold">Configuration</span>
         </div>
         <List items={listItems} />
+        {connectorBlock && <div className="mt-4">{connectorBlock}</div>}
       </CardContent>
       {projectId && (
         <>

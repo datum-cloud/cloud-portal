@@ -1,0 +1,72 @@
+import { OsIcon } from '@/components/icon/os-icon';
+import { Card, CardContent, LinkButton } from '@datum-ui/components';
+import { DownloadIcon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+/** Detect OS from browser for download CTA (client-only). */
+function detectBrowserOs(): 'windows' | 'macos' | 'linux' | null {
+  if (typeof navigator === 'undefined') return null;
+  const ua = navigator.userAgent.toLowerCase();
+  const platform = (
+    navigator as { userAgentData?: { platform: string } }
+  ).userAgentData?.platform?.toLowerCase();
+  if (platform === 'macos' || ua.includes('mac')) return 'macos';
+  if (platform === 'windows' || ua.includes('win')) return 'windows';
+  if (platform === 'linux' || ua.includes('linux')) return 'linux';
+  return null;
+}
+
+const DOWNLOAD_BASE = 'https://datum.net/downloads';
+
+const OS_PATH: Record<string, string> = {
+  macos: 'mac-os',
+  windows: 'windows',
+  linux: 'linux',
+};
+
+const OS_LABELS: Record<string, string> = {
+  macos: 'macOS',
+  windows: 'Windows',
+  linux: 'Linux',
+};
+
+export function ConnectorDownloadCard() {
+  const [os, setOs] = useState<'windows' | 'macos' | 'linux' | null>(null);
+
+  useEffect(() => {
+    setOs(detectBrowserOs());
+  }, []);
+
+  if (!os) return null;
+
+  const osLabel = OS_LABELS[os] ?? os;
+  const downloadUrl = `${DOWNLOAD_BASE}/${OS_PATH[os] ?? os}`;
+
+  return (
+    <Card className="w-full max-w-sm shrink-0 overflow-hidden rounded-xl border p-3 px-3 shadow-sm">
+      <CardContent className="p-0">
+        <div className="flex gap-3">
+          <div className="bg-muted dark:bg-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
+            <OsIcon os={os} size={20} className="text-muted-foreground" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium">Start a connector</p>
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              Download Datum Desktop for {osLabel} to run a connector on this device.
+            </p>
+            <LinkButton
+              type="primary"
+              theme="solid"
+              size="xs"
+              className="mt-2"
+              icon={<DownloadIcon className="size-3.5" />}
+              href={downloadUrl}
+              target="_blank">
+              Download for {osLabel}
+            </LinkButton>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

@@ -1,16 +1,25 @@
-import { BadgeStatus } from '@/components/badge/badge-status';
+import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
+import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
+import { StatusPulseDot } from '@/components/status-pulse-dot';
+import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
+import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/connectors';
+import { type HttpProxy, useHttpProxies, useHttpProxiesWatch } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Badge, Tooltip } from '@datum-ui/components';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button, Tooltip } from '@datum-ui/components';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
-import { MetaFunction, useParams } from 'react-router';
+import { Link, MetaFunction, useParams } from 'react-router';
+
+export type ConnectorWithProxies = Connector & { proxies: HttpProxy[] };
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Connectors');
@@ -18,12 +27,6 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 function getConnectorStatus(connector: Connector) {
   return transformControlPlaneStatus(connector.status);
-}
-
-function getCapabilitySummary(connector: Connector): string {
-  const capabilities = connector.capabilities;
-  if (!capabilities || capabilities.length === 0) return 'None';
-  return capabilities.map((c) => c.type).join(', ');
 }
 
 export default function ConnectorsPage() {
@@ -35,12 +38,33 @@ export default function ConnectorsPage() {
 
   useConnectorsWatch(projectId);
 
-  const { data, isLoading } = useConnectors(projectId, {
+  useHttpProxiesWatch(projectId);
+
+  const { data: connectorsData, isLoading } = useConnectors(projectId, {
     refetchOnMount: false,
     staleTime: 5 * 60 * 1000,
   });
 
-  const columns: ColumnDef<Connector>[] = useMemo(
+  const { data: proxies } = useHttpProxies(projectId, {
+    refetchOnMount: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const tableData = useMemo((): ConnectorWithProxies[] => {
+    if (!connectorsData) return [];
+    const byConnector = new Map<string, HttpProxy[]>();
+    for (const proxy of proxies ?? []) {
+      const name = proxy.connector?.name;
+      if (name) {
+        const list = byConnector.get(name) ?? [];
+        list.push(proxy);
+        byConnector.set(name, list);
+      }
+    }
+    return connectorsData.map((c) => ({ ...c, proxies: byConnector.get(c.name) ?? [] }));
+  }, [connectorsData, proxies]);
+
+  const columns: ColumnDef<ConnectorWithProxies>[] = useMemo(
     () => [
       {
         header: 'Name',
@@ -56,11 +80,139 @@ export default function ConnectorsPage() {
         accessorKey: 'status',
         cell: ({ row }) => {
           const status = getConnectorStatus(row.original);
+          const isOnline = status.status === ControlPlaneStatus.Success;
           return (
-            <BadgeStatus
-              status={status}
-              label={status.status === ControlPlaneStatus.Success ? 'Ready' : undefined}
-            />
+            <Tooltip message={status.message} hidden={isOnline}>
+              <div className="flex items-center gap-2">
+                <StatusPulseDot variant={isOnline ? 'active' : 'offline'} />
+                <span className="text-sm">{isOnline ? 'Online' : 'Offline'}</span>
+              </div>
+            </Tooltip>
+          );
+        },
+      },
+      {
+        header: 'Requests',
+        id: 'requests',
+        enableSorting: false,
+        meta: { tooltip: 'Request rate over the last hour (all AI Edges using this connector)' },
+        cell: ({ row }) => (
+          <ConnectorSparkline
+            projectId={projectId ?? ''}
+            proxyNames={row.original.proxies.map((p) => p.name)}
+            connectorId={row.original.name}
+          />
+        ),
+      },
+      {
+        header: 'AI Edge',
+        id: 'proxies',
+        cell: ({ row }) => {
+          const proxiesList = row.original.proxies;
+          if (!proxiesList.length) return <span className="text-muted-foreground text-sm">—</span>;
+          if (proxiesList.length > 2) {
+            return (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="quaternary" theme="link" size="xs" className="shrink-0">
+                    View all ({proxiesList.length})
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="max-h-[280px] w-auto min-w-[200px] overflow-y-auto p-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium">AI Edges</p>
+                  <ul className="space-y-1.5">
+                    {proxiesList.map((proxy) => (
+                      <li key={proxy.name}>
+                        <Link
+                          to={getPathWithParams(paths.project.detail.proxy.detail.root, {
+                            projectId,
+                            proxyId: proxy.name,
+                          })}
+                          className="text-sm underline-offset-2 hover:underline">
+                          {proxy.chosenName || proxy.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            );
+          }
+          return (
+            <span className="text-sm">
+              {proxiesList.map((proxy, i) => (
+                <span key={proxy.name}>
+                  {i > 0 && <span className="text-muted-foreground"> · </span>}
+                  <Link
+                    to={getPathWithParams(paths.project.detail.proxy.detail.root, {
+                      projectId,
+                      proxyId: proxy.name,
+                    })}
+                    className="underline-offset-2 hover:underline">
+                    {proxy.chosenName || proxy.name}
+                  </Link>
+                </span>
+              ))}
+            </span>
+          );
+        },
+      },
+      {
+        header: 'Hostnames',
+        id: 'hostnames',
+        meta: { tooltip: 'Verified hostnames configured by AI Edge on this connector' },
+        cell: ({ row }) => {
+          const hostnames = [
+            ...new Set(row.original.proxies.flatMap((p) => p.status?.hostnames ?? [])),
+          ];
+          if (!hostnames.length) return <span className="text-muted-foreground text-sm">—</span>;
+          if (hostnames.length > 2) {
+            return (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button type="quaternary" theme="link" size="xs" className="shrink-0">
+                    View all ({hostnames.length})
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="start"
+                  className="max-h-[280px] w-auto min-w-[240px] overflow-y-auto p-3">
+                  <p className="text-muted-foreground mb-2 text-xs font-medium">Hostnames</p>
+                  <ul className="space-y-1.5">
+                    {hostnames.map((hostname) => (
+                      <li key={hostname}>
+                        <BadgeCopy
+                          value={hostname}
+                          badgeTheme="solid"
+                          badgeType="muted"
+                          textClassName="max-w-full truncate font-mono text-xs"
+                          showTooltip={false}
+                          wrapperTooltipMessage={hostname}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </PopoverContent>
+              </Popover>
+            );
+          }
+          const hasMultiple = hostnames.length > 1;
+          return (
+            <div className="flex flex-wrap items-center gap-2">
+              {hostnames.map((hostname) => (
+                <BadgeCopy
+                  key={hostname}
+                  value={hostname}
+                  badgeTheme="solid"
+                  badgeType="muted"
+                  textClassName={hasMultiple ? 'max-w-[10rem] truncate' : undefined}
+                  showTooltip={false}
+                  wrapperTooltipMessage={hostname}
+                />
+              ))}
+            </div>
           );
         },
       },
@@ -78,36 +230,13 @@ export default function ConnectorsPage() {
             <Tooltip message={tooltip}>
               {deviceOs && deviceName ? (
                 <div className="flex items-center gap-1.5">
-                  <OsIcon os={deviceOs} size={16} className="text-muted-foreground shrink-0" />
-                  <span className="text-muted-foreground truncate text-sm">{deviceName}</span>
+                  <OsIcon os={deviceOs} size={16} className="shrink-0" />
+                  <span className="truncate text-sm">{deviceName}</span>
                 </div>
               ) : (
                 <span>--</span>
               )}
             </Tooltip>
-          );
-        },
-      },
-      {
-        header: 'Class',
-        accessorKey: 'connectorClassName',
-        cell: ({ row }) => {
-          return (
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-              {row.original.connectorClassName}
-            </Badge>
-          );
-        },
-      },
-      {
-        header: 'Capabilities',
-        accessorKey: 'capabilities',
-        enableSorting: false,
-        cell: ({ row }) => {
-          return (
-            <span className="text-muted-foreground text-sm">
-              {getCapabilitySummary(row.original)}
-            </span>
           );
         },
       },
@@ -119,19 +248,20 @@ export default function ConnectorsPage() {
         },
       },
     ],
-    []
+    [projectId]
   );
 
   return (
     <DataTable
       isLoading={isLoading}
       columns={columns}
-      data={data ?? []}
+      data={tableData}
       emptyContent={{
         title: 'No connectors found',
       }}
       tableTitle={{
         title: 'Connectors',
+        rightSide: <ConnectorDownloadCard />,
       }}
       toolbar={{
         layout: 'compact',

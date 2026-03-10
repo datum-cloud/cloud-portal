@@ -615,7 +615,7 @@ const DataTableContent = forwardRef(function DataTableContent<TData, TValue>(
   );
 
   return (
-    <div className={cn('mx-auto flex h-full w-full flex-col gap-8', className)}>
+    <div className={cn('mx-auto flex h-full w-full flex-col gap-4', className)}>
       {/* Toolbar Section: skeleton when loading, otherwise real toolbar */}
       {showToolbar &&
         (isLoading ? (

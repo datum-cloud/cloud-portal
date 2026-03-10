@@ -9,6 +9,11 @@ export { toConnector, toConnectorList } from './connector.adapter';
 
 export { createConnectorService, connectorKeys, type ConnectorService } from './connector.service';
 
-export { useConnectors, useDeleteConnector, useHydrateConnectors } from './connector.queries';
+export {
+  useConnector,
+  useConnectors,
+  useDeleteConnector,
+  useHydrateConnectors,
+} from './connector.queries';
 
-export { useConnectorsWatch } from './connector.watch';
+export { useConnectorWatch, useConnectorsWatch } from './connector.watch';

@@ -2,6 +2,7 @@ import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus } from '@/resources/base';
+import { connectorKeys, createConnectorService } from '@/resources/connectors';
 import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
@@ -27,6 +28,7 @@ import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-ui/components/sidebar/nav-main';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  CableIcon,
   ChartSplineIcon,
   FileLockIcon,
   GaugeIcon,
@@ -172,21 +174,21 @@ export default function ProjectLayout() {
           });
         },
       },
-      // {
-      //   title: 'Connectors',
-      //   href: getPathWithParams(paths.project.detail.connectors.root, {
-      //     projectId,
-      //   }),
-      //   type: 'link',
-      //   icon: CableIcon,
-      //   disabled: !isReady,
-      //   onPrefetch: () => {
-      //     queryClient.prefetchQuery({
-      //       queryKey: connectorKeys.list(projectId),
-      //       queryFn: () => createConnectorService().list(projectId),
-      //     });
-      //   },
-      // },
+      {
+        title: 'Connectors',
+        href: getPathWithParams(paths.project.detail.connectors.root, {
+          projectId,
+        }),
+        type: 'link',
+        icon: CableIcon,
+        disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: connectorKeys.list(projectId),
+            queryFn: () => createConnectorService().list(projectId),
+          });
+        },
+      },
       {
         title: 'DNS',
         href: getPathWithParams(paths.project.detail.dnsZones.root, {

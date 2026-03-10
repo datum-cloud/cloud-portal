@@ -35,6 +35,7 @@ export { createHttpProxyService, httpProxyKeys, type HttpProxyService } from './
 // Query hooks exports
 export {
   useHttpProxies,
+  useHttpProxiesByConnector,
   useHttpProxy,
   useCreateHttpProxy,
   useUpdateHttpProxy,

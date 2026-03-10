@@ -21,6 +21,19 @@ export function useConnectors(
   });
 }
 
+export function useConnector(
+  projectId: string,
+  name: string | undefined,
+  options?: Omit<UseQueryOptions<Connector>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: connectorKeys.detail(projectId, name ?? ''),
+    queryFn: () => createConnectorService().get(projectId, name!),
+    enabled: !!projectId && !!name,
+    ...options,
+  });
+}
+
 export function useDeleteConnector(
   projectId: string,
   options?: UseMutationOptions<void, Error, string>
