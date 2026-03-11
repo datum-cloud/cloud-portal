@@ -74,7 +74,17 @@ export const HttpProxyConfigCard = ({
           <div className="flex items-center gap-1.5">
             <span>Protection</span>
             <Tooltip
-              message="WAF protection mode and paranoia level applied to this AI Edge"
+              message={
+                // TODO: we're unable to support WAF via a connector at the moment remove this when we can
+                proxy.connector &&
+                !(
+                  proxy.trafficProtectionMode != null ||
+                  proxy.paranoiaLevels?.blocking != null ||
+                  proxy.paranoiaLevels?.detection != null
+                )
+                  ? 'WAF protection editing is not available when using a connector'
+                  : 'WAF protection mode and paranoia level applied to this AI Edge'
+              }
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -92,14 +102,20 @@ export const HttpProxyConfigCard = ({
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                 {formatWafProtectionDisplay(proxy)}
               </Badge>
-              {projectId && !isPending && (
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => wafDialogRef.current?.show(proxy)}>
-                  <Icon icon={PencilIcon} size={12} />
-                </button>
-              )}
+              {projectId &&
+                !isPending &&
+                // TODO: we're unable to support WAF via a connector at the moment remove this when we can
+                (!proxy.connector ||
+                  proxy.trafficProtectionMode != null ||
+                  proxy.paranoiaLevels?.blocking != null ||
+                  proxy.paranoiaLevels?.detection != null) && (
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                    onClick={() => wafDialogRef.current?.show(proxy)}>
+                    <Icon icon={PencilIcon} size={12} />
+                  </button>
+                )}
             </div>
           ),
       },
