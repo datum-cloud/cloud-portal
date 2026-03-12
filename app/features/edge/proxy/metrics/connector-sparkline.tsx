@@ -17,7 +17,7 @@ interface ConnectorSparklineProps {
 const chartConfig: ChartConfig = {
   requests: {
     label: 'Requests',
-    color: '#888888',
+    color: 'var(--color-muted-foreground)',
   },
 };
 
@@ -26,12 +26,8 @@ export function ConnectorSparkline({
   proxyNames,
   connectorId = 'connector',
 }: ConnectorSparklineProps) {
-  const endTime = useMemo(() => new Date(), []);
-  const startTime = useMemo(() => {
-    const date = new Date();
-    date.setHours(date.getHours() - 1);
-    return date;
-  }, []);
+  const endTime = new Date();
+  const startTime = new Date(endTime.getTime() - 60 * 60 * 1000);
 
   const proxyNamesKey = useMemo(() => [...proxyNames].sort().join(','), [proxyNames]);
 

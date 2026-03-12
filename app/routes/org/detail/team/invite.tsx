@@ -2,19 +2,16 @@ import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { createRbacMiddleware } from '@/modules/rbac';
 import {
-  invitationKeys,
   useCreateInvitation,
   type CreateInvitationInput,
   type InvitationFormSchema,
 } from '@/resources/invitations';
-import { memberKeys } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { withMiddleware } from '@/utils/middlewares';
 import { toast } from '@datum-ui/components';
-import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 import { data, MetaFunction, useNavigate, useParams } from 'react-router';
 
@@ -50,7 +47,6 @@ export default function OrgTeamInvitePage() {
   const navigate = useNavigate();
   const { trackAction } = useAnalytics();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const queryClient = useQueryClient();
 
   const createInvitation = useCreateInvitation(orgId ?? '');
 
@@ -162,10 +158,8 @@ export default function OrgTeamInvitePage() {
           description: ErrorList(failedResults),
         });
       }
-      queryClient.refetchQueries({ queryKey: invitationKeys.list(orgId) });
-      queryClient.refetchQueries({ queryKey: memberKeys.list(orgId) });
     },
-    [orgId, createInvitation, navigate, trackAction, queryClient]
+    [orgId, createInvitation, navigate, trackAction]
   );
 
   return (

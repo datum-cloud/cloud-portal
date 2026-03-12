@@ -9,6 +9,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/connectors';
 import { type HttpProxy, useHttpProxies, useHttpProxiesWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -42,12 +43,12 @@ export default function ConnectorsPage() {
 
   const { data: connectorsData, isLoading } = useConnectors(projectId, {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const { data: proxies } = useHttpProxies(projectId, {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const tableData = useMemo((): ConnectorWithProxies[] => {

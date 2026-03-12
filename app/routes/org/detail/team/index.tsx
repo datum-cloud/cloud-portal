@@ -11,6 +11,7 @@ import { useCancelInvitation, useResendInvitation, useInvitations } from '@/reso
 import { useRemoveMember, useLeaveOrganization, useMembers } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
@@ -55,10 +56,10 @@ export default function OrgTeamPage() {
   }
 
   const { data: members = [], isLoading: membersLoading } = useMembers(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
   const { data: invitations = [], isLoading: invitationsLoading } = useInvitations(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const isLoading = membersLoading || invitationsLoading;

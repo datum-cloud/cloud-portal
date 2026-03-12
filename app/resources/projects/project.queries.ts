@@ -88,6 +88,10 @@ export function useDeleteProject(options?: UseMutationOptions<void, Error, strin
 
       options?.onSuccess?.(...args);
     },
+    onSettled: (...args) => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      options?.onSettled?.(...args);
+    },
   });
 }
 

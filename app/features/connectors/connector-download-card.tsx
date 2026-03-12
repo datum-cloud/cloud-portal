@@ -1,4 +1,5 @@
 import { OsIcon } from '@/components/icon/os-icon';
+import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { Card, CardContent, LinkButton } from '@datum-ui/components';
 import { DownloadIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -15,8 +16,6 @@ function detectBrowserOs(): 'windows' | 'macos' | 'linux' | null {
   if (platform === 'linux' || ua.includes('linux')) return 'linux';
   return null;
 }
-
-const DOWNLOAD_BASE = 'https://datum.net/downloads';
 
 const OS_PATH: Record<string, string> = {
   macos: 'mac-os',
@@ -40,10 +39,13 @@ export function ConnectorDownloadCard() {
   if (!os) return null;
 
   const osLabel = OS_LABELS[os] ?? os;
-  const downloadUrl = `${DOWNLOAD_BASE}/${OS_PATH[os] ?? os}`;
+  const downloadUrl = `${DATUM_DESKTOP_DOWNLOAD_URL}/${OS_PATH[os] ?? os}`;
 
   return (
-    <Card className="w-full max-w-sm shrink-0 overflow-hidden rounded-xl border p-3 px-3 shadow-sm">
+    <Card
+      className="w-full max-w-sm shrink-0 overflow-hidden rounded-xl border p-3 px-3 shadow-sm"
+      role="region"
+      aria-label="Download connector">
       <CardContent className="p-0">
         <div className="flex gap-3">
           <div className="bg-muted dark:bg-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">

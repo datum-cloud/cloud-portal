@@ -18,6 +18,7 @@ import {
   formatWafProtectionDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
+import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge, Card, CardContent, toast, Tooltip, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -110,7 +111,7 @@ export const HttpProxyConfigCard = ({
             <Tooltip
               message={
                 proxy.connector
-                  ? 'HTTPS is only supported when using a connector'
+                  ? 'HTTPS redirect is not available when using a connector'
                   : 'Force all HTTP requests to be redirected to HTTPS using a 301 permanent redirect'
               }
               side="bottom"
@@ -199,55 +200,53 @@ export const HttpProxyConfigCard = ({
     ];
   }, [proxy, isPending, projectId, updateMutation]);
 
-  const connectorBlock =
-    proxy.connector &&
-    (isConnectorLoading || !connector ? (
-      <Skeleton className="h-20 w-full rounded-lg" />
-    ) : (
-      (() => {
-        const connectorStatus = transformControlPlaneStatus(connector!.status);
-        const isActive = connectorStatus?.status === ControlPlaneStatus.Success;
-        const showDevice = connector!.deviceName || connector!.deviceOs;
-        return (
-          <div className="border-primary/25 bg-primary/2 ring-primary/10 flex w-fit flex-col gap-2 rounded-lg border p-3 ring-1 lg:h-20">
-            <div className="flex min-w-0 flex-col items-start gap-2 md:flex-row md:items-center">
-              <Tooltip message={isActive ? 'Connector is active' : 'Connector is offline'}>
-                <StatusPulseDot variant={isActive ? 'active' : 'offline'} />
-              </Tooltip>
+  const connectorBlock = useMemo(() => {
+    if (!proxy.connector) return null;
+    if (isConnectorLoading || !connector) return <Skeleton className="h-20 w-full rounded-lg" />;
 
-              {showDevice && (
-                <div className="text-primary flex min-w-0 items-center gap-1.5 text-sm">
-                  <Tooltip
-                    message={[connector!.deviceName, getOsLabel(connector!.deviceOs)]
-                      .filter(Boolean)
-                      .join(' · ')}>
-                    <span className="flex min-w-0 flex-col items-start gap-2 lg:flex-row lg:items-center">
-                      <span className="flex min-w-0 items-center gap-1.5">
-                        {connector!.deviceOs && (
-                          <OsIcon os={connector!.deviceOs} size={14} className="shrink-0" />
-                        )}
-                        {connector!.deviceName ?? getOsLabel(connector!.deviceOs)}
-                      </span>
-                      <span className="text-primary/80 text-xs">{connector!.name}</span>
-                    </span>
-                  </Tooltip>
-                </div>
-              )}
+    const connectorStatus = transformControlPlaneStatus(connector.status);
+    const isActive = connectorStatus?.status === ControlPlaneStatus.Success;
+    const showDevice = connector.deviceName || connector.deviceOs;
+
+    return (
+      <div className="border-primary/25 bg-primary/2 ring-primary/10 flex w-fit flex-col gap-2 rounded-lg border p-3 ring-1 lg:h-20">
+        <div className="flex min-w-0 flex-col items-start gap-2 md:flex-row md:items-center">
+          <Tooltip message={isActive ? 'Connector is active' : 'Connector is offline'}>
+            <StatusPulseDot variant={isActive ? 'active' : 'offline'} />
+          </Tooltip>
+
+          {showDevice && (
+            <div className="text-primary flex min-w-0 items-center gap-1.5 text-sm">
+              <Tooltip
+                message={[connector.deviceName, getOsLabel(connector.deviceOs)]
+                  .filter(Boolean)
+                  .join(' · ')}>
+                <span className="flex min-w-0 flex-col items-start gap-2 lg:flex-row lg:items-center">
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    {connector.deviceOs && (
+                      <OsIcon os={connector.deviceOs} size={14} className="shrink-0" />
+                    )}
+                    {connector.deviceName ?? getOsLabel(connector.deviceOs)}
+                  </span>
+                  <span className="text-primary/80 text-xs">{connector.name}</span>
+                </span>
+              </Tooltip>
             </div>
-            <p className="text-primary/70 mt-1 p-0 text-xs">
-              Connector created via{' '}
-              <a
-                href="https://datum.net/downloads"
-                className="underline"
-                target="_blank"
-                rel="noreferrer">
-                Datum Desktop
-              </a>
-            </p>
-          </div>
-        );
-      })()
-    ));
+          )}
+        </div>
+        <p className="text-primary/70 mt-1 p-0 text-xs">
+          Connector created via{' '}
+          <a
+            href={DATUM_DESKTOP_DOWNLOAD_URL}
+            className="underline"
+            target="_blank"
+            rel="noreferrer">
+            Datum Desktop
+          </a>
+        </p>
+      </div>
+    );
+  }, [proxy.connector, isConnectorLoading, connector]);
 
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
