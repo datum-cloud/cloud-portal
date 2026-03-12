@@ -17,6 +17,7 @@ import {
 } from '@/resources/dns-zones';
 import { useRefreshDomainRegistration } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -84,7 +85,7 @@ export default function DnsZonesPage() {
     // Don't refetch on mount - hydration already seeded the cache
     refetchOnMount: false,
     // Consider data fresh for 5 minutes (watch keeps it updated)
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   // Use React Query data, fallback to SSR data

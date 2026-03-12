@@ -87,9 +87,13 @@ export function useDeleteDomain(
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;
-      // Cancel in-flight queries - Watch handles list update
+      // Cancel in-flight queries for the deleted domain
       await queryClient.cancelQueries({ queryKey: domainKeys.detail(projectId, name) });
-      queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
+      // Optimistically remove from list cache so UI updates immediately
+      queryClient.setQueryData<Domain[]>(domainKeys.list(projectId), (old) =>
+        old ? old.filter((d) => d.name !== name) : old
+      );
+      queryClient.removeQueries({ queryKey: domainKeys.detail(projectId, name) });
       options?.onSuccess?.(...args);
     },
   });
