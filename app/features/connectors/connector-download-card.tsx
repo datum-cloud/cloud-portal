@@ -1,6 +1,6 @@
 import { OsIcon } from '@/components/icon/os-icon';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
-import { Card, CardContent, LinkButton } from '@datum-ui/components';
+import { Button, Card, CardContent, CloseIcon, LinkButton } from '@datum-ui/components';
 import { DownloadIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -29,7 +29,11 @@ const OS_LABELS: Record<string, string> = {
   linux: 'Linux',
 };
 
-export function ConnectorDownloadCard() {
+type ConnectorDownloadCardProps = {
+  onDismiss?: () => void;
+};
+
+export function ConnectorDownloadCard({ onDismiss }: ConnectorDownloadCardProps) {
   const [os, setOs] = useState<'windows' | 'macos' | 'linux' | null>(null);
 
   useEffect(() => {
@@ -43,9 +47,20 @@ export function ConnectorDownloadCard() {
 
   return (
     <Card
-      className="w-full max-w-sm shrink-0 overflow-hidden rounded-xl border p-3 px-3 shadow-sm"
+      className="relative w-full max-w-sm shrink-0 overflow-hidden rounded-xl border p-3 px-3 shadow-sm"
       role="region"
       aria-label="Download connector">
+      {onDismiss && (
+        <Button
+          type="quaternary"
+          theme="link"
+          size="icon"
+          className="absolute top-2 right-2 size-[23px]"
+          onClick={onDismiss}
+          aria-label="Dismiss connector download card">
+          <CloseIcon />
+        </Button>
+      )}
       <CardContent className="p-0">
         <div className="flex gap-3">
           <div className="bg-muted dark:bg-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">

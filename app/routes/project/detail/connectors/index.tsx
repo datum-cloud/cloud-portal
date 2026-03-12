@@ -10,6 +10,7 @@ import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/c
 import { type HttpProxy, useHttpProxies, useHttpProxiesWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -18,13 +19,34 @@ import { Button, Tooltip } from '@datum-ui/components';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
-import { Link, MetaFunction, useParams } from 'react-router';
+import {
+  ActionFunctionArgs,
+  data,
+  Link,
+  LoaderFunctionArgs,
+  MetaFunction,
+  useFetcher,
+  useLoaderData,
+  useParams,
+} from 'react-router';
 
 export type ConnectorWithProxies = Connector & { proxies: HttpProxy[] };
+
+const ALERT_KEY = 'connector_download';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Connectors');
 });
+
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { isClosed: downloadDismissed, headers } = await getAlertState(request, ALERT_KEY);
+  return data({ downloadDismissed }, { headers });
+};
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { headers } = await setAlertClosed(request, ALERT_KEY);
+  return data({ success: true }, { headers });
+};
 
 function getConnectorStatus(connector: Connector) {
   return transformControlPlaneStatus(connector.status);
@@ -32,10 +54,18 @@ function getConnectorStatus(connector: Connector) {
 
 export default function ConnectorsPage() {
   const { projectId } = useParams();
+  const { downloadDismissed } = useLoaderData<typeof loader>();
+  const dismissFetcher = useFetcher({ key: 'connector-download-dismiss' });
 
   if (!projectId) {
     throw new BadRequestError('Project ID is required');
   }
+
+  const handleDismissDownload = () => {
+    dismissFetcher.submit({}, { method: 'POST' });
+  };
+
+  const isDownloadVisible = !downloadDismissed && dismissFetcher.state === 'idle';
 
   useConnectorsWatch(projectId);
 
@@ -262,7 +292,9 @@ export default function ConnectorsPage() {
       }}
       tableTitle={{
         title: 'Connectors',
-        rightSide: <ConnectorDownloadCard />,
+        rightSide: isDownloadVisible ? (
+          <ConnectorDownloadCard onDismiss={handleDismissDownload} />
+        ) : undefined,
       }}
       toolbar={{
         layout: 'compact',
