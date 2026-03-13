@@ -1,4 +1,9 @@
-import { toMember, toMemberList, toUpdateMemberRolePayload, toUpdateMemberRolesPayload } from './member.adapter';
+import {
+  toMember,
+  toMemberList,
+  toUpdateMemberRolePayload,
+  toUpdateMemberRolesPayload,
+} from './member.adapter';
 import type { Member, UpdateMemberRoleInput } from './member.schema';
 import {
   listResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,

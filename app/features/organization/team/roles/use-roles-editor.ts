@@ -59,29 +59,27 @@ function reducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case 'STAGE_ADD': {
       const { role, scope } = action.payload;
-      const scopeKey =
-        scope.kind === 'project' ? `project-${scope.projectId}` : 'org';
+      const scopeKey = scope.kind === 'project' ? `project-${scope.projectId}` : 'org';
       const alreadyExists =
         state.serverAssignments.some(
           (a) =>
             a.role.name === role.name &&
-            (a.scope.kind === scope.kind) &&
-            (scope.kind === 'org' || (a.scope.kind === 'project' && a.scope.projectId === scope.projectId))
+            a.scope.kind === scope.kind &&
+            (scope.kind === 'org' ||
+              (a.scope.kind === 'project' && a.scope.projectId === scope.projectId))
         ) ||
         state.pendingChanges.some(
           (c) =>
             c.op === 'add' &&
             c.role.name === role.name &&
             c.scope.kind === scope.kind &&
-            (scope.kind === 'org' || (c.scope.kind === 'project' && c.scope.projectId === scope.projectId))
+            (scope.kind === 'org' ||
+              (c.scope.kind === 'project' && c.scope.projectId === scope.projectId))
         );
       if (alreadyExists) return { ...state, addRoleOpen: false };
       return {
         ...state,
-        pendingChanges: [
-          ...state.pendingChanges,
-          { op: 'add', role, scope },
-        ],
+        pendingChanges: [...state.pendingChanges, { op: 'add', role, scope }],
         addRoleOpen: false,
       };
     }
@@ -157,5 +155,13 @@ export function useRolesEditor(initialAssignments: UserRoleAssignment[]) {
   const removeCount = state.pendingChanges.filter((c) => c.op === 'remove').length;
   const pendingCount = state.pendingChanges.length;
 
-  return { state, dispatch, visibleAssignments, effectiveAssignments, addCount, removeCount, pendingCount };
+  return {
+    state,
+    dispatch,
+    visibleAssignments,
+    effectiveAssignments,
+    addCount,
+    removeCount,
+    pendingCount,
+  };
 }

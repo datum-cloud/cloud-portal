@@ -67,7 +67,6 @@ export const loader = withMiddleware(
   })
 );
 
-
 export default function GroupDetailPage() {
   const { group, roles, policyBindings, projects } = useLoaderData<typeof _loader>();
   const { orgId } = useParams() as { orgId: string };
