@@ -360,18 +360,24 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
 
     const handleBlur = React.useCallback(
       (e: React.FocusEvent<HTMLInputElement>) => {
-        // Don't add tag on blur if we're submitting the form
-        // Check if the related target (element receiving focus) is a submit button
-        const relatedTarget = e.relatedTarget as HTMLElement;
-        const isSubmitButton =
-          relatedTarget?.tagName === 'BUTTON' &&
-          (relatedTarget?.getAttribute('type') === 'submit' ||
-            relatedTarget?.closest('button[type="submit"]'));
+        if (inputValue.trim() === '') return;
 
-        // Only add tag if we're not submitting the form
-        if (!isSubmitButton && inputValue.trim() !== '') {
-          onValueChangeHandler(inputValue);
-          setInputValue('');
+        onValueChangeHandler(inputValue);
+        setInputValue('');
+
+        // When blur is caused by clicking a submit button, the state update
+        // from adding the tag swallows the click. Re-trigger the submit after
+        // React processes the new value.
+        const relatedTarget = e.relatedTarget as HTMLElement | null;
+        const submitButton =
+          relatedTarget?.getAttribute('type') === 'submit'
+            ? relatedTarget
+            : relatedTarget?.closest<HTMLElement>('button[type="submit"]');
+
+        if (submitButton) {
+          requestAnimationFrame(() => {
+            submitButton.click();
+          });
         }
       },
       [inputValue, onValueChangeHandler]

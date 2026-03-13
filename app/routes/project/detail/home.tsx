@@ -15,6 +15,7 @@ import { useExportPolicies } from '@/resources/export-policies';
 import { useHttpProxies } from '@/resources/http-proxies';
 import NotFound from '@/routes/not-found';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Icon, Row } from '@datum-ui/components';
 import { CalendarFold } from 'lucide-react';
@@ -71,19 +72,20 @@ export default function ProjectHomePage() {
 
   const { data: httpProxies = [], isLoading: httpProxiesLoading } = useHttpProxies(
     project?.name ?? '',
-    { staleTime: 5 * 60 * 1000 }
+    { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
   );
   const { data: domains = [], isLoading: domainsLoading } = useDomains(project?.name ?? '', {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
+    refetchOnMount: false,
   });
   const { data: dnsZones = [], isLoading: dnsZonesLoading } = useDnsZones(
     project?.name ?? '',
     undefined,
-    { staleTime: 5 * 60 * 1000 }
+    { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
   );
   const { data: exportPolicies = [], isLoading: exportPoliciesLoading } = useExportPolicies(
     project?.name ?? '',
-    { staleTime: 5 * 60 * 1000 }
+    { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
   );
 
   const hasAiEdge = httpProxies.length > 0;
