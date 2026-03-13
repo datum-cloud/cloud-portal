@@ -160,7 +160,7 @@ export function toUserActiveSession(
   const { metadata, status } = raw;
   return {
     name: metadata?.name ?? '',
-    createdAt: metadata?.creationTimestamp ?? '',
+    createdAt: status?.createdAt ?? '',
     expiresAt: status?.expiresAt ?? '',
     fingerprintID: status?.fingerprintID ?? '',
     ip: status?.ip ?? '',

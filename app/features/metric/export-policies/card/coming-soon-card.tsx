@@ -1,15 +1,24 @@
+import { GitHubLineIcon } from '@/components/icon/github-line';
 import { Card, CardContent } from '@datum-ui/components';
 
 export const ExportPolicyComingSoonCard = () => {
   return (
-    <Card className="h-full items-center justify-center bg-transparent py-8 shadow-none">
-      <CardContent className="px-8">
-        <div className="flex max-w-[283px] flex-col items-center justify-center gap-3.5 text-center">
-          <h4 className="text-sm font-semibold">More export policy templates coming soon</h4>
-          <p className="text-xs">
-            Everything from Datadog, Dynatrace, and Splunk to Kibana and other open source options.
-          </p>
-        </div>
+    <Card className="dark:border-card h-full items-center justify-center bg-white/50 p-0 shadow dark:bg-[#18273A]">
+      <CardContent className="flex flex-col items-center justify-center gap-4 px-0 text-center">
+        <h4 className="text-lg font-medium">Looking for other export destinations?</h4>
+        <p className="dark:text-card-quaternary text-foreground/60 max-w-[340px] text-sm font-normal">
+          We&apos;re happy to have your feedback and help expanding our list of supported providers.
+          Please drop a note in our GitHub discussions with some details.
+        </p>
+
+        <a
+          href="https://github.com/datum-cloud"
+          target="_blank"
+          rel="noreferrer"
+          className="bg-card border-card-quaternary dark:border-quaternary shadow-tooltip mt-3 flex items-center gap-3.5 rounded-lg border px-6 py-4">
+          <GitHubLineIcon className="dark:text-icon-tertiary text-icon-primary size-5" />
+          <span className="text-xs transition-all hover:underline">Share feedback on GitHub</span>
+        </a>
       </CardContent>
     </Card>
   );

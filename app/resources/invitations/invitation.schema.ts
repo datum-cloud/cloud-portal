@@ -76,7 +76,20 @@ export const newInvitationSchema = z.object({
 });
 
 export const invitationFormSchema = z.object({
-  emails: z.array(z.email()).min(1, { message: 'At least one email is required' }),
+  emails: z
+    .array(z.string())
+    .min(1, { message: 'At least one email is required' })
+    .superRefine((emails, ctx) => {
+      const emailSchema = z.email();
+      const invalid = emails.filter((e) => !emailSchema.safeParse(e).success);
+      if (invalid.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Invalid email${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`,
+          path: [],
+        });
+      }
+    }),
   role: z.string({ error: 'Role is required.' }),
   roleNamespace: z.string().optional(),
 });

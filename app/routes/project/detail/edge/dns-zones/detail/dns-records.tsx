@@ -36,6 +36,7 @@ import {
   useHttpProxies,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getRecordHostname } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
@@ -68,7 +69,7 @@ export default function DnsRecordsPage() {
   // Read from React Query cache (gets updates from watch!)
   const { data: queryData } = useDnsRecords(projectId ?? '', dnsZoneId, undefined, {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const { data: proxies = [] } = useHttpProxies(projectId ?? '');

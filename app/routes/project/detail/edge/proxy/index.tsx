@@ -19,6 +19,7 @@ import {
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -46,7 +47,7 @@ export default function HttpProxyPage() {
 
   const { data, isLoading, error } = useHttpProxies(projectId, {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
