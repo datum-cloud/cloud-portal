@@ -32,13 +32,29 @@ proxyRoutes.all('/*', async (c) => {
       controller.abort();
     });
 
+    // Resolve the real client IP from X-Forwarded-For set by Envoy Gateway.
+    const clientIP = c.req.header('X-Forwarded-For')?.split(',')[0]?.trim();
+
+    const upstreamHeaders: Record<string, string> = {
+      Authorization: `Bearer ${session.accessToken}`,
+      'Content-Type': c.req.header('Content-Type') ?? 'application/json',
+      'X-Request-ID': c.get('requestId'),
+    };
+
+    // Forward the browser's User-Agent so the API server audit log captures it.
+    const browserUA = c.req.header('User-Agent');
+    if (browserUA) {
+      upstreamHeaders['User-Agent'] = browserUA;
+    }
+
+    // Forward the client IP so the API server audit log captures it in sourceIPs.
+    if (clientIP) {
+      upstreamHeaders['X-Forwarded-For'] = clientIP;
+    }
+
     const response = await fetch(`${env.public.apiUrl}${path}${queryString}`, {
       method: c.req.method,
-      headers: {
-        Authorization: `Bearer ${session.accessToken}`,
-        'Content-Type': c.req.header('Content-Type') ?? 'application/json',
-        'X-Request-ID': c.get('requestId'),
-      },
+      headers: upstreamHeaders,
       body: c.req.method !== 'GET' ? await c.req.text() : undefined,
       signal: controller.signal,
     });
