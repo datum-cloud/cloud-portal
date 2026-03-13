@@ -217,7 +217,7 @@ export const EmptyContent = ({
 
       <div className="dark:bg-background border-border relative flex max-w-[224px] flex-col items-center justify-center gap-3.5 rounded-lg border bg-white px-6 py-7">
         <h3 className={titleVariants({ size })}>
-          {`Hey ${userName ?? 'there'}, ${title ? title : ''}`}
+          {`Hey ${userName ?? 'there'}! ${title ? title : ''}.`}
         </h3>
         {subtitle && <span className={subtitleVariants({ size })}>{subtitle}</span>}
         {actions.length > 0 && (
