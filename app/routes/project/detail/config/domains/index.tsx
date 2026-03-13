@@ -30,6 +30,7 @@ import {
   domainKeys,
 } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -113,12 +114,12 @@ export default function DomainsPage() {
   // Read from React Query cache (gets updates from watch!)
   const { data: domainsData } = useDomains(projectId ?? '', {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const { data: dnsZonesData } = useDnsZones(projectId ?? '', undefined, {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   // Use React Query data, fallback to SSR data

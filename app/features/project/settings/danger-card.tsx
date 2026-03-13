@@ -1,29 +1,21 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
 import type { Project } from '@/resources/projects';
-import { projectKeys, useDeleteProject } from '@/resources/projects';
+import { useDeleteProject } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-ui/components';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 
 export const ProjectDangerCard = ({ project }: { project: Project }) => {
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
-  const queryClient = useQueryClient();
 
   const deleteMutation = useDeleteProject({
-    onSuccess: async () => {
-      if (!project?.organizationId) {
-        throw new Error('Organization ID is required');
-      }
+    onSuccess: () => {
       toast.success('Project', {
         description: 'The project has been deleted successfully',
       });
-      const listKey = projectKeys.list(project.organizationId);
-      queryClient.invalidateQueries({ queryKey: listKey });
-      await queryClient.refetchQueries({ queryKey: listKey });
       navigate(
         getPathWithParams(paths.org.detail.projects.root, {
           orgId: project.organizationId,

@@ -13,6 +13,7 @@ import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filt
 import { ControlPlaneStatus } from '@/resources/base';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Icon, toast, Tooltip } from '@datum-ui/components';
@@ -29,7 +30,7 @@ export default function HttpProxyDetailPage() {
   const { data: httpProxy } = useHttpProxy(projectId ?? '', proxyId ?? '', {
     initialData: loaderData,
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   useHttpProxyWatch(projectId ?? '', proxyId ?? '');

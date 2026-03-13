@@ -1,5 +1,6 @@
 import type { Invitation, CreateInvitationInput } from './invitation.schema';
 import { createInvitationService, invitationKeys } from './invitation.service';
+import { memberKeys } from '@/resources/members';
 import {
   useQuery,
   useMutation,
@@ -84,6 +85,10 @@ export function useCreateInvitation(
       });
       queryClient.refetchQueries({
         queryKey: invitationKeys.userLists(),
+        type: 'active',
+      });
+      queryClient.refetchQueries({
+        queryKey: memberKeys.lists(),
         type: 'active',
       });
 

@@ -13,6 +13,7 @@ import {
   type Secret,
 } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-ui/components';
@@ -52,7 +53,7 @@ export default function SecretsPage() {
   // Read from React Query cache (gets updates from watch!)
   const { data: queryData } = useSecrets(projectId ?? '', {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   // Use React Query data, fallback to SSR data

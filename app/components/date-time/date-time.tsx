@@ -82,7 +82,7 @@ export const DateTime = ({
   let content: string;
   switch (variant) {
     case 'detailed':
-      content = formatTimezoneDate(parsedDate, timeZone);
+      content = formatTimezoneDate(parsedDate, timeZone, format);
       break;
     case 'relative':
       content = formatRelativeDate(parsedDate, formatterOptions);

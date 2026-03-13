@@ -15,15 +15,15 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
   const queryClient = useQueryClient();
 
   const updateMutation = useUpdateProject(project?.name ?? '', {
-    onSuccess: async (updatedProject) => {
+    onSuccess: (updatedProject) => {
       setProject(updatedProject);
       toast.success('Project', {
         description: 'The Project has been updated successfully',
       });
       if (updatedProject.organizationId) {
-        const listKey = projectKeys.list(updatedProject.organizationId);
-        queryClient.invalidateQueries({ queryKey: listKey });
-        await queryClient.refetchQueries({ queryKey: listKey });
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.list(updatedProject.organizationId),
+        });
       }
     },
     onError: (error) => {
