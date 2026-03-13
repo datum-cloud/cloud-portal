@@ -20,6 +20,9 @@ export const roleResourceSchema = z.object({
   displayName: z.string().optional(),
   description: z.string().optional(),
   annotations: z.record(z.string(), z.string()).optional(),
+  includedPermissions: z.array(z.string()).optional(),
+  inheritedRoles: z.array(z.string()).optional(),
+  launchStage: z.string().optional(),
 });
 
 export type Role = z.infer<typeof roleResourceSchema>;

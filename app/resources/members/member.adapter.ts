@@ -38,6 +38,26 @@ export function toMemberList(
 }
 
 /**
+ * Transform a full roles array to API patch payload (replaces all roles)
+ */
+export function toUpdateMemberRolesPayload(
+  memberId: string,
+  roles: { name: string; namespace: string }[]
+): {
+  apiVersion: string;
+  kind: string;
+  metadata: { name: string };
+  spec: { roles: { name: string; namespace: string }[] };
+} {
+  return {
+    apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+    kind: 'OrganizationMembership',
+    metadata: { name: memberId },
+    spec: { roles },
+  };
+}
+
+/**
  * Transform UpdateMemberRoleInput to API patch payload
  */
 export function toUpdateMemberRolePayload(
