@@ -463,20 +463,21 @@ export function createHttpProxyService() {
 
         const httpProxy = toHttpProxy(data);
 
-        // Attach WAF (OWASP Core Rule Set) to the proxy's Gateway
-        try {
-          await this.createTrafficProtectionPolicy(
-            projectId,
-            input.name,
-            input.trafficProtectionMode ?? 'Enforce',
-            input.paranoiaLevels
-          );
-        } catch (policyError) {
-          logger.error(
-            `${SERVICE_NAME}.createTrafficProtectionPolicy failed`,
-            policyError as Error
-          );
-        }
+        // TODO: we're unable to support WAF atm
+        // // Attach WAF (OWASP Core Rule Set) to the proxy's Gateway
+        // try {
+        //   await this.createTrafficProtectionPolicy(
+        //     projectId,
+        //     input.name,
+        //     input.trafficProtectionMode ?? 'Enforce',
+        //     input.paranoiaLevels
+        //   );
+        // } catch (policyError) {
+        //   logger.error(
+        //     `${SERVICE_NAME}.createTrafficProtectionPolicy failed`,
+        //     policyError as Error
+        //   );
+        // }
 
         logger.service(SERVICE_NAME, 'create', {
           input: { projectId, name: input.name },
@@ -528,8 +529,20 @@ export function createHttpProxyService() {
 
         const httpProxy = toHttpProxy(data);
 
+        // If WAF should be removed, delete the TrafficProtectionPolicy
+        if (input.removeTrafficProtection) {
+          try {
+            await this.deleteTrafficProtectionPolicy(projectId, name);
+          } catch (policyError) {
+            logger.error(
+              `${SERVICE_NAME}.deleteTrafficProtectionPolicy failed`,
+              policyError as Error
+            );
+            // Don't fail the proxy update if policy delete fails (e.g. 404)
+          }
+        }
         // If WAF mode or paranoia levels were changed, update the TrafficProtectionPolicy
-        if (input.trafficProtectionMode || input.paranoiaLevels) {
+        else if (input.trafficProtectionMode || input.paranoiaLevels) {
           try {
             await this.updateTrafficProtectionPolicyMode(
               projectId,

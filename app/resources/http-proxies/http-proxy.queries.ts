@@ -106,6 +106,10 @@ export function useUpdateHttpProxy(
           ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
           ...(input.tlsHostname !== undefined && { tlsHostname: input.tlsHostname }),
           ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
+          ...(input.removeTrafficProtection && {
+            trafficProtectionMode: undefined,
+            paranoiaLevels: undefined,
+          }),
           ...(input.trafficProtectionMode !== undefined && {
             trafficProtectionMode: input.trafficProtectionMode,
           }),

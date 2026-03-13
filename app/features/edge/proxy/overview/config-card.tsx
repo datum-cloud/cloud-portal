@@ -33,8 +33,8 @@ export const HttpProxyConfigCard = ({
   proxy: HttpProxy;
   projectId?: string;
 }) => {
-  const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
+  const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const basicAuthDialogRef = useRef<ProxyBasicAuthDialogRef>(null);
   const updateMutation = useUpdateHttpProxy(projectId ?? '', proxy.name);
   const { data: connector, isLoading: isConnectorLoading } = useConnector(
@@ -86,9 +86,11 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          isPending && !proxy.trafficProtectionMode ? (
+          isPending && proxy.trafficProtectionMode === undefined ? (
             <Skeleton className="h-5 w-24 rounded-md" />
-          ) : (
+          ) : proxy.trafficProtectionMode != null ||
+            proxy.paranoiaLevels?.blocking != null ||
+            proxy.paranoiaLevels?.detection != null ? (
             <div className="flex items-center gap-1.5">
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                 {formatWafProtectionDisplay(proxy)}
@@ -102,6 +104,10 @@ export const HttpProxyConfigCard = ({
                 </button>
               )}
             </div>
+          ) : (
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+              Coming soon
+            </Badge>
           ),
       },
       {
