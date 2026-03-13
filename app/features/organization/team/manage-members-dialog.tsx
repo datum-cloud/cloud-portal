@@ -104,7 +104,8 @@ export function ManageMembersDialog({
         const membership = memberships.find(
           (m) => m.groupRef.name === groupName && m.userRef.name === userId
         );
-        if (!membership) return Promise.reject(new Error(`Membership for user ${userId} not found`));
+        if (!membership)
+          return Promise.reject(new Error(`Membership for user ${userId} not found`));
         return deleteMembership.mutateAsync(membership.name);
       }
     });

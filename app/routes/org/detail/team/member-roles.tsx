@@ -68,7 +68,6 @@ export const loader = withMiddleware(
   })
 );
 
-
 export default function MemberRoles() {
   const { member, roles, policyBindings, projects } = useLoaderData<typeof _loader>();
   const { orgId } = useParams() as { orgId: string };

@@ -91,21 +91,17 @@ export function PermissionsPanel({
         <span className="text-foreground font-semibold tabular-nums">{permissions.length}</span>{' '}
         {permissions.length === 1 ? 'permission' : 'permissions'}
         {newCount !== null && newCount > 0 && (
-          <span className="text-green-600 dark:text-green-400 ml-1">
-            ({newCount} new)
-          </span>
+          <span className="ml-1 text-green-600 dark:text-green-400">({newCount} new)</span>
         )}
         {loseCount > 0 && (
-          <span className="text-destructive ml-1">
-            ({loseCount} being removed)
-          </span>
+          <span className="text-destructive ml-1">({loseCount} being removed)</span>
         )}
       </p>
 
       {existingSet && (
         <div className="text-muted-foreground flex items-center gap-4 text-xs">
           <span className="flex items-center gap-1">
-            <CheckIcon className="text-green-600 dark:text-green-400 size-3 stroke-[2.5]" />
+            <CheckIcon className="size-3 stroke-[2.5] text-green-600 dark:text-green-400" />
             New
           </span>
           <span className="flex items-center gap-1">
@@ -120,7 +116,10 @@ export function PermissionsPanel({
       )}
 
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-xs" role="grid" aria-label="Permissions matrix">
+        <table
+          className="w-full border-collapse text-xs"
+          role="grid"
+          aria-label="Permissions matrix">
           <thead>
             <tr>
               <th className="text-muted-foreground w-40 py-1.5 pr-3 text-left font-medium">
@@ -138,18 +137,14 @@ export function PermissionsPanel({
           <tbody>
             {resources.map((resource) => (
               <tr key={resource} className="border-border border-t">
-                <td className="text-foreground py-2 pr-3 font-mono font-medium">
-                  {resource}
-                </td>
+                <td className="text-foreground py-2 pr-3 font-mono font-medium">{resource}</td>
                 {verbs.map((verb) => {
                   const key = `${resource}.${verb}`;
                   let state: CellState;
                   if (losingSet.has(key)) {
                     state = 'losing';
                   } else if (grantedSet.has(key)) {
-                    state = existingSet
-                      ? existingSet.has(key) ? 'existing' : 'new'
-                      : 'granted';
+                    state = existingSet ? (existingSet.has(key) ? 'existing' : 'new') : 'granted';
                   } else {
                     state = 'none';
                   }
@@ -182,7 +177,7 @@ function MatrixCell({
     return (
       <span
         aria-label={`${resource}.${verb} new`}
-        className="text-green-600 dark:text-green-400 inline-flex items-center justify-center">
+        className="inline-flex items-center justify-center text-green-600 dark:text-green-400">
         <CheckIcon className="size-3.5 stroke-[2.5]" />
       </span>
     );
@@ -200,7 +195,7 @@ function MatrixCell({
     return (
       <span
         aria-label={`${resource}.${verb} granted`}
-        className="text-green-600 dark:text-green-400 inline-flex items-center justify-center">
+        className="inline-flex items-center justify-center text-green-600 dark:text-green-400">
         <CheckIcon className="size-3.5 stroke-[2.5]" />
       </span>
     );

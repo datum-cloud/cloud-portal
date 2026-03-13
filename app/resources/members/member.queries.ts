@@ -55,7 +55,11 @@ export function useHydrateMembers(orgId: string, initialData: Member[]) {
 
 export function useUpdateMemberRoles(
   orgId: string,
-  options?: UseMutationOptions<Member, Error, { name: string; roles: { name: string; namespace: string }[] }>
+  options?: UseMutationOptions<
+    Member,
+    Error,
+    { name: string; roles: { name: string; namespace: string }[] }
+  >
 ) {
   const queryClient = useQueryClient();
   return useMutation({
