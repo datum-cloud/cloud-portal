@@ -130,6 +130,8 @@ export type UpdateHttpProxyInput = {
     blocking?: number;
     detection?: number;
   };
+  /** When true, removes the TrafficProtectionPolicy (deletes WAF config). */
+  removeTrafficProtection?: boolean;
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
   /**
