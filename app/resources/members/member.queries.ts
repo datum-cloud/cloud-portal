@@ -53,6 +53,25 @@ export function useHydrateMembers(orgId: string, initialData: Member[]) {
   }, [queryClient, orgId, initialData]);
 }
 
+export function useUpdateMemberRoles(
+  orgId: string,
+  options?: UseMutationOptions<
+    Member,
+    Error,
+    { name: string; roles: { name: string; namespace: string }[] }
+  >
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ name, roles }: { name: string; roles: { name: string; namespace: string }[] }) =>
+      createMemberService().updateRoles(orgId, name, roles),
+    onSettled: () => {
+      queryClient.refetchQueries({ queryKey: memberKeys.list(orgId), type: 'active' });
+    },
+    ...options,
+  });
+}
+
 export function useUpdateMemberRole(
   orgId: string,
   options?: UseMutationOptions<Member, Error, { name: string; roleRef: UpdateMemberRoleInput }>
