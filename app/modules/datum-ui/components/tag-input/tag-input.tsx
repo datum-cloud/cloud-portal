@@ -19,12 +19,25 @@ const SPLITTER_REGEX = /[\n\t;,|]+/;
  */
 const FORMATTING_REGEX = /^[\s"'<>]+|[\s"'<>]+$/g;
 
+/** Default keys that confirm the current input as a tag */
+const DEFAULT_DELIMITERS = ['Enter', ','];
+
 interface TagsInputProps extends React.HTMLAttributes<HTMLDivElement> {
   value: string[];
   onValueChange: (value: string[]) => void;
   placeholder?: string;
   maxItems?: number;
   minItems?: number;
+  /**
+   * Keys that trigger tag confirmation. Defaults to ['Enter', ','].
+   * Extend for specific use cases, e.g. [',', 'Enter', ';', ' '] for emails.
+   */
+  delimiters?: string[];
+  /**
+   * Optional function to normalize a tag value before validation and adding.
+   * Runs after trimming. Useful for case normalization, e.g. (v) => v.toLowerCase()
+   */
+  normalizer?: (value: string) => string;
   /**
    * Optional Zod schema for validating individual tag values
    */
@@ -73,6 +86,8 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
       minItems,
       className,
       dir,
+      delimiters = DEFAULT_DELIMITERS,
+      normalizer,
       validator,
       onValidationError,
       error,
@@ -106,11 +121,15 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
 
         setError(null);
 
+        // Always trim, then apply optional normalizer (e.g. lowercase for emails)
+        const trimmed = val.trim();
+        const normalized = normalizer ? normalizer(trimmed) : trimmed;
+
         // Skip empty values
-        if (!val.trim()) return;
+        if (!normalized) return;
 
         // Check for duplicates and max items
-        if (value.includes(val)) {
+        if (value.includes(normalized)) {
           setError('This tag already exists');
           return;
         }
@@ -123,8 +142,8 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
         // Validate with Zod schema if provided
         if (validator) {
           try {
-            validator.parse(val);
-            onValueChange([...value, val]);
+            validator.parse(normalized);
+            onValueChange([...value, normalized]);
           } catch (error) {
             if (error instanceof z.ZodError) {
               // Use Zod's error message directly
@@ -135,10 +154,10 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
           }
         } else {
           // No validator, just add the value
-          onValueChange([...value, val]);
+          onValueChange([...value, normalized]);
         }
       },
-      [value, validator, parseMaxItems]
+      [value, validator, parseMaxItems, normalizer]
     );
 
     const RemoveValue = React.useCallback(
@@ -326,9 +345,17 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
             break;
           }
 
-          case 'Enter':
-          case ',': {
+          case 'Tab': {
             if (inputValue.trim() !== '') {
+              e.preventDefault();
+              onValueChangeHandler(inputValue);
+              setInputValue('');
+            }
+            break;
+          }
+
+          default: {
+            if (delimiters.includes(e.key) && inputValue.trim() !== '') {
               e.preventDefault();
               onValueChangeHandler(inputValue);
               setInputValue('');
@@ -346,6 +373,7 @@ export const TagsInput = React.forwardRef<HTMLDivElement, TagsInputProps>(
         selectedValue,
         isValueSelected,
         onValueChangeHandler,
+        delimiters,
       ]
     );
 
