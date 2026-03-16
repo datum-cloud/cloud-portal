@@ -38,6 +38,10 @@ graphqlRoutes.all('/:scopeType/:scopeId', async (c) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.accessToken}`,
         'X-Request-ID': c.get('requestId') ?? '',
+        // Propagate Sentry trace headers so portal and gateway spans stitch
+        // into the same trace in Sentry.
+        ...(c.req.header('sentry-trace') ? { 'sentry-trace': c.req.header('sentry-trace')! } : {}),
+        ...(c.req.header('baggage') ? { baggage: c.req.header('baggage')! } : {}),
       },
       body: c.req.method !== 'GET' ? await c.req.text() : undefined,
       signal: controller.signal,
@@ -83,6 +87,8 @@ graphqlRoutes.all('/', async (c) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.accessToken}`,
         'X-Request-ID': c.get('requestId') ?? '',
+        ...(c.req.header('sentry-trace') ? { 'sentry-trace': c.req.header('sentry-trace')! } : {}),
+        ...(c.req.header('baggage') ? { baggage: c.req.header('baggage')! } : {}),
       },
       body: c.req.method !== 'GET' ? await c.req.text() : undefined,
       signal: controller.signal,
