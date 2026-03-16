@@ -11,6 +11,9 @@ function detectBrowserOs(): 'windows' | 'macos' | 'linux' | null {
   const platform = (
     navigator as { userAgentData?: { platform: string } }
   ).userAgentData?.platform?.toLowerCase();
+  // Skip mobile platforms — no connector binary available
+  if (platform === 'android' || ua.includes('android')) return null;
+  if (/iphone|ipad|ipod/.test(ua)) return null;
   if (platform === 'macos' || ua.includes('mac')) return 'macos';
   if (platform === 'windows' || ua.includes('win')) return 'windows';
   if (platform === 'linux' || ua.includes('linux')) return 'linux';
@@ -64,12 +67,13 @@ export function ConnectorDownloadCard({ onDismiss }: ConnectorDownloadCardProps)
       <CardContent className="p-0">
         <div className="flex gap-3">
           <div className="bg-muted dark:bg-accent flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">
-            <OsIcon os={os} size={20} className="text-muted-foreground" />
+            <OsIcon os={os} size={24} className="text-muted-foreground" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium">Start a connector</p>
             <p className="text-muted-foreground mt-0.5 text-xs">
-              Download Datum Desktop for {osLabel} to run a connector on this device.
+              Download Datum Desktop for <strong>{osLabel}</strong> to run a connector on this
+              device.
             </p>
             <LinkButton
               type="primary"
