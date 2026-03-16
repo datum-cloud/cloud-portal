@@ -154,7 +154,7 @@ export class SentryProvider extends BaseProvider {
   }
 
   private getTracesSampleRate(): number {
-    return env.isProd ? 0.1 : 1.0;
+    return 1.0;
   }
 
   private createBeforeSendHandler() {
