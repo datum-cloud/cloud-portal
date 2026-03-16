@@ -88,9 +88,9 @@ export const HttpProxyConfigCard = ({
         content:
           isPending && proxy.trafficProtectionMode === undefined ? (
             <Skeleton className="h-5 w-24 rounded-md" />
-          ) : proxy.trafficProtectionMode != null ||
-            proxy.paranoiaLevels?.blocking != null ||
-            proxy.paranoiaLevels?.detection != null ? (
+          ) : proxy.trafficProtectionMode !== undefined ||
+            proxy.paranoiaLevels?.blocking !== undefined ||
+            proxy.paranoiaLevels?.detection !== undefined ? (
             <div className="flex items-center gap-1.5">
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                 {formatWafProtectionDisplay(proxy)}

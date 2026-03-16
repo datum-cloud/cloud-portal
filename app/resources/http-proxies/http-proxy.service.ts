@@ -529,16 +529,20 @@ export function createHttpProxyService() {
 
         const httpProxy = toHttpProxy(data);
 
-        // If WAF should be removed, delete the TrafficProtectionPolicy
+        // If WAF should be removed, delete the TrafficProtectionPolicy.
+        // Must complete before returning so onSuccess/refetch doesn't race with stale data.
         if (input.removeTrafficProtection) {
           try {
             await this.deleteTrafficProtectionPolicy(projectId, name);
           } catch (policyError) {
-            logger.error(
-              `${SERVICE_NAME}.deleteTrafficProtectionPolicy failed`,
-              policyError as Error
-            );
-            // Don't fail the proxy update if policy delete fails (e.g. 404)
+            if (this.getErrorStatus(policyError) !== 404) {
+              logger.error(
+                `${SERVICE_NAME}.deleteTrafficProtectionPolicy failed`,
+                policyError as Error
+              );
+              throw mapApiError(policyError);
+            }
+            // 404: policy already gone — idempotent, no-op
           }
         }
         // If WAF mode or paranoia levels were changed, update the TrafficProtectionPolicy

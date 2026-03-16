@@ -33,6 +33,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
     const [open, setOpen] = useState(false);
     const [proxyName, setProxyName] = useState('');
     const [defaultValues, setDefaultValues] = useState<Partial<WafConfigSchema>>();
+    const [hasActiveWaf, setHasActiveWaf] = useState(false);
     const { confirm } = useConfirmationDialog();
 
     const updateMutation = useUpdateHttpProxy(projectId, proxyName);
@@ -46,6 +47,9 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
             : (proxy.trafficProtectionMode ?? 'Enforce'),
         paranoiaLevelBlocking: proxy.paranoiaLevels?.blocking ?? 1,
       });
+      setHasActiveWaf(
+        proxy.trafficProtectionMode === 'Observe' || proxy.trafficProtectionMode === 'Enforce'
+      );
       setOpen(true);
     }, []);
 
@@ -101,6 +105,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
           description: (error as Error).message || 'Failed to remove protection',
         });
         onError?.(error as Error);
+        setOpen(false);
       }
     }, [confirm, updateMutation, onSuccess, onError]);
 
@@ -149,14 +154,16 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
             </Form.Select>
           </Form.Field>
 
-          <div className="flex pt-2">
-            <button
-              type="button"
-              className="text-destructive hover:text-destructive/80 text-sm underline"
-              onClick={handleRemove}>
-              Remove protection
-            </button>
-          </div>
+          {hasActiveWaf && (
+            <div className="flex pt-2">
+              <button
+                type="button"
+                className="text-destructive hover:text-destructive/80 text-sm underline"
+                onClick={handleRemove}>
+                Remove protection
+              </button>
+            </div>
+          )}
         </div>
       </Form.Dialog>
     );
