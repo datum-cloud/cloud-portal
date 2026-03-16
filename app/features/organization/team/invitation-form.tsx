@@ -11,12 +11,7 @@ import {
   CardTitle,
 } from '@datum-ui/components';
 import { Form, type FormFieldRenderProps } from '@datum-ui/components/form';
-import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { z } from 'zod';
-
-// Email validator for individual email tags
-const emailValidator = z.email({ error: 'Please enter a valid email address' });
 
 /**
  * RoleFieldContent - Extracted component to properly use hooks
@@ -49,9 +44,6 @@ interface InvitationFormProps {
 export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) => {
   const navigate = useNavigate();
 
-  // State to track real-time validation errors from TagsInput
-  const [tagsInputError, setTagsInputError] = useState<string | null>(null);
-
   return (
     <Card>
       <CardHeader>
@@ -74,37 +66,19 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
             {(props) => <RoleFieldContent {...props} />}
           </Form.Field>
 
-          {/* Emails field with render function pattern */}
+          {/* Emails field - validation handled by form schema */}
           <Form.Field
             name="emails"
             label="Emails"
             required
             description="Enter one or more emails (e.g., example@example.com). Use comma or press Enter to add each email as a tag.">
-            {({ control, meta, field }) => (
-              <>
-                <TagsInput
-                  {...getSelectProps(field, { value: false })}
-                  validator={emailValidator}
-                  showValidationErrors={false}
-                  value={(control.value as string[]) || []}
-                  onValueChange={(newValue) => {
-                    control.change(newValue);
-                    // Clear TagsInput error when value changes successfully
-                    if (tagsInputError) {
-                      setTagsInputError(null);
-                    }
-                  }}
-                  placeholder="Enter email"
-                  onValidationError={(error) => {
-                    // Set the error in component state to display in Field component
-                    setTagsInputError(error);
-                  }}
-                />
-                {/* Display additional TagsInput validation errors */}
-                {tagsInputError && !meta.errors?.includes(tagsInputError) && (
-                  <p className="text-destructive text-sm font-medium">{tagsInputError}</p>
-                )}
-              </>
+            {({ control, field }) => (
+              <TagsInput
+                {...getSelectProps(field, { value: false })}
+                value={(control.value as string[]) || []}
+                onValueChange={control.change}
+                placeholder="Enter email"
+              />
             )}
           </Form.Field>
         </CardContent>

@@ -9,6 +9,7 @@ import {
 } from '@/resources/users';
 import { createUserService } from '@/resources/users/user.service';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getIdTokenSession, getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge, DataTable, Icon, toast } from '@datum-ui/components';
@@ -60,7 +61,7 @@ export default function AccountActiveSessionsPage() {
   // Read from React Query cache
   const { data: queryData } = useUserActiveSessions(user?.sub ?? 'me', {
     refetchOnMount: false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const revokeMutation = useRevokeUserActiveSession(user?.sub ?? 'me', {

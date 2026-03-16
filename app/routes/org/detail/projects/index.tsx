@@ -14,6 +14,7 @@ import {
 } from '@/resources/projects';
 import { waitForProjectReady } from '@/resources/projects/project.watch';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, Col, Row, useTaskQueue } from '@datum-ui/components';
@@ -60,7 +61,7 @@ export default function OrgProjectsPage() {
   }
 
   const { data: queryData, isLoading: projectsLoading } = useProjects(orgId, undefined, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
   const projects = queryData?.items ?? [];
 
@@ -192,7 +193,7 @@ export default function OrgProjectsPage() {
             queryClient.setQueryData(projectKeys.detail(readyProject.name), readyProject);
           }
         }
-        queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId ?? '') });
+        queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId) });
       },
       completionActions: (_result, info) => {
         if (info.status === 'failed') {

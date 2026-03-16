@@ -149,6 +149,9 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
   );
 }
 
+/** Fetcher keys that run in the background and should not trigger the progress bar */
+const BACKGROUND_FETCHER_KEYS = ['session-cookies'] as const;
+
 export default function AppWithProviders() {
   const { toast, csrfToken } = useLoaderData<typeof loader>();
 
@@ -156,9 +159,6 @@ export default function AppWithProviders() {
   const navigation = useNavigation();
   const fetchers = useFetchers();
   const matches = useMatches();
-
-  /** Fetcher keys that run in the background and should not trigger the progress bar */
-  const BACKGROUND_FETCHER_KEYS = ['session-cookies'];
 
   const urqlState = useMemo<SSRData>(() => {
     return matches.reduce<SSRData>((acc, match) => {
@@ -189,7 +189,7 @@ export default function AppWithProviders() {
         (fetcher) =>
           fetcher.state !== 'idle' &&
           fetcher.formData &&
-          !BACKGROUND_FETCHER_KEYS.includes(fetcher.key)
+          !(BACKGROUND_FETCHER_KEYS as readonly string[]).includes(fetcher.key)
       );
       const states = [navigation.state, ...activeFetchers.map((fetcher) => fetcher.state)];
       if (states.every((state) => state === 'idle')) return 'idle';

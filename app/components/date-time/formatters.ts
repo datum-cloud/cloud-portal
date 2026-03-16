@@ -69,15 +69,19 @@ export function formatCombinedDate(
 /**
  * Formats a date in UTC timezone (for detailed popup)
  */
-export function formatUTCDate(date: Date): string {
-  return formatInTimeZone(date, 'UTC', 'dd MMM yy HH:mm:ss', { locale: enUS });
+export function formatUTCDate(date: Date, format: string = 'dd MMM yy HH:mm:ss'): string {
+  return formatInTimeZone(date, 'UTC', format, { locale: enUS });
 }
 
 /**
  * Formats a date in a specific timezone (for detailed popup)
  */
-export function formatTimezoneDate(date: Date, timezone: string): string {
-  return formatInTimeZone(date, timezone, 'dd MMM yy HH:mm:ss', { locale: enUS });
+export function formatTimezoneDate(
+  date: Date,
+  timezone: string,
+  format: string = 'dd MMM yy HH:mm:ss'
+): string {
+  return formatInTimeZone(date, timezone, format, { locale: enUS });
 }
 
 /**

@@ -12,6 +12,7 @@ import { useOrganization, type Organization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
@@ -84,7 +85,7 @@ export function shouldRevalidate({
   return defaultShouldRevalidate;
 }
 
-function ProjectLayoutContent() {
+export default function ProjectLayout() {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -98,13 +99,15 @@ function ProjectLayoutContent() {
     isError: projectError,
     error: projectErrorDetail,
   } = useProject(projectId ?? '', {
-    staleTime: 5 * 60 * 1000,
+    enabled: !!projectId,
+    staleTime: QUERY_STALE_TIME,
     refetchOnMount: false,
   });
 
   const { data: org } = useOrganization(project?.organizationId ?? '', {
     enabled: !!project?.organizationId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
+    refetchOnMount: false,
   });
 
   // Redirect on error (invalid project, not found, etc.)
@@ -306,8 +309,4 @@ function ProjectLayoutContent() {
       </DashboardLayout>
     </ProjectProvider>
   );
-}
-
-export default function ProjectLayout() {
-  return <ProjectLayoutContent />;
 }

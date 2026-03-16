@@ -1,5 +1,6 @@
 // Configure @hey-api clients before any React code runs
 import '@/modules/control-plane/setup.client';
+import { isKnownSystemEvent } from '@/modules/sentry/filters';
 import { env } from '@/utils/env';
 import * as Sentry from '@sentry/react-router';
 import { StrictMode, startTransition } from 'react';
@@ -59,6 +60,11 @@ Sentry.init({
 
   // Release name
   release: env.public.version || 'dev',
+
+  beforeSend: (event) => {
+    if (isKnownSystemEvent(event)) return null;
+    return event;
+  },
 });
 
 async function main() {
