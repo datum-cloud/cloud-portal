@@ -1,3 +1,4 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
@@ -32,6 +33,8 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
     const [open, setOpen] = useState(false);
     const [proxyName, setProxyName] = useState('');
     const [defaultValues, setDefaultValues] = useState<Partial<WafConfigSchema>>();
+    const [hasActiveWaf, setHasActiveWaf] = useState(false);
+    const { confirm } = useConfirmationDialog();
 
     const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
@@ -44,6 +47,9 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
             : (proxy.trafficProtectionMode ?? 'Enforce'),
         paranoiaLevelBlocking: proxy.paranoiaLevels?.blocking ?? 1,
       });
+      setHasActiveWaf(
+        proxy.trafficProtectionMode === 'Observe' || proxy.trafficProtectionMode === 'Enforce'
+      );
       setOpen(true);
     }, []);
 
@@ -73,6 +79,35 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
         onError?.(error as Error);
       }
     };
+
+    const handleRemove = useCallback(async () => {
+      try {
+        const confirmed = await confirm({
+          title: 'Remove protection',
+          description:
+            'This will remove WAF protection from this AI Edge. Traffic will no longer be inspected for common web attacks.',
+          submitText: 'Remove',
+          cancelText: 'Cancel',
+          variant: 'destructive',
+          onSubmit: async () => {
+            await updateMutation.mutateAsync({ removeTrafficProtection: true });
+          },
+        });
+        if (confirmed) {
+          toast.success('AI Edge', {
+            description: 'Protection has been removed',
+          });
+          setOpen(false);
+          onSuccess?.();
+        }
+      } catch (error) {
+        toast.error('AI Edge', {
+          description: (error as Error).message || 'Failed to remove protection',
+        });
+        onError?.(error as Error);
+        setOpen(false);
+      }
+    }, [confirm, updateMutation, onSuccess, onError]);
 
     return (
       <Form.Dialog
@@ -118,6 +153,17 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
               <Form.SelectItem value="2">Level 2 — Balanced</Form.SelectItem>
             </Form.Select>
           </Form.Field>
+
+          {hasActiveWaf && (
+            <div className="flex pt-2">
+              <button
+                type="button"
+                className="text-destructive hover:text-destructive/80 text-sm underline"
+                onClick={handleRemove}>
+                Remove protection
+              </button>
+            </div>
+          )}
         </div>
       </Form.Dialog>
     );
