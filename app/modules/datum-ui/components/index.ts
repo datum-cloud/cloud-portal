@@ -34,3 +34,4 @@ export * from './empty-content';
 export * from './page-title';
 export * from './more-actions';
 export * from './loader-overlay';
+export * from './rich-text-editor';

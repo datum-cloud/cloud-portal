@@ -402,6 +402,7 @@ export default function DnsRecordsPage() {
             label: 'Delete',
             icon: <Icon icon={Trash2Icon} className="size-3.5" />,
             display: 'inline',
+            variant: 'destructive',
             showLabel: false,
             action: (row) => handleDelete(row),
             /**
