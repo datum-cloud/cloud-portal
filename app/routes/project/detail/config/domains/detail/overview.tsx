@@ -1,8 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { NotesSection } from '@/features/edge/domain/notes';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
+import { NotesSection } from '@/features/notes';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   useDeleteDomain,
@@ -212,9 +212,6 @@ export default function DomainOverviewPage() {
       <Col span={24}>
         <DomainGeneralCard domain={effectiveDomain} dnsZone={dnsZone} projectId={projectId} />
       </Col>
-      <Col span={24}>
-        <NotesSection projectId={projectId ?? ''} domainName={effectiveDomain?.name ?? ''} />
-      </Col>
       {isPending && (
         <>
           <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
@@ -225,6 +222,16 @@ export default function DomainOverviewPage() {
           </Col>
         </>
       )}
+      <Col span={24}>
+        <NotesSection
+          projectId={projectId ?? ''}
+          subjectRef={{
+            apiGroup: 'networking.datumapis.com',
+            kind: 'Domain',
+            name: effectiveDomain?.name ?? '',
+          }}
+        />
+      </Col>
     </Row>
   );
 }
