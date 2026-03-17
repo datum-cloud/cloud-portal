@@ -238,6 +238,106 @@ export type CreateNotesMiloapisComV1Alpha1NamespacedNoteResponses = {
 export type CreateNotesMiloapisComV1Alpha1NamespacedNoteResponse =
   CreateNotesMiloapisComV1Alpha1NamespacedNoteResponses[keyof CreateNotesMiloapisComV1Alpha1NamespacedNoteResponses];
 
+export type ReadNotesMiloapisComV1Alpha1NamespacedNoteData = {
+  body?: never;
+  path: {
+    /**
+     * name of the Note
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: never;
+  url: '/apis/notes.miloapis.com/v1alpha1/namespaces/{namespace}/notes/{name}';
+};
+
+export type ReadNotesMiloapisComV1Alpha1NamespacedNoteErrors = {
+  401: unknown;
+};
+
+export type ReadNotesMiloapisComV1Alpha1NamespacedNoteResponses = {
+  200: ComMiloapisNotesV1Alpha1Note;
+};
+
+export type ReadNotesMiloapisComV1Alpha1NamespacedNoteResponse =
+  ReadNotesMiloapisComV1Alpha1NamespacedNoteResponses[keyof ReadNotesMiloapisComV1Alpha1NamespacedNoteResponses];
+
+export type ReplaceNotesMiloapisComV1Alpha1NamespacedNoteData = {
+  body: ComMiloapisNotesV1Alpha1Note;
+  path: {
+    /**
+     * name of the Note
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * When present, indicates that modifications should not be persisted.
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity making these changes.
+     */
+    fieldManager?: string;
+  };
+  url: '/apis/notes.miloapis.com/v1alpha1/namespaces/{namespace}/notes/{name}';
+};
+
+export type ReplaceNotesMiloapisComV1Alpha1NamespacedNoteErrors = {
+  401: unknown;
+};
+
+export type ReplaceNotesMiloapisComV1Alpha1NamespacedNoteResponses = {
+  200: ComMiloapisNotesV1Alpha1Note;
+  201: ComMiloapisNotesV1Alpha1Note;
+};
+
+export type ReplaceNotesMiloapisComV1Alpha1NamespacedNoteResponse =
+  ReplaceNotesMiloapisComV1Alpha1NamespacedNoteResponses[keyof ReplaceNotesMiloapisComV1Alpha1NamespacedNoteResponses];
+
+export type PatchNotesMiloapisComV1Alpha1NamespacedNoteData = {
+  body: Record<string, unknown>;
+  path: {
+    /**
+     * name of the Note
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * When present, indicates that modifications should not be persisted.
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity making these changes.
+     */
+    fieldManager?: string;
+  };
+  url: '/apis/notes.miloapis.com/v1alpha1/namespaces/{namespace}/notes/{name}';
+};
+
+export type PatchNotesMiloapisComV1Alpha1NamespacedNoteErrors = {
+  401: unknown;
+};
+
+export type PatchNotesMiloapisComV1Alpha1NamespacedNoteResponses = {
+  200: ComMiloapisNotesV1Alpha1Note;
+};
+
+export type PatchNotesMiloapisComV1Alpha1NamespacedNoteResponse =
+  PatchNotesMiloapisComV1Alpha1NamespacedNoteResponses[keyof PatchNotesMiloapisComV1Alpha1NamespacedNoteResponses];
+
 export type DeleteNotesMiloapisComV1Alpha1NamespacedNoteData = {
   body?: never;
   path: {

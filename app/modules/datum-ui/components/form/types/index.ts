@@ -627,7 +627,7 @@ export interface FormDialogProps<T extends z.ZodType> {
   /** Dialog title */
   title: string;
   /** Dialog description (optional) */
-  description?: string;
+  description?: string | React.ReactNode;
   /** Trigger element to open the dialog */
   trigger?: React.ReactNode;
 

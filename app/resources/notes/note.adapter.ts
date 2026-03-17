@@ -1,9 +1,6 @@
-import type { Note, CreateNoteInput } from './note.schema';
+import type { Note, SubjectRef } from './note.schema';
 import type { ComMiloapisNotesV1Alpha1Note } from '@/modules/control-plane/notes';
 
-/**
- * Transform raw API Note to domain Note type
- */
 export function toNote(raw: ComMiloapisNotesV1Alpha1Note): Note {
   return {
     uid: raw.metadata?.uid ?? '',
@@ -15,23 +12,22 @@ export function toNote(raw: ComMiloapisNotesV1Alpha1Note): Note {
       : new Date(),
     content: raw.spec?.content ?? '',
     creatorName: raw.spec?.creatorRef?.name,
-    subjectRefName: raw.spec?.subjectRef?.name,
-    subjectRefKind: raw.spec?.subjectRef?.kind,
+    subjectRef: {
+      apiGroup: raw.spec?.subjectRef?.apiGroup ?? '',
+      kind: raw.spec?.subjectRef?.kind ?? '',
+      name: raw.spec?.subjectRef?.name ?? '',
+      namespace: raw.spec?.subjectRef?.namespace,
+    },
   };
 }
 
-/**
- * Transform raw API list items to domain Note array
- */
 export function toNoteList(items: ComMiloapisNotesV1Alpha1Note[]): Note[] {
   return items.map(toNote);
 }
 
-/**
- * Transform CreateNoteInput to API payload
- */
 export function toCreateNotePayload(
-  input: CreateNoteInput,
+  subjectRef: SubjectRef,
+  content: string,
   namespace: string = 'default'
 ): ComMiloapisNotesV1Alpha1Note {
   return {
@@ -43,12 +39,12 @@ export function toCreateNotePayload(
     },
     spec: {
       subjectRef: {
-        apiGroup: 'networking.datumapis.com',
-        kind: 'Domain',
-        name: input.domainName,
-        namespace,
+        apiGroup: subjectRef.apiGroup,
+        kind: subjectRef.kind,
+        name: subjectRef.name,
+        namespace: subjectRef.namespace ?? namespace,
       },
-      content: input.content,
+      content,
     },
   };
 }

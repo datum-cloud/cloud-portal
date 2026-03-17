@@ -50,7 +50,7 @@ export const DataTableInlineActions = <TData,>({
         const button = (
           <Button
             type={action.variant === 'destructive' ? 'danger' : 'quaternary'}
-            theme={action.variant === 'destructive' ? 'solid' : 'outline'}
+            theme="outline"
             size={showLabel ? 'small' : 'icon'}
             onClick={handleClick}
             disabled={isActionDisabled}

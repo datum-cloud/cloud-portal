@@ -62,18 +62,18 @@ GraphQL client module for the Cloud Portal. Built on **[gqlts](https://github.co
 
 The GraphQL gateway exposes four scoped endpoints. Pick the one that matches the data you're accessing:
 
-| Scope | When to use | Server path | Client proxy |
-|---|---|---|---|
-| `user` | User memberships, org list, user settings | `/iam.miloapis.com/v1alpha1/users/{userId}/graphql` | `/api/graphql/user/{userId}` |
-| `org` | Resources within an organization | `/resourcemanager.miloapis.com/v1alpha1/organizations/{orgId}/graphql` | `/api/graphql/org/{orgId}` |
-| `project` | Resources within a project | `/resourcemanager.miloapis.com/v1alpha1/projects/{projectId}/graphql` | `/api/graphql/project/{projectId}` |
-| `global` | Cross-org or admin operations | `/graphql` | `/api/graphql` |
+| Scope     | When to use                               | Server path                                                            | Client proxy                       |
+| --------- | ----------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------- |
+| `user`    | User memberships, org list, user settings | `/iam.miloapis.com/v1alpha1/users/{userId}/graphql`                    | `/api/graphql/user/{userId}`       |
+| `org`     | Resources within an organization          | `/resourcemanager.miloapis.com/v1alpha1/organizations/{orgId}/graphql` | `/api/graphql/org/{orgId}`         |
+| `project` | Resources within a project                | `/resourcemanager.miloapis.com/v1alpha1/projects/{projectId}/graphql`  | `/api/graphql/project/{projectId}` |
+| `global`  | Cross-org or admin operations             | `/graphql`                                                             | `/api/graphql`                     |
 
 ```typescript
 import type { GqlScope } from '@/modules/graphql/client';
 
-const userScope: GqlScope   = { type: 'user', userId: 'me' };      // 'me' resolves on server
-const orgScope: GqlScope    = { type: 'org', orgId: 'my-org' };
+const userScope: GqlScope = { type: 'user', userId: 'me' }; // 'me' resolves on server
+const orgScope: GqlScope = { type: 'org', orgId: 'my-org' };
 const projectScope: GqlScope = { type: 'project', projectId: 'my-project' };
 const globalScope: GqlScope = { type: 'global' };
 ```
@@ -88,10 +88,10 @@ Use URQL's `useQuery` with `generateQueryOp` to build a type-safe reactive hook.
 
 ```typescript
 // app/resources/example/example.gql-queries.ts
-import { useQuery } from 'urql';
-import { useMemo } from 'react';
 import { generateQueryOp } from '@/modules/graphql/generated';
 import type { QueryRequest } from '@/modules/graphql/generated';
+import { useMemo } from 'react';
+import { useQuery } from 'urql';
 
 // Define at module level — computed once, not per render.
 // This MUST match the SSR loader's generateQueryOp call exactly (same cache key).
@@ -134,8 +134,8 @@ Prefetch data server-side into an SSR exchange. The client restores this data fr
 ```typescript
 // app/routes/example/index.tsx
 import { createGqlClient } from '@/modules/graphql/client';
-import { createSsrExchange, extractSsrData } from '@/modules/graphql/ssr';
 import { generateQueryOp } from '@/modules/graphql/generated';
+import { createSsrExchange, extractSsrData } from '@/modules/graphql/ssr';
 import { data } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 
@@ -307,14 +307,14 @@ import { GraphQLProvider } from '@/modules/graphql/provider';
 
 <GraphQLProvider scope={scope} urqlState={urqlState}>
   {children}
-</GraphQLProvider>
+</GraphQLProvider>;
 ```
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `scope` | `GqlScope` | `{ type: 'user', userId: 'me' }` | GraphQL endpoint scope |
-| `urqlState` | `SSRData` | `undefined` | Serialized SSR cache from loader |
-| `children` | `ReactNode` | required | |
+| Prop        | Type        | Default                          | Description                      |
+| ----------- | ----------- | -------------------------------- | -------------------------------- |
+| `scope`     | `GqlScope`  | `{ type: 'user', userId: 'me' }` | GraphQL endpoint scope           |
+| `urqlState` | `SSRData`   | `undefined`                      | Serialized SSR cache from loader |
+| `children`  | `ReactNode` | required                         |                                  |
 
 Creates a URQL client once on mount. The client is scoped to the given endpoint. Restores SSR-prefetched data so CSR hooks get a cache hit on first render.
 
@@ -374,8 +374,9 @@ Key exports used in query building:
 
 ```typescript
 import type {
-  QueryRequest,      // type constraint for generateQueryOp input
-  MutationRequest,   // type constraint for generateMutationOp input
+  QueryRequest,
+  // type constraint for generateQueryOp input
+  MutationRequest, // type constraint for generateMutationOp input
   // ... resource-specific request types for `satisfies` annotations
 } from '@/modules/graphql/generated';
 ```
@@ -386,33 +387,33 @@ Always use `satisfies QueryRequest` / `satisfies MutationRequest` on the object 
 
 ## Error Handling
 
-| Error source | Type | How to handle |
-|---|---|---|
-| URQL hook (`result.error`) | `CombinedError` | Pass to `mapApiError()` — maps GraphQL error codes to `AppError` subclasses |
-| URQL service (`.toPromise()`) | `CombinedError` | `if (result.error) throw mapApiError(result.error)` |
-| SSR prefetch failure | `CombinedError` | Log with `console.error`, continue — client will re-fetch |
-| Network error | `CombinedError` (with `networkError`) | Handled by `mapApiError` fallback |
+| Error source                  | Type                                  | How to handle                                                               |
+| ----------------------------- | ------------------------------------- | --------------------------------------------------------------------------- |
+| URQL hook (`result.error`)    | `CombinedError`                       | Pass to `mapApiError()` — maps GraphQL error codes to `AppError` subclasses |
+| URQL service (`.toPromise()`) | `CombinedError`                       | `if (result.error) throw mapApiError(result.error)`                         |
+| SSR prefetch failure          | `CombinedError`                       | Log with `console.error`, continue — client will re-fetch                   |
+| Network error                 | `CombinedError` (with `networkError`) | Handled by `mapApiError` fallback                                           |
 
 `mapApiError` maps GraphQL error codes as follows:
 
-| `extensions.code` | `AppError` subclass |
-|---|---|
-| `UNAUTHENTICATED` | `AuthenticationError` |
-| `FORBIDDEN` | `AuthorizationError` |
-| `NOT_FOUND` | `NotFoundError` |
-| `BAD_USER_INPUT` | `ValidationError` |
-| anything else | `AppError` (status 500) |
+| `extensions.code` | `AppError` subclass     |
+| ----------------- | ----------------------- |
+| `UNAUTHENTICATED` | `AuthenticationError`   |
+| `FORBIDDEN`       | `AuthorizationError`    |
+| `NOT_FOUND`       | `NotFoundError`         |
+| `BAD_USER_INPUT`  | `ValidationError`       |
+| anything else     | `AppError` (status 500) |
 
 ---
 
 ## File Reference
 
-| File | Purpose |
-|---|---|
-| `client.ts` | `createGqlClient(scope, ssr?)` — URQL client factory |
-| `provider.tsx` | `<GraphQLProvider>` — React provider with SSR hydration |
-| `ssr.ts` | `createSsrExchange()`, `extractSsrData()` — SSR helpers |
-| `types.ts` | `GqlScope` type definition |
-| `endpoints.ts` | `buildScopedPath()`, `buildProxyPath()`, `parseScope()` |
-| `errors.ts` | `isGqlError()`, `getGqlErrorCode()`, `getGqlErrorMessage()` |
-| `generated/` | Auto-generated schema types and `generateQueryOp` / `generateMutationOp` |
+| File           | Purpose                                                                  |
+| -------------- | ------------------------------------------------------------------------ |
+| `client.ts`    | `createGqlClient(scope, ssr?)` — URQL client factory                     |
+| `provider.tsx` | `<GraphQLProvider>` — React provider with SSR hydration                  |
+| `ssr.ts`       | `createSsrExchange()`, `extractSsrData()` — SSR helpers                  |
+| `types.ts`     | `GqlScope` type definition                                               |
+| `endpoints.ts` | `buildScopedPath()`, `buildProxyPath()`, `parseScope()`                  |
+| `errors.ts`    | `isGqlError()`, `getGqlErrorCode()`, `getGqlErrorMessage()`              |
+| `generated/`   | Auto-generated schema types and `generateQueryOp` / `generateMutationOp` |
