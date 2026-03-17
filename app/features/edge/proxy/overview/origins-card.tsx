@@ -1,4 +1,3 @@
-import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
   ProxyOriginsDialog,
   type ProxyOriginsDialogRef,
@@ -32,24 +31,21 @@ export const HttpProxyOriginsCard = ({
     return [];
   }, [proxy]);
 
-  const isPending = useProxyPending(proxy?.status);
-
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
       <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
         <div className="flex items-center gap-2.5">
           <Icon icon={ServerIcon} size={20} className="text-secondary stroke-2" />
-          <span className="text-base font-semibold">Origins</span>
+          <span className="text-base font-semibold">Origin</span>
           {proxy && projectId && (
             <Button
               type="primary"
               theme="solid"
               size="xs"
               className="ml-auto"
-              onClick={() => originsDialogRef.current?.show(proxy)}
-              disabled={isPending}>
+              onClick={() => originsDialogRef.current?.show(proxy)}>
               <Icon icon={PencilIcon} size={12} />
-              Edit origins
+              Edit origin
             </Button>
           )}
         </div>

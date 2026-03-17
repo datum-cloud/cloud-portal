@@ -58,7 +58,7 @@ export const HttpProxyConfigCard = ({
           ) : (
             <div className="flex items-center gap-1.5">
               <span className="text-sm">{proxy.chosenName || proxy.name}</span>
-              {projectId && !isPending && (
+              {projectId && (
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors"
@@ -95,7 +95,7 @@ export const HttpProxyConfigCard = ({
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                 {formatWafProtectionDisplay(proxy)}
               </Badge>
-              {projectId && !isPending && (
+              {projectId && (
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors"
@@ -136,7 +136,7 @@ export const HttpProxyConfigCard = ({
             <Switch
               key={`force-https-${proxy.enableHttpRedirect ?? false}`}
               checked={proxy.enableHttpRedirect ?? false}
-              disabled={isPending || !!proxy.connector}
+              disabled={!!proxy.connector}
               onCheckedChange={(checked) => {
                 if (!checked && proxy.basicAuthEnabled) {
                   toast.warning('AI Edge', {
@@ -192,7 +192,7 @@ export const HttpProxyConfigCard = ({
                     : 'Enabled'
                   : 'Disabled'}
               </Badge>
-              {projectId && !isPending && (
+              {projectId && (
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors"

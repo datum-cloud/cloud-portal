@@ -1,4 +1,3 @@
-import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
@@ -46,8 +45,6 @@ export const HttpProxyHostnamesCard = ({
     });
   }, [proxy?.hostnames, proxy?.hostnameStatuses]);
 
-  const isPending = useProxyPending(proxy?.status);
-
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
       <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
@@ -64,7 +61,7 @@ export const HttpProxyHostnamesCard = ({
                 hostnamesConfigDialogRef.current?.show(proxy);
               }
             }}
-            disabled={disabled ?? isPending}>
+            disabled={disabled}>
             <Icon icon={PencilIcon} size={12} />
             Edit hostnames
           </Button>

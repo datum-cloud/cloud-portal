@@ -10,13 +10,11 @@ import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { MetricsProvider, MetricsToolbar } from '@/modules/metrics';
 import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filter';
-import { ControlPlaneStatus } from '@/resources/base';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Icon, toast, Tooltip } from '@datum-ui/components';
+import { Button, Icon, toast } from '@datum-ui/components';
 import { Card, CardContent, Col, Row } from '@datum-ui/components';
 import { PageTitle } from '@datum-ui/components/page-title';
 import { ChartSplineIcon, Trash2Icon } from 'lucide-react';
@@ -36,9 +34,6 @@ export default function HttpProxyDetailPage() {
   useHttpProxyWatch(projectId ?? '', proxyId ?? '');
 
   const effectiveProxy = httpProxy ?? loaderData;
-  const isDeleteDisabled =
-    !!effectiveProxy &&
-    transformControlPlaneStatus(effectiveProxy.status)?.status !== ControlPlaneStatus.Success;
 
   const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId ?? '', {
     onSuccess: () => {
@@ -60,29 +55,15 @@ export default function HttpProxyDetailPage() {
         <Col span={24}>
           <div className="flex items-center justify-between">
             <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'AI Edge'} />
-            {isDeleteDisabled ? (
-              <Tooltip message="Delete is available when the AI Edge is active">
-                <Button
-                  type="danger"
-                  theme="outline"
-                  size="small"
-                  disabled
-                  onClick={() => confirmDelete(effectiveProxy)}>
-                  <Icon icon={Trash2Icon} size={14} />
-                  Delete
-                </Button>
-              </Tooltip>
-            ) : (
-              <Button
-                type="danger"
-                theme="outline"
-                size="small"
-                loading={isDeleting}
-                onClick={() => confirmDelete(effectiveProxy)}>
-                <Icon icon={Trash2Icon} size={14} />
-                Delete
-              </Button>
-            )}
+            <Button
+              type="danger"
+              theme="outline"
+              size="small"
+              loading={isDeleting}
+              onClick={() => confirmDelete(effectiveProxy)}>
+              <Icon icon={Trash2Icon} size={14} />
+              Delete
+            </Button>
           </div>
         </Col>
         <Col span={24} lg={12}>
@@ -139,7 +120,6 @@ export default function HttpProxyDetailPage() {
           <DangerCard
             deleteText="Delete AI Edge"
             loading={isDeleting}
-            disabled={isDeleteDisabled}
             onDelete={() => confirmDelete(effectiveProxy)}
           />
         </Col>

@@ -70,7 +70,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
           )}>
           <Avatar className="size-full h-7 w-7 rounded-xl">
             {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user?.fullName || 'User'} />}
-            <AvatarFallback className="rounded-lg bg-transparent font-semibold">
+            <AvatarFallback className="bg-primary text-primary-foreground rounded-lg font-semibold">
               {getInitials(user?.fullName || '')}
             </AvatarFallback>
           </Avatar>

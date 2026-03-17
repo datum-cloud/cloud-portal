@@ -2,12 +2,14 @@ import { MiddlewareContext, NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { createUserService, RegistrationApproval } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { redirect } from 'react-router';
 
 /**
  * Registration approval middleware that checks if a user's registration is approved
  * and redirects to waitlist if not approved
+ *
+ * Uses session from load context when available (already validated by Hono sessionMiddleware)
+ * to avoid redundant getSession calls.
  *
  * @param ctx - The middleware context containing request and app context
  * @param next - The next middleware function to call if approved
@@ -17,7 +19,7 @@ export async function registrationApprovalMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
-  const { request } = ctx;
+  const { request, context } = ctx;
   const url = new URL(request.url);
 
   // Allowed paths that don't require registration approval
@@ -28,15 +30,15 @@ export async function registrationApprovalMiddleware(
     return next();
   }
 
+  // Use session from load context (already validated by Hono sessionMiddleware)
+  const session = context?.session ?? null;
+
+  if (!session?.sub) {
+    // No session, let authMiddleware handle it
+    return next();
+  }
+
   try {
-    // Get session to retrieve user ID
-    const { session } = await getSession(request);
-
-    if (!session?.sub) {
-      // No session, let authMiddleware handle it
-      return next();
-    }
-
     // Use user service directly instead of internal API call
     // Services now use global axios client with AsyncLocalStorage
     const userService = createUserService();
@@ -58,11 +60,9 @@ export async function registrationApprovalMiddleware(
 
     // Check if user's registration is approved
     if (user.registrationApproval !== RegistrationApproval.Approved) {
-      // Redirect to waitlist if not approved
       return redirect(paths.waitlist);
     }
 
-    // User is approved, proceed to next middleware
     return next();
   } catch (error) {
     // If any error occurs, proceed to next middleware
