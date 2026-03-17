@@ -71,13 +71,16 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
             name="emails"
             label="Emails"
             required
-            description="Enter one or more emails (e.g., example@example.com). Use comma or press Enter to add each email as a tag.">
+            description="Enter one or more emails (e.g., example@example.com). Press Enter, comma, or semicolon to add each email.">
             {({ control, field }) => (
               <TagsInput
                 {...getSelectProps(field, { value: false })}
                 value={(control.value as string[]) || []}
                 onValueChange={control.change}
                 placeholder="Enter email"
+                delimiters={['Enter', ',', ';', ' ']}
+                normalizer={(val) => val.toLowerCase()}
+                showValidationErrors={false}
               />
             )}
           </Form.Field>
