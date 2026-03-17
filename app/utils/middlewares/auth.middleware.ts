@@ -6,6 +6,9 @@ import { AuthenticationError } from '@/utils/errors';
  * Authentication middleware that checks if a user is authenticated
  * and either proceeds to the next middleware or redirects to login
  *
+ * Uses session from load context when available (already validated by Hono
+ * sessionMiddleware) to avoid redundant getSession calls and reduce redirect latency.
+ *
  * @param ctx - The middleware context containing request and app context
  * @param next - The next middleware function to call if authenticated
  * @returns Response from either the next middleware or a redirect
@@ -14,7 +17,13 @@ export async function authMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
-  const { request } = ctx;
+  const { request, context } = ctx;
+
+  // Session already validated by Hono sessionMiddleware - skip redundant getSession
+  if (context?.session) {
+    return next();
+  }
+
   const result = await isAuthenticated(request);
 
   // If result is a Response object (redirect), return it directly

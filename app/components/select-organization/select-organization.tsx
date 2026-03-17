@@ -41,7 +41,11 @@ export const SelectOrganization = ({
   const { data, isLoading, error } = useOrganizationsGql(undefined, {
     enabled: open,
   });
-  const organizations = data?.items ?? [];
+  const organizations = [...(data?.items ?? [])].sort((a, b) => {
+    if (a.name === currentOrg?.name) return -1;
+    if (b.name === currentOrg?.name) return 1;
+    return (a.displayName ?? a.name ?? '').localeCompare(b.displayName ?? b.name ?? '');
+  });
 
   useEffect(() => {
     if (error) {

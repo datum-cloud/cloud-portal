@@ -4,11 +4,14 @@ import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  // Get active org and project from cookies
-  const { orgId, headers: orgHeaders } = await getOrgSession(request);
-  const { projectId, headers: projectHeaders } = await getProjectSession(request);
+  // Get active org and project from cookies (parallel for faster redirects)
+  const [orgResult, projectResult] = await Promise.all([
+    getOrgSession(request),
+    getProjectSession(request),
+  ]);
 
-  // Combine headers from both cookie operations
+  const { orgId, headers: orgHeaders } = orgResult;
+  const { projectId, headers: projectHeaders } = projectResult;
   const headers = combineHeaders(orgHeaders, projectHeaders);
 
   // If both org and project exist, redirect to project home

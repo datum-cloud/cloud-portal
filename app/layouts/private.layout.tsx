@@ -23,10 +23,11 @@ import { useEffect, useState } from 'react';
 import { LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
 export const loader = withMiddleware(
-  async ({ request }: LoaderFunctionArgs) => {
+  async ({ request, context }: LoaderFunctionArgs) => {
     try {
-      // Services now use global axios client with AsyncLocalStorage
-      const { session } = await getSession(request);
+      // Use session from load context (already validated by Hono sessionMiddleware)
+      // to avoid redundant getSession call
+      const session = context?.session ?? (await getSession(request)).session;
 
       // Re-use the user fetched by registrationApprovalMiddleware when available,
       // avoiding a second upstream API call on the same request.

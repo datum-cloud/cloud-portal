@@ -48,35 +48,32 @@ export const ProjectSwitcher = ({
   };
 
   const projects: Project[] = useMemo(() => {
-    return data?.items ?? [];
-  }, [data]);
+    const items = data?.items ?? [];
+    return [...items].sort((a, b) => {
+      if (a.uid === currentProject.uid) return -1;
+      if (b.uid === currentProject.uid) return 1;
+      return (a?.displayName ?? '').localeCompare(b?.displayName ?? '');
+    });
+  }, [data, currentProject.uid]);
 
   return (
     <div className="flex items-center gap-2.5 pl-2.5">
-      <Link
-        to={getPathWithParams(paths.project.detail.home, {
-          projectId: currentProject.name,
-        })}
-        className="flex w-fit items-center justify-between gap-2.5 text-left">
-        <Icon icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
-        <span className="truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
-          {currentProject?.displayName}
-        </span>
-      </Link>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             type="quaternary"
             theme="borderless"
             size="small"
-            className={cn(
-              'flex cursor-pointer gap-2 border-none p-0 hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent',
-              triggerClassName
-            )}>
+            className="flex cursor-pointer items-center gap-2.5 border-none p-0 font-normal hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent">
+            <Icon icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
+            <span className="truncate text-left text-xs leading-3.5 sm:max-w-36 md:max-w-none">
+              {currentProject?.displayName}
+            </span>
             <Icon
               icon={ChevronDown}
               className={cn(
-                'text-icon-secondary size-4 w-fit transition-all',
+                'text-icon-secondary w-fit shrink-0 transition-all',
+                triggerClassName ?? 'size-4',
                 open && 'rotate-180'
               )}
             />

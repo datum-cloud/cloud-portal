@@ -215,16 +215,6 @@ export default function HttpProxyPage() {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        disabled: (row) => {
-          const status = transformControlPlaneStatus(row.status);
-          return status?.status !== ControlPlaneStatus.Success;
-        },
-        tooltip: (row) => {
-          const status = transformControlPlaneStatus(row.status);
-          return status?.status !== ControlPlaneStatus.Success
-            ? 'Delete is available when the AI Edge is active'
-            : undefined;
-        },
         action: (row) => confirmDelete(row),
       },
     ],
