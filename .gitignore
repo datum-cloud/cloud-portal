@@ -6,18 +6,15 @@ node_modules
 .DS_Store
 .react-router/
 
+# AI assistant files
 .cursor/
 .windsurf/
 .claude/
 !.claude/settings.json
 CLAUDE.MD
-
-cypress/screenshots
-cypress/videos
-cypress/results
-
-# Local plans (not for git)
+.superpowers/
 docs/plans/
+docs/superpowers/
 
 # OpenAPI generation temp files
 temp-openapi-spec.json
@@ -25,7 +22,9 @@ temp-openapi-spec.json
 # GraphQL generation temp files
 temp-filtered-schema.graphql
 
+# Cypress files
+cypress/screenshots
+cypress/videos
+cypress/results
 
 
-
-.superpowers/
