@@ -40,6 +40,7 @@ export const HttpProxyConfigCard = ({
     projectId ?? '',
     proxy.connector?.name
   );
+  const transformedStatus = transformControlPlaneStatus(proxy.status);
 
   useConnectorWatch(projectId ?? '', proxy.connector?.name);
 
@@ -82,7 +83,7 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          proxy.trafficProtectionMode === undefined ? (
+          transformedStatus.status === ControlPlaneStatus.Pending ? (
             <Skeleton className="h-5 w-24 rounded-md" />
           ) : proxy.trafficProtectionMode !== undefined ||
             proxy.paranoiaLevels?.blocking !== undefined ||

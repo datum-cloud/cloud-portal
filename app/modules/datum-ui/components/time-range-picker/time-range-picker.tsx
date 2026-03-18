@@ -257,14 +257,14 @@ export function TimeRangePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className="relative inline-flex">
+      <div className="relative inline-flex min-w-0">
         <PopoverTrigger asChild>
           <Button
             type="quaternary"
             theme="outline"
             disabled={disabled}
             className={cn(
-              'text-foreground min-w-[200px] items-center justify-between gap-2 px-3 font-normal',
+              'text-foreground min-w-0 items-center justify-between gap-2 px-3 font-normal sm:min-w-[200px]',
               className
             )}>
             <div className="flex flex-1 items-center gap-2">
@@ -294,11 +294,16 @@ export function TimeRangePicker({
         </PopoverTrigger>
       </div>
 
-      <PopoverContent className="w-auto rounded-xl p-0" align={align} side={side} sideOffset={4}>
+      <PopoverContent
+        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] rounded-xl p-0 sm:w-auto sm:max-w-none"
+        align={align}
+        side={side}
+        sideOffset={4}
+        collisionPadding={16}>
         {/* Main content: Calendar (left) + Presets (right) */}
-        <div className="divide-border flex flex-col divide-x sm:flex-row">
+        <div className="divide-border flex flex-col divide-y sm:flex-row sm:divide-x sm:divide-y-0">
           {/* Calendar */}
-          <div className="flex-1 px-0">
+          <div className="min-w-0 flex-1 px-0">
             <Calendar
               className="w-full"
               mode="range"
@@ -321,7 +326,7 @@ export function TimeRangePicker({
           <Separator orientation="horizontal" className="sm:hidden" /> */}
 
           {/* Presets */}
-          <div className="p-3">
+          <div className="min-w-0 shrink-0 p-3 sm:w-48">
             <QuickRangesPanel
               presets={presets}
               value={effectiveValue}

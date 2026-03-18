@@ -89,13 +89,13 @@ export default function HttpProxyDetailPage() {
                 <Icon icon={ChartSplineIcon} size={20} className="text-secondary stroke-2" />
                 <span className="text-base font-semibold">Metrics</span>
               </div>
-              <MetricsToolbar className="justify-between">
-                <MetricsToolbar.Filters>
+              <MetricsToolbar className="flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+                <MetricsToolbar.Filters className="w-full sm:w-auto">
                   <RegionsFilter />
                 </MetricsToolbar.Filters>
-                <MetricsToolbar.CoreControls />
+                <MetricsToolbar.CoreControls className="w-full flex-wrap sm:w-auto sm:flex-nowrap" />
               </MetricsToolbar>
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4 sm:gap-6">
                 <HttpProxyGlobalUpstreamLatency
                   projectId={projectId ?? ''}
                   proxyId={proxyId ?? ''}

@@ -55,7 +55,7 @@ export const StepControl = ({ filterKey = 'step', defaultValue = '15m' }: StepCo
         Step
       </Button>
       <Select value={step || defaultValue} onValueChange={setStep}>
-        <SelectTrigger className="min-w-10 rounded-l-none border-0 px-2 focus:ring-0">
+        <SelectTrigger className="min-w-10 rounded-l-none border-0 px-2 shadow-none focus:shadow-none focus:ring-0">
           <SelectValue placeholder="Select step" />
         </SelectTrigger>
         <SelectContent>

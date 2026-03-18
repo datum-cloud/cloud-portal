@@ -228,10 +228,10 @@ export function CustomRangePanel({
     <div className={cn('flex flex-col gap-2', className)}>
       <p className="text-muted-foreground text-xs font-medium">Custom Range</p>
 
-      {/* Inline layout: Start — End */}
-      <div className="flex items-center gap-2">
+      {/* Inline layout: Start — End (stacked on mobile) */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-2">
         {/* Start Date + Time */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -268,10 +268,10 @@ export function CustomRangePanel({
         </div>
 
         {/* Separator */}
-        <span className="text-muted-foreground text-sm">—</span>
+        <span className="text-muted-foreground hidden text-sm sm:inline">—</span>
 
         {/* End Date + Time */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
           <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
             <PopoverTrigger asChild>
               <Button
