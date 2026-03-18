@@ -6,7 +6,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
-import { SpinnerIcon } from '@datum-ui/components';
+import { Button, SpinnerIcon } from '@datum-ui/components';
 import { Card, CardContent, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { MapPinIcon } from 'lucide-react';
@@ -99,12 +99,14 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
                   <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
                     <div className="flex flex-col items-center gap-2">
                       <p className="text-muted-foreground text-sm">Unable to load map.</p>
-                      <button
-                        type="button"
-                        onClick={() => window.location.reload()}
-                        className="text-primary text-sm underline">
+                      <Button
+                        htmlType="button"
+                        type="primary"
+                        theme="solid"
+                        size="small"
+                        onClick={() => window.location.reload()}>
                         Reload page
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 }>

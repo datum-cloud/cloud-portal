@@ -2,7 +2,7 @@ import { isEligibleForProtect } from './utils';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { Button, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { ExternalLinkIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
+import { EyeIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export interface RemoveEdgeCallbacks {
@@ -66,8 +66,9 @@ export function DnsRecordAiEdgeCell({
         size="xs"
         className="shrink-0"
         disabled={isProtecting}
-        onClick={handleProtect}>
-        <Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />
+        onClick={handleProtect}
+        icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
+        iconPosition="left">
         Protect with AI Edge
       </Button>
     );
@@ -91,8 +92,9 @@ export function DnsRecordAiEdgeCell({
         size="xs"
         className="shrink-0"
         disabled={isRemoving}
-        onClick={handleRemove}>
-        <Icon icon={ShieldOffIcon} className="size-3.5 shrink-0" />
+        onClick={handleRemove}
+        icon={<Icon icon={ShieldOffIcon} className="size-3.5 shrink-0" />}
+        iconPosition="left">
         Remove AI Edge
       </Button>
     );
@@ -105,8 +107,9 @@ export function DnsRecordAiEdgeCell({
         theme="outline"
         size="xs"
         className="shrink-0"
-        onClick={() => onViewProxy(record.gatewaySourceName!)}>
-        <Icon icon={ExternalLinkIcon} className="size-3.5 shrink-0" />
+        onClick={() => onViewProxy(record.gatewaySourceName!)}
+        icon={<Icon icon={EyeIcon} className="size-3.5 shrink-0" />}
+        iconPosition="left">
         View AI Edge
       </Button>
     );

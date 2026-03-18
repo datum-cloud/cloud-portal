@@ -10,7 +10,7 @@ import { lazy } from 'react';
  *
  * Uses sessionStorage to prevent infinite reload loops.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export function lazyWithRetry<T extends React.ComponentType<any>>(
   factory: () => Promise<{ default: T }>,
   chunkName?: string

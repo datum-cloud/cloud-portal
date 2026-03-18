@@ -13,7 +13,10 @@ interface ChunkErrorBoundaryState {
  * Error boundary that catches chunk load failures (stale deployments, network issues).
  * Shows a fallback UI instead of crashing the entire page.
  */
-export class ChunkErrorBoundary extends Component<ChunkErrorBoundaryProps, ChunkErrorBoundaryState> {
+export class ChunkErrorBoundary extends Component<
+  ChunkErrorBoundaryProps,
+  ChunkErrorBoundaryState
+> {
   constructor(props: ChunkErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
