@@ -22,9 +22,6 @@ export default [
     // Invitation
     route('invitation/:invitationId/accept', 'routes/invitation/index.tsx'),
 
-    // Waitlist
-    route('waitlist', 'routes/waitlist/index.tsx'),
-
     // Account
     route('account', 'routes/account/layout.tsx', [
       index('routes/account/index.tsx'),
@@ -196,6 +193,13 @@ export default [
     route('callback', 'routes/auth/callback.tsx'),
   ]),
 
+  // Fraud routes — outside the private layout because the private layout loader fetches
+  // the user and would throw NotFoundError for brand-new users not yet in Milo.
+  // These pages use BlankLayout and handle their own auth checks.
+  // The /api/fraud-status polling endpoint is handled by the Hono server (app/server/routes/fraud-status.ts).
+  route('verifying', 'routes/fraud/verifying.tsx'),
+  route('account-under-review', 'routes/fraud/account-under-review.tsx'),
+  route('account-suspended', 'routes/fraud/account-suspended.tsx'),
   // Global Routes
   route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
 

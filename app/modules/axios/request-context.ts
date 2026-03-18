@@ -11,8 +11,8 @@ export interface RequestContext {
   token: string;
   userId?: string;
   /**
-   * Per-request user cache. Written by registrationApprovalMiddleware after
-   * fetching the user for the approval check; read by the private layout loader
+   * Per-request user cache. Written by fraudStatusMiddleware after
+   * fetching the user for the fraud evaluation check; read by the private layout loader
    * to avoid a second upstream API call on the same request.
    */
   cachedUser?: User;

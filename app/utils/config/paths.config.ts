@@ -8,7 +8,12 @@ export const paths = {
   },
   home: '/',
   gettingStarted: '/getting-started',
-  waitlist: '/waitlist',
+  fraud: {
+    verifying: '/verifying',
+    accountUnderReview: '/account-under-review',
+    accountSuspended: '/account-suspended',
+    statusApi: '/api/fraud-status',
+  },
   invitationAccept: '/invitation/:invitationId/accept',
   account: {
     root: '/account',

@@ -10,11 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
-import {
-  authMiddleware,
-  registrationApprovalMiddleware,
-  withMiddleware,
-} from '@/utils/middlewares';
+import { authMiddleware, fraudStatusMiddleware, withMiddleware } from '@/utils/middlewares';
 import { TaskQueueProvider } from '@datum-ui/components/task-queue';
 import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';
@@ -29,7 +25,7 @@ export const loader = withMiddleware(
       // to avoid redundant getSession call
       const session = context?.session ?? (await getSession(request)).session;
 
-      // Re-use the user fetched by registrationApprovalMiddleware when available,
+      // Re-use the user fetched by fraudStatusMiddleware when available,
       // avoiding a second upstream API call on the same request.
       const cachedUser = getRequestContext()?.cachedUser;
       const user = cachedUser ?? (await createUserService().get(session?.sub ?? ''));
@@ -58,7 +54,7 @@ export const loader = withMiddleware(
     }
   },
   authMiddleware,
-  registrationApprovalMiddleware
+  fraudStatusMiddleware
 );
 
 function FathomWrapper({ children }: { children: ReactNode }) {
