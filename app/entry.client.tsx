@@ -67,6 +67,29 @@ Sentry.init({
   },
 });
 
+// Global handler for chunk load failures (stale deployments).
+// When a lazy import fails because the chunk hash changed after a deployment,
+// reload the page once to get fresh entry points. Uses sessionStorage to
+// prevent infinite reload loops.
+window.addEventListener('error', (event) => {
+  const msg = event.message ?? '';
+  if (
+    msg.includes('Importing a module script failed') ||
+    msg.includes('Failed to fetch dynamically imported module')
+  ) {
+    const key = 'chunk-reload-attempted';
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, '1');
+      window.location.reload();
+    }
+  }
+});
+
+// Clear the chunk reload flag on successful page load
+window.addEventListener('load', () => {
+  sessionStorage.removeItem('chunk-reload-attempted');
+});
+
 async function main() {
   startTransition(() => {
     hydrateRoot(

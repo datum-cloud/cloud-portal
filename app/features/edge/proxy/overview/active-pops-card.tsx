@@ -1,17 +1,20 @@
 import { getRegionCoordinates } from './region-coordinates';
+import { ChunkErrorBoundary } from '@/components/chunk-error-boundary/chunk-error-boundary';
 import { usePrometheusLabels } from '@/modules/metrics';
 import { buildPrometheusLabelSelector } from '@/modules/metrics/utils/query-builders';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
 import { SpinnerIcon } from '@datum-ui/components';
 import { Card, CardContent, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { MapPinIcon } from 'lucide-react';
-import { lazy, Suspense, useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 
-const ActivePopsMap = lazy(() =>
-  import('./active-pops-map').then((m) => ({ default: m.ActivePopsMap }))
+const ActivePopsMap = lazyWithRetry(
+  () => import('./active-pops-map').then((m) => ({ default: m.ActivePopsMap })),
+  'active-pops-map'
 );
 
 const REGION_LABEL = 'label_topology_kubernetes_io_region';
@@ -91,10 +94,25 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
         {!isLoading && !showSkeleton && !error && regionOptions.length > 0 && (
           <div className="flex flex-col gap-4">
             {regionsWithCoords.length > 0 && (
-              <Suspense
-                fallback={<div className="bg-muted h-64 animate-pulse rounded-lg border" />}>
-                <ActivePopsMap regionsWithCoords={regionsWithCoords} />
-              </Suspense>
+              <ChunkErrorBoundary
+                fallback={
+                  <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="text-muted-foreground text-sm">Unable to load map.</p>
+                      <button
+                        type="button"
+                        onClick={() => window.location.reload()}
+                        className="text-primary text-sm underline">
+                        Reload page
+                      </button>
+                    </div>
+                  </div>
+                }>
+                <Suspense
+                  fallback={<div className="bg-muted h-64 animate-pulse rounded-lg border" />}>
+                  <ActivePopsMap regionsWithCoords={regionsWithCoords} />
+                </Suspense>
+              </ChunkErrorBoundary>
             )}
             {regionsWithCoords.length === 0 && (
               <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
