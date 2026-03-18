@@ -225,7 +225,10 @@ export function createHttpProxyService() {
         body: {
           apiVersion: 'v1',
           kind: 'Secret',
-          metadata: { name: `${httpProxyName}-basic-auth` },
+          metadata: {
+            name: `${httpProxyName}-basic-auth`,
+            labels: { 'networking.datumapis.com/gateway-sync': '' },
+          },
           type: 'Opaque',
           data: { '.htpasswd': htpasswdBase64 },
         },
@@ -265,7 +268,12 @@ export function createHttpProxyService() {
         await client.patch({
           url: `/api/v1/namespaces/default/secrets/${httpProxyName}-basic-auth`,
           baseURL,
-          body: { data: { '.htpasswd': htpasswdBase64 } },
+          body: {
+            metadata: {
+              labels: { 'networking.datumapis.com/gateway-sync': '' },
+            },
+            data: { '.htpasswd': htpasswdBase64 },
+          },
           headers: { 'Content-Type': 'application/merge-patch+json' },
         });
       } catch (error: unknown) {
