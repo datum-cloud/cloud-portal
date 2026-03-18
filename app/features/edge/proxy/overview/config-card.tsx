@@ -1,7 +1,6 @@
 import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { List, ListItem } from '@/components/list/list';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
-import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
 import {
   ProxyBasicAuthDialog,
   type ProxyBasicAuthDialogRef,
@@ -44,30 +43,27 @@ export const HttpProxyConfigCard = ({
 
   useConnectorWatch(projectId ?? '', proxy.connector?.name);
 
-  const isPending = useProxyPending(proxy?.status);
-
   const listItems: ListItem[] = useMemo(() => {
     if (!proxy) return [];
 
     return [
       {
         label: 'Name',
-        content:
-          isPending && !proxy.chosenName ? (
-            <Skeleton className="h-5 w-32 rounded-md" />
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">{proxy.chosenName || proxy.name}</span>
-              {projectId && (
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  onClick={() => displayNameDialogRef.current?.show(proxy)}>
-                  <Icon icon={PencilIcon} size={12} />
-                </button>
-              )}
-            </div>
-          ),
+        content: !proxy.chosenName ? (
+          <Skeleton className="h-5 w-32 rounded-md" />
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <span className="text-sm">{proxy.chosenName || proxy.name}</span>
+            {projectId && (
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => displayNameDialogRef.current?.show(proxy)}>
+                <Icon icon={PencilIcon} size={12} />
+              </button>
+            )}
+          </div>
+        ),
       },
 
       {
@@ -86,7 +82,7 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          isPending && proxy.trafficProtectionMode === undefined ? (
+          proxy.trafficProtectionMode === undefined ? (
             <Skeleton className="h-5 w-24 rounded-md" />
           ) : proxy.trafficProtectionMode !== undefined ||
             proxy.paranoiaLevels?.blocking !== undefined ||
@@ -130,7 +126,7 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          isPending && proxy.enableHttpRedirect === undefined ? (
+          proxy.enableHttpRedirect === undefined ? (
             <Skeleton className="h-6 w-20 rounded-md" />
           ) : (
             <Switch
@@ -181,7 +177,7 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          isPending && proxy.basicAuthEnabled === undefined ? (
+          proxy.basicAuthEnabled === undefined ? (
             <Skeleton className="h-5 w-24 rounded-md" />
           ) : (
             <div className="flex items-center gap-1.5">
@@ -204,7 +200,7 @@ export const HttpProxyConfigCard = ({
           ),
       },
     ];
-  }, [proxy, isPending, projectId, updateMutation]);
+  }, [proxy, projectId, updateMutation]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy.connector) return null;
