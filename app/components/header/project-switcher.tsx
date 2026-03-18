@@ -30,10 +30,10 @@ const ProjectItem = ({ project }: { project: Project }) => {
 
 export const ProjectSwitcher = ({
   currentProject,
-  triggerClassName,
+  chevronClassName,
 }: {
   currentProject: Project;
-  triggerClassName?: string;
+  chevronClassName?: string;
 }) => {
   const { orgId } = useApp();
   const navigate = useNavigate();
@@ -73,7 +73,7 @@ export const ProjectSwitcher = ({
               icon={ChevronDown}
               className={cn(
                 'text-icon-secondary w-fit shrink-0 transition-all',
-                triggerClassName ?? 'size-4',
+                chevronClassName ?? 'size-4',
                 open && 'rotate-180'
               )}
             />
@@ -100,28 +100,24 @@ export const ProjectSwitcher = ({
                 </CommandItem>
               ) : (
                 <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
-                  {(projects ?? [])
-                    .sort((a: Project, b: Project) =>
-                      (a?.displayName ?? '').localeCompare(b?.displayName ?? '')
-                    )
-                    .map((project: Project) => {
-                      const isSelected = project.uid === currentProject.uid;
-                      return (
-                        <CommandItem
-                          value={`${project.name}-${project.displayName}`}
-                          key={project.uid}
-                          onSelect={() => {
-                            setOpen(false);
-                            if (!isSelected) {
-                              onSelect(project);
-                            }
-                          }}
-                          className="cursor-pointer justify-between px-3 py-2">
-                          <ProjectItem project={project} />
-                          {isSelected && <Icon icon={CheckIcon} className="text-primary size-4" />}
-                        </CommandItem>
-                      );
-                    })}
+                  {projects.map((project: Project) => {
+                    const isSelected = project.uid === currentProject.uid;
+                    return (
+                      <CommandItem
+                        value={`${project.name}-${project.displayName}`}
+                        key={project.uid}
+                        onSelect={() => {
+                          setOpen(false);
+                          if (!isSelected) {
+                            onSelect(project);
+                          }
+                        }}
+                        className="cursor-pointer justify-between px-3 py-2">
+                        <ProjectItem project={project} />
+                        {isSelected && <Icon icon={CheckIcon} className="text-primary size-4" />}
+                      </CommandItem>
+                    );
+                  })}
                 </CommandGroup>
               )}
 

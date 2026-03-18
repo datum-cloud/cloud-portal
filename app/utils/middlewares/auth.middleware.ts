@@ -20,7 +20,8 @@ export async function authMiddleware(
   const { request, context } = ctx;
 
   // Session already validated by Hono sessionMiddleware - skip redundant getSession
-  if (context?.session) {
+  // Verify session has an actual identity (sub), not just a truthy object
+  if (context?.session?.sub) {
     return next();
   }
 

@@ -7,8 +7,8 @@ import { Skeleton } from '@datum-ui/components';
 export interface OrgProjectSwitcherProps {
   currentOrg?: Organization;
   currentProject?: Project;
-  /** Optional class name for the project switcher trigger */
-  projectSwitcherTriggerClassName?: string;
+  /** Optional class name for the project switcher chevron icon */
+  projectSwitcherChevronClassName?: string;
   /** Show loading skeletons to prevent layout shift */
   switcherLoading?: boolean;
 }
@@ -51,7 +51,7 @@ const SeparatorIcon = () => (
 export const OrgProjectSwitcher = ({
   currentOrg,
   currentProject,
-  projectSwitcherTriggerClassName = 'w-4 h-4',
+  projectSwitcherChevronClassName = 'w-4 h-4',
   switcherLoading = false,
 }: OrgProjectSwitcherProps) => {
   const orgReady = currentOrg && (currentOrg.displayName || currentOrg.name);
@@ -75,7 +75,7 @@ export const OrgProjectSwitcher = ({
             currentProject && (
               <ProjectSwitcher
                 currentProject={currentProject}
-                triggerClassName={projectSwitcherTriggerClassName}
+                chevronClassName={projectSwitcherChevronClassName}
               />
             )
           )}
