@@ -42,7 +42,7 @@ export default function VerifyingPage() {
           } else if (decision === 'DEACTIVATE') {
             window.location.replace(paths.fraud.accountSuspended);
           } else {
-            // NONE or empty — approved, navigate to the platform
+            // ACCEPTED or unknown — approved, navigate to the platform
             window.location.replace(paths.account.organizations.root);
           }
         }

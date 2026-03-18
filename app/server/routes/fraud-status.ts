@@ -13,7 +13,7 @@ const fraudStatus = new Hono<{ Variables: Variables }>();
  *
  * Returns:
  * - 200 { status: 'pending' }                           — not yet in system or approval is Pending
- * - 200 { status: 'completed', decision: 'NONE' }       — registrationApproval is Approved
+ * - 200 { status: 'completed', decision: 'ACCEPTED' }   — registrationApproval is Approved
  * - 200 { status: 'completed', decision: 'REVIEW' }     — registrationApproval is Rejected
  * - 200 { status: 'completed', decision: 'DEACTIVATE' } — user state is Inactive
  */
@@ -28,7 +28,7 @@ fraudStatus.get('/', async (c) => {
     }
 
     if (user.registrationApproval === RegistrationApproval.Approved) {
-      return c.json({ status: 'completed', decision: 'NONE' });
+      return c.json({ status: 'completed', decision: 'ACCEPTED' });
     }
 
     if (user.registrationApproval === RegistrationApproval.Rejected) {
