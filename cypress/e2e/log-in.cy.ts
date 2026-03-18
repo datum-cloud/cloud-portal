@@ -13,8 +13,8 @@ describe('Log in', () => {
     // Check if we're redirected to the OIDC provider
     cy.url().should('include', Cypress.env('AUTH_OIDC_ISSUER'));
 
-    // Use data-e2e attributes for more reliable testing
-    cy.get('[e2e="google"]').should('be.visible');
-    cy.get('[e2e="github"]').should('be.visible');
+    // Use data-testid attributes for more reliable testing
+    cy.get('[data-testid="google"]').should('be.visible');
+    cy.get('[data-testid="github"]').should('be.visible');
   });
 });
