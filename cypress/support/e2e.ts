@@ -124,12 +124,10 @@ Cypress.on('window:before:load', (win) => {
 });
 
 /**
- * Get the personal org ID from shared state
- * This should be called after the org-list test has run and stored the ID
- * If not already stored, it will fetch it from the organizations page
+ * Get the personal org ID. Shard-safe: when run in a different process (e.g. cypress-split),
+ * Cypress.env is empty, so we fetch from the organizations page instead of relying on cache.
  */
 Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
-  // First try to get from Cypress.env (set by org-list test)
   const storedId = Cypress.env('personalOrgId') as string | undefined;
   if (storedId) {
     return cy.wrap(storedId, { log: false });
@@ -156,12 +154,10 @@ Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
 });
 
 /**
- * Get the project ID from shared state
- * This should be called after the project-list test has run and stored the ID
- * If not already stored, it will fetch it from the projects page
+ * Get the project ID. Shard-safe: when run in a different process (e.g. cypress-split),
+ * Cypress.env is empty, so we fetch from the projects page instead of relying on cache.
  */
 Cypress.Commands.add('getProjectId', (orgId?: string): Cypress.Chainable<string> => {
-  // First try to get from Cypress.env (set by project-list test)
   const storedId = Cypress.env('projectId') as string | undefined;
   if (storedId) {
     return cy.wrap(storedId, { log: false });
