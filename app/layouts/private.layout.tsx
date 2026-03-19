@@ -34,14 +34,9 @@ export const loader = withMiddleware(
        * Generate Help Scout signature for secure mode
        */
       let helpscoutSignature = null;
-      if (
-        serverEnv.isProd &&
-        serverEnv.public.helpscoutBeaconId &&
-        user?.email &&
-        serverEnv.server.helpscoutSecretKey
-      ) {
+      if (serverEnv.public.helpscoutBeaconId && serverEnv.server.helpscoutSecretKey) {
         helpscoutSignature = createHmac('sha256', serverEnv.server.helpscoutSecretKey ?? '')
-          .update(user?.email)
+          .update(user?.email ?? user?.sub ?? '')
           .digest('hex');
       }
 
@@ -79,11 +74,9 @@ export default function PrivateLayout() {
 
   const [helpscoutEnv, setHelpscoutEnv] = useState<{
     beaconId?: string;
-    isProd: boolean;
     userSignature?: string;
   }>({
     beaconId: undefined,
-    isProd: false,
     userSignature: undefined,
   });
 
@@ -100,7 +93,6 @@ export default function PrivateLayout() {
 
     setHelpscoutEnv({
       beaconId: window.ENV?.helpscoutBeaconId,
-      isProd: env.isProd,
       userSignature: data?.helpscoutSignature,
     });
   }, [data]);
@@ -116,14 +108,14 @@ export default function PrivateLayout() {
               </ConfirmationDialogProvider>
             </TooltipProvider>
 
-            {helpscoutEnv.beaconId && helpscoutEnv.isProd && helpscoutEnv.userSignature && (
+            {helpscoutEnv.beaconId && helpscoutEnv.userSignature && (
               <HelpScoutBeacon
                 beaconId={helpscoutEnv.beaconId}
                 displayStyle="manual"
                 user={{
                   name: `${data?.user?.givenName} ${data?.user?.familyName}`,
-                  email: data?.user?.email,
-                  signature: helpscoutEnv.userSignature,
+                  email: data?.user?.email ?? data?.user?.sub ?? '',
+                  signature: helpscoutEnv.userSignature ?? '',
                 }}
               />
             )}
