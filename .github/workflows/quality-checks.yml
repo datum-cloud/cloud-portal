@@ -5,19 +5,16 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - 'docs/**'
-      - 'README.md'
+      - "docs/**"
+      - "README.md"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
-  NODE_ENV: production
-  CYPRESS_BASE_URL: http://localhost:3000
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
-  AUTH_OIDC_ISSUER: https://auth.staging.env.datum.net
-  AUTH_OIDC_CLIENT_ID: '325848903272435738'
+
   BUN_CACHE: ~/.bun/install/cache
 
 jobs:
@@ -127,12 +124,51 @@ jobs:
           path: build
           key: build-${{ github.sha }}
 
-  tests:
-    needs: build
-    name: Tests
+  unit-tests:
+    needs: [build]
+    name: Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     if: ${{ !failure() && !cancelled() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Restore Dependencies Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+
+      - name: Setup Cypress
+        run: |
+          echo "Installing Cypress..."
+          bunx cypress install
+          echo "Verifying Cypress installation..."
+          bunx cypress verify
+
+      - name: Run Unit Tests
+        env:
+          NODE_ENV: test
+          CYPRESS: "true"
+        run: bun run test:unit:prod
+
+  e2e-tests:
+    needs: [build]
+    name: E2E Tests (shard ${{ strategy.job-index }}/${{ strategy.job-total }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ !failure() && !cancelled() }}
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -156,6 +192,28 @@ jobs:
           path: build
           key: build-${{ github.sha }}
 
+      - name: Setup Environment
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          SUB: ${{ secrets.SUB }}
+          API_URL: ${{ secrets.API_URL }}
+          GRAPHQL_URL: ${{ secrets.GRAPHQL_URL }}
+          AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
+          AUTH_OIDC_CLIENT_ID: ${{ secrets.AUTH_OIDC_CLIENT_ID }}
+        run: |
+          cat > .env << EOF
+          NODE_ENV=test
+          CYPRESS=true
+          APP_URL=http://localhost:3000
+          API_URL=$API_URL
+          GRAPHQL_URL=$GRAPHQL_URL
+          AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
+          AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
+          SESSION_SECRET=$SESSION_SECRET
+          CYPRESS_BASE_URL=http://localhost:3000
+          EOF
+
       - name: Setup Cypress
         run: |
           echo "Installing Cypress..."
@@ -163,48 +221,106 @@ jobs:
           echo "Verifying Cypress installation..."
           bunx cypress verify
 
-      - name: Setup Environment
-        run: |
-          cat > .env << EOF
-          CYPRESS_BASE_URL=${CYPRESS_BASE_URL}
-          NODE_ENV=test
-          CYPRESS=true
-          AUTH_OIDC_ISSUER=${AUTH_OIDC_ISSUER}
-          AUTH_OIDC_CLIENT_ID=${AUTH_OIDC_CLIENT_ID}
-          EOF
-
-      - name: Run Unit Tests
-        id: unit
-        env:
-          NODE_ENV: test
-          CYPRESS: 'true'
-        run: bun run test:unit:prod
-
       - name: Run E2E Tests
-        id: e2e
         env:
           NODE_ENV: test
-          CYPRESS: 'true'
+          CYPRESS: "true"
+          CYPRESS_BASE_URL: http://localhost:3000
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          SUB: ${{ secrets.SUB }}
+          SPLIT: ${{ strategy.job-total }}
+          SPLIT_INDEX: ${{ strategy.job-index }}
         run: bun run test:e2e:prod
 
       - name: Upload Artifacts
         if: failure()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v6
         with:
-          name: cypress-artifacts-${{ github.run_id }}
+          name: cypress-artifacts-${{ github.run_id }}-shard-${{ strategy.job-index }}
           path: |
             cypress/videos
             cypress/screenshots
-            cypress/results
           retention-days: 7
-          compression-level: 9
           if-no-files-found: warn
 
-  status-check:
-    needs: [install, lint, typecheck, build, tests]
-    name: Final Status Check
+  pr-comment:
+    needs: [unit-tests, e2e-tests]
+    name: PR Test Summary
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build test summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const runId = context.runId;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+
+            const testJobs = jobs.jobs.filter(j =>
+              j.name === 'Unit Tests' || j.name.startsWith('E2E Tests (shard')
+            );
+
+            const statusEmoji = (conclusion) => {
+              if (!conclusion || conclusion === 'skipped') return '⏭️';
+              if (conclusion === 'success') return '✅';
+              if (conclusion === 'failure') return '❌';
+              if (conclusion === 'cancelled') return '🚫';
+              return '❓';
+            };
+
+            let table = '| Job | Status |\n|-----|--------|\n';
+            for (const job of testJobs.sort((a, b) => a.name.localeCompare(b.name))) {
+              table += `| ${job.name} | ${statusEmoji(job.conclusion)} ${job.conclusion || 'pending'} |\n`;
+            }
+
+            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: runId,
+            });
+
+            let body = `## 🧪 Test Summary\n\n${table}\n\n`;
+            body += `[View workflow run](${runUrl})`;
+            body += `\n\n### 📎 Artifacts\n\n`;
+            if (artifacts.artifacts.length > 0) {
+              body += `Videos and screenshots from failed E2E tests:\n\n`;
+              for (const a of artifacts.artifacts) {
+                body += `- **${a.name}** – [Download](${runUrl})\n`;
+              }
+            } else {
+              body += `No artifacts (all tests passed). Cypress videos and screenshots are uploaded when E2E tests fail and can be downloaded from the workflow run above.\n`;
+            }
+
+            fs.writeFileSync('pr-summary.md', body);
+
+      - name: Comment on PR
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: pr-summary.md
+          comment-tag: quality-checks-summary
+          edit-mode: replace
+
+  status-check:
+    needs: [install, lint, typecheck, build, unit-tests, e2e-tests]
+    name: Final Status Check
     if: always()
+    runs-on: ubuntu-latest
     steps:
       - name: Check Workflow Status
         run: |

@@ -114,13 +114,16 @@ export default function OrgProjectsPage() {
         id: 'name',
         cell: ({ row }) => {
           return (
-            <div className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2">
+            <div
+              className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2"
+              data-e2e="project-card">
               <div className="flex items-center gap-5">
                 <Icon icon={FolderRoot} className="text-icon-primary size-4" />
                 <span>{row.original.displayName}</span>
               </div>
               <div className="flex w-full flex-col items-start justify-between gap-4 md:w-auto md:flex-row md:items-center md:gap-6">
                 <BadgeCopy
+                  data-e2e="project-card-id-copy"
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
                   badgeTheme="solid"

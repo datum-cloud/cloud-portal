@@ -15,6 +15,7 @@ export interface BadgeCopyProps {
   badgeTheme?: BadgeProps['theme'];
   showTooltip?: boolean;
   copyButtonClassName?: string;
+  'data-e2e'?: string;
   wrapperTooltipMessage?: string | React.ReactNode;
 }
 
@@ -28,6 +29,7 @@ export const BadgeCopy = ({
   badgeTheme = 'light',
   showTooltip = true,
   copyButtonClassName,
+  'data-e2e': dataE2e,
   wrapperTooltipMessage,
 }: BadgeCopyProps) => {
   const [_, copy] = useCopyToClipboard();
@@ -79,7 +81,11 @@ export const BadgeCopy = ({
     badge
   );
 
-  const wrappedBadge = <div className={cn('w-fit', containerClassName)}>{badgeContent}</div>;
+  const wrappedBadge = (
+    <div className={cn('w-fit', containerClassName)} data-e2e={dataE2e}>
+      {badgeContent}
+    </div>
+  );
 
   if (wrapperTooltipMessage) {
     return <Tooltip message={wrapperTooltipMessage}>{wrappedBadge}</Tooltip>;
