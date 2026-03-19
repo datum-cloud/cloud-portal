@@ -97,7 +97,13 @@ export default function SecretsPage() {
         header: 'Resource Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="font-medium">{row.original.name}</span>;
+          return (
+            <div data-e2e="secret-card">
+              <span className="font-medium" data-e2e="secret-name">
+                {row.original.name}
+              </span>
+            </div>
+          );
         },
       },
       {
@@ -105,7 +111,9 @@ export default function SecretsPage() {
         accessorKey: 'type',
         cell: ({ row }) => {
           return (
-            <Badge>{SECRET_TYPES[row.original.type as keyof typeof SECRET_TYPES].label}</Badge>
+            <span data-e2e="secret-type">
+              <Badge>{SECRET_TYPES[row.original.type as keyof typeof SECRET_TYPES].label}</Badge>
+            </span>
           );
         },
       },
@@ -113,7 +121,13 @@ export default function SecretsPage() {
         header: 'Created At',
         accessorKey: 'createdAt',
         cell: ({ row }) => {
-          return row.original.createdAt && <DateTime date={row.original.createdAt} />;
+          return (
+            row.original.createdAt && (
+              <span data-e2e="secret-created-at">
+                <DateTime date={row.original.createdAt} />
+              </span>
+            )
+          );
         },
       },
     ],

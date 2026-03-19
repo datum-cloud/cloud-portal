@@ -80,9 +80,13 @@ export default function HttpProxyPage() {
         meta: { className: 'min-w-32' },
         cell: ({ row }) => {
           return (
-            <Tooltip message={row.original.name || row.original.chosenName}>
-              <span className="font-medium">{row.original.chosenName || row.original.name}</span>
-            </Tooltip>
+            <div data-e2e="ai-edge-card">
+              <Tooltip message={row.original.name || row.original.chosenName}>
+                <span className="font-medium" data-e2e="ai-edge-name">
+                  {row.original.chosenName || row.original.name}
+                </span>
+              </Tooltip>
+            </div>
           );
         },
       },
