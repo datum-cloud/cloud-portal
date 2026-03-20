@@ -1,6 +1,6 @@
+import type { Variables } from '../types';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createProjectService } from '@/resources/projects/project.service';
-import type { Variables } from '../types';
 import { paths } from '@/utils/config/paths.config';
 import { setOrgSession } from '@/utils/cookies/org.server';
 import { setProjectSession } from '@/utils/cookies/project.server';

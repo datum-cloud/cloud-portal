@@ -1,9 +1,9 @@
 import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
-import { onboardingRedirectRoutes } from './onboarding-redirect';
 import { grafanaRoutes } from './grafana';
 import { graphqlRoutes } from './graphql';
 import { notificationsRoutes } from './notifications';
+import { onboardingRedirectRoutes } from './onboarding-redirect';
 import { permissionsRoutes } from './permissions';
 import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
