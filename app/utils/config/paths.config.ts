@@ -13,6 +13,7 @@ export const paths = {
     accountUnderReview: '/account-under-review',
     accountSuspended: '/account-suspended',
     statusApi: '/api/fraud-status',
+    onboardingRedirectApi: '/api/onboarding-redirect',
   },
   invitationAccept: '/invitation/:invitationId/accept',
   account: {

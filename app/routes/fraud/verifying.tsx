@@ -42,8 +42,8 @@ export default function VerifyingPage() {
           } else if (decision === 'DEACTIVATE') {
             window.location.replace(paths.fraud.accountSuspended);
           } else {
-            // ACCEPTED or unknown — approved, navigate to the platform
-            window.location.replace(paths.account.organizations.root);
+            // ACCEPTED or unknown — approved, resolve org/project and navigate
+            window.location.replace(paths.fraud.onboardingRedirectApi);
           }
         }
         // If status === 'pending', continue polling

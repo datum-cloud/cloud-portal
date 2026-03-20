@@ -1,5 +1,6 @@
 import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
+import { onboardingRedirectRoutes } from './onboarding-redirect';
 import { grafanaRoutes } from './grafana';
 import { graphqlRoutes } from './graphql';
 import { notificationsRoutes } from './notifications';
@@ -36,6 +37,7 @@ export function createApiApp() {
 
   // Routes
   api.route('/fraud-status', fraudStatusRoutes);
+  api.route('/onboarding-redirect', onboardingRedirectRoutes);
   api.route('/proxy', proxyRoutes);
   api.route('/graphql', graphqlRoutes);
   api.route('/cloudvalid', cloudvalidRoutes);
