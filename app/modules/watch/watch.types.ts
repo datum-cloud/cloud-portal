@@ -28,6 +28,11 @@ export interface WatchOptions {
   timeoutSeconds?: number;
   labelSelector?: string;
   fieldSelector?: string;
+  /**
+   * If true, watches a user-scoped resource (e.g., UserInvitation) across all namespaces.
+   * The server resolves the user from the authenticated session — do not pass a userId.
+   */
+  userScoped?: boolean;
 }
 
 export interface WatchConnection {

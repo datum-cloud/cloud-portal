@@ -338,6 +338,7 @@ class WatchManager {
           name: options.name,
           labelSelector: options.labelSelector,
           fieldSelector: options.fieldSelector,
+          userScoped: options.userScoped,
         }),
       });
       if (!response.ok) {
@@ -405,6 +406,7 @@ class WatchManager {
       options.name ?? '',
       options.labelSelector ?? '',
       options.fieldSelector ?? '',
+      options.userScoped ? 'user' : '', // 8th segment — must match WatchHub.buildWatchKey exactly
     ].join(':');
   }
 

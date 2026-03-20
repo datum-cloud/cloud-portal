@@ -14,16 +14,11 @@ import { useState } from 'react';
 /**
  * NotificationDropdown component - main dropdown with tabs for different notification sources
  */
-export function NotificationDropdown({
-  defaultTab = 'invitation',
-  pollingInterval = 5 * 60 * 1000, // 5 minutes default
-}: NotificationDropdownProps) {
+export function NotificationDropdown({ defaultTab = 'invitation' }: NotificationDropdownProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<NotificationSourceType>(defaultTab);
 
-  // Use React Query-based notifications hook
-  const { notifications, counts, markAsRead, refresh, refreshOnInteraction, error } =
-    useNotifications({ interval: pollingInterval });
+  const { notifications, pendingCount, error } = useNotifications();
 
   // Filter notifications by active tab
   const filteredNotifications = notifications.filter((n) => n.source === activeTab);
@@ -38,19 +33,8 @@ export function NotificationDropdown({
     },
   ];
 
-  // Mark all in current tab as read when opened
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (isOpen) {
-      // Smart refresh when user opens dropdown - ensures latest data
-      refreshOnInteraction();
-
-      if (filteredNotifications.length > 0) {
-        setTimeout(() => {
-          filteredNotifications.forEach((n) => markAsRead(n.id));
-        }, 1500);
-      }
-    }
   };
 
   return (
@@ -58,7 +42,7 @@ export function NotificationDropdown({
       {/* Bell Trigger */}
       <DropdownMenuTrigger asChild>
         <div>
-          <NotificationBell unreadCount={counts.unread} />
+          <NotificationBell pendingCount={pendingCount} />
         </div>
       </DropdownMenuTrigger>
 
@@ -77,10 +61,7 @@ export function NotificationDropdown({
                     'hover:bg-accent/50 relative px-4 py-3 text-sm font-medium transition-colors',
                     activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground'
                   )}>
-                  {tab.label}{' '}
-                  {counts.bySource[tab.id] > 0 && (
-                    <span className="ml-1">{counts.bySource[tab.id]}</span>
-                  )}
+                  {tab.label}
                   {activeTab === tab.id && (
                     <div className="bg-foreground absolute right-0 bottom-0 left-0 h-0.5" />
                   )}
@@ -96,11 +77,7 @@ export function NotificationDropdown({
           ) : filteredNotifications.length === 0 ? (
             <NotificationEmpty message={tabs.find((t) => t.id === activeTab)?.emptyMessage} />
           ) : (
-            <NotificationList
-              notifications={filteredNotifications}
-              onMarkAsRead={markAsRead}
-              onRefresh={refresh}
-            />
+            <NotificationList notifications={filteredNotifications} />
           )}
         </div>
       </DropdownMenuContent>

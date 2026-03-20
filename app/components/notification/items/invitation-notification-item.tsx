@@ -1,7 +1,6 @@
 import { NotificationItemWrapper } from '../notification-item-wrapper';
 import type { ResourceNotificationItemProps } from '../types';
 import { DateTime } from '@/components/date-time';
-import { IInvitationControlResponse } from '@/resources/invitations';
 import {
   useAcceptInvitation,
   useRejectInvitation,
@@ -23,23 +22,18 @@ import { useNavigate } from 'react-router';
  * - Independent loading states per button
  * - Toast notifications on success/error
  * - Navigation to team page
- * - Confirmation dialog for Decline
+ * - Watch stream updates cache automatically on MODIFIED/DELETED events
  */
-export function InvitationNotificationItem({
-  notification,
-  onMarkAsRead,
-  onRefresh,
-}: ResourceNotificationItemProps<IInvitationControlResponse>) {
+export function InvitationNotificationItem({ notification }: ResourceNotificationItemProps) {
   const navigate = useNavigate();
 
   const [action, setAction] = useState<'Accepted' | 'Declined'>();
 
-  // Access the control-plane data directly
+  // Access the domain invitation data directly
   const invitation = notification.data;
 
   const acceptMutation = useAcceptInvitation({
     onSuccess: () => {
-      onRefresh();
       navigate(
         getPathWithParams(paths.org.detail.root, {
           orgId: invitation.organizationName,
@@ -53,7 +47,7 @@ export function InvitationNotificationItem({
 
   const rejectMutation = useRejectInvitation({
     onSuccess: () => {
-      onRefresh();
+      // Watch stream removes the invitation from the cache automatically
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to decline invitation');
@@ -75,11 +69,9 @@ export function InvitationNotificationItem({
         name: invitation.name,
       });
     }
-
-    onMarkAsRead(notification.id);
   };
 
-  // Handle navigation to team page
+  // Handle navigation to invitation accept page
   const handleNavigate = () => {
     navigate(getPathWithParams(paths.invitationAccept, { invitationId: invitation.name }));
   };
