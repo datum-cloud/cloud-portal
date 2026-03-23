@@ -6,6 +6,7 @@ import {
   type CreateDnsRecordSetInput,
 } from './dns-record.schema';
 import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
+import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { extractValue } from '@/utils/helpers/dns/flatten.helper';
 import { getDnsRecordTypePriority } from '@/utils/helpers/dns/record-type.helper';
@@ -63,29 +64,35 @@ export function toFlattenedDnsRecords(recordSets: DnsRecordSet[]): FlattenedDnsR
   recordSets.forEach((recordSet) => {
     const records = recordSet.records || [];
 
-    // Use unified transformer with DNS-specific options
-    const statusInfo = transformControlPlaneStatus(recordSet.status, {
+    // Use unified transformer with DNS-specific options for the record set as a whole.
+    const recordSetStatus = transformControlPlaneStatus(recordSet.status, {
       requiredConditions: ['Accepted', 'Programmed'],
       includeConditionDetails: true,
     });
 
-    // The top-level Programmed condition message is generic ("One or more records not yet
-    // programmed"). Promote the first per-record failure from status.recordSets[].conditions[]
-    // so the specific error (e.g. PDNSError 422) is surfaced in the UI.
-    if (statusInfo.status !== 'success' && statusInfo.recordSets?.length) {
-      for (const rs of statusInfo.recordSets) {
-        const failed = rs.conditions?.find((c) => c.type === 'Programmed' && c.status === 'False');
-        if (failed) {
-          statusInfo.message = failed.message;
-          statusInfo.programmedReason = failed.reason;
-          break;
-        }
-      }
-    }
-
     records.forEach((record: any) => {
       const value = extractValue(record, recordSet.recordType);
       const ttl = extractTTL(record);
+
+      // Build per-record status by looking up status.recordSets[record.name].conditions.
+      // The top-level Programmed condition is an aggregate across all records in the set —
+      // each flattened row needs the status of its specific record entry.
+      const recordStatus = { ...recordSetStatus };
+      if (record.name && recordSetStatus.recordSets?.length) {
+        const perRecord = recordSetStatus.recordSets.find((rs) => rs.name === record.name);
+        const cond = perRecord?.conditions?.find((c) => c.type === 'Programmed');
+        if (cond) {
+          recordStatus.isProgrammed = cond.status === 'True';
+          recordStatus.programmedReason = cond.reason;
+          if (cond.status !== 'True') {
+            recordStatus.status = ControlPlaneStatus.Pending;
+            recordStatus.message = cond.message;
+          } else {
+            recordStatus.status = ControlPlaneStatus.Success;
+            recordStatus.message = '';
+          }
+        }
+      }
 
       flattened.push({
         recordSetId: recordSet.uid,
@@ -96,7 +103,7 @@ export function toFlattenedDnsRecords(recordSets: DnsRecordSet[]): FlattenedDnsR
         name: record.name || '',
         value: value,
         ttl: ttl,
-        status: statusInfo,
+        status: recordStatus,
         rawData: record,
         managedByGateway: recordSet.managedByGateway,
         gatewaySourceName: recordSet.gatewaySourceName,
