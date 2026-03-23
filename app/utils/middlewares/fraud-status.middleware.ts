@@ -4,7 +4,7 @@ import { createUserService } from '@/resources/users';
 import { RegistrationApproval } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
-import { NotFoundError } from '@/utils/errors';
+import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { redirect } from 'react-router';
 
 /**
@@ -14,7 +14,7 @@ import { redirect } from 'react-router';
  *
  * Algorithm:
  * 1. Read session; if no sub, call next() (let authMiddleware handle)
- * 2. Fetch user; if NotFoundError → /verifying (not yet provisioned); other errors → fail-open
+ * 2. Fetch user; if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
  * 3. Cache user in reqCtx to avoid a second upstream call in the layout loader
  * 4. state === 'Inactive'                  → /account-suspended
  * 5. registrationApproval === 'Approved'   → next()
@@ -44,6 +44,12 @@ export async function fraudStatusMiddleware(
       user = await createUserService().get(session.sub);
     } catch (userError) {
       if (userError instanceof NotFoundError) {
+        return redirect(paths.fraud.verifying);
+      }
+      // 403 means the user exists in Milo but OpenFGA permissions haven't
+      // propagated yet (race condition on new signups). Send to /verifying
+      // so the polling loop waits for propagation before proceeding.
+      if (userError instanceof AuthorizationError) {
         return redirect(paths.fraud.verifying);
       }
       // Fail-open on other errors (e.g. upstream unavailable)
