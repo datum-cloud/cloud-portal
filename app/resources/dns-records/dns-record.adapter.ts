@@ -69,6 +69,20 @@ export function toFlattenedDnsRecords(recordSets: DnsRecordSet[]): FlattenedDnsR
       includeConditionDetails: true,
     });
 
+    // The top-level Programmed condition message is generic ("One or more records not yet
+    // programmed"). Promote the first per-record failure from status.recordSets[].conditions[]
+    // so the specific error (e.g. PDNSError 422) is surfaced in the UI.
+    if (statusInfo.status !== 'success' && statusInfo.recordSets?.length) {
+      for (const rs of statusInfo.recordSets) {
+        const failed = rs.conditions?.find((c) => c.type === 'Programmed' && c.status === 'False');
+        if (failed) {
+          statusInfo.message = failed.message;
+          statusInfo.programmedReason = failed.reason;
+          break;
+        }
+      }
+    }
+
     records.forEach((record: any) => {
       const value = extractValue(record, recordSet.recordType);
       const ttl = extractTTL(record);
