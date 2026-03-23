@@ -17,9 +17,7 @@ export { useNotifications } from './use-notifications';
 export type {
   INotification,
   NotificationTab,
-  NotificationResponse,
   NotificationSourceType,
-  UseNotificationPollingOptions,
   NotificationDropdownProps,
   NotificationBellProps,
   NotificationListProps,

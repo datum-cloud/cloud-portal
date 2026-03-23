@@ -156,7 +156,7 @@ class WatchHub {
 
     // Start upstream if not running
     if (!this.upstreams.has(watchKey)) {
-      const url = this.buildUpstreamUrl(req);
+      const url = this.buildUpstreamUrl(req, client.userId);
       await this.startUpstreamWatch(watchKey, url, client.token, client.userId);
     }
 
@@ -445,6 +445,7 @@ class WatchHub {
       req.name ?? '',
       req.labelSelector ?? '',
       req.fieldSelector ?? '',
+      req.userScoped ? 'user' : '', // 8th segment — must match WatchManager.buildChannelKey
     ].join(':');
   }
 
@@ -453,11 +454,19 @@ class WatchHub {
    * Routes through the resourcemanager control-plane proxy for org/project-scoped
    * resources, or directly to the K8s API for namespace/cluster-scoped resources.
    */
-  private buildUpstreamUrl(req: WatchSubscribeRequest): string {
+  private buildUpstreamUrl(req: WatchSubscribeRequest, userId?: string): string {
     const baseUrl = env.public.apiUrl;
     let path: string;
 
-    if (req.orgId) {
+    if (req.userScoped) {
+      // User-scoped: watch across all namespaces for the authenticated user.
+      // Must use the real userId — NOT 'me' — because this fetch() bypasses
+      // the axios interceptor that normally rewrites /users/me/ → /users/{id}/.
+      if (!userId) throw new Error('[WatchHub] userId required for userScoped watch');
+      path =
+        `/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane` +
+        `/iam.miloapis.com/v1alpha1/userinvitations`;
+    } else if (req.orgId) {
       // Organization-scoped
       path = `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${req.resourceType}`;
     } else if (req.projectId) {

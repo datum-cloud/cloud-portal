@@ -1,22 +1,15 @@
-/**
- * Notification source types
- */
+import type { Invitation } from '@/resources/invitations';
+
 export type NotificationSourceType = 'invitation';
 
-/**
- * Simple wrapper around control-plane response to add client-side read state
- * T = the actual control-plane response type (e.g., IInvitationControlResponse)
- */
-export interface INotification<T = any> {
+/** A single notification item — wraps a domain resource with notification metadata. */
+export interface INotification {
   id: string;
   source: NotificationSourceType;
-  isRead: boolean; // Client-side only
-  data: T; // The actual control-plane response
+  data: Invitation;
 }
 
-/**
- * Tab configuration for notification sources
- */
+/** Tab configuration for notification sources in the dropdown. */
 export interface NotificationTab {
   id: NotificationSourceType;
   label: string;
@@ -25,78 +18,33 @@ export interface NotificationTab {
   emptyMessage?: string;
 }
 
-/**
- * API response from BFF endpoint
- */
-export interface NotificationResponse {
-  success: boolean;
-  data?: {
-    notifications: INotification[];
-    counts: {
-      total: number;
-      unread: number;
-      bySource: Record<NotificationSourceType, number>;
-    };
-  };
-  error?: string;
-}
-
-/**
- * Polling hook configuration
- */
-export interface UseNotificationPollingOptions {
-  interval?: number;
-  enabled?: boolean;
-  sources?: NotificationSourceType[]; // Filter specific sources
-  onUpdate?: (counts: Record<NotificationSourceType, number>) => void;
-}
-
-/**
- * Props for NotificationDropdown component
- */
+/** Props for the NotificationDropdown component. */
 export interface NotificationDropdownProps {
-  pollingInterval?: number;
   defaultTab?: NotificationSourceType;
-  enabled?: boolean;
 }
 
-/**
- * Props for NotificationBell component
- */
+/** Props for the NotificationBell component. */
 export interface NotificationBellProps {
-  unreadCount: number;
+  pendingCount: number;
 }
 
-/**
- * Props for NotificationList component
- */
+/** Props for the NotificationList component. */
 export interface NotificationListProps {
   notifications: INotification[];
-  onMarkAsRead: (id: string) => void;
-  onRefresh: () => void;
 }
 
-/**
- * Props for resource-specific notification item components
- * Generic T allows each item to specify its own data type
- */
-export interface ResourceNotificationItemProps<T = any> {
-  notification: INotification<T>;
-  onMarkAsRead: (id: string) => void;
-  onRefresh: () => void;
+/** Props for individual notification item components. */
+export interface ResourceNotificationItemProps {
+  notification: INotification;
 }
 
-/**
- * Props for NotificationItemWrapper component
- */
+/** Props for NotificationItemWrapper component. */
 export interface NotificationItemWrapperProps {
   children: React.ReactNode;
   onNavigate?: () => void;
 }
 
-/**
- * Props for NotificationEmpty component
- */
+/** Props for NotificationEmpty component. */
 export interface NotificationEmptyProps {
   message?: string;
 }

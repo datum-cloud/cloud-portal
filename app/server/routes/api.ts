@@ -2,7 +2,6 @@ import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
 import { grafanaRoutes } from './grafana';
 import { graphqlRoutes } from './graphql';
-import { notificationsRoutes } from './notifications';
 import { permissionsRoutes } from './permissions';
 import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
@@ -41,7 +40,6 @@ export function createApiApp() {
   api.route('/cloudvalid', cloudvalidRoutes);
   api.route('/prometheus', prometheusRoutes);
   api.route('/grafana', grafanaRoutes);
-  api.route('/notifications', notificationsRoutes);
   api.route('/permissions', permissionsRoutes);
   api.route('/user', userRoutes);
   api.route('/watch', watchRoutes);

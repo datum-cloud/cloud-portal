@@ -66,6 +66,8 @@ export interface WatchSubscribeRequest {
   labelSelector?: string;
   /** K8s field selector (e.g. `'status.phase=Running'`). */
   fieldSelector?: string;
+  /** If true, watches user-scoped resources using the session-authenticated user's identity. */
+  userScoped?: boolean;
 }
 
 /** Body of `POST /api/watch/unsubscribe`. */
@@ -141,6 +143,7 @@ export const watchSubscribeSchema = z.object({
   name: z.string().regex(K8S_IDENTIFIER).optional(),
   labelSelector: z.string().regex(SELECTOR_PATTERN).max(512).optional(),
   fieldSelector: z.string().regex(SELECTOR_PATTERN).max(512).optional(),
+  userScoped: z.boolean().optional(),
 });
 
 /** Runtime validation schema for `POST /api/watch/unsubscribe` request bodies. */
