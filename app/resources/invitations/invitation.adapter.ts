@@ -3,10 +3,36 @@ import type {
   InvitationList,
   CreateInvitationInput,
   InvitationState,
+  InvitationOrganization,
+  InviterUser,
 } from './invitation.schema';
 import type { ComMiloapisIamV1Alpha1UserInvitation } from '@/modules/control-plane/iam';
 import { generateRandomString } from '@/utils/helpers/text.helper';
 import { addHours, formatRFC3339 } from 'date-fns';
+
+function mapInviterUser(raw?: {
+  displayName?: string;
+  emailAddress?: string;
+}): InviterUser | undefined {
+  if (!raw) {
+    return undefined;
+  }
+  const displayName = raw.displayName?.trim() || raw.emailAddress?.trim();
+  if (!displayName) {
+    return undefined;
+  }
+  return { displayName };
+}
+
+function mapInvitationOrganization(raw?: {
+  displayName?: string;
+}): InvitationOrganization | undefined {
+  const name = raw?.displayName?.trim();
+  if (!name) {
+    return undefined;
+  }
+  return { displayName: name };
+}
 
 /**
  * Transform raw API UserInvitation to domain Invitation type
@@ -30,8 +56,8 @@ export function toInvitation(raw: ComMiloapisIamV1Alpha1UserInvitation): Invitat
     roleNamespace: spec?.roles?.[0]?.namespace ?? 'milo-system',
     state: (spec?.state ?? 'Pending') as InvitationState,
     status: status ?? {},
-    inviterUser: status?.inviterUser,
-    organization: status?.organization,
+    inviterUser: mapInviterUser(status?.inviterUser),
+    organization: mapInvitationOrganization(status?.organization),
   };
 }
 
