@@ -463,9 +463,7 @@ class WatchHub {
       // Must use the real userId — NOT 'me' — because this fetch() bypasses
       // the axios interceptor that normally rewrites /users/me/ → /users/{id}/.
       if (!userId) throw new Error('[WatchHub] userId required for userScoped watch');
-      path =
-        `/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane` +
-        `/iam.miloapis.com/v1alpha1/userinvitations`;
+      path = `/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane/${req.resourceType}`;
     } else if (req.orgId) {
       // Organization-scoped
       path = `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${req.resourceType}`;

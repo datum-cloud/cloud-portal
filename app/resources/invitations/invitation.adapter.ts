@@ -64,7 +64,7 @@ export function toCreateInvitationPayload(
     apiVersion: 'iam.miloapis.com/v1alpha1',
     kind: 'UserInvitation',
     metadata: {
-      name: `${organizationId}-${generateRandomString(8)}`,
+      name: `${organizationId}-${Date.now()}-${generateRandomString(8)}`,
     },
     spec: {
       email: input.email,
