@@ -8,6 +8,10 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('General');
 });
 
+export const handle = {
+  breadcrumb: () => <span>General</span>,
+};
+
 export default function OrgGeneralSettingsPage() {
   const organization = useRouteLoaderData('org-detail');
 

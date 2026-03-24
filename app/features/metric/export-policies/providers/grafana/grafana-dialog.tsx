@@ -54,7 +54,7 @@ export function GrafanaDialog({ projectId, open, onOpenChange }: GrafanaDialogPr
 
           <LinkButton
             as={Link}
-            href={getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+            href={getPathWithParams(paths.project.detail.metrics.root, {
               projectId,
             })}
             type="primary"

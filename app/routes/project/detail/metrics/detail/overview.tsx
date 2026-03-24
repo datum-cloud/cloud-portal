@@ -10,9 +10,7 @@ import { PageTitle } from '@datum-ui/components/page-title';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: (data: IExportPolicyControlResponse) => {
-    return <span>{data?.name ?? 'Overview'}</span>;
-  },
+  breadcrumb: () => <span>Overview</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {

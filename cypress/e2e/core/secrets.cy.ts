@@ -24,7 +24,7 @@ describe('Load secrets', () => {
 
   it('should render a list of the users secrets', () => {
     cy.getProjectId().then((projectId) => {
-      cy.visit(getPathWithParams(paths.project.detail.config.secrets.root, { projectId }));
+      cy.visit(getPathWithParams(paths.project.detail.secrets.root, { projectId }));
     });
 
     cy.get('[data-e2e="secret-card"]').should('have.length.at.least', 1);

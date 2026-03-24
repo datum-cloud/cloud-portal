@@ -1,10 +1,19 @@
 import TabsLayout from '@/layouts/tabs/tabs.layout';
 import { TabsNavProps } from '@/layouts/tabs/tabs.types';
 import { useProjectContext } from '@/providers/project.provider';
+import { ProjectLayoutLoaderData } from '@/routes/project/detail/layout';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';
+
+export const handle = {
+  breadcrumb: () => <span>Project Settings</span>,
+  path: (data: ProjectLayoutLoaderData) =>
+    getPathWithParams(paths.project.detail.settings.general, {
+      projectId: data?.project?.name ?? data?.projectId,
+    }),
+};
 
 export default function ProjectSettingsLayout() {
   const { project } = useProjectContext();

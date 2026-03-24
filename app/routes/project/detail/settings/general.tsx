@@ -9,6 +9,10 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('General');
 });
 
+export const handle = {
+  breadcrumb: () => <span>General</span>,
+};
+
 export default function ProjectGeneralSettingsPage() {
   const { project } = useProjectContext();
 

@@ -82,7 +82,7 @@ export default [
 
         route('home', 'routes/project/detail/home.tsx'),
 
-        // Settings of an organization
+        // Settings
         layout('routes/project/detail/settings/layout.tsx', [
           route('general', 'routes/project/detail/settings/general.tsx'),
           route('notifications', 'routes/project/detail/settings/notifications.tsx'),
@@ -90,60 +90,16 @@ export default [
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
 
-        // Edge Group
-        layout('routes/project/detail/edge/layout.tsx', [
-          // DNS Zones
-          route('dns-zones', 'routes/project/detail/edge/dns-zones/layout.tsx', [
-            index('routes/project/detail/edge/dns-zones/index.tsx'),
-            route(':dnsZoneId/discovery', 'routes/project/detail/edge/dns-zones/discovery.tsx'),
-            route(
-              ':dnsZoneId',
-              'routes/project/detail/edge/dns-zones/detail/layout.tsx',
-              { id: 'dns-zone-detail' },
-              [
-                index('routes/project/detail/edge/dns-zones/detail/index.tsx'),
-                // route('overview', 'routes/project/detail/edge/dns-zones/detail/overview.tsx'),
-                route('dns-records', 'routes/project/detail/edge/dns-zones/detail/dns-records.tsx'),
-                route('nameservers', 'routes/project/detail/edge/dns-zones/detail/nameservers.tsx'),
-                route('settings', 'routes/project/detail/edge/dns-zones/detail/settings.tsx'),
-              ]
-            ),
-          ]),
+        // AI Edge
+        route('edge', 'routes/project/detail/edge/layout.tsx', [
+          index('routes/project/detail/edge/index.tsx'),
 
-          // Edge
-          route('edge', 'routes/project/detail/edge/proxy/layout.tsx', [
-            index('routes/project/detail/edge/proxy/index.tsx'),
-
-            route(
-              ':proxyId',
-              'routes/project/detail/edge/proxy/detail/layout.tsx',
-              { id: 'proxy-detail' },
-              [index('routes/project/detail/edge/proxy/detail/index.tsx')]
-            ),
-          ]),
-        ]),
-
-        // Metrics Group
-        layout('routes/project/detail/metrics/layout.tsx', [
-          // Export Policies
-          route('export-policies', 'routes/project/detail/metrics/export-policies/layout.tsx', [
-            index('routes/project/detail/metrics/export-policies/index.tsx'),
-            route('new', 'routes/project/detail/metrics/export-policies/new.tsx'),
-
-            route(
-              ':exportPolicyId',
-              'routes/project/detail/metrics/export-policies/detail/layout.tsx',
-              { id: 'export-policy-detail' },
-              [
-                index('routes/project/detail/metrics/export-policies/detail/index.tsx'),
-                route(
-                  'overview',
-                  'routes/project/detail/metrics/export-policies/detail/overview.tsx'
-                ),
-                route('edit', 'routes/project/detail/metrics/export-policies/detail/edit.tsx'),
-              ]
-            ),
-          ]),
+          route(
+            ':proxyId',
+            'routes/project/detail/edge/detail/layout.tsx',
+            { id: 'proxy-detail' },
+            [index('routes/project/detail/edge/detail/index.tsx')]
+          ),
         ]),
 
         // Connectors
@@ -151,37 +107,69 @@ export default [
           index('routes/project/detail/connectors/index.tsx'),
         ]),
 
-        // Assets Group
-        layout('routes/project/detail/config/layout.tsx', [
-          // Domains
-          route('domains', 'routes/project/detail/config/domains/layout.tsx', [
-            index('routes/project/detail/config/domains/index.tsx'),
+        // DNS Zones
+        route('dns-zones', 'routes/project/detail/dns-zones/layout.tsx', [
+          index('routes/project/detail/dns-zones/index.tsx'),
+          route(':dnsZoneId/discovery', 'routes/project/detail/dns-zones/discovery.tsx'),
+          route(
+            ':dnsZoneId',
+            'routes/project/detail/dns-zones/detail/layout.tsx',
+            { id: 'dns-zone-detail' },
+            [
+              index('routes/project/detail/dns-zones/detail/index.tsx'),
+              // route('overview', 'routes/project/detail/dns-zones/detail/overview.tsx'),
+              route('dns-records', 'routes/project/detail/dns-zones/detail/dns-records.tsx'),
+              route('nameservers', 'routes/project/detail/dns-zones/detail/nameservers.tsx'),
+              route('settings', 'routes/project/detail/dns-zones/detail/settings.tsx'),
+            ]
+          ),
+        ]),
 
-            route(
-              ':domainId',
-              'routes/project/detail/config/domains/detail/layout.tsx',
-              { id: 'domain-detail' },
-              [
-                index('routes/project/detail/config/domains/detail/index.tsx'),
-                route('overview', 'routes/project/detail/config/domains/detail/overview.tsx'),
-                route('settings', 'routes/project/detail/config/domains/detail/settings.tsx'),
-              ]
-            ),
-          ]),
+        // Domains
+        route('domains', 'routes/project/detail/domains/layout.tsx', [
+          index('routes/project/detail/domains/index.tsx'),
 
-          // Config
-          route('secrets', 'routes/project/detail/config/secrets/layout.tsx', [
-            index('routes/project/detail/config/secrets/index.tsx'),
-            route(
-              ':secretId',
-              'routes/project/detail/config/secrets/detail/layout.tsx',
-              { id: 'secret-detail' },
-              [
-                index('routes/project/detail/config/secrets/detail/index.tsx'),
-                route('overview', 'routes/project/detail/config/secrets/detail/overview.tsx'),
-              ]
-            ),
-          ]),
+          route(
+            ':domainId',
+            'routes/project/detail/domains/detail/layout.tsx',
+            { id: 'domain-detail' },
+            [
+              index('routes/project/detail/domains/detail/index.tsx'),
+              route('overview', 'routes/project/detail/domains/detail/overview.tsx'),
+              route('settings', 'routes/project/detail/domains/detail/settings.tsx'),
+            ]
+          ),
+        ]),
+
+        // Metrics (Export Policies)
+        route('export-policies', 'routes/project/detail/metrics/layout.tsx', [
+          index('routes/project/detail/metrics/index.tsx'),
+          route('new', 'routes/project/detail/metrics/new.tsx'),
+
+          route(
+            ':exportPolicyId',
+            'routes/project/detail/metrics/detail/layout.tsx',
+            { id: 'export-policy-detail' },
+            [
+              index('routes/project/detail/metrics/detail/index.tsx'),
+              route('overview', 'routes/project/detail/metrics/detail/overview.tsx'),
+              route('edit', 'routes/project/detail/metrics/detail/edit.tsx'),
+            ]
+          ),
+        ]),
+
+        // Secrets
+        route('secrets', 'routes/project/detail/secrets/layout.tsx', [
+          index('routes/project/detail/secrets/index.tsx'),
+          route(
+            ':secretId',
+            'routes/project/detail/secrets/detail/layout.tsx',
+            { id: 'secret-detail' },
+            [
+              index('routes/project/detail/secrets/detail/index.tsx'),
+              route('overview', 'routes/project/detail/secrets/detail/overview.tsx'),
+            ]
+          ),
         ]),
       ]),
     ]),

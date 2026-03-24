@@ -48,10 +48,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   }
 };
 
-export const handle = {
-  breadcrumb: () => <span>Your Export Policies</span>,
-};
-
 export default function ExportPoliciesPage() {
   const { projectId } = useParams();
   const data = useLoaderData<typeof loader>();
@@ -146,7 +142,7 @@ export default function ExportPoliciesPage() {
         label: 'Edit',
         action: (row) => {
           navigate(
-            getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.edit, {
+            getPathWithParams(paths.project.detail.metrics.detail.edit, {
               projectId,
               exportPolicyId: row.name,
             })
@@ -169,7 +165,7 @@ export default function ExportPoliciesPage() {
       data={data ?? []}
       onRowClick={(row) => {
         navigate(
-          getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.overview, {
+          getPathWithParams(paths.project.detail.metrics.detail.overview, {
             projectId,
             exportPolicyId: row.name,
           })
@@ -181,7 +177,7 @@ export default function ExportPoliciesPage() {
           {
             type: 'link',
             label: 'Create an export policy',
-            to: getPathWithParams(paths.project.detail.metrics.exportPolicies.new, { projectId }),
+            to: getPathWithParams(paths.project.detail.metrics.new, { projectId }),
             variant: 'default',
             icon: <Icon icon={PlusIcon} className="size-3" />,
             iconPosition: 'start',
@@ -192,7 +188,7 @@ export default function ExportPoliciesPage() {
         title: 'Export Policies',
         actions: (
           <Link
-            to={getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
+            to={getPathWithParams(paths.project.detail.metrics.new, {
               projectId,
             })}>
             <Button type="primary" theme="solid" size="small">

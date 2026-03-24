@@ -16,6 +16,10 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   return allowanceBuckets;
 };
 
+export const handle = {
+  breadcrumb: () => <span>Quotas</span>,
+};
+
 export default function OrgSettingsUsagePage() {
   const org = useRouteLoaderData<Organization>('org-detail');
   const allowanceBuckets = useLoaderData<typeof loader>() as AllowanceBucket[];
