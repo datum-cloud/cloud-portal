@@ -1,12 +1,12 @@
 // app/resources/invitations/invitation.watch.ts
-import { useRef } from 'react';
 import { toInvitation } from './invitation.adapter';
+import type { Invitation } from './invitation.schema';
 import { invitationKeys } from './invitation.service';
 import type { ComMiloapisIamV1Alpha1UserInvitation } from '@/modules/control-plane/iam';
-import type { WatchEvent } from '@/modules/watch/watch.types';
 import { useResourceWatch } from '@/modules/watch/use-resource-watch';
-import type { Invitation } from './invitation.schema';
+import type { WatchEvent } from '@/modules/watch/watch.types';
 import { toast } from '@datum-ui/components';
+import { useRef } from 'react';
 
 /** Grace period (ms) after subscribe to suppress toasts for existing invitations. */
 const INITIAL_SYNC_WINDOW_MS = 2_000;
@@ -43,9 +43,7 @@ export function useInvitationWatch(userId: string) {
 
     const orgName = event.object.organizationName;
     toast.info('New organization invitation', {
-      description: orgName
-        ? `You've been invited to join ${orgName}`
-        : 'You have a new invitation',
+      description: orgName ? `You've been invited to join ${orgName}` : 'You have a new invitation',
     });
   };
 
