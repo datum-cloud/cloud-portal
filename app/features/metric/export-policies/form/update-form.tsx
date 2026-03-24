@@ -74,7 +74,7 @@ export const ExportPolicyUpdateForm = ({
         description: 'You have successfully updated an export policy.',
       });
       navigate(
-        getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+        getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
         })
       );
@@ -92,7 +92,7 @@ export const ExportPolicyUpdateForm = ({
         description: 'You have successfully deleted an export policy.',
       });
       navigate(
-        getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+        getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
         })
       );
@@ -269,7 +269,7 @@ export const ExportPolicyUpdateForm = ({
               disabled={isPending}
               onClick={() => {
                 navigate(
-                  getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+                  getPathWithParams(paths.project.detail.metrics.root, {
                     projectId,
                   })
                 );

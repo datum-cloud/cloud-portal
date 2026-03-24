@@ -238,7 +238,7 @@ export default function ProjectLayout() {
       },
       {
         title: 'Secrets',
-        href: getPathWithParams(paths.project.detail.config.secrets.root, { projectId: pid }),
+        href: getPathWithParams(paths.project.detail.secrets.root, { projectId: pid }),
         type: 'link',
         icon: FileLockIcon,
         disabled: !isReady,

@@ -34,7 +34,7 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
       });
       setOpen(false);
       navigate(
-        getPathWithParams(paths.project.detail.config.secrets.detail.root, {
+        getPathWithParams(paths.project.detail.secrets.detail.root, {
           projectId,
           secretId: secret.name,
         })

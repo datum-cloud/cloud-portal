@@ -2,7 +2,7 @@ import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { RbacProvider } from '@/modules/rbac';
 import { setSentryOrgContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
-import { createOrganizationService, type Organization } from '@/resources/organizations';
+import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { clearProjectSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
 import { NotFoundError } from '@/utils/errors';
@@ -34,10 +34,6 @@ export function shouldRevalidate({
 
   return defaultShouldRevalidate;
 }
-
-export const handle = {
-  breadcrumb: (data: Organization) => <span>{data?.displayName}</span>,
-};
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { orgId } = params;

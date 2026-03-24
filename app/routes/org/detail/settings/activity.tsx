@@ -6,6 +6,10 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Org Activity');
 });
 
+export const handle = {
+  breadcrumb: () => <span>Activity</span>,
+};
+
 export default function OrgActivityPage() {
   const { orgId } = useParams();
   if (!orgId) return null;

@@ -4,7 +4,9 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { LoaderFunctionArgs, data, MetaFunction, Outlet } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Your Export Policies</span>,
+  breadcrumb: (exportPolicy: ExportPolicy) => (
+    <span>{exportPolicy?.name ?? 'Export Policy'}</span>
+  ),
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
