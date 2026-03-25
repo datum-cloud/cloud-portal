@@ -10,6 +10,8 @@ export interface RequestContext {
   requestId: string;
   token: string;
   userId?: string;
+  /** Original browser User-Agent for upstream audit logs (SSR fetch/graphql). */
+  userAgent?: string;
   /**
    * Per-request user cache. Written by fraudStatusMiddleware after
    * fetching the user for the fraud evaluation check; read by the private layout loader
