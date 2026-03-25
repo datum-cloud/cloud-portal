@@ -8,6 +8,10 @@ import { Col, Row, toast } from '@datum-ui/components';
 import { PageTitle } from '@datum-ui/components/page-title';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
+export const handle = {
+  breadcrumb: () => <span>Settings</span>,
+};
+
 export default function DomainSettingsPage() {
   const { domain } = useRouteLoaderData('domain-detail');
 

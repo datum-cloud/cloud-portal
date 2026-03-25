@@ -166,7 +166,7 @@ export default function ProjectHomePage() {
       buttonLabel: 'Go to Metrics',
       viewPath: getPathWithParams(paths.project.detail.metrics.root, { projectId: projectName }),
       createPath: getPathWithParams(
-        paths.project.detail.metrics.exportPolicies.new,
+        paths.project.detail.metrics.new,
         { projectId: projectName },
         new URLSearchParams({ action: 'create', provider: 'grafana' })
       ),

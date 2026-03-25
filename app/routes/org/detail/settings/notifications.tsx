@@ -7,6 +7,10 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Notifications');
 });
 
+export const handle = {
+  breadcrumb: () => <span>Notifications</span>,
+};
+
 export default function AccountNotificationsSettingsPage() {
   return (
     <Row gutter={[0, 16]}>

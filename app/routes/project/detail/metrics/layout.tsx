@@ -22,19 +22,19 @@ export default function Layout() {
     return [
       {
         title: 'Create an Export Policy',
-        href: getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
+        href: getPathWithParams(paths.project.detail.metrics.new, {
           projectId,
         }),
         type: 'link',
       },
       {
         title: 'Your Export Policies',
-        href: getPathWithParams(paths.project.detail.metrics.exportPolicies.root, {
+        href: getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
         }),
         type: 'link',
         excludePaths: [
-          getPathWithParams(paths.project.detail.metrics.exportPolicies.new, {
+          getPathWithParams(paths.project.detail.metrics.new, {
             projectId,
           }),
         ],

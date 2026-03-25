@@ -59,14 +59,11 @@ export const paths = {
     detail: {
       root: '/project/[projectId]',
       home: '/project/[projectId]/home',
-      config: {
+      secrets: {
         root: '/project/[projectId]/secrets',
-        secrets: {
-          root: '/project/[projectId]/secrets',
-          detail: {
-            root: '/project/[projectId]/secrets/[secretId]',
-            overview: '/project/[projectId]/secrets/[secretId]/overview',
-          },
+        detail: {
+          root: '/project/[projectId]/secrets/[secretId]',
+          overview: '/project/[projectId]/secrets/[secretId]/overview',
         },
       },
       proxy: {
@@ -96,14 +93,11 @@ export const paths = {
       },
       metrics: {
         root: '/project/[projectId]/export-policies',
-        exportPolicies: {
-          root: '/project/[projectId]/export-policies',
-          new: '/project/[projectId]/export-policies/new',
-          detail: {
-            root: '/project/[projectId]/export-policies/[exportPolicyId]',
-            overview: '/project/[projectId]/export-policies/[exportPolicyId]/overview',
-            edit: '/project/[projectId]/export-policies/[exportPolicyId]/edit',
-          },
+        new: '/project/[projectId]/export-policies/new',
+        detail: {
+          root: '/project/[projectId]/export-policies/[exportPolicyId]',
+          overview: '/project/[projectId]/export-policies/[exportPolicyId]/overview',
+          edit: '/project/[projectId]/export-policies/[exportPolicyId]/edit',
         },
       },
       connectors: {

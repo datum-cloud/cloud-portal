@@ -13,7 +13,7 @@ export const SecretDangerCard = ({ secret }: { secret: ISecretControlResponse })
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
     onSuccess: () => {
       navigate(
-        getPathWithParams(paths.project.detail.config.secrets.root, {
+        getPathWithParams(paths.project.detail.secrets.root, {
           projectId,
         })
       );

@@ -3,12 +3,12 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId, exportPolicyId } = params;
+  const { projectId, secretId } = params;
 
   return redirect(
-    getPathWithParams(paths.project.detail.metrics.exportPolicies.detail.overview, {
+    getPathWithParams(paths.project.detail.secrets.detail.overview, {
       projectId,
-      exportPolicyId,
+      secretId,
     })
   );
 };
