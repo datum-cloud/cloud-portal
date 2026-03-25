@@ -23,21 +23,20 @@ export function useDeleteProxy(
   const confirmDelete = useCallback(
     async (httpProxy: HttpProxy) => {
       const hasCustomHostnames = (httpProxy.hostnames?.length ?? 0) > 0;
+      const displayLabel = httpProxy.chosenName || httpProxy.name;
 
       await confirm({
         title: 'Delete AI Edge',
         description: (
           <span>
             Are you sure you want to delete&nbsp;
-            <strong>{httpProxy.name}</strong>?
+            <strong>{displayLabel}</strong>?
           </span>
         ),
         submitText: 'Delete',
         cancelText: 'Cancel',
         variant: 'destructive',
         showConfirmInput: true,
-        confirmValue: httpProxy.name,
-        confirmInputLabel: `Type "${httpProxy.name}" to confirm.`,
         showAlert: hasCustomHostnames,
         alertClassName: 'mb-5',
         alertVariant: 'destructive',

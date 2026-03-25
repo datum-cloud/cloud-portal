@@ -33,20 +33,20 @@ export default function DnsZoneSettingsPage() {
 
   const { confirm, close: closeConfirmationDialog } = useConfirmationDialog();
   const deleteDnsZone = async () => {
+    const displayLabel = dnsZone?.displayName || dnsZone?.domainName || dnsZone?.name;
+
     await confirm({
       title: 'Delete DNS Zone',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{dnsZone?.domainName}</strong>?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete zone',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: dnsZone?.domainName,
-      confirmInputLabel: `Type "${dnsZone?.domainName}" to confirm.`,
       onSubmit: async () => {
         closeConfirmationDialog();
         await deleteMutation.mutateAsync(dnsZone?.name ?? '');

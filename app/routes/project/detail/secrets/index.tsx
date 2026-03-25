@@ -71,20 +71,20 @@ export default function SecretsPage() {
   });
 
   const deleteSecret = async (secret: Secret) => {
+    const displayLabel = secret.annotations?.['app.kubernetes.io/name'] || secret.name;
+
     await confirm({
       title: 'Delete Secret',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{secret.name}</strong>?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: secret.name,
-      confirmInputLabel: `Type "${secret.name}" to confirm.`,
       onSubmit: async () => {
         await deleteSecretMutation.mutateAsync(secret.name);
       },

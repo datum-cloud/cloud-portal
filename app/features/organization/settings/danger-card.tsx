@@ -26,23 +26,20 @@ export const OrganizationDangerCard = ({ organization }: { organization: Organiz
   const { confirm } = useConfirmationDialog();
 
   const handleDeleteOrganization = async () => {
+    const displayLabel = organization?.displayName || organization?.name;
+
     await confirm({
       title: 'Delete Organization',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>
-            {organization?.displayName} ({organization?.name})
-          </strong>
-          ?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: organization?.name,
-      confirmInputLabel: `Type "${organization?.name}" to confirm.`,
       onSubmit: async () => {
         deleteOrganization.mutate(organization?.name ?? '');
       },
