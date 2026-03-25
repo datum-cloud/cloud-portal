@@ -185,21 +185,21 @@ export const ExportPolicyUpdateForm = ({
   };
 
   const deleteExportPolicy = async () => {
+    const displayLabel =
+      defaultValue?.annotations?.['app.kubernetes.io/name'] || defaultValue?.name;
+
     await confirm({
       title: 'Delete Export Policy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{defaultValue?.name}</strong>?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmInputLabel: `Type "${defaultValue?.name}" to confirm.`,
-      confirmInputPlaceholder: 'Type the export policy name to confirm deletion',
-      confirmValue: defaultValue?.name ?? 'delete',
       onSubmit: async () => {
         deleteMutation.mutate(defaultValue?.name ?? '');
       },

@@ -25,12 +25,15 @@ export const ExportPolicyDangerCard = ({
   });
 
   const deleteExportPolicy = async () => {
+    const displayLabel =
+      exportPolicy?.annotations?.['app.kubernetes.io/name'] || exportPolicy?.name || '';
+
     await confirm({
       title: 'Delete Policy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{exportPolicy?.name ?? ''}</strong>?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
