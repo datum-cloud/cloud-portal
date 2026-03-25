@@ -24,6 +24,7 @@ import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'ax
  * - Connects directly to API_URL (no proxy)
  * - Auto-injects Authorization header from AsyncLocalStorage
  * - Auto-injects X-Request-ID for tracing
+ * - Forwards browser User-Agent from request context when set
  */
 export const http = Axios.create({
   baseURL: env.public.apiUrl,
@@ -46,6 +47,23 @@ const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConf
   if (ctx?.requestId) {
     config.headers = config.headers || {};
     config.headers['X-Request-ID'] = ctx.requestId;
+  }
+
+  // Forward browser User-Agent for upstream audit logs
+  if (ctx?.userAgent) {
+    config.headers = config.headers || {};
+    const headers = config.headers;
+    const existing =
+      typeof headers.get === 'function'
+        ? headers.get('User-Agent')
+        : (headers as { 'User-Agent'?: string })['User-Agent'];
+    if (!existing) {
+      if (typeof headers.set === 'function') {
+        headers.set('User-Agent', ctx.userAgent);
+      } else {
+        (headers as { 'User-Agent': string })['User-Agent'] = ctx.userAgent;
+      }
+    }
   }
 
   // Replace /users/me/ with actual user ID from context
