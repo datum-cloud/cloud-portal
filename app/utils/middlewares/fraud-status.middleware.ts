@@ -17,7 +17,7 @@ import { redirect } from 'react-router';
  * 2. Fetch user; if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
  * 3. Cache user in reqCtx to avoid a second upstream call in the layout loader
  * 4. state === 'Inactive'                  → /account-suspended
- * 5. registrationApproval === 'Approved'   → next()
+ * 5. registrationApproval === 'Approved'   → if nameReviewRequired and not on onboarding complete-profile → redirect there; else next()
  * 6. registrationApproval === 'Rejected'   → /account-under-review
  * 7. Pending or undefined                  → /verifying
  */
@@ -71,6 +71,10 @@ export async function fraudStatusMiddleware(
     }
 
     if (user.registrationApproval === RegistrationApproval.Approved) {
+      const pathname = new URL(request.url).pathname;
+      if (user.nameReviewRequired && pathname !== paths.onboarding.completeProfile) {
+        return redirect(paths.onboarding.completeProfile);
+      }
       return next();
     }
 
