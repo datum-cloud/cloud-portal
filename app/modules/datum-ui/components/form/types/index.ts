@@ -652,6 +652,8 @@ export interface FormDialogProps<T extends z.ZodType> {
   cancelText?: string;
   /** Whether to show cancel button (default: true) */
   showCancel?: boolean;
+  /** Whether to show the header close (X) button (default: true). Use false for blocking dialogs. */
+  showHeaderClose?: boolean;
   /** Submit button type variant */
   submitType?: ButtonProps['type'];
 

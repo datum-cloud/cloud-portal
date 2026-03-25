@@ -38,31 +38,27 @@ export const com_miloapis_iam_v1alpha1_GroupSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -168,8 +164,7 @@ export const com_miloapis_iam_v1alpha1_GroupMembershipSchema = {
       required: ['groupRef', 'userRef'],
       properties: {
         groupRef: {
-          description: `GroupRef is a reference to the Group.
-Group is a namespaced resource.`,
+          description: 'GroupRef is a reference to the Group.\nGroup is a namespaced resource.',
           type: 'object',
           required: ['name', 'namespace'],
           properties: {
@@ -184,8 +179,8 @@ Group is a namespaced resource.`,
           },
         },
         userRef: {
-          description: `UserRef is a reference to the User that is a member of the Group.
-User is a cluster-scoped resource.`,
+          description:
+            'UserRef is a reference to the User that is a member of the Group.\nUser is a cluster-scoped resource.',
           type: 'object',
           required: ['name'],
           properties: {
@@ -212,31 +207,27 @@ User is a cluster-scoped resource.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -267,7 +258,14 @@ This field may not be empty.`,
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.groupRef.name',
+    },
+    {
+      fieldPath: 'spec.userRef.name',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_GroupMembershipListSchema = {
@@ -310,7 +308,14 @@ export const com_miloapis_iam_v1alpha1_GroupMembershipListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.groupRef.name',
+    },
+    {
+      fieldPath: 'spec.userRef.name',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_MachineAccountSchema = {
@@ -341,10 +346,8 @@ export const com_miloapis_iam_v1alpha1_MachineAccountSchema = {
       type: 'object',
       properties: {
         state: {
-          description: `The state of the machine account. This state can be safely changed as needed.
-States:
-  - Active: The machine account can be used to authenticate.
-  - Inactive: The machine account is prohibited to be used to authenticate, and revokes all existing sessions.`,
+          description:
+            'The state of the machine account. This state can be safely changed as needed.\nStates:\n  - Active: The machine account can be used to authenticate.\n  - Inactive: The machine account is prohibited to be used to authenticate, and revokes all existing sessions.',
           type: 'string',
           default: 'Active',
           enum: ['Active', 'Inactive'],
@@ -366,31 +369,27 @@ States:
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -412,15 +411,13 @@ This field may not be empty.`,
           },
         },
         email: {
-          description: `The computed email of the machine account following the pattern:
-{metadata.name}@{metadata.namespace}.{project.metadata.name}.{global-suffix}`,
+          description:
+            'The computed email of the machine account following the pattern:\n{metadata.name}@{metadata.namespace}.{project.metadata.name}.{global-suffix}',
           type: 'string',
         },
         state: {
-          description: `State represents the current activation state of the machine account from the auth provider.
-This field tracks the state from the previous generation and is updated when state changes
-are successfully propagated to the auth provider. It helps optimize performance by only
-updating the auth provider when a state change is detected.`,
+          description:
+            'State represents the current activation state of the machine account from the auth provider.\nThis field tracks the state from the previous generation and is updated when state changes\nare successfully propagated to the auth provider. It helps optimize performance by only\nupdating the auth provider when a state change is detected.',
           type: 'string',
           enum: ['Active', 'Inactive'],
         },
@@ -466,8 +463,8 @@ export const com_miloapis_iam_v1alpha1_MachineAccountKeySchema = {
       required: ['machineAccountName'],
       properties: {
         expirationDate: {
-          description: `ExpirationDate is the date and time when the MachineAccountKey will expire.
-If not specified, the MachineAccountKey will never expire.`,
+          description:
+            'ExpirationDate is the date and time when the MachineAccountKey will expire.\nIf not specified, the MachineAccountKey will never expire.',
           type: 'string',
           format: 'date-time',
         },
@@ -476,8 +473,8 @@ If not specified, the MachineAccountKey will never expire.`,
           type: 'string',
         },
         publicKey: {
-          description: `PublicKey is the public key of the MachineAccountKey.
-If not specified, the MachineAccountKey will be created with an auto-generated public key.`,
+          description:
+            'PublicKey is the public key of the MachineAccountKey.\nIf not specified, the MachineAccountKey will be created with an auto-generated public key.',
           type: 'string',
         },
       },
@@ -487,9 +484,8 @@ If not specified, the MachineAccountKey will be created with an auto-generated p
       type: 'object',
       properties: {
         authProviderKeyId: {
-          description: `AuthProviderKeyID is the unique identifier for the key in the auth provider.
-This field is populated by the controller after the key is created in the auth provider.
-For example, when using Zitadel, a typical value might be: "326102453042806786"`,
+          description:
+            'AuthProviderKeyID is the unique identifier for the key in the auth provider.\nThis field is populated by the controller after the key is created in the auth provider.\nFor example, when using Zitadel, a typical value might be: "326102453042806786"',
           type: 'string',
         },
         conditions: {
@@ -512,31 +508,27 @@ For example, when using Zitadel, a typical value might be: "326102453042806786"`
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -664,6 +656,688 @@ export const com_miloapis_iam_v1alpha1_MachineAccountListSchema = {
   'x-kubernetes-selectable-fields': [],
 } as const;
 
+export const com_miloapis_iam_v1alpha1_PlatformAccessApprovalSchema = {
+  description:
+    'PlatformAccessApproval is the Schema for the platformaccessapprovals API.\nIt represents a platform access approval for a user. Once the platform access approval is created, an email will be sent to the user.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'PlatformAccessApprovalSpec defines the desired state of PlatformAccessApproval.',
+      type: 'object',
+      required: ['subjectRef'],
+      properties: {
+        approverRef: {
+          description:
+            'ApproverRef is the reference to the approver being approved.\nIf not specified, the approval was made by the system.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+        },
+        subjectRef: {
+          description: 'SubjectRef is the reference to the subject being approved.',
+          type: 'object',
+          properties: {
+            email: {
+              description:
+                'Email is the email of the user being approved.\nUse Email to approve an email address that is not associated with a created user. (e.g. when using PlatformInvitation)\nUserRef and Email are mutually exclusive. Exactly one of them must be specified.',
+              type: 'string',
+            },
+            userRef: {
+              description:
+                'UserRef is the reference to the user being approved.\nUserRef and Email are mutually exclusive. Exactly one of them must be specified.',
+              type: 'object',
+              required: ['name'],
+              properties: {
+                name: {
+                  description: 'Name is the name of the User being referenced.',
+                  type: 'string',
+                },
+              },
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: '(has(self.email) && !has(self.userRef)) || (!has(self.email) && has(self.userRef))',
+              message: 'Exactly one of email or userRef must be specified',
+            },
+          ],
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: 'self == oldSelf',
+          message: 'spec is immutable',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessApproval',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.subjectRef.email',
+    },
+    {
+      fieldPath: 'spec.subjectRef.userRef.name',
+    },
+  ],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformAccessApprovalListSchema = {
+  description: 'PlatformAccessApprovalList is a list of PlatformAccessApproval',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of platformaccessapprovals. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.PlatformAccessApproval',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessApprovalList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.subjectRef.email',
+    },
+    {
+      fieldPath: 'spec.subjectRef.userRef.name',
+    },
+  ],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformAccessDenialSchema = {
+  description:
+    'PlatformAccessDenial is the Schema for the platformaccessapprovals API.\nIt represents a platform access approval for a user. Once the platform access approval is created, an email will be sent to the user.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'PlatformAccessDenialSpec defines the desired state of PlatformAccessDenial.',
+      type: 'object',
+      required: ['subjectRef'],
+      properties: {
+        approverRef: {
+          description:
+            'ApproverRef is the reference to the approver being approved.\nIf not specified, the approval was made by the system.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+        },
+        subjectRef: {
+          description: 'SubjectRef is the reference to the subject being approved.',
+          type: 'object',
+          properties: {
+            email: {
+              description:
+                'Email is the email of the user being approved.\nUse Email to approve an email address that is not associated with a created user. (e.g. when using PlatformInvitation)\nUserRef and Email are mutually exclusive. Exactly one of them must be specified.',
+              type: 'string',
+            },
+            userRef: {
+              description:
+                'UserRef is the reference to the user being approved.\nUserRef and Email are mutually exclusive. Exactly one of them must be specified.',
+              type: 'object',
+              required: ['name'],
+              properties: {
+                name: {
+                  description: 'Name is the name of the User being referenced.',
+                  type: 'string',
+                },
+              },
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: '(has(self.email) && !has(self.userRef)) || (!has(self.email) && has(self.userRef))',
+              message: 'Exactly one of email or userRef must be specified',
+            },
+          ],
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: 'self == oldSelf',
+          message: 'spec is immutable',
+        },
+      ],
+    },
+    status: {
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            'Conditions provide conditions that represent the current status of the PlatformAccessDenial.',
+          type: 'array',
+          default: [
+            {
+              lastTransitionTime: '1970-01-01T00:00:00Z',
+              message: 'Platform access approval reconciliation is pending',
+              reason: 'ReconcilePending',
+              status: 'Unknown',
+              type: 'Ready',
+            },
+          ],
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessDenial',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformAccessDenialListSchema = {
+  description: 'PlatformAccessDenialList is a list of PlatformAccessDenial',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of platformaccessdenials. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.PlatformAccessDenial',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessDenialList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformAccessRejectionSchema = {
+  description:
+    'PlatformAccessRejection is the Schema for the platformaccessrejections API.\nIt represents a formal denial of platform access for a user. Once the rejection is created, a notification can be sent to the user.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'PlatformAccessRejectionSpec defines the desired state of PlatformAccessRejection.',
+      type: 'object',
+      required: ['reason', 'subjectRef'],
+      properties: {
+        reason: {
+          description: 'Reason is the reason for the rejection.',
+          type: 'string',
+        },
+        rejecterRef: {
+          description:
+            'RejecterRef is the reference to the actor who issued the rejection.\nIf not specified, the rejection was made by the system.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+        },
+        subjectRef: {
+          description: 'UserRef is the reference to the user being rejected.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: 'self == oldSelf',
+          message: 'spec is immutable',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessRejection',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.subjectRef.name',
+    },
+  ],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformAccessRejectionListSchema = {
+  description: 'PlatformAccessRejectionList is a list of PlatformAccessRejection',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of platformaccessrejections. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.PlatformAccessRejection',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessRejectionList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.subjectRef.name',
+    },
+  ],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformInvitationSchema = {
+  description:
+    'PlatformInvitation is the Schema for the platforminvitations API\nIt represents a platform invitation for a user. Once the platform invitation is created, an email will be sent to the user to invite them to the platform.\nThe invited user will have access to the platform after they create an account using the asociated email.\nIt represents a platform invitation for a user.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'PlatformInvitationSpec defines the desired state of PlatformInvitation.',
+      type: 'object',
+      required: ['email'],
+      properties: {
+        email: {
+          description: 'The email of the user being invited.',
+          type: 'string',
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'email type is immutable',
+            },
+          ],
+        },
+        familyName: {
+          description: 'The family name of the user being invited.',
+          type: 'string',
+        },
+        givenName: {
+          description: 'The given name of the user being invited.',
+          type: 'string',
+        },
+        invitedBy: {
+          description:
+            'The user who created the platform invitation. A mutation webhook will default this field to the user who made the request.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'invitedBy type is immutable',
+            },
+          ],
+        },
+        scheduleAt: {
+          description:
+            'The schedule at which the platform invitation will be sent.\nIt can only be updated before the platform invitation is sent.',
+          type: 'string',
+          format: 'date-time',
+        },
+      },
+    },
+    status: {
+      description: 'PlatformInvitationStatus defines the observed state of PlatformInvitation.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            'Conditions provide conditions that represent the current status of the PlatformInvitation.',
+          type: 'array',
+          default: [
+            {
+              lastTransitionTime: '1970-01-01T00:00:00Z',
+              message: 'Platform invitation reconciliation is pending',
+              reason: 'ReconcilePending',
+              status: 'Unknown',
+              type: 'Ready',
+            },
+          ],
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+        },
+        email: {
+          description: 'The email resource that was created for the platform invitation.',
+          type: 'object',
+          properties: {
+            name: {
+              description:
+                'The name of the email resource that was created for the platform invitation.',
+              type: 'string',
+            },
+            namespace: {
+              description:
+                'The namespace of the email resource that was created for the platform invitation.',
+              type: 'string',
+            },
+          },
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformInvitation',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformInvitationListSchema = {
+  description: 'PlatformInvitationList is a list of PlatformInvitation',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of platforminvitations. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.PlatformInvitation',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformInvitationList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
 export const com_miloapis_iam_v1alpha1_PolicyBindingSchema = {
   description: 'PolicyBinding is the Schema for the policybindings API',
   type: 'object',
@@ -693,20 +1367,19 @@ export const com_miloapis_iam_v1alpha1_PolicyBindingSchema = {
       required: ['resourceSelector', 'roleRef', 'subjects'],
       properties: {
         resourceSelector: {
-          description: `ResourceSelector defines which resources the subjects in the policy binding
-should have the role applied to. Options within this struct are mutually
-exclusive.`,
+          description:
+            'ResourceSelector defines which resources the subjects in the policy binding\nshould have the role applied to. Options within this struct are mutually\nexclusive.',
           type: 'object',
           properties: {
             resourceKind: {
-              description: `ResourceKind specifies that the policy binding should apply to all resources of a specific kind.
-Mutually exclusive with resourceRef.`,
+              description:
+                'ResourceKind specifies that the policy binding should apply to all resources of a specific kind.\nMutually exclusive with resourceRef.',
               type: 'object',
               required: ['kind'],
               properties: {
                 apiGroup: {
-                  description: `APIGroup is the group for the resource type being referenced. If APIGroup
-is not specified, the specified Kind must be in the core API group.`,
+                  description:
+                    'APIGroup is the group for the resource type being referenced. If APIGroup\nis not specified, the specified Kind must be in the core API group.',
                   type: 'string',
                 },
                 kind: {
@@ -716,15 +1389,14 @@ is not specified, the specified Kind must be in the core API group.`,
               },
             },
             resourceRef: {
-              description: `ResourceRef provides a reference to a specific resource instance.
-Mutually exclusive with resourceKind.`,
+              description:
+                'ResourceRef provides a reference to a specific resource instance.\nMutually exclusive with resourceKind.',
               type: 'object',
               required: ['kind', 'name', 'uid'],
               properties: {
                 apiGroup: {
-                  description: `APIGroup is the group for the resource being referenced.
-If APIGroup is not specified, the specified Kind must be in the core API group.
-For any other third-party types, APIGroup is required.`,
+                  description:
+                    'APIGroup is the group for the resource being referenced.\nIf APIGroup is not specified, the specified Kind must be in the core API group.\nFor any other third-party types, APIGroup is required.',
                   type: 'string',
                 },
                 kind: {
@@ -736,8 +1408,8 @@ For any other third-party types, APIGroup is required.`,
                   type: 'string',
                 },
                 namespace: {
-                  description: `Namespace is the namespace of resource being referenced.
-Required for namespace-scoped resources. Omitted for cluster-scoped resources.`,
+                  description:
+                    'Namespace is the namespace of resource being referenced.\nRequired for namespace-scoped resources. Omitted for cluster-scoped resources.',
                   type: 'string',
                 },
                 uid: {
@@ -759,8 +1431,8 @@ Required for namespace-scoped resources. Omitted for cluster-scoped resources.`,
           ],
         },
         roleRef: {
-          description: `RoleRef is a reference to the Role that is being bound.
-This can be a reference to a Role custom resource.`,
+          description:
+            'RoleRef is a reference to the Role that is being bound.\nThis can be a reference to a Role custom resource.',
           type: 'object',
           required: ['name'],
           properties: {
@@ -786,8 +1458,8 @@ This can be a reference to a Role custom resource.`,
           type: 'array',
           minItems: 1,
           items: {
-            description: `Subject contains a reference to the object or user identities a role binding applies to.
-This can be a User or Group.`,
+            description:
+              'Subject contains a reference to the object or user identities a role binding applies to.\nThis can be a User or Group.',
             type: 'object',
             required: ['kind', 'name'],
             properties: {
@@ -797,14 +1469,13 @@ This can be a User or Group.`,
                 enum: ['User', 'Group'],
               },
               name: {
-                description: `Name of the object being referenced. A special group name of
-"system:authenticated-users" can be used to refer to all authenticated
-users.`,
+                description:
+                  'Name of the object being referenced. A special group name of\n"system:authenticated-users" can be used to refer to all authenticated\nusers.',
                 type: 'string',
               },
               namespace: {
-                description: `Namespace of the referenced object. If DNE, then for an SA it refers to the PolicyBinding resource's namespace.
-For a User or Group, it is ignored.`,
+                description:
+                  "Namespace of the referenced object. If DNE, then for an SA it refers to the PolicyBinding resource's namespace.\nFor a User or Group, it is ignored.",
                 type: 'string',
               },
               uid: {
@@ -848,31 +1519,27 @@ For a User or Group, it is ignored.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -984,14 +1651,12 @@ export const com_miloapis_iam_v1alpha1_ProtectedResourceSchema = {
       required: ['kind', 'permissions', 'plural', 'serviceRef', 'singular'],
       properties: {
         kind: {
-          description: `The kind of the resource.
-This will be in the format \`Workload\`.`,
+          description: 'The kind of the resource.\nThis will be in the format `Workload`.',
           type: 'string',
         },
         parentResources: {
-          description: `A list of resources that are registered with the platform that may be a
-parent to the resource. Permissions may be bound to a parent resource so
-they can be inherited down the resource hierarchy.`,
+          description:
+            'A list of resources that are registered with the platform that may be a\nparent to the resource. Permissions may be bound to a parent resource so\nthey can be inherited down the resource hierarchy.',
           type: 'array',
           items: {
             description: 'ParentResourceRef defines the reference to a parent resource',
@@ -999,9 +1664,8 @@ they can be inherited down the resource hierarchy.`,
             required: ['kind'],
             properties: {
               apiGroup: {
-                description: `APIGroup is the group for the resource being referenced.
-If APIGroup is not specified, the specified Kind must be in the core API group.
-For any other third-party types, APIGroup is required.`,
+                description:
+                  'APIGroup is the group for the resource being referenced.\nIf APIGroup is not specified, the specified Kind must be in the core API group.\nFor any other third-party types, APIGroup is required.',
                 type: 'string',
               },
               kind: {
@@ -1019,8 +1683,8 @@ For any other third-party types, APIGroup is required.`,
           },
         },
         plural: {
-          description: `The plural form for the resource type, e.g. 'workloads'. Must follow
-camelCase format.`,
+          description:
+            "The plural form for the resource type, e.g. 'workloads'. Must follow\ncamelCase format.",
           type: 'string',
         },
         serviceRef: {
@@ -1036,8 +1700,8 @@ camelCase format.`,
           },
         },
         singular: {
-          description: `The singular form for the resource type, e.g. 'workload'. Must follow
-camelCase format.`,
+          description:
+            "The singular form for the resource type, e.g. 'workload'. Must follow\ncamelCase format.",
           type: 'string',
         },
       },
@@ -1066,31 +1730,27 @@ camelCase format.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -1112,8 +1772,8 @@ This field may not be empty.`,
           },
         },
         observedGeneration: {
-          description: `ObservedGeneration is the most recent generation observed for this ProtectedResource. It corresponds to the
-ProtectedResource's generation, which is updated on mutation by the API Server.`,
+          description:
+            "ObservedGeneration is the most recent generation observed for this ProtectedResource. It corresponds to the\nProtectedResource's generation, which is updated on mutation by the API Server.",
           type: 'integer',
           format: 'int64',
         },
@@ -1202,22 +1862,20 @@ export const com_miloapis_iam_v1alpha1_RoleSchema = {
       required: ['launchStage'],
       properties: {
         includedPermissions: {
-          description: `The names of the permissions this role grants when bound in an IAM policy.
-All permissions must be in the format: \`{service}.{resource}.{action}\`
-(e.g. compute.workloads.create).`,
+          description:
+            'The names of the permissions this role grants when bound in an IAM policy.\nAll permissions must be in the format: `{service}.{resource}.{action}`\n(e.g. compute.workloads.create).',
           type: 'array',
           items: {
             type: 'string',
           },
         },
         inheritedRoles: {
-          description: `The list of roles from which this role inherits permissions.
-Each entry must be a valid role resource name.`,
+          description:
+            'The list of roles from which this role inherits permissions.\nEach entry must be a valid role resource name.',
           type: 'array',
           items: {
-            description: `ScopedRoleReference defines a reference to another Role, scoped by namespace.
-This is used for purposes like role inheritance where a simple name and namespace
-is sufficient to identify the target role.`,
+            description:
+              'ScopedRoleReference defines a reference to another Role, scoped by namespace.\nThis is used for purposes like role inheritance where a simple name and namespace\nis sufficient to identify the target role.',
             type: 'object',
             required: ['name'],
             properties: {
@@ -1226,8 +1884,8 @@ is sufficient to identify the target role.`,
                 type: 'string',
               },
               namespace: {
-                description: `Namespace of the referenced Role.
-If not specified, it defaults to the namespace of the resource containing this reference.`,
+                description:
+                  'Namespace of the referenced Role.\nIf not specified, it defaults to the namespace of the resource containing this reference.',
                 type: 'string',
               },
             },
@@ -1236,8 +1894,8 @@ If not specified, it defaults to the namespace of the resource containing this r
           'x-kubernetes-list-type': 'map',
         },
         launchStage: {
-          description: `Defines the launch stage of the IAM Role. Must be one of: Early Access,
-Alpha, Beta, Stable, Deprecated.`,
+          description:
+            'Defines the launch stage of the IAM Role. Must be one of: Early Access,\nAlpha, Beta, Stable, Deprecated.',
           type: 'string',
         },
       },
@@ -1268,31 +1926,27 @@ Alpha, Beta, Stable, Deprecated.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -1311,6 +1965,14 @@ This field may not be empty.`,
                   '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
               },
             },
+          },
+        },
+        effectivePermissions: {
+          description:
+            'EffectivePermissions is the complete flattened list of all permissions\ngranted by this role, including permissions from inheritedRoles and\ndirectly specified includedPermissions. This is computed by the controller\nand provides a single source of truth for all permissions this role grants.',
+          type: 'array',
+          items: {
+            type: 'string',
           },
         },
         observedGeneration: {
@@ -1425,6 +2087,12 @@ export const com_miloapis_iam_v1alpha1_UserSchema = {
       description: 'UserStatus defines the observed state of User',
       type: 'object',
       properties: {
+        avatarUrl: {
+          description:
+            'AvatarURL points to the avatar image associated with the user. This value is\npopulated by the auth provider or any service that provides a user avatar URL.',
+          type: 'string',
+          format: 'uri',
+        },
         conditions: {
           description:
             'Conditions provide conditions that represent the current status of the User.',
@@ -1445,31 +2113,27 @@ export const com_miloapis_iam_v1alpha1_UserSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -1490,15 +2154,28 @@ This field may not be empty.`,
             },
           },
         },
+        lastLoginProvider: {
+          description:
+            'LastLoginProvider records the identity provider that was most recently used by the\nuser to log in (e.g., "github" or "google"). This field is set by the auth provider\nbased on authentication events.',
+          type: 'string',
+          allOf: [
+            {
+              enum: ['github', 'google'],
+            },
+            {
+              enum: ['github', 'google'],
+            },
+          ],
+        },
+        registrationApproval: {
+          description:
+            'RegistrationApproval represents the administrator’s decision on the user’s registration request.\nStates:\n  - Pending:  The user is awaiting review by an administrator.\n  - Approved: The user registration has been approved.\n  - Rejected: The user registration has been rejected.\nThe User resource is always created regardless of this value, but the\nability for the person to sign into the platform and access resources is\ngoverned by this status: only *Approved* users are granted access, while\n*Pending* and *Rejected* users are prevented for interacting with resources.',
+          type: 'string',
+          enum: ['Pending', 'Approved', 'Rejected'],
+        },
         state: {
-          description: `State represents the current activation state of the user account from the
-auth provider. This field is managed exclusively by the UserDeactivation CRD
-and cannot be changed directly by the user. When a UserDeactivation resource
-is created for the user, the user is deactivated in the auth provider; when
-the UserDeactivation is deleted, the user is reactivated.
-States:
-  - Active: The user can be used to authenticate.
-  - Inactive: The user is prohibited to be used to authenticate, and revokes all existing sessions.`,
+          description:
+            'State represents the current activation state of the user account from the\nauth provider. This field is managed exclusively by the UserDeactivation CRD\nand cannot be changed directly by the user. When a UserDeactivation resource\nis created for the user, the user is deactivated in the auth provider; when\nthe UserDeactivation is deleted, the user is reactivated.\nStates:\n  - Active: The user can be used to authenticate.\n  - Inactive: The user is prohibited to be used to authenticate, and revokes all existing sessions.',
           type: 'string',
           default: 'Active',
           enum: ['Active', 'Inactive'],
@@ -1513,7 +2190,14 @@ States:
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'status.registrationApproval',
+    },
+    {
+      fieldPath: 'spec.email',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_UserDeactivationSchema = {
@@ -1557,8 +2241,8 @@ export const com_miloapis_iam_v1alpha1_UserDeactivationSchema = {
           type: 'string',
         },
         userRef: {
-          description: `UserRef is a reference to the User being deactivated.
-User is a cluster-scoped resource.`,
+          description:
+            'UserRef is a reference to the User being deactivated.\nUser is a cluster-scoped resource.',
           type: 'object',
           required: ['name'],
           properties: {
@@ -1594,31 +2278,27 @@ User is a cluster-scoped resource.`,
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -1729,24 +2409,92 @@ export const com_miloapis_iam_v1alpha1_UserInvitationSchema = {
     spec: {
       description: 'UserInvitationSpec defines the desired state of UserInvitation',
       type: 'object',
-      required: ['email'],
+      required: ['email', 'organizationRef', 'roles', 'state'],
       properties: {
         email: {
           description: 'The email of the user being invited.',
           type: 'string',
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'email type is immutable',
+            },
+          ],
+        },
+        expirationDate: {
+          description:
+            'ExpirationDate is the date and time when the UserInvitation will expire.\nIf not specified, the UserInvitation will never expire.',
+          type: 'string',
+          format: 'date-time',
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'expirationDate type is immutable',
+            },
+          ],
         },
         familyName: {
           description: 'The last name of the user being invited.',
           type: 'string',
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'familyName type is immutable',
+            },
+          ],
         },
         givenName: {
           description: 'The first name of the user being invited.',
           type: 'string',
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'givenName type is immutable',
+            },
+          ],
+        },
+        invitedBy: {
+          description:
+            'InvitedBy is the user who invited the user. A mutation webhook will default this field to the user who made the request.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'invitedBy type is immutable',
+            },
+          ],
+        },
+        organizationRef: {
+          description:
+            'OrganizationRef is a reference to the Organization that the user is invoted to.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of resource being referenced',
+              type: 'string',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'organizationRef type is immutable',
+            },
+          ],
         },
         roles: {
           description:
             'The roles that will be assigned to the user when they accept the invitation.',
           type: 'array',
+          maxItems: 100,
+          minItems: 1,
           items: {
             description: 'RoleReference contains information that points to the Role being used',
             type: 'object',
@@ -1763,6 +2511,25 @@ export const com_miloapis_iam_v1alpha1_UserInvitationSchema = {
               },
             },
           },
+          'x-kubernetes-validations': [
+            {
+              rule: 'type(oldSelf) == null_type || self == oldSelf',
+              message: 'roles type is immutable',
+            },
+          ],
+        },
+        state: {
+          description:
+            'State is the state of the UserInvitation. In order to accept the invitation, the invited user\nmust set the state to Accepted.',
+          type: 'string',
+          enum: ['Pending', 'Accepted', 'Declined'],
+          'x-kubernetes-validations': [
+            {
+              rule: "type(oldSelf) == null_type || oldSelf == 'Pending' || self == oldSelf",
+              message:
+                'state can only transition from Pending to another state and is immutable afterwards',
+            },
+          ],
         },
       },
     },
@@ -1780,7 +2547,7 @@ export const com_miloapis_iam_v1alpha1_UserInvitationSchema = {
               message: 'Waiting for control plane to reconcile',
               reason: 'Unknown',
               status: 'Unknown',
-              type: 'Ready',
+              type: 'Unknown',
             },
           ],
           items: {
@@ -1790,31 +2557,27 @@ export const com_miloapis_iam_v1alpha1_UserInvitationSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -1835,6 +2598,47 @@ This field may not be empty.`,
             },
           },
         },
+        inviteeUser: {
+          description:
+            'InviteeUser contains information about the invitee user in the invitation.\nThis value may be nil if the invitee user has not been created yet.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description:
+                'Name is the name of the invitee user in the invitation.\nName is a cluster-scoped resource, so Namespace is not needed.',
+              type: 'string',
+            },
+          },
+        },
+        inviterUser: {
+          description:
+            'InviterUser contains information about the user who invited the user in the invitation.',
+          type: 'object',
+          properties: {
+            displayName: {
+              description:
+                'DisplayName is the display name of the user who invited the user in the invitation.',
+              type: 'string',
+            },
+            emailAddress: {
+              description:
+                'EmailAddress is the email address of the user who invited the user in the invitation.',
+              type: 'string',
+            },
+          },
+        },
+        organization: {
+          description:
+            'Organization contains information about the organization in the invitation.',
+          type: 'object',
+          properties: {
+            displayName: {
+              description: 'DisplayName is the display name of the organization in the invitation.',
+              type: 'string',
+            },
+          },
+        },
       },
     },
   },
@@ -1845,7 +2649,11 @@ This field may not be empty.`,
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'status.inviteeUser.name',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_UserInvitationListSchema = {
@@ -1888,7 +2696,11 @@ export const com_miloapis_iam_v1alpha1_UserInvitationListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'status.inviteeUser.name',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_UserListSchema = {
@@ -1931,7 +2743,14 @@ export const com_miloapis_iam_v1alpha1_UserListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'status.registrationApproval',
+    },
+    {
+      fieldPath: 'spec.email',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_UserPreferenceSchema = {
@@ -2005,31 +2824,27 @@ export const com_miloapis_iam_v1alpha1_UserPreferenceSchema = {
             required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
             properties: {
               lastTransitionTime: {
-                description: `lastTransitionTime is the last time the condition transitioned from one status to another.
-This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.`,
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
                 type: 'string',
                 format: 'date-time',
               },
               message: {
-                description: `message is a human readable message indicating details about the transition.
-This may be an empty string.`,
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
                 type: 'string',
                 maxLength: 32768,
               },
               observedGeneration: {
-                description: `observedGeneration represents the .metadata.generation that the condition was set based upon.
-For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
-with respect to the current state of the instance.`,
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
                 type: 'integer',
                 format: 'int64',
                 minimum: 0,
               },
               reason: {
-                description: `reason contains a programmatic identifier indicating the reason for the condition's last transition.
-Producers of specific condition types may define expected values and meanings for this field,
-and whether the values are considered a guaranteed API.
-The value should be a CamelCase string.
-This field may not be empty.`,
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
                 type: 'string',
                 maxLength: 1024,
                 minLength: 1,
@@ -2142,7 +2957,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       type: 'string',
     },
     orphanDependents: {
-      description: `Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.`,
+      description:
+        'Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object\'s finalizers list. Either this field or PropagationPolicy may be set, but not both.',
       type: 'boolean',
     },
     preconditions: {
@@ -2435,11 +3251,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_FieldsV1Schema = {
-  description: `FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.
-
-Each key is either a '.' representing the field itself, and will always map to an empty set, or a string representing a sub-field or item. The string will follow one of these four formats: 'f:<name>', where <name> is the name of a field in a struct, or key in a map 'v:<value>', where <value> is the exact json formatted value of a list item 'i:<index>', where <index> is position of a item in a list 'k:<keys>', where <keys> is a map of  a list item's key fields to their unique values If a key maps to an empty Fields value, the field that key represents is part of the set.
-
-The exact format is defined in sigs.k8s.io/structured-merge-diff`,
+  description:
+    "FieldsV1 stores a set of fields in a data structure like a Trie, in JSON format.\n\nEach key is either a '.' representing the field itself, and will always map to an empty set, or a string representing a sub-field or item. The string will follow one of these four formats: 'f:<name>', where <name> is the name of a field in a struct, or key in a map 'v:<value>', where <value> is the exact json formatted value of a list item 'i:<index>', where <index> is position of a item in a list 'k:<keys>', where <keys> is a map of  a list item's key fields to their unique values If a key maps to an empty Fields value, the field that key represents is part of the set.\n\nThe exact format is defined in sigs.k8s.io/structured-merge-diff",
   type: 'object',
 } as const;
 
@@ -2537,9 +3350,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
       },
     },
     creationTimestamp: {
-      description: `CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.
-
-Populated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata`,
+      description:
+        'CreationTimestamp is a timestamp representing the server time when this object was created. It is not guaranteed to be set in happens-before order across separate operations. Clients may not set this value. It is represented in RFC3339 form and is in UTC.\n\nPopulated by the system. Read-only. Null for lists. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
       allOf: [
         {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.Time',
@@ -2553,9 +3365,8 @@ Populated by the system. Read-only. Null for lists. More info: https://git.k8s.i
       format: 'int64',
     },
     deletionTimestamp: {
-      description: `DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.
-
-Populated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata`,
+      description:
+        'DeletionTimestamp is RFC 3339 date and time at which this resource will be deleted. This field is set by the server when a graceful deletion is requested by the user, and is not directly settable by a client. The resource is expected to be deleted (no longer visible from resource lists, and not reachable by name) after the time in this field, once the finalizers list is empty. As long as the finalizers list contains items, deletion is blocked. Once the deletionTimestamp is set, this value may not be unset or be set further into the future, although it may be shortened or the resource may be deleted prior to this time. For example, a user may request that a pod is deleted in 30 seconds. The Kubelet will react by sending a graceful termination signal to the containers in the pod. After that 30 seconds, the Kubelet will send a hard termination signal (SIGKILL) to the container and after cleanup, remove the pod from the API. In the presence of network partitions, this object may still exist after this timestamp, until an administrator or automated process can determine the resource is fully terminated. If not set, graceful deletion of the object has not been requested.\n\nPopulated by the system when a graceful deletion is requested. Read-only. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata',
       allOf: [
         {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.Time',
@@ -2574,11 +3385,8 @@ Populated by the system when a graceful deletion is requested. Read-only. More i
       'x-kubernetes-patch-strategy': 'merge',
     },
     generateName: {
-      description: `GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.
-
-If this field is specified and the generated name exists, the server will return a 409.
-
-Applied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency`,
+      description:
+        'GenerateName is an optional prefix, used by the server, to generate a unique name ONLY IF the Name field has not been provided. If this field is used, the name returned to the client will be different than the name passed. This value will also be combined with a unique suffix. The provided value has the same validation rules as the Name field, and may be truncated by the length of the suffix required to make the value unique on the server.\n\nIf this field is specified and the generated name exists, the server will return a 409.\n\nApplied only if Name is not specified. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#idempotency',
       type: 'string',
     },
     generation: {
@@ -2597,7 +3405,8 @@ Applied only if Name is not specified. More info: https://git.k8s.io/community/c
       },
     },
     managedFields: {
-      description: `ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like "ci-cd". The set of fields is always in the version that the workflow used when modifying the object.`,
+      description:
+        "ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like \"ci-cd\". The set of fields is always in the version that the workflow used when modifying the object.",
       type: 'array',
       items: {
         default: {},
@@ -2615,9 +3424,8 @@ Applied only if Name is not specified. More info: https://git.k8s.io/community/c
       type: 'string',
     },
     namespace: {
-      description: `Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.
-
-Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces`,
+      description:
+        'Namespace defines the space within which each name must be unique. An empty namespace is equivalent to the "default" namespace, but "default" is the canonical representation. Not all objects are required to be scoped to a namespace - the value of this field for those objects will be empty.\n\nMust be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces',
       type: 'string',
     },
     ownerReferences: {
@@ -2638,9 +3446,8 @@ Must be a DNS_LABEL. Cannot be updated. More info: https://kubernetes.io/docs/co
       'x-kubernetes-patch-strategy': 'merge',
     },
     resourceVersion: {
-      description: `An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.
-
-Populated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency`,
+      description:
+        'An opaque value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server. They may only be valid for a particular resource or set of resources.\n\nPopulated by the system. Read-only. Value must be treated as opaque by clients and . More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency',
       type: 'string',
     },
     selfLink: {
@@ -2649,9 +3456,8 @@ Populated by the system. Read-only. Value must be treated as opaque by clients a
       type: 'string',
     },
     uid: {
-      description: `UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.
-
-Populated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids`,
+      description:
+        'UID is the unique in time and space value for this object. It is typically generated by the server on successful creation of a resource and is not allowed to change on PUT operations.\n\nPopulated by the system. Read-only. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names#uids',
       type: 'string',
     },
   },
@@ -2790,11 +3596,8 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseSchema = {
   type: 'object',
   properties: {
     field: {
-      description: `The field of the resource that has caused this error, as named by its JSON serialization. May include dot and postfix notation for nested attributes. Arrays are zero-indexed.  Fields may appear more than once in an array of causes due to fields having multiple errors. Optional.
-
-Examples:
-  "name" - the field "name" on the current resource
-  "items[0].name" - the field "name" on the first array entry in "items"`,
+      description:
+        'The field of the resource that has caused this error, as named by its JSON serialization. May include dot and postfix notation for nested attributes. Arrays are zero-indexed.  Fields may appear more than once in an array of causes due to fields having multiple errors. Optional.\n\nExamples:\n  "name" - the field "name" on the current resource\n  "items[0].name" - the field "name" on the first array entry in "items"',
       type: 'string',
     },
     message: {

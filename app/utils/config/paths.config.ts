@@ -8,6 +8,9 @@ export const paths = {
   },
   home: '/',
   gettingStarted: '/getting-started',
+  onboarding: {
+    completeProfile: '/complete-profile',
+  },
   fraud: {
     verifying: '/verifying',
     accountUnderReview: '/account-under-review',

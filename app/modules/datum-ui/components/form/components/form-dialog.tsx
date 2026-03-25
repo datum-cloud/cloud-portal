@@ -12,6 +12,7 @@ import type { z } from 'zod';
  * - Automatic dialog state management (controlled or uncontrolled)
  * - Built-in header with title and description
  * - Built-in footer with submit and cancel buttons
+ * - Optional header close (X) via showHeaderClose
  * - Auto-close on successful submission
  * - Prevents accidental close during submission
  * - Supports render function pattern for form state access
@@ -77,6 +78,7 @@ export function FormDialog<T extends z.ZodType>({
   submitTextLoading = 'Submitting...',
   cancelText = 'Cancel',
   showCancel = true,
+  showHeaderClose = true,
   submitType = 'primary',
 
   // Loading state
@@ -163,7 +165,7 @@ export function FormDialog<T extends z.ZodType>({
               <Dialog.Header
                 title={title}
                 description={description}
-                onClose={handleCancel}
+                onClose={showHeaderClose ? handleCancel : undefined}
                 className="border-b"
                 descriptionClassName="text-foreground/80"
               />

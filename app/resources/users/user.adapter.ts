@@ -17,6 +17,9 @@ import {
 import { toBoolean } from '@/utils/helpers/text.helper';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 
+/** Milo User CRD: set when givenName and familyName are identical (e.g. single IdP display name). */
+export const USER_NAME_REVIEW_REQUIRED_ANNOTATION = 'iam.miloapis.com/name-review-required';
+
 // Raw API user type
 export interface ComMiloapisIamV1Alpha1User {
   apiVersion: string;
@@ -75,6 +78,7 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
       status && typeof status.lastLoginProvider !== 'undefined'
         ? (status.lastLoginProvider as LastLoginProviderValue)
         : undefined,
+    nameReviewRequired: metadata?.annotations?.[USER_NAME_REVIEW_REQUIRED_ANNOTATION] === 'true',
   };
 }
 
