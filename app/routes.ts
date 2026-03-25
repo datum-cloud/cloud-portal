@@ -181,7 +181,10 @@ export default [
     route('callback', 'routes/auth/callback.tsx'),
   ]),
 
-  // Fraud routes — outside the private layout because the private layout loader fetches
+  // Onboarding (outside private layout — BlankLayout + own loader auth)
+  route('complete-profile', 'routes/onboarding/complete-profile.tsx'),
+
+  // Fraud / gating routes — outside the private layout because the private layout loader fetches
   // the user and would throw NotFoundError for brand-new users not yet in Milo.
   // These pages use BlankLayout and handle their own auth checks.
   // The /api/fraud-status polling endpoint is handled by the Hono server (app/server/routes/fraud-status.ts).

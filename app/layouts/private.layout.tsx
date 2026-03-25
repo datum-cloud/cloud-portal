@@ -1,5 +1,4 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { UserNameReviewDialog } from '@/features/account/user-name-review-dialog';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { useTheme } from '@/modules/datum-themes';
 import { FathomProvider } from '@/modules/fathom';
@@ -105,7 +104,6 @@ export default function PrivateLayout() {
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <TooltipProvider>
               <ConfirmationDialogProvider>
-                <UserNameReviewDialog />
                 <Outlet />
               </ConfirmationDialogProvider>
             </TooltipProvider>
