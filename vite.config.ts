@@ -31,7 +31,7 @@ export default defineConfig((config) => {
     },
     ssr: {
       optimizeDeps: {
-        include: ['react-dom/server.node'],
+        include: ['react-dom/server.node', 'tslib', '@gqlts/runtime'],
       },
     },
     plugins: [
