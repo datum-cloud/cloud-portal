@@ -128,27 +128,6 @@ export interface DataTableToolbarProps {
  * - Left: Built-in search + primary filters
  * - Right: Filter dropdown + actions
  * - Space-efficient for modern UIs
- *
- * @example
- * // Legacy API (still supported)
- * <DataTableToolbar
- *   tableTitle={{ title: "Users", actions: <Button /> }}
- *   filterComponent={<DataTableFilter>...</DataTableFilter>}
- * />
- *
- * @example
- * // New Compact API
- * <DataTableToolbar
- *   title="Users"
- *   description="Manage users"
- *   actions={<Button>Add User</Button>}
- *   config={{
- *     layout: 'compact',
- *     search: { placeholder: 'Search users...' },
- *     filtersDisplay: 'dropdown'
- *   }}
- *   filterComponent={<DataTableFilter>...</DataTableFilter>}
- * />
  */
 export const DataTableToolbar = ({
   tableTitle,
@@ -323,6 +302,49 @@ export const DataTableToolbar = ({
     );
   }
 
+  // Shared renderer for the right section (inline filters + dropdown + actions)
+  const renderRightSection = () => (
+    <div
+      className={cn(
+        'flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end sm:gap-3',
+        rightSectionClassName
+      )}>
+      {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
+      {multiActions && multiActions.length > 0 && (
+        <DataTableToolbarMultiActions actions={multiActions} />
+      )}
+      {inlineFilters && inlineFilters.length > 0 && (
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-initial">
+          {inlineFilters.map((filter, index) => (
+            <div key={`inline-filter-${index}`} className="min-w-0 flex-1 sm:flex-initial">
+              {filter}
+            </div>
+          ))}
+        </div>
+      )}
+      {dropdownFilters && dropdownFilters.length > 0 && (
+        <DataTableToolbarFilterDropdown
+          showFilterCount={toolbarConfig.showFilterCount}
+          excludeColumns={['q', 'search']}>
+          {dropdownFilters.map((filter, index) => (
+            <div key={`filter-${index}`} className="border-b pb-5 last:border-b-0 last:pb-0">
+              {filter}
+            </div>
+          ))}
+        </DataTableToolbarFilterDropdown>
+      )}
+      {finalActions && (
+        <div
+          className={cn(
+            'flex items-center gap-2',
+            !inlineFilters?.length && !dropdownFilters?.length && 'w-full sm:w-auto'
+          )}>
+          {finalActions}
+        </div>
+      )}
+    </div>
+  );
+
   // Render compact layout (new): single top row = title + search/filters on left, rightSide on right
   const hasTitleRow = finalTitle || finalDescription || finalRightSide;
   const hasToolbarRow =
@@ -338,7 +360,7 @@ export const DataTableToolbar = ({
             <PageTitle title={finalTitle} description={finalDescription} />
             {/* Search + filters inline with title area (pushed to top) */}
             {hasToolbarRow && (
-              <DataTableFilter className="flex w-full flex-row flex-wrap items-center gap-3">
+              <DataTableFilter className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                 <div
                   className={cn(
                     'flex w-full min-w-0 flex-1 items-center gap-3 sm:w-auto',
@@ -348,37 +370,7 @@ export const DataTableToolbar = ({
                     <DataTableToolbarSearch config={searchConfig} className="rounded-md" />
                   )}
                 </div>
-                <div
-                  className={cn(
-                    'flex flex-wrap items-center justify-end gap-3 sm:justify-end',
-                    rightSectionClassName
-                  )}>
-                  {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
-                  {multiActions && multiActions.length > 0 && (
-                    <DataTableToolbarMultiActions actions={multiActions} />
-                  )}
-                  {inlineFilters && inlineFilters.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      {inlineFilters.map((filter, index) => (
-                        <div key={`inline-filter-${index}`}>{filter}</div>
-                      ))}
-                    </div>
-                  )}
-                  {dropdownFilters && dropdownFilters.length > 0 && (
-                    <DataTableToolbarFilterDropdown
-                      showFilterCount={toolbarConfig.showFilterCount}
-                      excludeColumns={['q', 'search']}>
-                      {dropdownFilters.map((filter, index) => (
-                        <div
-                          key={`filter-${index}`}
-                          className="border-b pb-5 last:border-b-0 last:pb-0">
-                          {filter}
-                        </div>
-                      ))}
-                    </DataTableToolbarFilterDropdown>
-                  )}
-                  {finalActions && <div className="flex items-center gap-2">{finalActions}</div>}
-                </div>
+                {renderRightSection()}
               </DataTableFilter>
             )}
           </div>
@@ -386,51 +378,18 @@ export const DataTableToolbar = ({
         </div>
       )}
 
-      {/* Fallback: toolbar row only when no title (e.g. rightSide-only) */}
+      {/* Fallback: toolbar row only when no title */}
       {!hasTitleRow && hasToolbarRow && (
-        <DataTableFilter className="flex w-full flex-row items-start justify-between gap-4">
+        <DataTableFilter className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
           {/* Left Section: Search */}
-          <div className={cn('flex w-full items-center gap-3 md:w-auto', leftSectionClassName)}>
+          <div className={cn('flex w-full items-center gap-3 sm:w-auto', leftSectionClassName)}>
             {searchConfig && (
               <DataTableToolbarSearch config={searchConfig} className="rounded-md" />
             )}
           </div>
 
-          {/* Right Section: Row Count + Multi-actions + Inline/Primary Filters + Dropdown Filters + Actions */}
-          <div
-            className={cn('flex flex-wrap items-center justify-end gap-3', rightSectionClassName)}>
-            {/* Row count (shows "X of Y selected" when rows are selected) */}
-            {toolbarConfig.showRowCount && <DataTableToolbarRowCount />}
-
-            {/* Multi-actions (shown when rows are selected) */}
-            {multiActions && multiActions.length > 0 && (
-              <DataTableToolbarMultiActions actions={multiActions} />
-            )}
-
-            {/* Primary/Inline filters next to dropdown */}
-            {inlineFilters && inlineFilters.length > 0 && (
-              <div className="flex items-center gap-2">
-                {inlineFilters.map((filter, index) => (
-                  <div key={`inline-filter-${index}`}>{filter}</div>
-                ))}
-              </div>
-            )}
-
-            {/* Dropdown filters button */}
-            {dropdownFilters && dropdownFilters.length > 0 && (
-              <DataTableToolbarFilterDropdown
-                showFilterCount={toolbarConfig.showFilterCount}
-                excludeColumns={['q', 'search']}>
-                {dropdownFilters.map((filter, index) => (
-                  <div key={`filter-${index}`} className="border-b pb-5 last:border-b-0 last:pb-0">
-                    {filter}
-                  </div>
-                ))}
-              </DataTableToolbarFilterDropdown>
-            )}
-
-            {finalActions && <div className="flex items-center gap-2">{finalActions}</div>}
-          </div>
+          {/* Right Section */}
+          {renderRightSection()}
         </DataTableFilter>
       )}
     </div>

@@ -149,7 +149,7 @@
     "@typescript-eslint/parser": "^8.56.0",
     "@vitejs/plugin-react": "^5.1.4",
     "cypress": "^15.10.0",
-    "cypress-split": "^1.24.28",
+    "cypress-split": "^1.24.31",
     "eslint": "^10.0.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.5",

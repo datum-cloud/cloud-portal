@@ -119,7 +119,7 @@ export const RefreshControl = ({
 
       {/* Auto Refresh Interval Dropdown */}
       <Select value={refreshInterval || defaultValue} onValueChange={setRefreshInterval}>
-        <SelectTrigger className="min-w-10 rounded-l-none border-0 px-2 shadow-none focus:shadow-none focus:ring-0">
+        <SelectTrigger className="min-w-10 rounded-l-none border-0 px-2 focus:ring-0">
           <SelectValue placeholder="Auto refresh" />
         </SelectTrigger>
         <SelectContent>

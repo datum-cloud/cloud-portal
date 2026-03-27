@@ -34,12 +34,15 @@ export const AuthField = ({ baseName, projectId }: { baseName: string; projectId
                     />
                     <Label htmlFor="authentication">Enable Authentication</Label>
                   </div>
-                  <div className={cn('flex gap-2', { hidden: !isAuthenticationEnabled })}>
+                  <div
+                    className={cn('flex flex-col gap-2 sm:flex-row', {
+                      hidden: !isAuthenticationEnabled,
+                    })}>
                     <Form.Field
                       name={`${baseName}.authentication.authType`}
                       label="Authentication Type"
                       required={isAuthenticationEnabled}
-                      className="w-1/3">
+                      className="w-full sm:w-1/3">
                       {({ control, meta }) => (
                         <SelectBox
                           name={meta.name}
@@ -60,7 +63,7 @@ export const AuthField = ({ baseName, projectId }: { baseName: string; projectId
                       name={`${baseName}.authentication.secretName`}
                       label="Secret"
                       required={isAuthenticationEnabled}
-                      className="w-1/2">
+                      className="w-full sm:w-1/2">
                       {({ control, meta }) => (
                         <SelectSecret
                           name={meta.name}

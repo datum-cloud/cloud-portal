@@ -228,17 +228,18 @@ export function CustomRangePanel({
     <div className={cn('flex flex-col gap-2', className)}>
       <p className="text-muted-foreground text-xs font-medium">Custom Range</p>
 
-      {/* Inline layout: Start — End (stacked on mobile) */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-2">
+      {/* Start / End date+time — stacked on mobile, inline on desktop */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         {/* Start Date + Time */}
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-muted-foreground w-10 shrink-0 text-xs sm:hidden">From</span>
           <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="quaternary"
                 theme="outline"
                 id={startDateId}
-                className="h-8 w-full justify-start gap-1.5 px-2 text-xs font-normal">
+                className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-2 text-xs font-normal sm:w-full sm:flex-initial">
                 <CalendarIcon className="h-3.5 w-3.5 shrink-0 opacity-50" />
                 <span className="truncate">{format(startDate, 'MMM d, yyyy')}</span>
               </Button>
@@ -267,18 +268,19 @@ export function CustomRangePanel({
           />
         </div>
 
-        {/* Separator */}
-        <span className="text-muted-foreground hidden text-sm sm:inline">—</span>
+        {/* Separator — hidden on mobile (label replaces it) */}
+        <span className="text-muted-foreground hidden text-sm sm:block">—</span>
 
         {/* End Date + Time */}
-        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-muted-foreground w-10 shrink-0 text-xs sm:hidden">To</span>
           <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="quaternary"
                 theme="outline"
                 id={endDateId}
-                className="h-8 w-full justify-start gap-1.5 px-2 text-xs font-normal">
+                className="h-8 min-w-0 flex-1 justify-start gap-1.5 px-2 text-xs font-normal sm:w-full sm:flex-initial">
                 <CalendarIcon className="h-3.5 w-3.5 shrink-0 opacity-50" />
                 <span className="truncate">{format(endDate, 'MMM d, yyyy')}</span>
               </Button>

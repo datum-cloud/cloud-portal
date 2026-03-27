@@ -1,13 +1,65 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CodeEditor } from '@/components/code-editor/code-editor';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { MobileSheet } from '@datum-ui/components/mobile-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { CodeIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
+function QueryButton({ value }: { value: string }) {
+  const breakpoint = useBreakpoint();
+  const isMobile = breakpoint === 'mobile';
+  const [open, setOpen] = useState(false);
+
+  const buttonContent = (
+    <>
+      <Icon icon={CodeIcon} className="size-4" />
+      <span>Query</span>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          type="quaternary"
+          theme="outline"
+          size="small"
+          className="flex h-8 items-center gap-1 focus:ring-0"
+          onClick={() => setOpen(true)}>
+          {buttonContent}
+        </Button>
+        <MobileSheet open={open} onOpenChange={setOpen} title="MetricsQL Query">
+          <div className="p-4">
+            <CodeEditor value={value} language="promql" readOnly minHeight="100px" />
+          </div>
+        </MobileSheet>
+      </>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="quaternary"
+          theme="outline"
+          size="small"
+          className="flex h-8 items-center gap-1 focus:ring-0">
+          {buttonContent}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="min-w-[400px]">
+        <CodeEditor value={value} language="promql" readOnly minHeight="100px" />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export const WorkloadSourcesTable = ({
   data,
@@ -36,28 +88,7 @@ export const WorkloadSourcesTable = ({
         accessorKey: 'metricsql',
         enableSorting: false,
         cell: ({ row }: any) => {
-          return (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="quaternary"
-                  theme="outline"
-                  size="small"
-                  className="flex h-8 items-center gap-1 focus:ring-0">
-                  <Icon icon={CodeIcon} className="size-4" />
-                  <span>Query</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="min-w-[400px]">
-                <CodeEditor
-                  value={row.original?.metrics?.metricsql}
-                  language="promql"
-                  readOnly
-                  minHeight="100px"
-                />
-              </PopoverContent>
-            </Popover>
-          );
+          return <QueryButton value={row.original?.metrics?.metricsql ?? ''} />;
         },
       },
     ],

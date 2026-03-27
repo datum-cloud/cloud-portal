@@ -151,7 +151,7 @@ export default function ConnectorsPage() {
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
-                  className="max-h-[280px] w-auto min-w-[200px] overflow-y-auto p-3">
+                  className="max-h-[280px] w-[200px] max-w-[calc(100vw-2rem)] overflow-y-auto p-3">
                   <p className="text-muted-foreground mb-2 text-xs font-medium">AI Edges</p>
                   <ul className="space-y-1.5">
                     {proxiesList.map((proxy) => (
@@ -209,7 +209,7 @@ export default function ConnectorsPage() {
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
-                  className="max-h-[280px] w-auto min-w-[240px] overflow-y-auto p-3">
+                  className="max-h-[280px] w-[240px] max-w-[calc(100vw-2rem)] overflow-y-auto p-3">
                   <p className="text-muted-foreground mb-2 text-xs font-medium">Hostnames</p>
                   <ul className="space-y-1.5">
                     {hostnames.map((hostname) => (

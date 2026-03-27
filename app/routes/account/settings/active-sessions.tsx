@@ -117,6 +117,7 @@ export default function AccountActiveSessionsPage() {
         header: 'IP',
         accessorKey: 'ip',
         id: 'ip',
+        meta: { className: 'min-w-[140px]' },
         cell: ({ row }) => {
           return (
             <div className="flex items-center justify-between gap-2">
@@ -145,6 +146,7 @@ export default function AccountActiveSessionsPage() {
         header: 'Created At',
         accessorKey: 'createdAt',
         id: 'createdAt',
+        meta: { className: 'min-w-[120px]' },
         cell: ({ row }) => {
           return row.original.createdAt ? <DateTime date={row.original.createdAt} /> : '-';
         },
@@ -153,6 +155,7 @@ export default function AccountActiveSessionsPage() {
         header: 'Expires At',
         accessorKey: 'expiresAt',
         id: 'expiresAt',
+        meta: { className: 'min-w-[120px]' },
         cell: ({ row }) => {
           return row.original.expiresAt ? <DateTime date={row.original.expiresAt} /> : '-';
         },

@@ -7,7 +7,7 @@ import { openSupportMessage } from '@/utils/open-support-message';
 import { Alert, AlertDescription, AlertTitle, Button, Dialog } from '@datum-ui/components';
 import { Dropzone, DropzoneEmptyState } from '@datum-ui/components/dropzone/dropzone';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { ResponsiveDropdown } from '@datum-ui/components/responsive-dropdown';
 import { AlertCircle, DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -89,8 +89,13 @@ export const DnsRecordImportAction = ({
 
   return (
     <>
-      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-        <PopoverTrigger asChild>
+      <ResponsiveDropdown
+        open={popoverOpen}
+        onOpenChange={setPopoverOpen}
+        sheetTitle="Import & Export"
+        sheetDescription="Import or export DNS records"
+        contentClassName="w-80 rounded-xl p-7"
+        trigger={
           <Button
             htmlType="button"
             type="secondary"
@@ -100,8 +105,8 @@ export const DnsRecordImportAction = ({
             <Icon icon={Import} className="size-4" />
             Import & Export
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 rounded-xl p-7">
+        }>
+        <div className="p-4 sm:p-0">
           {/* Import Section */}
           <div className="space-y-4">
             <h2 className="text-sm font-semibold">Import DNS Records</h2>
@@ -151,8 +156,8 @@ export const DnsRecordImportAction = ({
               {isExporting ? 'Exporting...' : 'Download file'}
             </Button>
           </div>
-        </PopoverContent>
-      </Popover>
+        </div>
+      </ResponsiveDropdown>
 
       {/* Import Dialog - Preview and Result Views */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

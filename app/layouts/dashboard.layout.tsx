@@ -1,6 +1,6 @@
 import { ContentWrapper } from '@/components/content-wrapper';
 import { Header } from '@/components/header';
-import { MobileMenu } from '@/components/mobile-menu';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
@@ -83,31 +83,31 @@ export function DashboardLayout({
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
+  const breakpoint = useBreakpoint();
+  const isTablet = breakpoint === 'tablet';
 
   return (
     <div className="flex h-svh w-full flex-col overflow-hidden">
-      {/* Header at the top - outside sidebar context */}
+      {/* Header with integrated mobile hamburger */}
       <Header
         currentProject={currentProject}
         currentOrg={currentOrg}
         switcherLoading={switcherLoading}
+        navItems={navItems}
       />
-
-      {/* Mobile menu */}
-      <MobileMenu navItems={navItems} currentOrg={currentOrg} currentProject={currentProject} />
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
       <SidebarProvider
-        defaultOpen={true}
-        expandOnHover={false}
+        defaultOpen={!isTablet}
+        expandOnHover={isTablet}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}
-        className="flex min-h-0 flex-1 overflow-hidden md:max-h-[calc(100svh-54px)]"
+        className="flex min-h-0 flex-1 overflow-hidden"
         style={
           {
-            '--sidebar-width': '12.75rem', // Custom desktop width
-            '--sidebar-width-icon': '3rem', // Custom desktop width
-            '--sidebar-width-mobile': '18.75rem', // Custom desktop width
+            '--sidebar-width': '12.75rem',
+            '--sidebar-width-icon': '3rem',
+            '--sidebar-width-mobile': '18.75rem',
           } as React.CSSProperties
         }>
         {(navItems.length > 0 || sidebarHeader != null || sidebarLoading) && (

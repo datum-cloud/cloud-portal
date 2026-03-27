@@ -183,20 +183,26 @@ export default function DomainOverviewPage() {
   return (
     <Row gutter={[24, 32]}>
       <Col span={24}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <PageTitle title={effectiveDomain?.domainName ?? 'Domain'} />
           {effectiveDomain?.name && (
-            <div className="flex items-center gap-2">
+            <div className="flex w-full items-center gap-2 sm:w-auto">
               <Button
                 type="secondary"
                 theme="outline"
                 size="small"
                 loading={refreshDomainMutation.isPending}
-                onClick={handleRefreshDomain}>
+                onClick={handleRefreshDomain}
+                aria-label="Refresh domain">
                 <Icon icon={RefreshCcwIcon} size={14} />
-                Refresh
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
-              <Button type="secondary" theme="outline" size="small" onClick={handleManageDnsZone}>
+              <Button
+                type="secondary"
+                theme="outline"
+                size="small"
+                className="flex-1 sm:flex-initial"
+                onClick={handleManageDnsZone}>
                 <Icon icon={GlobeIcon} size={14} />
                 Manage DNS Zone
               </Button>
@@ -205,9 +211,10 @@ export default function DomainOverviewPage() {
                 theme="outline"
                 size="small"
                 loading={deleteDomainMutation.isPending}
-                onClick={handleDeleteDomain}>
+                onClick={handleDeleteDomain}
+                aria-label="Delete domain">
                 <Icon icon={TrashIcon} size={14} />
-                Delete
+                <span className="hidden sm:inline">Delete</span>
               </Button>
             </div>
           )}

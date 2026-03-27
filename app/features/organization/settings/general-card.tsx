@@ -72,7 +72,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
               </div>
             </CardContent>
             {organization && organization?.type !== 'Personal' && (
-              <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+              <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
                 <Button
                   htmlType="button"
                   type="quaternary"

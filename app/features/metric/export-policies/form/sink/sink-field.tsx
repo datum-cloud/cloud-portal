@@ -70,8 +70,8 @@ export const SinkField = ({
         <Form.Input placeholder="e.g. my-sink-3sd122" readOnly={isEdit} autoFocus={!isEdit} />
       </Form.Field>
 
-      <div className="flex w-full gap-4">
-        <Form.Field name={`${baseName}.type`} label="Type" required className="w-1/2">
+      <div className="flex w-full flex-col gap-4 sm:flex-row">
+        <Form.Field name={`${baseName}.type`} label="Type" required className="w-full sm:w-1/2">
           <Form.Select disabled>
             {Object.keys(POLICY_SINK_TYPES).map((type) => (
               <Form.SelectItem key={type} value={type}>
@@ -81,7 +81,11 @@ export const SinkField = ({
           </Form.Select>
         </Form.Field>
 
-        <Form.Field name={`${baseName}.sources`} label="Sources" required className="w-1/2">
+        <Form.Field
+          name={`${baseName}.sources`}
+          label="Sources"
+          required
+          className="w-full sm:w-1/2">
           {({ control, meta }) => (
             <SourcesMultiSelect control={control} meta={meta} sourceList={sourceList} />
           )}
