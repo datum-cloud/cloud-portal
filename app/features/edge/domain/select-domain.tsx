@@ -75,6 +75,10 @@ type SelectDomainProps = {
   className?: string;
   /** Additional CSS classes for the trigger button */
   triggerClassName?: string;
+  /** Hide the verification warning (for compact/embedded usage) */
+  compact?: boolean;
+  /** Show the "Add a Domain" footer even in compact mode */
+  showAddDomain?: boolean;
 } & Pick<AutocompleteProps, 'loading' | 'emptyContent' | 'contentClassName' | 'listClassName'>;
 
 export function SelectDomain({
@@ -87,6 +91,8 @@ export function SelectDomain({
   placeholder = 'Select a domain...',
   className,
   triggerClassName,
+  compact,
+  showAddDomain,
   loading: externalLoading,
   emptyContent = 'No domains found',
   ...rest
@@ -216,7 +222,7 @@ export function SelectDomain({
           <DomainOptionContent option={option} isSelected={isSelected} />
         )}
         footer={
-          creatable ? undefined : (
+          creatable || (compact && !showAddDomain) ? undefined : (
             <Button
               htmlType="button"
               type="quaternary"
@@ -232,7 +238,7 @@ export function SelectDomain({
         }
         {...rest}
       />
-      {isUnverified && (
+      {!compact && isUnverified && (
         <div className="flex items-start gap-1.5 pt-1 text-xs text-amber-600 dark:text-amber-500">
           <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
           <span>
@@ -242,7 +248,7 @@ export function SelectDomain({
           </span>
         </div>
       )}
-      {!creatable && (
+      {(!compact || showAddDomain) && !creatable && (
         <DomainFormDialog
           ref={domainFormRef}
           projectId={projectId}
