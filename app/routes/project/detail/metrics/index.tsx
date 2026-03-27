@@ -190,8 +190,9 @@ export default function ExportPoliciesPage() {
           <Link
             to={getPathWithParams(paths.project.detail.metrics.new, {
               projectId,
-            })}>
-            <Button type="primary" theme="solid" size="small">
+            })}
+            className="w-full sm:w-auto">
+            <Button type="primary" theme="solid" size="small" className="w-full">
               <Icon icon={PlusIcon} className="size-4" />
               Create an export policy
             </Button>

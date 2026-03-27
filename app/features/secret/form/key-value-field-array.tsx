@@ -70,7 +70,7 @@ export function KeyValueFieldArray({ name = 'variables' }: KeyValueFieldArrayPro
             type="quaternary"
             theme="outline"
             size="small"
-            className="w-fit"
+            className="w-full sm:w-fit"
             onClick={() => append({ key: '', value: '' })}>
             <Icon icon={PlusIcon} className="size-4" />
             Add

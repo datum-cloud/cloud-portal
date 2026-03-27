@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { CodeEditor } from '@/components/code-editor/code-editor';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
@@ -9,10 +10,52 @@ import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { MobileSheet } from '@datum-ui/components/mobile-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { find } from 'es-toolkit/compat';
 import { SettingsIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+
+function SinkConfigButton({ value }: { value: string }) {
+  const breakpoint = useBreakpoint();
+  const isMobile = breakpoint === 'mobile';
+  const [open, setOpen] = useState(false);
+
+  const buttonContent = <Icon icon={SettingsIcon} className="size-4" />;
+
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          type="quaternary"
+          theme="outline"
+          size="small"
+          className="h-8 focus:ring-0"
+          onClick={() => setOpen(true)}>
+          {buttonContent}
+        </Button>
+        <MobileSheet open={open} onOpenChange={setOpen} title="Sink Configuration">
+          <div className="p-4">
+            <CodeEditor value={value} language="json" readOnly minHeight="200px" />
+          </div>
+        </MobileSheet>
+      </>
+    );
+  }
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button type="quaternary" theme="outline" size="small" className="h-8 focus:ring-0">
+          {buttonContent}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="min-w-[500px]">
+        <CodeEditor value={value} language="json" readOnly minHeight="300px" />
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export const WorkloadSinksTable = ({
   data,
@@ -93,21 +136,9 @@ export const WorkloadSinksTable = ({
         },
         cell: ({ row }: any) => {
           return (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button type="quaternary" theme="outline" size="small" className="h-8 focus:ring-0">
-                  <Icon icon={SettingsIcon} className="size-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="min-w-[500px]">
-                <CodeEditor
-                  value={JSON.stringify(row.original?.target?.prometheusRemoteWrite, null, 2)}
-                  language="json"
-                  readOnly
-                  minHeight="300px"
-                />
-              </PopoverContent>
-            </Popover>
+            <SinkConfigButton
+              value={JSON.stringify(row.original?.target?.prometheusRemoteWrite, null, 2)}
+            />
           );
         },
       },

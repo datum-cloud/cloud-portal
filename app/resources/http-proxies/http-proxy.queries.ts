@@ -155,7 +155,6 @@ export function useDeleteHttpProxy(
       await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       // Invalidate list so it refetches without the deleted item
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-      queryClient.refetchQueries({ queryKey: httpProxyKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
     },
