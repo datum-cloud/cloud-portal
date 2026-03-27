@@ -13,7 +13,7 @@ export const CAARecordField = () => (
       <Form.Input type="number" placeholder="0" min={0} max={255} />
     </Form.Field>
 
-    <Form.Field name="caa.tag" label="Tag" required className="col-span-2">
+    <Form.Field name="caa.tag" label="Tag" required className="col-span-full sm:col-span-2">
       {({ control, meta }) => (
         <Select
           name={meta.name}

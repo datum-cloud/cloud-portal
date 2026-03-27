@@ -8,7 +8,7 @@ import { Button, Dialog, toast, useTaskQueue, createProjectMetadata } from '@dat
 import { FileInputButton } from '@datum-ui/components/file-input-button/file-input-button';
 import { Form } from '@datum-ui/components/form';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { ResponsiveDropdown } from '@datum-ui/components/responsive-dropdown';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, GlobeIcon, ListChecksIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -128,7 +128,7 @@ export const BulkAddDomainsAction = ({
   const content = (
     <>
       {!isControlled && (
-        <div className="space-y-3">
+        <div className="hidden space-y-3 sm:block">
           <h2 className="text-sm font-semibold">Bulk Add Domains</h2>
           <p className="text-xs">
             Paste a list of domains below, separated by new lines or commas.
@@ -201,19 +201,24 @@ export const BulkAddDomainsAction = ({
   }
 
   return (
-    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-      <PopoverTrigger asChild>
+    <ResponsiveDropdown
+      open={popoverOpen}
+      onOpenChange={setPopoverOpen}
+      sheetTitle="Bulk Add Domains"
+      sheetDescription="Paste a list of domains below, separated by new lines or commas."
+      contentClassName="w-96 rounded-xl p-7"
+      trigger={
         <Button
           htmlType="button"
           type="secondary"
           theme="outline"
           size="small"
-          className="border-secondary/20 hover:border-secondary">
+          className="border-secondary/20 hover:border-secondary w-full sm:w-auto">
           <Icon icon={ListChecksIcon} className="size-4" />
           Bulk add domains
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-96 space-y-4 rounded-xl p-7">{content}</PopoverContent>
-    </Popover>
+      }>
+      <div className="space-y-4 p-4 sm:p-0">{content}</div>
+    </ResponsiveDropdown>
   );
 };

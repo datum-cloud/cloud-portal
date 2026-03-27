@@ -64,13 +64,14 @@ export const DescriptionFormCard = ({
                 <Form.Input type="text" placeholder="e.g. Our main marketing site" autoFocus />
               </Form.Field>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 border-t pt-4">
+            <CardFooter className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
               <Button
                 htmlType="button"
                 type="quaternary"
                 theme="outline"
                 disabled={isSubmitting}
                 size="xs"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   form.update({
                     value: {
@@ -80,7 +81,7 @@ export const DescriptionFormCard = ({
                 }}>
                 Cancel
               </Button>
-              <Form.Submit size="xs" loadingText="Saving">
+              <Form.Submit size="xs" className="w-full sm:w-auto" loadingText="Saving">
                 Save
               </Form.Submit>
             </CardFooter>
