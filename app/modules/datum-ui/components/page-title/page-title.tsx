@@ -40,7 +40,9 @@ export const PageTitle = ({
           </span>
         )}
         {description && (
-          <div className={cn('text-sm font-normal', descriptionClassName)}>{description}</div>
+          <div className={cn('max-w-2xl text-sm font-normal', descriptionClassName)}>
+            {description}
+          </div>
         )}
       </div>
       {actions && (
