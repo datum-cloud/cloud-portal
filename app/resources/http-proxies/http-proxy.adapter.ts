@@ -313,7 +313,11 @@ export function toHttpProxyList(
       const mode = options?.trafficProtectionModeByName?.get(proxyName);
       const paranoiaLevels = options?.paranoiaLevelsByName?.get(proxyName);
       const basicAuth = options?.basicAuthByName?.get(proxyName);
-      return toHttpProxy(raw, { trafficProtectionMode: mode, paranoiaLevels, basicAuth });
+      return toHttpProxy(raw, {
+        trafficProtectionMode: mode,
+        paranoiaLevels,
+        ...(basicAuth !== undefined && { basicAuth }),
+      });
     }),
     nextCursor: nextCursor ?? null,
     hasMore: !!nextCursor,
