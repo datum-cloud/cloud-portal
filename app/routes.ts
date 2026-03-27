@@ -121,6 +121,7 @@ export default [
               route('dns-records', 'routes/project/detail/dns-zones/detail/dns-records.tsx'),
               route('nameservers', 'routes/project/detail/dns-zones/detail/nameservers.tsx'),
               route('settings', 'routes/project/detail/dns-zones/detail/settings.tsx'),
+              route('activity', 'routes/project/detail/dns-zones/detail/activity.tsx'),
             ]
           ),
         ]),
