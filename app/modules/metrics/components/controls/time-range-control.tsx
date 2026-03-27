@@ -125,6 +125,7 @@ export const TimeRangeControl = ({
       disableFuture
       placeholder="Select time range"
       align="start"
+      className="w-full sm:w-auto"
     />
   );
 };

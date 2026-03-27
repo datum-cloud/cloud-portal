@@ -20,7 +20,7 @@ export function DataTableToolbarRowCount() {
   // If rows are selected, show selection count instead
   if (hasSelection) {
     return (
-      <span className="text-muted-foreground text-sm font-medium whitespace-nowrap">
+      <span className="text-muted-foreground hidden text-sm font-medium whitespace-nowrap sm:inline">
         {selectionCount} of {totalFiltered} selected
       </span>
     );
@@ -48,7 +48,7 @@ export function DataTableToolbarRowCount() {
   }
 
   return (
-    <span className="text-muted-foreground text-sm font-medium whitespace-nowrap">
+    <span className="text-muted-foreground hidden text-sm font-medium whitespace-nowrap sm:inline">
       {displayText}
     </span>
   );

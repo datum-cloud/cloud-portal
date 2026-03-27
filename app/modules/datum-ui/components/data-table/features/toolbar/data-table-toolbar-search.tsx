@@ -47,7 +47,7 @@ export const DataTableToolbarSearch = ({ config, className }: DataTableToolbarSe
         placeholder={placeholder}
         debounceMs={debounce}
         searchableColumns={searchableColumns}
-        className={cn('max-w-md flex-1', className)}
+        className={cn('w-full flex-1 sm:max-w-md', className)}
         inputClassName="h-9"
       />
     );
@@ -59,7 +59,7 @@ export const DataTableToolbarSearch = ({ config, className }: DataTableToolbarSe
       filterKey={filterKey}
       placeholder={placeholder}
       debounceMs={debounce}
-      className={cn('max-w-md flex-1', className)}
+      className={cn('w-full flex-1 sm:max-w-md', className)}
       inputClassName="h-9"
     />
   );
