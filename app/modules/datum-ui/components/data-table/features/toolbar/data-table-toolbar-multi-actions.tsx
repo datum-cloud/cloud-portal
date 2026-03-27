@@ -86,7 +86,7 @@ export function DataTableToolbarMultiActions<TData>({
   const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex w-full items-center gap-2 sm:w-auto', className)}>
       {actions.map((action) => {
         if (isButtonAction(action)) {
           const isDisabled = action.disabled?.(selectedRows) ?? false;
@@ -100,7 +100,7 @@ export function DataTableToolbarMultiActions<TData>({
               disabled={isDisabled}
               onClick={() => action.action(selectedRows)}
               icon={action.icon}
-              className={action.className}>
+              className={cn('w-full sm:w-auto', action.className)}>
               {action.label}
             </Button>
           );

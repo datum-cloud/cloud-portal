@@ -45,10 +45,10 @@ export const DataTablePagination = <TData,>({
   const [isShowingAll, setIsShowingAll] = useState(false);
 
   return (
-    <div className="flex items-center justify-between space-x-4 md:space-x-6 lg:space-x-8">
-      <div className="flex items-center space-x-4">
-        <div className="flex items-center space-x-2">
-          <p className="text-sm font-medium">Rows per page</p>
+    <div className="flex items-center justify-between gap-2 sm:gap-4 md:gap-6 lg:gap-8">
+      <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2">
+          <p className="hidden text-sm font-medium sm:block">Rows per page</p>
           <Select
             value={isShowingAll ? 'all' : `${currentPageSize}`}
             onValueChange={(value) => {
@@ -84,8 +84,8 @@ export const DataTablePagination = <TData,>({
         </div>
       </div>
       {!isShowingAll && (
-        <div className="flex items-center space-x-2">
-          <div className="mr-5 flex items-center justify-center text-sm font-medium">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center justify-center text-sm font-medium">
             {serverSide
               ? `Page ${currentPage + 1}`
               : `Page ${table.getState().pagination.pageIndex + 1} of ${table.getPageCount()}`}

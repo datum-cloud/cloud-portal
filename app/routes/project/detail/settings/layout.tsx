@@ -1,9 +1,9 @@
-import TabsLayout from '@/layouts/tabs/tabs.layout';
-import { TabsNavProps } from '@/layouts/tabs/tabs.types';
+import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import { useProjectContext } from '@/providers/project.provider';
 import { ProjectLayoutLoaderData } from '@/routes/project/detail/layout';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';
 
@@ -18,35 +18,37 @@ export const handle = {
 export default function ProjectSettingsLayout() {
   const { project } = useProjectContext();
 
-  const navItems: TabsNavProps[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const projectId = project?.name;
     return [
       {
-        value: 'general',
         label: 'General',
-        to: getPathWithParams(paths.project.detail.settings.general, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
       },
       /* {
-        value: 'notifications',
         label: 'Notifications',
-        to: getPathWithParams(paths.project.detail.settings.notifications, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.notifications, { projectId }),
       }, */
       {
-        value: 'quotas',
         label: 'Quotas',
-        to: getPathWithParams(paths.project.detail.settings.quotas, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.quotas, { projectId }),
       },
       {
-        value: 'activity',
         label: 'Activity',
-        to: getPathWithParams(paths.project.detail.settings.activity, { projectId }),
+        href: getPathWithParams(paths.project.detail.settings.activity, { projectId }),
       },
     ];
   }, [project]);
 
   return (
-    <TabsLayout tabsTitle={{ title: 'Project Settings' }} navItems={navItems}>
-      <Outlet />
-    </TabsLayout>
+    <div className="flex h-full flex-1 flex-col gap-8">
+      <PageTitle title="Project Settings" />
+      <SubNavigationTabs tabs={navItems} />
+      <div className="h-full w-full pt-2">
+        <div className="flex h-full flex-1 flex-col">
+          <Outlet />
+        </div>
+      </div>
+    </div>
   );
 }

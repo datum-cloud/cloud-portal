@@ -20,7 +20,7 @@ export function QuickRangesPanel({
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       <p className="text-muted-foreground px-3 text-xs font-medium">Presets</p>
-      <div className="grid gap-1">
+      <div className="grid grid-cols-2 gap-1 sm:grid-cols-1">
         {presets.map((preset) => {
           const isSelected = selectedPreset === preset.key;
           return (

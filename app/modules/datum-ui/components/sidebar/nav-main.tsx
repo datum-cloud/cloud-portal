@@ -13,7 +13,6 @@ import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronRight, ExternalLinkIcon, LucideIcon } from 'lucide-react';
-import { motion } from 'motion/react';
 import {
   ComponentProps,
   ElementType,
@@ -388,35 +387,11 @@ export const NavMain = forwardRef<
                 />
                 {/* Show dots for each sub-item only if one is active */}
                 {hasActiveChild && (
-                  <motion.div
-                    variants={{
-                      hidden: { opacity: 0 },
-                      visible: {
-                        opacity: 1,
-                        transition: {
-                          staggerChildren: 0.05,
-                          delayChildren: 0.1,
-                        },
-                      },
-                    }}
-                    initial="hidden"
-                    animate="visible"
-                    className="flex flex-col gap-0.5">
+                  <div className="flex flex-col gap-0.5">
                     {item.children?.map((subItem) => {
                       const isSubItemActive = activeNavItem(subItem);
                       return (
-                        <motion.div
-                          key={`collapsed-dot-${subItem.href}-${level}`}
-                          variants={{
-                            hidden: { opacity: 0 },
-                            visible: {
-                              opacity: 1,
-                              transition: {
-                                duration: 0.2,
-                                ease: 'easeOut',
-                              },
-                            },
-                          }}>
+                        <div key={`collapsed-dot-${subItem.href}-${level}`}>
                           <SidebarMenuButton
                             tooltip={subItem.title}
                             isActive={isSubItemActive}
@@ -438,10 +413,10 @@ export const NavMain = forwardRef<
                               />
                             </LinkComp>
                           </SidebarMenuButton>
-                        </motion.div>
+                        </div>
                       );
                     })}
-                  </motion.div>
+                  </div>
                 )}
               </div>
             </SidebarMenu>
@@ -483,29 +458,7 @@ export const NavMain = forwardRef<
                   </CollapsibleTrigger>
                   <CollapsibleContent className="data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up overflow-hidden">
                     <div style={{ minHeight: 0, overflow: 'hidden' }}>
-                      <motion.div
-                        key={`collapsible-${item.href}-${isOpen}`}
-                        variants={{
-                          hidden: { opacity: 0 },
-                          visible: {
-                            opacity: 1,
-                            transition: {
-                              staggerChildren: 0.05,
-                              delayChildren: 0.1,
-                            },
-                          },
-                        }}
-                        initial={
-                          isInitialMount.current ||
-                          (previousOpenItems.current[item.href as string] ===
-                            openItems[item.href as string] &&
-                            previousState.current === state &&
-                            previousPathname.current === pathname &&
-                            !hasActiveChild)
-                            ? 'visible'
-                            : 'hidden'
-                        }
-                        animate={isOpen ? 'visible' : 'hidden'}>
+                      <div>
                         <SidebarMenuSub
                           className={cn(
                             level >= 1 ? 'mr-0 pr-[.1rem]' : '',
@@ -514,23 +467,12 @@ export const NavMain = forwardRef<
                             'mr-0 gap-0.5 pr-0'
                           )}>
                           {item.children?.map((subItem, index) => (
-                            <motion.div
-                              key={`${subItem.href}-${level}-${index}`}
-                              variants={{
-                                hidden: { opacity: 0 },
-                                visible: {
-                                  opacity: 1,
-                                  transition: {
-                                    duration: 0.2,
-                                    ease: 'easeOut',
-                                  },
-                                },
-                              }}>
+                            <div key={`${subItem.href}-${level}-${index}`}>
                               {renderNavItem(subItem, level + 1)}
-                            </motion.div>
+                            </div>
                           ))}
                         </SidebarMenuSub>
-                      </motion.div>
+                      </div>
                     </div>
                   </CollapsibleContent>
                 </SidebarMenuItem>

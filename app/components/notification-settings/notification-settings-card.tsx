@@ -37,7 +37,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
               ))}
             </CardContent>
 
-            <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+            <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
               <Form.Button
                 onClick={() => {
                   form.reset();

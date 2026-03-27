@@ -74,7 +74,7 @@ function FilterBar({
         )}
         <div className={cn('flex flex-wrap items-center gap-2', className)}>
           {Children.map(children, (child: ReactNode, index: number) => (
-            <div key={index} className="flex-1 flex-shrink-0">
+            <div key={index} className="w-full sm:w-auto">
               {child}
             </div>
           ))}

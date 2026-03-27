@@ -514,12 +514,13 @@ export default function DomainsPage() {
         tableTitle={{
           title: 'Domains',
           actions: (
-            <div className="flex items-center gap-3">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
               <BulkAddDomainsAction projectId={projectId!} />
               <Button
                 type="primary"
                 theme="solid"
                 size="small"
+                className="w-full sm:w-auto"
                 onClick={() => domainFormRef.current?.show()}>
                 <Icon icon={PlusIcon} className="size-4" />
                 Add domain

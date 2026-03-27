@@ -129,7 +129,11 @@ export function DnsRecordForm({
             />
           )}
 
-          <div className={cn('grid flex-1 grid-cols-4 gap-5', style === 'modal' && 'grid-cols-2')}>
+          <div
+            className={cn(
+              'grid flex-1 gap-5',
+              style === 'inline' ? 'grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'
+            )}>
             {/* Record Type */}
             <Form.Field name="recordType" label="Type" required>
               {({ control, meta }) => (
@@ -180,15 +184,17 @@ export function DnsRecordForm({
           {/* Form Actions - Hidden in test mode */}
           {!testMode && (
             <div
-              className={cn(
-                'flex items-center justify-start pt-6',
-                style === 'modal' && 'w-full justify-end gap-2 pt-0'
-              )}>
+              className={
+                style === 'inline'
+                  ? 'flex items-center justify-start pt-6'
+                  : 'flex w-full flex-col-reverse items-center gap-2 sm:flex-row sm:justify-end'
+              }>
               {style === 'modal' && (
                 <Button
                   htmlType="button"
                   type="quaternary"
                   theme="borderless"
+                  className="w-full sm:w-auto"
                   onClick={onClose}
                   disabled={loading}>
                   Cancel
@@ -198,7 +204,7 @@ export function DnsRecordForm({
                 htmlType="submit"
                 disabled={loading}
                 loading={loading && style === 'modal'}
-                className="h-10"
+                className={cn('h-10', style === 'modal' && 'w-full sm:w-auto')}
                 type="secondary">
                 {loading && style === 'modal'
                   ? mode === 'create'

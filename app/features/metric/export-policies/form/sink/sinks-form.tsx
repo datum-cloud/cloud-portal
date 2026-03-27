@@ -25,7 +25,7 @@ export const SinksForm = ({
           <div className="space-y-4">
             {fields.map((field, index) => (
               <div
-                className="relative flex items-center gap-2 rounded-md border p-4"
+                className="relative flex flex-col gap-2 rounded-md border p-4 sm:flex-row sm:items-center"
                 key={field.key}>
                 <SinkField
                   projectId={projectId}
@@ -39,7 +39,9 @@ export const SinksForm = ({
                     type="quaternary"
                     theme="borderless"
                     size="small"
-                    className={cn('text-destructive relative top-2 w-fit')}
+                    className={cn(
+                      'text-destructive absolute top-2 right-2 w-fit sm:relative sm:top-auto sm:right-auto'
+                    )}
                     onClick={() => remove(index)}>
                     <TrashIcon className="size-4" />
                   </Button>

@@ -91,7 +91,7 @@ export const KeysFormDialog = ({
       loading={updateSecretMutation.isPending}
       submitText="Create"
       submitTextLoading="Creating..."
-      className="w-2xl max-w-3xl!">
+      className="w-full sm:w-2xl sm:max-w-3xl">
       <div className="px-5">
         <KeyValueFieldArray />
       </div>

@@ -16,12 +16,12 @@ export const SourceField = ({
 
   return (
     <div className="relative flex flex-1 flex-col items-start gap-4">
-      <div className="flex w-full gap-4">
-        <Form.Field name={`${baseName}.name`} label="Name" required className="w-1/2">
+      <div className="flex w-full flex-col gap-4 sm:flex-row">
+        <Form.Field name={`${baseName}.name`} label="Name" required className="w-full sm:w-1/2">
           <Form.Input placeholder="e.g. my-source-3sd122" readOnly={isEdit} autoFocus={!isEdit} />
         </Form.Field>
 
-        <Form.Field name={`${baseName}.type`} label="Type" required className="w-1/2">
+        <Form.Field name={`${baseName}.type`} label="Type" required className="w-full sm:w-1/2">
           <Form.Select disabled>
             {Object.keys(POLICY_SOURCE_TYPES).map((type) => (
               <Form.SelectItem key={type} value={type}>
