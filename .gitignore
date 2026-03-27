@@ -27,4 +27,5 @@ cypress/screenshots
 cypress/videos
 cypress/results
 
-
+# Playwright MCP
+.playwright-mcp/

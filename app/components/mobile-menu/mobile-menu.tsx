@@ -1,8 +1,4 @@
-import { OrgProjectSwitcher } from '@/components/header';
-import { LogoIcon } from '@/components/logo/logo-icon';
-import type { Organization } from '@/resources/organizations';
-import type { Project } from '@/resources/projects';
-import { paths } from '@/utils/config/paths.config';
+import { LogoFlat } from '@/components/logo/logo-flat';
 import { Button, Sheet, SheetContent, SheetTrigger, SidebarProvider } from '@datum-ui/components';
 import { NavItem, NavMain } from '@datum-ui/components/sidebar';
 import React, { useEffect, useRef } from 'react';
@@ -58,61 +54,49 @@ const MobileNavSheetContent = ({
   }, [pathname, onClose]);
 
   return (
-    <SidebarProvider defaultOpen={true} className="h-full">
+    <SidebarProvider defaultOpen={true} className="!min-h-0">
       <NavMain
-        className="h-fit py-2"
+        className="h-fit py-2 [&_[data-sidebar=menu]]:!px-0"
         items={navItems}
         closeOnNavigation
         currentPath={pathname}
         linkComponent={Link}
+        itemClassName="rounded-none px-4 data-[active=true]:bg-primary/10 data-[active=true]:font-semibold data-[active=true]:border-l-2 data-[active=true]:border-primary"
+        disableTooltip
       />
     </SidebarProvider>
   );
 };
 
-export function MobileMenu({
-  navItems,
-  currentOrg,
-  currentProject,
-}: {
-  navItems: NavItem[];
-  currentOrg?: Organization;
-  currentProject?: Project;
-}) {
+export function MobileMenu({ navItems }: { navItems: NavItem[] }) {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <div className="bg-background border-sidebar-border sticky top-0 z-50 flex h-12 w-full max-w-screen shrink-0 touch-pan-x items-center border-b px-4 md:hidden">
-      <div className="flex shrink-0 items-center pr-4">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
-            <Button
-              type="quaternary"
-              theme="outline"
-              size="icon"
-              className="h-7 w-7 shrink-0"
-              aria-label="Open navigation menu">
-              <MenuIcon />
-            </Button>
-          </SheetTrigger>
+    <div className="flex shrink-0 items-center md:hidden">
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>
+          <Button
+            type="quaternary"
+            theme="outline"
+            size="icon"
+            className="h-7 w-7 shrink-0"
+            aria-label="Open navigation menu">
+            <MenuIcon />
+          </Button>
+        </SheetTrigger>
 
-          <SheetContent
-            side="left"
-            onOpenAutoFocus={(e) => e.preventDefault()}
-            className="bg-background border-sidebar-border h-fit min-h-svh w-75 max-w-[85vw] gap-0 overflow-y-hidden border-r p-0 pt-10">
-            <Link to={paths.account.root} className="absolute top-4 left-4 mb-4 flex">
-              <LogoIcon width={21} />
-            </Link>
-
-            <div className="flex h-full flex-col overflow-y-auto pt-4">
-              <MobileNavSheetContent navItems={navItems} onClose={() => setOpen(false)} />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
-      <div className="scrollbar-hide min-w-0 flex-1 overflow-x-auto">
-        <OrgProjectSwitcher currentOrg={currentOrg} currentProject={currentProject} />
-      </div>
+        <SheetContent
+          side="left"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          className="bg-background border-sidebar-border h-svh w-75 max-w-[85vw] gap-0 border-r p-0">
+          <div className="border-sidebar-border flex h-12 shrink-0 items-center border-b px-4">
+            <LogoFlat className="h-4 w-auto" />
+          </div>
+          <div className="flex flex-col overflow-y-auto">
+            <MobileNavSheetContent navItems={navItems} onClose={() => setOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
