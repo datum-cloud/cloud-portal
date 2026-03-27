@@ -491,8 +491,9 @@ export default function OrgTeamPage() {
             <Link
               to={getPathWithParams(paths.org.detail.team.invite, {
                 orgId,
-              })}>
-              <Button>
+              })}
+              className="w-full sm:w-auto">
+              <Button className="w-full">
                 <Icon icon={UserPlusIcon} className="size-4" />
                 Invite Member
               </Button>
