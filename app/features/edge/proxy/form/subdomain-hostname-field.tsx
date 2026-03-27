@@ -1,3 +1,4 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { SelectDomain } from '@/features/edge/domain/select-domain';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useDomains } from '@/resources/domains';
@@ -7,7 +8,7 @@ import { useFieldContext } from '@datum-ui/components/form';
 import { Skeleton } from '@datum-ui/components/skeleton';
 import { cn } from '@shadcn/lib/utils';
 import { AlertTriangleIcon, GlobeIcon, XIcon } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface SubdomainHostnameFieldProps {
   projectId: string;
@@ -61,6 +62,7 @@ export function SubdomainHostnameField({
   const control = useInputControl(fieldMeta as any);
   const currentValue = Array.isArray(control.value) ? control.value[0] : control.value;
 
+  const { confirm } = useConfirmationDialog();
   const { data: domains = [], isLoading: domainsLoading } = useDomains(projectId);
   const domainNames = useMemo(() => domains.map((d) => d.domainName), [domains]);
 
@@ -68,17 +70,25 @@ export function SubdomainHostnameField({
   const [prefix, setPrefix] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
   const [customHostname, setCustomHostname] = useState('');
-  const [initialized, setInitialized] = useState(false);
+  /** Last (form value, domain list) we derived local UI from — ref avoids an init flag in effect deps / extra render cycle. */
+  const lastFormSyncKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (initialized || domainNames.length === 0) return;
+    if (domainNames.length === 0) {
+      lastFormSyncKeyRef.current = null;
+      return;
+    }
 
     const val = currentValue ?? '';
+    const syncKey = `${val}\0${domainNames.join('\0')}`;
+    if (lastFormSyncKeyRef.current === syncKey) return;
+    lastFormSyncKeyRef.current = syncKey;
+
     if (!val) {
-      if (domainNames.length === 1) {
-        setSelectedDomain(domainNames[0]);
-      }
-      setInitialized(true);
+      setPrefix('');
+      setCustomHostname('');
+      setIsCustomMode(false);
+      setSelectedDomain(domainNames.length === 1 ? domainNames[0] : '');
       return;
     }
 
@@ -91,8 +101,7 @@ export function SubdomainHostnameField({
       setCustomHostname(val);
       setIsCustomMode(true);
     }
-    setInitialized(true);
-  }, [currentValue, domainNames, initialized]);
+  }, [currentValue, domainNames]);
 
   const syncToForm = useCallback(
     (newPrefix: string, newDomain: string) => {
@@ -111,6 +120,7 @@ export function SubdomainHostnameField({
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newPrefix = e.target.value;
       setPrefix(newPrefix);
+      if (!selectedDomain) return;
       syncToForm(newPrefix, selectedDomain);
     },
     [selectedDomain, syncToForm]
@@ -135,24 +145,37 @@ export function SubdomainHostnameField({
 
   const switchToCustom = useCallback(() => {
     setIsCustomMode(true);
-    const composed = prefix && selectedDomain ? `${prefix}.${selectedDomain}` : '';
-    setCustomHostname(composed);
-  }, [prefix, selectedDomain]);
-
-  const switchToSplit = useCallback(() => {
-    setIsCustomMode(false);
-    if (customHostname) {
-      const decomposed = decomposeHostname(customHostname, domainNames);
-      if (decomposed) {
-        setPrefix(decomposed.prefix);
-        setSelectedDomain(decomposed.domain);
-      } else {
-        setPrefix('');
-        setSelectedDomain(domainNames[0] ?? '');
-        control.change(domainNames[0] ?? '');
-      }
+    if (prefix && selectedDomain) {
+      setCustomHostname(`${prefix}.${selectedDomain}`);
+    } else {
+      setCustomHostname(String(currentValue ?? ''));
     }
-  }, [customHostname, domainNames, control]);
+  }, [prefix, selectedDomain, currentValue]);
+
+  const switchToSplit = useCallback(async () => {
+    if (!customHostname) {
+      setIsCustomMode(false);
+      return;
+    }
+    const decomposed = decomposeHostname(customHostname, domainNames);
+    if (decomposed) {
+      setIsCustomMode(false);
+      setPrefix(decomposed.prefix);
+      setSelectedDomain(decomposed.domain);
+      return;
+    }
+    const accepted = await confirm({
+      title: 'Hostname will change',
+      description: `Clear “${customHostname}” and use a verified domain instead?`,
+      variant: 'default',
+      submitText: 'Continue',
+      cancelText: 'Cancel',
+    });
+    if (!accepted) return;
+    setIsCustomMode(false);
+    setPrefix('');
+    setSelectedDomain('');
+  }, [customHostname, domainNames, confirm]);
 
   const suggestions = useMemo(() => {
     if (!proxyDisplayName || domainNames.length === 0) return [];
@@ -193,6 +216,13 @@ export function SubdomainHostnameField({
 
   const isUnverified = selectedDomainStatus && selectedDomainStatus !== ControlPlaneStatus.Success;
 
+  /** Same composition as syncToForm — shown below fields on small screens where the dot separator is hidden. */
+  const splitHostnamePreview = useMemo(() => {
+    if (!selectedDomain) return null;
+    const trimmed = prefix.trim().replace(/\.$/, '');
+    return trimmed ? `${trimmed}.${selectedDomain}` : selectedDomain;
+  }, [prefix, selectedDomain]);
+
   if (isCustomMode) {
     return (
       <div className="flex flex-col gap-1">
@@ -224,7 +254,7 @@ export function SubdomainHostnameField({
         {domainNames.length > 0 && (
           <button
             type="button"
-            onClick={switchToSplit}
+            onClick={() => void switchToSplit()}
             className="text-muted-foreground hover:text-foreground flex items-center gap-1 self-start text-[11px] underline transition-colors">
             <GlobeIcon className="size-3" />
             Use a verified domain
@@ -236,7 +266,7 @@ export function SubdomainHostnameField({
 
   return (
     <div className="flex flex-col gap-1">
-      {domainsLoading && proxyDisplayName && (
+      {domainsLoading && (
         <div className="flex flex-wrap items-center gap-1.5 pb-0.5">
           <Skeleton className="h-5 w-32 rounded-md" />
           <Skeleton className="h-5 w-24 rounded-md" />
@@ -296,6 +326,14 @@ export function SubdomainHostnameField({
             </button>
           )}
         </div>
+      </div>
+      <div
+        className="px-0.5 pt-0.5 sm:hidden"
+        aria-live="polite"
+        aria-label="Assembled hostname preview">
+        <p className={cn('text-1xs text-muted-foreground mt-0.5 font-mono wrap-break-word')}>
+          {splitHostnamePreview}
+        </p>
       </div>
       {isUnverified && (
         <div className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-500">
