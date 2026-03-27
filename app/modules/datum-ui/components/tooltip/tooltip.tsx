@@ -36,7 +36,7 @@ const TooltipContent = ({
         sideOffset={sideOffset}
         className={cn(
           'tooltip-content',
-          'bg-secondary text-secondary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance',
+          'bg-secondary text-secondary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit max-w-[calc(100vw-2rem)] rounded-md px-3 py-1.5 text-xs text-balance',
           className
         )}
         {...props}>
@@ -75,7 +75,7 @@ function TouchTooltipBubble({ message, side = 'bottom' }: { message: ReactNode; 
       className={cn(
         'animate-in fade-in-0 zoom-in-95 pointer-events-none absolute z-50',
         'bg-secondary text-secondary-foreground rounded-md px-3 py-1.5 text-xs text-balance',
-        'left-1/2 -translate-x-1/2',
+        'left-1/2 max-w-[calc(100vw-2rem)] -translate-x-1/2',
         positionClass
       )}
       role="tooltip">

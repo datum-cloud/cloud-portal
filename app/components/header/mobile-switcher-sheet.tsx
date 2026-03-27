@@ -5,7 +5,7 @@ import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { SpinnerIcon } from '@datum-ui/components';
+import { Skeleton, SpinnerIcon } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { MobileSheet } from '@datum-ui/components/mobile-sheet';
 import {
@@ -17,7 +17,7 @@ import {
   CommandList,
 } from '@shadcn/ui/command';
 import { Building, CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
 // ---------------------------------------------------------------------------
@@ -205,46 +205,82 @@ function ProjectSwitcherSheet({
 // Sub-bar (rendered below the header on mobile)
 // ---------------------------------------------------------------------------
 
+const SwitcherRowSkeleton = () => (
+  <div className="flex min-h-[36px] w-full items-center gap-2 px-4 py-1.5" aria-hidden>
+    <Skeleton className="size-3.5 shrink-0 rounded" />
+    <Skeleton className="h-3.5 w-32" />
+    <Skeleton className="ml-auto size-3.5 shrink-0 rounded" />
+  </div>
+);
+
 export function MobileSwitcherBar({
   currentOrg,
   currentProject,
+  switcherLoading = false,
 }: {
   currentOrg?: Organization;
   currentProject?: Project;
+  switcherLoading?: boolean;
 }) {
   const [orgSheetOpen, setOrgSheetOpen] = useState(false);
   const [projectSheetOpen, setProjectSheetOpen] = useState(false);
+  const hasEverShown = useRef(false);
 
   const orgName = currentOrg?.displayName ?? currentOrg?.name;
-  if (!orgName) return null;
+  const orgReady = !!orgName;
+
+  useEffect(() => {
+    if (orgReady) {
+      hasEverShown.current = true;
+    }
+  }, [orgReady]);
+
+  // Show skeleton during loading or transitional gaps (org was shown before but data is re-fetching)
+  const showSkeleton = !orgReady && (switcherLoading || hasEverShown.current);
+
+  // Hide completely only on pages that genuinely have no org context
+  if (!orgReady && !showSkeleton) return null;
 
   return (
     <>
-      <div className="bg-background border-sidebar-border flex flex-col border-b px-4 md:hidden">
+      <div className="bg-background border-sidebar-border flex flex-col border-b md:hidden">
         {/* Org row */}
-        <button
-          type="button"
-          onClick={() => setOrgSheetOpen(true)}
-          className="flex min-h-[36px] w-full items-center gap-2 py-1.5"
-          aria-label="Switch organization">
-          <Icon icon={Building} className="text-muted-foreground size-3.5 shrink-0" />
-          <span className="text-foreground truncate text-xs font-medium">{orgName}</span>
-          <Icon icon={ChevronDown} className="text-muted-foreground ml-auto size-3.5 shrink-0" />
-        </button>
-
-        {/* Project row */}
-        {currentProject && (
+        {!orgReady ? (
+          <SwitcherRowSkeleton />
+        ) : (
           <button
             type="button"
-            onClick={() => setProjectSheetOpen(true)}
-            className="border-sidebar-border flex min-h-[36px] w-full items-center gap-2 border-t py-1.5"
-            aria-label="Switch project">
-            <Icon icon={FolderRoot} className="text-muted-foreground size-3.5 shrink-0" />
-            <span className="text-foreground truncate text-xs font-medium">
-              {currentProject.displayName}
-            </span>
+            onClick={() => setOrgSheetOpen(true)}
+            className="flex min-h-[36px] w-full items-center gap-2 px-4 py-1.5"
+            aria-label="Switch organization">
+            <Icon icon={Building} className="text-muted-foreground size-3.5 shrink-0" />
+            <span className="text-foreground truncate text-xs font-medium">{orgName}</span>
             <Icon icon={ChevronDown} className="text-muted-foreground ml-auto size-3.5 shrink-0" />
           </button>
+        )}
+
+        {/* Project row */}
+        {switcherLoading && !currentProject ? (
+          <div className="border-sidebar-border border-t">
+            <SwitcherRowSkeleton />
+          </div>
+        ) : (
+          currentProject && (
+            <button
+              type="button"
+              onClick={() => setProjectSheetOpen(true)}
+              className="border-sidebar-border flex min-h-[36px] w-full items-center gap-2 border-t px-4 py-1.5"
+              aria-label="Switch project">
+              <Icon icon={FolderRoot} className="text-muted-foreground size-3.5 shrink-0" />
+              <span className="text-foreground truncate text-xs font-medium">
+                {currentProject.displayName}
+              </span>
+              <Icon
+                icon={ChevronDown}
+                className="text-muted-foreground ml-auto size-3.5 shrink-0"
+              />
+            </button>
+          )
         )}
       </div>
 

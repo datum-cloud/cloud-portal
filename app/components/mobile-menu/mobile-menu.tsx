@@ -56,12 +56,11 @@ const MobileNavSheetContent = ({
   return (
     <SidebarProvider defaultOpen={true} className="!min-h-0">
       <NavMain
-        className="h-fit py-2 [&_[data-sidebar=menu]]:!px-0"
+        className="h-fit py-2 [&_[data-sidebar=menu]]:!px-2"
         items={navItems}
         closeOnNavigation
         currentPath={pathname}
         linkComponent={Link}
-        itemClassName="rounded-none px-4 data-[active=true]:bg-primary/10 data-[active=true]:font-semibold data-[active=true]:border-l-2 data-[active=true]:border-primary"
         disableTooltip
       />
     </SidebarProvider>

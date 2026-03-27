@@ -44,7 +44,6 @@ export function SubNavigationTabs({ tabs, className, containerClassName }: SubNa
 
   return (
     <div className={cn('relative', className)}>
-      <div className="absolute inset-x-0 bottom-0 z-10 border-b" />
       <div className={cn('w-full', containerClassName)}>
         <Tabs value={activeHref}>
           <TabsList className="bg-background scrollbar-hide flex h-auto w-full justify-start gap-0 overflow-x-auto rounded-none p-0">
@@ -58,8 +57,8 @@ export function SubNavigationTabs({ tabs, className, containerClassName }: SubNa
                   'flex w-fit shrink-0 items-center gap-2 rounded-none border-b-2 border-transparent px-0',
                   'py-2.5 md:py-2',
                   'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
-                  'data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:shadow-none',
-                  'text-foreground mx-3.5 !flex-none text-sm font-medium transition-all first:ml-0 last:mr-0'
+                  'data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-medium data-[state=active]:shadow-none',
+                  'text-foreground mx-3.5 !flex-none text-xs font-normal transition-all first:ml-0 last:mr-0'
                 )}>
                 {tab.icon && <tab.icon className="size-4" />}
                 {tab.label}

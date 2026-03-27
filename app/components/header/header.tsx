@@ -8,7 +8,7 @@ import { helpScoutAPI } from '@/modules/helpscout';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
-import { Button } from '@datum-ui/components';
+import { Button, Skeleton } from '@datum-ui/components';
 import { Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { NavItem } from '@datum-ui/components/sidebar';
@@ -32,8 +32,14 @@ export const Header = ({
       <header className="bg-background border-sidebar-border flex h-12 w-full shrink-0 touch-none items-center justify-between gap-4 border-b px-4">
         {/* Left Section */}
         <div className="flex flex-1 items-center gap-3">
-          {/* Mobile hamburger — only when nav items exist */}
-          {navItems.length > 0 && <MobileMenu navItems={navItems} />}
+          {/* Mobile hamburger — skeleton while loading, button when ready */}
+          {navItems.length > 0 ? (
+            <MobileMenu navItems={navItems} />
+          ) : (
+            switcherLoading && (
+              <Skeleton className="h-7 w-7 shrink-0 rounded-md md:hidden" aria-hidden />
+            )
+          )}
 
           <Link
             to={paths.account.root}
@@ -97,7 +103,11 @@ export const Header = ({
       </header>
 
       {/* Mobile: sub-bar with org/project switchers */}
-      <MobileSwitcherBar currentOrg={currentOrg} currentProject={currentProject} />
+      <MobileSwitcherBar
+        currentOrg={currentOrg}
+        currentProject={currentProject}
+        switcherLoading={switcherLoading}
+      />
     </div>
   );
 };
