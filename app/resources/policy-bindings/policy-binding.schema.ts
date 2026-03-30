@@ -97,6 +97,7 @@ export type UpdatePolicyBindingInput = CreatePolicyBindingInput;
 export enum PolicyBindingSubjectKind {
   User = 'User',
   Group = 'Group',
+  Machine = 'Machine',
 }
 
 // Form validation schemas

@@ -1,0 +1,242 @@
+import {
+  listIamMiloapisComV1Alpha1NamespacedMachineAccount,
+  readIamMiloapisComV1Alpha1NamespacedMachineAccount,
+  createIamMiloapisComV1Alpha1NamespacedMachineAccount,
+  patchIamMiloapisComV1Alpha1NamespacedMachineAccount,
+  deleteIamMiloapisComV1Alpha1NamespacedMachineAccount,
+  listIamMiloapisComV1Alpha1NamespacedMachineAccountKey,
+  createIamMiloapisComV1Alpha1NamespacedMachineAccountKey,
+  deleteIamMiloapisComV1Alpha1NamespacedMachineAccountKey,
+  type ComMiloapisIamV1Alpha1MachineAccount,
+  type ComMiloapisIamV1Alpha1MachineAccountList,
+  type ComMiloapisIamV1Alpha1MachineAccountKey,
+  type ComMiloapisIamV1Alpha1MachineAccountKeyList,
+} from '@/modules/control-plane/iam';
+import { logger } from '@/modules/logger';
+import { getProjectScopedBase } from '@/resources/base/utils';
+import { mapApiError } from '@/utils/errors/error-mapper';
+import {
+  toMachineAccount,
+  toMachineAccountKey,
+  toCreateMachineAccountPayload,
+  toCreateMachineAccountKeyPayload,
+} from './machine-account.adapter';
+import type {
+  MachineAccount,
+  MachineAccountKey,
+  CreateMachineAccountInput,
+  UpdateMachineAccountInput,
+  CreateMachineAccountKeyInput,
+  CreateMachineAccountKeyResponse,
+} from './types';
+
+export const machineAccountKeys = {
+  all: ['machine-accounts'] as const,
+  lists: () => [...machineAccountKeys.all, 'list'] as const,
+  list: (projectId: string) => [...machineAccountKeys.lists(), projectId] as const,
+  details: () => [...machineAccountKeys.all, 'detail'] as const,
+  detail: (projectId: string, name: string) =>
+    [...machineAccountKeys.details(), projectId, name] as const,
+  keyLists: () => [...machineAccountKeys.all, 'keys'] as const,
+  keyList: (projectId: string, machineAccountName: string) =>
+    [...machineAccountKeys.keyLists(), projectId, machineAccountName] as const,
+};
+
+const SERVICE_NAME = 'MachineAccountService';
+
+export function createMachineAccountService() {
+  return {
+    async list(projectId: string): Promise<MachineAccount[]> {
+      const startTime = Date.now();
+      try {
+        const response = await listIamMiloapisComV1Alpha1NamespacedMachineAccount({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default' },
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1MachineAccountList;
+        logger.service(SERVICE_NAME, 'list', {
+          input: { projectId },
+          duration: Date.now() - startTime,
+        });
+        return (data?.items ?? []).map(toMachineAccount);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.list failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async get(projectId: string, name: string): Promise<MachineAccount> {
+      const startTime = Date.now();
+      try {
+        const response = await readIamMiloapisComV1Alpha1NamespacedMachineAccount({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name },
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1MachineAccount;
+        if (!data) throw new Error(`Machine account ${name} not found`);
+        logger.service(SERVICE_NAME, 'get', {
+          input: { projectId, name },
+          duration: Date.now() - startTime,
+        });
+        return toMachineAccount(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.get failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async create(projectId: string, input: CreateMachineAccountInput): Promise<MachineAccount> {
+      const startTime = Date.now();
+      try {
+        const response = await createIamMiloapisComV1Alpha1NamespacedMachineAccount({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default' },
+          body: toCreateMachineAccountPayload(input.name, input.displayName),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1MachineAccount;
+        if (!data) throw new Error('Failed to create machine account');
+        logger.service(SERVICE_NAME, 'create', {
+          input: { projectId, name: input.name },
+          duration: Date.now() - startTime,
+        });
+        return toMachineAccount(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.create failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async update(
+      projectId: string,
+      name: string,
+      input: UpdateMachineAccountInput
+    ): Promise<MachineAccount> {
+      const startTime = Date.now();
+      try {
+        const patch: ComMiloapisIamV1Alpha1MachineAccount = {
+          ...(input.status !== undefined && {
+            spec: { state: input.status === 'Disabled' ? 'Inactive' : 'Active' },
+          }),
+          ...(input.displayName !== undefined && {
+            metadata: {
+              annotations: { 'kubernetes.io/description': input.displayName },
+            },
+          }),
+        };
+        const response = await patchIamMiloapisComV1Alpha1NamespacedMachineAccount({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name },
+          body: patch,
+          query: { fieldManager: 'datum-cloud-portal' },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1MachineAccount;
+        if (!data) throw new Error('Failed to update machine account');
+        logger.service(SERVICE_NAME, 'update', {
+          input: { projectId, name },
+          duration: Date.now() - startTime,
+        });
+        return toMachineAccount(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.update failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async delete(projectId: string, name: string): Promise<void> {
+      const startTime = Date.now();
+      try {
+        await deleteIamMiloapisComV1Alpha1NamespacedMachineAccount({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name },
+        });
+        logger.service(SERVICE_NAME, 'delete', {
+          input: { projectId, name },
+          duration: Date.now() - startTime,
+        });
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.delete failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async listKeys(projectId: string, machineAccountName: string): Promise<MachineAccountKey[]> {
+      const startTime = Date.now();
+      try {
+        const response = await listIamMiloapisComV1Alpha1NamespacedMachineAccountKey({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default' },
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1MachineAccountKeyList;
+        logger.service(SERVICE_NAME, 'listKeys', {
+          input: { projectId, machineAccountName },
+          duration: Date.now() - startTime,
+        });
+        return (data?.items ?? [])
+          .filter((k) => k.spec?.machineAccountName === machineAccountName)
+          .map(toMachineAccountKey);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.listKeys failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async createKey(
+      projectId: string,
+      machineAccountName: string,
+      input: CreateMachineAccountKeyInput
+    ): Promise<CreateMachineAccountKeyResponse> {
+      const startTime = Date.now();
+      try {
+        const response = await createIamMiloapisComV1Alpha1NamespacedMachineAccountKey({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default' },
+          body: toCreateMachineAccountKeyPayload(
+            machineAccountName,
+            input.name,
+            input.publicKey,
+            input.expiresAt
+          ),
+          headers: { 'Content-Type': 'application/json' },
+        });
+        // The custom endpoint (#670) returns the private key in status when no publicKey was
+        // provided. This field is not in the generated type so we access it via unknown.
+        const data = response.data as ComMiloapisIamV1Alpha1MachineAccountKey & {
+          status?: { privateKey?: string };
+        };
+        if (!data) throw new Error('Failed to create machine account key');
+        logger.service(SERVICE_NAME, 'createKey', {
+          input: { projectId, machineAccountName, name: input.name },
+          duration: Date.now() - startTime,
+        });
+        return {
+          key: toMachineAccountKey(data),
+          privateKey: data.status?.privateKey,
+        };
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.createKey failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async revokeKey(projectId: string, machineAccountName: string, keyName: string): Promise<void> {
+      const startTime = Date.now();
+      try {
+        await deleteIamMiloapisComV1Alpha1NamespacedMachineAccountKey({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name: keyName },
+        });
+        logger.service(SERVICE_NAME, 'revokeKey', {
+          input: { projectId, machineAccountName, keyName },
+          duration: Date.now() - startTime,
+        });
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.revokeKey failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+  };
+}
+
+export type MachineAccountService = ReturnType<typeof createMachineAccountService>;
