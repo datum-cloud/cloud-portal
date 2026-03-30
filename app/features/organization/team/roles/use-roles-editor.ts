@@ -59,7 +59,6 @@ function reducer(state: EditorState, action: Action): EditorState {
   switch (action.type) {
     case 'STAGE_ADD': {
       const { role, scope } = action.payload;
-      const scopeKey = scope.kind === 'project' ? `project-${scope.projectId}` : 'org';
       const alreadyExists =
         state.serverAssignments.some(
           (a) =>

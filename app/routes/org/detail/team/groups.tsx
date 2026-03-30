@@ -64,7 +64,7 @@ export default function GroupsPage() {
     group: 'iam.miloapis.com',
   });
 
-  const deleteGroupMutation = useDeleteGroup(orgId, {
+  const { mutateAsync: deleteGroupAsync } = useDeleteGroup(orgId, {
     onSuccess: () => toast.success('Group deleted successfully'),
     onError: (error) => toast.error(error.message || 'Failed to delete group'),
   });
@@ -104,11 +104,11 @@ export default function GroupsPage() {
         variant: 'destructive',
         showConfirmInput: false,
         onSubmit: async () => {
-          await deleteGroupMutation.mutateAsync(row.name);
+          await deleteGroupAsync(row.name);
         },
       });
     },
-    [confirm, deleteGroupMutation]
+    [confirm, deleteGroupAsync]
   );
 
   const columns: ColumnDef<GroupRow>[] = useMemo(

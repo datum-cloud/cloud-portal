@@ -8,7 +8,7 @@ import { useMembers } from '@/resources/members';
 import { Button, Dialog, Input, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { SearchIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Props = {
   open: boolean;
@@ -51,6 +51,13 @@ export function ManageMembersDialog({
 
   // Track pending toggles (user ID → add or remove)
   const [pending, setPending] = useState<Map<string, 'add' | 'remove'>>(new Map());
+
+  useEffect(() => {
+    if (open) {
+      setPending(new Map());
+      setSearch('');
+    }
+  }, [open]);
 
   const isInGroup = (userId: string) => {
     if (pending.has(userId)) return pending.get(userId) === 'add';
