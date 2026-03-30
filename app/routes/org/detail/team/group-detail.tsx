@@ -41,7 +41,7 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
   }
 
   const [roles, policyBindings, projectsList] = await Promise.all([
-    createRoleService().list('milo-system'),
+    createRoleService().list('datum-cloud'),
     createPolicyBindingService()
       .list(orgId)
       .catch(

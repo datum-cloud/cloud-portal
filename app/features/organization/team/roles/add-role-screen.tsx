@@ -118,7 +118,7 @@ export function AddRoleScreen({
 
   const { data: fetchedRole, isFetching: isFetchingRole } = useRole(
     selectedRole?.name ?? '',
-    selectedRole?.namespace ?? 'milo-system',
+    selectedRole?.namespace ?? 'datum-cloud',
     { enabled: !!selectedRole }
   );
 
