@@ -199,10 +199,11 @@ export default function MemberRoles() {
           .filter((c) => c.op === 'add')
           .map((c) => ({ name: c.role.name, namespace: c.role.namespace ?? '' }));
 
-        const currentRoles = (member.roles ?? []).map((r) => ({
-          name: r.name,
-          namespace: r.namespace ?? '',
-        }));
+        // Derive current roles from reducer state rather than the stale loader snapshot so that
+        // a second save in the same session reflects what was actually committed by the first save.
+        const currentRoles = state.serverAssignments
+          .filter((a) => a.scope.kind === 'org')
+          .map((a) => ({ name: a.role.name, namespace: a.role.namespace ?? '' }));
         const newRoles = [
           ...currentRoles.filter((r) => !removedRoleNames.has(r.name)),
           ...addedRoles,

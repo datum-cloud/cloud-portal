@@ -1,5 +1,5 @@
 import { GroupHeader } from '@/features/organization/team/group-header';
-import type { UserRoleAssignment } from '@/features/organization/team/roles';
+import type { UserRoleAssignment, PendingRemove } from '@/features/organization/team/roles';
 import {
   useRolesEditor,
   RolesPanel,
@@ -219,15 +219,36 @@ export default function GroupDetailPage() {
         })
       );
 
-      const failures = results.filter((r) => r.status === 'rejected');
-      if (failures.length > 0) {
-        toast.error(
-          `${failures.length} of ${allPendingChanges.length} role change${failures.length > 1 ? 's' : ''} failed to save`
-        );
-        return;
-      }
+      const failedChanges = allPendingChanges.filter((_, i) => results[i].status === 'rejected');
 
-      dispatch({ type: 'COMMIT_SUCCESS', payload: { serverAssignments: effectiveAssignments } });
+      // Build committed state: apply all changes then revert failures — failed adds were never
+      // created on the server; failed removes were never deleted so must be added back.
+      const failedAddIds = new Set(
+        failedChanges
+          .filter((c) => c.op === 'add')
+          .map(
+            (c) =>
+              `pending-add-${c.role.name}-${c.scope.kind === 'project' ? `project-${c.scope.projectId}` : 'org'}`
+          )
+      );
+      const failedRemoveIds = new Set(
+        failedChanges
+          .filter((c): c is PendingRemove => c.op === 'remove')
+          .map((c) => c.assignmentId)
+      );
+
+      const committedAssignments: UserRoleAssignment[] = [
+        ...effectiveAssignments.filter((a) => !failedAddIds.has(a.id)),
+        ...state.serverAssignments.filter((a) => failedRemoveIds.has(a.id)),
+      ];
+
+      dispatch({ type: 'COMMIT_SUCCESS', payload: { serverAssignments: committedAssignments } });
+
+      if (failedChanges.length > 0) {
+        toast.error(
+          `${failedChanges.length} of ${allPendingChanges.length} role change${failedChanges.length > 1 ? 's' : ''} failed to save`
+        );
+      }
     } catch {
       toast.error('Failed to save role changes');
     } finally {
