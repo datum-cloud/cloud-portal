@@ -127,7 +127,8 @@ export const paths = {
           root: '/project/[projectId]/machine-accounts/[machineAccountId]',
           overview: '/project/[projectId]/machine-accounts/[machineAccountId]/overview',
           keys: '/project/[projectId]/machine-accounts/[machineAccountId]/keys',
-          policyBindings: '/project/[projectId]/machine-accounts/[machineAccountId]/policy-bindings',
+          policyBindings:
+            '/project/[projectId]/machine-accounts/[machineAccountId]/policy-bindings',
           activity: '/project/[projectId]/machine-accounts/[machineAccountId]/activity',
         },
       },

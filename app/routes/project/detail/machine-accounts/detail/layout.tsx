@@ -1,5 +1,5 @@
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { BackButton } from '@/components/back-button';
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { SubLayout } from '@/layouts';
 import {
   createMachineAccountService,
@@ -157,7 +157,7 @@ export default function MachineAccountDetailLayout() {
             <span className="text-muted-foreground text-xs">{account.identityEmail}</span>
             <Badge
               type={account.status === 'Active' ? 'success' : 'secondary'}
-              className="w-fit mt-1">
+              className="mt-1 w-fit">
               {account.status}
             </Badge>
           </div>

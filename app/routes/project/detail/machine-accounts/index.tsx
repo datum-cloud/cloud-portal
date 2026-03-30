@@ -15,14 +15,20 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
-import { LoaderFunctionArgs, MetaFunction, useLoaderData, useNavigate, useParams } from 'react-router';
+import {
+  LoaderFunctionArgs,
+  MetaFunction,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Machine Accounts'));
 

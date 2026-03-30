@@ -1,9 +1,9 @@
+import { cn } from '@/modules/shadcn/lib/utils';
 import {
   machineAccountKeyCreateSchema,
   useCreateMachineAccountKey,
   type MachineAccountKeyCreateSchema,
 } from '@/resources/machine-accounts';
-import { cn } from '@/modules/shadcn/lib/utils';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
 import { KeyRoundIcon, ShieldIcon } from 'lucide-react';
@@ -37,14 +37,20 @@ interface KeyTypeCardProps {
   description: string;
 }
 
-function KeyTypeCard({ selected, onSelect, icon: IconComponent, title, description }: KeyTypeCardProps) {
+function KeyTypeCard({
+  selected,
+  onSelect,
+  icon: IconComponent,
+  title,
+  description,
+}: KeyTypeCardProps) {
   return (
     <button
       type="button"
       onClick={onSelect}
       aria-pressed={selected}
       className={cn(
-        'flex flex-1 flex-col gap-2 rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'focus-visible:ring-ring flex flex-1 flex-col gap-2 rounded-lg border p-4 text-left transition-colors focus-visible:ring-2 focus-visible:outline-none',
         selected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50'
       )}>
       <div className="flex items-center gap-2">

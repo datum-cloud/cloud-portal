@@ -31,10 +31,7 @@ export default function MachineAccountKeysPage() {
   const keyFormDialogRef = useRef<MachineAccountKeyFormDialogRef>(null);
   const [newPrivateKey, setNewPrivateKey] = useState<string | null>(null);
 
-  const { data: keys = [] } = useMachineAccountKeys(
-    projectId ?? '',
-    machineAccountId ?? ''
-  );
+  const { data: keys = [] } = useMachineAccountKeys(projectId ?? '', machineAccountId ?? '');
 
   const revokeMutation = useRevokeMachineAccountKey(projectId ?? '', machineAccountId ?? '', {
     onSuccess: () => {
@@ -81,7 +78,7 @@ export default function MachineAccountKeysPage() {
           <BadgeCopy
             value={row.original.keyId}
             text={`${row.original.keyId.slice(0, 16)}...`}
-            className="text-foreground border-none bg-muted px-2"
+            className="text-foreground bg-muted border-none px-2"
           />
         ),
       },

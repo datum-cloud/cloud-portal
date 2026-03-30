@@ -5,12 +5,12 @@ import {
   type PolicyBindingFormDialogRef,
 } from '@/features/policy-binding/form/policy-binding-form-dialog';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import { useMachineAccount } from '@/resources/machine-accounts';
 import {
   createPolicyBindingService,
   useDeletePolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { useMachineAccount } from '@/resources/machine-accounts';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button, toast } from '@datum-ui/components';
@@ -104,11 +104,7 @@ export default function MachineAccountPolicyBindingsPage() {
         tableTitle={{
           actions: (
             <div className="flex gap-2">
-              <Button
-                type="quaternary"
-                theme="outline"
-                size="small"
-                onClick={handleGrantRole}>
+              <Button type="quaternary" theme="outline" size="small" onClick={handleGrantRole}>
                 <Icon icon={ShieldIcon} className="size-4" />
                 Grant role on this project
               </Button>

@@ -34,7 +34,7 @@ export default function MachineAccountOverviewPage() {
                 <BadgeCopy
                   value={account.identityEmail}
                   text={account.identityEmail}
-                  className="text-foreground border-none bg-muted px-2"
+                  className="text-foreground bg-muted border-none px-2"
                 />
               }
             />
@@ -60,7 +60,7 @@ export default function MachineAccountOverviewPage() {
         </div>
       </div>
 
-      <div className="flex items-start gap-3 rounded-lg border bg-muted/40 p-4 text-sm">
+      <div className="bg-muted/40 flex items-start gap-3 rounded-lg border p-4 text-sm">
         <Icon icon={InfoIcon} className="text-muted-foreground mt-0.5 size-4 shrink-0" />
         <p className="text-muted-foreground">
           Machine accounts allow workloads, CI/CD pipelines, and automated systems to authenticate
@@ -79,13 +79,7 @@ export default function MachineAccountOverviewPage() {
   );
 }
 
-function DetailRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex items-center gap-4 px-4 py-3">
       <span className="text-muted-foreground w-36 shrink-0 text-xs font-medium">{label}</span>

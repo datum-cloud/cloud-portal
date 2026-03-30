@@ -1,8 +1,8 @@
+import type { MachineAccount, MachineAccountKey } from './types';
 import type {
   ComMiloapisIamV1Alpha1MachineAccount,
   ComMiloapisIamV1Alpha1MachineAccountKey,
 } from '@/modules/control-plane/iam';
-import type { MachineAccount, MachineAccountKey } from './types';
 
 const DESCRIPTION_ANNOTATION = 'kubernetes.io/description';
 
@@ -24,7 +24,9 @@ export function toMachineAccount(raw: ComMiloapisIamV1Alpha1MachineAccount): Mac
   };
 }
 
-export function toMachineAccountKey(raw: ComMiloapisIamV1Alpha1MachineAccountKey): MachineAccountKey {
+export function toMachineAccountKey(
+  raw: ComMiloapisIamV1Alpha1MachineAccountKey
+): MachineAccountKey {
   const isUserManaged = !!raw.spec?.publicKey;
   const ready = raw.status?.conditions?.find((c) => c.type === 'Ready');
 

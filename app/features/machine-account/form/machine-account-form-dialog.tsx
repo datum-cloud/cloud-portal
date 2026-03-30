@@ -1,3 +1,4 @@
+import { cn } from '@/modules/shadcn/lib/utils';
 import {
   machineAccountCreateSchema,
   machineAccountUpdateSchema,
@@ -7,7 +8,6 @@ import {
   type MachineAccountCreateSchema,
   type MachineAccountUpdateSchema,
 } from '@/resources/machine-accounts';
-import { cn } from '@/modules/shadcn/lib/utils';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
@@ -45,8 +45,7 @@ export const MachineAccountFormDialog = forwardRef<
 >(({ projectId }, ref) => {
   const [open, setOpen] = useState(false);
   const [editName, setEditName] = useState('');
-  const [defaultValues, setDefaultValues] =
-    useState<MachineAccountCreateSchema>(CREATE_DEFAULTS);
+  const [defaultValues, setDefaultValues] = useState<MachineAccountCreateSchema>(CREATE_DEFAULTS);
 
   const isEdit = !!editName;
 

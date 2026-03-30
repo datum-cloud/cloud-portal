@@ -1,4 +1,18 @@
 import {
+  toMachineAccount,
+  toMachineAccountKey,
+  toCreateMachineAccountPayload,
+  toCreateMachineAccountKeyPayload,
+} from './machine-account.adapter';
+import type {
+  MachineAccount,
+  MachineAccountKey,
+  CreateMachineAccountInput,
+  UpdateMachineAccountInput,
+  CreateMachineAccountKeyInput,
+  CreateMachineAccountKeyResponse,
+} from './types';
+import {
   listIamMiloapisComV1Alpha1NamespacedMachineAccount,
   readIamMiloapisComV1Alpha1NamespacedMachineAccount,
   createIamMiloapisComV1Alpha1NamespacedMachineAccount,
@@ -15,20 +29,6 @@ import {
 import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import {
-  toMachineAccount,
-  toMachineAccountKey,
-  toCreateMachineAccountPayload,
-  toCreateMachineAccountKeyPayload,
-} from './machine-account.adapter';
-import type {
-  MachineAccount,
-  MachineAccountKey,
-  CreateMachineAccountInput,
-  UpdateMachineAccountInput,
-  CreateMachineAccountKeyInput,
-  CreateMachineAccountKeyResponse,
-} from './types';
 
 export const machineAccountKeys = {
   all: ['machine-accounts'] as const,

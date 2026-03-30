@@ -1,15 +1,4 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-  type UseQueryOptions,
-  type UseMutationOptions,
-} from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
-import {
-  createMachineAccountService,
-  machineAccountKeys,
-} from './machine-account.service';
+import { createMachineAccountService, machineAccountKeys } from './machine-account.service';
 import type {
   MachineAccount,
   MachineAccountKey,
@@ -18,6 +7,14 @@ import type {
   CreateMachineAccountKeyInput,
   CreateMachineAccountKeyResponse,
 } from './types';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+  type UseMutationOptions,
+} from '@tanstack/react-query';
+import { useRef, useEffect } from 'react';
 
 export function useMachineAccounts(
   projectId: string,
@@ -117,11 +114,7 @@ export function useMachineAccountKeys(
 export function useCreateMachineAccountKey(
   projectId: string,
   machineAccountName: string,
-  options?: UseMutationOptions<
-    CreateMachineAccountKeyResponse,
-    Error,
-    CreateMachineAccountKeyInput
-  >
+  options?: UseMutationOptions<CreateMachineAccountKeyResponse, Error, CreateMachineAccountKeyInput>
 ) {
   const queryClient = useQueryClient();
 
@@ -133,7 +126,9 @@ export function useCreateMachineAccountKey(
       queryClient.invalidateQueries({
         queryKey: machineAccountKeys.keyList(projectId, machineAccountName),
       });
-      queryClient.invalidateQueries({ queryKey: machineAccountKeys.detail(projectId, machineAccountName) });
+      queryClient.invalidateQueries({
+        queryKey: machineAccountKeys.detail(projectId, machineAccountName),
+      });
       options?.onSuccess?.(...args);
     },
   });
