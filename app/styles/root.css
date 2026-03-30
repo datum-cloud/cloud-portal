@@ -32,3 +32,6 @@
 @import './themes/alpha.css';
 
 @import './custom.css';
+
+/* Scan activity-ui components for Tailwind classes */
+@source '../../node_modules/@datum-cloud/activity-ui/dist/**/*.js';

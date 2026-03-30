@@ -13,7 +13,7 @@ export const handle = {
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Activity'));
 
-export default function ProjectActivityLogsPage() {
+export default function DnsZoneActivityPage() {
   const { projectId } = useParams();
   const { project } = useProjectContext();
 
@@ -32,10 +32,12 @@ export default function ProjectActivityLogsPage() {
   return (
     <ActivityFeed
       client={client}
-      compact={false}
+      compact={true}
       initialFilters={{
-        changeSource: 'human',
+        resourceKinds: ['DNSZone', 'DNSRecordSet'],
+        changeSource: 'all',
       }}
+      hiddenFilters={['resourceKinds']}
       tenantRenderer={() => null}
       enableStreaming={false}
       pageSize={30}

@@ -116,6 +116,14 @@ export default function DnsZoneDetailLayout() {
         }),
         type: 'link',
       },
+      {
+        title: 'Activity',
+        href: getPathWithParams(paths.project.detail.dnsZones.detail.activity, {
+          projectId,
+          dnsZoneId: dnsZone?.name ?? '',
+        }),
+        type: 'link',
+      },
     ];
   }, [projectId, dnsZone]);
 
@@ -133,7 +141,8 @@ export default function DnsZoneDetailLayout() {
           <span className="text-primary text-sm font-semibold">Manage Zone</span>
         </div>
       }
-      navItems={navItems}>
+      navItems={navItems}
+      containerClassName="md:pl-5">
       <Outlet />
     </SubLayout>
   );
