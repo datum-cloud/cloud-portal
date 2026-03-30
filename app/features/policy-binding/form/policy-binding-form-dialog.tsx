@@ -13,7 +13,9 @@ import {
   PolicyBindingSubjectKind,
   newPolicyBindingSchema,
   useCreatePolicyBinding,
+  useCreateProjectPolicyBinding,
   useUpdatePolicyBinding,
+  useUpdateProjectPolicyBinding,
 } from '@/resources/policy-bindings';
 import { Button, toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
@@ -242,41 +244,39 @@ export interface PolicyBindingFormDialogRef {
 
 interface PolicyBindingFormDialogProps {
   orgId: string;
+  scope?: 'org' | 'project';
 }
 
 export const PolicyBindingFormDialog = forwardRef<
   PolicyBindingFormDialogRef,
   PolicyBindingFormDialogProps
->(({ orgId }, ref) => {
+>(({ orgId, scope = 'org' }, ref) => {
   const [open, setOpen] = useState(false);
   const [defaultValues, setDefaultValues] = useState<NewPolicyBindingSchema>(CREATE_DEFAULTS);
   const [editName, setEditName] = useState('');
 
   const isEdit = !!editName;
 
-  const createMutation = useCreatePolicyBinding(orgId, {
-    onSuccess: () => {
-      toast.success('Policy binding', {
-        description: 'Policy binding has been created successfully',
-      });
-      setOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
+  const onSuccess = () => {
+    toast.success('Policy binding', {
+      description: isEdit
+        ? 'Policy binding has been updated successfully'
+        : 'Policy binding has been created successfully',
+    });
+    setOpen(false);
+  };
+  const onError = (error: Error) => toast.error('Error', { description: error.message });
+
+  const createOrgMutation = useCreatePolicyBinding(orgId, { onSuccess, onError });
+  const createProjectMutation = useCreateProjectPolicyBinding(orgId, { onSuccess, onError });
+  const updateOrgMutation = useUpdatePolicyBinding(orgId, editName, { onSuccess, onError });
+  const updateProjectMutation = useUpdateProjectPolicyBinding(orgId, editName, {
+    onSuccess,
+    onError,
   });
 
-  const updateMutation = useUpdatePolicyBinding(orgId, editName, {
-    onSuccess: () => {
-      toast.success('Policy binding', {
-        description: 'Policy binding has been updated successfully',
-      });
-      setOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
-  });
+  const createMutation = scope === 'project' ? createProjectMutation : createOrgMutation;
+  const updateMutation = scope === 'project' ? updateProjectMutation : updateOrgMutation;
 
   const show = useCallback((initialValues?: PolicyBinding) => {
     if (initialValues?.uid) {

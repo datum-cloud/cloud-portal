@@ -3,7 +3,11 @@ import type {
   CreatePolicyBindingInput,
   UpdatePolicyBindingInput,
 } from './policy-binding.schema';
-import { createPolicyBindingService, policyBindingKeys } from './policy-binding.service';
+import {
+  createPolicyBindingService,
+  createProjectPolicyBindingService,
+  policyBindingKeys,
+} from './policy-binding.service';
 import {
   useQuery,
   useMutation,
@@ -78,6 +82,69 @@ export function useUpdatePolicyBinding(
       queryClient.setQueryData(policyBindingKeys.detail(orgId, name), data);
       queryClient.invalidateQueries({ queryKey: policyBindingKeys.lists() });
 
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useProjectPolicyBindings(
+  projectId: string,
+  options?: Omit<UseQueryOptions<PolicyBinding[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: policyBindingKeys.list(projectId),
+    queryFn: () => createProjectPolicyBindingService().list(projectId),
+    enabled: !!projectId,
+    ...options,
+  });
+}
+
+export function useCreateProjectPolicyBinding(
+  projectId: string,
+  options?: UseMutationOptions<PolicyBinding, Error, CreatePolicyBindingInput>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreatePolicyBindingInput) =>
+      createProjectPolicyBindingService().create(projectId, input) as Promise<PolicyBinding>,
+    ...options,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: policyBindingKeys.list(projectId) });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useUpdateProjectPolicyBinding(
+  projectId: string,
+  name: string,
+  options?: UseMutationOptions<PolicyBinding, Error, UpdatePolicyBindingInput>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UpdatePolicyBindingInput) =>
+      createProjectPolicyBindingService().update(projectId, name, input) as Promise<PolicyBinding>,
+    ...options,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: policyBindingKeys.list(projectId) });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useDeleteProjectPolicyBinding(
+  projectId: string,
+  options?: UseMutationOptions<void, Error, string>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (name: string) => createProjectPolicyBindingService().delete(projectId, name),
+    ...options,
+    onSuccess: async (...args) => {
+      queryClient.invalidateQueries({ queryKey: policyBindingKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
   });

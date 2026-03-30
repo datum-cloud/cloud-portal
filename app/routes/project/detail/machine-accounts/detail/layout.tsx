@@ -1,6 +1,6 @@
-import { BackButton } from '@/components/back-button';
+import { ProfileIdentity } from '@/components/profile-identity';
+import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { SubLayout } from '@/layouts';
 import {
   createMachineAccountService,
   useHydrateMachineAccount,
@@ -12,7 +12,8 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge, Button, NavItem, toast } from '@datum-ui/components';
+import { Badge, Button, toast } from '@datum-ui/components';
+import { BotIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -103,87 +104,91 @@ export default function MachineAccountDetailLayout() {
     });
   };
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const id = machineAccountId ?? account.name;
     return [
       {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.machineAccounts.detail.overview, {
           projectId,
           machineAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Keys',
+        label: 'Keys',
         href: getPathWithParams(paths.project.detail.machineAccounts.detail.keys, {
           projectId,
           machineAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Policy Bindings',
+        label: 'Policy Bindings',
         href: getPathWithParams(paths.project.detail.machineAccounts.detail.policyBindings, {
           projectId,
           machineAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Activity',
+        label: 'Activity',
         href: getPathWithParams(paths.project.detail.machineAccounts.detail.activity, {
           projectId,
           machineAccountId: id,
         }),
-        type: 'link',
       },
     ];
   }, [projectId, machineAccountId, account.name]);
 
+  const displayName = account.displayName ?? account.name;
+
   return (
-    <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.machineAccounts.root, { projectId })}>
-            Back to Machine Accounts
-          </BackButton>
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-5">
+          <ProfileIdentity
+            name={displayName}
+            size="lg"
+            avatarOnly
+            fallbackIcon={BotIcon}
+            fallbackClassName="bg-muted text-muted-foreground"
+          />
           <div className="flex flex-col gap-1">
-            <span className="text-primary text-sm font-semibold">
-              {account.displayName ?? account.name}
-            </span>
-            <span className="text-muted-foreground text-xs">{account.identityEmail}</span>
-            <Badge
-              type={account.status === 'Active' ? 'success' : 'secondary'}
-              className="mt-1 w-fit">
-              {account.status}
-            </Badge>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              type="quaternary"
-              theme="outline"
-              size="small"
-              onClick={handleToggle}
-              loading={toggleMutation.isPending}>
-              {account.status === 'Active' ? 'Disable' : 'Enable'}
-            </Button>
-            <Button
-              type="quaternary"
-              theme="outline"
-              size="small"
-              className="text-destructive border-destructive"
-              onClick={handleDelete}>
-              Delete
-            </Button>
+            <h1 className="text-foreground text-lg font-semibold">{displayName}</h1>
+            <div className="text-muted-foreground flex items-center gap-3 text-sm">
+              <span>{account.identityEmail}</span>
+              <span className="bg-border inline-block size-1 rounded-full" />
+              <span className="font-medium">Machine account</span>
+              <span className="bg-border inline-block size-1 rounded-full" />
+              <Badge type={account.status === 'Active' ? 'success' : 'secondary'} className="text-xs">
+                {account.status}
+              </Badge>
+            </div>
           </div>
         </div>
-      }
-      navItems={navItems}
-      containerClassName="md:pl-5">
-      <Outlet />
-    </SubLayout>
+        <div className="flex shrink-0 gap-2">
+          <Button
+            type="quaternary"
+            theme="outline"
+            size="small"
+            onClick={handleToggle}
+            loading={toggleMutation.isPending}>
+            {account.status === 'Active' ? 'Disable' : 'Enable'}
+          </Button>
+          <Button
+            type="quaternary"
+            theme="outline"
+            size="small"
+            className="text-destructive border-destructive"
+            onClick={handleDelete}>
+            Delete
+          </Button>
+        </div>
+      </div>
+
+      <SubNavigationTabs tabs={navItems} />
+
+      <div className="flex flex-1 flex-col pt-2">
+        <Outlet />
+      </div>
+    </div>
   );
 }

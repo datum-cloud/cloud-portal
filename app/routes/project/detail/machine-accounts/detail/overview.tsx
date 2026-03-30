@@ -2,7 +2,6 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { useMachineAccount } from '@/resources/machine-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Badge } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { InfoIcon } from 'lucide-react';
 import type { MetaFunction } from 'react-router';
@@ -40,14 +39,6 @@ export default function MachineAccountOverviewPage() {
             />
           </div>
           <div className="grid grid-cols-1 divide-y">
-            <DetailRow
-              label="Status"
-              value={
-                <Badge type={account.status === 'Active' ? 'success' : 'secondary'}>
-                  {account.status}
-                </Badge>
-              }
-            />
             <DetailRow
               label="Created"
               value={account.createdAt ? <DateTime date={account.createdAt} /> : '—'}

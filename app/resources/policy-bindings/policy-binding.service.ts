@@ -20,7 +20,7 @@ import {
 } from '@/modules/control-plane/iam';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
-import { getOrgScopedBase } from '@/resources/base/utils';
+import { getOrgScopedBase, getProjectScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -231,3 +231,80 @@ export function createPolicyBindingService() {
 }
 
 export type PolicyBindingService = ReturnType<typeof createPolicyBindingService>;
+
+/**
+ * Project-scoped policy binding service.
+ * Uses the project control plane endpoint and the 'default' namespace,
+ * matching how other project-scoped resources (e.g. MachineAccount) are accessed.
+ */
+export function createProjectPolicyBindingService() {
+  return {
+    async list(projectId: string): Promise<PolicyBinding[]> {
+      try {
+        const response = await listIamMiloapisComV1Alpha1NamespacedPolicyBinding({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default' },
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1PolicyBindingList;
+        return toPolicyBindingList(data?.items ?? []).items;
+      } catch (error) {
+        throw mapApiError(error);
+      }
+    },
+
+    async create(
+      projectId: string,
+      input: CreatePolicyBindingInput,
+      options?: ServiceOptions
+    ): Promise<PolicyBinding | ComMiloapisIamV1Alpha1PolicyBinding> {
+      try {
+        const payload = toCreatePolicyBindingPayload(input);
+        const response = await createIamMiloapisComV1Alpha1NamespacedPolicyBinding({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default' },
+          query: { dryRun: options?.dryRun ? 'All' : undefined },
+          body: payload,
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1PolicyBinding;
+        if (options?.dryRun) return data;
+        return toPolicyBinding(data);
+      } catch (error) {
+        throw mapApiError(error);
+      }
+    },
+
+    async update(
+      projectId: string,
+      id: string,
+      input: UpdatePolicyBindingInput,
+      options?: ServiceOptions
+    ): Promise<PolicyBinding | ComMiloapisIamV1Alpha1PolicyBinding> {
+      try {
+        const payload = toUpdatePolicyBindingPayload(input);
+        const response = await patchIamMiloapisComV1Alpha1NamespacedPolicyBinding({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name: id },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+          query: { fieldManager: 'datum-cloud-portal' },
+          body: payload,
+        });
+        const data = response.data as ComMiloapisIamV1Alpha1PolicyBinding;
+        if (options?.dryRun) return data;
+        return toPolicyBinding(data);
+      } catch (error) {
+        throw mapApiError(error);
+      }
+    },
+
+    async delete(projectId: string, id: string): Promise<void> {
+      try {
+        await deleteIamMiloapisComV1Alpha1NamespacedPolicyBinding({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name: id },
+        });
+      } catch (error) {
+        throw mapApiError(error);
+      }
+    },
+  };
+}

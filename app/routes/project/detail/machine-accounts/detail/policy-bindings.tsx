@@ -5,19 +5,18 @@ import {
   type PolicyBindingFormDialogRef,
 } from '@/features/policy-binding/form/policy-binding-form-dialog';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
-import { useMachineAccount } from '@/resources/machine-accounts';
 import {
-  createPolicyBindingService,
-  useDeletePolicyBinding,
+  useProjectPolicyBindings,
+  useCreateProjectPolicyBinding,
+  useDeleteProjectPolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ShieldIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
-import { LoaderFunctionArgs, MetaFunction, useLoaderData, useParams } from 'react-router';
+import { MetaFunction, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Policy Bindings</span>,
@@ -25,32 +24,16 @@ export const handle = {
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Policy Bindings'));
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-
-  const policyBindingService = createPolicyBindingService();
-  return policyBindingService.list(projectId);
-};
-
 export default function MachineAccountPolicyBindingsPage() {
-  const { projectId, machineAccountId } = useParams();
-  const bindings = useLoaderData<typeof loader>() as PolicyBinding[];
+  const { projectId } = useParams();
   const dialogRef = useRef<PolicyBindingFormDialogRef>(null);
   const { confirm } = useConfirmationDialog();
 
-  const { data: account } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
+  const { data: bindings = [] } = useProjectPolicyBindings(projectId ?? '');
 
-  const deleteMutation = useDeletePolicyBinding(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('Policy binding deleted');
-    },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
+  const deleteMutation = useDeleteProjectPolicyBinding(projectId ?? '', {
+    onSuccess: () => toast.success('Policy binding deleted'),
+    onError: (error) => toast.error('Error', { description: error.message }),
   });
 
   const deletePolicyBinding = useCallback(
@@ -92,28 +75,26 @@ export default function MachineAccountPolicyBindingsPage() {
     [deletePolicyBinding]
   );
 
-  const handleGrantRole = () => {
-    dialogRef.current?.show();
-  };
-
   return (
     <>
       <PolicyBindingTable
-        bindings={bindings ?? []}
+        bindings={bindings}
         onRowClick={(row) => dialogRef.current?.show(row)}
         tableTitle={{
           actions: (
-            <div className="flex gap-2">
-              <Button type="quaternary" theme="outline" size="small" onClick={handleGrantRole}>
-                <Icon icon={ShieldIcon} className="size-4" />
-                Grant role on this project
-              </Button>
-            </div>
+            <Button
+              type="quaternary"
+              theme="outline"
+              size="small"
+              onClick={() => dialogRef.current?.show()}>
+              <Icon icon={ShieldIcon} className="size-4" />
+              Grant role on this project
+            </Button>
           ),
         }}
         rowActions={rowActions}
       />
-      <PolicyBindingFormDialog ref={dialogRef} orgId={projectId ?? ''} />
+      <PolicyBindingFormDialog ref={dialogRef} orgId={projectId ?? ''} scope="project" />
     </>
   );
 }
