@@ -61,7 +61,7 @@ export const loader = withMiddleware(
   _loader,
   createRbacMiddleware({
     resource: 'policybindings',
-    verb: 'create',
+    verb: 'list',
     group: 'iam.miloapis.com',
     namespace: (params) => buildOrganizationNamespace(params.orgId),
   })

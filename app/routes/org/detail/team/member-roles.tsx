@@ -1,5 +1,5 @@
 import { ProfileIdentity } from '@/components/profile-identity';
-import type { UserRoleAssignment } from '@/features/organization/team/roles';
+import type { UserRoleAssignment, PendingRemove } from '@/features/organization/team/roles';
 import {
   useRolesEditor,
   RolesPanel,
@@ -220,6 +220,8 @@ export default function MemberRoles() {
         .flatMap((b) => b.subjects)
         .find((s) => s.name === userId || s.uid === userId)?.uid;
 
+      const failedProjectChanges: typeof projectPendingChanges = [];
+
       if (projectPendingChanges.length > 0) {
         const results = await Promise.allSettled(
           projectPendingChanges.map((change) => {
@@ -244,16 +246,42 @@ export default function MemberRoles() {
           })
         );
 
-        const failures = results.filter((r) => r.status === 'rejected');
-        if (failures.length > 0) {
-          toast.error(
-            `${failures.length} of ${projectPendingChanges.length} project role change${failures.length > 1 ? 's' : ''} failed to save`
-          );
-          return;
-        }
+        results.forEach((result, i) => {
+          if (result.status === 'rejected') {
+            failedProjectChanges.push(projectPendingChanges[i]);
+          }
+        });
       }
 
-      dispatch({ type: 'COMMIT_SUCCESS', payload: { serverAssignments: effectiveAssignments } });
+      // Build committed state: start from effectiveAssignments (all changes applied), then
+      // revert any failed project changes — failed adds were never created on the server,
+      // and failed removes were never deleted, so they must be added back.
+      const failedAddIds = new Set(
+        failedProjectChanges
+          .filter((c) => c.op === 'add')
+          .map(
+            (c) =>
+              `pending-add-${c.role.name}-${c.scope.kind === 'project' ? `project-${c.scope.projectId}` : 'org'}`
+          )
+      );
+      const failedRemoveIds = new Set(
+        failedProjectChanges
+          .filter((c): c is PendingRemove => c.op === 'remove')
+          .map((c) => c.assignmentId)
+      );
+
+      const committedAssignments: UserRoleAssignment[] = [
+        ...effectiveAssignments.filter((a) => !failedAddIds.has(a.id)),
+        ...state.serverAssignments.filter((a) => failedRemoveIds.has(a.id)),
+      ];
+
+      dispatch({ type: 'COMMIT_SUCCESS', payload: { serverAssignments: committedAssignments } });
+
+      if (failedProjectChanges.length > 0) {
+        toast.error(
+          `${failedProjectChanges.length} of ${projectPendingChanges.length} project role change${failedProjectChanges.length > 1 ? 's' : ''} failed to save`
+        );
+      }
     } catch {
       toast.error('Failed to save role changes');
     } finally {
