@@ -1,6 +1,6 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import {
   createMachineAccountService,
   useHydrateMachineAccount,
@@ -158,7 +158,9 @@ export default function MachineAccountDetailLayout() {
               <span className="bg-border inline-block size-1 rounded-full" />
               <span className="font-medium">Machine account</span>
               <span className="bg-border inline-block size-1 rounded-full" />
-              <Badge type={account.status === 'Active' ? 'success' : 'secondary'} className="text-xs">
+              <Badge
+                type={account.status === 'Active' ? 'success' : 'secondary'}
+                className="text-xs">
                 {account.status}
               </Badge>
             </div>

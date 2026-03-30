@@ -7,7 +7,6 @@ import {
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
   useProjectPolicyBindings,
-  useCreateProjectPolicyBinding,
   useDeleteProjectPolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
