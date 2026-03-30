@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
 // Role enum values
-export const ROLE_VALUES = ['owner', 'viewer'] as const;
+export const ROLE_VALUES = ['owner', 'editor', 'viewer'] as const;
 export type RoleValue = (typeof ROLE_VALUES)[number];
 
 // Role labels
 export const RoleLabels: Record<RoleValue, string> = {
   owner: 'Owner',
+  editor: 'Editor',
   viewer: 'Viewer',
 };
 
