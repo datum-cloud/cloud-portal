@@ -1,29 +1,47 @@
-import { StatusPulseDot } from '@/components/status-pulse-dot';
-import { Map, MapMarker, MapTileLayer, MapTooltip, MapZoomControl } from '@shadcn/ui/map';
-import type { LatLngExpression } from 'leaflet';
+import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
+import { Suspense, useState } from 'react';
 
 interface RegionWithCoords {
   value: string;
   label: string;
-  coords: LatLngExpression;
+  coords: [number, number]; // [lat, lng]
 }
 
+const ActivePopsFlatMap = lazyWithRetry(
+  () => import('./active-pops-flat-map').then((m) => ({ default: m.ActivePopsFlatMap })),
+  'active-pops-flat-map'
+);
+
+const Fallback = () => (
+  <div className="bg-muted aspect-2/1 w-full animate-pulse rounded-lg border" />
+);
+
 export const ActivePopsMap = ({ regionsWithCoords }: { regionsWithCoords: RegionWithCoords[] }) => {
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+
   return (
-    <div className="h-64 min-h-64 w-full overflow-hidden rounded-lg border">
-      <Map center={[20, 0]} zoom={2} minZoom={2} maxZoom={10} className="h-full w-full">
-        <MapTileLayer />
-        <MapZoomControl />
-        {regionsWithCoords.map(({ value, label, coords }) => (
-          <MapMarker
-            key={value}
-            position={coords}
-            icon={<StatusPulseDot variant="active" />}
-            iconAnchor={[12, 12]}>
-            <MapTooltip permanent={false}>{label}</MapTooltip>
-          </MapMarker>
-        ))}
-      </Map>
+    <div className="relative">
+      <Suspense fallback={<Fallback />}>
+        <ActivePopsFlatMap regionsWithCoords={regionsWithCoords} hoveredRegion={hoveredRegion} />
+      </Suspense>
+
+      {/* Location list overlaid inside the map */}
+      <div className="absolute bottom-2 left-4 flex flex-col gap-1">
+        {regionsWithCoords.length === 0 ? (
+          <p className="text-muted-foreground text-sm">No active POPs found.</p>
+        ) : (
+          regionsWithCoords.map((r) => (
+            <div
+              key={r.value}
+              className="flex cursor-default items-center gap-2 text-sm"
+              onMouseEnter={() => setHoveredRegion(r.value)}
+              onMouseLeave={() => setHoveredRegion(null)}>
+              <span className="bg-primary size-2 shrink-0 rounded-full" />
+              <span className="text-foreground mb-0.5 truncate">{r.label}</span>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };

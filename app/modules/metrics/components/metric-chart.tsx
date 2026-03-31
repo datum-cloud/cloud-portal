@@ -61,6 +61,11 @@ export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> 
   yAxisOptions?: YAxisProps;
   tooltipContent?: (props: TooltipContentProps<any, any>) => ReactNode;
   /**
+   * Override colors for specific series by name. Values can be CSS variable strings
+   * like 'var(--primary)' or hex/hsl values.
+   */
+  colorOverrides?: Record<string, string>;
+  /**
    * Children to render below the chart
    */
   children?: ReactNode;
@@ -89,6 +94,7 @@ export function MetricChart({
   className,
   yAxisOptions,
   tooltipContent,
+  colorOverrides,
   children,
 }: MetricChartProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
@@ -177,12 +183,12 @@ export function MetricChart({
       data.series.forEach((series) => {
         config[series.name] = {
           label: series.name,
-          color: series.color ?? '#8884d8',
+          color: colorOverrides?.[series.name] ?? series.color ?? '#8884d8',
         };
       });
     }
     return config;
-  }, [data]);
+  }, [data, colorOverrides]);
 
   const formatAxisValue = useCallback(
     (value: number) => {
@@ -216,7 +222,7 @@ export function MetricChart({
       const seriesProps = {
         series: {
           name: s.name,
-          color: s.color ?? '#8884d8',
+          color: colorOverrides?.[s.name] ?? s.color ?? '#8884d8',
         },
       };
 
@@ -267,6 +273,8 @@ export function MetricChart({
             tickFormatter={formatXAxisValue}
             tickLine={false}
             axisLine={false}
+            padding={chartType === 'bar' ? { left: 20, right: 20 } : undefined}
+            tick={{ fill: 'var(--foreground)' }}
           />
           <YAxis
             tickFormatter={formatAxisValue}
@@ -274,6 +282,7 @@ export function MetricChart({
             axisLine={false}
             tickMargin={8}
             width={60}
+            tick={{ fill: 'var(--foreground)' }}
             {...yAxisOptions}
           />
           {showTooltip && (

@@ -97,7 +97,7 @@ export const HttpProxyHostnamesCard = ({
                       theme="outline"
                       size="small"
                       className="h-7 shrink-0"
-                      onClick={() => copy(val.hostname, { withToast: true })}>
+                      onClick={() => copy(`https://${val.hostname}`, { withToast: true })}>
                       <Icon icon={CopyIcon} className="size-4" />
                       {isCopied(val.hostname) ? 'Copied' : 'Copy'}
                     </Button>
