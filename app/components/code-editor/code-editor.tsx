@@ -1,8 +1,7 @@
 import { CodeEditorProps } from './code-editor.types';
 import { useTheme } from '@/modules/datum-themes';
-import Editor, { Monaco } from '@monaco-editor/react';
+import Editor, { Monaco, OnMount } from '@monaco-editor/react';
 import { cn } from '@shadcn/lib/utils';
-import { editor } from 'monaco-editor';
 import { useRef } from 'react';
 
 // Custom theme names
@@ -49,13 +48,13 @@ export const CodeEditor = ({
   placeholder,
 }: CodeEditorProps) => {
   const { resolvedTheme } = useTheme();
-  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 
   // Determine if placeholder should be shown
   const showPlaceholder = placeholder && !value;
 
   // Handle editor mounting
-  const handleEditorDidMount = (editorInstance: editor.IStandaloneCodeEditor, monaco: Monaco) => {
+  const handleEditorDidMount: OnMount = (editorInstance, monaco) => {
     editorRef.current = editorInstance;
 
     // Define and apply custom themes
