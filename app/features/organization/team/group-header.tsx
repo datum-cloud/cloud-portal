@@ -5,6 +5,8 @@ import { useGroupMemberships } from '@/resources/group-memberships';
 import type { Group } from '@/resources/groups';
 import { useMembers, type Member } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { UsersRoundIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -23,10 +25,10 @@ export function GroupHeader({ group, orgId }: GroupHeaderProps) {
   });
 
   const { data: memberships = [] } = useGroupMemberships(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
   const { data: members = [] } = useMembers(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const { memberCount, avatarItems } = useMemo(() => {
@@ -35,10 +37,7 @@ export function GroupHeader({ group, orgId }: GroupHeaderProps) {
       .map((gm) => members.find((m) => m.user.id === gm.userRef.name))
       .filter((m): m is Member => m !== undefined)
       .map((m) => ({
-        name:
-          `${m.user.givenName ?? ''} ${m.user.familyName ?? ''}`.trim() ||
-          m.user.email ||
-          m.user.id,
+        name: getMemberDisplayName(m),
         avatarUrl: m.user.avatarUrl,
       }));
     return { memberCount: groupMbrs.length, avatarItems: resolved };
@@ -53,7 +52,7 @@ export function GroupHeader({ group, orgId }: GroupHeaderProps) {
 
         <div className="flex flex-col gap-1">
           <h1 className="text-foreground text-lg font-semibold">{group.name}</h1>
-          <div className="text-muted-foreground flex items-center gap-3 text-sm">
+          <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
             <span className="font-medium">Group</span>
             <span className="bg-border inline-block size-1 rounded-full" />
             <span>

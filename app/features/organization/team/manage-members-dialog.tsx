@@ -3,10 +3,11 @@ import {
   useDeleteGroupMembership,
   useGroupMemberships,
 } from '@/resources/group-memberships';
-import type { Member } from '@/resources/members';
 import { useMembers } from '@/resources/members';
+import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { Button, Dialog, Input, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Checkbox } from '@shadcn/ui/checkbox';
 import { SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -17,14 +18,6 @@ type Props = {
   groupNamespace: string;
   orgId: string;
 };
-
-function getMemberDisplayName(member: Member): string {
-  return (
-    `${member.user.givenName ?? ''} ${member.user.familyName ?? ''}`.trim() ||
-    member.user.email ||
-    member.user.id
-  );
-}
 
 export function ManageMembersDialog({
   open,
@@ -188,11 +181,11 @@ export function ManageMembersDialog({
                       type="button"
                       onClick={() => toggle(member.user.id)}
                       className="hover:bg-muted flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors">
-                      <input
-                        type="checkbox"
-                        readOnly
+                      <Checkbox
                         checked={inGroup}
-                        className="accent-primary size-4 shrink-0 rounded"
+                        onCheckedChange={() => {}}
+                        className="size-4 shrink-0"
+                        tabIndex={-1}
                       />
                       <div className="min-w-0 flex-1">
                         <p className="text-foreground truncate text-sm font-medium">

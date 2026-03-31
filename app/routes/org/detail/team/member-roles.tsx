@@ -21,16 +21,27 @@ import {
 import { createProjectService } from '@/resources/projects';
 import { createRoleService } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { withMiddleware } from '@/utils/middlewares';
 import { toast } from '@datum-ui/components';
 import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs, data, useLoaderData, useParams } from 'react-router';
+import {
+  LoaderFunctionArgs,
+  data,
+  useLoaderData,
+  useParams,
+  type MetaFunction,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: (loaderData: { member?: Member }) => (
     <span>{loaderData?.member?.user?.email ?? 'Roles'}</span>
   ),
 };
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Member Roles');
+});
 
 const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, memberId } = params as { orgId: string; memberId: string };
@@ -337,8 +348,8 @@ export default function MemberRoles() {
         </div>
       ) : (
         <div className="-mx-4 -mb-7 flex flex-1 flex-col overflow-hidden border-t md:-mx-9 md:-mb-9">
-          <div className="flex flex-1 overflow-hidden">
-            <div className="flex w-2/5 flex-col overflow-hidden" data-testid="roles-panel">
+          <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+            <div className="flex flex-col overflow-hidden md:w-2/5" data-testid="roles-panel">
               <RolesPanel
                 assignments={visibleAssignments}
                 pendingChanges={state.pendingChanges}
@@ -357,7 +368,7 @@ export default function MemberRoles() {
             </div>
             <section
               aria-label="Effective Permissions"
-              className="bg-card flex w-3/5 flex-col overflow-hidden border-l"
+              className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l"
               data-testid="permissions-panel">
               <header className="border-b px-6 py-4">
                 <h2 className="text-foreground text-[15px] font-semibold">Effective Permissions</h2>

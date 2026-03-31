@@ -4,20 +4,27 @@ import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import { useGroups, useDeleteGroup } from '@/resources/groups';
-import { useMembers } from '@/resources/members';
+import { useMembers, type Member } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { getMemberDisplayName } from '@/utils/helpers/member.helper';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useNavigate, useParams, type MetaFunction } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Groups</span>,
 };
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Groups');
+});
 
 interface GroupRow {
   name: string;
@@ -43,13 +50,13 @@ export default function GroupsPage() {
   }
 
   const { data: groups = [], isLoading: groupsLoading } = useGroups(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
   const { data: memberships = [], isLoading: membershipsLoading } = useGroupMemberships(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
   const { data: members = [], isLoading: membersLoading } = useMembers(orgId, {
-    staleTime: 5 * 60 * 1000,
+    staleTime: QUERY_STALE_TIME,
   });
 
   const isLoading = groupsLoading || membershipsLoading || membersLoading;
@@ -74,13 +81,10 @@ export default function GroupsPage() {
       const groupMbrs = memberships.filter((m) => m.groupRef.name === group.name);
       const resolved = groupMbrs
         .map((gm) => members.find((m) => m.user.id === gm.userRef.name))
-        .filter(Boolean)
+        .filter((m): m is Member => m !== undefined)
         .map((m) => ({
-          name:
-            `${m!.user.givenName ?? ''} ${m!.user.familyName ?? ''}`.trim() ||
-            m!.user.email ||
-            m!.user.id,
-          avatarUrl: m!.user.avatarUrl,
+          name: getMemberDisplayName(m),
+          avatarUrl: m.user.avatarUrl,
         }));
       return {
         name: group.name,
@@ -165,8 +169,10 @@ export default function GroupsPage() {
       tableTitle={{
         title: 'Groups',
         actions: hasCreateGroupPermission && (
-          <Link to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}>
-            <Button>
+          <Link
+            to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
+            className="w-full sm:w-auto">
+            <Button className="w-full">
               <Icon icon={PlusIcon} className="size-4" />
               Create Group
             </Button>

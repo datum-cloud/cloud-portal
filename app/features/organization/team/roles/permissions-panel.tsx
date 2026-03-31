@@ -115,13 +115,13 @@ export function PermissionsPanel({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      <div className="min-w-0 overflow-x-auto">
         <table
           className="w-full border-collapse text-xs"
           role="grid"
           aria-label="Permissions matrix">
           <thead>
-            <tr>
+            <tr className="whitespace-nowrap">
               <th className="text-muted-foreground w-40 py-1.5 pr-3 text-left font-medium">
                 Resource
               </th>

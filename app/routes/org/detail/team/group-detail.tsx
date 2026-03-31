@@ -8,6 +8,7 @@ import {
   AddRoleScreen,
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
+import { logger } from '@/modules/logger';
 import { createRbacMiddleware } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createGroupService } from '@/resources/groups';
@@ -20,14 +21,25 @@ import {
 import { createProjectService } from '@/resources/projects';
 import { createRoleService } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { withMiddleware } from '@/utils/middlewares';
 import { toast } from '@datum-ui/components';
 import { useState, useMemo } from 'react';
-import { LoaderFunctionArgs, data, useLoaderData, useParams } from 'react-router';
+import {
+  LoaderFunctionArgs,
+  data,
+  useLoaderData,
+  useParams,
+  type MetaFunction,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: (loaderData: { group?: Group }) => <span>{loaderData?.group?.name ?? 'Roles'}</span>,
 };
+
+export const meta: MetaFunction = mergeMeta(() => {
+  return metaObject('Group Roles');
+});
 
 const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, groupId } = params as { orgId: string; groupId: string };
@@ -111,7 +123,7 @@ export default function GroupDetailPage() {
       } else {
         // Organization scope (kind === 'Organization' or absent — treat as org-scope defensively)
         if (refKind !== 'Organization') {
-          console.warn(
+          logger.warn(
             `[group-detail] PolicyBinding ${binding.name} has unexpected resourceRef kind: ${refKind ?? 'absent'} — treating as org-scope`
           );
         }
@@ -207,10 +219,12 @@ export default function GroupDetailPage() {
             const assignment = state.serverAssignments.find((a) => a.id === change.assignmentId);
             const bindingName = assignment?.membershipName;
             if (!bindingName) {
-              console.warn(
+              logger.warn(
                 `[group-detail] Cannot resolve binding name for org-scope remove: assignmentId=${change.assignmentId}`
               );
-              return Promise.resolve();
+              return Promise.reject(
+                new Error(`Cannot resolve binding name for assignment ${change.assignmentId}`)
+              );
             }
             return deletePolicyBinding.mutateAsync(bindingName);
           }
@@ -282,8 +296,8 @@ export default function GroupDetailPage() {
         </div>
       ) : (
         <div className="-mx-4 -mb-7 flex flex-1 flex-col overflow-hidden border-t md:-mx-9 md:-mb-9">
-          <div className="flex flex-1 overflow-hidden">
-            <div className="flex w-2/5 flex-col overflow-hidden" data-testid="roles-panel">
+          <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
+            <div className="flex flex-col overflow-hidden md:w-2/5" data-testid="roles-panel">
               <RolesPanel
                 assignments={visibleAssignments}
                 pendingChanges={state.pendingChanges}
@@ -302,7 +316,7 @@ export default function GroupDetailPage() {
             </div>
             <section
               aria-label="Effective Permissions"
-              className="bg-card flex w-3/5 flex-col overflow-hidden border-l"
+              className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l"
               data-testid="permissions-panel">
               <header className="border-b px-6 py-4">
                 <h2 className="text-foreground text-[15px] font-semibold">Effective Permissions</h2>

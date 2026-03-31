@@ -173,16 +173,18 @@ export function AddRoleScreen({
   return (
     <div className="flex min-h-0 flex-1 flex-col" data-testid="add-role-screen">
       {/* Panels — height bounded to viewport so panels scroll independently */}
-      <div className="flex h-[calc(100svh-240px)] overflow-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden md:h-[calc(100svh-240px)] md:flex-row">
         {/* Left: role picker */}
-        <section aria-label="Add a Role" className="flex w-2/5 flex-col overflow-hidden border-r">
+        <section
+          aria-label="Add a Role"
+          className="flex max-h-[50vh] flex-col overflow-hidden border-b md:max-h-none md:w-2/5 md:border-r md:border-b-0">
           {/* Header: back + title + scope */}
           <header className="border-b px-6 pt-5 pb-4">
             <Button
               type="quaternary"
               size="small"
               onClick={onCancel}
-              className="mb-3 -ml-2 text-[#4D6356] hover:text-[#4D6356]">
+              className="text-muted-foreground hover:text-foreground mb-3 -ml-2">
               <Icon icon={ArrowLeftIcon} className="size-4" />
               Back to roles
             </Button>
@@ -271,7 +273,7 @@ export function AddRoleScreen({
                                 isAssigned
                                   ? 'cursor-default opacity-50'
                                   : isSelected
-                                    ? 'bg-[#F2F8E8] dark:bg-[#1a2e1a]'
+                                    ? 'bg-primary/10'
                                     : 'hover:bg-muted'
                               )}>
                               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -308,7 +310,7 @@ export function AddRoleScreen({
         {/* Right: permissions preview */}
         <section
           aria-label="Role Preview"
-          className="bg-card flex w-3/5 flex-col overflow-hidden border-l">
+          className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l">
           <header className="border-b px-6 py-4">
             <h2 className="text-foreground text-[15px] font-semibold">
               {selectedRole ? (selectedRole.displayName ?? selectedRole.name) : 'Role Preview'}

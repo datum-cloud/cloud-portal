@@ -86,7 +86,7 @@ export function RolesPanel({ assignments, pendingChanges, onRemove, onAddRole }:
           <div>
             {groups.map((group) => (
               <div key={`${group.kind}-${group.scopeName}`}>
-                <div className="dark:bg-muted/50 flex items-center gap-2 bg-[#EFEFED] px-6 py-2.5">
+                <div className="bg-muted/50 flex items-center gap-2 px-6 py-2.5">
                   <Icon
                     icon={group.kind === 'org' ? Building2Icon : FolderIcon}
                     className="text-muted-foreground size-3.5"

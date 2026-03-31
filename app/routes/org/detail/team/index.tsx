@@ -90,7 +90,7 @@ export default function OrgTeamPage() {
   const { confirm } = useConfirmationDialog();
 
   // Mutation hooks
-  const cancelInvitationMutation = useCancelInvitation(orgId ?? '', {
+  const cancelInvitationMutation = useCancelInvitation(orgId, {
     onSuccess: () => {
       toast.success('Invitation cancelled successfully');
     },
@@ -99,7 +99,7 @@ export default function OrgTeamPage() {
     },
   });
 
-  const resendInvitationMutation = useResendInvitation(orgId ?? '', {
+  const resendInvitationMutation = useResendInvitation(orgId, {
     onSuccess: () => {
       toast.success('Invitation resent successfully');
     },
@@ -108,7 +108,7 @@ export default function OrgTeamPage() {
     },
   });
 
-  const removeMemberMutation = useRemoveMember(orgId ?? '', {
+  const removeMemberMutation = useRemoveMember(orgId, {
     onSuccess: () => {
       toast.success('Member removed successfully');
     },
@@ -141,7 +141,7 @@ export default function OrgTeamPage() {
     'organizationmemberships',
     'delete',
     {
-      namespace: buildOrganizationNamespace(orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId),
       group: 'resourcemanager.miloapis.com',
     }
   );
@@ -150,7 +150,7 @@ export default function OrgTeamPage() {
     'userinvitations',
     'create',
     {
-      namespace: buildOrganizationNamespace(orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId),
       group: 'iam.miloapis.com',
     }
   );
@@ -244,7 +244,7 @@ export default function OrgTeamPage() {
       showConfirmInput: false,
       onSubmit: async () => {
         leaveOrganizationMutation.mutate({
-          orgId: orgId ?? '',
+          orgId,
           memberName: row?.name ?? '',
         });
       },
