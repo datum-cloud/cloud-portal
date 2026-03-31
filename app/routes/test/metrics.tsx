@@ -175,7 +175,7 @@ const MetricsContent = () => {
             }}
             tooltipContent={({ active, payload, label, ...props }) => {
               if (active && payload && payload.length) {
-                const filteredPayload = payload.filter((p) => (p.value as number) > 0);
+                const filteredPayload = payload.filter((p) => typeof p.value === 'number' && p.value > 0);
                 if (filteredPayload.length === 0) return null;
 
                 return (
