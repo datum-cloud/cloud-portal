@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MachineAccountKeyFormDialog } from '@/features/machine-account/form/machine-account-key-form-dialog';
 import type { MachineAccountKeyFormDialogRef } from '@/features/machine-account/form/machine-account-key-form-dialog';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
@@ -14,7 +15,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge, Button, CloseIcon, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon, ThumbsUpIcon } from 'lucide-react';
+import { CheckIcon, CopyIcon, PlusIcon, ThumbsUpIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { MetaFunction } from 'react-router';
 import { useParams } from 'react-router';
@@ -30,6 +31,9 @@ export default function MachineAccountKeysPage() {
   const { confirm } = useConfirmationDialog();
   const keyFormDialogRef = useRef<MachineAccountKeyFormDialogRef>(null);
   const [newPrivateKey, setNewPrivateKey] = useState<string | null>(null);
+
+  const [, copyToClipboard] = useCopyToClipboard();
+  const [keyCopied, setKeyCopied] = useState(false);
 
   const { data: keys = [] } = useMachineAccountKeys(projectId ?? '', machineAccountId ?? '');
 
@@ -148,11 +152,27 @@ export default function MachineAccountKeysPage() {
           <p className="text-xs">
             Store this private key in a secure place. You will not be able to see it again.
           </p>
-          <BadgeCopy
-            value={newPrivateKey}
-            text={newPrivateKey}
-            className="text-foreground border-none bg-[#4D63561C] px-2.5 font-mono text-xs"
-          />
+          <div className="relative rounded-md bg-[#4D63561C]">
+            <pre className="max-h-48 overflow-auto p-3 font-mono text-xs break-all whitespace-pre-wrap">
+              {newPrivateKey}
+            </pre>
+            <button
+              type="button"
+              className="absolute top-2 right-2 rounded-md p-1.5 transition-colors hover:bg-black/10"
+              onClick={() => {
+                copyToClipboard(newPrivateKey).then(() => {
+                  toast.success('Copied to clipboard');
+                  setKeyCopied(true);
+                  setTimeout(() => setKeyCopied(false), 2000);
+                });
+              }}>
+              {keyCopied ? (
+                <CheckIcon className="size-4 text-success" />
+              ) : (
+                <CopyIcon className="size-4" />
+              )}
+            </button>
+          </div>
         </div>
       )}
 

@@ -1,8 +1,6 @@
 import type { MachineAccount, MachineAccountKey } from './types';
-import type {
-  ComMiloapisIamV1Alpha1MachineAccount,
-  ComMiloapisIamV1Alpha1MachineAccountKey,
-} from '@/modules/control-plane/iam';
+import type { ComMiloapisIamV1Alpha1MachineAccount } from '@/modules/control-plane/iam';
+import type { ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKey } from '@/modules/control-plane/identity';
 
 const DESCRIPTION_ANNOTATION = 'kubernetes.io/description';
 
@@ -25,7 +23,7 @@ export function toMachineAccount(raw: ComMiloapisIamV1Alpha1MachineAccount): Mac
 }
 
 export function toMachineAccountKey(
-  raw: ComMiloapisIamV1Alpha1MachineAccountKey
+  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKey
 ): MachineAccountKey {
   const isUserManaged = !!raw.spec?.publicKey;
   const ready = raw.status?.conditions?.find((c) => c.type === 'Ready');
@@ -33,7 +31,7 @@ export function toMachineAccountKey(
   return {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
-    keyId: raw.status?.authProviderKeyId ?? raw.metadata?.uid ?? '',
+    keyId: raw.status?.authProviderKeyID ?? raw.metadata?.uid ?? '',
     type: isUserManaged ? 'user-managed' : 'datum-managed',
     status: ready?.status === 'True' ? 'Active' : 'Revoked',
     createdAt: raw.metadata?.creationTimestamp ?? '',
@@ -63,15 +61,17 @@ export function toCreateMachineAccountKeyPayload(
   name: string,
   publicKey?: string,
   expiresAt?: string
-): ComMiloapisIamV1Alpha1MachineAccountKey {
+): ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKey {
   return {
-    apiVersion: 'iam.miloapis.com/v1alpha1',
+    apiVersion: 'identity.miloapis.com/v1alpha1',
     kind: 'MachineAccountKey',
     metadata: { name },
     spec: {
       machineAccountName,
       ...(publicKey && { publicKey }),
-      ...(expiresAt && { expirationDate: expiresAt }),
+      ...(expiresAt && {
+        expirationDate: expiresAt.includes('T') ? expiresAt : `${expiresAt}T00:00:00Z`,
+      }),
     },
   };
 }

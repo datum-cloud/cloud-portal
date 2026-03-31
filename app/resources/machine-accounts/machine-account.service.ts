@@ -18,14 +18,16 @@ import {
   createIamMiloapisComV1Alpha1NamespacedMachineAccount,
   patchIamMiloapisComV1Alpha1NamespacedMachineAccount,
   deleteIamMiloapisComV1Alpha1NamespacedMachineAccount,
-  listIamMiloapisComV1Alpha1NamespacedMachineAccountKey,
-  createIamMiloapisComV1Alpha1NamespacedMachineAccountKey,
-  deleteIamMiloapisComV1Alpha1NamespacedMachineAccountKey,
   type ComMiloapisIamV1Alpha1MachineAccount,
   type ComMiloapisIamV1Alpha1MachineAccountList,
-  type ComMiloapisIamV1Alpha1MachineAccountKey,
-  type ComMiloapisIamV1Alpha1MachineAccountKeyList,
 } from '@/modules/control-plane/iam';
+import {
+  listIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey,
+  createIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey,
+  deleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey,
+  type ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKey,
+  type ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKeyList,
+} from '@/modules/control-plane/identity';
 import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
@@ -164,11 +166,11 @@ export function createMachineAccountService() {
     async listKeys(projectId: string, machineAccountName: string): Promise<MachineAccountKey[]> {
       const startTime = Date.now();
       try {
-        const response = await listIamMiloapisComV1Alpha1NamespacedMachineAccountKey({
-          baseURL: getProjectScopedBase(projectId),
+        const response = await listIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey({
+          baseUrl: getProjectScopedBase(projectId),
           path: { namespace: 'default' },
         });
-        const data = response.data as ComMiloapisIamV1Alpha1MachineAccountKeyList;
+        const data = response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKeyList;
         logger.service(SERVICE_NAME, 'listKeys', {
           input: { projectId, machineAccountName },
           duration: Date.now() - startTime,
@@ -189,8 +191,8 @@ export function createMachineAccountService() {
     ): Promise<CreateMachineAccountKeyResponse> {
       const startTime = Date.now();
       try {
-        const response = await createIamMiloapisComV1Alpha1NamespacedMachineAccountKey({
-          baseURL: getProjectScopedBase(projectId),
+        const response = await createIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey({
+          baseUrl: getProjectScopedBase(projectId),
           path: { namespace: 'default' },
           body: toCreateMachineAccountKeyPayload(
             machineAccountName,
@@ -202,7 +204,7 @@ export function createMachineAccountService() {
         });
         // The custom endpoint (#670) returns the private key in status when no publicKey was
         // provided. This field is not in the generated type so we access it via unknown.
-        const data = response.data as ComMiloapisIamV1Alpha1MachineAccountKey & {
+        const data = response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKey & {
           status?: { privateKey?: string };
         };
         if (!data) throw new Error('Failed to create machine account key');
@@ -223,8 +225,8 @@ export function createMachineAccountService() {
     async revokeKey(projectId: string, machineAccountName: string, keyName: string): Promise<void> {
       const startTime = Date.now();
       try {
-        await deleteIamMiloapisComV1Alpha1NamespacedMachineAccountKey({
-          baseURL: getProjectScopedBase(projectId),
+        await deleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey({
+          baseUrl: getProjectScopedBase(projectId),
           path: { namespace: 'default', name: keyName },
         });
         logger.service(SERVICE_NAME, 'revokeKey', {
