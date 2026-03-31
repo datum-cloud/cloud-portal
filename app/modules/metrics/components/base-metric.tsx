@@ -6,7 +6,9 @@ import { AlertCircle, Minus } from 'lucide-react';
 import React from 'react';
 
 // Deterministic heights so the skeleton doesn't shift on re-render
-const SKELETON_HEIGHTS = [35, 60, 45, 80, 30, 55, 70, 40, 65, 50, 75, 35, 55, 45, 70, 60, 30, 80, 50, 65, 40, 55, 70, 35];
+const SKELETON_HEIGHTS = [
+  35, 60, 45, 80, 30, 55, 70, 40, 65, 50, 75, 35, 55, 45, 70, 60, 30, 80, 50, 65, 40, 55, 70, 35,
+];
 
 export interface BaseMetricProps {
   title?: string;
@@ -48,7 +50,7 @@ export function BaseMetric({
   const renderContent = () => {
     if (isLoading) {
       return (
-        <div className="w-full px-14 pb-8 pt-2" style={containerStyle}>
+        <div className="w-full px-14 pt-2 pb-8" style={containerStyle}>
           <div className="flex h-full items-end gap-1">
             {SKELETON_HEIGHTS.map((h, i) => (
               <div
@@ -87,7 +89,9 @@ export function BaseMetric({
 
     return (
       <div className="relative" style={containerStyle}>
-        {isFetching && !isLoading && <div className="bg-background/50 absolute inset-0 rounded-lg" />}
+        {isFetching && !isLoading && (
+          <div className="bg-background/50 absolute inset-0 rounded-lg" />
+        )}
         {children}
       </div>
     );
