@@ -26,7 +26,7 @@ export const PolicyBindingTable = ({
       columns={columns}
       data={bindings ?? []}
       onRowClick={onRowClick}
-      emptyContent={{ title: 'No Policy Binding found.' }}
+      emptyContent={{ title: 'No roles found.' }}
       tableTitle={tableTitle}
       rowActions={rowActions}
     />

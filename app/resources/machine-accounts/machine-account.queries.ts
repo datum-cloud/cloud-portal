@@ -101,12 +101,13 @@ export function useDeleteMachineAccount(
 export function useMachineAccountKeys(
   projectId: string,
   machineAccountName: string,
+  machineAccountEmail: string,
   options?: Omit<UseQueryOptions<MachineAccountKey[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
     queryKey: machineAccountKeys.keyList(projectId, machineAccountName),
-    queryFn: () => createMachineAccountService().listKeys(projectId, machineAccountName),
-    enabled: !!projectId && !!machineAccountName,
+    queryFn: () => createMachineAccountService().listKeys(projectId, machineAccountEmail),
+    enabled: !!projectId && !!machineAccountName && !!machineAccountEmail,
     ...options,
   });
 }
@@ -114,13 +115,14 @@ export function useMachineAccountKeys(
 export function useCreateMachineAccountKey(
   projectId: string,
   machineAccountName: string,
+  machineAccountEmail: string,
   options?: UseMutationOptions<CreateMachineAccountKeyResponse, Error, CreateMachineAccountKeyInput>
 ) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: CreateMachineAccountKeyInput) =>
-      createMachineAccountService().createKey(projectId, machineAccountName, input),
+      createMachineAccountService().createKey(projectId, machineAccountEmail, input),
     ...options,
     onSuccess: (...args) => {
       queryClient.invalidateQueries({

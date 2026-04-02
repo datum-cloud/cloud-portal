@@ -110,7 +110,12 @@ function HiddenResourceFields({
     <>
       <input type="hidden" name="resource.ref" value={resource.ref} onChange={() => {}} />
       <input type="hidden" name="resource.name" value={resource.name} onChange={() => {}} />
-      <input type="hidden" name="resource.namespace" value={resource.namespace} onChange={() => {}} />
+      <input
+        type="hidden"
+        name="resource.namespace"
+        value={resource.namespace}
+        onChange={() => {}}
+      />
       <input type="hidden" name="resource.uid" value={resource.uid} onChange={() => {}} />
     </>
   );
@@ -396,11 +401,16 @@ export const PolicyBindingFormDialog = forwardRef<
           <ResourceSection isEdit={isEdit} />
         )}
         <RoleSection isEdit={isEdit} />
-        {subject && !isEdit ? (
+        {subject ? (
           <>
             <input type="hidden" name="subjects[0].kind" value={subject.kind} onChange={() => {}} />
             <input type="hidden" name="subjects[0].name" value={subject.name} onChange={() => {}} />
-            <input type="hidden" name="subjects[0].uid" value={subject.uid ?? ''} onChange={() => {}} />
+            <input
+              type="hidden"
+              name="subjects[0].uid"
+              value={subject.uid ?? ''}
+              onChange={() => {}}
+            />
           </>
         ) : (
           <SubjectsSection />

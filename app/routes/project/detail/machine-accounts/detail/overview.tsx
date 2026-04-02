@@ -1,9 +1,12 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
+import { List, type ListItem } from '@/components/list/list';
 import { useMachineAccount } from '@/resources/machine-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { Badge, Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { InfoIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import type { MetaFunction } from 'react-router';
 import { useParams } from 'react-router';
 
@@ -18,38 +21,49 @@ export default function MachineAccountOverviewPage() {
 
   const { data: account } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
 
+  const listItems: ListItem[] = useMemo(() => {
+    if (!account) return [];
+    return [
+      { label: 'Name', content: account.name },
+      { label: 'Display Name', content: account.displayName ?? '—' },
+      {
+        label: 'Identity Email',
+        content: (
+          <BadgeCopy
+            value={account.identityEmail}
+            text={account.identityEmail}
+            className="text-foreground bg-muted border-none px-2"
+          />
+        ),
+      },
+      {
+        label: 'Status',
+        content: (
+          <Badge type={account.status === 'Active' ? 'success' : 'secondary'}>
+            {account.status}
+          </Badge>
+        ),
+      },
+      {
+        label: 'Created',
+        content: account.createdAt ? <DateTime date={account.createdAt} /> : '—',
+      },
+      {
+        label: 'Last Modified',
+        content: account.updatedAt ? <DateTime date={account.updatedAt} /> : '—',
+      },
+    ];
+  }, [account]);
+
   if (!account) return null;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-lg border">
-        <div className="grid grid-cols-1 gap-0 divide-y md:grid-cols-2 md:divide-x md:divide-y-0">
-          <div className="grid grid-cols-1 divide-y">
-            <DetailRow label="Name" value={account.name} />
-            <DetailRow label="Display Name" value={account.displayName ?? '—'} />
-            <DetailRow
-              label="Identity Email"
-              value={
-                <BadgeCopy
-                  value={account.identityEmail}
-                  text={account.identityEmail}
-                  className="text-foreground bg-muted border-none px-2"
-                />
-              }
-            />
-          </div>
-          <div className="grid grid-cols-1 divide-y">
-            <DetailRow
-              label="Created"
-              value={account.createdAt ? <DateTime date={account.createdAt} /> : '—'}
-            />
-            <DetailRow
-              label="Last Modified"
-              value={account.updatedAt ? <DateTime date={account.updatedAt} /> : '—'}
-            />
-          </div>
-        </div>
-      </div>
+      <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+        <CardContent className="p-0 sm:px-6 sm:pb-4">
+          <List items={listItems} />
+        </CardContent>
+      </Card>
 
       <div className="bg-muted/40 flex items-start gap-3 rounded-lg border p-4 text-sm">
         <Icon icon={InfoIcon} className="text-muted-foreground mt-0.5 size-4 shrink-0" />
@@ -66,15 +80,6 @@ export default function MachineAccountOverviewPage() {
           JWT exchange.
         </p>
       </div>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-4 px-4 py-3">
-      <span className="text-muted-foreground w-36 shrink-0 text-xs font-medium">{label}</span>
-      <span className="text-sm">{value}</span>
     </div>
   );
 }

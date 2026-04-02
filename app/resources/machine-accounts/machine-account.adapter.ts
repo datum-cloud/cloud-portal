@@ -26,14 +26,13 @@ export function toMachineAccountKey(
   raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1MachineAccountKey
 ): MachineAccountKey {
   const isUserManaged = !!raw.spec?.publicKey;
-  const ready = raw.status?.conditions?.find((c) => c.type === 'Ready');
 
   return {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
     keyId: raw.status?.authProviderKeyID ?? raw.metadata?.uid ?? '',
     type: isUserManaged ? 'user-managed' : 'datum-managed',
-    status: ready?.status === 'True' ? 'Active' : 'Revoked',
+    status: raw.status?.authProviderKeyID ? 'Active' : 'Revoked',
     createdAt: raw.metadata?.creationTimestamp ?? '',
     expiresAt: raw.spec?.expirationDate,
   };
@@ -57,7 +56,7 @@ export function toCreateMachineAccountPayload(
 }
 
 export function toCreateMachineAccountKeyPayload(
-  machineAccountName: string,
+  machineAccountEmail: string,
   name: string,
   publicKey?: string,
   expiresAt?: string
@@ -67,7 +66,7 @@ export function toCreateMachineAccountKeyPayload(
     kind: 'MachineAccountKey',
     metadata: { name },
     spec: {
-      machineAccountName,
+      machineAccountUserName: machineAccountEmail,
       ...(publicKey && { publicKey }),
       ...(expiresAt && {
         expirationDate: expiresAt.includes('T') ? expiresAt : `${expiresAt}T00:00:00Z`,
