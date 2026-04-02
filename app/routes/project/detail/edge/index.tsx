@@ -260,6 +260,7 @@ export default function HttpProxyPage() {
               type="primary"
               theme="solid"
               size="small"
+              className="w-full sm:w-auto"
               onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               New

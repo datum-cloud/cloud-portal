@@ -230,7 +230,7 @@ export function ActivityLogTable({
                   icon={<Icon icon={RefreshCcw} className="size-4" />}
                   iconPosition="left"
                   loading={table.isFetching}>
-                  Refresh
+                  <span className="hidden sm:inline">Refresh</span>
                 </Button>
               ),
             }
@@ -265,7 +265,11 @@ export function ActivityLogTable({
         hideFilters ? undefined : (
           <>
             {/* TimeRange filter - inline (primaryFilter) */}
-            <DataTableFilter.TimeRange filterKey="period" disableFuture className="min-w-[250px]" />
+            <DataTableFilter.TimeRange
+              filterKey="period"
+              disableFuture
+              className="sm:min-w-[250px]"
+            />
 
             {/* Action filter - in dropdown */}
             <DataTableFilter.Tag

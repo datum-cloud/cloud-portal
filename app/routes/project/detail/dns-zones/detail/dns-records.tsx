@@ -15,6 +15,7 @@ import {
   findProxyForRecord,
   isRowLocked,
 } from '@/features/edge/dns-records/utils';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DataTableFilter, DataTableRef } from '@/modules/datum-ui/components/data-table';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
@@ -44,7 +45,7 @@ import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, PencilIcon, PlusIcon, Trash2Icon, XCircleIcon } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
@@ -103,6 +104,10 @@ export default function DnsRecordsPage() {
 
   const tableRef = useRef<DataTableRef<IFlattenedDnsRecord>>(null);
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
+  const breakpoint = useBreakpoint();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => setIsMounted(true), []);
+  const isMobile = isMounted && breakpoint === 'mobile';
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -354,7 +359,7 @@ export default function DnsRecordsPage() {
         tableTitle={{
           title: 'DNS Records',
           actions: (
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
               <DnsRecordImportAction
                 origin={dnsZone?.domainName}
                 existingRecords={dnsRecords}
@@ -364,14 +369,18 @@ export default function DnsRecordsPage() {
                   // Watch will automatically update the list with real-time changes
                 }}
               />
+
               <Button
                 htmlType="button"
                 type="primary"
                 theme="solid"
                 size="small"
+                className="min-w-0 flex-1 sm:flex-initial"
                 onClick={() =>
                   dnsRecords.length > 0
-                    ? tableRef.current?.openCreate()
+                    ? isMobile
+                      ? dnsRecordModalFormRef.current?.show('create')
+                      : tableRef.current?.openCreate()
                     : dnsRecordModalFormRef.current?.show('create')
                 }>
                 <Icon icon={PlusIcon} className="size-4" />
@@ -386,9 +395,11 @@ export default function DnsRecordsPage() {
             label: 'Edit',
             icon: <Icon icon={PencilIcon} className="size-3.5" />,
             display: 'inline',
-            triggerInlineEdit: true,
+            triggerInlineEdit: !isMobile,
             showLabel: false,
-            action: () => {},
+            action: (row) => {
+              if (isMobile) dnsRecordModalFormRef.current?.show('edit', row);
+            },
             /**
              * TODO: SOA records are not editable
              * @see https://github.com/datum-cloud/cloud-portal/issues/901
@@ -436,7 +447,7 @@ export default function DnsRecordsPage() {
           </>
         }
         // Inline form configuration
-        enableInlineContent={true}
+        enableInlineContent={!isMobile}
         inlineContent={({ mode, data, onClose }) => (
           <div className="border-secondary relative rounded-lg border px-7 py-5 shadow">
             <DnsRecordInlineForm

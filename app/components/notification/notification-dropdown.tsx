@@ -3,11 +3,7 @@ import { NotificationEmpty } from './notification-empty';
 import { NotificationList } from './notification-list';
 import type { NotificationDropdownProps, NotificationSourceType, NotificationTab } from './types';
 import { useNotifications } from './use-notifications';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '@/modules/datum-ui/components/dropdown';
+import { ResponsiveDropdown } from '@datum-ui/components/responsive-dropdown';
 import { cn } from '@shadcn/lib/utils';
 import { useState } from 'react';
 
@@ -33,54 +29,47 @@ export function NotificationDropdown({ defaultTab = 'invitation' }: Notification
     },
   ];
 
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-  };
-
   return (
-    <DropdownMenu open={open} onOpenChange={handleOpenChange}>
-      {/* Bell Trigger */}
-      <DropdownMenuTrigger asChild>
+    <ResponsiveDropdown
+      open={open}
+      onOpenChange={setOpen}
+      sheetTitle="Notifications"
+      sheetDescription="View your notifications"
+      contentClassName="w-[calc(100vw-2rem)] sm:w-[360px]"
+      trigger={
         <div>
           <NotificationBell pendingCount={pendingCount} />
         </div>
-      </DropdownMenuTrigger>
+      }>
+      {/* Tabs */}
+      <div className="border-border flex items-center border-b px-4">
+        {tabs
+          .filter((tab) => tab.enabled)
+          .map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                'border-b-2 py-2.5 text-xs font-medium transition-colors',
+                activeTab === tab.id
+                  ? 'border-primary text-foreground'
+                  : 'text-muted-foreground border-transparent'
+              )}>
+              {tab.label}
+            </button>
+          ))}
+      </div>
 
-      {/* Dropdown Content */}
-      <DropdownMenuContent align="end" className="w-[360px] rounded-lg p-0">
-        {/* Custom Button-Style Tabs */}
-        <div className="border-border flex items-center justify-between border-b">
-          <div className="flex items-center">
-            {tabs
-              .filter((tab) => tab.enabled)
-              .map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    'hover:bg-accent/50 relative px-4 py-3 text-sm font-medium transition-colors',
-                    activeTab === tab.id ? 'text-foreground' : 'text-muted-foreground'
-                  )}>
-                  {tab.label}
-                  {activeTab === tab.id && (
-                    <div className="bg-foreground absolute right-0 bottom-0 left-0 h-0.5" />
-                  )}
-                </button>
-              ))}
-          </div>
-        </div>
-
-        {/* Tab Content */}
-        <div className="max-h-[500px] overflow-y-auto">
-          {error ? (
-            <div className="text-destructive p-4 text-sm">{error}</div>
-          ) : filteredNotifications.length === 0 ? (
-            <NotificationEmpty message={tabs.find((t) => t.id === activeTab)?.emptyMessage} />
-          ) : (
-            <NotificationList notifications={filteredNotifications} />
-          )}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+      {/* Tab Content */}
+      <div className="max-h-[500px] overflow-y-auto">
+        {error ? (
+          <div className="text-destructive p-4 text-sm">{error}</div>
+        ) : filteredNotifications.length === 0 ? (
+          <NotificationEmpty message={tabs.find((t) => t.id === activeTab)?.emptyMessage} />
+        ) : (
+          <NotificationList notifications={filteredNotifications} />
+        )}
+      </div>
+    </ResponsiveDropdown>
   );
 }

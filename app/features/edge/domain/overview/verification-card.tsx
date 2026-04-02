@@ -1,9 +1,50 @@
-import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import type { Domain } from '@/resources/domains';
-import { Card, CardContent } from '@datum-ui/components';
+import { Card, CardContent, Tooltip, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { BookOpenIcon } from 'lucide-react';
+import { useCopyToClipboard } from '@datum-ui/hooks';
+import { BookOpenIcon, CopyIcon } from 'lucide-react';
+import { useState } from 'react';
+
+/** Verification badge — text truncates, copy button always visible, click anywhere to copy */
+function VerificationBadge({ value }: { value: string }) {
+  const [_, copy] = useCopyToClipboard();
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    if (!value) return;
+
+    copy(value).then((success) => {
+      if (!success) return;
+      toast.success('Copied to clipboard');
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    });
+  };
+
+  return (
+    <Tooltip message={copied ? 'Copied!' : 'Copy'}>
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={copyToClipboard}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            copyToClipboard();
+          }
+        }}
+        className="flex max-w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-md border border-transparent bg-[var(--color-badge-muted)] px-1.5 py-[5px] text-[var(--color-badge-muted-foreground)] transition-colors dark:border-[var(--color-badge-muted)]/20 dark:bg-[var(--color-badge-muted)]/20">
+        <span className="min-w-0 flex-1 truncate font-mono text-xs">{value}</span>
+        <span className="text-muted-foreground flex shrink-0 items-center justify-center transition-colors">
+          <Icon icon={CopyIcon} className="size-3" />
+        </span>
+      </div>
+    </Tooltip>
+  );
+}
 
 export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
   const dnsRecord = domain.status?.verification?.dnsRecord;
@@ -33,65 +74,37 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
             />
           )}
         </p>
-        <div className="divide-border flex items-start justify-between">
-          <div className="dark:border-quaternary flex w-1/2 flex-col gap-5 border-r pr-7">
+        <div className="divide-border flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="dark:border-quaternary flex w-full min-w-0 flex-col gap-5 border-b pb-5 sm:w-1/2 sm:border-r sm:border-b-0 sm:pr-7 sm:pb-0">
             <p className="text-sm font-medium">Add a TXT DNS Record</p>
-            <div className="flex flex-col gap-3.5">
+            <div className="flex min-w-0 flex-col gap-3.5">
               {dnsRecord?.name && (
-                <div className="flex flex-col gap-2">
+                <div className="flex min-w-0 flex-col gap-2">
                   <span className="text-xs font-normal">Name</span>
-                  <BadgeCopy
-                    value={dnsRecord?.name ?? ''}
-                    badgeType="muted"
-                    badgeTheme="solid"
-                    className="font-mono text-nowrap"
-                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
-                    containerClassName="w-full"
-                  />
+                  <VerificationBadge value={dnsRecord.name} />
                 </div>
               )}
               {dnsRecord?.content && (
-                <div className="flex flex-col gap-2">
+                <div className="flex min-w-0 flex-col gap-2">
                   <span className="text-xs font-normal">Value</span>
-                  <BadgeCopy
-                    value={dnsRecord?.content ?? ''}
-                    badgeType="muted"
-                    badgeTheme="solid"
-                    className="font-mono text-nowrap"
-                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
-                    containerClassName="w-full"
-                  />
+                  <VerificationBadge value={dnsRecord.content} />
                 </div>
               )}
             </div>
           </div>
-          <div className="flex w-1/2 flex-col gap-5 pl-7">
+          <div className="flex w-full min-w-0 flex-col gap-5 sm:w-1/2 sm:pl-7">
             <p className="text-sm font-medium">Create a HTTP Token File</p>
-            <div className="flex flex-col gap-3.5">
+            <div className="flex min-w-0 flex-col gap-3.5">
               {httpToken?.url && (
-                <div className="flex flex-col gap-2">
+                <div className="flex min-w-0 flex-col gap-2">
                   <span className="text-xs font-normal">URL</span>
-                  <BadgeCopy
-                    value={httpToken?.url ?? ''}
-                    badgeType="muted"
-                    badgeTheme="solid"
-                    className="font-mono text-nowrap"
-                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
-                    containerClassName="w-full"
-                  />
+                  <VerificationBadge value={httpToken.url} />
                 </div>
               )}
               {httpToken?.body && (
-                <div className="flex flex-col gap-2">
+                <div className="flex min-w-0 flex-col gap-2">
                   <span className="text-xs font-normal">Body</span>
-                  <BadgeCopy
-                    value={httpToken?.body ?? ''}
-                    badgeType="muted"
-                    badgeTheme="solid"
-                    className="font-mono text-nowrap"
-                    textClassName="text-ellipsis max-w-[240px] overflow-hidden"
-                    containerClassName="w-full"
-                  />
+                  <VerificationBadge value={httpToken.body} />
                 </div>
               )}
             </div>

@@ -72,7 +72,7 @@ export default function DnsZoneNameserversPage() {
                 : 'Your DNS Zone is Hosted Elsewhere'
             }
             description={
-              <div className="flex max-w-[810px] flex-col gap-5">
+              <div className="flex max-w-full flex-col gap-5 sm:max-w-[810px]">
                 <span className="text-sm">
                   {nameserverSetup.isPartiallySetup ? (
                     <>
@@ -90,7 +90,7 @@ export default function DnsZoneNameserversPage() {
                 </span>
                 {dnsZone?.status?.nameservers &&
                   (dnsZone?.status?.nameservers ?? [])?.length > 0 && (
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                       {dnsZone?.status?.nameservers?.map((nameserver: string, index: number) => (
                         <BadgeCopy
                           key={`nameserver-${index}`}

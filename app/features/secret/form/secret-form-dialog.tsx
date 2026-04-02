@@ -79,8 +79,8 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
       submitTextLoading="Creating..."
       className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
       <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-        <div className="flex items-start gap-4">
-          <Form.Field name="name" className="w-1/2" required>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <Form.Field name="name" className="w-full sm:w-1/2" required>
             {({ field }) => (
               <InputName
                 label="Resource Name"
@@ -92,7 +92,7 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
             )}
           </Form.Field>
 
-          <Form.Field name="type" label="Type" className="w-1/2" required>
+          <Form.Field name="type" label="Type" className="w-full sm:w-1/2" required>
             <Form.Select placeholder="Select a Type">
               {Object.entries(SECRET_TYPES).map(([type, config]) => (
                 <Form.SelectItem key={type} value={type}>

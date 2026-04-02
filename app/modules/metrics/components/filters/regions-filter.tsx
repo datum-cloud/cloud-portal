@@ -8,7 +8,7 @@ export const RegionsFilter = () => {
 
   return (
     <MetricsFilterSelect
-      className="min-w-56"
+      className="w-full sm:w-auto sm:min-w-56"
       multiple
       filterKey="regions"
       placeholder="Select regions..."

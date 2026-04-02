@@ -36,7 +36,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function AccountUnderReviewPage() {
   return (
     <BlankLayout>
-      <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-[400px] sm:p-4 md:p-6 lg:p-8 xl:p-[44px]">
+      <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">Your account is under review</h2>
           <p className="text-center text-[14px] leading-5 font-normal">

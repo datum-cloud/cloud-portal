@@ -37,14 +37,14 @@ export default function ExportPoliciesNewPage() {
     <div className="flex w-full flex-col gap-8">
       <PageTitle title="Create an Export Policy" />
 
-      <Row gutter={28}>
-        <Col span={12} className="h-full">
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12}>
           <ExportPolicyGrafanaCard
             projectId={projectId as string}
             defaultOpen={initialOpenRef.current}
           />
         </Col>
-        <Col span={12} className="h-full">
+        <Col xs={24} md={12}>
           <ExportPolicyComingSoonCard />
         </Col>
       </Row>

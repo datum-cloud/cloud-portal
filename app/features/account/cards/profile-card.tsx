@@ -53,11 +53,11 @@ export const AccountProfileSettingsCard = () => {
           <>
             <CardContent className="px-5 py-4">
               <div className="flex max-w-[816px] flex-col space-y-8">
-                <div className="flex w-full gap-4">
-                  <Form.Field name="firstName" label="First Name" required className="w-1/2">
+                <div className="flex w-full flex-col gap-4 sm:flex-row">
+                  <Form.Field name="firstName" label="First Name" required className="sm:w-1/2">
                     <Form.Input placeholder="e.g. John" autoFocus />
                   </Form.Field>
-                  <Form.Field name="lastName" label="Last Name" required className="w-1/2">
+                  <Form.Field name="lastName" label="Last Name" required className="sm:w-1/2">
                     <Form.Input placeholder="e.g. Doe" />
                   </Form.Field>
                 </div>
@@ -65,7 +65,7 @@ export const AccountProfileSettingsCard = () => {
                   name="email"
                   label="Primary email"
                   required
-                  className="w-1/2 pr-2"
+                  className="sm:w-1/2 sm:pr-2"
                   description="Your primary email is used for account notifications">
                   <Form.Select placeholder="Select an email">
                     <Form.SelectItem value={user?.email ?? ''}>{user?.email}</Form.SelectItem>
@@ -73,7 +73,7 @@ export const AccountProfileSettingsCard = () => {
                 </Form.Field>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+            <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
               <Button
                 htmlType="button"
                 type="quaternary"

@@ -14,7 +14,11 @@ export const TLSARecordField = () => (
       <Form.Input type="number" placeholder="1" min={0} max={2} />
     </Form.Field>
 
-    <Form.Field name="tlsa.certData" label="Certificate Data (Hex)" required className="col-span-4">
+    <Form.Field
+      name="tlsa.certData"
+      label="Certificate Data (Hex)"
+      required
+      className="col-span-full">
       <Form.Textarea
         placeholder="e.g., 0EED2700D3F228FDB..."
         className="font-mono text-xs"

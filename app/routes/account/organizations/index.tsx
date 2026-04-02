@@ -117,13 +117,14 @@ export default function AccountOrganizations() {
                 />
                 <span>{row.original.displayName || row.original.name}</span>
               </div>
-              <div className="flex w-full items-center justify-between gap-6 md:w-auto">
+              <div className="flex w-full items-center justify-between gap-4 md:w-auto md:gap-6">
                 <BadgeCopy
                   data-e2e={`organization-card-id-copy`}
                   value={row.original.name ?? ''}
                   text={row.original.name ?? ''}
                   badgeTheme="solid"
                   badgeType="muted"
+                  textClassName="max-w-[8rem] truncate sm:max-w-[12rem] md:max-w-none"
                 />
                 <BadgeStatus status={row.original.type} />
               </div>
@@ -145,7 +146,7 @@ export default function AccountOrganizations() {
   };
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-6">
+    <div className="mx-auto flex w-full flex-col gap-4 sm:gap-6">
       <Row gutter={[0, 24]}>
         <Col span={24}>
           <DataTable
@@ -171,6 +172,7 @@ export default function AccountOrganizations() {
                   type="primary"
                   theme="solid"
                   size="small"
+                  className="w-full sm:w-auto"
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
                   Create organization
                 </Button>

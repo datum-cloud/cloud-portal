@@ -1,6 +1,8 @@
 // src/components/multi-select.tsx
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { Badge } from '@datum-ui/components';
 import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
+import { MobileSheet } from '@datum-ui/components/mobile-sheet';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,
@@ -205,6 +207,8 @@ export const MultiSelect = ({
   emptyContent = 'No results found.',
 }: MultiSelectProps) => {
   const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
+  const breakpoint = useBreakpoint();
+  const isMobile = breakpoint === 'mobile';
 
   // Use controlled value if provided, otherwise use internal state
   const currentSelectedValues = value !== undefined ? value : selectedValues;
@@ -263,7 +267,10 @@ export const MultiSelect = ({
 
   return (
     <>
-      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
+      <Popover
+        open={!isMobile && isPopoverOpen}
+        onOpenChange={setIsPopoverOpen}
+        modal={modalPopover}>
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -419,7 +426,7 @@ export const MultiSelect = ({
                       <CommandItem
                         key={action.label}
                         onSelect={action.onClick}
-                        className={action.className}>
+                        className={cn('cursor-pointer', action.className)}>
                         {action.icon && (
                           <action.icon className="text-muted-foreground mr-2 size-4" />
                         )}
@@ -472,6 +479,91 @@ export const MultiSelect = ({
           />
         )}
       </Popover>
+      {/* Mobile: bottom sheet with same options */}
+      {isMobile && (
+        <MobileSheet
+          open={isPopoverOpen}
+          onOpenChange={setIsPopoverOpen}
+          title={placeholder || 'Select options'}>
+          <Command>
+            <CommandList className="min-h-[200px]">
+              {options.length > 0 ? (
+                <CommandGroup className="max-h-[50svh] overflow-y-auto">
+                  {showSelectAll && (
+                    <CommandItem key="all" onSelect={toggleAll} className="cursor-pointer">
+                      <div
+                        className={cn(
+                          'border-primary mr-2 flex size-4 items-center justify-center rounded-sm border',
+                          currentSelectedValues.length === options.length
+                            ? 'bg-primary text-primary-foreground'
+                            : 'opacity-50 [&_svg]:invisible'
+                        )}>
+                        <CheckIcon className="size-4" />
+                      </div>
+                      <span>(Select All)</span>
+                    </CommandItem>
+                  )}
+                  {options.map((option) => {
+                    const isSelected = currentSelectedValues.includes(option.value);
+                    return (
+                      <CommandItem
+                        key={option.value}
+                        onSelect={() => toggleOption(option.value)}
+                        className="cursor-pointer">
+                        <div
+                          className={cn(
+                            'border-primary mr-2 flex size-4 items-center justify-center rounded-sm border',
+                            isSelected
+                              ? 'bg-primary text-primary-foreground'
+                              : 'opacity-50 [&_svg]:invisible'
+                          )}>
+                          <CheckIcon className="text-background size-4" />
+                        </div>
+                        {option.icon && (
+                          <option.icon className="text-muted-foreground mr-2 size-4" />
+                        )}
+                        <span>{option.label}</span>
+                      </CommandItem>
+                    );
+                  })}
+                </CommandGroup>
+              ) : (
+                <CommandItem disabled className="px-4 py-2.5">
+                  <span className="text-xs">{emptyContent}</span>
+                </CommandItem>
+              )}
+              {actions && (
+                <>
+                  <CommandSeparator />
+                  <CommandGroup>
+                    {actions.map((action) => (
+                      <CommandItem
+                        key={action.label}
+                        onSelect={action.onClick}
+                        className={cn('cursor-pointer', action.className)}>
+                        {action.icon && (
+                          <action.icon className="text-muted-foreground mr-2 size-4" />
+                        )}
+                        {action.label}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </>
+              )}
+              {showClearButton && currentSelectedValues.length > 0 && (
+                <>
+                  <CommandSeparator />
+                  <CommandGroup>
+                    <CommandItem onSelect={handleClear} className="cursor-pointer justify-center">
+                      Clear
+                    </CommandItem>
+                  </CommandGroup>
+                </>
+              )}
+            </CommandList>
+          </Command>
+        </MobileSheet>
+      )}
       {/* Hidden input for form submission */}
       <select
         name={name}

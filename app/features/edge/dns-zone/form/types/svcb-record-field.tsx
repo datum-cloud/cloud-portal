@@ -10,7 +10,7 @@ export const SVCBRecordField = () => (
       <Form.Input placeholder="e.g., example.com or ." />
     </Form.Field>
 
-    <Form.Field name="svcb.params" label="Value" className="col-span-2">
+    <Form.Field name="svcb.params" label="Value" className="col-span-full sm:col-span-2">
       <Form.Input placeholder='E.g. alpn="h3,h2" ipv4hint="127.0.0.1" ipv6hint="::1"' />
     </Form.Field>
   </>

@@ -94,10 +94,13 @@ export const ProxyHostnamesConfigDialog = forwardRef<
       onSubmit={handleSubmit}
       submitText="Save"
       submitTextLoading="Saving..."
-      className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
+      className="w-full focus:ring-0 focus:outline-none sm:max-w-xl">
       <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
         <div className="flex flex-col gap-5">
-          <ProxyHostnamesField projectId={projectId} />
+          <ProxyHostnamesField
+            projectId={projectId}
+            proxyDisplayName={proxy?.chosenName ?? proxy?.name}
+          />
           <ProxyTlsField required={isIPEndpoint} />
         </div>
       </div>

@@ -1,9 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
-import {
-  ManageRoleModalForm,
-  ManageRoleModalFormRef,
-} from '@/features/organization/team/manage-role';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
@@ -13,20 +9,12 @@ import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Tooltip } from '@datum-ui/components';
 import { Badge } from '@datum-ui/components';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import {
-  ArrowRightIcon,
-  Redo2Icon,
-  TrashIcon,
-  UserIcon,
-  UserPenIcon,
-  UserPlusIcon,
-} from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { ArrowRightIcon, Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 // Generic interface for combined team data
@@ -101,10 +89,8 @@ export default function OrgTeamPage() {
   }, [memberTeamMembers, invitationTeamMembers]);
   const { confirm } = useConfirmationDialog();
 
-  const manageRoleModalForm = useRef<ManageRoleModalFormRef>(null);
-
   // Mutation hooks
-  const cancelInvitationMutation = useCancelInvitation(orgId ?? '', {
+  const cancelInvitationMutation = useCancelInvitation(orgId, {
     onSuccess: () => {
       toast.success('Invitation cancelled successfully');
     },
@@ -113,7 +99,7 @@ export default function OrgTeamPage() {
     },
   });
 
-  const resendInvitationMutation = useResendInvitation(orgId ?? '', {
+  const resendInvitationMutation = useResendInvitation(orgId, {
     onSuccess: () => {
       toast.success('Invitation resent successfully');
     },
@@ -122,7 +108,7 @@ export default function OrgTeamPage() {
     },
   });
 
-  const removeMemberMutation = useRemoveMember(orgId ?? '', {
+  const removeMemberMutation = useRemoveMember(orgId, {
     onSuccess: () => {
       toast.success('Member removed successfully');
     },
@@ -155,7 +141,7 @@ export default function OrgTeamPage() {
     'organizationmemberships',
     'delete',
     {
-      namespace: buildOrganizationNamespace(orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId),
       group: 'resourcemanager.miloapis.com',
     }
   );
@@ -164,17 +150,8 @@ export default function OrgTeamPage() {
     'userinvitations',
     'create',
     {
-      namespace: buildOrganizationNamespace(orgId ?? ''),
+      namespace: buildOrganizationNamespace(orgId),
       group: 'iam.miloapis.com',
-    }
-  );
-
-  const { hasPermission: hasEditMemberPermission } = useHasPermission(
-    'organizationmemberships',
-    'patch',
-    {
-      namespace: buildOrganizationNamespace(orgId ?? ''),
-      group: 'resourcemanager.miloapis.com',
     }
   );
 
@@ -267,7 +244,7 @@ export default function OrgTeamPage() {
       showConfirmInput: false,
       onSubmit: async () => {
         leaveOrganizationMutation.mutate({
-          orgId: orgId ?? '',
+          orgId,
           memberName: row?.name ?? '',
         });
       },
@@ -319,48 +296,6 @@ export default function OrgTeamPage() {
           );
         },
       },
-      {
-        header: 'Role',
-        accessorKey: 'role',
-        enableSorting: false,
-        cell: ({ row }) => {
-          const roles = row.original.roles ?? [];
-          if (!roles.length) {
-            return <span className="text-muted-foreground text-xs">—</span>;
-          }
-
-          return (
-            <div className="flex flex-wrap gap-1">
-              {roles.map((role, idx) => {
-                const displayName = role.displayName || role.name;
-                const roleColor = {
-                  owner: 'success',
-                  editor: 'info',
-                  viewer: 'danger',
-                };
-                const badge = (
-                  <Badge
-                    key={`${role.name}-${idx}`}
-                    type={(roleColor[role.name as keyof typeof roleColor] as any) ?? 'primary'}>
-                    {displayName}
-                  </Badge>
-                );
-
-                // If there's a description, wrap with tooltip
-                if (role.description) {
-                  return (
-                    <Tooltip key={`${role.name}-${idx}`} message={role.description}>
-                      {badge}
-                    </Tooltip>
-                  );
-                }
-
-                return badge;
-              })}
-            </div>
-          );
-        },
-      },
     ];
   }, []);
 
@@ -370,6 +305,7 @@ export default function OrgTeamPage() {
       {
         key: 'resend',
         label: 'Resend invitation',
+        display: 'inline' as const,
         icon: <Icon icon={Redo2Icon} className="size-4" />,
         hidden: (row: ITeamMember) =>
           row.type !== 'invitation' || row.invitationState !== 'Pending',
@@ -379,43 +315,17 @@ export default function OrgTeamPage() {
       {
         key: 'cancel',
         label: 'Cancel invitation',
+        display: 'inline' as const,
         variant: 'destructive' as const,
         icon: <Icon icon={TrashIcon} className="size-4" />,
         hidden: (row: ITeamMember) => row.type !== 'invitation',
         action: (row: ITeamMember) => cancelInvitation(row),
       },
-      // Edit member (for members only)
-      {
-        key: 'edit-role',
-        label: 'Edit role',
-        variant: 'default' as const,
-        icon: <Icon icon={UserPenIcon} className="size-4" />,
-        hidden: (row: ITeamMember) => {
-          // Hide if not a member
-          if (row.type !== 'member') return true;
-
-          // Hide if it's current user (use "Leave" instead)
-          if (row.email === user?.email) return true;
-
-          // Hide if no permission
-          if (!hasEditMemberPermission) return true;
-
-          return false;
-        },
-        action: (row: ITeamMember) => {
-          const role = row.roles?.[0];
-
-          manageRoleModalForm.current?.show({
-            id: row.name ?? '',
-            roleName: role?.name ?? '',
-            roleNamespace: role?.namespace ?? 'datum-cloud',
-          });
-        },
-      },
       // Remove member (for OTHER members, not self)
       {
         key: 'remove',
         label: 'Remove member',
+        display: 'inline' as const,
         variant: 'destructive' as const,
         icon: <Icon icon={TrashIcon} className="size-4" />,
         hidden: (row: ITeamMember) => {
@@ -467,20 +377,11 @@ export default function OrgTeamPage() {
         action: (row: ITeamMember) => leaveTeam(row),
       },
     ],
-    [user?.email, hasRemoveMemberPermission, hasEditMemberPermission, isLastOwner]
+    [user?.email, hasRemoveMemberPermission, isLastOwner]
   );
 
   return (
     <>
-      <ManageRoleModalForm
-        ref={manageRoleModalForm}
-        orgId={orgId ?? ''}
-        onSuccess={() => {
-          toast.success('Member role', {
-            description: 'The member role has been updated successfully',
-          });
-        }}
-      />
       <DataTable
         isLoading={isLoading}
         columns={columns}
@@ -491,8 +392,9 @@ export default function OrgTeamPage() {
             <Link
               to={getPathWithParams(paths.org.detail.team.invite, {
                 orgId,
-              })}>
-              <Button>
+              })}
+              className="w-full sm:w-auto">
+              <Button className="w-full">
                 <Icon icon={UserPlusIcon} className="size-4" />
                 Invite Member
               </Button>
@@ -505,7 +407,17 @@ export default function OrgTeamPage() {
             placeholder: 'Search team members',
           },
         }}
+        onRowClick={(row) => {
+          if (row.type !== 'member') return;
+          navigate(
+            getPathWithParams(paths.org.detail.team.roles, {
+              orgId,
+              memberId: row.name ?? '',
+            })
+          );
+        }}
         rowActions={rowActions}
+        maxInlineActions={4}
         emptyContent={{
           title: "Looks like you don't have any team members added yet",
           actions: [

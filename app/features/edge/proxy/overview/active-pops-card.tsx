@@ -83,20 +83,20 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
           Points of presence where this proxy is currently active, based on recent traffic metrics.
         </p>
         {isLoading && (
-          <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
+          <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
             <div className="flex flex-col items-center gap-3">
               <SpinnerIcon size="lg" />
               <p className="text-muted-foreground text-sm">Loading active POPs...</p>
             </div>
           </div>
         )}
-        {showSkeleton && <Skeleton className="h-64 w-full rounded-lg border" />}
+        {showSkeleton && <Skeleton className="h-40 w-full rounded-lg border sm:h-64" />}
         {!isLoading && !showSkeleton && !error && regionOptions.length > 0 && (
           <div className="flex flex-col gap-4">
             {regionsWithCoords.length > 0 && (
               <ChunkErrorBoundary
                 fallback={
-                  <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
+                  <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
                     <div className="flex flex-col items-center gap-2">
                       <p className="text-muted-foreground text-sm">Unable to load map.</p>
                       <Button
@@ -117,14 +117,14 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
               </ChunkErrorBoundary>
             )}
             {regionsWithCoords.length === 0 && (
-              <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
+              <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
                 <p className="text-muted-foreground text-center text-sm">No active POPs found.</p>
               </div>
             )}
           </div>
         )}
         {!isLoading && !showSkeleton && (error || regionOptions.length === 0) && (
-          <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
+          <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
             <p className="text-muted-foreground text-center text-sm">
               {error ? 'Unable to load active regions.' : 'No active POPs found.'}
             </p>

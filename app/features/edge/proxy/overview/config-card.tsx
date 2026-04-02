@@ -40,7 +40,6 @@ export const HttpProxyConfigCard = ({
     projectId ?? '',
     proxy.connector?.name
   );
-  const transformedStatus = transformControlPlaneStatus(proxy.status);
 
   useConnectorWatch(projectId ?? '', proxy.connector?.name);
 
@@ -83,11 +82,9 @@ export const HttpProxyConfigCard = ({
           </div>
         ),
         content:
-          transformedStatus.status === ControlPlaneStatus.Pending ? (
-            <Skeleton className="h-5 w-24 rounded-md" />
-          ) : proxy.trafficProtectionMode !== undefined ||
-            proxy.paranoiaLevels?.blocking !== undefined ||
-            proxy.paranoiaLevels?.detection !== undefined ? (
+          proxy.trafficProtectionMode !== 'Disabled' ||
+          proxy.paranoiaLevels?.blocking !== undefined ||
+          proxy.paranoiaLevels?.detection !== undefined ? (
             <div className="flex items-center gap-1.5">
               <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
                 {formatWafProtectionDisplay(proxy)}
@@ -102,9 +99,19 @@ export const HttpProxyConfigCard = ({
               )}
             </div>
           ) : (
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-              Coming soon
-            </Badge>
+            <div className="flex items-center gap-1.5">
+              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+                Disabled
+              </Badge>
+              {projectId && (
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => wafDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              )}
+            </div>
           ),
       },
       {

@@ -1,12 +1,13 @@
 import { z } from 'zod';
 
 // Role enum values
-export const ROLE_VALUES = ['owner', 'viewer'] as const;
+export const ROLE_VALUES = ['owner', 'editor', 'viewer'] as const;
 export type RoleValue = (typeof ROLE_VALUES)[number];
 
 // Role labels
 export const RoleLabels: Record<RoleValue, string> = {
   owner: 'Owner',
+  editor: 'Editor',
   viewer: 'Viewer',
 };
 
@@ -20,6 +21,9 @@ export const roleResourceSchema = z.object({
   displayName: z.string().optional(),
   description: z.string().optional(),
   annotations: z.record(z.string(), z.string()).optional(),
+  includedPermissions: z.array(z.string()).optional(),
+  inheritedRoles: z.array(z.string()).optional(),
+  launchStage: z.string().optional(),
 });
 
 export type Role = z.infer<typeof roleResourceSchema>;
