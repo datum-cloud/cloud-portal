@@ -35,7 +35,7 @@ export const PageTitle = ({
         {title && (
           <span
             data-e2e="page-title"
-            className={cn('text-2xl leading-none font-medium', titleClassName)}>
+            className={cn('font-title text-3xl leading-none', titleClassName)}>
             {title}
           </span>
         )}

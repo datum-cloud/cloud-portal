@@ -166,6 +166,8 @@ export default function SecretsPage() {
         }}
         tableTitle={{
           title: 'Secrets',
+          description:
+            'Store sensitive values like API keys and tokens that can be securely referenced by other resources without exposing the underlying value.',
           actions: (
             <Button
               type="primary"

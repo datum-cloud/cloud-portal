@@ -51,7 +51,7 @@ export function DataTableToolbarSkeleton({
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-col gap-2">
               {hasTitleContent ? (
-                <span className="text-2xl leading-none font-medium">{title}</span>
+                <span className="font-title text-3xl leading-none">{title}</span>
               ) : (
                 showTitle && <Skeleton className="h-8 w-48 rounded-md" />
               )}
@@ -88,7 +88,7 @@ export function DataTableToolbarSkeleton({
       {(hasTitleContent || hasDescriptionContent || showTitle || showDescription) && (
         <div className="flex w-full flex-col gap-2">
           {hasTitleContent ? (
-            <span className="text-2xl leading-none font-medium">{title}</span>
+            <span className="font-title text-3xl leading-none">{title}</span>
           ) : (
             showTitle && <Skeleton className="h-8 w-48 rounded-md" />
           )}
