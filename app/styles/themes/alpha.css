@@ -19,6 +19,11 @@ Scope variables to the theme class so we can swap themes by class
     'Segoe UI Symbol', 'Noto Color Emoji';
 
   --font-mono: 'Menlo', 'Consolas', 'Monaco', 'DejaVu Sans Mono', monospace;
+
+  --font-title:
+    'Canela Text', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+
   /* ========================================
    BASE SHADCN VARIABLES
    ======================================== */
@@ -421,6 +426,7 @@ TAILWIND CUSTOM UTILITIES FOR THEME
   /* Font Families */
   --font-mono: var(--font-mono);
   --font-sans: var(--font-sans);
+  --font-title: var(--font-title);
 
   /* Custom base shadow */
   --shadow: 0 2px 4px 2px rgba(12, 29, 49, 0.03);

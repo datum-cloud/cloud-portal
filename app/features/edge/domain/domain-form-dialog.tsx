@@ -60,7 +60,6 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
         open={open}
         onOpenChange={setOpen}
         title="Add a Domain"
-        description="To use a custom domain for your services, you must first verify ownership. This form creates a domain resource that provides the necessary DNS records for verification. Once verified, you can securely use your domain in HTTPProxies and Gateways."
         schema={domainSchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}

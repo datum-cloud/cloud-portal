@@ -512,6 +512,8 @@ export default function DomainsPage() {
           ],
         }}
         tableTitle={{
+          description:
+            'Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features.',
           title: 'Domains',
           actions: (
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
