@@ -371,6 +371,8 @@ export default function DnsZonesPage() {
         }}
         tableTitle={{
           title: 'DNS',
+          description:
+            'Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain.',
           actions: (
             <Button
               type="primary"

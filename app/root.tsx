@@ -59,7 +59,16 @@ export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
 };
 
 export const links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: RootCSS }];
+  return [
+    {
+      rel: 'preload',
+      href: '/fonts/CanelaText-Regular.ttf',
+      as: 'font',
+      type: 'font/ttf',
+      crossOrigin: 'anonymous',
+    },
+    { rel: 'stylesheet', href: RootCSS },
+  ];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {

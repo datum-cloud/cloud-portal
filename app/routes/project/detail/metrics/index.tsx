@@ -186,6 +186,8 @@ export default function ExportPoliciesPage() {
       }}
       tableTitle={{
         title: 'Export Policies',
+        description:
+          'Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud.',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.metrics.new, {

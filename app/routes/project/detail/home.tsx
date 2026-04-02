@@ -209,7 +209,7 @@ export default function ProjectHomePage() {
       <Row gutter={[16, 8]}>
         <Col md={12} xs={24}>
           <div className="flex flex-col gap-2">
-            <h1 className="text-foreground text-2xl font-semibold">
+            <h1 className="font-title text-foreground text-3xl">
               {isNewUser
                 ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
                 : `Welcome back, ${user?.givenName ?? 'there'}`}

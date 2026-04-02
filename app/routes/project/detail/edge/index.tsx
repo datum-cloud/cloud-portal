@@ -256,6 +256,8 @@ export default function HttpProxyPage() {
         }}
         tableTitle={{
           title: 'AI Edge',
+          description:
+            'Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services.',
           actions: (
             <Button
               type="primary"
