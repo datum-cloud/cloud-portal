@@ -14,6 +14,7 @@ export type {
   UpdateMachineAccountInput,
   CreateMachineAccountKeyInput,
   CreateMachineAccountKeyResponse,
+  DatumCredentialsFile,
 } from './types';
 
 export {
@@ -41,3 +42,9 @@ export {
   useHydrateMachineAccounts,
   useHydrateMachineAccount,
 } from './machine-account.queries';
+
+export {
+  useMachineAccountEmailPoller,
+  type PollerStatus,
+  type PollerResult,
+} from './use-machine-account-email-poller';

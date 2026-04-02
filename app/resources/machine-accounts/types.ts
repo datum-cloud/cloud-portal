@@ -39,4 +39,16 @@ export interface CreateMachineAccountKeyInput {
 export interface CreateMachineAccountKeyResponse {
   key: MachineAccountKey;
   privateKey?: string;
+  userId?: string;
+}
+
+export interface DatumCredentialsFile {
+  type: 'datum_machine_account';
+  api_endpoint: string;
+  token_uri: string;
+  project_id: string;
+  client_email: string;
+  client_id: string;
+  private_key_id: string;
+  private_key: string;
 }

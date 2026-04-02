@@ -214,7 +214,18 @@ export default function MachineAccountsPage() {
           )
         }
       />
-      <MachineAccountFormDialog ref={formDialogRef} projectId={projectId ?? ''} />
+      <MachineAccountFormDialog
+        ref={formDialogRef}
+        projectId={projectId ?? ''}
+        onCreated={(account) => {
+          navigate(
+            getPathWithParams(paths.project.detail.machineAccounts.detail.keys, {
+              projectId,
+              machineAccountId: account.name,
+            })
+          );
+        }}
+      />
     </>
   );
 }

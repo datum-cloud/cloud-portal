@@ -1,21 +1,23 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { KeyRevealPanel } from '@/features/machine-account/components/key-reveal-panel';
 import { MachineAccountKeyFormDialog } from '@/features/machine-account/form/machine-account-key-form-dialog';
 import type { MachineAccountKeyFormDialogRef } from '@/features/machine-account/form/machine-account-key-form-dialog';
-import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
+  useMachineAccount,
   useMachineAccountKeys,
+  useMachineAccountEmailPoller,
   useRevokeMachineAccountKey,
   type MachineAccountKey,
 } from '@/resources/machine-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Badge, Button, CloseIcon, toast } from '@datum-ui/components';
+import { Badge, Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { CheckIcon, CopyIcon, PlusIcon, ThumbsUpIcon } from 'lucide-react';
+import { AlertCircleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { MetaFunction } from 'react-router';
 import { useParams } from 'react-router';
@@ -30,12 +32,26 @@ export default function MachineAccountKeysPage() {
   const { projectId, machineAccountId } = useParams();
   const { confirm } = useConfirmationDialog();
   const keyFormDialogRef = useRef<MachineAccountKeyFormDialogRef>(null);
+
   const [newPrivateKey, setNewPrivateKey] = useState<string | null>(null);
+  const [newUserId, setNewUserId] = useState<string | null>(null);
+  const [newKeyId, setNewKeyId] = useState<string | null>(null);
 
-  const [, copyToClipboard] = useCopyToClipboard();
-  const [keyCopied, setKeyCopied] = useState(false);
+  const { data: machineAccount } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
 
-  const { data: keys = [] } = useMachineAccountKeys(projectId ?? '', machineAccountId ?? '');
+  const pollerResult = useMachineAccountEmailPoller(
+    projectId ?? '',
+    machineAccountId ?? '',
+    machineAccount?.identityEmail
+  );
+
+  const resolvedEmail = pollerResult.email ?? '';
+
+  const { data: keys = [] } = useMachineAccountKeys(
+    projectId ?? '',
+    machineAccountId ?? '',
+    resolvedEmail
+  );
 
   const revokeMutation = useRevokeMachineAccountKey(projectId ?? '', machineAccountId ?? '', {
     onSuccess: () => {
@@ -107,15 +123,6 @@ export default function MachineAccountKeysPage() {
         cell: ({ row }) =>
           row.original.expiresAt ? <DateTime date={row.original.expiresAt} /> : <span>Never</span>,
       },
-      {
-        header: 'Status',
-        accessorKey: 'status',
-        cell: ({ row }) => (
-          <Badge type={row.original.status === 'Active' ? 'success' : 'danger'}>
-            {row.original.status}
-          </Badge>
-        ),
-      },
     ],
     []
   );
@@ -126,53 +133,57 @@ export default function MachineAccountKeysPage() {
         key: 'revoke',
         label: 'Revoke',
         variant: 'destructive',
+        display: 'inline',
         action: (row) => revokeKey(row),
       },
     ],
     [revokeKey]
   );
 
+  const isPolling = pollerResult.status === 'polling';
+  const isProvisioningFailed =
+    pollerResult.status === 'timeout' || pollerResult.status === 'error';
+
   return (
     <div className="flex flex-col gap-4">
-      {newPrivateKey && (
-        <div className="bg-card-success border-card-success-border relative flex flex-col gap-3.5 rounded-lg border p-6">
+      {newPrivateKey && newUserId && newKeyId && machineAccount && resolvedEmail && (
+        <KeyRevealPanel
+          privateKey={newPrivateKey}
+          userId={newUserId}
+          keyId={newKeyId}
+          machineAccountName={machineAccount.name}
+          identityEmail={resolvedEmail}
+          projectId={projectId ?? ''}
+          onDismiss={() => {
+            setNewPrivateKey(null);
+            setNewUserId(null);
+            setNewKeyId(null);
+          }}
+        />
+      )}
+
+      {isPolling && (
+        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          <Loader2Icon className="size-4 animate-spin shrink-0" />
+          <span>Setting up account identity&hellip; This usually takes a few seconds.</span>
+        </div>
+      )}
+
+      {isProvisioningFailed && (
+        <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <AlertCircleIcon className="size-4 shrink-0 text-destructive mt-0.5" />
+          <div className="flex flex-1 flex-col gap-1">
+            <span className="font-medium text-destructive">Account provisioning failed</span>
+            <span className="text-muted-foreground">{pollerResult.error}</span>
+          </div>
           <Button
             htmlType="button"
             type="quaternary"
-            theme="borderless"
-            size="icon"
-            className="absolute top-4 right-4 size-6"
-            onClick={() => setNewPrivateKey(null)}>
-            <CloseIcon />
+            theme="outline"
+            size="small"
+            onClick={() => window.location.reload()}>
+            Retry
           </Button>
-          <div className="flex items-center gap-2.5">
-            <Icon icon={ThumbsUpIcon} className="text-success relative" size={16} />
-            <h4 className="text-sm font-semibold">Key created — save your private key now!</h4>
-          </div>
-          <p className="text-xs">
-            Store this private key in a secure place. You will not be able to see it again.
-          </p>
-          <div className="relative rounded-md bg-[#4D63561C]">
-            <pre className="max-h-48 overflow-auto p-3 font-mono text-xs break-all whitespace-pre-wrap">
-              {newPrivateKey}
-            </pre>
-            <button
-              type="button"
-              className="absolute top-2 right-2 rounded-md p-1.5 transition-colors hover:bg-black/10"
-              onClick={() => {
-                copyToClipboard(newPrivateKey).then(() => {
-                  toast.success('Copied to clipboard');
-                  setKeyCopied(true);
-                  setTimeout(() => setKeyCopied(false), 2000);
-                });
-              }}>
-              {keyCopied ? (
-                <CheckIcon className="size-4 text-success" />
-              ) : (
-                <CopyIcon className="size-4" />
-              )}
-            </button>
-          </div>
         </div>
       )}
 
@@ -190,6 +201,8 @@ export default function MachineAccountKeysPage() {
               type="primary"
               theme="solid"
               size="small"
+              disabled={isPolling || isProvisioningFailed}
+              title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
               onClick={() => keyFormDialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add Key
@@ -203,8 +216,11 @@ export default function MachineAccountKeysPage() {
         ref={keyFormDialogRef}
         projectId={projectId ?? ''}
         machineAccountId={machineAccountId ?? ''}
-        onKeyCreated={(privateKey) => {
-          if (privateKey) setNewPrivateKey(privateKey);
+        machineAccountEmail={resolvedEmail}
+        onKeyCreated={(response) => {
+          if (response.privateKey) setNewPrivateKey(response.privateKey);
+          if (response.userId) setNewUserId(response.userId);
+          if (response.key?.keyId) setNewKeyId(response.key.keyId);
         }}
       />
     </div>

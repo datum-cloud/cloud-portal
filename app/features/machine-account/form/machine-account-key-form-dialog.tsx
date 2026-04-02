@@ -3,6 +3,7 @@ import {
   machineAccountKeyCreateSchema,
   useCreateMachineAccountKey,
   type MachineAccountKeyCreateSchema,
+  type CreateMachineAccountKeyResponse,
 } from '@/resources/machine-accounts';
 import { toast } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
@@ -17,7 +18,8 @@ export interface MachineAccountKeyFormDialogRef {
 interface MachineAccountKeyFormDialogProps {
   projectId: string;
   machineAccountId: string;
-  onKeyCreated?: (privateKey?: string) => void;
+  machineAccountEmail: string;
+  onKeyCreated?: (response: CreateMachineAccountKeyResponse) => void;
 }
 
 type KeyType = 'datum-managed' | 'user-managed';
@@ -68,17 +70,17 @@ function KeyTypeCard({
 export const MachineAccountKeyFormDialog = forwardRef<
   MachineAccountKeyFormDialogRef,
   MachineAccountKeyFormDialogProps
->(({ projectId, machineAccountId, onKeyCreated }, ref) => {
+>(({ projectId, machineAccountId, machineAccountEmail, onKeyCreated }, ref) => {
   const [open, setOpen] = useState(false);
   const [keyType, setKeyType] = useState<KeyType>('datum-managed');
 
-  const createMutation = useCreateMachineAccountKey(projectId, machineAccountId, {
+  const createMutation = useCreateMachineAccountKey(projectId, machineAccountId, machineAccountEmail, {
     onSuccess: (response) => {
       toast.success('Key created', {
         description: 'Machine account key has been created successfully.',
       });
       setOpen(false);
-      onKeyCreated?.(response.privateKey);
+      onKeyCreated?.(response);
     },
     onError: (error) => {
       toast.error('Error', { description: error.message });

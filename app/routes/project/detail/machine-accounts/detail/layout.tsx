@@ -122,7 +122,7 @@ export default function MachineAccountDetailLayout() {
         }),
       },
       {
-        label: 'Policy Bindings',
+        label: 'Roles',
         href: getPathWithParams(paths.project.detail.machineAccounts.detail.policyBindings, {
           projectId,
           machineAccountId: id,
@@ -154,7 +154,11 @@ export default function MachineAccountDetailLayout() {
           <div className="flex flex-col gap-1">
             <h1 className="text-foreground text-lg font-semibold">{displayName}</h1>
             <div className="text-muted-foreground flex items-center gap-3 text-sm">
-              <span>{account.identityEmail}</span>
+              <span>
+                {account.identityEmail || (
+                  <span className="text-muted-foreground/50 italic">Provisioning...</span>
+                )}
+              </span>
               <span className="bg-border inline-block size-1 rounded-full" />
               <span className="font-medium">Machine account</span>
               <span className="bg-border inline-block size-1 rounded-full" />

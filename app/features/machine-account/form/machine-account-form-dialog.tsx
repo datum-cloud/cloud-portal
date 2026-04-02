@@ -19,6 +19,7 @@ export interface MachineAccountFormDialogRef {
 
 interface MachineAccountFormDialogProps {
   projectId: string;
+  onCreated?: (account: MachineAccount) => void;
 }
 
 const CREATE_DEFAULTS: MachineAccountCreateSchema = {
@@ -42,7 +43,7 @@ function NamePreview({ projectId }: { projectId: string }) {
 export const MachineAccountFormDialog = forwardRef<
   MachineAccountFormDialogRef,
   MachineAccountFormDialogProps
->(({ projectId }, ref) => {
+>(({ projectId, onCreated }, ref) => {
   const [open, setOpen] = useState(false);
   const [editName, setEditName] = useState('');
   const [defaultValues, setDefaultValues] = useState<MachineAccountCreateSchema>(CREATE_DEFAULTS);
@@ -50,11 +51,12 @@ export const MachineAccountFormDialog = forwardRef<
   const isEdit = !!editName;
 
   const createMutation = useCreateMachineAccount(projectId, {
-    onSuccess: () => {
+    onSuccess: (newAccount) => {
       toast.success('Machine account', {
         description: 'Machine account has been created successfully.',
       });
       setOpen(false);
+      onCreated?.(newAccount);
     },
     onError: (error) => {
       toast.error('Error', { description: error.message });
