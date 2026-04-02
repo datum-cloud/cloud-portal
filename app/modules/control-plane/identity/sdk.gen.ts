@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, CreateIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, CreateIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKeyData, DeleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKeyErrors, DeleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, DeleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, DeleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1SessionData, DeleteIdentityMiloapisComV1Alpha1SessionErrors, DeleteIdentityMiloapisComV1Alpha1SessionResponses, GetIdentityMiloapisComV1Alpha1ApiResourcesData, GetIdentityMiloapisComV1Alpha1ApiResourcesErrors, GetIdentityMiloapisComV1Alpha1ApiResourcesResponses, ListIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespacesData, ListIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespacesErrors, ListIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespacesResponses, ListIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ListIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ListIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, ListIdentityMiloapisComV1Alpha1SessionData, ListIdentityMiloapisComV1Alpha1SessionErrors, ListIdentityMiloapisComV1Alpha1SessionResponses, ListIdentityMiloapisComV1Alpha1UserIdentityData, ListIdentityMiloapisComV1Alpha1UserIdentityErrors, ListIdentityMiloapisComV1Alpha1UserIdentityResponses, PatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, PatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, PatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, ReadIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ReadIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ReadIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, ReadIdentityMiloapisComV1Alpha1SessionData, ReadIdentityMiloapisComV1Alpha1SessionErrors, ReadIdentityMiloapisComV1Alpha1SessionResponses, ReadIdentityMiloapisComV1Alpha1UserIdentityData, ReadIdentityMiloapisComV1Alpha1UserIdentityErrors, ReadIdentityMiloapisComV1Alpha1UserIdentityResponses, ReplaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ReplaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ReplaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, WatchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespacesData, WatchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespacesErrors, WatchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespacesResponses, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyListData, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyListErrors, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyListResponses, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses } from './types.gen';
+import type { CreateIdentityMiloapisComV1Alpha1MachineAccountKeyData, CreateIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, CreateIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1MachineAccountKeyData, DeleteIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, DeleteIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1SessionData, DeleteIdentityMiloapisComV1Alpha1SessionErrors, DeleteIdentityMiloapisComV1Alpha1SessionResponses, GetIdentityMiloapisComV1Alpha1ApiResourcesData, GetIdentityMiloapisComV1Alpha1ApiResourcesErrors, GetIdentityMiloapisComV1Alpha1ApiResourcesResponses, ListIdentityMiloapisComV1Alpha1MachineAccountKeyData, ListIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, ListIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, ListIdentityMiloapisComV1Alpha1SessionData, ListIdentityMiloapisComV1Alpha1SessionErrors, ListIdentityMiloapisComV1Alpha1SessionResponses, ListIdentityMiloapisComV1Alpha1UserIdentityData, ListIdentityMiloapisComV1Alpha1UserIdentityErrors, ListIdentityMiloapisComV1Alpha1UserIdentityResponses, ReadIdentityMiloapisComV1Alpha1MachineAccountKeyData, ReadIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, ReadIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, ReadIdentityMiloapisComV1Alpha1SessionData, ReadIdentityMiloapisComV1Alpha1SessionErrors, ReadIdentityMiloapisComV1Alpha1SessionResponses, ReadIdentityMiloapisComV1Alpha1UserIdentityData, ReadIdentityMiloapisComV1Alpha1UserIdentityErrors, ReadIdentityMiloapisComV1Alpha1UserIdentityResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -24,32 +24,15 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const getIdentityMiloapisComV1Alpha1ApiResources = <ThrowOnError extends boolean = false>(options?: Options<GetIdentityMiloapisComV1Alpha1ApiResourcesData, ThrowOnError>) => (options?.client ?? client).get<GetIdentityMiloapisComV1Alpha1ApiResourcesResponses, GetIdentityMiloapisComV1Alpha1ApiResourcesErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/', ...options });
 
 /**
- * list or watch objects of kind MachineAccountKey
+ * list objects of kind MachineAccountKey
  */
-export const listIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespaces = <ThrowOnError extends boolean = false>(options?: Options<ListIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespacesData, ThrowOnError>) => (options?.client ?? client).get<ListIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespacesResponses, ListIdentityMiloapisComV1Alpha1MachineAccountKeyForAllNamespacesErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/machineaccountkeys', ...options });
-
-/**
- * delete collection of MachineAccountKey
- */
-export const deleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<DeleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).delete<DeleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1CollectionNamespacedMachineAccountKeyErrors, ThrowOnError>({
-    url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys',
-    ...options,
-    headers: {
-        'Content-Type': '*/*',
-        ...options.headers
-    }
-});
-
-/**
- * list or watch objects of kind MachineAccountKey
- */
-export const listIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<ListIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).get<ListIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, ListIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys', ...options });
+export const listIdentityMiloapisComV1Alpha1MachineAccountKey = <ThrowOnError extends boolean = false>(options?: Options<ListIdentityMiloapisComV1Alpha1MachineAccountKeyData, ThrowOnError>) => (options?.client ?? client).get<ListIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, ListIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/machineaccountkeys', ...options });
 
 /**
  * create a MachineAccountKey
  */
-export const createIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<CreateIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).post<CreateIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, CreateIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({
-    url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys',
+export const createIdentityMiloapisComV1Alpha1MachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<CreateIdentityMiloapisComV1Alpha1MachineAccountKeyData, ThrowOnError>) => (options.client ?? client).post<CreateIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, CreateIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, ThrowOnError>({
+    url: '/apis/identity.miloapis.com/v1alpha1/machineaccountkeys',
     ...options,
     headers: {
         'Content-Type': '*/*',
@@ -60,8 +43,8 @@ export const createIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <Thr
 /**
  * delete a MachineAccountKey
  */
-export const deleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<DeleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).delete<DeleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({
-    url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys/{name}',
+export const deleteIdentityMiloapisComV1Alpha1MachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<DeleteIdentityMiloapisComV1Alpha1MachineAccountKeyData, ThrowOnError>) => (options.client ?? client).delete<DeleteIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, DeleteIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, ThrowOnError>({
+    url: '/apis/identity.miloapis.com/v1alpha1/machineaccountkeys/{name}',
     ...options,
     headers: {
         'Content-Type': '*/*',
@@ -72,31 +55,7 @@ export const deleteIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <Thr
 /**
  * read the specified MachineAccountKey
  */
-export const readIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<ReadIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).get<ReadIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, ReadIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys/{name}', ...options });
-
-/**
- * partially update the specified MachineAccountKey
- */
-export const patchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<PatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).patch<PatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, PatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({
-    url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys/{name}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json-patch+json',
-        ...options.headers
-    }
-});
-
-/**
- * replace the specified MachineAccountKey
- */
-export const replaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<ReplaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).put<ReplaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, ReplaceIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({
-    url: '/apis/identity.miloapis.com/v1alpha1/namespaces/{namespace}/machineaccountkeys/{name}',
-    ...options,
-    headers: {
-        'Content-Type': '*/*',
-        ...options.headers
-    }
-});
+export const readIdentityMiloapisComV1Alpha1MachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<ReadIdentityMiloapisComV1Alpha1MachineAccountKeyData, ThrowOnError>) => (options.client ?? client).get<ReadIdentityMiloapisComV1Alpha1MachineAccountKeyResponses, ReadIdentityMiloapisComV1Alpha1MachineAccountKeyErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/machineaccountkeys/{name}', ...options });
 
 /**
  * list objects of kind Session
@@ -129,18 +88,3 @@ export const listIdentityMiloapisComV1Alpha1UserIdentity = <ThrowOnError extends
  * read the specified UserIdentity
  */
 export const readIdentityMiloapisComV1Alpha1UserIdentity = <ThrowOnError extends boolean = false>(options: Options<ReadIdentityMiloapisComV1Alpha1UserIdentityData, ThrowOnError>) => (options.client ?? client).get<ReadIdentityMiloapisComV1Alpha1UserIdentityResponses, ReadIdentityMiloapisComV1Alpha1UserIdentityErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/useridentities/{name}', ...options });
-
-/**
- * watch individual changes to a list of MachineAccountKey. deprecated: use the 'watch' parameter with a list operation instead.
- */
-export const watchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespaces = <ThrowOnError extends boolean = false>(options?: Options<WatchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespacesData, ThrowOnError>) => (options?.client ?? client).get<WatchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespacesResponses, WatchIdentityMiloapisComV1Alpha1MachineAccountKeyListForAllNamespacesErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/watch/machineaccountkeys', ...options });
-
-/**
- * watch individual changes to a list of MachineAccountKey. deprecated: use the 'watch' parameter with a list operation instead.
- */
-export const watchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyList = <ThrowOnError extends boolean = false>(options: Options<WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyListData, ThrowOnError>) => (options.client ?? client).get<WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyListResponses, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyListErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/watch/namespaces/{namespace}/machineaccountkeys', ...options });
-
-/**
- * watch changes to an object of kind MachineAccountKey. deprecated: use the 'watch' parameter with a list operation instead, filtered to a single item with the 'fieldSelector' parameter.
- */
-export const watchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKey = <ThrowOnError extends boolean = false>(options: Options<WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyData, ThrowOnError>) => (options.client ?? client).get<WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyResponses, WatchIdentityMiloapisComV1Alpha1NamespacedMachineAccountKeyErrors, ThrowOnError>({ url: '/apis/identity.miloapis.com/v1alpha1/watch/namespaces/{namespace}/machineaccountkeys/{name}', ...options });
