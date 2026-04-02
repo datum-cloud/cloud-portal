@@ -1,7 +1,5 @@
-import { geoMercator, geoPath } from 'd3-geo';
-import { useCallback, useEffect, useRef } from 'react';
-import { feature } from 'topojson-client';
-import type { GeometryCollection, Topology } from 'topojson-specification';
+import { geoMercator } from 'd3-geo';
+import { useMemo, useState } from 'react';
 
 interface RegionWithCoords {
   value: string;
@@ -14,180 +12,128 @@ interface Props {
   hoveredRegion?: string | null;
 }
 
-const DOT_SPACING = 4;
-const DOT_RADIUS = 1.2;
-const MARKER_RADIUS = 6;
+const SVG_WIDTH = 1038;
+const SVG_HEIGHT = 591;
 
-let cachedLand: ReturnType<typeof feature> | null = null;
-async function getLand() {
-  if (cachedLand) return cachedLand;
-  const topo = (await import('world-atlas/land-110m.json')) as unknown as Topology<{
-    land: GeometryCollection;
-  }>;
-  cachedLand = feature(topo, topo.objects.land);
-  return cachedLand;
-}
+const METRO_BY_CODE: Record<string, string> = {
+  'ae-north-1': 'Dubai',
+  'au-east-1': 'Sydney',
+  'br-east-1': 'São Paulo',
+  'ca-east-1': 'Toronto',
+  'cl-central-1': 'Chile',
+  'de-central-1': 'Frankfurt',
+  'gb-south-1': 'London',
+  'in-west-1': 'Mumbai',
+  'jp-east-1': 'Tokyo',
+  'nl-west-1': 'Amsterdam',
+  'sg-central-1': 'Singapore',
+  'us-central-1': 'Dallas',
+  'us-east-1': 'Ashburn',
+  'us-east-2': 'New York City',
+  // Staging region
+  'us-east4': 'Staging',
+  'us-west-1': 'San Jose, CA',
+  'za-central-1': 'Johannesburg',
+};
+
+const projection = geoMercator().fitExtent(
+  [
+    [0, 0],
+    [SVG_WIDTH, SVG_HEIGHT],
+  ],
+  {
+    type: 'Feature',
+    geometry: {
+      type: 'MultiPoint',
+      coordinates: [
+        [-180, -60],
+        [180, 75],
+      ],
+    },
+    properties: null,
+  }
+);
 
 export function ActivePopsFlatMap({ regionsWithCoords, hoveredRegion }: Props) {
-  const bgCanvasRef = useRef<HTMLCanvasElement>(null);
-  const markerCanvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const projectionRef = useRef<ReturnType<typeof geoMercator> | null>(null);
-  const animFrameRef = useRef<number>(0);
+  const [tooltip, setTooltip] = useState<{ value: string; x: number; y: number } | null>(null);
 
-  // Keep refs updated on every render so the animation loop always sees current values
-  // without needing to restart when props change.
-  const regionsRef = useRef(regionsWithCoords);
-  regionsRef.current = regionsWithCoords;
-  const hoveredRef = useRef<string | null | undefined>(hoveredRegion);
-  hoveredRef.current = hoveredRegion;
-
-  // Draws the static dot grid into bgCanvas and stores the projection.
-  // Only needs to run on mount and resize.
-  const drawBackground = useCallback(async (width: number, height: number) => {
-    const bgCanvas = bgCanvasRef.current;
-    const markerCanvas = markerCanvasRef.current;
-    if (!bgCanvas || !markerCanvas || width === 0 || height === 0) return;
-
-    const dpr = window.devicePixelRatio ?? 1;
-
-    for (const canvas of [bgCanvas, markerCanvas]) {
-      canvas.width = width * dpr;
-      canvas.height = height * dpr;
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-    }
-
-    const ctx = bgCanvas.getContext('2d');
-    if (!ctx) return;
-    ctx.scale(dpr, dpr);
-    ctx.clearRect(0, 0, width, height);
-
-    const land = await getLand();
-    const projection = geoMercator().fitExtent(
-      [
-        [0, 0],
-        [width, height],
-      ],
-      {
-        type: 'Feature',
-        geometry: {
-          type: 'MultiPoint',
-          coordinates: [
-            [-180, -60],
-            [180, 75],
-          ],
-        },
-        properties: null,
-      }
-    );
-    projectionRef.current = projection;
-
-    const path = geoPath(projection, ctx);
-    const dotColor = 'oklch(0.67 0 0 / 1)';
-
-    ctx.save();
-    ctx.beginPath();
-    path(land);
-    ctx.clip();
-
-    ctx.fillStyle = dotColor;
-    for (let x = 0; x < width; x += DOT_SPACING) {
-      for (let y = 0; y < height; y += DOT_SPACING) {
-        ctx.beginPath();
-        ctx.arc(x, y, DOT_RADIUS, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.restore();
-  }, []);
-
-  // Starts the RAF loop that animates markers on the top canvas.
-  // Reads from refs so it never needs to restart when regionsWithCoords/hoveredRegion changes.
-  const startAnimation = useCallback(() => {
-    cancelAnimationFrame(animFrameRef.current);
-
-    const animate = () => {
-      const markerCanvas = markerCanvasRef.current;
-      const projection = projectionRef.current;
-      if (!markerCanvas || !projection || markerCanvas.width === 0) {
-        animFrameRef.current = requestAnimationFrame(animate);
-        return;
-      }
-
-      const dpr = window.devicePixelRatio ?? 1;
-      const width = markerCanvas.width / dpr;
-      const height = markerCanvas.height / dpr;
-      const ctx = markerCanvas.getContext('2d');
-      if (!ctx) return;
-
-      ctx.save();
-      ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, width, height);
-
-      const style = getComputedStyle(markerCanvas);
-      const markerColor = style.getPropertyValue('--primary').trim() || 'oklch(0.61 0.044 18.4)';
-
-      const pulse = (1 + Math.sin((Date.now() / 700) % (Math.PI * 2))) / 2; // 0 → 1
-
-      for (const { coords, value } of regionsRef.current) {
-        const isHovered = value === hoveredRef.current;
+  const markers = useMemo(() => {
+    return regionsWithCoords
+      .map(({ value, coords }) => {
         const projected = projection([coords[1], coords[0]]);
-        if (!projected) continue;
-        const [px, py] = projected;
+        if (!projected) return null;
+        return { value, x: projected[0], y: projected[1] };
+      })
+      .filter((m): m is { value: string; x: number; y: number } => m !== null);
+  }, [regionsWithCoords]);
 
-        const outerRadius = (isHovered ? MARKER_RADIUS + 4 : MARKER_RADIUS + 3) + pulse * 4;
-        const outerOpacity = isHovered ? 0.2 + 0.2 * pulse : 0.1 + 0.15 * pulse;
-        const innerRadius = isHovered ? MARKER_RADIUS + 2 : MARKER_RADIUS;
-
-        ctx.beginPath();
-        ctx.arc(px, py, outerRadius, 0, Math.PI * 2);
-        ctx.fillStyle = markerColor.replace(/\)$/, ` / ${outerOpacity.toFixed(2)})`);
-        ctx.fill();
-
-        ctx.beginPath();
-        ctx.arc(px, py, innerRadius, 0, Math.PI * 2);
-        ctx.fillStyle = markerColor;
-        ctx.fill();
-      }
-
-      ctx.restore();
-      animFrameRef.current = requestAnimationFrame(animate);
-    };
-
-    animFrameRef.current = requestAnimationFrame(animate);
-  }, []);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const ro = new ResizeObserver(async (entries) => {
-      const entry = entries[0];
-      if (!entry) return;
-      await drawBackground(entry.contentRect.width, entry.contentRect.height);
-      startAnimation();
-    });
-
-    ro.observe(container);
-
-    void (async () => {
-      await drawBackground(container.clientWidth, container.clientHeight);
-      startAnimation();
-    })();
-
-    return () => {
-      ro.disconnect();
-      cancelAnimationFrame(animFrameRef.current);
-    };
-  }, [drawBackground, startAnimation]);
+  const tooltipLeft = tooltip ? (tooltip.x / SVG_WIDTH) * 100 : 0;
+  const tooltipTop = tooltip ? (tooltip.y / SVG_HEIGHT) * 100 : 0;
+  const flipX = tooltipLeft > 70;
+  const flipY = tooltipTop > 70;
 
   return (
-    <div
-      ref={containerRef}
-      className="bg-background relative aspect-2/1 w-full overflow-hidden rounded-lg border">
-      <canvas ref={bgCanvasRef} className="absolute inset-0 block" />
-      <canvas ref={markerCanvasRef} className="absolute inset-0 block" />
+    <div className="bg-background relative aspect-2/1 w-full overflow-hidden rounded-lg border">
+      <svg
+        viewBox={`0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`}
+        className="absolute inset-0 h-full w-full"
+        preserveAspectRatio="none">
+        <image
+          href="/images/world-map-dots.svg"
+          x={0}
+          y={0}
+          width={SVG_WIDTH}
+          height={SVG_HEIGHT}
+        />
+        {markers.map(({ value, x, y }) => {
+          const isHovered = value === hoveredRegion || value === tooltip?.value;
+          const outerR = isHovered ? 10 : 8;
+          const innerR = isHovered ? 4.5 : 3.5;
+          const pingR = isHovered ? 18 : 14;
+          return (
+            <g
+              key={value}
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={() => setTooltip({ value, x, y })}
+              onMouseLeave={() => setTooltip(null)}>
+              {/* Animated ring pulse */}
+              <circle
+                cx={x}
+                cy={y}
+                r={pingR}
+                className="animate-ping"
+                style={{
+                  transformBox: 'fill-box',
+                  transformOrigin: 'center',
+                  fill: 'none',
+                  stroke: '#B3D56F',
+                  strokeWidth: 2,
+                  opacity: 0.5,
+                }}
+              />
+              {/* Lime-green body */}
+              <circle cx={x} cy={y} r={outerR} style={{ fill: '#B3D56F' }} />
+              {/* Dark center dot */}
+              <circle cx={x} cy={y} r={innerR} style={{ fill: '#4D6356' }} />
+              {/* Invisible hit area */}
+              <circle cx={x} cy={y} r={16} fill="transparent" />
+            </g>
+          );
+        })}
+      </svg>
+
+      {tooltip && (
+        <div
+          className="bg-popover text-popover-foreground pointer-events-none absolute z-10 flex flex-col gap-1 rounded-lg border px-3 py-2 shadow"
+          style={{
+            left: `${tooltipLeft}%`,
+            top: `${tooltipTop}%`,
+            transform: `translate(${flipX ? 'calc(-100% - 10px)' : '10px'}, ${flipY ? 'calc(-100% - 10px)' : '10px'})`,
+          }}>
+          <p className="text-xs font-medium">{METRO_BY_CODE[tooltip.value] ?? tooltip.value}</p>
+          <p className="text-muted-foreground text-xs">{tooltip.value}</p>
+        </div>
+      )}
     </div>
   );
 }

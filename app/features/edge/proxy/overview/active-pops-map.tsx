@@ -33,10 +33,10 @@ export const ActivePopsMap = ({ regionsWithCoords }: { regionsWithCoords: Region
           regionsWithCoords.map((r) => (
             <div
               key={r.value}
-              className="flex cursor-default items-center gap-2 text-sm"
+              className="text-1xs flex cursor-default items-center gap-2 md:text-sm"
               onMouseEnter={() => setHoveredRegion(r.value)}
               onMouseLeave={() => setHoveredRegion(null)}>
-              <span className="bg-primary size-2 shrink-0 rounded-full" />
+              <span className="size-2 shrink-0 rounded-full bg-[#B3D56F]" />
               <span className="text-foreground mb-0.5 truncate">{r.label}</span>
             </div>
           ))
