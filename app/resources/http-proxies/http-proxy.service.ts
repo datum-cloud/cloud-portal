@@ -471,21 +471,20 @@ export function createHttpProxyService() {
 
         const httpProxy = toHttpProxy(data);
 
-        // TODO: we're unable to support WAF atm
-        // // Attach WAF (OWASP Core Rule Set) to the proxy's Gateway
-        // try {
-        //   await this.createTrafficProtectionPolicy(
-        //     projectId,
-        //     input.name,
-        //     input.trafficProtectionMode ?? 'Enforce',
-        //     input.paranoiaLevels
-        //   );
-        // } catch (policyError) {
-        //   logger.error(
-        //     `${SERVICE_NAME}.createTrafficProtectionPolicy failed`,
-        //     policyError as Error
-        //   );
-        // }
+        // Attach WAF (OWASP Core Rule Set) to the proxy's Gateway
+        try {
+          await this.createTrafficProtectionPolicy(
+            projectId,
+            input.name,
+            input.trafficProtectionMode ?? 'Enforce',
+            input.paranoiaLevels
+          );
+        } catch (policyError) {
+          logger.error(
+            `${SERVICE_NAME}.createTrafficProtectionPolicy failed`,
+            policyError as Error
+          );
+        }
 
         logger.service(SERVICE_NAME, 'create', {
           input: { projectId, name: input.name },

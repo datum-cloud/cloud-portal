@@ -37,6 +37,7 @@ export const userResourceSchema = z.object({
   state: z.string().optional(),
   lastLoginProvider: z.enum(LAST_LOGIN_PROVIDER_VALUES).optional(),
   avatarUrl: z.string().optional(),
+  nameReviewRequired: z.boolean().optional(),
 });
 
 export type User = z.infer<typeof userResourceSchema>;

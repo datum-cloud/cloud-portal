@@ -38,6 +38,12 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
                   ...(existingItem.enableHttpRedirect !== undefined && {
                     enableHttpRedirect: existingItem.enableHttpRedirect,
                   }),
+                  ...(existingItem.basicAuthEnabled !== undefined &&
+                    newItem.basicAuthEnabled === undefined && {
+                      basicAuthEnabled: existingItem.basicAuthEnabled,
+                      basicAuthUserCount: existingItem.basicAuthUserCount,
+                      basicAuthUsernames: existingItem.basicAuthUsernames,
+                    }),
                 }
               : item
           );
@@ -85,6 +91,12 @@ export function useHttpProxyWatch(
         ...(oldData.enableHttpRedirect !== undefined && {
           enableHttpRedirect: oldData.enableHttpRedirect,
         }),
+        ...(oldData.basicAuthEnabled !== undefined &&
+          newItem.basicAuthEnabled === undefined && {
+            basicAuthEnabled: oldData.basicAuthEnabled,
+            basicAuthUserCount: oldData.basicAuthUserCount,
+            basicAuthUsernames: oldData.basicAuthUsernames,
+          }),
       };
     },
   });

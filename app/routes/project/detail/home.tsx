@@ -209,7 +209,7 @@ export default function ProjectHomePage() {
       <Row gutter={[16, 8]}>
         <Col md={12} xs={24}>
           <div className="flex flex-col gap-2">
-            <h1 className="text-foreground text-2xl font-semibold">
+            <h1 className="font-title text-foreground text-3xl">
               {isNewUser
                 ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
                 : `Welcome back, ${user?.givenName ?? 'there'}`}
@@ -236,7 +236,6 @@ export default function ProjectHomePage() {
 
       {/* Action cards */}
       <Row
-        className="overflow-hidden"
         gutter={[
           { xs: 8, sm: 16, md: 24, xl: 32 },
           { xs: 8, sm: 16, md: 24, xl: 32 },
@@ -248,7 +247,7 @@ export default function ProjectHomePage() {
             sm={12}
             md={12}
             xl={6}
-            className="h-[350px] min-h-[380px] overflow-hidden">
+            className="min-h-[320px] sm:min-h-[380px]">
             <ActionCard
               isCompleted={card.isCompleted}
               isLoading={card.isLoading}
@@ -289,13 +288,13 @@ export default function ProjectHomePage() {
               src="/images/scene-9.png"
               alt=""
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-1/2 h-auto max-w-[70px] -translate-x-[calc(50%+120px)] select-none"
+              className="pointer-events-none absolute bottom-0 left-1/2 hidden h-auto max-w-[70px] -translate-x-[calc(50%+120px)] select-none sm:block"
             />
             <img
               src="/images/scene-10.png"
               alt=""
               aria-hidden="true"
-              className="pointer-events-none absolute right-1/2 bottom-0 h-auto max-w-[80px] translate-x-[calc(50%+125px)] select-none sm:max-w-[110px] sm:translate-x-[calc(50%+145px)]"
+              className="pointer-events-none absolute right-1/2 bottom-0 hidden h-auto max-w-[80px] translate-x-[calc(50%+125px)] select-none sm:block sm:max-w-[110px] sm:translate-x-[calc(50%+145px)]"
             />
           </div>
         </Col>

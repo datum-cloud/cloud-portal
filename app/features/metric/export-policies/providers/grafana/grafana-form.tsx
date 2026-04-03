@@ -186,7 +186,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
               {/* Step 1: Grafana Access */}
               <Form.Step id="grafana">
                 <div className="divide-stepper-line divide-y">
-                  <div className="flex items-center justify-between gap-4 p-5">
+                  <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-col gap-1.5">
                       <p className="text-sm font-medium">Create a Grafana Cloud account</p>
                       <p className="text-xs opacity-60">
@@ -228,7 +228,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                     <div className="flex flex-col gap-1.5">
                       <p className="text-sm font-medium">Open the generated connection URL</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <TextCopyBox
                         value={connectionUrl}
                         className="border-input-border bg-input-background/50 h-9 rounded-lg"
@@ -295,7 +295,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                         <ChevronDownIcon className="size-4 transition-transform duration-200" />
                         Advanced options
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-5 flex gap-5">
+                      <CollapsibleContent className="mt-5 flex flex-col gap-5 sm:flex-row">
                         <Form.Custom>
                           {({ fields }) => (
                             <InputName

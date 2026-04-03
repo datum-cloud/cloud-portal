@@ -24,7 +24,7 @@ function getRequestContext() {
  * Wraps native fetch with Authorization and X-Request-ID headers
  * sourced from AsyncLocalStorage (same data as the axios.server interceptor).
  */
-function buildAuthFetch(token?: string, requestId?: string): typeof fetch {
+function buildAuthFetch(token?: string, requestId?: string, userAgent?: string): typeof fetch {
   return (input, init = {}) =>
     fetch(input, {
       ...init,
@@ -33,6 +33,7 @@ function buildAuthFetch(token?: string, requestId?: string): typeof fetch {
         ...(init.headers ?? {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(requestId ? { 'X-Request-ID': requestId } : {}),
+        ...(userAgent ? { 'User-Agent': userAgent } : {}),
       },
     });
 }
@@ -65,7 +66,7 @@ export function createGqlClient(scope: GqlScope, ssr?: SSRExchange): UrqlClient 
       url,
       preferGetMethod: false, // @urql/core@6 defaults to GET; backend requires POST
       exchanges: [cacheExchange, ...(ssr ? [ssr] : []), fetchExchange],
-      fetch: buildAuthFetch(ctx?.token, ctx?.requestId),
+      fetch: buildAuthFetch(ctx?.token, ctx?.requestId, ctx?.userAgent),
     });
   }
 

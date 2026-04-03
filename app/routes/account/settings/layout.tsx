@@ -1,43 +1,46 @@
 import { BackButton } from '@/components/back-button';
-import { DashboardLayout, TabsLayout, TabsNavProps } from '@/layouts';
+import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
+import { DashboardLayout } from '@/layouts';
 import { paths } from '@/utils/config/paths.config';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { Outlet } from 'react-router';
 
 export default function AccountSettingsLayout() {
-  const navItems: TabsNavProps[] = [
+  const navItems: SubNavigationTab[] = [
     {
-      value: 'general',
       label: 'General',
-      to: paths.account.settings.general,
+      href: paths.account.settings.general,
     },
     // {
-    //   value: 'security',
     //   label: 'Security',
-    //   to: paths.account.settings.security,
+    //   href: paths.account.settings.security,
     // },
     {
-      value: 'active-sessions',
       label: 'Active Sessions',
-      to: paths.account.settings.activeSessions,
+      href: paths.account.settings.activeSessions,
     },
     // {
-    //   value: 'access-tokens',
     //   label: 'Access Tokens',
-    //   to: paths.account.settings.accessTokens,
+    //   href: paths.account.settings.accessTokens,
     // },
     {
-      value: 'activity',
       label: 'Activity',
-      to: paths.account.settings.activity,
+      href: paths.account.settings.activity,
     },
   ];
   return (
     <DashboardLayout navItems={[]} sidebarCollapsible="none" contentClassName="w-full">
       <div className="mx-auto flex w-full flex-col gap-4 md:max-w-[1200px]">
         <BackButton to={paths.home}>Back to Dashboard</BackButton>
-        <TabsLayout tabsTitle={{ title: 'Account Settings' }} navItems={navItems}>
-          <Outlet />
-        </TabsLayout>
+        <div className="flex h-full flex-1 flex-col gap-8">
+          <PageTitle title="Account Settings" />
+          <SubNavigationTabs tabs={navItems} />
+          <div className="h-full w-full pt-2">
+            <div className="flex h-full flex-1 flex-col">
+              <Outlet />
+            </div>
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );

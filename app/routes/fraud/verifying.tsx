@@ -63,7 +63,7 @@ export default function VerifyingPage() {
 
   return (
     <BlankLayout>
-      <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-[400px] sm:p-4 md:p-6 lg:p-8 xl:p-[44px]">
+      <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
           <div className="mb-4 flex justify-center" aria-hidden="true">
             <svg

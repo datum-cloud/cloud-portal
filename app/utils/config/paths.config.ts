@@ -8,6 +8,9 @@ export const paths = {
   },
   home: '/',
   gettingStarted: '/getting-started',
+  onboarding: {
+    completeProfile: '/complete-profile',
+  },
   fraud: {
     verifying: '/verifying',
     accountUnderReview: '/account-under-review',
@@ -37,6 +40,10 @@ export const paths = {
       team: {
         root: '/org/[orgId]/team',
         invite: '/org/[orgId]/team/invite',
+        roles: '/org/[orgId]/team/[memberId]/roles',
+        groups: '/org/[orgId]/team/groups',
+        groupCreate: '/org/[orgId]/team/groups/create',
+        groupDetail: '/org/[orgId]/team/groups/[groupId]',
       },
       projects: {
         root: '/org/[orgId]/projects',

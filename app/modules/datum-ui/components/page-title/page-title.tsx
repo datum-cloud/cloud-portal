@@ -35,12 +35,14 @@ export const PageTitle = ({
         {title && (
           <span
             data-e2e="page-title"
-            className={cn('text-2xl leading-none font-medium', titleClassName)}>
+            className={cn('font-title text-3xl leading-none', titleClassName)}>
             {title}
           </span>
         )}
         {description && (
-          <div className={cn('text-sm font-normal', descriptionClassName)}>{description}</div>
+          <div className={cn('max-w-2xl text-sm font-normal', descriptionClassName)}>
+            {description}
+          </div>
         )}
       </div>
       {actions && (

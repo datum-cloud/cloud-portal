@@ -67,20 +67,20 @@ export default function ExportPoliciesPage() {
   });
 
   const deleteExportPolicy = async (exportPolicy: ExportPolicy) => {
+    const displayLabel = exportPolicy.annotations?.['app.kubernetes.io/name'] || exportPolicy.name;
+
     await confirm({
       title: 'Delete Export Policy',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{exportPolicy.name}</strong>?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: exportPolicy.name,
-      confirmInputLabel: `Type "${exportPolicy.name}" to confirm.`,
       onSubmit: async () => {
         await deleteExportPolicyMutation.mutateAsync(exportPolicy.name);
       },
@@ -186,12 +186,15 @@ export default function ExportPoliciesPage() {
       }}
       tableTitle={{
         title: 'Export Policies',
+        description:
+          'Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud.',
         actions: (
           <Link
             to={getPathWithParams(paths.project.detail.metrics.new, {
               projectId,
-            })}>
-            <Button type="primary" theme="solid" size="small">
+            })}
+            className="w-full sm:w-auto">
+            <Button type="primary" theme="solid" size="small" className="w-full">
               <Icon icon={PlusIcon} className="size-4" />
               Create an export policy
             </Button>

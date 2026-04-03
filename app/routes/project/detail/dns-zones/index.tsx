@@ -169,20 +169,20 @@ export default function DnsZonesPage() {
 
   const deleteDnsZone = useCallback(
     async (dnsZone: DnsZoneWithComputed) => {
+      const displayLabel = dnsZone.displayName || dnsZone.domainName || dnsZone.name;
+
       await confirm({
         title: 'Delete DNS Zone',
         description: (
           <span>
             Are you sure you want to delete&nbsp;
-            <strong>{dnsZone.domainName}</strong>?
+            <strong>{displayLabel}</strong>?
           </span>
         ),
         submitText: 'Delete',
         cancelText: 'Cancel',
         variant: 'destructive',
         showConfirmInput: true,
-        confirmValue: dnsZone.domainName,
-        confirmInputLabel: `Type "${dnsZone.domainName}" to confirm.`,
         onSubmit: async () => {
           await deleteMutation.mutateAsync(dnsZone.name ?? '');
         },
@@ -371,11 +371,14 @@ export default function DnsZonesPage() {
         }}
         tableTitle={{
           title: 'DNS',
+          description:
+            'Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain.',
           actions: (
             <Button
               type="primary"
               theme="solid"
               size="small"
+              className="w-full sm:w-auto"
               onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add zone

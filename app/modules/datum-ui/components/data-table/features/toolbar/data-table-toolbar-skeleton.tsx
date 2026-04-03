@@ -51,7 +51,7 @@ export function DataTableToolbarSkeleton({
           <div className="flex w-full items-center justify-between gap-4">
             <div className="flex flex-col gap-2">
               {hasTitleContent ? (
-                <span className="text-2xl leading-none font-medium">{title}</span>
+                <span className="font-title text-3xl leading-none">{title}</span>
               ) : (
                 showTitle && <Skeleton className="h-8 w-48 rounded-md" />
               )}
@@ -61,7 +61,7 @@ export function DataTableToolbarSkeleton({
                 showDescription && <Skeleton className="h-4 w-72 max-w-full rounded-md" />
               )}
             </div>
-            {showActions && <Skeleton className="h-9 w-24 rounded-md" />}
+            {showActions && <Skeleton className="h-9 w-full rounded-md sm:w-24" />}
           </div>
         )}
 
@@ -88,7 +88,7 @@ export function DataTableToolbarSkeleton({
       {(hasTitleContent || hasDescriptionContent || showTitle || showDescription) && (
         <div className="flex w-full flex-col gap-2">
           {hasTitleContent ? (
-            <span className="text-2xl leading-none font-medium">{title}</span>
+            <span className="font-title text-3xl leading-none">{title}</span>
           ) : (
             showTitle && <Skeleton className="h-8 w-48 rounded-md" />
           )}
@@ -102,18 +102,21 @@ export function DataTableToolbarSkeleton({
 
       {/* Compact toolbar row: search (left) | filters + actions (right) */}
       {(showSearch || showFilters || showActions) && (
-        <div className="flex w-full flex-row flex-wrap items-center justify-between gap-4">
-          <div className="flex w-full items-center gap-3 md:w-auto md:flex-1">
-            {showSearch && <Skeleton className="h-9 w-full max-w-md min-w-[200px] rounded-md" />}
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex w-full items-center gap-3 sm:w-auto sm:flex-1">
+            {showSearch && (
+              <Skeleton className="h-9 w-full rounded-md sm:max-w-md sm:min-w-[200px]" />
+            )}
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-3">
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:gap-3">
             {showFilters && (
               <>
-                <Skeleton className="h-9 w-[140px] rounded-md" />
-                <Skeleton className="h-9 w-20 rounded-md" />
+                <Skeleton className="h-9 min-w-0 flex-1 rounded-md sm:w-[140px] sm:flex-initial" />
+                <Skeleton className="h-9 w-9 shrink-0 rounded-md sm:w-20" />
               </>
             )}
-            {showActions && <Skeleton className="h-9 w-24 rounded-md" />}
+            {showActions && !showFilters && <Skeleton className="h-9 w-full rounded-md sm:w-24" />}
+            {showActions && showFilters && <Skeleton className="h-9 w-9 shrink-0 rounded-md" />}
           </div>
         </div>
       )}

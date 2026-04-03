@@ -1,6 +1,6 @@
 import { env } from '../../app/utils/env/env.server';
 import { BaseProvider } from './base';
-import { Client, credentials } from '@grpc/grpc-js';
+import { Client, credentials, Metadata } from '@grpc/grpc-js';
 import { diag, DiagConsoleLogger, DiagLogLevel, trace, SpanStatusCode } from '@opentelemetry/api';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
@@ -282,7 +282,7 @@ export class OtelProvider extends BaseProvider {
       url: env.server.otelExporterEndpoint!,
       credentials: credentials.createInsecure(),
       timeoutMillis: env.server.otelExporterTimeout ?? 10000,
-      headers: {},
+      metadata: new Metadata(),
     });
 
     // Wrap the exporter with error handling

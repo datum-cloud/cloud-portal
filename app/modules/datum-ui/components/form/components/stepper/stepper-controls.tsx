@@ -73,14 +73,19 @@ export function StepperControls({
   };
 
   return (
-    <div className={cn('flex items-center justify-between gap-3', className)}>
-      <div>
+    <div
+      className={cn(
+        'flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3',
+        className
+      )}>
+      <div className="w-full sm:w-auto">
         {showPrev && (
           <Button
             htmlType="button"
             type="quaternary"
             theme="outline"
             size="small"
+            className="w-full sm:w-auto"
             onClick={handlePrev}
             disabled={isLoading || isDisabled}>
             {getPrevLabel()}
@@ -92,6 +97,7 @@ export function StepperControls({
         htmlType="submit"
         type="primary"
         size="small"
+        className="w-full sm:w-auto"
         loading={isLoading}
         disabled={isLoading || isDisabled}>
         {isLoading && isLast ? loadingText : getNextLabel()}

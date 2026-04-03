@@ -32,6 +32,7 @@ graphqlRoutes.all('/:scopeType/:scopeId', async (c) => {
       controller.abort();
     });
 
+    const browserUA = c.req.header('User-Agent');
     const response = await fetch(targetUrl, {
       method: c.req.method,
       headers: {
@@ -42,6 +43,7 @@ graphqlRoutes.all('/:scopeType/:scopeId', async (c) => {
         // into the same trace in Sentry.
         ...(c.req.header('sentry-trace') ? { 'sentry-trace': c.req.header('sentry-trace')! } : {}),
         ...(c.req.header('baggage') ? { baggage: c.req.header('baggage')! } : {}),
+        ...(browserUA ? { 'User-Agent': browserUA } : {}),
       },
       body: c.req.method !== 'GET' ? await c.req.text() : undefined,
       signal: controller.signal,
@@ -81,6 +83,7 @@ graphqlRoutes.all('/', async (c) => {
       controller.abort();
     });
 
+    const browserUA = c.req.header('User-Agent');
     const response = await fetch(targetUrl, {
       method: c.req.method,
       headers: {
@@ -89,6 +92,7 @@ graphqlRoutes.all('/', async (c) => {
         'X-Request-ID': c.get('requestId') ?? '',
         ...(c.req.header('sentry-trace') ? { 'sentry-trace': c.req.header('sentry-trace')! } : {}),
         ...(c.req.header('baggage') ? { baggage: c.req.header('baggage')! } : {}),
+        ...(browserUA ? { 'User-Agent': browserUA } : {}),
       },
       body: c.req.method !== 'GET' ? await c.req.text() : undefined,
       signal: controller.signal,

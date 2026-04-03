@@ -162,7 +162,8 @@ export default function HttpProxyPage() {
               {hostnames?.map((hostname: string) => (
                 <BadgeCopy
                   key={hostname}
-                  value={hostname}
+                  value={`https://${hostname}`}
+                  text={hostname}
                   badgeTheme="solid"
                   badgeType="muted"
                   textClassName={hasMultipleHostnames ? 'max-w-[10rem] truncate' : undefined}
@@ -255,11 +256,14 @@ export default function HttpProxyPage() {
         }}
         tableTitle={{
           title: 'AI Edge',
+          description:
+            'Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services.',
           actions: (
             <Button
               type="primary"
               theme="solid"
               size="small"
+              className="w-full sm:w-auto"
               onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               New

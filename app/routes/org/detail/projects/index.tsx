@@ -261,6 +261,7 @@ export default function OrgProjectsPage() {
                   type="primary"
                   theme="solid"
                   size="small"
+                  className="w-full sm:w-auto"
                   onClick={() => setOpenDialog(true)}>
                   <Icon icon={PlusIcon} className="size-4" />
                   Create project

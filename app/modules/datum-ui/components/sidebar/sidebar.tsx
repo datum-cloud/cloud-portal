@@ -122,10 +122,12 @@ const SidebarProvider = ({
         _setOpen(openState);
       }
 
-      // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      // Only persist to cookie on desktop (not hover-expand/tablet mode)
+      if (!expandOnHover) {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+      }
     },
-    [setOpenProp, open]
+    [setOpenProp, open, expandOnHover]
   );
 
   // Handlers for the hover functionality.
@@ -568,7 +570,7 @@ const SidebarContent = ({ className, ...props }: React.ComponentProps<'div'>) =>
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-x-hidden',
         className
       )}
       {...props}
@@ -658,7 +660,7 @@ const SidebarMenuItem = ({ className, ...props }: React.ComponentProps<'li'>) =>
     <li
       data-slot="sidebar-menu-item"
       data-sidebar="menu-item"
-      className={cn('group/menu-item relative', className)}
+      className={cn('group/menu-item relative [&>*:first-child]:w-full', className)}
       {...props}
     />
   );

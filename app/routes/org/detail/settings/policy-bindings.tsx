@@ -104,6 +104,7 @@ export default function OrgPolicyBindingsPage() {
               type="primary"
               theme="solid"
               size="small"
+              className="w-full sm:w-auto"
               onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add policy binding

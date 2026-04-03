@@ -71,20 +71,20 @@ export default function SecretsPage() {
   });
 
   const deleteSecret = async (secret: Secret) => {
+    const displayLabel = secret.annotations?.['app.kubernetes.io/name'] || secret.name;
+
     await confirm({
       title: 'Delete Secret',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>{secret.name}</strong>?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: secret.name,
-      confirmInputLabel: `Type "${secret.name}" to confirm.`,
       onSubmit: async () => {
         await deleteSecretMutation.mutateAsync(secret.name);
       },
@@ -166,11 +166,14 @@ export default function SecretsPage() {
         }}
         tableTitle={{
           title: 'Secrets',
+          description:
+            'Store sensitive values like API keys and tokens that can be securely referenced by other resources without exposing the underlying value.',
           actions: (
             <Button
               type="primary"
               theme="solid"
               size="small"
+              className="w-full sm:w-auto"
               onClick={() => secretFormDialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add secret

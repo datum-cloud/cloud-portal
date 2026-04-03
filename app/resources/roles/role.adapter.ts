@@ -5,7 +5,7 @@ import type { ComMiloapisIamV1Alpha1Role } from '@/modules/control-plane/iam';
  * Transform raw API Role to domain Role type
  */
 export function toRole(raw: ComMiloapisIamV1Alpha1Role): Role {
-  const { metadata } = raw;
+  const { metadata, spec } = raw;
   return {
     uid: metadata?.uid ?? '',
     name: metadata?.name ?? '',
@@ -15,6 +15,9 @@ export function toRole(raw: ComMiloapisIamV1Alpha1Role): Role {
     displayName: metadata?.annotations?.['kubernetes.io/display-name'],
     description: metadata?.annotations?.['kubernetes.io/description'],
     annotations: metadata?.annotations,
+    includedPermissions: spec?.includedPermissions,
+    inheritedRoles: spec?.inheritedRoles?.map((r) => r.name),
+    launchStage: spec?.launchStage,
   };
 }
 

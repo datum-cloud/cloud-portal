@@ -46,7 +46,7 @@ export const StepControl = ({ filterKey = 'step', defaultValue = '15m' }: StepCo
   }, [updateUrlStateEntry, filterKey, step]);
 
   return (
-    <div className="border-input bg-background flex h-[36px] items-center rounded-md border">
+    <div className="border-input bg-background flex h-[36px] items-center overflow-hidden rounded-md border shadow-none">
       <Button
         type="quaternary"
         theme="borderless"
@@ -55,7 +55,7 @@ export const StepControl = ({ filterKey = 'step', defaultValue = '15m' }: StepCo
         Step
       </Button>
       <Select value={step || defaultValue} onValueChange={setStep}>
-        <SelectTrigger className="min-w-10 rounded-l-none border-0 px-2 shadow-none focus:shadow-none focus:ring-0">
+        <SelectTrigger className="h-full min-w-10 rounded-l-none border-0 bg-transparent px-2 shadow-none focus:ring-0">
           <SelectValue placeholder="Select step" />
         </SelectTrigger>
         <SelectContent>

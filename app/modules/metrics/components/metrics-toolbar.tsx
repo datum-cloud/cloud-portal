@@ -19,10 +19,19 @@ export interface MetricsToolbarProps {
 // Core controls component
 function CoreControls({ className }: { className?: string }) {
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <TimeRangeControl />
-      <StepControl />
-      <RefreshControl />
+    <div
+      className={cn('flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center', className)}>
+      <div className="w-full sm:w-auto">
+        <TimeRangeControl />
+      </div>
+      <div className="flex w-full items-center gap-2 sm:w-auto">
+        <div className="min-w-0 flex-1 sm:flex-initial">
+          <StepControl />
+        </div>
+        <div className="min-w-0 flex-1 sm:flex-initial">
+          <RefreshControl />
+        </div>
+      </div>
     </div>
   );
 }
@@ -37,8 +46,8 @@ function Filters({
   showResetButton?: boolean;
 }) {
   return (
-    <div className={cn('flex items-center gap-2', className)}>
-      <div className="flex items-center gap-2">{children}</div>
+    <div className={cn('flex w-full items-center gap-2 sm:w-auto', className)}>
+      <div className="flex w-full items-center gap-2 sm:w-auto">{children}</div>
     </div>
   );
 }
@@ -56,7 +65,13 @@ function MetricsToolbarBase({ children, className, variant = 'default' }: Metric
   }
 
   return (
-    <div className={cn('flex w-full items-center justify-between gap-2', className)}>{content}</div>
+    <div
+      className={cn(
+        'flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2',
+        className
+      )}>
+      {content}
+    </div>
   );
 }
 

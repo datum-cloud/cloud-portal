@@ -18,6 +18,7 @@ export function requestContextMiddleware() {
         requestId,
         token: session?.accessToken ?? '',
         userId: session?.sub ?? '',
+        userAgent: c.req.header('User-Agent') || undefined,
       },
       () => next()
     );

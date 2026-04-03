@@ -30,23 +30,20 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
   });
 
   const deleteProject = async () => {
+    const displayLabel = project.displayName || project.name;
+
     await confirm({
       title: 'Delete Project',
       description: (
         <span>
           Are you sure you want to delete&nbsp;
-          <strong>
-            {project.description} ({project.name})
-          </strong>
-          ?
+          <strong>{displayLabel}</strong>?
         </span>
       ),
       submitText: 'Delete',
       cancelText: 'Cancel',
       variant: 'destructive',
       showConfirmInput: true,
-      confirmValue: project.name,
-      confirmInputLabel: `Type "${project.name}" to confirm.`,
       onSubmit: async () => {
         deleteMutation.mutate(project.name);
       },

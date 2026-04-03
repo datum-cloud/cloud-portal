@@ -67,7 +67,12 @@ export const QuotasTable = ({
         cell: ({ row }) => {
           return (
             <div data-e2e={`${e2ePrefix}-card`}>
-              <span data-e2e={`${e2ePrefix}-resource-type`}>{row.original.resourceType}</span>
+              <span
+                data-e2e={`${e2ePrefix}-resource-type`}
+                className="block max-w-[12rem] truncate sm:max-w-none"
+                title={row.original.resourceType}>
+                {row.original.resourceType}
+              </span>
             </div>
           );
         },
@@ -76,6 +81,7 @@ export const QuotasTable = ({
         header: 'Usage',
         enableSorting: false,
         accessorKey: 'status',
+        meta: { className: 'min-w-[140px]' },
         cell: ({ row }) => {
           if (!row.original.status) {
             return (

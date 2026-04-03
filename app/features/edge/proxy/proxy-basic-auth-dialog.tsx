@@ -168,7 +168,7 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                           name={`users.${index}.username`}
                           label={index === 0 ? 'Username' : undefined}
                           showErrors={false}
-                          className="flex-1">
+                          className="w-1/2">
                           {({ control }) => (
                             <Input
                               value={(control.value as string) ?? ''}
@@ -184,7 +184,7 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                           name={`users.${index}.password`}
                           label={index === 0 ? 'Password' : undefined}
                           showErrors={false}
-                          className="flex-1">
+                          className="w-1/2">
                           {({ control, field }) => (
                             <InputWithAddons
                               id={field.id}
@@ -230,7 +230,7 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                     <UsersArrayErrors />
                     <Button
                       type="secondary"
-                      theme="borderless"
+                      theme="outline"
                       size="small"
                       className="w-fit gap-1.5"
                       onClick={() => append({ username: '', password: '' })}>

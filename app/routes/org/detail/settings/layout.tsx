@@ -1,8 +1,8 @@
-import TabsLayout from '@/layouts/tabs/tabs.layout';
-import { TabsNavProps } from '@/layouts/tabs/tabs.types';
+import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { PageTitle } from '@datum-ui/components/page-title';
 import { useMemo } from 'react';
 import { Outlet, useRouteLoaderData } from 'react-router';
 
@@ -15,40 +15,42 @@ export const handle = {
 export default function OrgSettingsLayout() {
   const org = useRouteLoaderData<Organization>('org-detail');
 
-  const navItems: TabsNavProps[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const orgId = org?.name;
     return [
       {
-        value: 'general',
         label: 'General',
-        to: getPathWithParams(paths.org.detail.settings.general, { orgId }),
+        href: getPathWithParams(paths.org.detail.settings.general, { orgId }),
       },
       /* {
-        value: 'policy-bindings',
         label: 'Policy bindings',
-        to: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
+        href: getPathWithParams(paths.org.detail.policyBindings.root, { orgId }),
         hidden: org?.type === 'Personal',
       }, */
       /* {
-        value: 'notifications',
         label: 'Notifications',
-        to: getPathWithParams(paths.org.detail.settings.notifications, { orgId }),
+        href: getPathWithParams(paths.org.detail.settings.notifications, { orgId }),
       }, */
       {
-        value: 'quotas',
         label: 'Quotas',
-        to: getPathWithParams(paths.org.detail.settings.quotas, { orgId }),
+        href: getPathWithParams(paths.org.detail.settings.quotas, { orgId }),
       },
       {
-        value: 'activity',
         label: 'Activity',
-        to: getPathWithParams(paths.org.detail.settings.activity, { orgId }),
+        href: getPathWithParams(paths.org.detail.settings.activity, { orgId }),
       },
     ];
   }, [org]);
+
   return (
-    <TabsLayout tabsTitle={{ title: 'Organization Settings' }} navItems={navItems}>
-      <Outlet />
-    </TabsLayout>
+    <div className="flex h-full flex-1 flex-col gap-8">
+      <PageTitle title="Organization Settings" />
+      <SubNavigationTabs tabs={navItems} />
+      <div className="h-full w-full pt-2">
+        <div className="flex h-full flex-1 flex-col">
+          <Outlet />
+        </div>
+      </div>
+    </div>
   );
 }

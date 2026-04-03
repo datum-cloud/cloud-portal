@@ -1,4 +1,9 @@
-import { toMember, toMemberList, toUpdateMemberRolePayload } from './member.adapter';
+import {
+  toMember,
+  toMemberList,
+  toUpdateMemberRolePayload,
+  toUpdateMemberRolesPayload,
+} from './member.adapter';
 import type { Member, UpdateMemberRoleInput } from './member.schema';
 import {
   listResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership,
@@ -82,6 +87,44 @@ export function createMemberService() {
         });
       } catch (error) {
         logger.error(`${SERVICE_NAME}.delete failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    /**
+     * Replace all roles for a member
+     */
+    async updateRoles(
+      organizationId: string,
+      memberId: string,
+      roles: { name: string; namespace: string }[],
+      options?: ServiceOptions
+    ): Promise<Member> {
+      const startTime = Date.now();
+      try {
+        const payload = toUpdateMemberRolesPayload(memberId, roles);
+        const response =
+          await patchResourcemanagerMiloapisComV1Alpha1NamespacedOrganizationMembership({
+            baseURL: getOrgScopedBase(organizationId),
+            path: {
+              namespace: buildOrganizationNamespace(organizationId),
+              name: memberId,
+            },
+            query: {
+              dryRun: options?.dryRun ? 'All' : undefined,
+              fieldManager: 'datum-cloud-portal',
+            },
+            headers: { 'Content-Type': 'application/merge-patch+json' },
+            body: payload,
+          });
+        const data = response.data as ComMiloapisResourcemanagerV1Alpha1OrganizationMembership;
+        logger.service(SERVICE_NAME, 'updateRoles', {
+          input: { organizationId, memberId, roleCount: roles.length },
+          duration: Date.now() - startTime,
+        });
+        return toMember(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.updateRoles failed`, error as Error);
         throw mapApiError(error);
       }
     },

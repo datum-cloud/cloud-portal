@@ -10,8 +10,10 @@ import {
   utcStringToZonedDate,
   zonedDateToUtcString,
 } from './utils/timezone';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { Button, Icon } from '@datum-ui/components';
 import { Calendar } from '@datum-ui/components';
+import { MobileSheet } from '@datum-ui/components/mobile-sheet';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Separator } from '@shadcn/ui/separator';
@@ -68,6 +70,8 @@ export function TimeRangePicker({
   side = 'bottom',
 }: TimeRangePickerProps) {
   const [open, setOpen] = useState(false);
+  const breakpoint = useBreakpoint();
+  const isMobile = breakpoint === 'mobile';
 
   // Effective timezone
   const timezone = timezoneProp ?? getBrowserTimezone();
@@ -152,60 +156,36 @@ export function TimeRangePicker({
   }, []);
 
   // Handle calendar range selection
-  // Only triggers onChange when user actually clicks on calendar dates
   const handleCalendarSelect = useCallback(
     (range: DayPickerDateRange | undefined) => {
-      // Ignore if this isn't a user-initiated selection
-      // onDayClick sets the ref to true just before onSelect fires
       if (!userClickedCalendarRef.current) return;
-
-      // Reset the flag after processing
       userClickedCalendarRef.current = false;
 
       if (range?.from && range?.to) {
         const now = new Date();
-
-        // Calendar returns dates at 00:00:00 (start of day)
-        // For 'from': use start of day (00:00:00)
         const fromStart = new Date(range.from);
         fromStart.setHours(0, 0, 0, 0);
-
-        // For 'to': use end of day, but cap at 'now' if it's today (to avoid future times)
         const toEnd = new Date(range.to);
         toEnd.setHours(23, 59, 59, 999);
-
-        // If toEnd is in the future, use now instead
         const effectiveToEnd = toEnd > now ? now : toEnd;
-
-        // Convert zoned dates to UTC
-        const fromUtc = zonedDateToUtcString(fromStart, timezone);
-        const toUtc = zonedDateToUtcString(effectiveToEnd, timezone);
 
         onChange({
           type: 'custom',
-          from: fromUtc,
-          to: toUtc,
+          from: zonedDateToUtcString(fromStart, timezone),
+          to: zonedDateToUtcString(effectiveToEnd, timezone),
         });
       } else if (range?.from) {
         const now = new Date();
-
-        // Single date selected - use full day range
         const fromStart = new Date(range.from);
         fromStart.setHours(0, 0, 0, 0);
-
         const toEnd = new Date(range.from);
         toEnd.setHours(23, 59, 59, 999);
-
-        // If toEnd is in the future, use now instead
         const effectiveToEnd = toEnd > now ? now : toEnd;
-
-        const fromUtc = zonedDateToUtcString(fromStart, timezone);
-        const toUtc = zonedDateToUtcString(effectiveToEnd, timezone);
 
         onChange({
           type: 'custom',
-          from: fromUtc,
-          to: toUtc,
+          from: zonedDateToUtcString(fromStart, timezone),
+          to: zonedDateToUtcString(effectiveToEnd, timezone),
         });
       }
     },
@@ -215,11 +195,7 @@ export function TimeRangePicker({
   // Handle custom range input changes
   const handleCustomRangeChange = useCallback(
     (fromUtc: string, toUtc: string) => {
-      onChange({
-        type: 'custom',
-        from: fromUtc,
-        to: toUtc,
-      });
+      onChange({ type: 'custom', from: fromUtc, to: toUtc });
     },
     [onChange]
   );
@@ -246,115 +222,129 @@ export function TimeRangePicker({
   // Handle clear button click
   const handleClear = useCallback(
     (e: React.MouseEvent) => {
-      e.stopPropagation(); // Prevent popover from opening
+      e.stopPropagation();
       onClear?.();
     },
     [onClear]
   );
 
-  // Show clear button only when there's a value and onClear is provided
   const showClearButton = value && onClear;
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <div className="relative inline-flex min-w-0">
-        <PopoverTrigger asChild>
-          <Button
-            type="quaternary"
-            theme="outline"
-            disabled={disabled}
-            className={cn(
-              'text-foreground min-w-0 items-center justify-between gap-2 px-3 font-normal sm:min-w-[200px]',
-              className
-            )}>
-            <div className="flex flex-1 items-center gap-2">
-              <Icon icon={CalendarIcon} size={16} />
-              <span className="truncate text-xs">{displayText}</span>
-            </div>
-
-            {showClearButton && (
-              <div
-                onClick={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  handleClear(e);
-                }}
-                className={cn(
-                  'size-[14px] shrink-0 p-0 hover:bg-transparent',
-                  'hover:text-destructive text-icon-quaternary hover:bg-transparent dark:text-white',
-                  'focus:ring-ring focus:ring-2 focus:ring-offset-1 focus:outline-none',
-                  'disabled:pointer-events-none disabled:opacity-50',
-                  'transition-colors'
-                )}
-                aria-label="Clear time range">
-                <Icon icon={X} size={14} />
-              </div>
-            )}
-          </Button>
-        </PopoverTrigger>
+  // Shared trigger button
+  const triggerButton = (
+    <Button
+      type="quaternary"
+      theme="outline"
+      disabled={disabled}
+      className={cn(
+        'text-foreground items-center justify-between gap-2 px-3 font-normal sm:min-w-[200px]',
+        className
+      )}>
+      <div className="flex flex-1 items-center gap-2">
+        <Icon icon={CalendarIcon} size={16} />
+        <span className="truncate text-xs">{displayText}</span>
       </div>
-
-      <PopoverContent
-        className="w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] rounded-xl p-0 sm:w-auto sm:max-w-none"
-        align={align}
-        side={side}
-        sideOffset={4}
-        collisionPadding={16}>
-        {/* Main content: Calendar (left) + Presets (right) */}
-        <div className="divide-border flex flex-col divide-y sm:flex-row sm:divide-x sm:divide-y-0">
-          {/* Calendar */}
-          <div className="min-w-0 flex-1 px-0">
-            <Calendar
-              className="w-full"
-              mode="range"
-              defaultMonth={calendarRange?.from}
-              selected={calendarRange}
-              onSelect={handleCalendarSelect}
-              onDayClick={handleDayClick}
-              numberOfMonths={1}
-              disabled={(date) => {
-                if (effectiveMaxDate && date > effectiveMaxDate) return true;
-                if (minDate && date < minDate) return true;
-                return false;
-              }}
-              initialFocus
-            />
-          </div>
-
-          {/* Separator */}
-          {/* <Separator orientation="vertical" className="hidden h-auto sm:block" />
-          <Separator orientation="horizontal" className="sm:hidden" /> */}
-
-          {/* Presets */}
-          <div className="min-w-0 shrink-0 p-3 sm:w-48">
-            <QuickRangesPanel
-              presets={presets}
-              value={effectiveValue}
-              onPresetSelect={handlePresetSelect}
-            />
-          </div>
+      {showClearButton && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            handleClear(e);
+          }}
+          className={cn(
+            'size-[14px] shrink-0 p-0 hover:bg-transparent',
+            'hover:text-destructive text-icon-quaternary hover:bg-transparent dark:text-white',
+            'focus:ring-ring focus:ring-2 focus:ring-offset-1 focus:outline-none',
+            'disabled:pointer-events-none disabled:opacity-50',
+            'transition-colors'
+          )}
+          aria-label="Clear time range">
+          <Icon icon={X} size={14} />
         </div>
+      )}
+    </Button>
+  );
 
-        <Separator />
-
-        {/* Custom range inputs */}
-        <div className="p-3">
-          <CustomRangePanel
-            fromUtc={currentFromUtc}
-            toUtc={currentToUtc}
-            timezone={timezone}
-            onRangeChange={handleCustomRangeChange}
-            disableFuture={disableFuture}
+  // Shared picker content
+  const pickerContent = (
+    <>
+      {/* Main content: Calendar (left) + Presets (right) */}
+      <div className="divide-border flex flex-col divide-x sm:flex-row">
+        <div className="flex-1 px-0">
+          <Calendar
+            className="w-full"
+            mode="range"
+            defaultMonth={calendarRange?.from}
+            selected={calendarRange}
+            onSelect={handleCalendarSelect}
+            onDayClick={handleDayClick}
+            numberOfMonths={1}
+            disabled={(date) => {
+              if (effectiveMaxDate && date > effectiveMaxDate) return true;
+              if (minDate && date < minDate) return true;
+              return false;
+            }}
+            initialFocus
           />
         </div>
-
-        <Separator />
-
-        {/* Timezone indicator */}
-        <div className="text-muted-foreground bg-muted/30 flex items-center gap-2 px-3 py-2 text-xs">
-          <Globe className="h-3.5 w-3.5" />
-          <span>Your timezone: {formatTimezoneLabel(timezone)}</span>
+        <div className="p-3">
+          <QuickRangesPanel
+            presets={presets}
+            value={effectiveValue}
+            onPresetSelect={handlePresetSelect}
+          />
         </div>
+      </div>
+
+      <Separator />
+
+      {/* Custom range inputs */}
+      <div className="p-3">
+        <CustomRangePanel
+          fromUtc={currentFromUtc}
+          toUtc={currentToUtc}
+          timezone={timezone}
+          onRangeChange={handleCustomRangeChange}
+          disableFuture={disableFuture}
+        />
+      </div>
+
+      <Separator />
+
+      {/* Timezone indicator */}
+      <div className="text-muted-foreground bg-muted/30 flex items-center gap-2 px-3 py-2 text-xs">
+        <Globe className="h-3.5 w-3.5" />
+        <span>Your timezone: {formatTimezoneLabel(timezone)}</span>
+      </div>
+    </>
+  );
+
+  // Mobile: bottom sheet
+  if (isMobile) {
+    return (
+      <>
+        <div className="relative inline-flex" onClick={() => setOpen(true)}>
+          {triggerButton}
+        </div>
+        <MobileSheet
+          open={open}
+          onOpenChange={setOpen}
+          title="Select time range"
+          description="Choose a preset or custom date range">
+          {pickerContent}
+        </MobileSheet>
+      </>
+    );
+  }
+
+  // Desktop/Tablet: popover
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <div className="relative inline-flex">
+        <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+      </div>
+      <PopoverContent className="w-auto rounded-xl p-0" align={align} side={side} sideOffset={4}>
+        {pickerContent}
       </PopoverContent>
     </Popover>
   );

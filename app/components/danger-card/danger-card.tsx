@@ -32,12 +32,13 @@ export const DangerCard = ({
             <span className="text-1xs leading-relaxed font-normal">{description}</span>
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex w-full justify-end md:w-auto">
           <Button
             htmlType="button"
             type="danger"
             theme="solid"
             size="xs"
+            className="w-full md:w-auto"
             disabled={isDisabled}
             loading={loading}
             onClick={onDelete}>

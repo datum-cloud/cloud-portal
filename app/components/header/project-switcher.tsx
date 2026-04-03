@@ -88,6 +88,7 @@ export const ProjectSwitcher = ({
               iconClassName="text-secondary size-3.5"
               wrapperClassName="px-3 py-2"
               placeholder="Find project"
+              disabled={isLoading}
             />
             <CommandList className="max-h-none">
               <CommandEmpty>No results found.</CommandEmpty>

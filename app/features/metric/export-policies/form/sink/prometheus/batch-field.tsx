@@ -6,11 +6,19 @@ export const BatchField = ({ baseName }: { baseName: string }) => {
   return (
     <div className="flex w-full flex-col gap-2">
       <FieldLabel label="Batch Configuration" />
-      <div className="flex w-full gap-4">
-        <Form.Field name={`${baseName}.batch.maxSize`} label="Max Size" required className="w-1/2">
+      <div className="flex w-full flex-col gap-4 sm:flex-row">
+        <Form.Field
+          name={`${baseName}.batch.maxSize`}
+          label="Max Size"
+          required
+          className="w-full sm:w-1/2">
           <Form.Input type="number" placeholder="e.g. 100" />
         </Form.Field>
-        <Form.Field name={`${baseName}.batch.timeout`} label="Timeout" required className="w-1/2">
+        <Form.Field
+          name={`${baseName}.batch.timeout`}
+          label="Timeout"
+          required
+          className="w-full sm:w-1/2">
           {({ control }) => (
             <InputWithAddons
               type="number"

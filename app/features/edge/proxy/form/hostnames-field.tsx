@@ -1,16 +1,18 @@
-import { FormSelectDomain } from '@/features/edge/domain/select-domain';
+import { SubdomainHostnameField } from '@/features/edge/proxy/form/subdomain-hostname-field';
 import { Button } from '@datum-ui/components';
 import { Form, useFormContext } from '@datum-ui/components/form';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { PlusIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 
 interface ProxyHostnamesFieldProps {
   projectId: string;
+  /** Proxy display name for smart suggestions */
+  proxyDisplayName?: string;
 }
 
 export const ProxyHostnamesField = forwardRef<HTMLDivElement, ProxyHostnamesFieldProps>(
-  ({ projectId }, ref) => {
+  ({ projectId, proxyDisplayName }, ref) => {
     const { fields: formFields } = useFormContext();
 
     const hostnameFieldList = (formFields.hostnames as any)?.getFieldList?.() ?? [];
@@ -29,24 +31,14 @@ export const ProxyHostnamesField = forwardRef<HTMLDivElement, ProxyHostnamesFiel
               {fields.length > 0 && (
                 <div className="space-y-4">
                   {fields.map((field, index) => (
-                    <div className="relative flex items-start gap-2" key={field.key}>
-                      <Form.Field name={field.name} className="w-full">
-                        <FormSelectDomain
-                          projectId={projectId}
-                          excludeValues={getExcludeValues(index)}
-                          creatable
-                        />
-                      </Form.Field>
-                      <Button
-                        htmlType="button"
-                        type="quaternary"
-                        theme="borderless"
-                        size="small"
-                        className="text-destructive relative top-0.5 w-fit"
-                        onClick={() => remove(index)}>
-                        <Icon icon={TrashIcon} className="size-4" />
-                      </Button>
-                    </div>
+                    <Form.Field key={field.key} name={field.name}>
+                      <SubdomainHostnameField
+                        projectId={projectId}
+                        proxyDisplayName={proxyDisplayName}
+                        excludeValues={getExcludeValues(index)}
+                        onRemove={() => remove(index)}
+                      />
+                    </Form.Field>
                   ))}
                 </div>
               )}

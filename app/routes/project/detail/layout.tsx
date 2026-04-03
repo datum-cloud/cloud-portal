@@ -104,7 +104,7 @@ export default function ProjectLayout() {
     refetchOnMount: false,
   });
 
-  const { data: org } = useOrganization(project?.organizationId ?? '', {
+  const { data: org, isLoading: orgLoading } = useOrganization(project?.organizationId ?? '', {
     enabled: !!project?.organizationId,
     staleTime: QUERY_STALE_TIME,
     refetchOnMount: false,
@@ -304,7 +304,7 @@ export default function ProjectLayout() {
         expandBehavior="push"
         showBackdrop={false}
         sidebarLoading={projectLoading}
-        switcherLoading={projectLoading}>
+        switcherLoading={projectLoading || orgLoading}>
         <Outlet />
       </DashboardLayout>
     </ProjectProvider>
