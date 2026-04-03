@@ -12,6 +12,7 @@ export interface KeyRevealPanelProps {
   identityEmail: string;
   projectId: string;
   onDismiss: () => void;
+  defaultTab?: 'github' | 'kubernetes' | 'envvars';
 }
 
 function downloadCredentials(data: DatumCredentialsFile, filename: string) {
@@ -24,7 +25,7 @@ function downloadCredentials(data: DatumCredentialsFile, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-type TabId = 'github' | 'gitlab' | 'tekton' | 'envvars';
+type TabId = 'github' | 'kubernetes' | 'envvars';
 
 interface SnippetBlockProps {
   content: string;
@@ -37,19 +38,19 @@ function SnippetBlock({ content, tabId, copiedTabId, onCopy }: SnippetBlockProps
   const isCopied = copiedTabId === tabId;
 
   return (
-    <div className="relative rounded-md bg-muted">
+    <div className="bg-muted relative rounded-md">
       <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed whitespace-pre">
         {content}
       </pre>
       <button
         type="button"
         aria-label={isCopied ? 'Copied' : 'Copy snippet'}
-        className="absolute top-2 right-2 rounded-md p-1.5 transition-colors hover:bg-black/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="focus-visible:ring-ring absolute top-2 right-2 rounded-md p-1.5 transition-colors hover:bg-black/10 focus-visible:ring-2 focus-visible:outline-none"
         onClick={() => onCopy(tabId, content)}>
         {isCopied ? (
           <CheckIcon className="text-success size-4" />
         ) : (
-          <CopyIcon className="size-4 text-muted-foreground" />
+          <CopyIcon className="text-muted-foreground size-4" />
         )}
       </button>
     </div>
@@ -64,6 +65,7 @@ export function KeyRevealPanel({
   identityEmail,
   projectId,
   onDismiss,
+  defaultTab,
 }: KeyRevealPanelProps) {
   const [, copyToClipboard] = useCopyToClipboard();
   const [copiedTabId, setCopiedTabId] = useState<TabId | null>(null);
@@ -94,71 +96,75 @@ export function KeyRevealPanel({
 #    Settings → Secrets and variables → Actions → New repository secret
 #    Name: DATUM_CREDENTIALS
 #    Value: (paste the full contents of ${credentialsFilename})
+#    Tip: copy the file contents with: cat ${credentialsFilename} | pbcopy
 
-# 2. Reference it in your workflow:
+# 2. Write the secret to a temp file and exchange it for an access token:
 steps:
-  - name: Call Datum API
+  - name: Authenticate with Datum
     env:
       DATUM_CREDENTIALS: \${{ secrets.DATUM_CREDENTIALS }}
     run: |
-      # Your script reads DATUM_CREDENTIALS and handles JWT exchange
-      # See https://docs.datum.net/authentication for SDK examples`;
+      # Write credentials to a temp file (keeps newlines intact)
+      echo "$DATUM_CREDENTIALS" > /tmp/datum-credentials.json
 
-  const gitlabSnippet = `# .gitlab-ci.yml
-# Add DATUM_CREDENTIALS as a CI/CD variable (type: File, protected + masked)
-#
-# In your job:
-your-job:
-  script:
-    - export DATUM_CREDENTIALS_FILE=$DATUM_CREDENTIALS
-    # Your script can now read credentials from $DATUM_CREDENTIALS_FILE
+      # Use the Datum CLI or SDK to get an access token:
+      #   datum auth login --credentials /tmp/datum-credentials.json
+      #
+      # Or exchange manually — see https://docs.datum.net/authentication
+      # for JWT assertion generation and token exchange examples.`;
 
-# Or use individual variables:
-# DATUM_CLIENT_EMAIL: ${identityEmail}
-# DATUM_CLIENT_ID: ${userId}
-# DATUM_PRIVATE_KEY: (add as masked variable)
-# DATUM_TOKEN_URI: https://auth.datum.net/oauth/v2/token`;
-
-  const tektonSnippet = `# 1. Create the Secret (run once):
+  const kubernetesSnippet = `# 1. Create the Secret (run once):
 kubectl create secret generic datum-credentials \\
   --from-file=credentials.json=${credentialsFilename}
 
-# 2. Mount in your Pod/Task:
-apiVersion: v1
-kind: Pod
+# 2. Mount in your Deployment/Pod:
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: your-workload
+  name: your-service
 spec:
-  containers:
-    - name: app
-      env:
-        - name: DATUM_CREDENTIALS_FILE
-          value: /var/run/secrets/datum/credentials.json
-      volumeMounts:
+  template:
+    spec:
+      containers:
+        - name: app
+          env:
+            - name: DATUM_CREDENTIALS_FILE
+              value: /var/run/secrets/datum/credentials.json
+          volumeMounts:
+            - name: datum-credentials
+              mountPath: /var/run/secrets/datum
+              readOnly: true
+      volumes:
         - name: datum-credentials
-          mountPath: /var/run/secrets/datum
-          readOnly: true
-  volumes:
-    - name: datum-credentials
-      secret:
-        secretName: datum-credentials`;
+          secret:
+            secretName: datum-credentials
 
-  const envvarsSnippet = `# Option 1 (recommended): Point to the downloaded credentials file
+# 3. In your application, read DATUM_CREDENTIALS_FILE and use the
+#    Datum SDK or JWT library to exchange credentials for an access token.
+#    See https://docs.datum.net/authentication for SDK examples.`;
+
+  const envvarsSnippet = `# Recommended: point to the downloaded credentials file
 export DATUM_CREDENTIALS_FILE="/path/to/${credentialsFilename}"
 
-# Option 2: Set individual environment variables
-# (The private key contains newlines — use the credentials file for the full key)
+# Individual variables (if you can't use the credentials file):
 export DATUM_CLIENT_EMAIL="${identityEmail}"
 export DATUM_CLIENT_ID="${userId}"
-export DATUM_PRIVATE_KEY="${privateKey.replace(/\n/g, '\\n')}"
+export DATUM_PRIVATE_KEY_ID="${keyId}"
 export DATUM_TOKEN_URI="https://auth.datum.net/oauth/v2/token"
 export DATUM_API_ENDPOINT="https://api.datum.net"
+# Note: DATUM_PRIVATE_KEY contains newlines — use the credentials file
+#       rather than setting it as an env var to avoid shell escaping issues.
 
-# Exchange a JWT assertion for an access token:
-# Generate $DATUM_JWT_ASSERTION using your JWT library — see https://docs.datum.net/authentication
-# Required claims: iss=${identityEmail}, sub=${identityEmail},
-#                  aud=https://auth.datum.net/oauth/v2/token, iat, exp
+# Exchange a JWT assertion for an access token.
+# Use your JWT library to sign an assertion with your private key.
+# Required claims:
+#   iss = ${userId}   (DATUM_CLIENT_ID — the Zitadel user ID, not the email)
+#   sub = ${userId}   (DATUM_CLIENT_ID — the Zitadel user ID, not the email)
+#   aud = https://auth.datum.net/oauth/v2/token
+#   iat = <current unix timestamp>
+#   exp = <iat + 3600>
 #
+# See https://docs.datum.net/authentication for SDK examples, then:
 curl -s -X POST "$DATUM_TOKEN_URI" \\
   -H "Content-Type: application/x-www-form-urlencoded" \\
   -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" \\
@@ -206,11 +212,10 @@ curl -s -X POST "$DATUM_TOKEN_URI" \\
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="github" className="w-full">
+      <Tabs defaultValue={defaultTab ?? 'github'} className="w-full">
         <TabsList>
           <TabsTrigger value="github">GitHub Actions</TabsTrigger>
-          <TabsTrigger value="gitlab">GitLab CI</TabsTrigger>
-          <TabsTrigger value="tekton">Tekton/Argo</TabsTrigger>
+          <TabsTrigger value="kubernetes">Kubernetes</TabsTrigger>
           <TabsTrigger value="envvars">Environment Variables</TabsTrigger>
         </TabsList>
 
@@ -223,19 +228,10 @@ curl -s -X POST "$DATUM_TOKEN_URI" \\
           />
         </TabsContent>
 
-        <TabsContent value="gitlab">
+        <TabsContent value="kubernetes">
           <SnippetBlock
-            content={gitlabSnippet}
-            tabId="gitlab"
-            copiedTabId={copiedTabId}
-            onCopy={handleCopy}
-          />
-        </TabsContent>
-
-        <TabsContent value="tekton">
-          <SnippetBlock
-            content={tektonSnippet}
-            tabId="tekton"
+            content={kubernetesSnippet}
+            tabId="kubernetes"
             copiedTabId={copiedTabId}
             onCopy={handleCopy}
           />

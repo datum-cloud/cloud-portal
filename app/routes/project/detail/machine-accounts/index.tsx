@@ -2,8 +2,10 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { MachineAccountFormDialog } from '@/features/machine-account/form/machine-account-form-dialog';
 import type { MachineAccountFormDialogRef } from '@/features/machine-account/form/machine-account-form-dialog';
+import { CreateMachineAccountWizard } from '@/features/machine-account/wizard/create-machine-account-wizard';
 import { DataTable } from '@/modules/datum-ui/components/data-table';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import { cn } from '@/modules/shadcn/lib/utils';
 import {
   createMachineAccountService,
   useDeleteMachineAccount,
@@ -20,8 +22,8 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge, Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
-import { PlusIcon } from 'lucide-react';
-import { useCallback, useMemo, useRef } from 'react';
+import { GitBranchIcon, PlusIcon, ServerIcon } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   LoaderFunctionArgs,
   MetaFunction,
@@ -31,6 +33,95 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Machine Accounts'));
+
+// ---------------------------------------------------------------------------
+// Empty state landing page
+// ---------------------------------------------------------------------------
+
+interface UseCaseTileProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  bullets: string[];
+  onClick: () => void;
+}
+
+function UseCaseTile({
+  icon: IconComponent,
+  title,
+  description,
+  bullets,
+  onClick,
+}: UseCaseTileProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'flex flex-col gap-4 rounded-xl border p-6 text-left transition-colors',
+        'border-border hover:border-primary/50 hover:bg-primary/5 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none'
+      )}>
+      <div className="flex items-center gap-3">
+        <div className="bg-primary/10 flex size-9 shrink-0 items-center justify-center rounded-lg">
+          <IconComponent className="text-primary size-5" aria-hidden="true" />
+        </div>
+        <span className="text-foreground text-sm font-semibold">{title}</span>
+      </div>
+      <p className="text-muted-foreground text-sm">{description}</p>
+      <ul className="flex flex-col gap-1.5">
+        {bullets.map((b) => (
+          <li key={b} className="text-muted-foreground flex items-start gap-2 text-xs">
+            <span className="text-primary mt-0.5 shrink-0">→</span>
+            {b}
+          </li>
+        ))}
+      </ul>
+      <span className="text-primary text-xs font-medium">Get started →</span>
+    </button>
+  );
+}
+
+interface MachineAccountsEmptyStateProps {
+  onSelectUseCase: () => void;
+}
+
+function MachineAccountsEmptyState({ onSelectUseCase }: MachineAccountsEmptyStateProps) {
+  return (
+    <div className="flex flex-col gap-8 py-10">
+      <div className="flex flex-col gap-2">
+        <h2 className="text-foreground text-lg font-semibold">Machine Accounts</h2>
+        <p className="text-muted-foreground max-w-xl text-sm">
+          Machine accounts give non-human workloads a cryptographic identity to authenticate with
+          Datum APIs — no shared passwords or long-lived tokens.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <UseCaseTile
+          icon={GitBranchIcon}
+          title="CI/CD Pipeline"
+          description="Authenticate automated jobs in GitHub Actions, GitLab CI, Jenkins, or any other pipeline."
+          bullets={[
+            'Generates a credentials file you store as a CI secret',
+            'Step-by-step setup instructions for GitHub Actions and GitLab CI',
+            'Rotate keys without changing workflow files',
+          ]}
+          onClick={onSelectUseCase}
+        />
+        <UseCaseTile
+          icon={ServerIcon}
+          title="Service"
+          description="Give a backend service or workload a stable identity to call Datum APIs without human credentials."
+          bullets={[
+            'Mount credentials as a Kubernetes secret or env vars',
+            'Works with any language via JWT assertion exchange',
+            'Disable or rotate keys without redeploying',
+          ]}
+          onClick={onSelectUseCase}
+        />
+      </div>
+    </div>
+  );
+}
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
@@ -49,6 +140,7 @@ export default function MachineAccountsPage() {
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
   const formDialogRef = useRef<MachineAccountFormDialogRef>(null);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   useHydrateMachineAccounts(projectId ?? '', initialData ?? []);
 
@@ -171,60 +263,54 @@ export default function MachineAccountsPage() {
     [deleteAccount, toggleAccount]
   );
 
+  const navigateToAccount = (accountName: string) =>
+    navigate(
+      getPathWithParams(paths.project.detail.machineAccounts.detail.keys, {
+        projectId,
+        machineAccountId: accountName,
+      })
+    );
+
+  const openWizard = () => setWizardOpen(true);
+
   return (
     <>
-      <DataTable
-        columns={columns}
-        data={data}
-        emptyContent={{
-          title: 'No machine accounts yet.',
-          subtitle: 'Create one to enable secure automation and workload identity.',
-          actions: [
-            {
-              type: 'button',
-              label: 'Create Machine Account',
-              onClick: () => formDialogRef.current?.show(),
-              variant: 'default',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
-            },
-          ],
-        }}
-        tableTitle={{
-          title: 'Machine Accounts',
-          actions: (
-            <Button
-              type="primary"
-              theme="solid"
-              size="small"
-              onClick={() => formDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Create Machine Account
-            </Button>
-          ),
-        }}
-        toolbar={{ layout: 'compact', includeSearch: { placeholder: 'Search machine accounts' } }}
-        rowActions={rowActions}
-        onRowClick={(row) =>
-          navigate(
-            getPathWithParams(paths.project.detail.machineAccounts.detail.overview, {
-              projectId,
-              machineAccountId: row.name,
-            })
-          )
-        }
-      />
-      <MachineAccountFormDialog
-        ref={formDialogRef}
+      {data.length === 0 ? (
+        <MachineAccountsEmptyState onSelectUseCase={openWizard} />
+      ) : (
+        <DataTable
+          columns={columns}
+          data={data}
+          tableTitle={{
+            title: 'Machine Accounts',
+            actions: (
+              <Button type="primary" theme="solid" size="small" onClick={() => openWizard()}>
+                <Icon icon={PlusIcon} className="size-4" />
+                Create Machine Account
+              </Button>
+            ),
+          }}
+          toolbar={{ layout: 'compact', includeSearch: { placeholder: 'Search machine accounts' } }}
+          rowActions={rowActions}
+          onRowClick={(row) =>
+            navigate(
+              getPathWithParams(paths.project.detail.machineAccounts.detail.overview, {
+                projectId,
+                machineAccountId: row.name,
+              })
+            )
+          }
+        />
+      )}
+
+      {/* Edit-only dialog — create path uses the wizard below */}
+      <MachineAccountFormDialog ref={formDialogRef} projectId={projectId ?? ''} />
+
+      <CreateMachineAccountWizard
         projectId={projectId ?? ''}
-        onCreated={(account) => {
-          navigate(
-            getPathWithParams(paths.project.detail.machineAccounts.detail.keys, {
-              projectId,
-              machineAccountId: account.name,
-            })
-          );
-        }}
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onNavigateToAccount={navigateToAccount}
       />
     </>
   );

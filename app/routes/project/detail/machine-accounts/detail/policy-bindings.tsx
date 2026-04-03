@@ -5,13 +5,13 @@ import {
   type PolicyBindingFormDialogRef,
 } from '@/features/policy-binding/form/policy-binding-form-dialog';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import { useApp } from '@/providers/app.provider';
+import { useMachineAccount } from '@/resources/machine-accounts';
 import {
   usePolicyBindings,
   useDeletePolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { useMachineAccount } from '@/resources/machine-accounts';
-import { useApp } from '@/providers/app.provider';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -35,14 +35,12 @@ export default function MachineAccountPolicyBindingsPage() {
 
   const { data: allBindings = [] } = usePolicyBindings(orgId ?? '');
 
-  // If identityEmail is available, show bindings where this machine account is a subject.
-  // Otherwise fall back to all bindings scoped to this project.
   const bindings = useMemo(() => {
-    if (!machineAccount?.identityEmail) return [];
+    if (!machineAccount?.name) return [];
     return allBindings.filter((b) =>
-      b.subjects.some((s) => s.name === machineAccount.identityEmail)
+      b.subjects.some((s) => s.kind === 'MachineAccount' && s.name === machineAccount.name)
     );
-  }, [allBindings, machineAccount?.identityEmail]);
+  }, [allBindings, machineAccount?.name]);
 
   const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
     onSuccess: () => toast.success('Role deleted'),
@@ -107,8 +105,8 @@ export default function MachineAccountPolicyBindingsPage() {
         scope="project"
         projectId={projectId}
         subject={
-          machineAccount?.identityEmail
-            ? { kind: 'User', name: machineAccount.identityEmail, uid: machineAccount.uid }
+          machineAccount?.name
+            ? { kind: 'MachineAccount', name: machineAccount.name, uid: machineAccount.uid }
             : undefined
         }
       />

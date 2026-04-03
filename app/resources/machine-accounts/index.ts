@@ -48,3 +48,5 @@ export {
   type PollerStatus,
   type PollerResult,
 } from './use-machine-account-email-poller';
+
+export { pollForEmail } from './poll-for-email';
