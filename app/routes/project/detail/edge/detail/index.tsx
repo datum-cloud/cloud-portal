@@ -1,15 +1,12 @@
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
-import { HttpProxyGlobalUpstreamLatency } from '@/features/edge/proxy/metrics/global-upstream-latency';
-import { HttpProxyUpstreamResponse } from '@/features/edge/proxy/metrics/upstream-response';
-import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
+import { HttpProxyEdgeRequests } from '@/features/edge/proxy/metrics/edge-requests';
 import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
 import { HttpProxyConfigCard } from '@/features/edge/proxy/overview/config-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
-import { MetricsProvider, MetricsToolbar } from '@/modules/metrics';
-import { RegionsFilter } from '@/modules/metrics/components/filters/regions-filter';
+import { MetricsProvider } from '@/modules/metrics';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -83,35 +80,13 @@ export default function HttpProxyDetailPage() {
         </Col>
 
         <Col span={24}>
-          <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
+          <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
             <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
               <div className="flex items-center gap-2.5">
                 <Icon icon={ChartSplineIcon} size={20} className="text-secondary stroke-2" />
                 <span className="text-base font-semibold">Metrics</span>
               </div>
-              <MetricsToolbar className="justify-between">
-                <MetricsToolbar.Filters>
-                  <RegionsFilter />
-                </MetricsToolbar.Filters>
-                <MetricsToolbar.CoreControls />
-              </MetricsToolbar>
-              <div className="flex flex-col gap-6">
-                <HttpProxyGlobalUpstreamLatency
-                  projectId={projectId ?? ''}
-                  proxyId={proxyId ?? ''}
-                />
-                <Row gutter={[24, 24]}>
-                  <Col span={24} lg={12}>
-                    <HttpProxyUpstreamRps projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
-                  </Col>
-                  <Col span={24} lg={12}>
-                    <HttpProxyUpstreamResponse
-                      projectId={projectId ?? ''}
-                      proxyId={proxyId ?? ''}
-                    />
-                  </Col>
-                </Row>
-              </div>
+              <HttpProxyEdgeRequests projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
             </CardContent>
           </Card>
         </Col>

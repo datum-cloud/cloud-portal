@@ -17,6 +17,7 @@ export const REGION_COORDINATES: Record<string, [number, number]> = {
   'us-central-1': [32.8, -96.8], // Dallas
   'us-east-1': [39.0, -77.5], // Ashburn
   'us-east-2': [40.7, -74.0], // New York City
+  'us-east4': [40.7, -74.0], // Staging
   'us-west-1': [37.3, -121.9], // San Jose, California
   'za-central-1': [-26.2, 28.0], // Johannesburg
 };

@@ -162,7 +162,8 @@ export default function HttpProxyPage() {
               {hostnames?.map((hostname: string) => (
                 <BadgeCopy
                   key={hostname}
-                  value={hostname}
+                  value={`https://${hostname}`}
+                  text={hostname}
                   badgeTheme="solid"
                   badgeType="muted"
                   textClassName={hasMultipleHostnames ? 'max-w-[10rem] truncate' : undefined}

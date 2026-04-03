@@ -91,42 +91,35 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
           </div>
         )}
         {showSkeleton && <Skeleton className="h-40 w-full rounded-lg border sm:h-64" />}
-        {!isLoading && !showSkeleton && !error && regionOptions.length > 0 && (
-          <div className="flex flex-col gap-4">
-            {regionsWithCoords.length > 0 && (
-              <ChunkErrorBoundary
-                fallback={
-                  <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
-                    <div className="flex flex-col items-center gap-2">
-                      <p className="text-muted-foreground text-sm">Unable to load map.</p>
-                      <Button
-                        htmlType="button"
-                        type="primary"
-                        theme="solid"
-                        size="small"
-                        onClick={() => window.location.reload()}>
-                        Reload page
-                      </Button>
-                    </div>
-                  </div>
-                }>
-                <Suspense
-                  fallback={<div className="bg-muted h-64 animate-pulse rounded-lg border" />}>
-                  <ActivePopsMap regionsWithCoords={regionsWithCoords} />
-                </Suspense>
-              </ChunkErrorBoundary>
-            )}
-            {regionsWithCoords.length === 0 && (
+        {!isLoading && !showSkeleton && !error && (
+          <ChunkErrorBoundary
+            fallback={
               <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
-                <p className="text-muted-foreground text-center text-sm">No active POPs found.</p>
+                <div className="flex flex-col items-center gap-2">
+                  <p className="text-muted-foreground text-sm">Unable to load map.</p>
+                  <Button
+                    htmlType="button"
+                    type="primary"
+                    theme="solid"
+                    size="small"
+                    onClick={() => window.location.reload()}>
+                    Reload page
+                  </Button>
+                </div>
               </div>
-            )}
-          </div>
+            }>
+            <Suspense
+              fallback={
+                <div className="bg-muted aspect-2/1 w-full animate-pulse rounded-lg border" />
+              }>
+              <ActivePopsMap regionsWithCoords={regionsWithCoords} />
+            </Suspense>
+          </ChunkErrorBoundary>
         )}
-        {!isLoading && !showSkeleton && (error || regionOptions.length === 0) && (
+        {!isLoading && !showSkeleton && error && (
           <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
             <p className="text-muted-foreground text-center text-sm">
-              {error ? 'Unable to load active regions.' : 'No active POPs found.'}
+              Unable to load active regions.
             </p>
           </div>
         )}

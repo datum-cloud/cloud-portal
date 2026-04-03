@@ -37,7 +37,7 @@ jobs:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
 
       - name: Install
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -60,7 +60,7 @@ jobs:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
 
       - name: Run Lint & Format
         run: |
@@ -88,7 +88,7 @@ jobs:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
 
       - name: Run Typecheck
         run: bun typecheck
@@ -113,7 +113,7 @@ jobs:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
 
       - name: Build
         run: bun run build
@@ -144,7 +144,7 @@ jobs:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
 
       - name: Setup Cypress
         run: |
@@ -184,7 +184,7 @@ jobs:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
 
       - name: Restore Build Cache
         uses: actions/cache@v5

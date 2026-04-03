@@ -12,8 +12,16 @@ import {
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Card, CardContent, Tooltip, Skeleton } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { CircleHelp, ShieldCheckIcon, ShieldOffIcon, SquareLibrary } from 'lucide-react';
+import {
+  CircleHelp,
+  ShieldCheckIcon,
+  ShieldOffIcon,
+  SquareLibrary,
+  TriangleAlertIcon,
+} from 'lucide-react';
 import { useMemo } from 'react';
+
+const DNS_PROPAGATION_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 
 export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
   const hostname = useMemo(
@@ -22,6 +30,15 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
   );
 
   const isPending = useProxyPending(proxy?.status);
+
+  // The operator sets Available=True as soon as the DNS record is programmed,
+  // not after it has propagated globally. Use a time window instead — the component
+  // re-renders via the K8s watch so the warning clears naturally once the window passes.
+  const isDnsPropagating = useMemo(() => {
+    if (!proxy.createdAt || isPending) return false;
+    const ageMs = Date.now() - new Date(proxy.createdAt).getTime();
+    return ageMs < DNS_PROPAGATION_WINDOW_MS;
+  }, [proxy.createdAt, isPending]);
 
   const listItems: ListItem[] = useMemo(() => {
     if (!proxy) return [];
@@ -141,13 +158,25 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
           isPending && !hostname ? (
             <Skeleton className="h-7 w-48 rounded-md" />
           ) : hostname ? (
-            <BadgeCopy
-              value={hostname}
-              text={hostname}
-              badgeType="muted"
-              badgeTheme="solid"
-              textClassName="truncate max-w-[250px]"
-            />
+            <div className="flex items-center gap-2">
+              <BadgeCopy
+                value={`https://${hostname}`}
+                text={hostname}
+                badgeType="muted"
+                badgeTheme="solid"
+                textClassName="truncate max-w-[250px]"
+              />
+              {isDnsPropagating && (
+                <Tooltip
+                  message="DNS changes can take a few minutes to propagate globally"
+                  side="right"
+                  contentClassName="max-w-xs text-wrap">
+                  <div className="flex items-center gap-1 text-[11px] font-medium text-(--color-badge-warning)">
+                    <Icon icon={TriangleAlertIcon} size={12} className="shrink-0" />
+                  </div>
+                </Tooltip>
+              )}
+            </div>
           ) : null,
       },
       {
@@ -164,7 +193,7 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
           ),
       },
     ];
-  }, [proxy, hostname, isPending]);
+  }, [proxy, hostname, isPending, isDnsPropagating]);
 
   return (
     <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">

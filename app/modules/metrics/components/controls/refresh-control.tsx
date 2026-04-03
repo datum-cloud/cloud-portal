@@ -100,7 +100,7 @@ export const RefreshControl = ({
   };
 
   return (
-    <div className="border-input bg-background flex h-[36px] items-center rounded-md border">
+    <div className="border-input bg-background flex h-[36px] items-center overflow-hidden rounded-md border shadow-none">
       {/* Manual Refresh Button */}
       <Tooltip message={getTooltipText()}>
         <Button
@@ -119,7 +119,7 @@ export const RefreshControl = ({
 
       {/* Auto Refresh Interval Dropdown */}
       <Select value={refreshInterval || defaultValue} onValueChange={setRefreshInterval}>
-        <SelectTrigger className="min-w-10 rounded-l-none border-0 px-2 focus:ring-0">
+        <SelectTrigger className="h-full min-w-10 rounded-l-none border-0 bg-transparent px-2 shadow-none focus:ring-0">
           <SelectValue placeholder="Auto refresh" />
         </SelectTrigger>
         <SelectContent>
