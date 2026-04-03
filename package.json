@@ -32,7 +32,7 @@
     "tslib": "^2.8.1",
     "@hono/prometheus": "^1.0.2",
     "@monaco-editor/react": "^4.7.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.71.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.72.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.214.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.214.0",
     "@opentelemetry/sdk-node": "^0.214.0",
