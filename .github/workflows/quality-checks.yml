@@ -240,10 +240,10 @@ jobs:
 
   e2e-regression-tests:
     needs: [e2e-smoke-tests]
-    name: E2E Regression Tests (shard ${{ matrix.shard }})
+    name: E2E Regression Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ !failure() && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
