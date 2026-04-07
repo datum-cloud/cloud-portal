@@ -38,3 +38,22 @@
 .animate-data-table-fade-in {
   animation: data-table-fade-in 0.2s ease-out;
 }
+
+/* Streamdown — Tailwind utilities used inside minified JS are not compiled.
+   Restore the -mt-10 that overlaps the actions bar with the header row,
+   and ensure a consistent mt-2 gap above every code block. */
+[data-streamdown="code-block"] {
+  margin-top: 0.5rem;
+}
+[data-streamdown="code-block"] > div:has(> [data-streamdown="code-block-actions"]) {
+  margin-top: -2.5rem;
+}
+
+/* Tiptap Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

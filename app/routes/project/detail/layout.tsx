@@ -1,3 +1,4 @@
+import { ProjectBottomBar } from '@/components/project-bottom-bar';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
@@ -304,7 +305,8 @@ export default function ProjectLayout() {
         expandBehavior="push"
         showBackdrop={false}
         sidebarLoading={projectLoading}
-        switcherLoading={projectLoading || orgLoading}>
+        switcherLoading={projectLoading || orgLoading}
+        bottomBar={<ProjectBottomBar />}>
         <Outlet />
       </DashboardLayout>
     </ProjectProvider>

@@ -65,6 +65,10 @@ export interface ServerEnv {
   redisConnectTimeout: number;
   redisCommandTimeout: number;
   redisKeyPrefix: string;
+
+  // Optional: AI Assistant
+  anthropicApiKey?: string;
+  anthropicModel?: string;
 }
 
 /**

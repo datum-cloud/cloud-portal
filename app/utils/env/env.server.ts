@@ -118,6 +118,12 @@ const serverSchema = z.object({
   HELPSCOUT_SECRET_KEY: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: AI Assistant
+  // ─────────────────────────────────────────────────────────
+  ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
   // ─────────────────────────────────────────────────────────
   REDIS_URL: urlSchemaOptional(),
@@ -181,6 +187,9 @@ export const env: Env = {
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
     otelExporterEndpoint: data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelExporterTimeout: data.OTEL_EXPORTER_TIMEOUT,
+    // AI Assistant
+    anthropicApiKey: data.ANTHROPIC_API_KEY,
+    anthropicModel: data.ANTHROPIC_MODEL,
     // Redis
     redisUrl: data.REDIS_URL,
     redisMaxRetries: data.REDIS_MAX_RETRIES,
