@@ -225,7 +225,7 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SUB: ${{ secrets.SUB }}
-        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts --quiet'
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
 
       - name: Upload Artifacts
         if: failure()
@@ -310,7 +310,7 @@ jobs:
           SUB: ${{ secrets.SUB }}
           SPLIT: ${{ strategy.job-total }}
           SPLIT_INDEX: ${{ strategy.job-index }}
-        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/regression/**" --config-file cypress.config.ts --quiet'
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/regression/**" --config-file cypress.config.ts'
 
       - name: Upload Artifacts
         if: failure()
