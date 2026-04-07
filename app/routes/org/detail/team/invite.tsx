@@ -130,11 +130,6 @@ export default function OrgTeamInvitePage() {
       if (hasSuccess && !hasFailed) {
         // All invitations succeeded
         trackAction(AnalyticsAction.InviteCollaborator);
-        const message =
-          successCount === 1
-            ? 'Invitation sent successfully!'
-            : `${formatCount(successCount)} sent successfully!`;
-        toast.success(message);
         navigate(getPathWithParams(paths.org.detail.team.root, { orgId }));
       } else if (hasSuccess && hasFailed) {
         // Partial success - some succeeded, some failed

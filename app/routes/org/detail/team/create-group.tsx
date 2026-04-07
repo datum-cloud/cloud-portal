@@ -42,7 +42,6 @@ export default function CreateGroupPage() {
     setIsSubmitting(true);
     try {
       await createGroup.mutateAsync(formData);
-      toast.success('Group created successfully');
       navigate(getPathWithParams(paths.org.detail.team.groups, { orgId }));
     } catch (error: unknown) {
       toast.error(error instanceof Error ? error.message : 'Failed to create group');

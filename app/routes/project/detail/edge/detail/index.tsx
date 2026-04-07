@@ -34,9 +34,6 @@ export default function HttpProxyDetailPage() {
 
   const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId ?? '', {
     onSuccess: () => {
-      toast.success('Proxy', {
-        description: 'The proxy has been deleted successfully',
-      });
       navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     },
     onError: (error) => {

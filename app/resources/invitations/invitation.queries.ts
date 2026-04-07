@@ -78,10 +78,8 @@ export function useCreateInvitation(
       options?.onSuccess?.(...args);
     },
     onSettled: (...args) => {
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
+      queryClient.invalidateQueries({
         queryKey: invitationKeys.list(orgId),
-        type: 'active',
       });
       queryClient.refetchQueries({
         queryKey: invitationKeys.userLists(),

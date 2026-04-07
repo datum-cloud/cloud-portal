@@ -29,9 +29,6 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
   const createSecret = useCreateSecret(projectId ?? '', {
     onSuccess: (secret) => {
       trackAction(AnalyticsAction.AddSecret);
-      toast.success('Secret', {
-        description: 'The secret has been created successfully',
-      });
       setOpen(false);
       navigate(
         getPathWithParams(paths.project.detail.secrets.detail.root, {

@@ -70,9 +70,6 @@ export const ExportPolicyUpdateForm = ({
 
   const updateMutation = useUpdateExportPolicy(projectId ?? '', defaultValue?.name ?? '', {
     onSuccess: () => {
-      toast.success('Export policy updated successfully', {
-        description: 'You have successfully updated an export policy.',
-      });
       navigate(
         getPathWithParams(paths.project.detail.metrics.root, {
           projectId,
@@ -88,9 +85,6 @@ export const ExportPolicyUpdateForm = ({
 
   const deleteMutation = useDeleteExportPolicy(projectId ?? '', {
     onSuccess: () => {
-      toast.success('Export policy deleted successfully', {
-        description: 'You have successfully deleted an export policy.',
-      });
       navigate(
         getPathWithParams(paths.project.detail.metrics.root, {
           projectId,

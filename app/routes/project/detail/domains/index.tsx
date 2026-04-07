@@ -200,9 +200,6 @@ export default function DomainsPage() {
       onSubmit: async () => {
         try {
           await deleteDomainMutation.mutateAsync(domain?.name ?? '');
-          toast.success('Domain', {
-            description: 'The domain has been deleted successfully',
-          });
         } catch (error) {
           toast.error('Domain', {
             description: (error as Error).message || 'Failed to delete domain',

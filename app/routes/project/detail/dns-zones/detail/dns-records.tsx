@@ -115,11 +115,6 @@ export default function DnsRecordsPage() {
 
   const { confirm } = useConfirmationDialog();
   const deleteMutation = useDeleteDnsRecord(projectId!, dnsZoneId!, {
-    onSuccess: () => {
-      toast.success('DNS record', {
-        description: 'The DNS record has been deleted successfully',
-      });
-    },
     onError: (error) => {
       toast.error(error.message || 'Failed to delete DNS record');
     },

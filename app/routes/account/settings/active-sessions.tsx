@@ -69,9 +69,6 @@ export default function AccountActiveSessionsPage() {
       if (selectedSession?.name === currentSession) {
         return navigate(paths.auth.logOut, { replace: true });
       }
-      toast.success('Session', {
-        description: 'The session has been revoked successfully',
-      });
       setSelectedSession(null);
     },
     onError: (error) => {

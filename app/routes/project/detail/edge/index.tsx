@@ -62,11 +62,6 @@ export default function HttpProxyPage() {
   }, [searchParams, setSearchParams]);
 
   const { confirmDelete } = useDeleteProxy(projectId, {
-    onSuccess: () => {
-      toast.success('AI Edge', {
-        description: 'AI Edge has been deleted successfully',
-      });
-    },
     onError: (error) => {
       toast.error(error.message || 'Failed to delete AI Edge');
     },

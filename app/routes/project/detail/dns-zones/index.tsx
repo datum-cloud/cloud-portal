@@ -134,11 +134,6 @@ export default function DnsZonesPage() {
   }, [zones]);
 
   const deleteMutation = useDeleteDnsZone(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('DNS', {
-        description: 'The DNS has been deleted successfully',
-      });
-    },
     onError: (error) => {
       toast.error('DNS', {
         description: error.message || 'Failed to delete DNS',
