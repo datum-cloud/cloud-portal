@@ -5,8 +5,8 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "docs/**"
-      - "README.md"
+      - 'docs/**'
+      - 'README.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -156,7 +156,7 @@ jobs:
       - name: Run Unit Tests
         env:
           NODE_ENV: test
-          CYPRESS: "true"
+          CYPRESS: 'true'
         run: bun run test:unit:prod
 
   e2e-smoke-tests:
@@ -220,7 +220,7 @@ jobs:
       - name: Run Smoke Tests
         env:
           NODE_ENV: test
-          CYPRESS: "true"
+          CYPRESS: 'true'
           CYPRESS_BASE_URL: http://localhost:3000
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
@@ -303,20 +303,21 @@ jobs:
       - name: Run Regression Tests
         env:
           NODE_ENV: test
-          CYPRESS: "true"
+          CYPRESS: 'true'
           CYPRESS_BASE_URL: http://localhost:3000
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SUB: ${{ secrets.SUB }}
           SPLIT: ${{ strategy.job-total }}
           SPLIT_INDEX: ${{ strategy.job-index }}
-        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/regression/**" --config-file cypress.config.ts'
+          CYPRESS_specPattern: 'cypress/e2e/regression/**/*.{cy,spec}.{js,jsx,ts,tsx}'
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --config-file cypress.config.ts'
 
       - name: Upload Artifacts
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: cypress-regression-artifacts-${{ github.run_id }}-shard-${{ strategy.job-index }}
+          name: cypress-regression-artifacts-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: |
             cypress/videos
             cypress/screenshots
