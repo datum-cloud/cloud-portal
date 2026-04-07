@@ -13,9 +13,6 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
 
   const deleteMutation = useDeleteProject({
     onSuccess: () => {
-      toast.success('Project', {
-        description: 'The project has been deleted successfully',
-      });
       navigate(
         getPathWithParams(paths.org.detail.projects.root, {
           orgId: project.organizationId,

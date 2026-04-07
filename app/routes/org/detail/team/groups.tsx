@@ -72,7 +72,6 @@ export default function GroupsPage() {
   });
 
   const { mutateAsync: deleteGroupAsync } = useDeleteGroup(orgId, {
-    onSuccess: () => toast.success('Group deleted successfully'),
     onError: (error) => toast.error(error.message || 'Failed to delete group'),
   });
 

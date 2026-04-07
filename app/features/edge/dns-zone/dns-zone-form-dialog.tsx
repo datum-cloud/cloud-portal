@@ -30,9 +30,6 @@ export const DnsZoneFormDialog = forwardRef<DnsZoneFormDialogRef, DnsZoneFormDia
     const createZone = useCreateDnsZone(projectId, {
       onSuccess: (dnsZone) => {
         trackAction(AnalyticsAction.AddDnsZone);
-        toast.success('DNS', {
-          description: 'DNS zone has been created successfully',
-        });
         setOpen(false);
         // Navigate to discovery page — it creates the discovery on mount
         navigate(

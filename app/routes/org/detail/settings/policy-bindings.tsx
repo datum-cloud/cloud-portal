@@ -43,11 +43,6 @@ export default function OrgPolicyBindingsPage() {
   const { confirm } = useConfirmationDialog();
 
   const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
-    onSuccess: () => {
-      toast.success('Policy binding', {
-        description: 'The policy binding has been deleted successfully',
-      });
-    },
     onError: (error) => {
       toast.error('Error', { description: error.message });
     },

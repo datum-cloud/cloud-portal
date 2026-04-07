@@ -37,9 +37,6 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
     const handleSubmit = async (formData: DomainSchema) => {
       try {
         const domain = await createDomainMutation.mutateAsync({ domainName: formData.domain });
-        toast.success('Domain', {
-          description: 'The domain has been added to your project',
-        });
         trackAction(AnalyticsAction.AddDomain);
         setOpen(false);
 

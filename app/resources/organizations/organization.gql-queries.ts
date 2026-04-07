@@ -59,7 +59,7 @@ export function useOrganizationsGql(_params?: undefined, options?: { enabled?: b
   const [result, reexecute] = useQuery({
     query: orgListOp.query,
     variables: orgListOp.variables,
-    requestPolicy: 'cache-first',
+    requestPolicy: 'cache-and-network',
     pause,
   });
 

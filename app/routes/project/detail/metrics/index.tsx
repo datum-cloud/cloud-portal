@@ -56,11 +56,6 @@ export default function ExportPoliciesPage() {
   const { confirm } = useConfirmationDialog();
 
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('Export policy deleted successfully', {
-        description: 'The export policy has been deleted successfully',
-      });
-    },
     onError: (error) => {
       toast.error(error.message);
     },

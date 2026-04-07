@@ -60,11 +60,6 @@ export default function SecretsPage() {
   const data = queryData ?? initialData ?? [];
 
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
-    onSuccess: () => {
-      toast.success('Secret deleted successfully', {
-        description: 'The secret has been deleted successfully',
-      });
-    },
     onError: (error) => {
       toast.error(error.message);
     },

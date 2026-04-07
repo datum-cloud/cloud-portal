@@ -91,9 +91,6 @@ export default function OrgTeamPage() {
 
   // Mutation hooks
   const cancelInvitationMutation = useCancelInvitation(orgId, {
-    onSuccess: () => {
-      toast.success('Invitation cancelled successfully');
-    },
     onError: (error) => {
       toast.error(error.message || 'Failed to cancel invitation');
     },
@@ -109,9 +106,6 @@ export default function OrgTeamPage() {
   });
 
   const removeMemberMutation = useRemoveMember(orgId, {
-    onSuccess: () => {
-      toast.success('Member removed successfully');
-    },
     onError: (error) => {
       toast.error(error.message || 'Failed to remove member');
     },
