@@ -5,58 +5,54 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Selector Reference — Organisations
  *
  * List page
- * [data-e2e="organization-card-personal"]    Personal org row
- * [data-e2e="organization-card-standard"]    Standard org row
- * [data-e2e="organization-card-id-copy"]     Resource ID badge inside an org row
- * [data-e2e="create-organization-button"]    "Create organization" button
+ * [data-e2e="organization-card-personal"]     Personal org row
+ * [data-e2e="organization-card-standard"]     Standard org row
+ * [data-e2e="create-organization-button"]     "Create organization" button
  *
  * Create dialog
  * [data-e2e="create-organization-name-input"] Organization Name input
  *
  * General settings
- * [data-e2e="edit-organization-name-input"]  Organization Name input
- * [data-e2e="edit-organization-save"]        Save button
- * [data-e2e="edit-organization-cancel"]      Cancel button
+ * [data-e2e="edit-organization-name-input"]   Organization Name input
+ * [data-e2e="edit-organization-save"]         Save button
+ * [data-e2e="edit-organization-cancel"]       Cancel button
  *
  * Danger zone
- * [data-e2e="delete-organization-button"]    Delete organization button
+ * [data-e2e="delete-organization-button"]     Delete organization button
  *
  * Confirmation dialog (shared)
- * [data-e2e="confirmation-dialog-input"]     Type DELETE to confirm input
- * [data-e2e="confirmation-dialog-submit"]    Confirm/Delete button
- * [data-e2e="confirmation-dialog-cancel"]    Cancel button
+ * [data-e2e="confirmation-dialog-input"]      Type DELETE to confirm input
+ * [data-e2e="confirmation-dialog-submit"]     Confirm/Delete button
+ * [data-e2e="confirmation-dialog-cancel"]     Cancel button
  */
 
 describe('Organisations — regression', () => {
-  const testOrgName = `e2e-test-org-${Date.now()}`;
-  let createdOrgId: string;
+  const testName = `e2e-test-org-${Date.now()}`;
+  const updatedName = `${testName}-updated`;
+  let resourceId = '';
 
+  // Creates the test org once before all tests in this suite.
+  // If this fails, all tests are skipped — fix before() first.
   before(() => {
     cy.login();
-
-    // Create org via UI
     cy.visit(paths.account.organizations.root);
     cy.get('[data-e2e="create-organization-button"]').click();
-    cy.get('[data-e2e="create-organization-name-input"]').type(testOrgName);
-
-    // Wait for the resource ID to be auto-generated then submit
+    cy.get('[data-e2e="create-organization-name-input"]').type(testName);
     cy.contains('button', 'Confirm').click();
-
-    // After creation the app navigates to /org/[orgId]/projects
+    // App redirects to /org/[orgId]/projects after creation
     cy.url()
       .should('match', /\/org\/[a-z0-9-]+\//)
       .then((url) => {
-        createdOrgId = url.split('/org/')[1].split('/')[0];
-        Cypress.env('testOrgId', createdOrgId);
+        resourceId = url.split('/org/')[1].split('/')[0];
       });
   });
 
+  // Safety net — deletes the org if any test failed before the delete test ran.
+  // If the delete test already ran it sets resourceId = '' so this is a no-op.
   after(() => {
+    if (!resourceId) return;
     cy.login();
-    const orgId = createdOrgId || Cypress.env('testOrgId');
-    if (!orgId) return;
-
-    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId }));
+    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
     cy.get('[data-e2e="delete-organization-button"]').click();
     cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
@@ -71,46 +67,37 @@ describe('Organisations — regression', () => {
     cy.visit(paths.account.organizations.root);
     cy.get('[data-e2e="organization-card-standard"]')
       .should('have.length.at.least', 1)
-      .and('contain.text', testOrgName);
+      .and('contain.text', testName);
   });
 
   it('should load the org detail page', () => {
-    const orgId = createdOrgId || Cypress.env('testOrgId');
-    cy.visit(getPathWithParams(paths.org.detail.root, { orgId }));
-    cy.url().should('include', `/org/${orgId}`);
+    cy.visit(getPathWithParams(paths.org.detail.root, { orgId: resourceId }));
+    cy.url().should('include', `/org/${resourceId}`);
   });
 
   it('should update the org display name', () => {
-    const orgId = createdOrgId || Cypress.env('testOrgId');
-    const updatedName = `${testOrgName}-updated`;
-
-    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId }));
-    cy.get('[data-e2e="edit-organization-name-input"]').clear().type(updatedName);
+    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
+    // Clear and type as separate queries — React re-renders after clear() detach the node
+    cy.get('[data-e2e="edit-organization-name-input"]').clear();
+    cy.get('[data-e2e="edit-organization-name-input"]').type(updatedName);
     cy.get('[data-e2e="edit-organization-save"]').click();
-
-    // Toast confirms success — then verify the input reflects the saved value
     cy.contains('The Organization has been updated successfully').should('be.visible');
     cy.get('[data-e2e="edit-organization-name-input"]').should('have.value', updatedName);
   });
 
   it('should show quotas on the org quotas tab', () => {
-    const orgId = createdOrgId || Cypress.env('testOrgId');
-    cy.visit(getPathWithParams(paths.org.detail.settings.quotas, { orgId }));
+    cy.visit(getPathWithParams(paths.org.detail.settings.quotas, { orgId: resourceId }));
     cy.get('[data-e2e="org-quota-card"]').should('have.length.at.least', 1);
   });
 
   it('should delete the org and remove it from the list', () => {
-    const orgId = createdOrgId || Cypress.env('testOrgId');
-
-    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId }));
+    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
     cy.get('[data-e2e="delete-organization-button"]').click();
     cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
-
     cy.url().should('include', paths.account.organizations.root);
-    cy.get('[data-e2e="organization-card-standard"]').should('not.contain.text', testOrgName);
-
-    // Mark cleaned up so after() skips re-deleting
-    Cypress.env('testOrgId', null);
+    cy.get('[data-e2e="organization-card-standard"]').should('not.contain.text', testName);
+    // Clear last — signals after() that cleanup is done
+    resourceId = '';
   });
 });
