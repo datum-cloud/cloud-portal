@@ -249,7 +249,11 @@ export default function AccountOrganizations() {
             label="Organization Name"
             description="Could be the name of your company or team. This can be changed."
             required>
-            <Form.Input data-e2e="create-organization-name-input" placeholder="e.g. My Organization" autoFocus />
+            <Form.Input
+              data-e2e="create-organization-name-input"
+              placeholder="e.g. My Organization"
+              autoFocus
+            />
           </Form.Field>
 
           <Form.Field name="name">

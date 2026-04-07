@@ -63,7 +63,10 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                   </Form.Field>
                 ) : (
                   <Form.Field name="description" label="Organization Name" required>
-                    <Form.Input data-e2e="edit-organization-name-input" placeholder="e.g. My Organization" />
+                    <Form.Input
+                      data-e2e="edit-organization-name-input"
+                      placeholder="e.g. My Organization"
+                    />
                   </Form.Field>
                 )}
                 <Form.Field name="name" label="Resource ID">

@@ -43,10 +43,12 @@ describe('Organisations — regression', () => {
     cy.contains('button', 'Confirm').click();
 
     // After creation the app navigates to the new org's detail page
-    cy.url().should('match', /\/org\/[a-z0-9-]+$/).then((url) => {
-      createdOrgId = url.split('/org/')[1];
-      Cypress.env('testOrgId', createdOrgId);
-    });
+    cy.url()
+      .should('match', /\/org\/[a-z0-9-]+$/)
+      .then((url) => {
+        createdOrgId = url.split('/org/')[1];
+        Cypress.env('testOrgId', createdOrgId);
+      });
   });
 
   after(() => {
