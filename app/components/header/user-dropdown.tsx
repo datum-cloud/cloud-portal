@@ -64,6 +64,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
           type="primary"
           theme="borderless"
           size="small"
+          data-e2e="user-menu-trigger"
           className={cn(
             'hover:bg-sidebar-accent cursor-pointer border-none p-0 px-1 focus-visible:ring-0 focus-visible:ring-offset-0',
             className
@@ -118,6 +119,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
           <DropdownMenuItem
             asChild
             variant="destructive"
+            data-e2e="user-menu-logout"
             className="data-[variant=destructive]:*:[svg]:!text-destructive cursor-pointer rounded-lg px-3 py-2 font-normal"
             onClick={() => {
               navigate(paths.auth.logOut, { replace: true, preventScrollReset: true });
