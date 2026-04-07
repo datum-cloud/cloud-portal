@@ -64,8 +64,7 @@ export default defineConfig({
     viewportHeight: 720,
     video: true,
     screenshotOnRunFailure: true,
-    experimentalStudio: true,
-    specPattern: 'cypress/e2e/**/*.{cy,spec}.{js,jsx,ts,tsx}',
+    specPattern: 'cypress/e2e/{smoke,regression}/**/*.{cy,spec}.{js,jsx,ts,tsx}',
   },
   component: {
     devServer: {

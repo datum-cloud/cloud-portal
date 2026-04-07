@@ -5,8 +5,8 @@ on:
   push:
     branches: [main]
     paths-ignore:
-      - "docs/**"
-      - "README.md"
+      - 'docs/**'
+      - 'README.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -156,15 +156,94 @@ jobs:
       - name: Run Unit Tests
         env:
           NODE_ENV: test
-          CYPRESS: "true"
+          CYPRESS: 'true'
         run: bun run test:unit:prod
 
-  e2e-tests:
+  e2e-smoke-tests:
     needs: [build]
-    name: E2E Tests (shard ${{ strategy.job-index }}/${{ strategy.job-total }})
+    name: E2E Smoke Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: ${{ !failure() && !cancelled() }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Restore Dependencies Cache
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+
+      - name: Restore Build Cache
+        uses: actions/cache@v5
+        with:
+          path: build
+          key: build-${{ github.sha }}
+
+      - name: Setup Environment
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          SUB: ${{ secrets.SUB }}
+          API_URL: ${{ secrets.API_URL }}
+          GRAPHQL_URL: ${{ secrets.GRAPHQL_URL }}
+          AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
+          AUTH_OIDC_CLIENT_ID: ${{ secrets.AUTH_OIDC_CLIENT_ID }}
+        run: |
+          cat > .env << EOF
+          NODE_ENV=test
+          CYPRESS=true
+          APP_URL=http://localhost:3000
+          API_URL=$API_URL
+          GRAPHQL_URL=$GRAPHQL_URL
+          AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
+          AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
+          SESSION_SECRET=$SESSION_SECRET
+          CYPRESS_BASE_URL=http://localhost:3000
+          EOF
+
+      - name: Setup Cypress
+        run: |
+          echo "Installing Cypress..."
+          bunx cypress install
+          echo "Verifying Cypress installation..."
+          bunx cypress verify
+
+      - name: Run Smoke Tests
+        env:
+          NODE_ENV: test
+          CYPRESS: 'true'
+          CYPRESS_BASE_URL: http://localhost:3000
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          SUB: ${{ secrets.SUB }}
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+
+      - name: Upload Artifacts
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-smoke-artifacts-${{ github.run_id }}
+          path: |
+            cypress/videos
+            cypress/screenshots
+          retention-days: 7
+          if-no-files-found: warn
+
+  e2e-regression-tests:
+    needs: [e2e-smoke-tests]
+    name: E2E Regression Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     strategy:
       fail-fast: false
       matrix:
@@ -221,23 +300,24 @@ jobs:
           echo "Verifying Cypress installation..."
           bunx cypress verify
 
-      - name: Run E2E Tests
+      - name: Run Regression Tests
         env:
           NODE_ENV: test
-          CYPRESS: "true"
+          CYPRESS: 'true'
           CYPRESS_BASE_URL: http://localhost:3000
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SUB: ${{ secrets.SUB }}
           SPLIT: ${{ strategy.job-total }}
           SPLIT_INDEX: ${{ strategy.job-index }}
-        run: bun run test:e2e:prod
+          CYPRESS_specPattern: 'cypress/e2e/regression/**/*.{cy,spec}.{js,jsx,ts,tsx}'
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --config-file cypress.config.ts'
 
       - name: Upload Artifacts
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: cypress-artifacts-${{ github.run_id }}-shard-${{ strategy.job-index }}
+          name: cypress-regression-artifacts-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: |
             cypress/videos
             cypress/screenshots
@@ -245,7 +325,7 @@ jobs:
           if-no-files-found: warn
 
   pr-comment:
-    needs: [unit-tests, e2e-tests]
+    needs: [unit-tests, e2e-smoke-tests]
     name: PR Test Summary
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -272,7 +352,7 @@ jobs:
             });
 
             const testJobs = jobs.jobs.filter(j =>
-              j.name === 'Unit Tests' || j.name.startsWith('E2E Tests (shard')
+              j.name === 'Unit Tests' || j.name === 'E2E Smoke Tests'
             );
 
             const statusEmoji = (conclusion) => {
@@ -317,7 +397,7 @@ jobs:
           edit-mode: replace
 
   status-check:
-    needs: [install, lint, typecheck, build, unit-tests, e2e-tests]
+    needs: [install, lint, typecheck, build, unit-tests, e2e-smoke-tests]
     name: Final Status Check
     if: always()
     runs-on: ubuntu-latest

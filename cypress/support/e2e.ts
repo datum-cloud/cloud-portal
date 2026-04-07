@@ -194,6 +194,23 @@ Cypress.Commands.add('getProjectId', (orgId?: string): Cypress.Chainable<string>
   }) as Cypress.Chainable<string>;
 });
 
+/**
+ * Logout via the UI.
+ * Clicks the user menu trigger then the Log Out item.
+ * Stubs the /login route to prevent Cypress following the onward OIDC redirect
+ * to the external auth provider (which would cause a cross-origin error).
+ * After this command resolves, _session cookie will not exist.
+ */
+Cypress.Commands.add('logout', () => {
+  cy.intercept('GET', `${paths.auth.logIn}*`, { statusCode: 200, body: '' }).as(
+    '__logoutLoginRedirect'
+  );
+  cy.get('[data-e2e="user-menu-trigger"]').click();
+  cy.get('[data-e2e="user-menu-logout"]').click();
+  cy.wait('@__logoutLoginRedirect');
+  cy.getCookie('_session').should('not.exist');
+});
+
 // TypeScript declarations for custom commands
 declare global {
   namespace Cypress {
@@ -220,6 +237,14 @@ declare global {
        * @example cy.getProjectId().then((projectId) => { cy.visit(`/project/${projectId}`); })
        */
       getProjectId(orgId?: string): Chainable<string>;
+
+      /**
+       * Logout via the UI (user menu → Log Out).
+       * Stubs the OIDC redirect so Cypress does not navigate cross-origin.
+       * After this resolves, the _session cookie will not exist.
+       * @example cy.logout()
+       */
+      logout(): Chainable<void>;
     }
   }
 }
