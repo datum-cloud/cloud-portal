@@ -145,6 +145,7 @@ export const ConfirmationDialog = ({
                 <Label className="cursor-text select-text">{dialogProps.confirmInputLabel}</Label>
                 <Input
                   type="text"
+                  data-e2e="confirmation-dialog-input"
                   placeholder={dialogProps.confirmInputPlaceholder}
                   value={confirmValidationValue}
                   onChange={(e) => setConfirmValidationValue(e.target.value)}
@@ -157,12 +158,18 @@ export const ConfirmationDialog = ({
         )}
 
         <Dialog.Footer>
-          <Button type="quaternary" theme="borderless" onClick={handleCancel} disabled={isPending}>
+          <Button
+            type="quaternary"
+            theme="borderless"
+            data-e2e="confirmation-dialog-cancel"
+            onClick={handleCancel}
+            disabled={isPending}>
             {dialogProps.cancelText}
           </Button>
           <Button
             type={dialogProps.variant === 'destructive' ? 'danger' : 'primary'}
             theme="solid"
+            data-e2e="confirmation-dialog-submit"
             onClick={handleConfirm}
             disabled={isDisabled || isPending}
             loading={isPending}>

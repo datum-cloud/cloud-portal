@@ -63,7 +63,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                   </Form.Field>
                 ) : (
                   <Form.Field name="description" label="Organization Name" required>
-                    <Form.Input placeholder="e.g. My Organization" />
+                    <Form.Input data-e2e="edit-organization-name-input" placeholder="e.g. My Organization" />
                   </Form.Field>
                 )}
                 <Form.Field name="name" label="Resource ID">
@@ -77,6 +77,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                   htmlType="button"
                   type="quaternary"
                   theme="outline"
+                  data-e2e="edit-organization-cancel"
                   disabled={isSubmitting}
                   size="xs"
                   onClick={() => {
@@ -89,7 +90,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                   }}>
                   Cancel
                 </Button>
-                <Form.Submit size="xs" loadingText="Saving">
+                <Form.Submit size="xs" loadingText="Saving" data-e2e="edit-organization-save">
                   Save
                 </Form.Submit>
               </CardFooter>
