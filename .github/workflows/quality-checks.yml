@@ -225,7 +225,7 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SUB: ${{ secrets.SUB }}
-        run: bunx cypress run --spec 'cypress/e2e/smoke/**' --config-file cypress.config.ts --quiet
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts --quiet'
 
       - name: Upload Artifacts
         if: failure()
@@ -240,7 +240,7 @@ jobs:
 
   e2e-regression-tests:
     needs: [e2e-smoke-tests]
-    name: E2E Regression Tests (shard ${{ strategy.job-index }}/${{ strategy.job-total }})
+    name: E2E Regression Tests (shard ${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -310,7 +310,7 @@ jobs:
           SUB: ${{ secrets.SUB }}
           SPLIT: ${{ strategy.job-total }}
           SPLIT_INDEX: ${{ strategy.job-index }}
-        run: bunx cypress run --spec 'cypress/e2e/regression/**' --config-file cypress.config.ts --quiet
+        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/regression/**" --config-file cypress.config.ts --quiet'
 
       - name: Upload Artifacts
         if: failure()
