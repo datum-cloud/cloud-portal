@@ -50,7 +50,7 @@ export function AssistantMessage({ msg, isLastMessage, status }: AssistantMessag
             return (
               <Streamdown
                 key={i}
-                className="**:data-[streamdown='code-block-body']:bg-card [&_h2]:text-xl [&_h3]:text-lg"
+                className="**:data-[streamdown='code-block-body']:bg-card **:data-[streamdown='inline-code']:bg-card dark:**:data-[streamdown='inline-code']:bg-accent **:data-[streamdown='inline-code']:border [&_h2]:text-xl [&_h3]:text-lg"
                 isAnimating={isStreaming}
                 plugins={{ code }}
                 animated

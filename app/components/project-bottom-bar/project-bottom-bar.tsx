@@ -3,7 +3,7 @@ import { Button } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import Tooltip from '@datum-ui/components/tooltip/tooltip';
 import { cn } from '@shadcn/lib/utils';
-import { BookOpen, Brain, Terminal, type LucideIcon } from 'lucide-react';
+import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
 import { Activity, lazy, Suspense, useState } from 'react';
 
 const TerminalPanel = lazy(() =>
@@ -147,14 +147,12 @@ export function ProjectBottomBar() {
               is open, preserving state (e.g. iframe scroll) when switching tabs */}
           <div className="relative min-h-0 flex-1 overflow-hidden">
             {isDragging && <div className="absolute inset-0 z-50" />}
-            <Activity mode={activePanel === 'terminal' ? 'visible' : 'hidden'}>
-              {/* <Suspense fallback={<div className="h-full w-full" />}>
+            {/* <Activity mode={activePanel === 'terminal' ? 'visible' : 'hidden'}>
+              <Suspense fallback={<div className="h-full w-full" />}>
                 <TerminalPanel />
-              </Suspense> */}
-              <div className="bg-muted flex h-full w-full items-center justify-center">
-                <h2>Datum CLI Comming Soon</h2>
-              </div>
-            </Activity>
+              </Suspense>
+         
+            </Activity> */}
             <Activity mode={activePanel === 'chat' ? 'visible' : 'hidden'}>
               <Suspense fallback={<div className="h-full w-full" />}>
                 <ChatPanel key={project?.name ?? 'no-project'} />
@@ -174,17 +172,17 @@ export function ProjectBottomBar() {
           <ToolbarButton
             panel="chat"
             icon={Brain}
-            label="AI Chat"
+            label="Patch AI"
             isActive={activePanel === 'chat'}
             onClick={handlePanelToggle}
           />
-          <ToolbarButton
+          {/* <ToolbarButton
             panel="terminal"
             icon={Terminal}
             label="Terminal"
             isActive={activePanel === 'terminal'}
             onClick={handlePanelToggle}
-          />
+          /> */}
           <ToolbarButton
             panel="docs"
             icon={BookOpen}

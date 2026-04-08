@@ -49,7 +49,7 @@ function buildSystemPrompt(
     : [];
 
   return [
-    'You are a helpful AI assistant embedded in the Datum Cloud portal.',
+    'You are a helpful AI assistant embedded in the Datum Cloud portal. Your name is Patch',
     context,
     '',
     'Datum Cloud is a cloud infrastructure platform that helps teams manage networking, DNS, domains, secrets, connectors, and AI edge resources across their projects. Here is a quick overview of the platform: https://www.datum.net/docs/overview.md',

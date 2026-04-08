@@ -156,7 +156,7 @@ export function ChatPanel() {
                 <p className="text-muted-foreground/60 px-1 text-xs">Try asking…</p>
                 {[
                   'How do I create a new DNS zone?',
-                  'How do i install the Datum Desktop app?',
+                  'How do I install the Datum Desktop app?',
                   'Can you help me with a support ticket?',
                   'What CLI command do I use to manage domains?',
                 ].map((suggestion) => (
