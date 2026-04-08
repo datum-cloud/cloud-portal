@@ -1,6 +1,5 @@
 import { useProjectContext } from '@/providers/project.provider';
 import { Button } from '@datum-ui/components';
-import { CloseIcon } from '@datum-ui/components/icons/close-icon';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import Tooltip from '@datum-ui/components/tooltip/tooltip';
 import { cn } from '@shadcn/lib/utils';
@@ -11,7 +10,7 @@ const TerminalPanel = lazy(() =>
   import('./terminal-panel').then((m) => ({ default: m.TerminalPanel }))
 );
 
-const ChatPanel = lazy(() => import('./chat-panel').then((m) => ({ default: m.ChatPanel })));
+const ChatPanel = lazy(() => import('./chat/chat-panel').then((m) => ({ default: m.ChatPanel })));
 
 type PanelType = 'terminal' | 'chat' | 'docs';
 
@@ -104,12 +103,33 @@ export function ProjectBottomBar() {
     window.addEventListener('mouseup', onUp);
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    const startY = e.touches[0].clientY;
+    const startHeight = panelHeight;
+
+    const onMove = (e: TouchEvent) => {
+      const delta = startY - e.touches[0].clientY;
+      const max = window.innerHeight * MAX_HEIGHT_RATIO;
+      setPanelHeight(Math.max(MIN_HEIGHT, Math.min(max, startHeight + delta)));
+    };
+
+    const onEnd = () => {
+      setIsDragging(false);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+    };
+
+    window.addEventListener('touchmove', onMove, { passive: true });
+    window.addEventListener('touchend', onEnd);
+  };
+
   return (
     <div className="relative">
       {(activePanel || isClosing) && (
         <div
           className={cn(
-            'dark:bg-accent bg-card absolute right-0 bottom-full left-0 z-40 flex flex-col border-t',
+            'dark:bg-accent bg-card absolute right-0 bottom-full left-0 z-40 flex flex-col border-t shadow-[0_-4px_12px_rgba(0,0,0,0.08)] [clip-path:inset(-20px_0_0_0)]',
             isClosing
               ? 'animate-out slide-out-to-bottom duration-300'
               : 'animate-in slide-in-from-bottom duration-300'
@@ -117,16 +137,10 @@ export function ProjectBottomBar() {
           style={{ height: panelHeight }}>
           {/* Drag handle + close button */}
           <div
-            className="flex h-8 shrink-0 cursor-ns-resize items-center justify-center border-b"
-            onMouseDown={handleDragStart}>
-            <div className="bg-muted-foreground/30 h-1 w-8 rounded-full" />
-            <button
-              onClick={closePanel}
-              aria-label="Close panel"
-              className="absolute right-2 cursor-pointer"
-              onMouseDown={(e) => e.stopPropagation()}>
-              <CloseIcon />
-            </button>
+            className="group absolute top-0 left-1/2 z-10 flex h-4 w-full shrink-0 -translate-x-1/2 cursor-ns-resize items-center justify-center bg-none"
+            onMouseDown={handleDragStart}
+            onTouchStart={handleTouchStart}>
+            <div className="bg-muted-foreground/30 group-hover:bg-muted-foreground/60 h-1 w-8 rounded-full transition-colors" />
           </div>
 
           {/* Panel content — Activity keeps each panel mounted while the container

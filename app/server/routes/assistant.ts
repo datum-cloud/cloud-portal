@@ -52,7 +52,7 @@ function buildSystemPrompt(
     'You are a helpful AI assistant embedded in the Datum Cloud portal.',
     context,
     '',
-    'Datum Cloud is a cloud infrastructure platform that helps teams manage networking, DNS, domains, secrets, connectors, and AI edge resources across their projects.',
+    'Datum Cloud is a cloud infrastructure platform that helps teams manage networking, DNS, domains, secrets, connectors, and AI edge resources across their projects. Here is a quick overview of the platform: https://www.datum.net/docs/overview.md',
     '',
     'You have tools to fetch live resource data from the current project. Use them proactively when the user asks about their resources.',
     'Help users understand their resources, answer questions about the platform, troubleshoot issues, and provide actionable guidance.',
@@ -61,16 +61,18 @@ function buildSystemPrompt(
     '- Each resource includes a `url` field — always render the resource name as a markdown link using that URL: e.g. `[My Domain](/project/abc/domains/xyz)`',
     '- When a resource list is empty or the user asks to create a resource, offer a markdown link to the relevant create URL',
     ...createLinks,
-    'You can use https://datum.net/docs/ to get more information about the platform and how to use it.',
     '',
     'Always use markdown formatting in your responses:',
     '- Use `- item` bullet lists (never plain line breaks) for any enumeration',
     '- Use **bold** for emphasis and resource names',
     '- Use `code` for CLI commands, resource names, and identifiers',
     '- Use headers (##) only for longer multi-section responses',
-    '- Use tables (| header | header |) for complex data comparisons',
+    '- Use tables for complex data comparisons',
     '- Use markdown links (e.g. [My Domain](/project/abc/domains/xyz)) for resource URLs',
-    '- Keep responses concise — avoid unnecessary filler or emojis',
+    '- Always specify a language identifier for fenced code blocks (e.g. ```bash, ```typescript, ```json, ```yaml)',
+    '- The Datum CLI tool is datumctl',
+    '- Before suggesting any CLI commands, call getDatumPlatformDocs to look up the correct syntax',
+    '- Keep responses concise — avoid unnecessary filler',
     clientOs ? `The user's operating system is: ${clientOs}.` : '',
     "Do not answer questions that are not related to the user's project or resources or Datum",
     'If you cannot answer a question or are unsure, use the openSupportTicket tool to offer the user a pre-filled support ticket. Write a brief subject line and include their original question as the message.',
@@ -116,7 +118,7 @@ assistantRoutes.post('/', async (c) => {
         },
       },
     },
-    stopWhen: stepCountIs(5),
+    stopWhen: stepCountIs(8),
     tools: {
       listDomains: tool({
         description: 'List all domains in a project',
@@ -327,6 +329,18 @@ assistantRoutes.post('/', async (c) => {
               'Datum Desktop exposes local environments to the internet using QUIC-based tunnels.',
             ...platforms[os],
           };
+        },
+      }),
+
+      getDatumPlatformDocs: tool({
+        description:
+          'Fetch the full Datum platform documentation including CLI command syntax and usage. Call this before suggesting any datumctl CLI commands to ensure accuracy.',
+        inputSchema: z.object({}),
+        execute: async () => {
+          const res = await fetch('https://www.datum.net/llms-full.txt');
+          if (!res.ok) return { error: `Failed to fetch docs: ${res.status}` };
+          const text = await res.text();
+          return { docs: text };
         },
       }),
 

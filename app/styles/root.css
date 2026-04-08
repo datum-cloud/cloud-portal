@@ -1,7 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'tailwind-scrollbar-hide/v4';
-@source '../node_modules/@streamdown/code/dist/*.js';
+@source '../../node_modules/streamdown/dist/*.js';
+@source '../../node_modules/@streamdown/code/dist/*.js';
 @plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));

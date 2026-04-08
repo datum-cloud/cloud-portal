@@ -39,14 +39,13 @@
   animation: data-table-fade-in 0.2s ease-out;
 }
 
-/* Streamdown — Tailwind utilities used inside minified JS are not compiled.
-   Restore the -mt-10 that overlaps the actions bar with the header row,
-   and ensure a consistent mt-2 gap above every code block. */
-[data-streamdown="code-block"] {
+[data-streamdown='code-block'] {
   margin-top: 0.5rem;
 }
-[data-streamdown="code-block"] > div:has(> [data-streamdown="code-block-actions"]) {
-  margin-top: -2.5rem;
+
+/* Show "text" when no language was specified */
+[data-streamdown='code-block-header'] span:empty::before {
+  content: 'text';
 }
 
 /* Tiptap Placeholder */
