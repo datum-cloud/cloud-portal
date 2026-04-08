@@ -47,6 +47,7 @@ export const OrganizationDangerCard = ({ organization }: { organization: Organiz
       deleteText="Delete organization"
       loading={deleteOrganization.isPending}
       onDelete={handleDeleteOrganization}
+      data-e2e="delete-organization-button"
     />
   );
 };
