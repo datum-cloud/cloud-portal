@@ -261,6 +261,7 @@ export default function OrgProjectsPage() {
                   type="primary"
                   theme="solid"
                   size="small"
+                  data-e2e="create-project-button"
                   className="w-full sm:w-auto"
                   onClick={() => setOpenDialog(true)}>
                   <Icon icon={PlusIcon} className="size-4" />
@@ -339,7 +340,11 @@ export default function OrgProjectsPage() {
             label="Project name"
             description="Could be the name of a site, initiative, project, goal, whatever works. Can be changed."
             required>
-            <Form.Input placeholder="e.g. My Project" autoFocus />
+            <Form.Input
+              data-e2e="create-project-name-input"
+              placeholder="e.g. My Project"
+              autoFocus
+            />
           </Form.Field>
 
           <Form.Field name="name">

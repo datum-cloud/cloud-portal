@@ -304,6 +304,7 @@ export default function OrgTeamPage() {
         hidden: (row: ITeamMember) =>
           row.type !== 'invitation' || row.invitationState !== 'Pending',
         action: (row: ITeamMember) => resendInvitation(row.id),
+        'data-e2e': 'resend-invitation-button',
       },
       // Cancel invitation (for invites only)
       {
@@ -314,6 +315,7 @@ export default function OrgTeamPage() {
         icon: <Icon icon={TrashIcon} className="size-4" />,
         hidden: (row: ITeamMember) => row.type !== 'invitation',
         action: (row: ITeamMember) => cancelInvitation(row),
+        'data-e2e': 'cancel-invitation-button',
       },
       // Remove member (for OTHER members, not self)
       {
@@ -388,7 +390,7 @@ export default function OrgTeamPage() {
                 orgId,
               })}
               className="w-full sm:w-auto">
-              <Button className="w-full">
+              <Button className="w-full" data-e2e="invite-member-button">
                 <Icon icon={UserPlusIcon} className="size-4" />
                 Invite Member
               </Button>

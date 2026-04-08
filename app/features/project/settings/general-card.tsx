@@ -58,7 +58,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
             <CardContent className="px-5 py-4">
               <div className="flex max-w-sm flex-col gap-5">
                 <Form.Field name="description" label="Project name" required>
-                  <Form.Input placeholder="e.g. My Project" />
+                  <Form.Input data-e2e="edit-project-name-input" placeholder="e.g. My Project" />
                 </Form.Field>
 
                 <Form.Field name="name" label="Resource ID">
@@ -71,6 +71,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                 htmlType="button"
                 type="quaternary"
                 theme="outline"
+                data-e2e="edit-project-cancel"
                 disabled={isSubmitting}
                 size="xs"
                 onClick={() => {
@@ -83,7 +84,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                 }}>
                 Cancel
               </Button>
-              <Form.Submit size="xs" loadingText="Saving">
+              <Form.Submit size="xs" loadingText="Saving" data-e2e="edit-project-save">
                 Save
               </Form.Submit>
             </CardFooter>

@@ -53,6 +53,7 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
       deleteText="Delete project"
       loading={deleteMutation.isPending}
       onDelete={deleteProject}
+      data-e2e="delete-project-button"
     />
   );
 };

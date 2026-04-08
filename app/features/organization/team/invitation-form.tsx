@@ -81,6 +81,7 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
                 delimiters={['Enter', ',', ';', ' ']}
                 normalizer={(val) => val.toLowerCase()}
                 showValidationErrors={false}
+                data-e2e="invite-emails-input"
               />
             )}
           </Form.Field>
@@ -89,7 +90,9 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
           <Form.Button onClick={() => navigate(-1)} disableOnSubmit>
             Return to List
           </Form.Button>
-          <Form.Submit loadingText="Inviting">Invite</Form.Submit>
+          <Form.Submit loadingText="Inviting" data-e2e="invite-submit">
+            Invite
+          </Form.Submit>
         </CardFooter>
       </Form.Root>
     </Card>
