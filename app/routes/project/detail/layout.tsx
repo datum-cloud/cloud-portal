@@ -15,6 +15,7 @@ import { createSecretService, secretKeys } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
+import { env } from '@/utils/env';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-ui/components';
@@ -306,7 +307,7 @@ export default function ProjectLayout() {
         showBackdrop={false}
         sidebarLoading={projectLoading}
         switcherLoading={projectLoading || orgLoading}
-        bottomBar={<ProjectBottomBar />}>
+        bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}>
         <Outlet />
       </DashboardLayout>
     </ProjectProvider>

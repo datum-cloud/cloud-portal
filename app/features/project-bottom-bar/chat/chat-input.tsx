@@ -4,12 +4,13 @@ import Tooltip from '@datum-ui/components/tooltip/tooltip';
 import { cn } from '@shadcn/lib/utils';
 import type { Editor } from '@tiptap/react';
 import { EditorContent } from '@tiptap/react';
-import { Loader2, Mic, MicOff, SendHorizonal } from 'lucide-react';
+import { Mic, MicOff, SendHorizonal, Square } from 'lucide-react';
 
 interface ChatInputProps {
   editor: Editor | null;
   isReady: boolean;
   onSend: () => void;
+  onStop: () => void;
   speechSupported?: boolean;
   isListening?: boolean;
   frequencyData?: number[];
@@ -20,6 +21,7 @@ export function ChatInput({
   editor,
   isReady,
   onSend,
+  onStop,
   speechSupported,
   isListening,
   frequencyData,
@@ -53,22 +55,25 @@ export function ChatInput({
             </button>
           </Tooltip>
         )}
-        <Tooltip message="Send message" side="top">
-          <button
-            onClick={onSend}
-            disabled={!isReady}
-            aria-label="Send message"
-            className={cn(
-              'text-muted-foreground hover:text-foreground mr-1.5 mb-1.5 shrink-0 rounded p-1.5 transition-colors',
-              'disabled:cursor-not-allowed'
-            )}>
-            {isReady ? (
+        {isReady ? (
+          <Tooltip message="Send message" side="top">
+            <button
+              onClick={onSend}
+              aria-label="Send message"
+              className="text-muted-foreground hover:text-foreground mr-1.5 mb-1.5 shrink-0 rounded p-1.5 transition-colors">
               <Icon icon={SendHorizonal} className="text-primary size-4" />
-            ) : (
-              <Icon icon={Loader2} className="text-primary size-4 animate-spin" />
-            )}
-          </button>
-        </Tooltip>
+            </button>
+          </Tooltip>
+        ) : (
+          <Tooltip message="Stop generating" side="top">
+            <button
+              onClick={onStop}
+              aria-label="Stop generating"
+              className="text-muted-foreground hover:text-destructive mr-1.5 mb-1.5 shrink-0 rounded p-1.5 transition-colors">
+              <Icon icon={Square} className="size-4 fill-current" />
+            </button>
+          </Tooltip>
+        )}
       </div>
       <p className="text-muted-foreground/30 mt-1 text-center text-[10px] select-none">
         Patch is in beta and may make mistakes

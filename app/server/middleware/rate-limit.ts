@@ -123,6 +123,22 @@ export const RateLimitPresets = {
     }),
   },
 
+  /** AI assistant — 10 requests per minute per user */
+  assistant: {
+    windowMs: 60 * 1000,
+    limit: 10,
+    keyGenerator: defaultKeyGenerator,
+    standardHeaders: 'draft-6' as const,
+    handler: customRateLimitHandler,
+    ...(redisClient && {
+      store: new RedisStore({
+        sendCommand: async (command: string, ...args: string[]) =>
+          redisClient!.call(command, ...args) as Promise<RedisReply>,
+        prefix: 'rl:assistant:',
+      }) as any,
+    }),
+  },
+
   /** Development mode - 10,000 requests per minute */
   development: {
     windowMs: 60 * 1000,

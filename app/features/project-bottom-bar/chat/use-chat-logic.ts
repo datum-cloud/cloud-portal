@@ -106,7 +106,7 @@ export function useChatLogic() {
     []
   );
 
-  const { messages, setMessages, sendMessage, status, error, clearError } = useChat({
+  const { messages, setMessages, sendMessage, stop, status, error, clearError } = useChat({
     transport,
     onFinish: ({ messages: finished }) => onFinishRef.current(finished),
   });
@@ -216,6 +216,7 @@ export function useChatLogic() {
     error,
     clearError,
     sendMessage,
+    stop,
     isReady,
     currentChatId,
     chatList,

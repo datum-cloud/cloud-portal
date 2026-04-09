@@ -84,6 +84,7 @@ export function ChatPanel() {
     error,
     clearError,
     sendMessage,
+    stop,
     isReady,
     currentChatId,
     chatList,
@@ -216,6 +217,7 @@ export function ChatPanel() {
                   Try asking…
                 </motion.p>
                 {[
+                  'Give me a detailed summary of my project.',
                   'How do I create a new DNS zone?',
                   'How do I install the Datum Desktop app?',
                   'Can you help me with a support ticket?',
@@ -302,10 +304,12 @@ export function ChatPanel() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  className="text-destructive bg-destructive/10 rounded-lg px-3 py-2 text-sm">
-                  {error.message.includes('503') || error.message.includes('not configured')
-                    ? 'AI assistant is not configured.'
-                    : `Error: ${error.message}`}
+                  className="text-destructive bg-destructive/10 w-fit rounded-lg px-3 py-2 text-sm">
+                  {error.message.includes('429') || error.message.includes('Too Many')
+                    ? "Easy there, speed racer! You've hit the rate limit. Give it a minute and try again."
+                    : error.message.includes('503') || error.message.includes('not configured')
+                      ? 'AI assistant is not configured.'
+                      : `Something went wrong — ${error.message}`}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -352,6 +356,7 @@ export function ChatPanel() {
             editor={editor}
             isReady={isReady}
             onSend={handleSendClick}
+            onStop={stop}
             speechSupported={speech.isSupported}
             isListening={speech.isListening}
             frequencyData={speech.frequencyData}

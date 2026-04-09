@@ -28,6 +28,9 @@ export interface PublicEnv {
   fathomId?: string;
   helpscoutBeaconId?: string;
 
+  // Feature Flags
+  chatbotEnabled: boolean;
+
   // Logging (always has defaults)
   logLevel: 'debug' | 'info' | 'warn' | 'error';
   logFormat: 'json' | 'pretty' | 'compact';

@@ -44,6 +44,7 @@ export function createApiApp() {
   api.route('/permissions', permissionsRoutes);
   api.route('/user', userRoutes);
   api.route('/watch', watchRoutes);
+  api.use('/assistant/*', rateLimiter(RateLimitPresets.assistant));
   api.route('/assistant', assistantRoutes);
 
   // 404 for unregistered routes

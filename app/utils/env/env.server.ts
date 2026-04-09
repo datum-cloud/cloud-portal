@@ -71,6 +71,14 @@ const publicSchema = z.object({
   HELPSCOUT_BEACON_ID: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Feature Flags
+  // ─────────────────────────────────────────────────────────
+  CHATBOT_ENABLED: z
+    .string()
+    .transform((val) => val === 'true')
+    .optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
   // ─────────────────────────────────────────────────────────
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
@@ -175,6 +183,7 @@ export const env: Env = {
     logPayloads: data.LOG_PAYLOADS === 'true' || data.NODE_ENV === 'development',
     otelEnabled: data.OTEL_ENABLED === true && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: data.OTEL_LOG_LEVEL,
+    chatbotEnabled: data.CHATBOT_ENABLED === true,
   },
   server: {
     sessionSecret: data.SESSION_SECRET,
