@@ -338,6 +338,7 @@ export default function DnsZonesPage() {
         label: 'Delete',
         variant: 'destructive',
         action: (row) => deleteDnsZone(row),
+        'data-e2e': 'delete-dns-zone-button',
       },
     ],
     [projectId, navigate, refreshDomain, deleteDnsZone]
@@ -374,6 +375,7 @@ export default function DnsZonesPage() {
               theme="solid"
               size="small"
               className="w-full sm:w-auto"
+              data-e2e="create-dns-zone-button"
               onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add zone
