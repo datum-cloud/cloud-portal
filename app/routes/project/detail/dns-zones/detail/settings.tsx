@@ -74,6 +74,7 @@ export default function DnsZoneSettingsPage() {
             deleteText="Delete zone"
             loading={deleteMutation.isPending}
             onDelete={deleteDnsZone}
+            data-e2e="delete-dns-zone-button"
           />
         </Col>
       </Row>

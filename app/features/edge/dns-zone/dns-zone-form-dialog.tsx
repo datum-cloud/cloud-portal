@@ -84,7 +84,11 @@ export const DnsZoneFormDialog = forwardRef<DnsZoneFormDialogRef, DnsZoneFormDia
             label="Zone Name"
             description="Should be a valid domain or subdomain"
             required>
-            <Form.Input autoFocus placeholder="e.g. example.com" />
+            <Form.Input
+              autoFocus
+              placeholder="e.g. example.com"
+              data-e2e="create-dns-zone-name-input"
+            />
           </Form.Field>
 
           <Form.Field name="description" label="Description">
