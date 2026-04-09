@@ -1,4 +1,4 @@
-import { ProjectBottomBar } from '@/components/project-bottom-bar';
+import { ProjectBottomBar } from '@/features/project-bottom-bar';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';

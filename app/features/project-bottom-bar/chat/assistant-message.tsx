@@ -12,12 +12,19 @@ import 'streamdown/styles.css';
 const TOOL_LABELS: Record<string, string> = {
   listDomains: 'Loading domains…',
   listDnsZones: 'Loading DNS zones…',
+  listDnsRecords: 'Loading DNS records…',
   listHttpProxies: 'Loading AI edge resources…',
   listSecrets: 'Loading secrets…',
   listConnectors: 'Loading connectors…',
   listExportPolicies: 'Loading export policies…',
+  getDomain: 'Fetching domain details…',
+  getHttpProxy: 'Fetching AI edge details…',
+  getConnector: 'Fetching connector details…',
   getProjectMetrics: 'Fetching metrics…',
+  queryActivityLogs: 'Loading activity logs…',
+  listQuotas: 'Loading quotas…',
   getDesktopAppInfo: 'Getting app info…',
+  getDatumPlatformDocs: 'Reading docs…',
   openSupportTicket: 'Preparing support ticket…',
 };
 
@@ -35,7 +42,8 @@ export function AssistantMessage({ msg, isLastMessage, status }: AssistantMessag
   const activeToolPart = msg.parts.find(
     (p) => isToolUIPart(p) && (p.state === 'input-streaming' || p.state === 'input-available')
   );
-  const showLoadingDots = isStreaming && !hasText;
+  const showInitialLoading = isStreaming && !hasText && !activeToolPart;
+  const showToolIndicator = isLastMessage && activeToolPart != null;
 
   return (
     <div className="flex w-full justify-start">
@@ -50,10 +58,20 @@ export function AssistantMessage({ msg, isLastMessage, status }: AssistantMessag
             return (
               <Streamdown
                 key={i}
-                className="**:data-[streamdown='code-block-body']:bg-card **:data-[streamdown='inline-code']:bg-card dark:**:data-[streamdown='inline-code']:bg-accent **:data-[streamdown='inline-code']:border [&_h2]:text-xl [&_h3]:text-lg"
+                className={cn(
+                  "**:data-[streamdown='code-block-body']:bg-card **:data-[streamdown='inline-code']:bg-card dark:**:data-[streamdown='inline-code']:bg-accent **:data-[streamdown='inline-code']:border [&_h2]:text-xl [&_h3]:text-lg",
+                  isStreaming &&
+                    "**:data-[streamdown='inline-code']:animate-[sd-blurIn_300ms_ease-out_both]"
+                )}
                 isAnimating={isStreaming}
                 plugins={{ code }}
-                animated
+                animated={{
+                  animation: 'blurIn',
+                  duration: 300,
+                  easing: 'ease-out',
+                  sep: 'word',
+                  stagger: 30,
+                }}
                 components={{
                   a: ({
                     href,
@@ -102,15 +120,18 @@ export function AssistantMessage({ msg, isLastMessage, status }: AssistantMessag
           return null;
         })}
 
-        {/* Single stable loading indicator — label updates in-place, no flash */}
-        {showLoadingDots && (
+        {showInitialLoading && (
+          <div className="py-1">
+            <LoadingDots />
+          </div>
+        )}
+
+        {showToolIndicator && (
           <div className="text-muted-foreground flex items-center gap-1.5 py-1 text-xs">
             <span className="bg-muted-foreground/50 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:-0.3s]" />
             <span className="bg-muted-foreground/50 h-1.5 w-1.5 animate-bounce rounded-full [animation-delay:-0.15s]" />
             <span className="bg-muted-foreground/50 h-1.5 w-1.5 animate-bounce rounded-full" />
-            {activeToolPart && (
-              <span>{TOOL_LABELS[getToolName(activeToolPart)] ?? 'Working…'}</span>
-            )}
+            <span>{TOOL_LABELS[getToolName(activeToolPart)] ?? 'Working…'}</span>
           </div>
         )}
       </div>

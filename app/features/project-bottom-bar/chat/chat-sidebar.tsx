@@ -1,8 +1,29 @@
 import { formatRelativeTime, type StoredChat } from './chat-storage';
 import type { Project } from '@/resources/projects';
-import { Button } from '@datum-ui/components';
+import { Button, Icon } from '@datum-ui/components';
+import Tooltip from '@datum-ui/components/tooltip/tooltip';
 import { cn } from '@shadcn/lib/utils';
-import { MessageSquarePlus, Trash2 } from 'lucide-react';
+import { isTextUIPart } from 'ai';
+import { DownloadIcon, MessageSquarePlus, TrashIcon } from 'lucide-react';
+
+function downloadChat(chat: StoredChat) {
+  const lines = chat.messages.map((msg) => {
+    const role = msg.role === 'user' ? 'You' : 'Patch';
+    const text = msg.parts
+      .filter(isTextUIPart)
+      .map((p) => p.text)
+      .join('\n');
+    return `## ${role}\n\n${text}`;
+  });
+  const markdown = `# ${chat.title}\n\n${lines.join('\n\n---\n\n')}\n`;
+  const blob = new Blob([markdown], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${chat.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 interface ChatSidebarProps {
   project: Project | undefined;
@@ -10,6 +31,7 @@ interface ChatSidebarProps {
   currentChatId: string;
   isOpen: boolean;
   style?: React.CSSProperties;
+  className?: string;
   onNewChat: () => void;
   onLoadChat: (chat: StoredChat) => void;
   onDeleteChat: (e: React.MouseEvent, chatId: string) => void;
@@ -21,6 +43,7 @@ export function ChatSidebar({
   currentChatId,
   isOpen,
   style,
+  className,
   onNewChat,
   onLoadChat,
   onDeleteChat,
@@ -29,10 +52,11 @@ export function ChatSidebar({
     <div
       style={style}
       className={cn(
-        'bg-card border-muted-foreground/10 flex shrink-0 flex-col border-r',
-        'sm:relative sm:flex',
+        'bg-card border-muted-foreground/10 flex h-full shrink-0 flex-col border-r',
+        'sm:relative',
         'max-sm:absolute max-sm:inset-y-0 max-sm:left-0 max-sm:z-20',
-        !isOpen && 'max-sm:hidden'
+        !isOpen && 'max-sm:hidden',
+        className
       )}>
       {project && (
         <div className="border-muted-foreground/10 border-b px-3 py-2">
@@ -70,17 +94,34 @@ export function ChatSidebar({
                   role="button"
                   onClick={(e) => onDeleteChat(e, chat.id)}
                   aria-label="Delete chat"
-                  className="text-muted-foreground/40 hover:text-destructive shrink-0 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Trash2 className="size-3" />
+                  className="text-muted-foreground/40 hover:text-destructive shrink-0 rounded p-0.5 transition-colors">
+                  <Icon icon={TrashIcon} className="size-3" />
                 </span>
               </span>
-              <span className="text-muted-foreground/60 text-[10px]">
-                {formatRelativeTime(chat.updatedAt)}
+              <span className="flex items-center gap-1">
+                <span className="text-muted-foreground/60 text-[10px]">
+                  {formatRelativeTime(chat.updatedAt)}
+                </span>
+                <Tooltip message="Download chat as Markdown" side="top">
+                  <span
+                    role="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadChat(chat);
+                    }}
+                    aria-label="Download chat as Markdown"
+                    className="text-muted-foreground/40 hover:text-foreground shrink-0 rounded p-0.5 transition-colors">
+                    <Icon icon={DownloadIcon} className="size-3" />
+                  </span>
+                </Tooltip>
               </span>
             </button>
           ))
         )}
       </div>
+      <p className="text-muted-foreground/40 border-muted-foreground/10 text-2xs mt-auto shrink-0 border-t px-3 py-2">
+        Chats with Patch are saved to your browser&apos;s local storage.
+      </p>
     </div>
   );
 }

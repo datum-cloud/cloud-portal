@@ -1,4 +1,5 @@
 import { deleteChat, deriveTitle, listChats, saveChat, type StoredChat } from './chat-storage';
+import { useSpeechInput } from './use-speech-input';
 import { useProjectContext } from '@/providers/project.provider';
 import { useChat } from '@ai-sdk/react';
 import { cn } from '@shadcn/lib/utils';
@@ -38,15 +39,22 @@ export function useChatLogic() {
 
   // ── Auto-scroll ───────────────────────────────────────────────────────────────
   const userScrolledUp = useRef(false);
+  const scrollRaf = useRef(0);
 
   const messagesContainerRef = useCallback((node: HTMLDivElement | null) => {
     if (!node) return;
     const observer = new MutationObserver(() => {
       if (userScrolledUp.current) return;
-      node.scrollTop = node.scrollHeight;
+      cancelAnimationFrame(scrollRaf.current);
+      scrollRaf.current = requestAnimationFrame(() => {
+        node.scrollTo({ top: node.scrollHeight, behavior: 'smooth' });
+      });
     });
     observer.observe(node, { childList: true, subtree: true, characterData: true });
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(scrollRaf.current);
+    };
   }, []);
 
   // ── Refs for latest values inside callbacks ───────────────────────────────────
@@ -184,6 +192,8 @@ export function useChatLogic() {
     },
   });
 
+  const speech = useSpeechInput(editor);
+
   const handleSendClick = () => {
     if (!editor || !isReady) return;
     const text = editor.getText().trim();
@@ -197,7 +207,7 @@ export function useChatLogic() {
     }
   };
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return {
     project,
@@ -220,5 +230,6 @@ export function useChatLogic() {
     handleSendClick,
     sidebarOpen,
     setSidebarOpen,
+    speech,
   };
 }
