@@ -238,6 +238,7 @@ export interface DataTableRowActionsProps<TData> {
    * The action() callback will still be called before opening (for optional pre-logic)
    */
   triggerInlineEdit?: boolean;
+  'data-e2e'?: string;
 }
 
 // =============================================================================

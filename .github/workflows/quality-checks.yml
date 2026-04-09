@@ -207,6 +207,7 @@ jobs:
           AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
           AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
           SESSION_SECRET=$SESSION_SECRET
+          LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
 
@@ -244,6 +245,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    # if: ${{ !failure() && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
@@ -290,6 +292,7 @@ jobs:
           AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
           AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
           SESSION_SECRET=$SESSION_SECRET
+          LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
 

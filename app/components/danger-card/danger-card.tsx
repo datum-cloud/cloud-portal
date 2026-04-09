@@ -9,6 +9,7 @@ export const DangerCard = ({
   loading = false,
   disabled = false,
   onDelete,
+  'data-e2e': dataE2e,
 }: {
   title?: string;
   description?: string | React.ReactNode;
@@ -16,6 +17,7 @@ export const DangerCard = ({
   loading?: boolean;
   disabled?: boolean;
   onDelete: () => void;
+  'data-e2e'?: string;
 }) => {
   const isDisabled = loading || disabled;
   return (
@@ -39,6 +41,7 @@ export const DangerCard = ({
             theme="solid"
             size="xs"
             className="w-full md:w-auto"
+            data-e2e={dataE2e}
             disabled={isDisabled}
             loading={loading}
             onClick={onDelete}>

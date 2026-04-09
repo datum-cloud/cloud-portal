@@ -83,6 +83,12 @@ Cypress.on('uncaught:exception', (err) => {
 // Aggressively prevent any parent window navigation
 // This runs before every page load to protect the Cypress UI window
 Cypress.on('window:before:load', (win) => {
+  // Optional CI noise reduction: silence browser console.info output.
+  // Enable with CYPRESS_E2E_SILENCE_INFO_LOGS=true
+  if (Cypress.env('E2E_SILENCE_INFO_LOGS')) {
+    win.console.info = () => {};
+  }
+
   try {
     // Override window.top to always return the current window
     const originalTop = win.top;
@@ -211,6 +217,111 @@ Cypress.Commands.add('logout', () => {
   cy.getCookie('_session').should('not.exist');
 });
 
+/**
+ * Create a standard org and return its orgId (resource name).
+ */
+Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainable<string> => {
+  cy.visit(paths.account.organizations.root);
+  cy.get('[data-e2e="create-organization-button"]').click();
+  cy.get('[data-e2e="create-organization-name-input"]').type(displayName);
+  cy.contains('button', 'Confirm').click();
+
+  return cy
+    .url({ timeout: 30000 })
+    .should('match', /\/org\/[a-z0-9-]+\//)
+    .then((url) => {
+      const parsedOrgId = url.split('/org/')[1]?.split('/')[0]?.trim();
+      if (!parsedOrgId) {
+        throw new Error('Failed to extract created orgId from URL');
+      }
+      return parsedOrgId;
+    })
+    .then((parsedOrgId) => cy.wrap(parsedOrgId, { log: false }));
+});
+
+/**
+ * Create a project in an org and return projectId (resource name).
+ */
+Cypress.Commands.add(
+  'createProjectInOrg',
+  (orgId: string, displayName: string): Cypress.Chainable<string> => {
+    cy.visit(getPathWithParams(paths.org.detail.projects.root, { orgId }));
+    cy.url({ timeout: 30000 }).should(
+      'include',
+      paths.org.detail.projects.root.replace('[orgId]', orgId)
+    );
+    cy.get('body', { timeout: 30000 }).then(($body) => {
+      const hasToolbarCreate = $body.find('[data-e2e="create-project-button"]').length > 0;
+      if (hasToolbarCreate) {
+        cy.get('[data-e2e="create-project-button"]').should('be.visible').click();
+        return;
+      }
+
+      // Fresh org empty state uses a generic "Create project" button without data-e2e.
+      cy.contains('button', /^Create project$/i, { timeout: 30000 })
+        .should('be.visible')
+        .click();
+    });
+    cy.get('[data-e2e="create-project-name-input"]').type(displayName);
+    cy.contains('button', 'Confirm').click();
+
+    return cy
+      .contains('[data-e2e="project-card"]', displayName, { timeout: 90000 })
+      .find('[data-e2e="project-card-id-copy"]')
+      .invoke('text')
+      .then((projectId: string) => {
+        const trimmedId = projectId.trim();
+        if (!trimmedId) {
+          throw new Error('Created project card found, but project ID badge was empty.');
+        }
+        return trimmedId;
+      })
+      .then((trimmedId) => cy.wrap(trimmedId, { log: false }));
+  }
+);
+
+/**
+ * Best-effort project cleanup for regression suites.
+ */
+Cypress.Commands.add('deleteProjectIfExists', (projectId: string, orgId?: string) => {
+  if (!projectId) return;
+
+  cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId }));
+  cy.get('body').then(($body) => {
+    if (!$body.find('[data-e2e="delete-project-button"]').length) return;
+
+    cy.get('[data-e2e="delete-project-button"]').click();
+    cy.get('body').then(($dialogBody) => {
+      if (!$dialogBody.find('[data-e2e="confirmation-dialog-input"]').length) return;
+      cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
+      cy.get('[data-e2e="confirmation-dialog-submit"]').click();
+    });
+    if (orgId) {
+      cy.url().should('include', paths.org.detail.projects.root.replace('[orgId]', orgId));
+    }
+  });
+});
+
+/**
+ * Best-effort org cleanup for regression suites.
+ */
+Cypress.Commands.add('deleteOrganizationIfExists', (orgId: string) => {
+  if (!orgId) return;
+
+  cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId }));
+  cy.get('body').then(($body) => {
+    if (!$body.find('[data-e2e="delete-organization-button"]').length) return;
+
+    cy.get('[data-e2e="delete-organization-button"]').click();
+    cy.get('body').then(($dialogBody) => {
+      if (!$dialogBody.find('[data-e2e="confirmation-dialog-input"]').length) return;
+      cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
+      cy.get('[data-e2e="confirmation-dialog-submit"]').click();
+      cy.url().should('include', paths.account.organizations.root);
+    });
+  });
+});
+
 // TypeScript declarations for custom commands
 declare global {
   namespace Cypress {
@@ -245,6 +356,30 @@ declare global {
        * @example cy.logout()
        */
       logout(): Chainable<void>;
+
+      /**
+       * Create a standard organization and return its resource ID.
+       * @example cy.createStandardOrg('e2e-test-org').then((orgId) => { ... })
+       */
+      createStandardOrg(displayName: string): Chainable<string>;
+
+      /**
+       * Create a project in an org and return its resource ID.
+       * @example cy.createProjectInOrg(orgId, 'e2e-test-project').then((projectId) => { ... })
+       */
+      createProjectInOrg(orgId: string, displayName: string): Chainable<string>;
+
+      /**
+       * Best-effort cleanup: delete project if it still exists.
+       * @example cy.deleteProjectIfExists(projectId, orgId)
+       */
+      deleteProjectIfExists(projectId: string, orgId?: string): Chainable<void>;
+
+      /**
+       * Best-effort cleanup: delete org if it still exists.
+       * @example cy.deleteOrganizationIfExists(orgId)
+       */
+      deleteOrganizationIfExists(orgId: string): Chainable<void>;
     }
   }
 }
