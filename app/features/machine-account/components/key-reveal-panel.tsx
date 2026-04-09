@@ -217,7 +217,7 @@ export DATUM_API_ENDPOINT="https://api.datum.net"
 
   return (
     <div
-      className="bg-card relative flex flex-col gap-4 rounded-lg border shadow-sm p-6"
+      className="bg-card relative flex flex-col gap-4 rounded-lg border p-6 shadow-sm"
       role="region"
       aria-label="Key credentials — save these now">
       <Button

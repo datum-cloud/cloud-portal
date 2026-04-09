@@ -92,7 +92,10 @@ export function WizardStepReveal({
         <CopyField label="Identity email (iss / sub claim)" value={identityEmail} />
         <CopyField label="Client ID" value={keyResponse.userId ?? ''} />
         <CopyField label="Key ID (kid header)" value={keyResponse.key.keyId} />
-        <CopyField label="Token URI (aud claim)" value={`${env.public.authOidcIssuer}/oauth/v2/token`} />
+        <CopyField
+          label="Token URI (aud claim)"
+          value={`${env.public.authOidcIssuer}/oauth/v2/token`}
+        />
         <CopyField label="API endpoint" value={env.public.apiUrl} />
         <CopyField label="Project ID" value={projectId} />
       </div>

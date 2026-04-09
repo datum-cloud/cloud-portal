@@ -34,16 +34,15 @@ export default function MachineAccountKeysPage() {
   const { confirm } = useConfirmationDialog();
   const keyFormDialogRef = useRef<MachineAccountKeyFormDialogRef>(null);
   const location = useLocation();
-  const initialKeyResponse = (location.state as { keyResponse?: CreateMachineAccountKeyResponse } | null)
-    ?.keyResponse;
+  const initialKeyResponse = (
+    location.state as { keyResponse?: CreateMachineAccountKeyResponse } | null
+  )?.keyResponse;
 
   const [newPrivateKey, setNewPrivateKey] = useState<string | null>(
     initialKeyResponse?.privateKey ?? null
   );
   const [newUserId, setNewUserId] = useState<string | null>(initialKeyResponse?.userId ?? null);
-  const [newKeyId, setNewKeyId] = useState<string | null>(
-    initialKeyResponse?.key?.keyId ?? null
-  );
+  const [newKeyId, setNewKeyId] = useState<string | null>(initialKeyResponse?.key?.keyId ?? null);
 
   const { data: machineAccount } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
 
@@ -149,8 +148,7 @@ export default function MachineAccountKeysPage() {
   );
 
   const isPolling = pollerResult.status === 'polling';
-  const isProvisioningFailed =
-    pollerResult.status === 'timeout' || pollerResult.status === 'error';
+  const isProvisioningFailed = pollerResult.status === 'timeout' || pollerResult.status === 'error';
 
   return (
     <div className="flex flex-col gap-4">
@@ -171,17 +169,17 @@ export default function MachineAccountKeysPage() {
       )}
 
       {isPolling && (
-        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
-          <Loader2Icon className="size-4 animate-spin shrink-0" />
+        <div className="border-border bg-muted/50 text-muted-foreground flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm">
+          <Loader2Icon className="size-4 shrink-0 animate-spin" />
           <span>Setting up account identity&hellip; This usually takes a few seconds.</span>
         </div>
       )}
 
       {isProvisioningFailed && (
-        <div className="flex items-start gap-2.5 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
-          <AlertCircleIcon className="size-4 shrink-0 text-destructive mt-0.5" />
+        <div className="border-destructive/30 bg-destructive/5 flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm">
+          <AlertCircleIcon className="text-destructive mt-0.5 size-4 shrink-0" />
           <div className="flex flex-1 flex-col gap-1">
-            <span className="font-medium text-destructive">Account provisioning failed</span>
+            <span className="text-destructive font-medium">Account provisioning failed</span>
             <span className="text-muted-foreground">{pollerResult.error}</span>
           </div>
           <Button

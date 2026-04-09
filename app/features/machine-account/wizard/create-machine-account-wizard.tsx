@@ -236,8 +236,7 @@ export function CreateMachineAccountWizard({
   // Render
   // ---------------------------------------------------------------------------
 
-  const contentClass =
-    wizardState.step === 'partial-failure' ? 'sm:max-w-3xl' : 'sm:max-w-2xl';
+  const contentClass = wizardState.step === 'partial-failure' ? 'sm:max-w-3xl' : 'sm:max-w-2xl';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
