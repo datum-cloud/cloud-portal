@@ -207,6 +207,7 @@ jobs:
           AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
           AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
           SESSION_SECRET=$SESSION_SECRET
+          LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
 
@@ -290,6 +291,7 @@ jobs:
           AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
           AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
           SESSION_SECRET=$SESSION_SECRET
+          LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
 

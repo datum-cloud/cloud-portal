@@ -54,6 +54,7 @@ export const DataTableInlineActions = <TData,>({
             size={showLabel ? 'small' : 'icon'}
             onClick={handleClick}
             disabled={isActionDisabled}
+            data-e2e={action['data-e2e']}
             className={cn('h-7 px-2', action.className)}>
             {action.icon}
             {showLabel && <span className="text-xs">{action.label}</span>}

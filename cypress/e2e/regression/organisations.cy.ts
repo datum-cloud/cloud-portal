@@ -35,16 +35,9 @@ describe('Organisations — regression', () => {
   // If this fails, all tests are skipped — fix before() first.
   before(() => {
     cy.login();
-    cy.visit(paths.account.organizations.root);
-    cy.get('[data-e2e="create-organization-button"]').click();
-    cy.get('[data-e2e="create-organization-name-input"]').type(testName);
-    cy.contains('button', 'Confirm').click();
-    // App redirects to /org/[orgId]/projects after creation
-    cy.url()
-      .should('match', /\/org\/[a-z0-9-]+\//)
-      .then((url) => {
-        resourceId = url.split('/org/')[1].split('/')[0];
-      });
+    cy.createStandardOrg(testName).then((id) => {
+      resourceId = id;
+    });
   });
 
   // Safety net — deletes the org if any test failed before the delete test ran.
@@ -52,11 +45,7 @@ describe('Organisations — regression', () => {
   after(() => {
     if (!resourceId) return;
     cy.login();
-    cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
-    cy.get('[data-e2e="delete-organization-button"]').click();
-    cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
-    cy.get('[data-e2e="confirmation-dialog-submit"]').click();
-    cy.url().should('include', paths.account.organizations.root);
+    cy.deleteOrganizationIfExists(resourceId);
   });
 
   beforeEach(() => {
