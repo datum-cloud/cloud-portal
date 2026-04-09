@@ -1,6 +1,7 @@
 import { KeyRevealPanel } from '@/features/machine-account/components/key-reveal-panel';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { CreateMachineAccountKeyResponse } from '@/resources/machine-accounts';
+import { env } from '@/utils/env';
 import { Button } from '@datum-ui/components';
 import { CheckCircleIcon, CopyIcon, CheckIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -66,7 +67,7 @@ export function WizardStepReveal({
         machineAccountName={machineAccountName}
         identityEmail={identityEmail}
         projectId={projectId}
-        defaultTab="github"
+        defaultTab="datumctl"
         onDismiss={onDone}
       />
     );
@@ -91,8 +92,8 @@ export function WizardStepReveal({
         <CopyField label="Identity email (iss / sub claim)" value={identityEmail} />
         <CopyField label="Client ID" value={keyResponse.userId ?? ''} />
         <CopyField label="Key ID (kid header)" value={keyResponse.key.keyId} />
-        <CopyField label="Token URI (aud claim)" value="https://auth.datum.net/oauth/v2/token" />
-        <CopyField label="API endpoint" value="https://api.datum.net" />
+        <CopyField label="Token URI (aud claim)" value={`${env.public.authOidcIssuer}/oauth/v2/token`} />
+        <CopyField label="API endpoint" value={env.public.apiUrl} />
         <CopyField label="Project ID" value={projectId} />
       </div>
 

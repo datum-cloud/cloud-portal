@@ -3,7 +3,6 @@ import { type Step2Values, WizardStepKey } from './wizard-step-key';
 import { WizardStepPartialFailure } from './wizard-step-partial-failure';
 import { WizardStepPollerFailure } from './wizard-step-poller-failure';
 import { type OrchestratingPhase, WizardStepProgress } from './wizard-step-progress';
-import { WizardStepReveal } from './wizard-step-reveal';
 import {
   createMachineAccountService,
   pollForEmail,
@@ -28,12 +27,6 @@ type WizardState =
       createdAccount?: MachineAccount;
     }
   | {
-      step: 'reveal';
-      createdAccount: MachineAccount;
-      email: string;
-      keyResponse: CreateMachineAccountKeyResponse;
-    }
-  | {
       step: 'partial-failure';
       createdAccount: MachineAccount;
       key: Step2Values;
@@ -55,7 +48,7 @@ export interface CreateMachineAccountWizardProps {
   projectId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onNavigateToAccount: (accountName: string) => void;
+  onNavigateToAccount: (accountName: string, keyResponse?: CreateMachineAccountKeyResponse) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -69,8 +62,6 @@ function dialogTitle(state: WizardState): string {
       return 'Create Machine Account';
     case 'orchestrating':
       return 'Setting up…';
-    case 'reveal':
-      return 'Credentials Ready';
     case 'partial-failure':
     case 'poller-failure':
       return 'Setup Incomplete';
@@ -100,9 +91,7 @@ export function CreateMachineAccountWizard({
   const createdAccount: MachineAccount | undefined =
     wizardState.step === 'orchestrating'
       ? wizardState.createdAccount
-      : wizardState.step === 'reveal' ||
-          wizardState.step === 'partial-failure' ||
-          wizardState.step === 'poller-failure'
+      : wizardState.step === 'partial-failure' || wizardState.step === 'poller-failure'
         ? wizardState.createdAccount
         : undefined;
 
@@ -162,12 +151,9 @@ export function CreateMachineAccountWizard({
         publicKey: key.publicKey,
         expiresAt: key.expiresAt,
       });
-      setWizardState({
-        step: 'reveal',
-        createdAccount: account,
-        email,
-        keyResponse,
-      });
+      onNavigateToAccount(account.name, keyResponse);
+      reset();
+      onOpenChange(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Key creation failed.';
       setWizardState({
@@ -250,11 +236,8 @@ export function CreateMachineAccountWizard({
   // Render
   // ---------------------------------------------------------------------------
 
-  // Widen the dialog for the credential reveal step — the tabbed panel needs room.
   const contentClass =
-    wizardState.step === 'reveal' || wizardState.step === 'partial-failure'
-      ? 'sm:max-w-3xl'
-      : 'sm:max-w-2xl';
+    wizardState.step === 'partial-failure' ? 'sm:max-w-3xl' : 'sm:max-w-2xl';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -289,20 +272,6 @@ export function CreateMachineAccountWizard({
           )}
 
           {wizardState.step === 'orchestrating' && <WizardStepProgress phase={wizardState.phase} />}
-
-          {wizardState.step === 'reveal' && (
-            <WizardStepReveal
-              keyResponse={wizardState.keyResponse}
-              machineAccountName={wizardState.createdAccount.name}
-              identityEmail={wizardState.email}
-              projectId={projectId}
-              onDone={() => {
-                onNavigateToAccount(wizardState.createdAccount.name);
-                reset();
-                onOpenChange(false);
-              }}
-            />
-          )}
 
           {wizardState.step === 'partial-failure' && (
             <WizardStepPartialFailure

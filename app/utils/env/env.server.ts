@@ -52,6 +52,7 @@ const publicSchema = z.object({
   // Required: Authentication
   // ─────────────────────────────────────────────────────────
   AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
+  AUTH_ZITADEL_PROJECT_ID: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -172,6 +173,7 @@ export const env: Env = {
     apiUrl: data.API_URL,
     graphqlUrl: data.GRAPHQL_URL,
     authOidcIssuer: data.AUTH_OIDC_ISSUER,
+    authZitadelProjectId: data.AUTH_ZITADEL_PROJECT_ID,
     sentryDsn: data.SENTRY_DSN,
     sentryEnv: data.SENTRY_ENV,
     fathomId: data.FATHOM_ID,

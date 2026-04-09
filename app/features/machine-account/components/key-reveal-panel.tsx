@@ -1,8 +1,46 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { DatumCredentialsFile } from '@/resources/machine-accounts';
+import { env } from '@/utils/env';
 import { Button, CloseIcon, Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-ui/components';
 import { CheckIcon, CopyIcon, DownloadIcon, ThumbsUpIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
+
+interface CopyFieldProps {
+  label: string;
+  value: string;
+}
+
+function CopyField({ label, value }: CopyFieldProps) {
+  const [, copyToClipboard] = useCopyToClipboard();
+  const [copied, setCopied] = useState(false);
+
+  function handleCopy() {
+    copyToClipboard(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <div className="bg-muted flex items-center gap-2 rounded-md px-3 py-2">
+        <code className="flex-1 truncate font-mono text-xs">{value}</code>
+        <button
+          type="button"
+          aria-label={copied ? 'Copied' : `Copy ${label}`}
+          onClick={handleCopy}
+          className="focus-visible:ring-ring shrink-0 rounded p-0.5 transition-colors hover:bg-black/10 focus-visible:ring-2 focus-visible:outline-none">
+          {copied ? (
+            <CheckIcon className="text-success size-3.5" />
+          ) : (
+            <CopyIcon className="text-muted-foreground size-3.5" />
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export interface KeyRevealPanelProps {
   privateKey: string;
@@ -12,7 +50,7 @@ export interface KeyRevealPanelProps {
   identityEmail: string;
   projectId: string;
   onDismiss: () => void;
-  defaultTab?: 'github' | 'kubernetes' | 'envvars';
+  defaultTab?: TabId;
 }
 
 function downloadCredentials(data: DatumCredentialsFile, filename: string) {
@@ -25,7 +63,7 @@ function downloadCredentials(data: DatumCredentialsFile, filename: string) {
   URL.revokeObjectURL(url);
 }
 
-type TabId = 'github' | 'kubernetes' | 'envvars';
+type TabId = 'datumctl' | 'github' | 'kubernetes' | 'envvars';
 
 interface SnippetBlockProps {
   content: string;
@@ -71,10 +109,19 @@ export function KeyRevealPanel({
   const [copiedTabId, setCopiedTabId] = useState<TabId | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const authIssuer = env.public.authOidcIssuer;
+  const tokenUri = `${authIssuer}/oauth/v2/token`;
+  const apiEndpoint = env.public.apiUrl;
+  const zitadelProjectId = env.public.authZitadelProjectId;
+  const scope = zitadelProjectId
+    ? `openid profile email urn:zitadel:iam:org:project:id:${zitadelProjectId}:aud`
+    : 'openid profile email';
+
   const credentials: DatumCredentialsFile = {
     type: 'datum_machine_account',
-    api_endpoint: 'https://api.datum.net',
-    token_uri: 'https://auth.datum.net/oauth/v2/token',
+    api_endpoint: apiEndpoint,
+    token_uri: tokenUri,
+    scope,
     project_id: projectId,
     client_email: identityEmail,
     client_id: userId,
@@ -91,6 +138,18 @@ export function KeyRevealPanel({
       copyTimeoutRef.current = setTimeout(() => setCopiedTabId(null), 2000);
     });
   }
+
+  const datumctlSnippet = `# 1. Install datumctl (if you haven't already):
+#    https://docs.datum.net/datumctl/install
+
+# 2. Authenticate using your downloaded credentials file:
+datumctl auth login --credentials ${credentialsFilename}
+
+# 3. Verify you're logged in:
+datumctl auth whoami
+
+# Done! datumctl will automatically refresh your session using
+# the credentials file — no manual token management needed.`;
 
   const githubSnippet = `# 1. Add your credentials file as a repository secret:
 #    Settings → Secrets and variables → Actions → New repository secret
@@ -154,26 +213,11 @@ export DATUM_TOKEN_URI="https://auth.datum.net/oauth/v2/token"
 export DATUM_API_ENDPOINT="https://api.datum.net"
 # Note: DATUM_PRIVATE_KEY contains newlines — use the credentials file
 #       rather than setting it as an env var to avoid shell escaping issues.
-
-# Exchange a JWT assertion for an access token.
-# Use your JWT library to sign an assertion with your private key.
-# Required claims:
-#   iss = ${userId}   (DATUM_CLIENT_ID — the Zitadel user ID, not the email)
-#   sub = ${userId}   (DATUM_CLIENT_ID — the Zitadel user ID, not the email)
-#   aud = https://auth.datum.net/oauth/v2/token
-#   iat = <current unix timestamp>
-#   exp = <iat + 3600>
-#
-# See https://docs.datum.net/authentication for SDK examples, then:
-curl -s -X POST "$DATUM_TOKEN_URI" \\
-  -H "Content-Type: application/x-www-form-urlencoded" \\
-  -d "grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer" \\
-  -d "assertion=$DATUM_JWT_ASSERTION" \\
-  | jq -r '.access_token'`;
+`;
 
   return (
     <div
-      className="bg-card-success border-card-success-border relative flex flex-col gap-4 rounded-lg border p-6"
+      className="bg-card relative flex flex-col gap-4 rounded-lg border shadow-sm p-6"
       role="region"
       aria-label="Key credentials — save these now">
       <Button
@@ -211,13 +255,29 @@ curl -s -X POST "$DATUM_TOKEN_URI" \\
         </Button>
       </div>
 
+      {/* Individual copy fields */}
+      <div className="flex flex-col gap-2">
+        <CopyField label="Client ID" value={userId} />
+        <CopyField label="Private key" value={privateKey} />
+      </div>
+
       {/* Tabs */}
-      <Tabs defaultValue={defaultTab ?? 'github'} className="w-full">
+      <Tabs defaultValue={defaultTab ?? 'datumctl'} className="w-full">
         <TabsList>
+          <TabsTrigger value="datumctl">datumctl</TabsTrigger>
           <TabsTrigger value="github">GitHub Actions</TabsTrigger>
           <TabsTrigger value="kubernetes">Kubernetes</TabsTrigger>
           <TabsTrigger value="envvars">Environment Variables</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="datumctl">
+          <SnippetBlock
+            content={datumctlSnippet}
+            tabId="datumctl"
+            copiedTabId={copiedTabId}
+            onCopy={handleCopy}
+          />
+        </TabsContent>
 
         <TabsContent value="github">
           <SnippetBlock

@@ -92,7 +92,10 @@ export function useDeleteMachineAccount(
     onSuccess: async (...args) => {
       const [, name] = args;
       await queryClient.cancelQueries({ queryKey: machineAccountKeys.detail(projectId, name) });
-      queryClient.invalidateQueries({ queryKey: machineAccountKeys.list(projectId) });
+      queryClient.setQueryData<MachineAccount[]>(machineAccountKeys.list(projectId), (old) =>
+        old ? old.filter((a) => a.name !== name) : old
+      );
+      queryClient.removeQueries({ queryKey: machineAccountKeys.detail(projectId, name) });
       options?.onSuccess?.(...args);
     },
   });

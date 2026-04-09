@@ -12,6 +12,7 @@ import {
   useHydrateMachineAccounts,
   useMachineAccounts,
   useUpdateMachineAccount,
+  type CreateMachineAccountKeyResponse,
   type MachineAccount,
 } from '@/resources/machine-accounts';
 import { paths } from '@/utils/config/paths.config';
@@ -28,6 +29,7 @@ import {
   LoaderFunctionArgs,
   MetaFunction,
   useLoaderData,
+  useLocation,
   useNavigate,
   useParams,
 } from 'react-router';
@@ -136,20 +138,28 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 export default function MachineAccountsPage() {
   const initialData = useLoaderData<typeof loader>();
+  const location = useLocation();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
   const formDialogRef = useRef<MachineAccountFormDialogRef>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
 
-  useHydrateMachineAccounts(projectId ?? '', initialData ?? []);
+  // When navigating back after a delete, the loader may return stale data that still
+  // includes the deleted account. Filter it out so the UI is immediately consistent.
+  const deletedName = (location.state as { deletedName?: string } | null)?.deletedName;
+  const seededData = deletedName
+    ? (initialData ?? []).filter((a) => a.name !== deletedName)
+    : (initialData ?? []);
+
+  useHydrateMachineAccounts(projectId ?? '', seededData);
 
   const { data: queryData } = useMachineAccounts(projectId ?? '', {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
-  const data = queryData ?? initialData ?? [];
+  const data = queryData ?? seededData;
 
   const deleteMutation = useDeleteMachineAccount(projectId ?? '', {
     onSuccess: () => {
@@ -263,12 +273,13 @@ export default function MachineAccountsPage() {
     [deleteAccount, toggleAccount]
   );
 
-  const navigateToAccount = (accountName: string) =>
+  const navigateToAccount = (accountName: string, keyResponse?: CreateMachineAccountKeyResponse) =>
     navigate(
       getPathWithParams(paths.project.detail.machineAccounts.detail.keys, {
         projectId,
         machineAccountId: accountName,
-      })
+      }),
+      { state: keyResponse ? { keyResponse } : undefined }
     );
 
   const openWizard = () => setWizardOpen(true);

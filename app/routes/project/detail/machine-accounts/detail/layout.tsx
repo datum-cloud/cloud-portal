@@ -59,9 +59,11 @@ export default function MachineAccountDetailLayout() {
   useHydrateMachineAccount(projectId ?? '', machineAccountId ?? '', account);
 
   const deleteMutation = useDeleteMachineAccount(projectId ?? '', {
-    onSuccess: () => {
+    onSuccess: (_, name) => {
       toast.success('Machine account deleted');
-      navigate(getPathWithParams(paths.project.detail.machineAccounts.root, { projectId }));
+      navigate(getPathWithParams(paths.project.detail.machineAccounts.root, { projectId }), {
+        state: { deletedName: name },
+      });
     },
     onError: (error) => {
       toast.error('Error', { description: error.message });
