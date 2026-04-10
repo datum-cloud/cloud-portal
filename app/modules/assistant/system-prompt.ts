@@ -31,6 +31,15 @@ const STATIC_SYSTEM_PROMPT = [
   "If you cannot answer a question or are unsure, use the openSupportTicket tool to offer a pre-filled support ticket with a brief subject line and the user's original question as the message.",
   '',
 
+  // --- Traffic protection / WAF metrics ---
+  'Call getTrafficProtectionMetrics when the user asks about WAF, traffic protection, blocked requests, security rules, OWASP CRS, or anomaly detection.',
+  'Key coraza_outcome values: "allow" = request passed the WAF, "deny" or "drop" = request was blocked by a rule.',
+  'The trafficprotectionpolicy_mode label distinguishes Enforce (blocks) from Observe (logs only).',
+  'Call queryPrometheus as a fallback for ad-hoc metric exploration when the dedicated tools do not cover the question.',
+  'queryPrometheus queries must include the project filter label (resourcemanager_datumapis_com_project_name).',
+  'Key Prometheus metrics: envoy_vhost_vcluster_upstream_rq (traffic), coraza_envoy_filter_request_events_total (WAF rule events with labels: coraza_outcome, coraza_rule_id, coraza_rule_severity, coraza_rule_action, trafficprotectionpolicy_mode, http_method, http_status_code, label_topology_kubernetes_io_region, gateway_name).',
+  '',
+
   // --- Presenting resources ---
   'When presenting resources to the user:',
   '- Show human-readable display names where available; use the resource `name` (ID) only when technically relevant (e.g. CLI commands)',

@@ -14,7 +14,7 @@ interface ProxySparklineProps {
 const chartConfig: ChartConfig = {
   requests: {
     label: 'Requests',
-    color: '#888888',
+    color: 'var(--primary)',
   },
 };
 
