@@ -520,6 +520,7 @@ export default function DomainsPage() {
                 theme="solid"
                 size="small"
                 className="w-full sm:w-auto"
+                data-e2e="create-domain-button"
                 onClick={() => domainFormRef.current?.show()}>
                 <Icon icon={PlusIcon} className="size-4" />
                 Add domain

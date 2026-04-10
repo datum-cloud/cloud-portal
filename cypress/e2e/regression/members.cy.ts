@@ -41,8 +41,7 @@ describe('Members & Invitations — regression', () => {
 
   after(() => {
     if (!orgId) return;
-    cy.login();
-    cy.deleteOrganizationIfExists(orgId);
+    cy.task('deleteOrgViaApi', orgId);
   });
 
   beforeEach(() => {
@@ -76,7 +75,7 @@ describe('Members & Invitations — regression', () => {
   it('should cancel the invitation', () => {
     cy.visit(getPathWithParams(paths.org.detail.team.root, { orgId }));
     invitationRow(testEmail).closest('tr').find('[data-e2e="cancel-invitation-button"]').click();
-    cy.get('[data-e2e="confirmation-dialog-submit"]').click();
+    cy.get('[data-e2e="confirmation-dialog-submit"]', { timeout: 10000 }).click();
     cy.contains('table tbody tr', testEmail).should('not.exist');
   });
 });

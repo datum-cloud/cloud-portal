@@ -259,6 +259,7 @@ export default function HttpProxyPage() {
               theme="solid"
               size="small"
               className="w-full sm:w-auto"
+              data-e2e="create-ai-edge-button"
               onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               New
