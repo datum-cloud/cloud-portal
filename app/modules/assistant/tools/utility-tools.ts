@@ -60,10 +60,18 @@ export function createUtilityTools() {
         'Fetch the full Datum platform documentation including CLI command syntax and usage. Call this before suggesting any datumctl CLI commands to ensure accuracy.',
       inputSchema: z.object({}),
       execute: async () => {
-        const res = await fetch('https://www.datum.net/docs/llms-full.txt');
-        if (!res.ok) return { error: `Failed to fetch docs: ${res.status}` };
-        const text = await res.text();
-        return { docs: text };
+        try {
+          const res = await fetch('https://www.datum.net/docs/llms-full.txt', {
+            signal: AbortSignal.timeout(10_000),
+          });
+          if (!res.ok) return { error: `Failed to fetch docs: ${res.status}` };
+          const text = await res.text();
+          return { docs: text };
+        } catch (err) {
+          return {
+            error: `Failed to fetch docs: ${err instanceof Error ? err.message : 'unknown'}`,
+          };
+        }
       },
     }),
 

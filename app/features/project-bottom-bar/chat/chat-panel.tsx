@@ -1,7 +1,7 @@
 import { AssistantMessage, LoadingDots } from './assistant-message';
 import { ChatInput } from './chat-input';
 import { ChatSidebar } from './chat-sidebar';
-import { useChatLogic } from './use-chat-logic';
+import { sanitizeUserHtml, useChatLogic } from './use-chat-logic';
 import { Icon } from '@datum-ui/components';
 import { isTextUIPart } from 'ai';
 import { ArrowDown, Menu, MessageSquarePlus } from 'lucide-react';
@@ -249,22 +249,6 @@ export function ChatPanel() {
             {messages.map((msg, msgIdx) => {
               const isLastMessage = msgIdx === messages.length - 1;
 
-              if (msg.role === 'system') {
-                const label = msg.parts.find(isTextUIPart)?.text ?? 'Unknown project';
-                return (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.3 }}
-                    className="flex items-center gap-2 py-1">
-                    <div className="bg-muted-foreground/20 h-px flex-1" />
-                    <span className="text-muted-foreground/60 text-xs">Switched to {label}</span>
-                    <div className="bg-muted-foreground/20 h-px flex-1" />
-                  </motion.div>
-                );
-              }
-
               if (msg.role === 'user') {
                 const html = htmlByUserMsgIndex.current[userMsgIdx++];
                 const fallbackText = msg.parts.find(isTextUIPart)?.text ?? '';
@@ -278,7 +262,9 @@ export function ChatPanel() {
                     <div className="bg-primary text-primary-foreground max-w-[80%] rounded-2xl rounded-br-xs px-3 py-2 text-sm">
                       <div
                         className="[&_em]:italic [&_p]:my-0.5 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0 [&_s]:line-through [&_strong]:font-semibold [&_u]:underline"
-                        dangerouslySetInnerHTML={{ __html: html ?? `<p>${fallbackText}</p>` }}
+                        dangerouslySetInnerHTML={{
+                          __html: html ?? sanitizeUserHtml(fallbackText),
+                        }}
                       />
                     </div>
                   </motion.div>

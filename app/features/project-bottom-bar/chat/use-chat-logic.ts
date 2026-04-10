@@ -9,6 +9,48 @@ import StarterKit from '@tiptap/starter-kit';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => HTML_ESCAPE_MAP[c]!);
+}
+
+const ALLOWED_TAGS = new Set(['p', 'strong', 'em', 'u', 's', 'br']);
+
+/**
+ * Sanitises user-authored HTML by walking the DOM tree and keeping only
+ * the Tiptap-safe tags (p, strong, em, u, s, br). Text nodes are escaped.
+ * Plain text (no tags) is wrapped in a `<p>` so the bubble renders correctly.
+ */
+export function sanitizeUserHtml(raw: string): string {
+  const doc = new DOMParser().parseFromString(raw, 'text/html');
+
+  function walk(node: Node): string {
+    if (node.nodeType === Node.TEXT_NODE) {
+      return escapeHtml(node.textContent ?? '');
+    }
+    if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+    const el = node as Element;
+    const tag = el.tagName.toLowerCase();
+    const children = Array.from(el.childNodes).map(walk).join('');
+
+    if (ALLOWED_TAGS.has(tag)) {
+      return tag === 'br' ? '<br>' : `<${tag}>${children}</${tag}>`;
+    }
+    return children;
+  }
+
+  const result = Array.from(doc.body.childNodes).map(walk).join('');
+  return result.startsWith('<p>') ? result : `<p>${result}</p>`;
+}
+
 function detectOs(): 'macos' | 'windows' | 'linux' | 'unknown' {
   const ua = navigator.userAgent;
   if (/Mac/i.test(ua)) return 'macos';
@@ -79,6 +121,7 @@ export function useChatLogic() {
       id: currentChatIdRef.current,
       title: deriveTitle(toSave),
       messages: toSave,
+      userHtml: [...htmlByUserMsgIndex.current],
       createdAt: chatCreatedAtRef.current,
       updatedAt: Date.now(),
     });
@@ -125,12 +168,14 @@ export function useChatLogic() {
     (chat: StoredChat) => {
       setCurrentChatId(chat.id);
       chatCreatedAtRef.current = chat.createdAt;
-      htmlByUserMsgIndex.current = chat.messages
-        .filter((m) => m.role === 'user')
-        .map((m) => {
-          const text = m.parts.find((p) => p.type === 'text')?.text ?? '';
-          return `<p>${text}</p>`;
-        });
+      htmlByUserMsgIndex.current = chat.userHtml
+        ? chat.userHtml.map(sanitizeUserHtml)
+        : chat.messages
+            .filter((m) => m.role === 'user')
+            .map((m) => {
+              const text = m.parts.find((p) => p.type === 'text')?.text ?? '';
+              return sanitizeUserHtml(text);
+            });
       setMessages(chat.messages);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'instant' }), 50);
     },

@@ -7,6 +7,8 @@ export interface StoredChat {
   id: string;
   title: string;
   messages: UIMessage[];
+  /** Tiptap HTML for each user message, indexed by position in the user-message sub-array. */
+  userHtml?: string[];
   createdAt: number;
   updatedAt: number;
 }

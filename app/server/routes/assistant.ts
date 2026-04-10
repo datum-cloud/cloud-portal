@@ -53,16 +53,21 @@ assistantRoutes.post('/', async (c) => {
     tools: createAssistantTools({ accessToken: session.accessToken }),
   });
 
-  result.usage.then((usage) => {
-    logger.info('assistant request completed', {
-      userId: session.sub,
-      projectId: projectName,
-      model,
-      inputTokens: usage.inputTokens,
-      outputTokens: usage.outputTokens,
-      totalTokens: usage.totalTokens,
-    });
-  });
+  result.usage.then(
+    (usage) => {
+      logger.info('assistant request completed', {
+        userId: session.sub,
+        projectId: projectName,
+        model,
+        inputTokens: usage.inputTokens,
+        outputTokens: usage.outputTokens,
+        totalTokens: usage.totalTokens,
+      });
+    },
+    (err: unknown) => {
+      logger.warn('failed to resolve assistant usage', { err });
+    }
+  );
 
   return result.toUIMessageStreamResponse({ sendReasoning: true });
 });
