@@ -1,6 +1,5 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { DatumCredentialsFile } from '@/resources/machine-accounts';
-import { env } from '@/utils/env';
 import { Button, CloseIcon, Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-ui/components';
 import { CheckIcon, CopyIcon, DownloadIcon, ThumbsUpIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
@@ -43,12 +42,8 @@ function CopyField({ label, value }: CopyFieldProps) {
 }
 
 export interface KeyRevealPanelProps {
-  privateKey: string;
-  userId: string;
-  keyId: string;
+  credentials: DatumCredentialsFile;
   machineAccountName: string;
-  identityEmail: string;
-  projectId: string;
   onDismiss: () => void;
   defaultTab?: TabId;
 }
@@ -96,38 +91,14 @@ function SnippetBlock({ content, tabId, copiedTabId, onCopy }: SnippetBlockProps
 }
 
 export function KeyRevealPanel({
-  privateKey,
-  userId,
-  keyId,
+  credentials,
   machineAccountName,
-  identityEmail,
-  projectId,
   onDismiss,
   defaultTab,
 }: KeyRevealPanelProps) {
   const [, copyToClipboard] = useCopyToClipboard();
   const [copiedTabId, setCopiedTabId] = useState<TabId | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const authIssuer = env.public.authOidcIssuer;
-  const tokenUri = `${authIssuer}/oauth/v2/token`;
-  const apiEndpoint = env.public.apiUrl;
-  const zitadelProjectId = env.public.authZitadelProjectId;
-  const scope = zitadelProjectId
-    ? `openid profile email urn:zitadel:iam:org:project:id:${zitadelProjectId}:aud`
-    : 'openid profile email';
-
-  const credentials: DatumCredentialsFile = {
-    type: 'datum_machine_account',
-    api_endpoint: apiEndpoint,
-    token_uri: tokenUri,
-    scope,
-    project_id: projectId,
-    client_email: identityEmail,
-    client_id: userId,
-    private_key_id: keyId,
-    private_key: privateKey,
-  };
 
   const credentialsFilename = `${machineAccountName}-datum-credentials.json`;
 
@@ -206,11 +177,8 @@ spec:
 export DATUM_CREDENTIALS_FILE="/path/to/${credentialsFilename}"
 
 # Individual variables (if you can't use the credentials file):
-export DATUM_CLIENT_EMAIL="${identityEmail}"
-export DATUM_CLIENT_ID="${userId}"
-export DATUM_PRIVATE_KEY_ID="${keyId}"
-export DATUM_TOKEN_URI="https://auth.datum.net/oauth/v2/token"
-export DATUM_API_ENDPOINT="https://api.datum.net"
+${credentials.client_email ? `export DATUM_CLIENT_EMAIL="${credentials.client_email}"\n` : ''}export DATUM_CLIENT_ID="${credentials.client_id}"
+export DATUM_PRIVATE_KEY_ID="${credentials.private_key_id}"
 # Note: DATUM_PRIVATE_KEY contains newlines — use the credentials file
 #       rather than setting it as an env var to avoid shell escaping issues.
 `;
@@ -257,8 +225,8 @@ export DATUM_API_ENDPOINT="https://api.datum.net"
 
       {/* Individual copy fields */}
       <div className="flex flex-col gap-2">
-        <CopyField label="Client ID" value={userId} />
-        <CopyField label="Private key" value={privateKey} />
+        <CopyField label="Client ID" value={credentials.client_id} />
+        <CopyField label="Private key" value={credentials.private_key} />
       </div>
 
       {/* Tabs */}

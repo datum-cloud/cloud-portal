@@ -12,6 +12,7 @@ import {
   useMachineAccountEmailPoller,
   useRevokeMachineAccountKey,
   type CreateMachineAccountKeyResponse,
+  type DatumCredentialsFile,
   type MachineAccountKey,
 } from '@/resources/machine-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -38,11 +39,9 @@ export default function MachineAccountKeysPage() {
     location.state as { keyResponse?: CreateMachineAccountKeyResponse } | null
   )?.keyResponse;
 
-  const [newPrivateKey, setNewPrivateKey] = useState<string | null>(
-    initialKeyResponse?.privateKey ?? null
+  const [newCredentials, setNewCredentials] = useState<DatumCredentialsFile | null>(
+    initialKeyResponse?.credentials ?? null
   );
-  const [newUserId, setNewUserId] = useState<string | null>(initialKeyResponse?.userId ?? null);
-  const [newKeyId, setNewKeyId] = useState<string | null>(initialKeyResponse?.key?.keyId ?? null);
 
   const { data: machineAccount } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
 
@@ -152,19 +151,11 @@ export default function MachineAccountKeysPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      {newPrivateKey && newUserId && newKeyId && machineAccount && resolvedEmail && (
+      {newCredentials && machineAccount && (
         <KeyRevealPanel
-          privateKey={newPrivateKey}
-          userId={newUserId}
-          keyId={newKeyId}
+          credentials={newCredentials}
           machineAccountName={machineAccount.name}
-          identityEmail={resolvedEmail}
-          projectId={projectId ?? ''}
-          onDismiss={() => {
-            setNewPrivateKey(null);
-            setNewUserId(null);
-            setNewKeyId(null);
-          }}
+          onDismiss={() => setNewCredentials(null)}
         />
       )}
 
@@ -224,9 +215,7 @@ export default function MachineAccountKeysPage() {
         machineAccountId={machineAccountId ?? ''}
         machineAccountEmail={resolvedEmail}
         onKeyCreated={(response) => {
-          if (response.privateKey) setNewPrivateKey(response.privateKey);
-          if (response.userId) setNewUserId(response.userId);
-          if (response.key?.keyId) setNewKeyId(response.key.keyId);
+          if (response.credentials) setNewCredentials(response.credentials);
         }}
       />
     </div>

@@ -11,6 +11,7 @@ import type {
   UpdateMachineAccountInput,
   CreateMachineAccountKeyInput,
   CreateMachineAccountKeyResponse,
+  DatumCredentialsFile,
 } from './types';
 import {
   listIamMiloapisComV1Alpha1MachineAccount,
@@ -212,21 +213,18 @@ export function createMachineAccountService() {
           input: { projectId, machineAccountEmail, name: input.name },
           duration: Date.now() - startTime,
         });
-        let privateKey = data.status?.privateKey;
-        let userId: string | undefined;
-        if (privateKey) {
+        const rawPrivateKey = data.status?.privateKey;
+        let credentials: DatumCredentialsFile | undefined;
+        if (rawPrivateKey) {
           try {
-            const parsed = JSON.parse(privateKey) as { key?: string; userId?: string };
-            if (parsed.key) privateKey = parsed.key;
-            if (parsed.userId) userId = parsed.userId;
+            credentials = JSON.parse(rawPrivateKey) as DatumCredentialsFile;
           } catch {
-            // not JSON, use as-is
+            // not a valid credentials file
           }
         }
         return {
           key: toMachineAccountKey(data),
-          privateKey,
-          userId,
+          credentials,
         };
       } catch (error) {
         logger.error(`${SERVICE_NAME}.createKey failed`, error as Error);

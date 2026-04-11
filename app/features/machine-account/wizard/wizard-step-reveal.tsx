@@ -58,15 +58,11 @@ export function WizardStepReveal({
   projectId,
   onDone,
 }: WizardStepRevealProps) {
-  if (keyResponse.privateKey) {
+  if (keyResponse.credentials) {
     return (
       <KeyRevealPanel
-        privateKey={keyResponse.privateKey}
-        userId={keyResponse.userId ?? ''}
-        keyId={keyResponse.key.keyId}
+        credentials={keyResponse.credentials}
         machineAccountName={machineAccountName}
-        identityEmail={identityEmail}
-        projectId={projectId}
         defaultTab="datumctl"
         onDismiss={onDone}
       />
@@ -90,7 +86,6 @@ export function WizardStepReveal({
 
       <div className="flex flex-col gap-3 rounded-lg border p-4">
         <CopyField label="Identity email (iss / sub claim)" value={identityEmail} />
-        <CopyField label="Client ID" value={keyResponse.userId ?? ''} />
         <CopyField label="Key ID (kid header)" value={keyResponse.key.keyId} />
         <CopyField
           label="Token URI (aud claim)"

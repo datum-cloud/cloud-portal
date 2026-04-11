@@ -161,7 +161,13 @@ export function useDeletePolicyBinding(
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;
-      // Cancel in-flight queries + invalidate list (no Watch for this resource)
+      // Immediately remove the deleted binding from cache so the UI updates
+      // without waiting for the refetch (avoids stale-data flash on last-item delete).
+      queryClient.setQueryData<PolicyBinding[]>(
+        policyBindingKeys.list(orgId),
+        (old) => old?.filter((b) => b.name !== name) ?? []
+      );
+      // Cancel stale detail query + kick off a background refetch to confirm
       await queryClient.cancelQueries({ queryKey: policyBindingKeys.detail(orgId, name) });
       queryClient.invalidateQueries({ queryKey: policyBindingKeys.lists() });
 

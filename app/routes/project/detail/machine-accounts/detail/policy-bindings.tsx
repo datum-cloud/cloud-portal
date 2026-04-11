@@ -37,10 +37,12 @@ export default function MachineAccountPolicyBindingsPage() {
 
   const bindings = useMemo(() => {
     if (!machineAccount?.name) return [];
-    return allBindings.filter((b) =>
-      b.subjects.some((s) => s.kind === 'MachineAccount' && s.name === machineAccount.name)
+    return allBindings.filter(
+      (b) =>
+        b.resourceSelector?.resourceRef?.name === projectId &&
+        b.subjects.some((s) => s.kind === 'MachineAccount' && s.name === machineAccount.name)
     );
-  }, [allBindings, machineAccount?.name]);
+  }, [allBindings, machineAccount?.name, projectId]);
 
   const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
     onSuccess: () => toast.success('Role deleted'),
