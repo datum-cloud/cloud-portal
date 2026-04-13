@@ -122,7 +122,12 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
                       Name {meta.required && <span className="text-destructive/80">*</span>}
                     </label>
                   </div>
-                  <Form.Input autoFocus placeholder="e.g. Customer API" className="-mb-0.5" />
+                  <Form.Input
+                    autoFocus
+                    placeholder="e.g. Customer API"
+                    className="-mb-0.5"
+                    data-e2e="create-ai-edge-name-input"
+                  />
                   <input type="hidden" name="name" value={resourceName} />
                 </div>
               );

@@ -169,6 +169,7 @@ export default function SecretsPage() {
               theme="solid"
               size="small"
               className="w-full sm:w-auto"
+              data-e2e="create-secret-button"
               onClick={() => secretFormDialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add secret

@@ -49,11 +49,10 @@ describe('Projects — regression', () => {
       });
   });
 
-  // Safety net — delete project and test org if tests fail early.
+  // Safety net — delete org via API if tests fail early (org delete cascades to project).
   after(() => {
-    cy.login();
-    cy.deleteProjectIfExists(resourceId, orgId);
-    cy.deleteOrganizationIfExists(orgId);
+    if (!orgId) return;
+    cy.task('deleteOrgViaApi', orgId);
   });
 
   beforeEach(() => {
@@ -74,8 +73,10 @@ describe('Projects — regression', () => {
 
   it('should update the project display name', () => {
     cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId: resourceId }));
-    cy.get('[data-e2e="edit-project-name-input"]').clear();
-    cy.get('[data-e2e="edit-project-name-input"]').type(updatedName);
+    const suffix = '-updated';
+    cy.get('[data-e2e="edit-project-name-input"]', { timeout: 10000 })
+      .should('be.visible')
+      .type(suffix, { force: true });
     cy.get('[data-e2e="edit-project-save"]').click();
     cy.contains('The Project has been updated successfully').should('be.visible');
     cy.get('[data-e2e="edit-project-name-input"]').should('have.value', updatedName);
@@ -88,8 +89,10 @@ describe('Projects — regression', () => {
 
   it('should delete the project and remove it from the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId: resourceId }));
-    cy.get('[data-e2e="delete-project-button"]').click();
-    cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
+    cy.get('[data-e2e="delete-project-button"]', { timeout: 10000 }).should('exist');
+    cy.wait(500);
+    cy.get('[data-e2e="delete-project-button"]').scrollIntoView().click();
+    cy.get('[data-e2e="confirmation-dialog-input"]', { timeout: 10000 }).type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
     cy.url().should('include', paths.org.detail.projects.root.replace('[orgId]', orgId));
     cy.get('body').should('not.contain.text', testName);

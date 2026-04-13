@@ -69,7 +69,11 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
           description="Enter the domain where your service is running"
           required
           className="px-5">
-          <Form.Input placeholder="e.g. example.com" autoFocus />
+          <Form.Input
+            placeholder="e.g. example.com"
+            autoFocus
+            data-e2e="create-domain-name-input"
+          />
         </Form.Field>
       </Form.Dialog>
     );

@@ -22,45 +22,18 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * [data-e2e="confirmation-dialog-input"]  Type DELETE to confirm input
  * [data-e2e="confirmation-dialog-submit"] Confirm button
  *
- * Note: Uses a dedicated Standard org + project created in before() and
- * cleaned up in after(). DNS zone creation is synchronous (no task queue).
+ * Uses shared regression resources (1 org + 1 project per shard).
  */
 
 describe('DNS Zones — regression', () => {
-  const orgName = `e2e-test-dns-org-${Date.now()}`;
-  const projectName = `e2e-test-dns-project-${Date.now()}`;
-  // Use a unique subdomain to avoid conflicts between runs
   const zoneDomain = `e2e-${Date.now()}.example.com`;
-  let orgId = '';
   let projectId = '';
   let dnsZoneId = '';
 
   before(() => {
-    cy.login();
-    cy.createStandardOrg(orgName)
-      .then((id) => {
-        orgId = id;
-        return cy.createProjectInOrg(id, projectName);
-      })
-      .then((id) => {
-        projectId = id;
-      });
-  });
-
-  after(() => {
-    cy.login();
-    if (dnsZoneId) {
-      cy.visit(
-        getPathWithParams(paths.project.detail.dnsZones.detail.settings, {
-          projectId,
-          dnsZoneId,
-        })
-      );
-      cy.get('[data-e2e="delete-dns-zone-button"]').click();
-      cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
-      cy.get('[data-e2e="confirmation-dialog-submit"]').click();
-    }
-    cy.deleteOrganizationIfExists(orgId);
+    cy.ensureSharedResources().then((res) => {
+      projectId = res.projectId;
+    });
   });
 
   beforeEach(() => {
@@ -69,9 +42,6 @@ describe('DNS Zones — regression', () => {
 
   it('should create a DNS zone and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.dnsZones.root, { projectId }));
-    // Wait for the page to fully load before checking which button is present,
-    // same pattern as createProjectInOrg — avoids clicking a button before React
-    // has wired up the onClick handler.
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/dns-zones`);
     cy.get('body', { timeout: 10000 }).then(($body) => {
       if ($body.find('[data-e2e="create-dns-zone-button"]').length > 0) {
@@ -100,8 +70,6 @@ describe('DNS Zones — regression', () => {
   });
 
   it('should load the DNS records tab', () => {
-    // Navigate via the list → click zone row → then DNS Records tab
-    // (avoids relying on dnsZoneId closure which may be empty if test 1 failed)
     cy.visit(getPathWithParams(paths.project.detail.dnsZones.root, { projectId }));
     cy.contains('[data-e2e="dns-zone-name"]', zoneDomain, { timeout: 10000 }).click();
     cy.contains('a', 'DNS Records').click();
@@ -116,8 +84,11 @@ describe('DNS Zones — regression', () => {
         dnsZoneId,
       })
     );
-    cy.get('[data-e2e="delete-dns-zone-button"]').click();
-    cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
+    // Wait for page to fully settle (description form autofocuses and scrolls up)
+    cy.get('[data-e2e="delete-dns-zone-button"]', { timeout: 10000 }).should('exist');
+    cy.wait(500);
+    cy.get('[data-e2e="delete-dns-zone-button"]').scrollIntoView().click();
+    cy.get('[data-e2e="confirmation-dialog-input"]', { timeout: 10000 }).type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
     cy.url().should('include', `project/${projectId}/dns-zones`);
     cy.contains('[data-e2e="dns-zone-name"]', zoneDomain).should('not.exist');

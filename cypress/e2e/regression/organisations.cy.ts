@@ -40,12 +40,11 @@ describe('Organisations — regression', () => {
     });
   });
 
-  // Safety net — deletes the org if any test failed before the delete test ran.
+  // Safety net — deletes the org via API if any test failed before the delete test ran.
   // If the delete test already ran it sets resourceId = '' so this is a no-op.
   after(() => {
     if (!resourceId) return;
-    cy.login();
-    cy.deleteOrganizationIfExists(resourceId);
+    cy.task('deleteOrgViaApi', resourceId);
   });
 
   beforeEach(() => {
@@ -66,9 +65,10 @@ describe('Organisations — regression', () => {
 
   it('should update the org display name', () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
-    // Clear and type as separate queries — React re-renders after clear() detach the node
-    cy.get('[data-e2e="edit-organization-name-input"]').clear();
-    cy.get('[data-e2e="edit-organization-name-input"]').type(updatedName);
+    const suffix = '-updated';
+    cy.get('[data-e2e="edit-organization-name-input"]', { timeout: 10000 })
+      .should('be.visible')
+      .type(suffix, { force: true });
     cy.get('[data-e2e="edit-organization-save"]').click();
     cy.contains('The Organization has been updated successfully').should('be.visible');
     cy.get('[data-e2e="edit-organization-name-input"]').should('have.value', updatedName);
@@ -81,8 +81,10 @@ describe('Organisations — regression', () => {
 
   it('should delete the org and remove it from the list', () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
-    cy.get('[data-e2e="delete-organization-button"]').click();
-    cy.get('[data-e2e="confirmation-dialog-input"]').type('DELETE');
+    cy.get('[data-e2e="delete-organization-button"]', { timeout: 10000 }).should('exist');
+    cy.wait(500);
+    cy.get('[data-e2e="delete-organization-button"]').scrollIntoView().click();
+    cy.get('[data-e2e="confirmation-dialog-input"]', { timeout: 10000 }).type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
     cy.url().should('include', paths.account.organizations.root);
     cy.get('[data-e2e="organization-card-standard"]').should('not.contain.text', testName);

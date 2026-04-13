@@ -322,6 +322,49 @@ Cypress.Commands.add('deleteOrganizationIfExists', (orgId: string) => {
   });
 });
 
+/**
+ * Shared regression resources — 1 org + 1 project per Cypress process (shard).
+ *
+ * Usage in regression specs:
+ *   before(() => {
+ *     cy.ensureSharedResources().then(({ orgId, projectId }) => { ... });
+ *   });
+ *
+ * The first spec to call this creates the resources; subsequent specs reuse them.
+ * Cleanup happens via after:run at the Node level (see shared-resources.ts).
+ */
+Cypress.Commands.add(
+  'ensureSharedResources',
+  (): Cypress.Chainable<{ orgId: string; projectId: string }> => {
+    return cy
+      .task<{
+        orgId: string;
+        projectId: string;
+        timestamp: number;
+      } | null>('getSharedResources', null, { log: false })
+      .then((existing) => {
+        if (existing) {
+          return cy.wrap({ orgId: existing.orgId, projectId: existing.projectId }, { log: false });
+        }
+
+        // First spec in this shard — create the shared org + project
+        const timestamp = Date.now();
+        const orgName = `e2e-shared-org-${timestamp}`;
+        const projectName = `e2e-shared-project-${timestamp}`;
+
+        cy.login();
+        return cy.createStandardOrg(orgName).then((orgId) => {
+          return cy.createProjectInOrg(orgId, projectName).then((projectId) => {
+            const resources = { orgId, projectId, timestamp };
+            return cy.task('setSharedResources', resources, { log: false }).then(() => {
+              return cy.wrap({ orgId, projectId }, { log: false });
+            });
+          });
+        });
+      }) as Cypress.Chainable<{ orgId: string; projectId: string }>;
+  }
+);
+
 // TypeScript declarations for custom commands
 declare global {
   namespace Cypress {
@@ -380,6 +423,14 @@ declare global {
        * @example cy.deleteOrganizationIfExists(orgId)
        */
       deleteOrganizationIfExists(orgId: string): Chainable<void>;
+
+      /**
+       * Get or create shared regression resources (1 org + 1 project per shard).
+       * First call creates them; subsequent calls return the cached IDs.
+       * Cleanup is automatic via a global after() hook.
+       * @example cy.ensureSharedResources().then(({ orgId, projectId }) => { ... })
+       */
+      ensureSharedResources(): Chainable<{ orgId: string; projectId: string }>;
     }
   }
 }

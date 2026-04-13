@@ -72,6 +72,7 @@ export default function DomainSettingsPage() {
           deleteText="Delete domain"
           loading={deleteDomainMutation.isPending}
           onDelete={deleteDomain}
+          data-e2e="delete-domain-button"
         />
       </Col>
     </Row>

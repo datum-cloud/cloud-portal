@@ -46,6 +46,7 @@ export const SecretDangerCard = ({ secret }: { secret: ISecretControlResponse })
       deleteText="Delete secret"
       loading={deleteSecretMutation.isPending}
       onDelete={deleteSecret}
+      data-e2e="delete-secret-button"
     />
   );
 };
