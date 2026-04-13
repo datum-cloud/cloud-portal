@@ -38,3 +38,21 @@
 .animate-data-table-fade-in {
   animation: data-table-fade-in 0.2s ease-out;
 }
+
+[data-streamdown='code-block'] {
+  margin-top: 0.5rem;
+}
+
+/* Show "text" when no language was specified */
+[data-streamdown='code-block-header'] span:empty::before {
+  content: 'text';
+}
+
+/* Tiptap Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

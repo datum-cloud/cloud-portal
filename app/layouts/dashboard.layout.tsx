@@ -33,7 +33,7 @@ const DashboardContent = ({
   return (
     <div
       className={cn(
-        'h-full min-w-0 transition-opacity duration-75',
+        'min-h-0 min-w-0 flex-1 transition-opacity duration-75',
         !isReady && 'opacity-0',
         isReady && 'opacity-100'
       )}>
@@ -64,6 +64,7 @@ export function DashboardLayout({
   closeOnNavigation = false,
   sidebarLoading = false,
   switcherLoading = false,
+  bottomBar,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -80,6 +81,8 @@ export function DashboardLayout({
   sidebarLoading?: boolean;
   /** Show skeleton in org/project switchers while loading (prevents layout shift) */
   switcherLoading?: boolean;
+  /** Optional bar rendered at the bottom of the layout */
+  bottomBar?: React.ReactNode;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -123,12 +126,13 @@ export function DashboardLayout({
             loading={sidebarLoading}
           />
         )}
-        <SidebarInset className="min-h-0">
+        <SidebarInset className="flex min-h-0 flex-col">
           <DashboardContent
             containerClassName={containerClassName}
             contentClassName={contentClassName}>
             {children}
           </DashboardContent>
+          {bottomBar}
         </SidebarInset>
       </SidebarProvider>
     </div>
