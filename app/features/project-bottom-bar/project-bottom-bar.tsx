@@ -1,6 +1,7 @@
 import { useProjectContext } from '@/providers/project.provider';
 import { Button } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Skeleton } from '@datum-ui/components/skeleton';
 import Tooltip from '@datum-ui/components/tooltip/tooltip';
 import { cn } from '@shadcn/lib/utils';
 import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
@@ -52,6 +53,49 @@ function ToolbarButton({ panel, icon: icon, label, isActive, onClick }: ToolbarB
         <Icon icon={icon} className="text-icon-header size-4" />
       </Button>
     </Tooltip>
+  );
+}
+
+function ChatPanelSkeleton() {
+  return (
+    <div className="relative flex h-full overflow-hidden">
+      {/* Sidebar skeleton */}
+      <div className="bg-card hidden h-full w-[250px] shrink-0 flex-col gap-3 p-3 sm:flex">
+        <Skeleton className="h-8 w-full rounded-lg" />
+        <div className="flex flex-col gap-2 pt-2">
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+          <Skeleton className="h-10 w-3/4 rounded-lg" />
+        </div>
+      </div>
+
+      {/* Resize handle */}
+      <div className="bg-muted hidden w-4 shrink-0 sm:block" />
+
+      {/* Chat area skeleton */}
+      <div className="bg-muted flex min-w-0 flex-1 flex-col">
+        <div className="flex flex-1 flex-col gap-3 p-4">
+          <Skeleton className="h-4 w-24 rounded" />
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-9 w-56 rounded-xl" />
+            <Skeleton className="h-9 w-44 rounded-xl" />
+            <Skeleton className="h-9 w-64 rounded-xl" />
+            <Skeleton className="h-9 w-52 rounded-xl" />
+            <Skeleton className="h-9 w-60 rounded-xl" />
+          </div>
+        </div>
+
+        {/* Input skeleton */}
+        <div className="px-2 pb-2">
+          <div className="mx-auto w-full sm:w-1/2">
+            <Skeleton className="h-[52px] w-full rounded-[28px]" />
+          </div>
+          <div className="mt-1 flex justify-center">
+            <Skeleton className="h-3 w-48 rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -134,7 +178,7 @@ export function ProjectBottomBar() {
             <div className="relative min-h-0 flex-1 overflow-hidden">
               {isDragging && <div className="absolute inset-0 z-50" />}
               <Activity mode={activePanel === 'chat' ? 'visible' : 'hidden'}>
-                <Suspense fallback={<div className="h-full w-full" />}>
+                <Suspense fallback={<ChatPanelSkeleton />}>
                   <ChatPanel key={project?.name ?? 'no-project'} />
                 </Suspense>
               </Activity>

@@ -162,7 +162,8 @@ export function useChatLogic() {
     chatCreatedAtRef.current = Date.now();
     htmlByUserMsgIndex.current = [];
     setMessages([]);
-  }, [setMessages]);
+    clearError();
+  }, [setMessages, clearError]);
 
   const loadChat = useCallback(
     (chat: StoredChat) => {
@@ -252,6 +253,26 @@ export function useChatLogic() {
     }
   };
 
+  const handleRetry = useCallback(() => {
+    const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
+    if (!lastUserMsg) return;
+
+    const text = lastUserMsg.parts.find((p) => p.type === 'text')?.text;
+    if (!text) return;
+
+    const lastUserIdx = messages.lastIndexOf(lastUserMsg);
+    const retainedHtml = htmlByUserMsgIndex.current.slice(0, -1);
+
+    setMessages(messages.slice(0, lastUserIdx));
+    htmlByUserMsgIndex.current = retainedHtml;
+    clearError();
+
+    requestAnimationFrame(() => {
+      htmlByUserMsgIndex.current.push(retainedHtml[retainedHtml.length] ?? `<p>${text}</p>`);
+      void sendMessage({ text });
+    });
+  }, [messages, setMessages, clearError, sendMessage]);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return {
@@ -274,6 +295,7 @@ export function useChatLogic() {
     userScrolledUp,
     editor,
     handleSendClick,
+    handleRetry,
     sidebarOpen,
     setSidebarOpen,
     speech,
