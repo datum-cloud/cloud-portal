@@ -98,6 +98,7 @@ export default function HttpProxyDetailPage() {
             deleteText="Delete AI Edge"
             loading={isDeleting}
             onDelete={() => confirmDelete(effectiveProxy)}
+            data-e2e="delete-ai-edge-button"
           />
         </Col>
       </Row>

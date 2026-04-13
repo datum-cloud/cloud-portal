@@ -1,3 +1,4 @@
+import { registerSharedResourceTasks } from './cypress/support/shared-resources';
 import { defineConfig } from 'cypress';
 import cypressSplit from 'cypress-split';
 import 'dotenv/config';
@@ -18,6 +19,10 @@ export default defineConfig({
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on, config) {
       cypressSplit(on, config);
+
+      // Shared regression resources (1 org + 1 project per shard)
+      registerSharedResourceTasks(on);
+
       on('task', {
         log(message) {
           console.log(message);
