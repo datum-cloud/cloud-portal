@@ -31,6 +31,12 @@ assistantRoutes.post('/', async (c) => {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
+  const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
+  const userMessageText = lastUserMessage?.parts
+    ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+    .map((p) => p.text)
+    .join(' ');
+
   try {
     const anthropic = createAnthropic({ apiKey: env.server.anthropicApiKey });
     const model = env.server.anthropicModel ?? 'claude-sonnet-4-6';
@@ -59,6 +65,7 @@ assistantRoutes.post('/', async (c) => {
         userId: session.sub,
         projectId: projectName,
         model,
+        userMessage: userMessageText,
         error: err instanceof Error ? err.message : String(err),
         stack: err instanceof Error ? err.stack : undefined,
       });
@@ -70,6 +77,7 @@ assistantRoutes.post('/', async (c) => {
           userId: session.sub,
           projectId: projectName,
           model,
+          userMessage: userMessageText,
           inputTokens: usage.inputTokens,
           outputTokens: usage.outputTokens,
           totalTokens: usage.totalTokens,
@@ -83,6 +91,7 @@ assistantRoutes.post('/', async (c) => {
     logger.error('assistant request failed', {
       userId: session.sub,
       projectId: projectName,
+      userMessage: userMessageText,
       error: err instanceof Error ? err.message : String(err),
       stack: err instanceof Error ? err.stack : undefined,
     });
