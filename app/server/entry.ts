@@ -61,8 +61,10 @@ if (env.public.otelEnabled) {
   // Prometheus metrics
   const { printMetrics, registerMetrics } = prometheus();
   // Register metrics collection middleware (before other middleware)
-  app.use('*', registerMetrics);
-  app.get('/metrics', printMetrics);
+  // Cast needed: @hono/prometheus ships its own hono peer dep whose generics
+  // differ from the app's hono version at the type level only.
+  app.use('*', registerMetrics as any);
+  app.get('/metrics', printMetrics as any);
 }
 
 // Global middleware chain
