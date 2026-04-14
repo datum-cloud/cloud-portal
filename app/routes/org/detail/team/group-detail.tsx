@@ -9,7 +9,7 @@ import {
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
 import { logger } from '@/modules/logger';
-import { createRbacMiddleware } from '@/modules/rbac';
+import { createRbacMiddleware, RbacService } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createGroupService } from '@/resources/groups';
 import type { Group } from '@/resources/groups';
@@ -52,7 +52,7 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
     throw data({ message: 'Group not found' }, { status: 404 });
   }
 
-  const [roles, policyBindings, projectsList] = await Promise.all([
+  const [roles, policyBindings, projectsList, canManageRoles] = await Promise.all([
     createRoleService().list('datum-cloud'),
     createPolicyBindingService()
       .list(orgId)
@@ -64,9 +64,24 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
       .catch(() => ({
         items: [] as Awaited<ReturnType<ReturnType<typeof createProjectService>['list']>>['items'],
       })),
+    new RbacService()
+      .checkPermission(orgId, {
+        resource: 'policybindings',
+        verb: 'create',
+        group: 'iam.miloapis.com',
+        namespace: buildOrganizationNamespace(orgId),
+      })
+      .then((r) => r.allowed && !r.denied)
+      .catch(() => false),
   ]);
 
-  return data({ group: groupResult, roles, policyBindings, projects: projectsList.items });
+  return data({
+    group: groupResult,
+    roles,
+    policyBindings,
+    projects: projectsList.items,
+    canManageRoles,
+  });
 };
 
 export const loader = withMiddleware(
@@ -80,7 +95,8 @@ export const loader = withMiddleware(
 );
 
 export default function GroupDetailPage() {
-  const { group, roles, policyBindings, projects } = useLoaderData<typeof _loader>();
+  const { group, roles, policyBindings, projects, canManageRoles } =
+    useLoaderData<typeof _loader>();
   const { orgId } = useParams() as { orgId: string };
   const { organization } = useApp();
   const orgDisplayName = organization?.displayName ?? orgId;
@@ -301,6 +317,7 @@ export default function GroupDetailPage() {
               <RolesPanel
                 assignments={visibleAssignments}
                 pendingChanges={state.pendingChanges}
+                canManageRoles={canManageRoles}
                 onRemove={(assignment) =>
                   dispatch({
                     type: 'STAGE_REMOVE',
@@ -311,7 +328,9 @@ export default function GroupDetailPage() {
                     },
                   })
                 }
-                onAddRole={() => dispatch({ type: 'OPEN_ADD_ROLE' })}
+                onAddRole={() => {
+                  if (canManageRoles) dispatch({ type: 'OPEN_ADD_ROLE' });
+                }}
               />
             </div>
             <section

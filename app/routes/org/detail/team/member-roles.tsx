@@ -8,7 +8,7 @@ import {
   AddRoleScreen,
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
-import { createRbacMiddleware } from '@/modules/rbac';
+import { createRbacMiddleware, RbacService } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createMemberService } from '@/resources/members';
 import type { Member } from '@/resources/members';
@@ -46,7 +46,7 @@ export const meta: MetaFunction = mergeMeta(() => {
 const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, memberId } = params as { orgId: string; memberId: string };
 
-  const [members, roles, policyBindings, projectsList] = await Promise.all([
+  const [members, roles, policyBindings, projectsList, canManageRoles] = await Promise.all([
     createMemberService().list(orgId),
     createRoleService().list('datum-cloud'),
     createPolicyBindingService()
@@ -59,6 +59,15 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
       .catch(() => ({
         items: [] as Awaited<ReturnType<ReturnType<typeof createProjectService>['list']>>['items'],
       })),
+    new RbacService()
+      .checkPermission(orgId, {
+        resource: 'organizationmemberships',
+        verb: 'patch',
+        group: 'resourcemanager.miloapis.com',
+        namespace: buildOrganizationNamespace(orgId),
+      })
+      .then((r) => r.allowed && !r.denied)
+      .catch(() => false),
   ]);
 
   const member = members.find((m: Member) => m.name === memberId);
@@ -66,21 +75,22 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
     throw data({ message: 'Member not found' }, { status: 404 });
   }
 
-  return data({ member, roles, policyBindings, projects: projectsList.items });
+  return data({ member, roles, policyBindings, projects: projectsList.items, canManageRoles });
 };
 
 export const loader = withMiddleware(
   _loader,
   createRbacMiddleware({
     resource: 'organizationmemberships',
-    verb: 'patch',
+    verb: 'list',
     group: 'resourcemanager.miloapis.com',
     namespace: (params) => buildOrganizationNamespace(params.orgId),
   })
 );
 
 export default function MemberRoles() {
-  const { member, roles, policyBindings, projects } = useLoaderData<typeof _loader>();
+  const { member, roles, policyBindings, projects, canManageRoles } =
+    useLoaderData<typeof _loader>();
   const { orgId } = useParams() as { orgId: string };
   const { organization } = useApp();
   const orgDisplayName = organization?.displayName ?? orgId;
@@ -353,6 +363,7 @@ export default function MemberRoles() {
               <RolesPanel
                 assignments={visibleAssignments}
                 pendingChanges={state.pendingChanges}
+                canManageRoles={canManageRoles}
                 onRemove={(assignment) =>
                   dispatch({
                     type: 'STAGE_REMOVE',
@@ -363,7 +374,9 @@ export default function MemberRoles() {
                     },
                   })
                 }
-                onAddRole={() => dispatch({ type: 'OPEN_ADD_ROLE' })}
+                onAddRole={() => {
+                  if (canManageRoles) dispatch({ type: 'OPEN_ADD_ROLE' });
+                }}
               />
             </div>
             <section
