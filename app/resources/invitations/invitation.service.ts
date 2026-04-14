@@ -213,6 +213,10 @@ export function createInvitationService() {
 
     /**
      * Update invitation state (accept/decline)
+     *
+     * Routed through the user-scoped control plane because the invitee is not
+     * yet a member of the organization — authz must evaluate against the User
+     * parent, where the acceptinvitation PolicyBinding is reachable.
      */
     async updateState(
       organizationId: string,
@@ -225,7 +229,7 @@ export function createInvitationService() {
         const payload = toUpdateInvitationStatePayload(state);
 
         const response = await patchIamMiloapisComV1Alpha1NamespacedUserInvitation({
-          baseURL: getOrgScopedBase(organizationId),
+          baseURL: getUserScopedBase(),
           path: {
             namespace: buildOrganizationNamespace(organizationId),
             name: invitationId,
