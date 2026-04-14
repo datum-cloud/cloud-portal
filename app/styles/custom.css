@@ -52,7 +52,15 @@
 .tiptap p.is-editor-empty:first-child::before {
   color: var(--muted-foreground);
   content: attr(data-placeholder);
-  float: left;
-  height: 0;
   pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tiptap p.is-editor-empty:first-child {
+  position: relative;
 }
