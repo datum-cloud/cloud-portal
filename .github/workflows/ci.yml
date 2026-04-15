@@ -1,4 +1,4 @@
-name: Code Checks & Tests
+name: CI
 
 on:
   pull_request:
@@ -7,6 +7,8 @@ on:
     paths-ignore:
       - 'docs/**'
       - 'README.md'
+  release:
+    types: ['published']
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -14,180 +16,121 @@ concurrency:
 
 env:
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
-
   BUN_CACHE: ~/.bun/install/cache
 
 jobs:
+  # ─── Quality ────────────────────────────────────────────────
   install:
     name: Install Dependencies
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Cache Dependencies
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/cache@v5
         id: cache-deps
-        uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Install
-        if: steps.cache-deps.outputs.cache-hit != 'true'
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
   lint:
-    needs: install
     name: Lint & Format
+    needs: install
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-
-      - name: Restore Cache
-        uses: actions/cache@v5
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Run Lint & Format
-        run: |
-          echo "Running lint check..."
-          bun run lint
-          echo "Running format check..."
-          bun run format
+      - run: bun run lint && bun run format
 
   typecheck:
-    needs: install
     name: Type Check
+    needs: install
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Restore Cache
-        uses: actions/cache@v5
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Run Typecheck
-        run: bun typecheck
+      - run: bun typecheck
 
   build:
-    needs: [lint, typecheck]
     name: Build
+    needs: [lint, typecheck]
     runs-on: ubuntu-latest
     if: ${{ !failure() && !cancelled() }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Restore Cache
-        uses: actions/cache@v5
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Build
-        run: bun run build
-
-      - name: Cache Build
-        uses: actions/cache@v5
+      - run: bun run build
+      - uses: actions/cache@v5
         with:
           path: build
           key: build-${{ github.sha }}
 
+  # ─── Tests ──────────────────────────────────────────────────
   unit-tests:
-    needs: [build]
     name: Unit Tests
+    needs: build
     runs-on: ubuntu-latest
     if: ${{ !failure() && !cancelled() }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Restore Dependencies Cache
-        uses: actions/cache@v5
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Setup Cypress
-        run: |
-          echo "Installing Cypress..."
-          bunx cypress install
-          echo "Verifying Cypress installation..."
-          bunx cypress verify
-
-      - name: Run Unit Tests
+      - run: bunx cypress install && bunx cypress verify
+      - run: bun run test:unit:prod
         env:
           NODE_ENV: test
           CYPRESS: 'true'
-        run: bun run test:unit:prod
 
-  e2e-smoke-tests:
-    needs: [build]
-    name: E2E Smoke Tests
+  e2e-smoke:
+    name: E2E Smoke
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     if: ${{ !failure() && !cancelled() }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Restore Dependencies Cache
-        uses: actions/cache@v5
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Restore Build Cache
-        uses: actions/cache@v5
+      - uses: actions/cache@v5
         with:
           path: build
           key: build-${{ github.sha }}
-
       - name: Setup Environment
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
@@ -210,14 +153,7 @@ jobs:
           LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
-
-      - name: Setup Cypress
-        run: |
-          echo "Installing Cypress..."
-          bunx cypress install
-          echo "Verifying Cypress installation..."
-          bunx cypress verify
-
+      - run: bunx cypress install && bunx cypress verify
       - name: Run Smoke Tests
         env:
           NODE_ENV: test
@@ -226,22 +162,23 @@ jobs:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           SUB: ${{ secrets.SUB }}
-        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
-
-      - name: Upload Artifacts
-        if: failure()
+        run: >-
+          bunx start-server-and-test
+          'bun run start' http://localhost:3000/_healthz
+          'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+      - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: cypress-smoke-artifacts-${{ github.run_id }}
+          name: e2e-smoke-artifacts-${{ github.run_id }}
           path: |
             cypress/videos
             cypress/screenshots
           retention-days: 7
           if-no-files-found: warn
 
-  e2e-regression-tests:
-    needs: [e2e-smoke-tests]
-    name: E2E Regression Tests
+  e2e-regression:
+    name: E2E Regression
+    needs: e2e-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
@@ -251,28 +188,19 @@ jobs:
       matrix:
         shard: [0, 1, 2, 3]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Restore Dependencies Cache
-        uses: actions/cache@v5
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: latest }
+      - uses: actions/cache@v5
         with:
           path: |
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-
-      - name: Restore Build Cache
-        uses: actions/cache@v5
+      - uses: actions/cache@v5
         with:
           path: build
           key: build-${{ github.sha }}
-
       - name: Setup Environment
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
@@ -295,14 +223,7 @@ jobs:
           LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
-
-      - name: Setup Cypress
-        run: |
-          echo "Installing Cypress..."
-          bunx cypress install
-          echo "Verifying Cypress installation..."
-          bunx cypress verify
-
+      - run: bunx cypress install && bunx cypress verify
       - name: Run Regression Tests
         env:
           NODE_ENV: test
@@ -314,22 +235,74 @@ jobs:
           SPLIT: ${{ strategy.job-total }}
           SPLIT_INDEX: ${{ strategy.job-index }}
           CYPRESS_specPattern: 'cypress/e2e/regression/**/*.{cy,spec}.{js,jsx,ts,tsx}'
-        run: bunx start-server-and-test 'bun run start' http://localhost:3000/_healthz 'bunx cypress run --config-file cypress.config.ts'
-
-      - name: Upload Artifacts
-        if: failure()
+        run: >-
+          bunx start-server-and-test
+          'bun run start' http://localhost:3000/_healthz
+          'bunx cypress run --config-file cypress.config.ts'
+      - if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: cypress-regression-artifacts-${{ github.run_id }}-shard-${{ matrix.shard }}
+          name: e2e-regression-artifacts-${{ github.run_id }}-shard-${{ matrix.shard }}
           path: |
             cypress/videos
             cypress/screenshots
           retention-days: 7
           if-no-files-found: warn
 
+  # ─── Status Gate ────────────────────────────────────────────
+  status-check:
+    name: Final Status Check
+    needs: [install, lint, typecheck, build, unit-tests, e2e-smoke, e2e-regression]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Workflow Status
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ One or more jobs failed"
+            exit 1
+          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "⚠️ One or more jobs were cancelled"
+            exit 1
+          else
+            echo "✅ All jobs passed"
+          fi
+
+  # ─── Publish (only after all checks pass) ──────────────────
+  publish-container-image:
+    name: Publish Container Image
+    needs: [status-check]
+    if: ${{ !failure() && !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@v1.13.2
+    with:
+      image-name: cloud-portal
+    secrets: inherit
+
+  publish-kustomize-bundles:
+    name: Publish Kustomize Bundles
+    needs: [publish-container-image]
+    if: ${{ !failure() && !cancelled() }}
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@v1.13.2
+    with:
+      bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
+      bundle-path: config
+      image-overlays: config/base
+      image-name: ghcr.io/datum-cloud/cloud-portal
+    secrets: inherit
+
+  # ─── PR Comment ─────────────────────────────────────────────
   pr-comment:
-    needs: [unit-tests, e2e-smoke-tests]
     name: PR Test Summary
+    needs: [unit-tests, e2e-smoke]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     permissions:
@@ -337,9 +310,7 @@ jobs:
       pull-requests: write
       actions: read
     steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
+      - uses: actions/checkout@v6
       - name: Build test summary
         uses: actions/github-script@v8
         with:
@@ -355,7 +326,7 @@ jobs:
             });
 
             const testJobs = jobs.jobs.filter(j =>
-              j.name === 'Unit Tests' || j.name === 'E2E Smoke Tests'
+              j.name === 'Unit Tests' || j.name.startsWith('E2E')
             );
 
             const statusEmoji = (conclusion) => {
@@ -386,33 +357,14 @@ jobs:
                 body += `- **${a.name}** – [Download](${runUrl})\n`;
               }
             } else {
-              body += `No artifacts (all tests passed). Cypress videos and screenshots are uploaded when E2E tests fail and can be downloaded from the workflow run above.\n`;
+              body += `No artifacts (all tests passed).\n`;
             }
 
             fs.writeFileSync('pr-summary.md', body);
 
-      - name: Comment on PR
-        uses: peter-evans/create-or-update-comment@v5
+      - uses: peter-evans/create-or-update-comment@v5
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: pr-summary.md
-          comment-tag: quality-checks-summary
+          comment-tag: ci-summary
           edit-mode: replace
-
-  status-check:
-    needs: [install, lint, typecheck, build, unit-tests, e2e-smoke-tests]
-    name: Final Status Check
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check Workflow Status
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
-            echo "❌ Workflow failed because one or more jobs failed"
-            exit 1
-          elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "⚠️ Workflow cancelled because one or more jobs were cancelled"
-            exit 1
-          else
-            echo "✅ All jobs completed successfully"
-          fi
