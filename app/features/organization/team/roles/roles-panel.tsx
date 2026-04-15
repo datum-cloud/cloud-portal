@@ -1,12 +1,13 @@
 import { RoleRow } from './role-row';
 import type { UserRoleAssignment, PendingChange } from './roles-editor.types';
-import { Button } from '@datum-ui/components';
+import { Button, Tooltip } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Building2Icon, FolderIcon, KeyRoundIcon, PlusIcon } from 'lucide-react';
 
 type RolesPanelProps = {
   assignments: UserRoleAssignment[];
   pendingChanges: PendingChange[];
+  canManageRoles: boolean;
   onRemove: (assignment: UserRoleAssignment) => void;
   onAddRole: () => void;
 };
@@ -58,7 +59,13 @@ function groupAssignments(assignments: UserRoleAssignment[]): AssignmentGroup[] 
   return groups;
 }
 
-export function RolesPanel({ assignments, pendingChanges, onRemove, onAddRole }: RolesPanelProps) {
+export function RolesPanel({
+  assignments,
+  pendingChanges,
+  canManageRoles,
+  onRemove,
+  onAddRole,
+}: RolesPanelProps) {
   const groups = groupAssignments(assignments);
 
   return (
@@ -71,10 +78,21 @@ export function RolesPanel({ assignments, pendingChanges, onRemove, onAddRole }:
             {assignments.length}
           </span>
         </div>
-        <Button type="primary" size="small" onClick={onAddRole} aria-label="Add role">
-          <Icon icon={PlusIcon} className="size-3.5" />
-          Add Role
-        </Button>
+        {canManageRoles ? (
+          <Button type="primary" size="small" onClick={onAddRole} aria-label="Add role">
+            <Icon icon={PlusIcon} className="size-3.5" />
+            Add Role
+          </Button>
+        ) : (
+          <Tooltip message="You don't have permission to manage roles" side="left">
+            <span>
+              <Button type="primary" size="small" disabled aria-label="Add role">
+                <Icon icon={PlusIcon} className="size-3.5" />
+                Add Role
+              </Button>
+            </span>
+          </Tooltip>
+        )}
       </header>
 
       <div className="flex-1 overflow-y-auto">
@@ -119,6 +137,7 @@ export function RolesPanel({ assignments, pendingChanges, onRemove, onAddRole }:
                         <RoleRow
                           assignment={assignment}
                           isPendingRemove={isPendingRemove}
+                          canManageRoles={canManageRoles}
                           onRemove={() => onRemove(assignment)}
                         />
                       </li>

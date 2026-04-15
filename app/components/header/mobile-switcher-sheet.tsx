@@ -16,7 +16,7 @@ import {
   CommandItem,
   CommandList,
 } from '@shadcn/ui/command';
-import { Building, CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
+import { Building, CheckIcon, ChevronDown, FolderRoot, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -64,12 +64,22 @@ function OrgSwitcherSheet({
       title="Switch organization"
       description="Select an organization"
       footer={
-        <Link
-          to={paths.account.organizations.root}
-          className="flex items-center gap-2 text-xs font-medium">
-          <Icon icon={Building} className="size-3.5" />
-          All organizations
-        </Link>
+        <div className="flex items-center gap-4">
+          {currentOrg?.name && (
+            <Link
+              to={getPathWithParams(paths.org.detail.settings.general, { orgId: currentOrg.name })}
+              className="flex items-center gap-2 text-xs font-medium">
+              <Icon icon={Settings2} className="size-3.5" />
+              Settings
+            </Link>
+          )}
+          <Link
+            to={paths.account.organizations.root}
+            className="flex items-center gap-2 text-xs font-medium">
+            <Icon icon={Building} className="size-3.5" />
+            All organizations
+          </Link>
+        </div>
       }>
       <Command className="rounded-none border-none">
         <CommandInput

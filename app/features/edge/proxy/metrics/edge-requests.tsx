@@ -12,10 +12,10 @@ import type { ChartSeries } from '@/modules/prometheus';
 import { useState } from 'react';
 
 const RESPONSE_CODE_COLORS: Record<string, string> = {
-  '2XX': 'var(--primary)',
-  '3XX': 'var(--secondary)',
-  '4XX': 'var(--destructive)',
-  '5XX': 'var(--badge-warning)',
+  '2XX': 'var(--color-chart-2)',
+  '3XX': 'var(--color-chart-4)',
+  '4XX': 'var(--color-chart-1)',
+  '5XX': 'var(--color-chart-3)',
 };
 
 export const HttpProxyEdgeRequests = ({
@@ -74,7 +74,7 @@ export const HttpProxyEdgeRequests = ({
             `)[${step}:1m]))`
           );
         }}
-        chartType="line"
+        chartType="area"
         showLegend={false}
         colorOverrides={RESPONSE_CODE_COLORS}
         height={220}
@@ -104,7 +104,7 @@ export const HttpProxyEdgeRequests = ({
             groupBy: ['le'],
           })
         }
-        chartType="line"
+        chartType="area"
         showLegend={false}
         colorOverrides={{ Series: 'var(--primary)' }}
         valueFormat="milliseconds-auto"

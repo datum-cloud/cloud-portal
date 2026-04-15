@@ -17,7 +17,7 @@ interface ConnectorSparklineProps {
 const chartConfig: ChartConfig = {
   requests: {
     label: 'Requests',
-    color: 'var(--color-muted-foreground)',
+    color: 'var(--primary)',
   },
 };
 

@@ -1,7 +1,7 @@
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
-  name: cloud-portal-tcp-keepalive
+  name: cloud-portal
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
@@ -11,3 +11,7 @@ spec:
     idleTime: 60s
     interval: 15s
     probes: 3
+  timeout:
+    http:
+      requestTimeout: "0s"
+      connectionIdleTimeout: 300s

@@ -1,6 +1,7 @@
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { HttpProxyEdgeRequests } from '@/features/edge/proxy/metrics/edge-requests';
+import { HttpProxyWafEvents } from '@/features/edge/proxy/metrics/waf-events';
 import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
 import { HttpProxyConfigCard } from '@/features/edge/proxy/overview/config-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
@@ -84,6 +85,10 @@ export default function HttpProxyDetailPage() {
                 <span className="text-base font-semibold">Metrics</span>
               </div>
               <HttpProxyEdgeRequests projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
+              {effectiveProxy.trafficProtectionMode &&
+                effectiveProxy.trafficProtectionMode !== 'Disabled' && (
+                  <HttpProxyWafEvents projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
+                )}
             </CardContent>
           </Card>
         </Col>
@@ -93,6 +98,7 @@ export default function HttpProxyDetailPage() {
             deleteText="Delete AI Edge"
             loading={isDeleting}
             onDelete={() => confirmDelete(effectiveProxy)}
+            data-e2e="delete-ai-edge-button"
           />
         </Col>
       </Row>

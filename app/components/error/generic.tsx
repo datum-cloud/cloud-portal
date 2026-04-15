@@ -3,7 +3,7 @@ import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { HomeIcon, RefreshCcwIcon } from 'lucide-react';
+import { BuildingIcon, RefreshCcwIcon } from 'lucide-react';
 // import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
@@ -41,12 +41,12 @@ export const GenericError = ({ message }: { message: string }) => {
             size="small"
             type="primary"
             theme="solid"
-            icon={<Icon icon={HomeIcon} className="size-4" />}
+            icon={<Icon icon={BuildingIcon} className="size-4" />}
             className="bg-primary hover:bg-primary/90 active:bg-primary/80"
             onClick={() => {
               navigate(paths.home);
             }}>
-            Back to Home
+            Organization
           </Button>
           <Button
             type="quaternary"

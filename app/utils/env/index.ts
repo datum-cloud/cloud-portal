@@ -29,6 +29,7 @@ const clientDefaults: PublicEnv = {
   logPayloads: false,
   otelEnabled: false,
   otelLogLevel: undefined,
+  chatbotEnabled: false,
 };
 
 // Get public env values - works on both server and client
@@ -63,6 +64,7 @@ function getPublicEnv(): PublicEnv {
     logPayloads: process.env.LOG_PAYLOADS === 'true' || nodeEnv === 'development',
     otelEnabled: process.env.OTEL_ENABLED === 'true' && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: process.env.OTEL_LOG_LEVEL as PublicEnv['otelLogLevel'],
+    chatbotEnabled: process.env.CHATBOT_ENABLED === 'true',
   };
 }
 

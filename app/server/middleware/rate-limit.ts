@@ -1,7 +1,7 @@
 import { redisClient } from '@/modules/redis';
 import type { Variables } from '@/server/types';
 import { RateLimitError } from '@/utils/errors/app-error';
-import type { Context } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
 import { rateLimiter as honoRateLimiter } from 'hono-rate-limiter';
 import { RedisStore } from 'rate-limit-redis';
 import type { RedisReply } from 'rate-limit-redis';
@@ -123,6 +123,22 @@ export const RateLimitPresets = {
     }),
   },
 
+  /** AI assistant — 10 requests per minute per user */
+  assistant: {
+    windowMs: 60 * 1000,
+    limit: 10,
+    keyGenerator: defaultKeyGenerator,
+    standardHeaders: 'draft-6' as const,
+    handler: customRateLimitHandler,
+    ...(redisClient && {
+      store: new RedisStore({
+        sendCommand: async (command: string, ...args: string[]) =>
+          redisClient!.call(command, ...args) as Promise<RedisReply>,
+        prefix: 'rl:assistant:',
+      }) as any,
+    }),
+  },
+
   /** Development mode - 10,000 requests per minute */
   development: {
     windowMs: 60 * 1000,
@@ -172,13 +188,19 @@ export const RateLimitPresets = {
  */
 export function rateLimiter(
   config: Partial<(typeof RateLimitPresets)[keyof typeof RateLimitPresets]> = {}
-) {
+): MiddlewareHandler<{ Variables: Variables }> {
   const finalConfig = {
     ...RateLimitPresets.standard,
     ...config,
   };
 
-  return honoRateLimiter<{ Variables: Variables }>(finalConfig);
+  // Cast needed: hono-rate-limiter ships its own hono peer dep whose path/input
+  // generics differ from the app's hono version at the type level only.
+  return honoRateLimiter<{ Variables: Variables }>(
+    finalConfig as any
+  ) as unknown as MiddlewareHandler<{
+    Variables: Variables;
+  }>;
 }
 
 // ============================================================================
@@ -206,7 +228,7 @@ export function compositeRateLimiter(configs: Partial<(typeof RateLimitPresets)[
     // Apply all rate limiters in sequence
     // If any throws RateLimitError, it will propagate
     for (const limiter of limiters) {
-      await limiter(c, async () => {
+      await limiter(c as any, async () => {
         // No-op, we'll call next() after all limiters pass
       });
     }

@@ -3,9 +3,13 @@ import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-ui/components';
 import { Card, CardContent } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { ArrowLeft, HomeIcon } from 'lucide-react';
+import { ArrowLeft, BuildingIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link, MetaFunction, useLocation, useNavigate } from 'react-router';
+import { ActionFunctionArgs, Link, MetaFunction, useLocation, useNavigate } from 'react-router';
+
+export async function action({ request }: ActionFunctionArgs) {
+  return new Response(null, { status: 404 });
+}
 
 export const meta: MetaFunction = () => {
   return [
@@ -46,8 +50,8 @@ export default function NotFound() {
             <div className="flex items-center gap-2">
               <Link to={paths.home}>
                 <Button size="small">
-                  <Icon icon={HomeIcon} className="size-4" />
-                  Back to Home
+                  <Icon icon={BuildingIcon} className="size-4" />
+                  Organisation
                 </Button>
               </Link>
               <Button

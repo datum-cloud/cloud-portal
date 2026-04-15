@@ -1,6 +1,7 @@
 import { OrganizationItem } from './organization-item';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, SpinnerIcon } from '@datum-ui/components';
 import { toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
@@ -15,7 +16,7 @@ import {
   CommandSeparator,
 } from '@shadcn/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
-import { BuildingIcon, CheckIcon, ChevronDown } from 'lucide-react';
+import { BuildingIcon, CheckIcon, ChevronDown, Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 
@@ -120,6 +121,18 @@ export const SelectOrganization = ({
             {!hideNewOrganization && (
               <>
                 <CommandSeparator />
+                {currentOrg?.name && (
+                  <CommandItem className="cursor-pointer" asChild onSelect={() => setOpen(false)}>
+                    <Link
+                      to={getPathWithParams(paths.org.detail.settings.general, {
+                        orgId: currentOrg.name,
+                      })}
+                      className="flex items-center gap-2 px-3 py-2">
+                      <Icon icon={Settings2} className="size-3.5" />
+                      <span className="text-xs">Organization settings</span>
+                    </Link>
+                  </CommandItem>
+                )}
                 <CommandItem className="cursor-pointer" asChild>
                   <Link
                     to={paths.account.organizations.root}

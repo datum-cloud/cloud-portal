@@ -38,3 +38,29 @@
 .animate-data-table-fade-in {
   animation: data-table-fade-in 0.2s ease-out;
 }
+
+[data-streamdown='code-block'] {
+  margin-top: 0.5rem;
+}
+
+/* Show "text" when no language was specified */
+[data-streamdown='code-block-header'] span:empty::before {
+  content: 'text';
+}
+
+/* Tiptap Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tiptap p.is-editor-empty:first-child {
+  position: relative;
+}
