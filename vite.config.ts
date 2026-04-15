@@ -5,8 +5,41 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { reactRouterHonoServer } from 'react-router-hono-server/dev';
+import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
+
+// react-router-hono-server@2.25.x loads the Bun server adapter through
+// Vite's SSRCompatModuleRunner during dev. Several hono/bun/* modules
+// reference the `Bun` global which doesn't exist in the SSR module runner.
+// This plugin guards those accesses. ssr.noExternal: ['hono'] is required
+// so Vite processes hono through its transform pipeline.
+function patchHonoBunAdapter(): Plugin {
+  return {
+    name: 'patch-hono-bun-adapter',
+    enforce: 'pre',
+    transform(code: string, id: string) {
+      if (!id.includes('hono') || !id.includes('adapter/bun')) return;
+
+      // ssg.js: top-level `var { write } = Bun;` crashes on module load
+      if (id.includes('ssg')) {
+        return code.replace(
+          'var { write } = Bun;',
+          'var write = typeof Bun !== "undefined" ? Bun.write : undefined;'
+        );
+      }
+
+      // serve-static.js: `Bun.file()` called at request time — in dev Vite
+      // handles static files so we can safely return null to pass through
+      if (id.includes('serve-static')) {
+        return code.replace(
+          'const file = Bun.file(path);',
+          'if (typeof Bun === "undefined") return null;\n      const file = Bun.file(path);'
+        );
+      }
+    },
+  };
+}
 
 // Workaround for issue with running react router in a production build
 //
@@ -33,8 +66,13 @@ export default defineConfig((config) => {
       optimizeDeps: {
         include: ['react-dom/server.node'],
       },
+      // Force hono through Vite's transform pipeline so patchHonoBunAdapter()
+      // can guard the top-level `Bun` reference in hono/bun/ssg.js.
+      // Without this, SSR external modules bypass all transform hooks.
+      noExternal: ['hono'],
     },
     plugins: [
+      patchHonoBunAdapter(),
       tailwindcss(),
       reactRouterHonoServer({ runtime: 'bun' }),
       process.env.CYPRESS ? react() : reactRouter(),
