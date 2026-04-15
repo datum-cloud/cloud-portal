@@ -5,7 +5,7 @@
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
-FROM oven/bun:1.2.17 AS base
+FROM oven/bun:1.3.12 AS base
 
 # Install system dependencies and clean up in the same layer
 RUN apt-get update && \
@@ -61,8 +61,8 @@ COPY --from=build /app /app
 EXPOSE ${PORT}
 
 # Use non-root user for better security
-RUN addgroup --system --gid 1001 datum && \
-    adduser --system --uid 1001 datum && \
+RUN groupadd --gid 1001 datum && \
+    useradd --uid 1001 --gid 1001 --no-create-home datum && \
     chown -R datum:datum /app
 
 USER datum
