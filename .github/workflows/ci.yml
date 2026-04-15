@@ -312,7 +312,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Build test summary
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
