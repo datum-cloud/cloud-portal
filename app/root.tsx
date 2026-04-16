@@ -3,7 +3,6 @@ import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
-import { ThemeProvider, ThemeScript, useTheme } from '@/modules/datum-themes';
 import { GraphQLProvider } from '@/modules/graphql/provider';
 import MarkerIoEmbed from '@/modules/markerio';
 import { queryClient } from '@/modules/tanstack/query';
@@ -14,6 +13,7 @@ import { csrf, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import { ThemeProvider, ThemeScript, useTheme } from '@datum-cloud/datum-ui/theme';
 import { Toaster, useToast } from '@datum-ui/components';
 import { configureProgress, startProgress, stopProgress } from '@datum-ui/components/nprogress';
 import * as Sentry from '@sentry/react-router';
@@ -113,7 +113,11 @@ export function shouldRevalidate({
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider defaultTheme="light" attribute="class">
+    <ThemeProvider
+      defaultTheme="light"
+      attribute="class"
+      storageKey="datum-cloud-theme"
+      enableSystem>
       {children}
     </ThemeProvider>
   );

@@ -1,11 +1,11 @@
 import { DarkModeIcon } from '@/components/icon/dark-mode';
 import { LightModeIcon } from '@/components/icon/light-mode';
 import { SystemModeIcon } from '@/components/icon/system-mode';
-import { useTheme } from '@/modules/datum-themes';
 import { useApp } from '@/providers/app.provider';
 import { ThemeValue, useUpdateUserPreferences } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { Button } from '@datum-ui/components';
 import {
   DropdownMenu,
