@@ -1,45 +1,17 @@
-import { createActivityClientConfig, getProjectControlPlanePath } from '@/lib/activity-client';
-import { createResourceLinkResolver } from '@/lib/activity-link-resolvers';
-import { useProjectContext } from '@/providers/project.provider';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { ActivityFeed, ActivityApiClient } from '@datum-cloud/activity-ui';
-import { useMemo } from 'react';
+import { ActivityLogTable } from '@/features/activity-log';
 import { useParams } from 'react-router';
-import type { MetaFunction } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Activity</span>,
 };
 
-export const meta: MetaFunction = mergeMeta(() => metaObject('Activity'));
-
 export default function ProjectActivityLogsPage() {
   const { projectId } = useParams();
-  const { project } = useProjectContext();
-
-  const client = useMemo(() => {
-    const projectName = project?.name ?? projectId ?? '';
-    return new ActivityApiClient(
-      createActivityClientConfig(getProjectControlPlanePath(projectName))
-    );
-  }, [project?.name, projectId]);
-
-  const resourceLinkResolver = useMemo(
-    () => createResourceLinkResolver(projectId ?? ''),
-    [projectId]
-  );
 
   return (
-    <ActivityFeed
-      client={client}
-      compact={false}
-      initialFilters={{
-        changeSource: 'human',
-      }}
-      tenantRenderer={() => null}
-      enableStreaming={false}
-      pageSize={30}
-      resourceLinkResolver={resourceLinkResolver}
+    <ActivityLogTable
+      scope={{ type: 'project', projectId: projectId! }}
+      initialActions={['Added', 'Modified', 'Deleted']}
     />
   );
 }

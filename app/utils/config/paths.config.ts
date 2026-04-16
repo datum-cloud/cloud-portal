@@ -96,7 +96,6 @@ export const paths = {
           dnsRecords: '/project/[projectId]/dns-zones/[dnsZoneId]/dns-records',
           nameservers: '/project/[projectId]/dns-zones/[dnsZoneId]/nameservers',
           settings: '/project/[projectId]/dns-zones/[dnsZoneId]/settings',
-          activity: '/project/[projectId]/dns-zones/[dnsZoneId]/activity',
         },
       },
       metrics: {
