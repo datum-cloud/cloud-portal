@@ -1,9 +1,9 @@
-import { useTheme } from '@/modules/datum-themes';
 import { clearSentryUser, setSentryUser } from '@/modules/sentry';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import type { User, UserPreferences } from '@/resources/users';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
+import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { ReactNode, createContext, useContext, useEffect, useState, useMemo } from 'react';
 
 interface AppContextType {

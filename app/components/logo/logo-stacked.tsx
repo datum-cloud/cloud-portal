@@ -1,4 +1,4 @@
-import { ClientOnly, useTheme } from '@/modules/datum-themes';
+import { ClientOnly, useTheme } from '@datum-cloud/datum-ui/theme';
 import * as React from 'react';
 
 const LogoStackedSVG = ({

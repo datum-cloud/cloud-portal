@@ -1,6 +1,5 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { getRequestContext } from '@/modules/axios/request-context';
-import { useTheme } from '@/modules/datum-themes';
 import { FathomProvider } from '@/modules/fathom';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { WatchProvider } from '@/modules/watch';
@@ -11,6 +10,7 @@ import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
 import { authMiddleware, fraudStatusMiddleware, withMiddleware } from '@/utils/middlewares';
+import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { TaskQueueProvider } from '@datum-ui/components/task-queue';
 import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';

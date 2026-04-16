@@ -1,6 +1,6 @@
 'use client';
 
-import { useTheme } from '@/modules/datum-themes';
+import { useTheme } from '@datum-cloud/datum-ui/theme';
 import type { CheckboxItem } from '@radix-ui/react-dropdown-menu';
 import { cn } from '@shadcn/lib/utils';
 import { Button } from '@shadcn/ui/button';
