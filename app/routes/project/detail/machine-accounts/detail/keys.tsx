@@ -20,9 +20,9 @@ import { Badge, Button, toast } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ColumnDef } from '@tanstack/react-table';
 import { AlertCircleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MetaFunction } from 'react-router';
-import { useLocation, useParams } from 'react-router';
+import { useLocation, useNavigate, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Keys</span>,
@@ -35,6 +35,7 @@ export default function MachineAccountKeysPage() {
   const { confirm } = useConfirmationDialog();
   const keyFormDialogRef = useRef<MachineAccountKeyFormDialogRef>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const initialKeyResponse = (
     location.state as { keyResponse?: CreateMachineAccountKeyResponse } | null
   )?.keyResponse;
@@ -42,6 +43,13 @@ export default function MachineAccountKeysPage() {
   const [newCredentials, setNewCredentials] = useState<DatumCredentialsFile | null>(
     initialKeyResponse?.credentials ?? null
   );
+
+  // Clear the key response from location state so credentials don't reappear on back-navigation.
+  useEffect(() => {
+    if (initialKeyResponse) {
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, []);
 
   const { data: machineAccount } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
 

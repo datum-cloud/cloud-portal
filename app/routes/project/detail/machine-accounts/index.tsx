@@ -11,7 +11,7 @@ import {
   useDeleteMachineAccount,
   useHydrateMachineAccounts,
   useMachineAccounts,
-  useUpdateMachineAccount,
+  useToggleMachineAccount,
   type CreateMachineAccountKeyResponse,
   type MachineAccount,
 } from '@/resources/machine-accounts';
@@ -172,7 +172,7 @@ export default function MachineAccountsPage() {
     },
   });
 
-  const toggleMutation = useUpdateMachineAccount(projectId ?? '', '', {
+  const toggleMutation = useToggleMachineAccount(projectId ?? '', {
     onSuccess: () => {
       toast.success('Machine account updated');
     },
@@ -208,7 +208,7 @@ export default function MachineAccountsPage() {
   const toggleAccount = useCallback(
     async (account: MachineAccount) => {
       const newStatus = account.status === 'Active' ? 'Disabled' : 'Active';
-      toggleMutation.mutate({ status: newStatus });
+      toggleMutation.mutate({ name: account.name, status: newStatus });
     },
     [toggleMutation]
   );

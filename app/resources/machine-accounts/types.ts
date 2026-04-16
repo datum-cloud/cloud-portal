@@ -43,8 +43,9 @@ export interface CreateMachineAccountKeyResponse {
 
 export interface DatumCredentialsFile {
   type: 'datum_machine_account';
+  client_email: string;
   client_id: string;
   private_key_id: string;
   private_key: string;
-  client_email?: string;
+  scope?: string;
 }

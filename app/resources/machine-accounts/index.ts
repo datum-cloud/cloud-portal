@@ -35,6 +35,7 @@ export {
   useMachineAccount,
   useCreateMachineAccount,
   useUpdateMachineAccount,
+  useToggleMachineAccount,
   useDeleteMachineAccount,
   useMachineAccountKeys,
   useCreateMachineAccountKey,

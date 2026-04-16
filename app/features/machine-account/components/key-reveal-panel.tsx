@@ -2,7 +2,7 @@ import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { DatumCredentialsFile } from '@/resources/machine-accounts';
 import { Button, CloseIcon, Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-ui/components';
 import { CheckIcon, CopyIcon, DownloadIcon, ThumbsUpIcon } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface CopyFieldProps {
   label: string;
@@ -54,7 +54,9 @@ function downloadCredentials(data: DatumCredentialsFile, filename: string) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
 
@@ -99,6 +101,12 @@ export function KeyRevealPanel({
   const [, copyToClipboard] = useCopyToClipboard();
   const [copiedTabId, setCopiedTabId] = useState<TabId | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
 
   const credentialsFilename = `${machineAccountName}-datum-credentials.json`;
 
@@ -177,7 +185,8 @@ spec:
 export DATUM_CREDENTIALS_FILE="/path/to/${credentialsFilename}"
 
 # Individual variables (if you can't use the credentials file):
-${credentials.client_email ? `export DATUM_CLIENT_EMAIL="${credentials.client_email}"\n` : ''}export DATUM_CLIENT_ID="${credentials.client_id}"
+export DATUM_CLIENT_EMAIL="${credentials.client_email}"
+export DATUM_CLIENT_ID="${credentials.client_id}"
 export DATUM_PRIVATE_KEY_ID="${credentials.private_key_id}"
 # Note: DATUM_PRIVATE_KEY contains newlines — use the credentials file
 #       rather than setting it as an env var to avoid shell escaping issues.
@@ -226,7 +235,7 @@ export DATUM_PRIVATE_KEY_ID="${credentials.private_key_id}"
       {/* Individual copy fields */}
       <div className="flex flex-col gap-2">
         <CopyField label="Client ID" value={credentials.client_id} />
-        <CopyField label="Private key" value={credentials.private_key} />
+        <CopyField label="Client Email" value={credentials.client_email} />
       </div>
 
       {/* Tabs */}

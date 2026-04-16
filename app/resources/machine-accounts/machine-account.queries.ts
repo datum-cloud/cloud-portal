@@ -80,6 +80,29 @@ export function useUpdateMachineAccount(
   });
 }
 
+export function useToggleMachineAccount(
+  projectId: string,
+  options?: UseMutationOptions<
+    MachineAccount,
+    Error,
+    { name: string; status: 'Active' | 'Disabled' }
+  >
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ name, status }: { name: string; status: 'Active' | 'Disabled' }) =>
+      createMachineAccountService().update(projectId, name, { status }),
+    ...options,
+    onSuccess: (...args) => {
+      const [data, { name }] = args;
+      queryClient.setQueryData(machineAccountKeys.detail(projectId, name), data);
+      queryClient.invalidateQueries({ queryKey: machineAccountKeys.list(projectId) });
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
 export function useDeleteMachineAccount(
   projectId: string,
   options?: UseMutationOptions<void, Error, string>
