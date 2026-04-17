@@ -1,6 +1,7 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useApp } from '@/providers/app.provider';
+import { useConfirmContextSwitch } from '@/providers/terminal-session.provider';
 import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -11,6 +12,7 @@ import { useNavigate } from 'react-router';
 export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization }) => {
   const { setOrganization } = useApp();
   const navigate = useNavigate();
+  const confirmContextSwitch = useConfirmContextSwitch();
 
   return (
     <SelectOrganization
@@ -28,7 +30,11 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
           )}
         </>
       }
-      onSelect={(org: Organization) => {
+      onSelect={async (org: Organization) => {
+        // Block the switch if a datumctl terminal session is live — the
+        // session is pinned to this org on the server, so the switch would
+        // silently kill the running CLI.
+        if (!(await confirmContextSwitch())) return;
         setOrganization(org);
         navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
       }}

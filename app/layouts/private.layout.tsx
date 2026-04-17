@@ -4,6 +4,7 @@ import { FathomProvider } from '@/modules/fathom';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
+import { TerminalSessionProvider } from '@/providers/terminal-session.provider';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -104,7 +105,9 @@ export default function PrivateLayout() {
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <TooltipProvider>
               <ConfirmationDialogProvider>
-                <Outlet />
+                <TerminalSessionProvider>
+                  <Outlet />
+                </TerminalSessionProvider>
               </ConfirmationDialogProvider>
             </TooltipProvider>
 

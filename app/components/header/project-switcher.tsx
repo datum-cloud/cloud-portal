@@ -1,4 +1,5 @@
 import { useApp } from '@/providers/app.provider';
+import { useConfirmContextSwitch } from '@/providers/terminal-session.provider';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
@@ -37,13 +38,17 @@ export const ProjectSwitcher = ({
 }) => {
   const { orgId } = useApp();
   const navigate = useNavigate();
+  const confirmContextSwitch = useConfirmContextSwitch();
   const [open, setOpen] = useState(false);
 
   const { data, isLoading } = useProjects(orgId ?? '', undefined, {
     enabled: open && !!orgId,
   });
 
-  const onSelect = (project: Project) => {
+  const onSelect = async (project: Project) => {
+    // A running datumctl terminal is bound to the current project on the
+    // server — warn before navigating away and tearing the WS down.
+    if (!(await confirmContextSwitch())) return;
     navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
   };
 

@@ -149,14 +149,6 @@ app.use(
 app.onError(errorHandler);
 
 // ============================================================================
-// API Routes (sub-app with its own middleware + 404 handling)
-// ============================================================================
-// - Rate limiting per route type (proxy: 30/min, standard: 100/min)
-// - Auth guard for all API routes
-// - Explicit 404 for unknown endpoints (prevents discovery attacks)
-app.route('/api', createApiApp());
-
-// ============================================================================
 // Health Check Routes (no auth required)
 // ============================================================================
 
@@ -174,8 +166,27 @@ app.get('/_readyz', (c) => {
 // React Router SSR - must await createHonoServer for production build
 // Without await, serverModule.default is a Promise (no .fetch method)
 // which causes start.js to skip Bun.serve()
+//
+// `useWebSocket: true` unlocks WebSocket upgrades via the runtime-appropriate
+// helper (Bun's native server.upgrade in production, @hono/node-ws glued to
+// the Vite dev server in development). The `configure` callback is where we
+// mount /api so the terminal sub-route can receive that helper — attempting
+// to get `upgradeWebSocket` at module scope would be a dead end because the
+// adapter only constructs it inside createHonoServer.
 export default await createHonoServer({
   app,
+  useWebSocket: true,
+
+  configure: (honoApp, { upgradeWebSocket }) => {
+    // ========================================================================
+    // API Routes (sub-app with its own middleware + 404 handling)
+    // ========================================================================
+    // - Rate limiting per route type (proxy: 30/min, standard: 100/min, terminal: 5/min)
+    // - Auth guard for all API routes
+    // - Explicit 404 for unknown endpoints (prevents discovery attacks)
+    // - Embedded datumctl terminal WebSocket (when DATUMCTL_BIN is configured)
+    honoApp.route('/api', createApiApp({ upgradeWebSocket }));
+  },
 
   getLoadContext: (c) => {
     // Values are set by global middleware chain:
