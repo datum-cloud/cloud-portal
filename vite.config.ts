@@ -62,6 +62,26 @@ export default defineConfig((config) => {
     server: {
       port: 3000,
     },
+    optimizeDeps: {
+      include: [
+        '@radix-ui/react-avatar',
+        '@radix-ui/react-checkbox',
+        '@radix-ui/react-collapsible',
+        '@radix-ui/react-dialog',
+        '@radix-ui/react-dropdown-menu',
+        '@radix-ui/react-hover-card',
+        '@radix-ui/react-label',
+        '@radix-ui/react-popover',
+        '@radix-ui/react-radio-group',
+        '@radix-ui/react-select',
+        '@radix-ui/react-separator',
+        '@radix-ui/react-slot',
+        '@radix-ui/react-switch',
+        '@radix-ui/react-tabs',
+        '@radix-ui/react-tooltip',
+        '@radix-ui/react-visually-hidden',
+      ],
+    },
     ssr: {
       optimizeDeps: {
         include: ['react-dom/server.node'],
