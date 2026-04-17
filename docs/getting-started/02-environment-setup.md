@@ -124,6 +124,43 @@ bun run typecheck
 | `HELPSCOUT_BEACON_ID` | No       | -       | HelpScout support widget |
 | `REDIS_URL`           | No       | -       | Redis for rate limiting  |
 
+### Embedded `datumctl` Terminal (Developer Tools)
+
+The Developer Tools bottom bar ships with an embedded `datumctl` terminal that
+runs the CLI as a child process of the cloud-portal server and streams I/O
+over a WebSocket. The terminal is pre-authenticated with the current session
+token and pinned to the current organization / project context; auth and
+context mutation subcommands (`login`, `logout`, `ctx use`, `auth switch`,
+`auth update-kubeconfig`) are rejected inside `datumctl` itself.
+
+The feature is **off by default** and only activates when `DATUMCTL_BIN`
+points at a locally-built `datumctl` binary that supports ambient-token mode
+(see the [`cloud-portal/ambient-token`](https://github.com/datum-cloud/datumctl/tree/cloud-portal/ambient-token)
+branch of the `datumctl` repo).
+
+| Variable       | Required | Default | Description                                             |
+| -------------- | -------- | ------- | ------------------------------------------------------- |
+| `DATUMCTL_BIN` | No       | -       | Absolute path to the `datumctl` binary. Disables the UI when unset. |
+
+#### Local setup
+
+```bash
+# Sibling checkout of the datumctl repo, same parent dir as cloud-portal.
+cd ..
+git clone git@github.com:datum-cloud/datumctl.git
+cd datumctl
+git checkout cloud-portal/ambient-token
+go build -o bin/datumctl .
+
+# Back in cloud-portal, point at the built binary.
+echo "DATUMCTL_BIN=$(pwd)/../datumctl/bin/datumctl" >> .env
+bun run dev
+```
+
+Open any page inside an organization or project and click the terminal icon
+in the Developer Tools bar (bottom-right). The WebSocket endpoint lives at
+`/api/terminal/ws` and is rate-limited to 5 upgrades/minute per user.
+
 ---
 
 ## Checkpoint

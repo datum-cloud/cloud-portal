@@ -2,6 +2,7 @@ import { DarkModeIcon } from '@/components/icon/dark-mode';
 import { LightModeIcon } from '@/components/icon/light-mode';
 import { SystemModeIcon } from '@/components/icon/system-mode';
 import { useApp } from '@/providers/app.provider';
+import { useConfirmTerminalExit } from '@/providers/terminal-session.provider';
 import { ThemeValue, useUpdateUserPreferences } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getInitials } from '@/utils/helpers/text.helper';
@@ -33,6 +34,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
   const { user, userPreferences, setUser } = useApp();
+  const confirmTerminalExit = useConfirmTerminalExit();
   const userId = user?.sub ?? 'me';
 
   const [currentTheme, setCurrentTheme] = useState<ThemeValue>(resolvedTheme as ThemeValue);
@@ -110,7 +112,14 @@ export const UserDropdown = ({ className }: { className?: string }) => {
         <DropdownMenuGroup>
           <DropdownMenuItem
             className="cursor-pointer rounded-lg px-3 py-2 font-normal"
-            onClick={() => navigate(paths.account.settings.general)}>
+            onClick={async () => {
+              // Account Settings lives outside the project layout, which
+              // unmounts the terminal. Warn before tearing down a live
+              // datumctl session; on confirm the exit hook closes it
+              // cleanly so the socket doesn't linger through the nav.
+              if (!(await confirmTerminalExit())) return;
+              navigate(paths.account.settings.general);
+            }}>
             <div className="flex items-center gap-2">
               <Icon icon={UserCogIcon} size={14} />
               <span className="text-foreground text-xs">Account Settings</span>
@@ -121,7 +130,12 @@ export const UserDropdown = ({ className }: { className?: string }) => {
             variant="destructive"
             data-e2e="user-menu-logout"
             className="data-[variant=destructive]:*:[svg]:!text-destructive cursor-pointer rounded-lg px-3 py-2 font-normal"
-            onClick={() => {
+            onClick={async () => {
+              // Logout ends the whole app session; warn first so the user
+              // can bail if a command is still running. The exit hook also
+              // closes the socket up-front instead of leaving it to
+              // whatever GC / idle-timeout race happens during navigation.
+              if (!(await confirmTerminalExit())) return;
               navigate(paths.auth.logOut, { replace: true, preventScrollReset: true });
             }}>
             <div className="flex items-center gap-2">

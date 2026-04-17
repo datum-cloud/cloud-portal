@@ -72,6 +72,12 @@ export interface ServerEnv {
   // Optional: AI Assistant
   anthropicApiKey?: string;
   anthropicModel?: string;
+
+  // Optional: Embedded datumctl terminal
+  // Absolute path to the locally-built datumctl binary used by the
+  // Developer Tools terminal. In local development, point this at
+  // ../datumctl/bin/datumctl (the sibling checkout).
+  datumctlBin?: string;
 }
 
 /**

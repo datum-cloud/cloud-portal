@@ -132,6 +132,15 @@ const serverSchema = z.object({
   ANTHROPIC_MODEL: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Embedded datumctl terminal
+  // ─────────────────────────────────────────────────────────
+  // Absolute (or cwd-relative) path to the locally-built datumctl
+  // binary. When set and executable, the Developer Tools terminal
+  // spawns this binary in ambient-token mode. Omit to disable the
+  // embedded terminal.
+  DATUMCTL_BIN: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
   // ─────────────────────────────────────────────────────────
   REDIS_URL: urlSchemaOptional(),
@@ -199,6 +208,8 @@ export const env: Env = {
     // AI Assistant
     anthropicApiKey: data.ANTHROPIC_API_KEY,
     anthropicModel: data.ANTHROPIC_MODEL,
+    // Embedded datumctl terminal
+    datumctlBin: data.DATUMCTL_BIN,
     // Redis
     redisUrl: data.REDIS_URL,
     redisMaxRetries: data.REDIS_MAX_RETRIES,

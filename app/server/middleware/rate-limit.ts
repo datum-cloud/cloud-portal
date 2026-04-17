@@ -123,6 +123,31 @@ export const RateLimitPresets = {
     }),
   },
 
+  /**
+   * Embedded datumctl terminal — 5 websocket upgrades per minute per user.
+   *
+   * File uploads and everything else ride inside the open socket, so the
+   * only HTTP request that hits this bucket is the upgrade handshake. A
+   * small cap is plenty for legitimate re-opens (page reload, reconnect
+   * after sleep) while making it expensive to churn through fresh sockets.
+   * Per-socket bounds (single in-flight exec, output byte cap, idle
+   * timeout, per-upload size + stall timeout) bound everything else.
+   */
+  terminal: {
+    windowMs: 60 * 1000,
+    limit: 5,
+    keyGenerator: defaultKeyGenerator,
+    standardHeaders: 'draft-6' as const,
+    handler: customRateLimitHandler,
+    ...(redisClient && {
+      store: new RedisStore({
+        sendCommand: async (command: string, ...args: string[]) =>
+          redisClient!.call(command, ...args) as Promise<RedisReply>,
+        prefix: 'rl:terminal:',
+      }) as any,
+    }),
+  },
+
   /** AI assistant — 10 requests per minute per user */
   assistant: {
     windowMs: 60 * 1000,

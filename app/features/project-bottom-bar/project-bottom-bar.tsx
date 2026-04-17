@@ -1,10 +1,11 @@
 import { useProjectContext } from '@/providers/project.provider';
+import { useConfirmTerminalExit } from '@/providers/terminal-session.provider';
 import { Button } from '@datum-ui/components';
 import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { Skeleton } from '@datum-ui/components/skeleton';
 import Tooltip from '@datum-ui/components/tooltip/tooltip';
 import { cn } from '@shadcn/lib/utils';
-import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
+import { BookOpen, Brain, Terminal, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Activity, lazy, Suspense, useState } from 'react';
 
@@ -56,6 +57,28 @@ function ToolbarButton({ panel, icon: icon, label, isActive, onClick }: ToolbarB
   );
 }
 
+// Mirrors TerminalPanel's container so Suspense doesn't cause a layout jump
+// when the lazy chunk resolves and the real xterm DOM replaces the skeleton.
+// The widths are intentionally uneven to read as command/output lines rather
+// than a generic placeholder block.
+function TerminalPanelSkeleton() {
+  return (
+    <div className="bg-muted h-full w-full p-4 pt-4">
+      <div className="flex h-full w-full flex-col gap-2">
+        <Skeleton className="h-3 w-72 rounded" />
+        <Skeleton className="h-3 w-56 rounded" />
+        <Skeleton className="h-3 w-96 rounded" />
+        <Skeleton className="h-3 w-40 rounded" />
+        <Skeleton className="h-3 w-64 rounded" />
+        <div className="flex items-center gap-2 pt-1">
+          <Skeleton className="h-3 w-20 rounded" />
+          <Skeleton className="h-3 w-2 rounded" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ChatPanelSkeleton() {
   return (
     <div className="relative flex h-full overflow-hidden">
@@ -103,8 +126,17 @@ export function ProjectBottomBar() {
   const { project } = useProjectContext();
   const [activePanel, setActivePanel] = useState<PanelType | null>(null);
   const [panelHeight, setPanelHeight] = useState(400);
+  const [hasOpenedTerminal, setHasOpenedTerminal] = useState(false);
+  const confirmTerminalExit = useConfirmTerminalExit();
 
-  const handlePanelToggle = (panel: PanelType) => {
+  const handlePanelToggle = async (panel: PanelType) => {
+    // Toggling the currently-active tab collapses the bottom bar, which
+    // unmounts the terminal entirely. Warn before dropping a live
+    // datumctl session — the guard no-ops when no session is active.
+    const willCollapse = activePanel === panel;
+    if (willCollapse && !(await confirmTerminalExit())) return;
+
+    if (panel === 'terminal') setHasOpenedTerminal(true);
     setActivePanel((prev) => (prev === panel ? null : panel));
   };
 
@@ -182,6 +214,19 @@ export function ProjectBottomBar() {
                   <ChatPanel key={project?.name ?? 'no-project'} />
                 </Suspense>
               </Activity>
+              {/*
+                Terminal is kept mounted while ever opened so the xterm buffer
+                and websocket persist across panel switches. We only mount on
+                first open (activated flag) to avoid opening a websocket for
+                users who never click the terminal button.
+              */}
+              <Activity mode={activePanel === 'terminal' ? 'visible' : 'hidden'}>
+                {hasOpenedTerminal && (
+                  <Suspense fallback={<TerminalPanelSkeleton />}>
+                    <TerminalPanel />
+                  </Suspense>
+                )}
+              </Activity>
               <Activity mode={activePanel === 'docs' ? 'visible' : 'hidden'}>
                 <DocsPanel />
               </Activity>
@@ -201,13 +246,13 @@ export function ProjectBottomBar() {
             isActive={activePanel === 'chat'}
             onClick={handlePanelToggle}
           />
-          {/* <ToolbarButton
+          <ToolbarButton
             panel="terminal"
             icon={Terminal}
             label="Terminal"
             isActive={activePanel === 'terminal'}
             onClick={handlePanelToggle}
-          /> */}
+          />
           <ToolbarButton
             panel="docs"
             icon={BookOpen}

@@ -1,5 +1,6 @@
 import { OrganizationItem } from '@/components/select-organization/organization-item';
 import { useApp } from '@/providers/app.provider';
+import { useConfirmContextSwitch } from '@/providers/terminal-session.provider';
 import { type Organization, useOrganizationsGql } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
@@ -35,6 +36,7 @@ function OrgSwitcherSheet({
 }) {
   const { setOrganization } = useApp();
   const navigate = useNavigate();
+  const confirmContextSwitch = useConfirmContextSwitch();
   const { data, isLoading } = useOrganizationsGql(undefined, { enabled: open });
 
   const organizations = useMemo(() => {
@@ -47,14 +49,16 @@ function OrgSwitcherSheet({
   }, [data, currentOrg?.name]);
 
   const handleSelect = useCallback(
-    (org: Organization) => {
+    async (org: Organization) => {
       onOpenChange(false);
-      if (org.name !== currentOrg?.name) {
-        setOrganization(org);
-        navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
-      }
+      if (org.name === currentOrg?.name) return;
+      // Prompt if a datumctl terminal is live — switching org invalidates
+      // the server-pinned session.
+      if (!(await confirmContextSwitch())) return;
+      setOrganization(org);
+      navigate(getPathWithParams(paths.org.detail.projects.root, { orgId: org.name }));
     },
-    [currentOrg?.name, setOrganization, navigate, onOpenChange]
+    [confirmContextSwitch, currentOrg?.name, setOrganization, navigate, onOpenChange]
   );
 
   return (
@@ -136,6 +140,7 @@ function ProjectSwitcherSheet({
 }) {
   const { orgId } = useApp();
   const navigate = useNavigate();
+  const confirmContextSwitch = useConfirmContextSwitch();
   const { data, isLoading } = useProjects(orgId ?? '', undefined, { enabled: open && !!orgId });
 
   const projects = useMemo(() => {
@@ -148,13 +153,15 @@ function ProjectSwitcherSheet({
   }, [data, currentProject?.uid]);
 
   const handleSelect = useCallback(
-    (project: Project) => {
+    async (project: Project) => {
       onOpenChange(false);
-      if (project.uid !== currentProject?.uid) {
-        navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
-      }
+      if (project.uid === currentProject?.uid) return;
+      // Prompt if a datumctl terminal is live — the server-side session is
+      // pinned to the current project and would be lost.
+      if (!(await confirmContextSwitch())) return;
+      navigate(getPathWithParams(paths.project.detail.home, { projectId: project.name }));
     },
-    [currentProject?.uid, navigate, onOpenChange]
+    [confirmContextSwitch, currentProject?.uid, navigate, onOpenChange]
   );
 
   return (
