@@ -1,7 +1,8 @@
 import { formatRelativeTime, type StoredChat } from './chat-storage';
 import type { Project } from '@/resources/projects';
-import { Button, Icon } from '@datum-ui/components';
-import Tooltip from '@datum-ui/components/tooltip/tooltip';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@shadcn/lib/utils';
 import { isTextUIPart } from 'ai';
 import { DownloadIcon, MessageSquarePlus, TrashIcon } from 'lucide-react';

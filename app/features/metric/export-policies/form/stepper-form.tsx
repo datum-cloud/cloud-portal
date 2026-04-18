@@ -19,12 +19,18 @@ import {
   ExportPolicySinksSchema,
   ExportPolicySourceFieldSchema,
 } from '@/resources/export-policies';
-import { Button } from '@datum-ui/components';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { Form } from '@datum-ui/components/form';
 import type { StepConfig } from '@datum-ui/components/form';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';

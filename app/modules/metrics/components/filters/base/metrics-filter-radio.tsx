@@ -4,8 +4,8 @@
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { Label } from '@datum-ui/components';
-import { RadioGroup, RadioGroupItem } from '@datum-ui/components';
+import { Label } from '@datum-cloud/datum-ui/label';
+import { RadioGroup, RadioGroupItem } from '@datum-cloud/datum-ui/radio-group';
 import { cn } from '@shadcn/lib/utils';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';

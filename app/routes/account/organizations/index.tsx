@@ -12,9 +12,12 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Col, DataTable, Row, toast } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
+import { DataTable } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';

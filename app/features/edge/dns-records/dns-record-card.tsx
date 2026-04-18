@@ -1,6 +1,6 @@
 import { DnsRecordTable } from './dns-record-table';
 import type { DnsRecordCardProps } from './types';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { useMemo } from 'react';
 
 /**

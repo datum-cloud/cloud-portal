@@ -1,8 +1,9 @@
 import type { DnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Card, CardContent, CardHeader, CardTitle, LinkButton } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { CheckIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router';

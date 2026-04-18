@@ -1,4 +1,4 @@
-import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,

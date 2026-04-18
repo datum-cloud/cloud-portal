@@ -1,6 +1,6 @@
 import { paths } from '@/utils/config/paths.config';
-import { Button, ButtonProps } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button, ButtonProps } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

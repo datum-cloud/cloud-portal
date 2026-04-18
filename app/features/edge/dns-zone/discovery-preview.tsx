@@ -5,18 +5,17 @@ import { paths } from '@/utils/config/paths.config';
 import { transformFlattenedToRecordSets } from '@/utils/helpers/dns';
 import { flattenDnsRecordSets, type ImportResult } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-  SpinnerIcon,
-  toast,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/card';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';

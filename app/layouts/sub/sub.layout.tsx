@@ -2,7 +2,8 @@ import { SubLayoutProps } from './sub.types';
 import { ContentWrapper } from '@/components/content-wrapper';
 import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { type NavItem, NavMain, useSidebar } from '@datum-ui/components/sidebar';
+import { type NavItem, NavMenu } from '@datum-cloud/datum-ui/app-navigation';
+import { useSidebar } from '@datum-cloud/datum-ui/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import { useLayoutEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router';
@@ -70,7 +71,7 @@ export function SubLayout({
           <div className="flex flex-1 flex-col items-start justify-start">
             <div className="flex flex-col">
               {sidebarHeader && <div className="px-2 pb-0">{sidebarHeader}</div>}
-              <NavMain
+              <NavMenu
                 items={navItems}
                 className="px-0 py-3.5"
                 itemClassName="text-xs h-6"

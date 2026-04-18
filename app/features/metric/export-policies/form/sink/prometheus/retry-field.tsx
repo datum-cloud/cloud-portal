@@ -1,5 +1,5 @@
 import { FieldLabel } from '@/components/field/field-label';
-import { InputWithAddons } from '@datum-ui/components';
+import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { Form } from '@datum-ui/components/form';
 
 export const RetryField = ({ baseName }: { baseName: string }) => {

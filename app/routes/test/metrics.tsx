@@ -11,8 +11,8 @@ import {
   MetricsFilter,
   type QueryBuilderFunction,
 } from '@/modules/metrics';
-import { Badge } from '@datum-ui/components';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { ChartTooltipContent } from '@shadcn/ui/chart';
 import { Activity, Server, Globe, Database } from 'lucide-react';
 import { useCallback } from 'react';

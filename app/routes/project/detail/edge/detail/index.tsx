@@ -12,9 +12,12 @@ import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/htt
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Icon, toast } from '@datum-ui/components';
-import { Card, CardContent, Col, Row } from '@datum-ui/components';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { ChartSplineIcon, Trash2Icon } from 'lucide-react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 

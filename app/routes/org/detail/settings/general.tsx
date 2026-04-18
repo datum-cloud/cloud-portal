@@ -1,7 +1,7 @@
 import { OrganizationDangerCard } from '@/features/organization';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

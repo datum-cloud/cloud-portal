@@ -18,8 +18,8 @@ import { setOrgSession, setProjectSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
-import { toast } from '@datum-ui/components';
-import { NavItem } from '@datum-ui/components/sidebar/nav-main';
+import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   CableIcon,

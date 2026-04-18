@@ -2,8 +2,8 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
 import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 

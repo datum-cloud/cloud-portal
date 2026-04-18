@@ -1,12 +1,12 @@
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  toast,
-} from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/card';
+import { toast } from '@datum-cloud/datum-ui/toast';
 
 export const toastDemoSections = [
   { id: 'toast-variants', label: 'Toast Variants' },

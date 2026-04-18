@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 import { Switch } from '@shadcn/ui/switch';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';

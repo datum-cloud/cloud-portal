@@ -1,8 +1,9 @@
-import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
-import { Input, Label } from '@datum-ui/components';
-import { Dialog } from '@datum-ui/components/dialog';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Dialog } from '@datum-cloud/datum-ui/dialog';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { Label } from '@datum-cloud/datum-ui/label';
 import { AlertCircle } from 'lucide-react';
 import { useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 

@@ -1,4 +1,4 @@
-import { NavItem } from '@datum-ui/components/sidebar';
+import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { ReactNode } from 'react';
 
 export interface SubLayoutProps {

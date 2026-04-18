@@ -1,14 +1,14 @@
 import { STEP_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/select';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 

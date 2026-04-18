@@ -1,8 +1,14 @@
 import { DnsRecordForm } from '../../../../features/edge/dns-zone/form/dns-record-form';
 import { TestScenario } from './default-test-scenarios';
 import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
-import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
 import { cn } from '@shadcn/lib/utils';
 import { Badge } from '@shadcn/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';

@@ -1,8 +1,8 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
-import { Button } from '@datum-ui/components';
-import { Card, CardContent } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { BuildingIcon, RefreshCcwIcon } from 'lucide-react';
 // import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';

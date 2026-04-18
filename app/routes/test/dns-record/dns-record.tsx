@@ -9,7 +9,8 @@ import {
   TestScenario,
 } from '@/routes/test/dns-record/components/default-test-scenarios';
 import { DnsRecordTestCard } from '@/routes/test/dns-record/components/dns-record-test-card';
-import { Button, toast } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Badge } from '@shadcn/ui/badge';
 import { useState } from 'react';
 

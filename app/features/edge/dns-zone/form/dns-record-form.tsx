@@ -25,9 +25,10 @@ import {
 } from '@/resources/dns-records';
 import { formatDnsError, getDnsRecordTypeSelectOptions } from '@/utils/helpers/dns-record.helper';
 import { type FieldMetadata } from '@conform-to/react';
-import { Button, toast } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
-import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
 import { cn } from '@shadcn/lib/utils';
 import { Form as RouterForm } from 'react-router';
 

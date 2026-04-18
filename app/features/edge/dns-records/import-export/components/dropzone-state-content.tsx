@@ -1,6 +1,5 @@
-import { SpinnerIcon } from '@datum-ui/components';
-import { DropzoneContent } from '@datum-ui/components/dropzone/dropzone';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { DropzoneContent } from '@datum-cloud/datum-ui/dropzone';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { TriangleAlert } from 'lucide-react';
 
 // =============================================================================

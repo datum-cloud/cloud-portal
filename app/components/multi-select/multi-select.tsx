@@ -1,8 +1,8 @@
 // src/components/multi-select.tsx
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { Badge } from '@datum-ui/components';
-import { LoaderOverlay } from '@datum-ui/components/loader-overlay';
-import { MobileSheet } from '@datum-ui/components/mobile-sheet';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
+import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,

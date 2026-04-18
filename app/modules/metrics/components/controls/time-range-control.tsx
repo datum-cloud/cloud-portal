@@ -7,8 +7,8 @@ import {
 } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { useApp } from '@/providers/app.provider';
-import type { PresetConfig, TimeRangeValue } from '@datum-ui/components/time-range-picker';
-import { TimeRangePicker, getBrowserTimezone } from '@datum-ui/components/time-range-picker';
+import type { PresetConfig, TimeRangeValue } from '@datum-cloud/datum-ui/date-picker';
+import { TimeRangePicker, getBrowserTimezone } from '@datum-cloud/datum-ui/date-picker';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo } from 'react';
 

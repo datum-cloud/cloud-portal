@@ -2,7 +2,7 @@ import BlankLayout from '@/layouts/blank.layout';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Card, CardContent } from '@datum-ui/components';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { useEffect } from 'react';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 

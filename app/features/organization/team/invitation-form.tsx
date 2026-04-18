@@ -1,7 +1,6 @@
 import { SelectRole } from '@/components/select-role/select-role';
 import { invitationFormSchema, type InvitationFormSchema } from '@/resources/invitations';
 import { getSelectProps, useInputControl } from '@conform-to/react';
-import { TagsInput } from '@datum-ui/components';
 import {
   Card,
   CardContent,
@@ -9,7 +8,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/card';
+import { TagsInput } from '@datum-cloud/datum-ui/tag-input';
 import { Form, type FormFieldRenderProps } from '@datum-ui/components/form';
 import { useNavigate } from 'react-router';
 

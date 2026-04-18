@@ -1,5 +1,5 @@
 import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feature-card';
-import { Col, Row } from '@datum-ui/components';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 
 export const ComingSoonCard = () => {
   const FEATURES = [

@@ -4,7 +4,7 @@ import { RegistrationApproval } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Card, CardContent } from '@datum-ui/components';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

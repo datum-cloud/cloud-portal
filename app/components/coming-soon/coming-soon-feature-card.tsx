@@ -1,4 +1,5 @@
-import { Button, Card, CardContent } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 
 export const ComingSoonFeatureCard = ({
   title,

@@ -1,5 +1,8 @@
-import { Button, Card, CardContent, CardHeader, Skeleton, SpinnerIcon } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
+import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowRightIcon, CheckIcon } from 'lucide-react';
 import type { ReactNode } from 'react';

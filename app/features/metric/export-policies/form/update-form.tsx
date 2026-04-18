@@ -20,7 +20,7 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { convertObjectToLabels } from '@/utils/helpers/object.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, toast } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardContent,
@@ -28,9 +28,10 @@ import {
   CardHeader,
   CardFooter,
   CardTitle,
-} from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';

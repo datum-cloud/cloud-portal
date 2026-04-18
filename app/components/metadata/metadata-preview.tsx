@@ -1,6 +1,6 @@
 import { List, ListItem } from '@/components/list/list';
 import { MetadataSchema } from '@/resources/base';
-import { Badge } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { useMemo } from 'react';
 
 export const MetadataPreview = ({ values }: { values: MetadataSchema }) => {

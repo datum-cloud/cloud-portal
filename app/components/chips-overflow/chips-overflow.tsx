@@ -1,4 +1,5 @@
-import { Badge, type BadgeProps } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { type BadgeProps } from '@datum-cloud/datum-ui/badge';
 import { cn } from '@shadcn/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import * as React from 'react';

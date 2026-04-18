@@ -1,4 +1,4 @@
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@shadcn/lib/utils';
 import {
   BreadcrumbItem,

@@ -2,7 +2,7 @@ import { OrganizationSwitcher } from './org-switcher';
 import { ProjectSwitcher } from './project-switcher';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
-import { Skeleton } from '@datum-ui/components';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 
 export interface OrgProjectSwitcherProps {
   currentOrg?: Organization;

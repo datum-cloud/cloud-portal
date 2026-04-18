@@ -1,13 +1,13 @@
 import { IdentityItem } from '@/features/account/identity-item';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { KeyRoundIcon, LockOpenIcon } from 'lucide-react';
 
 const SIGN_IN_METHODS = [

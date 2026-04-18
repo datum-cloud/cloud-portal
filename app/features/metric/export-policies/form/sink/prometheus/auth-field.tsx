@@ -3,7 +3,8 @@ import { SelectSecret } from '@/components/select-secret/select-secret';
 import { SINK_AUTH_TYPES } from '@/features/metric/constants';
 import { ExportPolicyAuthenticationType } from '@/resources/export-policies';
 import { SecretType } from '@/resources/secrets';
-import { Label, Switch } from '@datum-ui/components';
+import { Label } from '@datum-cloud/datum-ui/label';
+import { Switch } from '@datum-cloud/datum-ui/switch';
 import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 

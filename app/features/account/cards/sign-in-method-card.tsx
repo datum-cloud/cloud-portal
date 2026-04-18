@@ -1,15 +1,15 @@
 import { GitHubLineIcon } from '@/components/icon/github-line';
 import GoogleIcon from '@/components/icon/google';
 import { IdentityItem } from '@/features/account/identity-item';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { EllipsisIcon, KeyRoundIcon, MailIcon } from 'lucide-react';
 
 const SIGN_IN_METHODS = [

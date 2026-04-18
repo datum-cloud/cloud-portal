@@ -1,7 +1,7 @@
 import { SinkField } from './sink-field';
 import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
 import type { ExportPolicySourceFieldSchema } from '@/resources/export-policies';
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';

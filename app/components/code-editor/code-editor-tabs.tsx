@@ -1,7 +1,8 @@
 import { CodeEditor } from './code-editor';
 import { EditorLanguage, CodeEditorTabsProps } from './code-editor.types';
 import { isValidJson, isValidYaml, jsonToYaml, yamlToJson } from '@/utils/helpers/format.helper';
-import { Tabs, TabsContent, TabsList, TabsTrigger, toast } from '@datum-ui/components';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useState } from 'react';
 
 export function CodeEditorTabs({

@@ -1,6 +1,6 @@
 import { NotificationCheckboxItem } from './notification-checkbox-item';
 import type { NotificationSettingsCardProps } from './types';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-ui/components/form';
 import type { z } from 'zod';
 

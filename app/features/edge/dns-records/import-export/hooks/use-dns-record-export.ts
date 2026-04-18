@@ -1,7 +1,7 @@
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { downloadFile } from '@/utils/common';
 import { transformRecordsToBindFormat } from '@/utils/helpers/dns-record.helper';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState } from 'react';
 
 interface UseDnsRecordExportProps {
