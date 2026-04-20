@@ -3,7 +3,7 @@ import { useProjectContext } from '@/providers/project.provider';
 import { ProjectLayoutLoaderData } from '@/routes/project/detail/layout';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';
 

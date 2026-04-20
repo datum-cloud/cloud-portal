@@ -1,7 +1,7 @@
 import { useOs } from '@/hooks/useOs';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { cn } from '@shadcn/lib/utils';
 import {
   CommandDialog,

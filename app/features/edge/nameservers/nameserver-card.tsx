@@ -1,6 +1,6 @@
 import { NameserverTable } from './nameserver-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { useMemo } from 'react';
 
 export interface NameserverCardProps {

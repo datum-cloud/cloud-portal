@@ -1,4 +1,4 @@
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface CopyOptions {

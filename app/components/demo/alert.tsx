@@ -1,5 +1,11 @@
-import { Alert, AlertDescription, AlertTitle } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
 import {
   AlertCircle,
   CheckCircle,

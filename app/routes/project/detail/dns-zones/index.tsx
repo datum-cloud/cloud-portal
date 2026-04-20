@@ -22,14 +22,11 @@ import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import {
-  Button,
-  DataTable,
-  type DataTableRowActionsProps,
-  Tooltip,
-  toast,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { DataTable, type DataTableRowActionsProps } from '@datum-ui/components';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';

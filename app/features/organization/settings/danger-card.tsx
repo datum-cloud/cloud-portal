@@ -2,7 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { type Organization, useDeleteOrganization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useNavigate } from 'react-router';
 
 export const OrganizationDangerCard = ({ organization }: { organization: Organization }) => {

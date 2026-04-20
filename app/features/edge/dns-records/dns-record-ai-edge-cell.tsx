@@ -1,7 +1,8 @@
 import { isEligibleForProtect } from './utils';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
-import { Button, Tooltip } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { EyeIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useState } from 'react';
 

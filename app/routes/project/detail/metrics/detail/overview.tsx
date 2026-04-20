@@ -5,8 +5,8 @@ import { WorkloadSinksTable } from '@/features/metric/export-policies/sinks-tabl
 import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-table';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {

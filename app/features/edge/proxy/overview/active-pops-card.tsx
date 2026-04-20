@@ -6,9 +6,10 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
-import { Button, SpinnerIcon } from '@datum-ui/components';
-import { Card, CardContent, Skeleton } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { MapPinIcon } from 'lucide-react';
 import { Suspense, useMemo } from 'react';
 

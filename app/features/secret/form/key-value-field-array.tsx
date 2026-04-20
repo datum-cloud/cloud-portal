@@ -1,8 +1,8 @@
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { Textarea } from '@datum-cloud/datum-ui/textarea';
 import { Form } from '@datum-ui/components/form';
-import { Input } from '@datum-ui/components/form/primitives/input';
-import { Textarea } from '@datum-ui/components/form/primitives/textarea';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 
 interface KeyValueFieldArrayProps {

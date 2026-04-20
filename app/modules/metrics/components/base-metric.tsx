@@ -1,7 +1,13 @@
 import { type PrometheusError } from '@/modules/prometheus';
-import { Alert, AlertDescription } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Alert, AlertDescription } from '@datum-cloud/datum-ui/alert';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { AlertCircle, Minus } from 'lucide-react';
 import React from 'react';
 

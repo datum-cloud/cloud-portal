@@ -1,7 +1,8 @@
 import { RoleRow } from './role-row';
 import type { UserRoleAssignment, PendingChange } from './roles-editor.types';
-import { Button, Tooltip } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Building2Icon, FolderIcon, KeyRoundIcon, PlusIcon } from 'lucide-react';
 
 type RolesPanelProps = {

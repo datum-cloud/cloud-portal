@@ -1,6 +1,6 @@
 import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { useMembers } from '@/resources/members/member.queries';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
 
 export const SelectMember = ({

@@ -1,6 +1,8 @@
 import { OsIcon } from '@/components/icon/os-icon';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
-import { Button, Card, CardContent, CloseIcon, LinkButton } from '@datum-ui/components';
+import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { CloseIcon } from '@datum-cloud/datum-ui/icons';
 import { DownloadIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

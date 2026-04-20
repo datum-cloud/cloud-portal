@@ -2,7 +2,7 @@ import { KeyValueFormDialog, KeyValueFormDialogRef } from '@/components/key-valu
 import { MultiSelect, MultiSelectOption } from '@/components/multi-select/multi-select';
 import { annotationFormSchema, AnnotationFormSchema } from '@/resources/base';
 import { splitOption } from '@/utils/helpers/object.helper';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 

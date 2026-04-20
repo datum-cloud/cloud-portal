@@ -1,6 +1,12 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { Badge } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
 import { AlertCircle, CheckCircle, XCircle, Star, Info } from 'lucide-react';
 
 export const badgeDemoSections = [

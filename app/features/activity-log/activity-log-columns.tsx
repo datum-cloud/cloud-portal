@@ -1,7 +1,7 @@
 import { DateTime } from '@/components/date-time';
 import type { ActivityLog } from '@/resources/activity-logs';
 import { User } from '@/resources/users';
-import { Badge } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { ColumnDef } from '@tanstack/react-table';
 
 export interface ActivityLogColumnsOptions {

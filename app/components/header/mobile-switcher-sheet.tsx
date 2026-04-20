@@ -5,9 +5,9 @@ import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Skeleton, SpinnerIcon } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { MobileSheet } from '@datum-ui/components/mobile-sheet';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import {
   Command,
   CommandEmpty,

@@ -7,7 +7,7 @@ import { paths } from '@/utils/config/paths.config';
 import { clearProjectSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
 import { NotFoundError } from '@/utils/errors';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-ui/components/sidebar/nav-main';
+import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { FolderRoot, GroupIcon, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {

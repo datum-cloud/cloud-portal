@@ -1,6 +1,6 @@
 import { Equalizer } from './equalizer';
-import { Icon } from '@datum-ui/components';
-import Tooltip from '@datum-ui/components/tooltip/tooltip';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@shadcn/lib/utils';
 import type { Editor } from '@tiptap/react';
 import { EditorContent } from '@tiptap/react';

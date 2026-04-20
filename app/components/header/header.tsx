@@ -8,11 +8,12 @@ import { helpScoutAPI } from '@/modules/helpscout';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
-import { Button, Skeleton } from '@datum-ui/components';
-import { Tooltip } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { NavItem } from '@datum-ui/components/sidebar';
-import { TaskQueueDropdown } from '@datum-ui/components/task-queue';
+import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { TaskQueueDropdown } from '@datum-cloud/datum-ui/task-queue';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { BookOpen, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router';
 

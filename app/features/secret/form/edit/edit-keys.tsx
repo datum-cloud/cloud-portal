@@ -5,9 +5,10 @@ import {
   VariablesFormDialogRef,
 } from '@/features/secret/form/keys/keys-form-dialog';
 import { type Secret, useUpdateSecret } from '@/resources/secrets';
-import { Button, toast } from '@datum-ui/components';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
 import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useRef } from 'react';

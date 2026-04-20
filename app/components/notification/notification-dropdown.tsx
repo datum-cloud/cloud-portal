@@ -3,7 +3,7 @@ import { NotificationEmpty } from './notification-empty';
 import { NotificationList } from './notification-list';
 import type { NotificationDropdownProps, NotificationSourceType, NotificationTab } from './types';
 import { useNotifications } from './use-notifications';
-import { ResponsiveDropdown } from '@datum-ui/components/responsive-dropdown';
+import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
 import { cn } from '@shadcn/lib/utils';
 import { useState } from 'react';
 

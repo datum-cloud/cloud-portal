@@ -12,7 +12,7 @@ import {
 } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/helpers/path.helper';
-import { SpinnerIcon } from '@datum-ui/components';
+import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { jwtDecode } from 'jwt-decode';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 

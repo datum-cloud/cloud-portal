@@ -3,8 +3,9 @@
  */
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { Input, Label } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { Label } from '@datum-cloud/datum-ui/label';
 import { cn } from '@shadcn/lib/utils';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';

@@ -2,7 +2,7 @@ import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
 import { useProjectContext } from '@/providers/project.provider';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

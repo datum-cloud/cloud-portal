@@ -5,8 +5,7 @@ import { useApp } from '@/providers/app.provider';
 import { ThemeValue, useUpdateUserPreferences } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getInitials } from '@/utils/helpers/text.helper';
-import { useTheme } from '@datum-cloud/datum-ui/theme';
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,8 +14,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/dropdown';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { cn } from '@shadcn/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
 import { CheckIcon, LogOut, UserCogIcon } from 'lucide-react';

@@ -1,34 +1,14 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'tailwind-scrollbar-hide/v4';
+@import '@datum-cloud/datum-ui/styles';
+
 @source '../../node_modules/streamdown/dist/*.js';
 @source '../../node_modules/@streamdown/code/dist/*.js';
 @plugin '@tailwindcss/typography';
+@import 'tailwind-scrollbar-hide/v4';
 
-@custom-variant dark (&:is(.dark *));
-
-/* ========================================
-   LAYER ORDER DEFINITION
-   Theme layer always wins over shadcn-base
-   ======================================== */
-/* @layer shadcn-base, theme; */
-
-/* ========================================
-   IMPORTS
-   ======================================== */
-
-@import './fonts.css';
-
-/* Figma design tokens - source of truth */
-@import './tokens/figma-tokens.css';
-
-/* Shadcn/ui base variables and component styles */
-@import '../modules/shadcn/style.css';
-
-/* Datum UI components */
-@import '../modules/datum-ui/datum-ui.css';
-
-/* Theme overrides - always loaded after shadcn */
-@import './themes/alpha.css';
+/* Optional — only if you use these components */
+@import '@datum-cloud/datum-ui/grid';
+@import '@datum-cloud/datum-ui/nprogress';
+@import '@datum-cloud/datum-ui/styles/canela';
 
 @import './custom.css';

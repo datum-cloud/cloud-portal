@@ -1,4 +1,4 @@
-import { Badge } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { cn } from '@shadcn/lib/utils';
 
 export const PersonalBadge = ({ className }: { className?: string }) => {

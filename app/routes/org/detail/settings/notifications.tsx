@@ -1,6 +1,6 @@
 import { ProjectNotificationSettingsCard } from '@/features/project/settings/notification-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components/grid';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import type { MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

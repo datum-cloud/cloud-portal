@@ -6,8 +6,10 @@ import {
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
 } from '@/resources/http-proxies';
-import { Button, Card, CardContent, Tooltip } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { CopyIcon, GlobeIcon, LockIcon, PencilIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 

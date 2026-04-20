@@ -1,7 +1,13 @@
-import { Tooltip } from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
-import { Input } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Info, Settings, Trash2, Download, HelpCircle, AlertCircle } from 'lucide-react';
 
 export const tooltipDemoSections = [

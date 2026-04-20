@@ -1,7 +1,8 @@
 import { NoteMeta } from './note-meta';
 import type { Note } from '@/resources/notes/note.schema';
-import { Button } from '@datum-ui/components';
-import { RichTextContent } from '@datum-ui/components/rich-text-editor';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-editor';
 import { PencilIcon, Trash2Icon } from 'lucide-react';
 
 interface NoteCardProps {
@@ -27,7 +28,7 @@ export function NoteCard({ note, creatorDisplay, isOwner, onEdit, onDelete }: No
               size="xs"
               onClick={() => onEdit(note)}
               aria-label="Edit note">
-              <PencilIcon className="size-3" />
+              <Icon icon={PencilIcon} className="size-3" />
             </Button>
             <Button
               type="danger"
@@ -35,7 +36,7 @@ export function NoteCard({ note, creatorDisplay, isOwner, onEdit, onDelete }: No
               size="xs"
               onClick={() => onDelete(note)}
               aria-label="Delete note">
-              <Trash2Icon className="size-3" />
+              <Icon icon={Trash2Icon} className="size-3" />
             </Button>
           </div>
         )}

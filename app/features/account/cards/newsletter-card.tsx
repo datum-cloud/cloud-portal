@@ -1,8 +1,8 @@
 import { useApp } from '@/providers/app.provider';
 import { useUpdateUserPreferences } from '@/resources/users';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { Label } from '@datum-ui/components';
-import { Switch } from '@datum-ui/components';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Label } from '@datum-cloud/datum-ui/label';
+import { Switch } from '@datum-cloud/datum-ui/switch';
 import { useEffect, useState } from 'react';
 
 export const AccountNewsletterSettingsCard = () => {

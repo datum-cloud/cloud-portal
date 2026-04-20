@@ -2,9 +2,9 @@ import { OrganizationItem } from './organization-item';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, SpinnerIcon } from '@datum-ui/components';
-import { toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,

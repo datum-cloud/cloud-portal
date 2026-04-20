@@ -11,7 +11,7 @@ import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { withMiddleware } from '@/utils/middlewares';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useCallback } from 'react';
 import { data, MetaFunction, useNavigate, useParams } from 'react-router';
 

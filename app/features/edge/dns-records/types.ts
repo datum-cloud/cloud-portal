@@ -3,7 +3,7 @@
  */
 import { DataTableProps } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
-import { EmptyContentProps } from '@datum-ui/components/empty-content';
+import { EmptyContentProps } from '@datum-cloud/datum-ui/empty-content';
 import type { ReactNode } from 'react';
 
 // =============================================================================

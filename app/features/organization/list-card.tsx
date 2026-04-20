@@ -3,7 +3,7 @@ import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { ProfileIdentity } from '@/components/profile-identity';
 import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Card, CardContent } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 

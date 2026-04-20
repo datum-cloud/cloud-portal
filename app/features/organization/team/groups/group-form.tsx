@@ -1,4 +1,5 @@
 import { createGroupSchema, type CreateGroupInput } from '@/resources/groups';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardContent,
@@ -6,8 +7,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@datum-ui/components';
-import { Button } from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-ui/components/form';
 import { useNavigate } from 'react-router';
 

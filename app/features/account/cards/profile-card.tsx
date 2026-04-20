@@ -1,7 +1,8 @@
 import { useApp } from '@/providers/app.provider';
 import { useUpdateUser, userSchema } from '@/resources/users';
-import { Button, toast } from '@datum-ui/components';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 
 /**

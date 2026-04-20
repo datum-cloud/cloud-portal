@@ -1,5 +1,8 @@
 import { ControlPlaneStatus, IControlPlaneStatus } from '@/resources/base';
-import { Badge, type BadgeProps, Tooltip, SpinnerIcon } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { type BadgeProps } from '@datum-cloud/datum-ui/badge';
+import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@shadcn/lib/utils';
 import { ReactNode } from 'react';
 

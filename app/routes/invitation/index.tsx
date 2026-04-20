@@ -10,7 +10,7 @@ import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, SpinnerIcon } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardContent,
@@ -18,8 +18,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/card';
+import { SpinnerIcon, Icon } from '@datum-cloud/datum-ui/icons';
 import { Check } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import {

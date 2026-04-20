@@ -1,5 +1,11 @@
-import { Row, Col } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
+import { Row, Col } from '@datum-cloud/datum-ui/grid';
 
 export const gridDemoSections = [
   { id: 'basic-usage', label: 'Basic Usage' },

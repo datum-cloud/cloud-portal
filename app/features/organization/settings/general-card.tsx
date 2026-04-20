@@ -1,8 +1,9 @@
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useUpdateOrganization } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
-import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
-import { Card, CardContent, CardFooter } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 
 const schema = updateOrganizationSchema.pick({ description: true, name: true });

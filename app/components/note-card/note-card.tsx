@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { CircleXIcon } from 'lucide-react';
 

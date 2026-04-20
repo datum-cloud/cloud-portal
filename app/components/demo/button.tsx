@@ -1,5 +1,11 @@
-import { Button } from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
 import { Download, Heart, Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 

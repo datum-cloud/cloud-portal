@@ -4,8 +4,9 @@ import { DangerCard } from '@/components/danger-card/danger-card';
 import { useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Col, Row, toast } from '@datum-ui/components';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {

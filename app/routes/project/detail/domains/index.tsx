@@ -34,15 +34,12 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import {
-  Badge,
-  Button,
-  toast,
-  Tooltip,
-  useTaskQueue,
-  createProjectMetadata,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
+import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { GlobeIcon, ListChecksIcon, PlusIcon, TrashIcon } from 'lucide-react';

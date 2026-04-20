@@ -4,7 +4,7 @@ import type { Project } from '@/resources/projects';
 import { useDeleteProject } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useNavigate } from 'react-router';
 
 export const ProjectDangerCard = ({ project }: { project: Project }) => {

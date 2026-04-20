@@ -14,8 +14,9 @@ import {
 import { SecretType, useCreateSecret, type CreateSecretInput } from '@/resources/secrets';
 import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helpers/format.helper';
 import { createNameSchema } from '@/utils/helpers/validation.helper';
-import { LinkButton, toast } from '@datum-ui/components';
-import { Dialog } from '@datum-ui/components/dialog';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Dialog } from '@datum-cloud/datum-ui/dialog';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';

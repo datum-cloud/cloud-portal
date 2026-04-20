@@ -1,6 +1,6 @@
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { type DomainSchema, domainSchema, useCreateDomain, type Domain } from '@/resources/domains';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
