@@ -12,8 +12,8 @@ import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { TaskQueueDropdown } from '@datum-cloud/datum-ui/task-queue';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { TaskQueueDropdown } from '@datum-ui/components/task-queue';
 import { BookOpen, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router';
 

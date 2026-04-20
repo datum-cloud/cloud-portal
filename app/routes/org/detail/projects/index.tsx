@@ -20,7 +20,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { useTaskQueue } from '@datum-ui/components';
+import { useTaskQueue } from '@datum-cloud/datum-ui/task-queue';
 import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
