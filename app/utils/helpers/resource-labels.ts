@@ -23,7 +23,7 @@ const RESOURCE_LABELS: Readonly<Record<string, string>> = Object.freeze({
   dnszonediscoveries: 'DNS Zone Discovery',
   httpproxies: 'HTTP Proxy',
   secrets: 'Secret',
-  policybindings: 'Policy Binding',
+  policybindings: 'Role',
   exportpolicies: 'Export Policy',
 });
 

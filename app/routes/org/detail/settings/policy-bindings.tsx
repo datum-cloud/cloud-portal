@@ -20,7 +20,7 @@ import { useCallback, useMemo, useRef } from 'react';
 import { LoaderFunctionArgs, MetaFunction, useLoaderData, useParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Policy Bindings');
+  return metaObject('Roles');
 });
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
@@ -44,6 +44,11 @@ export default function OrgPolicyBindingsPage() {
   const { confirm } = useConfirmationDialog();
 
   const deleteMutation = useDeletePolicyBinding(orgId ?? '', {
+    onSuccess: () => {
+      toast.success('Role', {
+        description: 'The role has been deleted successfully',
+      });
+    },
     onError: (error) => {
       toast.error('Error', { description: error.message });
     },
@@ -52,7 +57,7 @@ export default function OrgPolicyBindingsPage() {
   const deletePolicyBinding = useCallback(
     async (policyBinding: PolicyBinding) => {
       await confirm({
-        title: 'Delete Policy Binding',
+        title: 'Delete Role',
         description: (
           <span>
             Are you sure you want to delete&nbsp;
@@ -103,7 +108,7 @@ export default function OrgPolicyBindingsPage() {
               className="w-full sm:w-auto"
               onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
-              Add policy binding
+              Add role
             </Button>
           ),
         }}

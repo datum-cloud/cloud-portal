@@ -17,6 +17,7 @@ export interface PublicEnv {
 
   // Required: Authentication
   authOidcIssuer: string;
+  authZitadelProjectId?: string;
 
   // Optional: Observability
   sentryDsn?: string;

@@ -121,6 +121,17 @@ export const paths = {
         quotas: '/project/[projectId]/quotas',
         activity: '/project/[projectId]/activity',
       },
+      machineAccounts: {
+        root: '/project/[projectId]/machine-accounts',
+        detail: {
+          root: '/project/[projectId]/machine-accounts/[machineAccountId]',
+          overview: '/project/[projectId]/machine-accounts/[machineAccountId]/overview',
+          keys: '/project/[projectId]/machine-accounts/[machineAccountId]/keys',
+          policyBindings:
+            '/project/[projectId]/machine-accounts/[machineAccountId]/policy-bindings',
+          activity: '/project/[projectId]/machine-accounts/[machineAccountId]/activity',
+        },
+      },
     },
   },
 };

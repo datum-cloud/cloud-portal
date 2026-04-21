@@ -15,6 +15,7 @@ import {
   useCreatePolicyBinding,
   useUpdatePolicyBinding,
 } from '@/resources/policy-bindings';
+import { useProject } from '@/resources/projects';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
@@ -98,6 +99,26 @@ function ResourceSection({ isEdit }: { isEdit: boolean }) {
         )}
       </Form.Field>
     </div>
+  );
+}
+
+function HiddenResourceFields({
+  resource,
+}: {
+  resource: { ref: string; name: string; namespace?: string; uid?: string };
+}) {
+  return (
+    <>
+      <input type="hidden" name="resource.ref" value={resource.ref} onChange={() => {}} />
+      <input type="hidden" name="resource.name" value={resource.name} onChange={() => {}} />
+      <input
+        type="hidden"
+        name="resource.namespace"
+        value={resource.namespace}
+        onChange={() => {}}
+      />
+      <input type="hidden" name="resource.uid" value={resource.uid} onChange={() => {}} />
+    </>
   );
 }
 
@@ -243,66 +264,85 @@ export interface PolicyBindingFormDialogRef {
 
 interface PolicyBindingFormDialogProps {
   orgId: string;
+  scope?: 'org' | 'project';
+  projectId?: string;
+  /** When provided, subjects section is hidden and this subject is always used. */
+  subject?: { kind: string; name: string; uid?: string };
 }
 
 export const PolicyBindingFormDialog = forwardRef<
   PolicyBindingFormDialogRef,
   PolicyBindingFormDialogProps
->(({ orgId }, ref) => {
+>(({ orgId, scope = 'org', projectId, subject }, ref) => {
   const [open, setOpen] = useState(false);
   const [defaultValues, setDefaultValues] = useState<NewPolicyBindingSchema>(CREATE_DEFAULTS);
   const [editName, setEditName] = useState('');
 
+  const { data: project } = useProject(scope === 'project' ? (projectId ?? '') : '', {
+    enabled: scope === 'project' && !!projectId,
+  });
+
   const isEdit = !!editName;
 
-  const createMutation = useCreatePolicyBinding(orgId, {
-    onSuccess: () => {
-      toast.success('Policy binding', {
-        description: 'Policy binding has been created successfully',
-      });
-      setOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
-  });
+  const onSuccess = () => {
+    toast.success('Role', {
+      description: isEdit
+        ? 'Role has been updated successfully'
+        : 'Role has been created successfully',
+    });
+    setOpen(false);
+  };
+  const onError = (error: Error) => toast.error('Error', { description: error.message });
 
-  const updateMutation = useUpdatePolicyBinding(orgId, editName, {
-    onSuccess: () => {
-      toast.success('Policy binding', {
-        description: 'Policy binding has been updated successfully',
-      });
-      setOpen(false);
-    },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
-  });
+  const createMutation = useCreatePolicyBinding(orgId, { onSuccess, onError });
+  const updateMutation = useUpdatePolicyBinding(orgId, editName, { onSuccess, onError });
 
-  const show = useCallback((initialValues?: PolicyBinding) => {
-    if (initialValues?.uid) {
-      setEditName(initialValues.name);
-      setDefaultValues({
-        resource: {
-          ref: `${initialValues.resourceSelector?.resourceRef?.apiGroup?.toLowerCase() ?? ''}-${initialValues.resourceSelector?.resourceRef?.kind.toLowerCase() ?? ''}`,
-          name: initialValues.resourceSelector?.resourceRef?.name ?? '',
-          namespace: initialValues.resourceSelector?.resourceRef?.namespace ?? '',
-          uid: initialValues.resourceSelector?.resourceRef?.uid ?? '',
-        },
-        role: initialValues.roleRef?.name ?? '',
-        roleNamespace: initialValues.roleRef?.namespace ?? '',
-        subjects: initialValues.subjects.map((s) => ({
-          kind: s.kind,
-          name: s.name ?? '',
-          uid: s.uid ?? '',
-        })),
-      });
-    } else {
-      setEditName('');
-      setDefaultValues(CREATE_DEFAULTS);
-    }
-    setOpen(true);
-  }, []);
+  const show = useCallback(
+    (initialValues?: PolicyBinding) => {
+      if (initialValues?.uid) {
+        setEditName(initialValues.name);
+        setDefaultValues({
+          resource: {
+            ref: `${initialValues.resourceSelector?.resourceRef?.apiGroup?.toLowerCase() ?? ''}-${initialValues.resourceSelector?.resourceRef?.kind.toLowerCase() ?? ''}`,
+            name: initialValues.resourceSelector?.resourceRef?.name ?? '',
+            namespace: initialValues.resourceSelector?.resourceRef?.namespace ?? '',
+            uid: initialValues.resourceSelector?.resourceRef?.uid ?? '',
+          },
+          role: initialValues.roleRef?.name ?? '',
+          roleNamespace: initialValues.roleRef?.namespace ?? '',
+          subjects: initialValues.subjects.map((s) => ({
+            kind: s.kind,
+            name: s.name ?? '',
+            uid: s.uid ?? '',
+          })),
+        });
+      } else {
+        setEditName('');
+        const baseDefaults =
+          scope === 'project'
+            ? {
+                ...CREATE_DEFAULTS,
+                resource: {
+                  ref: 'resourcemanager.miloapis.com-project',
+                  name: projectId ?? '',
+                  namespace: project?.namespace ?? '',
+                  uid: project?.uid ?? '',
+                },
+              }
+            : CREATE_DEFAULTS;
+        setDefaultValues(
+          subject
+            ? {
+                ...baseDefaults,
+                subjects: [{ kind: subject.kind, name: subject.name, uid: subject.uid ?? '' }],
+              }
+            : baseDefaults
+        );
+      }
+      setOpen(true);
+    },
+    [scope, projectId, project, subject]
+  );
 
   const hide = useCallback(() => {
     setOpen(false);
@@ -324,7 +364,7 @@ export const PolicyBindingFormDialog = forwardRef<
         role: data.role,
         roleNamespace: data.roleNamespace,
         subjects: data.subjects.map((s) => ({
-          kind: s.kind as 'User' | 'Group',
+          kind: s.kind as 'User' | 'Group' | 'MachineAccount',
           name: s.name,
           uid: s.uid,
         })),
@@ -344,11 +384,9 @@ export const PolicyBindingFormDialog = forwardRef<
       key={open ? `open-${editName || 'create'}` : 'closed'}
       open={open}
       onOpenChange={setOpen}
-      title={isEdit ? 'Edit Policy Binding' : 'New Policy Binding'}
+      title={isEdit ? 'Edit Role' : 'New Role'}
       description={
-        isEdit
-          ? 'Edit the policy binding with the new values below.'
-          : 'Create a new policy binding to get started.'
+        isEdit ? 'Edit the role with the new values below.' : 'Create a new role to get started.'
       }
       schema={newPolicyBindingSchema}
       defaultValues={defaultValues}
@@ -358,9 +396,26 @@ export const PolicyBindingFormDialog = forwardRef<
       submitTextLoading={isEdit ? 'Saving...' : 'Creating...'}
       className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
       <div className="space-y-8 px-5 py-5">
-        <ResourceSection isEdit={isEdit} />
+        {scope === 'project' ? (
+          <HiddenResourceFields resource={defaultValues.resource} />
+        ) : (
+          <ResourceSection isEdit={isEdit} />
+        )}
         <RoleSection isEdit={isEdit} />
-        <SubjectsSection />
+        {subject ? (
+          <>
+            <input type="hidden" name="subjects[0].kind" value={subject.kind} onChange={() => {}} />
+            <input type="hidden" name="subjects[0].name" value={subject.name} onChange={() => {}} />
+            <input
+              type="hidden"
+              name="subjects[0].uid"
+              value={subject.uid ?? ''}
+              onChange={() => {}}
+            />
+          </>
+        ) : (
+          <SubjectsSection />
+        )}
       </div>
     </Form.Dialog>
   );

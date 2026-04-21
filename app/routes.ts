@@ -162,6 +162,25 @@ export default [
           ),
         ]),
 
+        // Machine Accounts
+        route('machine-accounts', 'routes/project/detail/machine-accounts/layout.tsx', [
+          index('routes/project/detail/machine-accounts/index.tsx'),
+          route(
+            ':machineAccountId',
+            'routes/project/detail/machine-accounts/detail/layout.tsx',
+            { id: 'machine-account-detail' },
+            [
+              route('overview', 'routes/project/detail/machine-accounts/detail/overview.tsx'),
+              route('keys', 'routes/project/detail/machine-accounts/detail/keys.tsx'),
+              route(
+                'policy-bindings',
+                'routes/project/detail/machine-accounts/detail/policy-bindings.tsx'
+              ),
+              route('activity', 'routes/project/detail/machine-accounts/detail/activity.tsx'),
+            ]
+          ),
+        ]),
+
         // Secrets
         route('secrets', 'routes/project/detail/secrets/layout.tsx', [
           index('routes/project/detail/secrets/index.tsx'),

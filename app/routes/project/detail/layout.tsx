@@ -22,6 +22,7 @@ import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  BotIcon,
   CableIcon,
   ChartSplineIcon,
   FileLockIcon,
@@ -250,6 +251,13 @@ export default function ProjectLayout() {
             queryFn: () => createSecretService().list(pid),
           });
         },
+      },
+      {
+        title: 'Machine Accounts',
+        href: getPathWithParams(paths.project.detail.machineAccounts.root, { projectId: pid }),
+        type: 'link',
+        icon: BotIcon,
+        disabled: !isReady,
       },
       {
         title: 'Project Settings',
