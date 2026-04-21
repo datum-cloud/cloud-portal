@@ -14,9 +14,11 @@ import { paths } from '@/utils/config/paths.config';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, Col, Row, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { RefreshCcwIcon, GlobeIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useRef, useEffect } from 'react';
 import {

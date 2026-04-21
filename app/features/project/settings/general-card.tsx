@@ -1,8 +1,10 @@
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { projectKeys, updateProjectSchema, useUpdateProject } from '@/resources/projects';
-import { Button, CardHeader, CardTitle, toast } from '@datum-ui/components';
-import { Card, CardContent, CardFooter } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 

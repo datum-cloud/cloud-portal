@@ -3,8 +3,8 @@ import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button, SpinnerIcon } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@shadcn/lib/utils';
 import {
   Command,

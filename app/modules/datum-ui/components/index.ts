@@ -20,7 +20,6 @@ export * from './input-number';
 export * from './input-with-addons';
 export * from './sheet';
 export * from './skeleton';
-export * from './sidebar';
 export * from './stepper';
 export * from './tabs';
 export * from './tag-input';

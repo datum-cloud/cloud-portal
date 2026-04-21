@@ -9,7 +9,10 @@ import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Card, CardContent, LinkButton, Badge, Tooltip } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 

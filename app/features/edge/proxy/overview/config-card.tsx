@@ -19,8 +19,12 @@ import {
 } from '@/resources/http-proxies';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Badge, Card, CardContent, toast, Tooltip, Skeleton } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Switch } from '@shadcn/ui/switch';
 import { CircleHelp, PencilIcon, SettingsIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';

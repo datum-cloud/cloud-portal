@@ -1,6 +1,7 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
-import { Card, CardContent, SpinnerIcon } from '@datum-ui/components';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 

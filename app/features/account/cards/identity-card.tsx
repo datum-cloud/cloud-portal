@@ -5,15 +5,10 @@ import GoogleIcon from '@/components/icon/google';
 import { useApp } from '@/providers/app.provider';
 import { useUserIdentities } from '@/resources/users';
 import { env } from '@/utils/env';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  LinkButton,
-  Tooltip,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { CircleAlertIcon, ExternalLinkIcon, MailIcon } from 'lucide-react';
 import { ComponentType, SVGProps } from 'react';
 

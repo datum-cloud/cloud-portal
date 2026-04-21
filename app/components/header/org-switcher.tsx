@@ -4,7 +4,7 @@ import { useApp } from '@/providers/app.provider';
 import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Building } from 'lucide-react';
 import { useNavigate } from 'react-router';
 

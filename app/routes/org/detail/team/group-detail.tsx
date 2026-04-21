@@ -23,7 +23,7 @@ import { createRoleService } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { withMiddleware } from '@/utils/middlewares';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useMemo } from 'react';
 import {
   LoaderFunctionArgs,

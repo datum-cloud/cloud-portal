@@ -1,24 +1,29 @@
 import { Field } from '@/components/field/field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
 import { SelectBox } from '@/components/select-box/select-box';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
-  Button,
-  Checkbox,
-  Input,
-  InputWithAddons,
-  Label,
-  RadioGroup,
-  RadioGroupItem,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
+import { Checkbox } from '@datum-cloud/datum-ui/checkbox';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
+import { Label } from '@datum-cloud/datum-ui/label';
+import { RadioGroup, RadioGroupItem } from '@datum-cloud/datum-ui/radio-group';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Switch,
-  TagsInput,
-  Textarea,
-} from '@datum-ui/components';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/select';
+import { Switch } from '@datum-cloud/datum-ui/switch';
+import { TagsInput } from '@datum-cloud/datum-ui/tag-input';
+import { Textarea } from '@datum-cloud/datum-ui/textarea';
 import { Globe, Mail, Search } from 'lucide-react';
 import { useState } from 'react';
 

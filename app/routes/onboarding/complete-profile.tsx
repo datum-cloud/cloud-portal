@@ -10,7 +10,8 @@ import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Card, CardContent, toast } from '@datum-ui/components';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 import {

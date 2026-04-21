@@ -4,10 +4,12 @@ import { DnsRecordTable } from '@/features/edge/dns-records';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { getImportResultStatus } from '@/utils/helpers/dns-record.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
-import { Alert, AlertDescription, AlertTitle, Button, Dialog } from '@datum-ui/components';
-import { Dropzone, DropzoneEmptyState } from '@datum-ui/components/dropzone/dropzone';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { ResponsiveDropdown } from '@datum-ui/components/responsive-dropdown';
+import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Dialog } from '@datum-cloud/datum-ui/dialog';
+import { Dropzone, DropzoneEmptyState } from '@datum-cloud/datum-ui/dropzone';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
 import { AlertCircle, DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 

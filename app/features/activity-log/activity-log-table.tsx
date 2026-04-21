@@ -8,7 +8,9 @@ import {
 } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import type { ActivityLogScope } from '@/resources/activity-logs';
-import { Button, Icon, toast } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { RefreshCcw } from 'lucide-react';
 import { useMemo, useEffect, useRef } from 'react';
 

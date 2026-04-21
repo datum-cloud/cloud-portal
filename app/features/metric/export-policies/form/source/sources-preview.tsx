@@ -1,9 +1,9 @@
 import { List, ListItem } from '@/components/list/list';
 import { ExportPolicySourceTypeEnum } from '@/resources/export-policies';
 import { ExportPolicySourcesSchema } from '@/resources/export-policies';
-import { Badge } from '@datum-ui/components';
-import { Tooltip } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Separator } from '@shadcn/ui/separator';
 import { CodeIcon } from 'lucide-react';
 import { useMemo } from 'react';

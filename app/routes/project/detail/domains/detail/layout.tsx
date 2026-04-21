@@ -6,7 +6,7 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-ui/components';
+import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,

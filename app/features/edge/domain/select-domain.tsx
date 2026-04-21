@@ -9,7 +9,7 @@ import {
 } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useInputControl } from '@conform-to/react';
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import type { AutocompleteOption, AutocompleteProps } from '@datum-ui/components/form';
 import { useFieldContext } from '@datum-ui/components/form';
 import { Autocomplete } from '@datum-ui/components/form/primitives';

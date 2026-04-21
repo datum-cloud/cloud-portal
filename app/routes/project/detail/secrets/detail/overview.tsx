@@ -3,8 +3,8 @@ import { EditSecretKeys } from '@/features/secret/form/edit/edit-keys';
 import { SecretDangerCard } from '@/features/secret/form/overview/danger-card';
 import { SecretGeneralCard } from '@/features/secret/form/overview/general-card';
 import { useSecret } from '@/resources/secrets';
-import { Row, Col } from '@datum-ui/components';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useParams, useRouteLoaderData } from 'react-router';
 
 export default function EditSecret() {

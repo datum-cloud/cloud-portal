@@ -1,5 +1,6 @@
-import { Button, Card, CardContent } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { TriangleAlertIcon } from 'lucide-react';
 
 export const DangerCard = ({

@@ -1,5 +1,5 @@
 import { GitHubLineIcon } from '@/components/icon/github-line';
-import { Card, CardContent } from '@datum-ui/components';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 
 export const ExportPolicyComingSoonCard = () => {
   return (
@@ -15,9 +15,11 @@ export const ExportPolicyComingSoonCard = () => {
           href="https://github.com/datum-cloud"
           target="_blank"
           rel="noreferrer"
-          className="bg-card border-card-quaternary dark:border-quaternary shadow-tooltip mt-3 flex items-center gap-3.5 rounded-lg border px-6 py-4">
+          className="bg-card border-card-quaternary dark:border-quaternary shadow-tooltip group mt-3 flex items-center gap-3.5 rounded-lg border px-6 py-4">
           <GitHubLineIcon className="dark:text-icon-tertiary text-icon-primary size-5" />
-          <span className="text-xs transition-all hover:underline">Share feedback on GitHub</span>
+          <span className="text-xs transition-all group-hover:underline">
+            Share feedback on GitHub
+          </span>
         </a>
       </CardContent>
     </Card>

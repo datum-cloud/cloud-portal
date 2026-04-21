@@ -3,8 +3,8 @@ import { AccountIdentitySettingsCard } from '@/features/account/cards/identity-c
 import { AccountNotificationSettingsCard } from '@/features/account/cards/notification-card';
 import { AccountProfileSettingsCard } from '@/features/account/cards/profile-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components/grid';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import type { MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

@@ -2,7 +2,7 @@ import { SubLayout } from '@/layouts';
 import { ProjectLayoutLoaderData } from '@/routes/project/detail/layout';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-ui/components';
+import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import { Outlet, useParams } from 'react-router';
 

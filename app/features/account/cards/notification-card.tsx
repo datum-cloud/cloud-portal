@@ -13,7 +13,7 @@ import {
   useDeleteNotificationContactGroupMembershipRemoval,
 } from '@/resources/notifications';
 import { generateId } from '@/utils/helpers/text.helper';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMemo } from 'react';
 import { z } from 'zod';
 

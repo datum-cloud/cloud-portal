@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/date-time';
-import { Badge } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { addMonths, isBefore } from 'date-fns';
 
 export interface DomainExpirationProps {

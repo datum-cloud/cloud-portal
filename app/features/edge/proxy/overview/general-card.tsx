@@ -10,8 +10,10 @@ import {
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Card, CardContent, Tooltip, Skeleton } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import {
   CircleHelp,
   ShieldCheckIcon,

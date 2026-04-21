@@ -2,16 +2,16 @@ import { REFRESH_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { Button } from '@datum-ui/components';
-import { Tooltip } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/select';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';

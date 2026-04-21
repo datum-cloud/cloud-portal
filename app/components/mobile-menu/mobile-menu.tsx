@@ -1,6 +1,8 @@
 import { LogoFlat } from '@/components/logo/logo-flat';
-import { Button, Sheet, SheetContent, SheetTrigger, SidebarProvider } from '@datum-ui/components';
-import { NavItem, NavMain } from '@datum-ui/components/sidebar';
+import { NavItem, NavMenu } from '@datum-cloud/datum-ui/app-navigation';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@datum-cloud/datum-ui/sheet';
+import { SidebarProvider } from '@datum-cloud/datum-ui/sidebar';
 import React, { useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router';
 
@@ -55,7 +57,7 @@ const MobileNavSheetContent = ({
 
   return (
     <SidebarProvider defaultOpen={true} className="!min-h-0">
-      <NavMain
+      <NavMenu
         className="h-fit py-2 [&_[data-sidebar=menu]]:!px-2"
         items={navItems}
         closeOnNavigation

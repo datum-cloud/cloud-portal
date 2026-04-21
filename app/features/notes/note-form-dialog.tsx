@@ -7,9 +7,9 @@ import {
   NOTE_MAX_HTML_LENGTH,
   NOTE_MAX_TEXT_LENGTH,
 } from '@/resources/notes/note.schema';
-import { toast } from '@datum-ui/components';
+import { RichTextEditor } from '@datum-cloud/datum-ui/rich-text-editor';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
-import { RichTextEditor } from '@datum-ui/components/rich-text-editor';
 import { useCallback } from 'react';
 
 interface NoteFormDialogProps {

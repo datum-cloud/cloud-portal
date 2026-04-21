@@ -3,7 +3,7 @@ import type { DnsRecordModalFormProps, DnsRecordModalFormRef } from './types';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { CreateDnsRecordSchema } from '@/resources/dns-records';
 import { recordToFormDefaultValue } from '@/utils/helpers/dns-record.helper';
-import { Dialog } from '@datum-ui/components/dialog';
+import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 
 export type { DnsRecordModalFormRef } from './types';

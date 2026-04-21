@@ -5,8 +5,8 @@ import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/descripti
 import { useDeleteDnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Col, Row } from '@datum-ui/components';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {

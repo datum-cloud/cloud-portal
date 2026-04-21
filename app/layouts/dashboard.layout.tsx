@@ -3,8 +3,8 @@ import { Header } from '@/components/header';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
-import { SidebarInset, SidebarProvider, useSidebar } from '@datum-ui/components';
-import { AppSidebar, NavItem } from '@datum-ui/components/sidebar';
+import { AppNavigation, NavItem } from '@datum-cloud/datum-ui/app-navigation';
+import { SidebarInset, SidebarProvider, useSidebar } from '@datum-cloud/datum-ui/sidebar';
 import { cn } from '@shadcn/lib/utils';
 import React, { useLayoutEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
@@ -114,7 +114,7 @@ export function DashboardLayout({
           } as React.CSSProperties
         }>
         {(navItems.length > 0 || sidebarHeader != null || sidebarLoading) && (
-          <AppSidebar
+          <AppNavigation
             title={sidebarHeader as any}
             navItems={navItems}
             collapsible={sidebarCollapsible}

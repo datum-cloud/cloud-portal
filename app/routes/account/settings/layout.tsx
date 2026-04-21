@@ -2,7 +2,7 @@ import { BackButton } from '@/components/back-button';
 import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import { DashboardLayout } from '@/layouts';
 import { paths } from '@/utils/config/paths.config';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { Outlet } from 'react-router';
 
 export default function AccountSettingsLayout() {

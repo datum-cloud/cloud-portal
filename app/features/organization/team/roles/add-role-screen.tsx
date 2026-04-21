@@ -3,16 +3,16 @@ import type { RoleScope, UserRoleAssignment } from './roles-editor.types';
 import { resolveAllPermissions } from './utils';
 import type { Role } from '@/resources/roles';
 import { useRole } from '@/resources/roles';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
 import {
-  Button,
-  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+} from '@datum-cloud/datum-ui/select';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowLeftIcon, BuildingIcon, FolderIcon, SearchIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';

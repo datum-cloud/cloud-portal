@@ -1,8 +1,8 @@
 import { useProjectContext } from '@/providers/project.provider';
-import { Button } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { Skeleton } from '@datum-ui/components/skeleton';
-import Tooltip from '@datum-ui/components/tooltip/tooltip';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@shadcn/lib/utils';
 import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';

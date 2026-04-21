@@ -4,8 +4,8 @@ import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/re
 import { NameserverTable } from '@/features/edge/nameservers';
 import { useDomain, useDomainWatch } from '@/resources/domains';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
-import { Col, Row } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams, useRouteLoaderData } from 'react-router';

@@ -2,7 +2,7 @@ import { Account2FACard } from '@/features/account/cards/2fa-card';
 import { AccountSignInMethodSettingsCard } from '@/features/account/cards/sign-in-method-card';
 import { AccountTeamAuthCard } from '@/features/account/cards/team-auth-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components/grid';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import type { MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {

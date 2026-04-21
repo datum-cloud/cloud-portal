@@ -1,14 +1,14 @@
 import type { DnsZone } from '@/resources/dns-zones';
 import { createDnsZoneSchema, useUpdateDnsZone } from '@/resources/dns-zones';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
-  toast,
-} from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/card';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 
 export const DescriptionFormCard = ({

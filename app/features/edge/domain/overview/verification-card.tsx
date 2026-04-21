@@ -1,8 +1,10 @@
 import { DateTime } from '@/components/date-time';
 import type { Domain } from '@/resources/domains';
-import { Card, CardContent, Tooltip, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { useCopyToClipboard } from '@datum-ui/hooks';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { useCopyToClipboard } from '@datum-cloud/datum-ui/hooks';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { BookOpenIcon, CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 

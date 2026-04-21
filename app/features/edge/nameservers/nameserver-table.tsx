@@ -2,8 +2,8 @@ import { NameserverChips } from '@/components/nameserver-chips';
 import { DataTable, DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
-import { Badge } from '@datum-ui/components';
-import { EmptyContentProps } from '@datum-ui/components/empty-content';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { EmptyContentProps } from '@datum-cloud/datum-ui/empty-content';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 

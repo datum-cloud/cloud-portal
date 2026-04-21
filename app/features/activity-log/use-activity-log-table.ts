@@ -1,6 +1,5 @@
 import { useApp } from '@/providers/app.provider';
 import { useActivityLogs, type ActivityLogScope } from '@/resources/activity-logs';
-import { deserializeTimeRange } from '@datum-ui/components/data-table/utils/time-range-serialization';
 import {
   type TimeRangeValue,
   toApiTimeRange,
@@ -8,7 +7,8 @@ import {
   getPresetByKey,
   getPresetRange,
   DEFAULT_PRESETS,
-} from '@datum-ui/components/time-range-picker';
+} from '@datum-cloud/datum-ui/date-picker';
+import { deserializeTimeRange } from '@datum-ui/components/data-table/utils/time-range-serialization';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 
 // ============================================

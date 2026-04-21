@@ -2,17 +2,14 @@ import { DateTime } from '@/components/date-time';
 import { MetricsProvider, usePrometheusChart } from '@/modules/metrics';
 import { BaseMetric } from '@/modules/metrics/components/base-metric';
 import { formatValue, transformForRecharts } from '@/modules/prometheus';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@datum-ui/components';
+} from '@datum-cloud/datum-ui/select';
 import {
   ChartContainer,
   ChartTooltip,

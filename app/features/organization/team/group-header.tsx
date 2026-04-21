@@ -7,7 +7,7 @@ import { useMembers, type Member } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { UsersRoundIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 

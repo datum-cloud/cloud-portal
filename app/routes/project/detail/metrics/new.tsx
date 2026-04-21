@@ -1,8 +1,8 @@
 import { ExportPolicyComingSoonCard } from '@/features/metric/export-policies/card/coming-soon-card';
 import { ExportPolicyGrafanaCard } from '@/features/metric/export-policies/card/grafana-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Col, Row } from '@datum-ui/components';
-import { PageTitle } from '@datum-ui/components/page-title';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useEffect, useRef } from 'react';
 import { MetaFunction, useParams, useSearchParams } from 'react-router';
 
@@ -38,13 +38,13 @@ export default function ExportPoliciesNewPage() {
       <PageTitle title="Create an Export Policy" />
 
       <Row gutter={[16, 16]}>
-        <Col xs={24} md={12}>
+        <Col xs={24} md={12} className="w-full md:h-full">
           <ExportPolicyGrafanaCard
             projectId={projectId as string}
             defaultOpen={initialOpenRef.current}
           />
         </Col>
-        <Col xs={24} md={12}>
+        <Col xs={24} md={12} className="w-full md:h-full">
           <ExportPolicyComingSoonCard />
         </Col>
       </Row>

@@ -16,10 +16,11 @@ import {
   useUpdatePolicyBinding,
 } from '@/resources/policy-bindings';
 import { useProject } from '@/resources/projects';
-import { Button, toast } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
-import { Input } from '@datum-ui/components/form/primitives/input';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 

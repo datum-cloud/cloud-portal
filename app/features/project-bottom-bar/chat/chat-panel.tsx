@@ -2,7 +2,7 @@ import { AssistantMessage, LoadingDots } from './assistant-message';
 import { ChatInput } from './chat-input';
 import { ChatSidebar } from './chat-sidebar';
 import { sanitizeUserHtml, useChatLogic } from './use-chat-logic';
-import { Icon } from '@datum-ui/components';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { isTextUIPart } from 'ai';
 import { ArrowDown, Menu, MessageSquarePlus } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';

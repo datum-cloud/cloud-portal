@@ -1,6 +1,6 @@
 import { useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
-import { toast } from '@datum-ui/components';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Form } from '@datum-ui/components/form';
 import { useImperativeHandle, useRef, useState } from 'react';
 import { z } from 'zod';

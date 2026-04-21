@@ -4,8 +4,8 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { LinkButton } from '@datum-ui/components';
-import { Dialog } from '@datum-ui/components/dialog';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { useState } from 'react';
 import { Link } from 'react-router';
 
