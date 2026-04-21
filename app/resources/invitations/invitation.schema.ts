@@ -6,6 +6,36 @@ import { z } from 'zod';
 export const INVITATION_STATE_VALUES = ['Pending', 'Accepted', 'Declined'] as const;
 export type InvitationState = (typeof INVITATION_STATE_VALUES)[number];
 
+/**
+ * Un-stringify a Conform-serialized array value so downstream schema validation
+ * sees an actual array instead of a literal `"[]"` / `'["a","b"]'` string.
+ * Returns a string[] when it can be parsed; otherwise passes through verbatim.
+ */
+function normalizeSerializedArray(val: unknown): string[] {
+  const unwrap = (v: unknown): string[] | null => {
+    if (typeof v === 'string' && v.startsWith('[') && v.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(v);
+        if (Array.isArray(parsed)) return parsed.map(String);
+      } catch {
+        // fall through
+      }
+    }
+    return null;
+  };
+
+  if (Array.isArray(val)) {
+    return val.flatMap((item) => {
+      const unwrapped = unwrap(item);
+      return unwrapped ?? [String(item)];
+    });
+  }
+  const unwrapped = unwrap(val);
+  if (unwrapped) return unwrapped;
+  if (typeof val === 'string' && val !== '') return [val];
+  return [];
+}
+
 // Inviter user schema
 export const inviterUserSchema = z.object({
   displayName: z.string(),
@@ -76,20 +106,28 @@ export const newInvitationSchema = z.object({
 });
 
 export const invitationFormSchema = z.object({
+  // The package's form adapter serializes array values as JSON strings.
+  // Un-stringify before validation so "[]" round-trips as [] (not a single
+  // invalid "[]" email entry).
   emails: z
-    .array(z.string())
-    .min(1, { message: 'At least one email is required' })
-    .superRefine((emails, ctx) => {
-      const emailSchema = z.email();
-      const invalid = emails.filter((e) => !emailSchema.safeParse(e).success);
-      if (invalid.length > 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Invalid email${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`,
-          path: [],
-        });
-      }
-    }),
+    .unknown()
+    .transform(normalizeSerializedArray)
+    .pipe(
+      z
+        .array(z.string())
+        .min(1, { message: 'At least one email is required' })
+        .superRefine((emails, ctx) => {
+          const emailSchema = z.email();
+          const invalid = emails.filter((e) => !emailSchema.safeParse(e).success);
+          if (invalid.length > 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Invalid email${invalid.length > 1 ? 's' : ''}: ${invalid.join(', ')}`,
+              path: [],
+            });
+          }
+        })
+    ),
   role: z.string({ error: 'Role is required.' }),
   roleNamespace: z.string().optional(),
 });

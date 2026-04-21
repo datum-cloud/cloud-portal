@@ -1,7 +1,8 @@
 import { InputName } from '@/components/input-name/input-name';
 import { SelectAnnotations } from '@/components/select-annotations/select-annotations';
 import { SelectLabels } from '@/components/select-labels/select-labels';
-import { Form } from '@datum-ui/components/form';
+import { toStringArray } from '@/utils/helpers/form-value.helper';
+import { Form } from '@datum-cloud/datum-ui/form';
 
 export const MetadataForm = ({ isEdit = false }: { isEdit?: boolean }) => {
   return (
@@ -25,7 +26,7 @@ export const MetadataForm = ({ isEdit = false }: { isEdit?: boolean }) => {
         description="Add labels to help identify, organize, and filter your resource.">
         {({ control }) => (
           <SelectLabels
-            defaultValue={control.value as string[]}
+            defaultValue={toStringArray(control.value)}
             onChange={(value) => control.change(value)}
           />
         )}
@@ -37,7 +38,7 @@ export const MetadataForm = ({ isEdit = false }: { isEdit?: boolean }) => {
         description="Add annotations to help identify, organize, and filter your resource.">
         {({ control }) => (
           <SelectAnnotations
-            defaultValue={control.value as string[]}
+            defaultValue={toStringArray(control.value)}
             onChange={(value) => control.change(value)}
           />
         )}

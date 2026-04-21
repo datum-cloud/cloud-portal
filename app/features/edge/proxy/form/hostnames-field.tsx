@@ -1,7 +1,7 @@
 import { SubdomainHostnameField } from '@/features/edge/proxy/form/subdomain-hostname-field';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Form, useFormContext } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Form, useFormContext } from '@datum-ui/components/form';
 import { PlusIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 

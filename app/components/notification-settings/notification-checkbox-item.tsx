@@ -1,5 +1,5 @@
 import type { RenderItemProps } from './types';
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
 
 export const NotificationCheckboxItem = ({ preference }: RenderItemProps) => {
   return (

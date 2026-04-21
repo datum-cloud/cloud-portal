@@ -1,7 +1,10 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { useProjects } from '@/resources/projects/project.queries';
+import type { Project } from '@/resources/projects/project.schema';
+import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
+
+export type SelectProjectOption = AutocompleteOption & Project;
 
 export const SelectProject = ({
   orgId,
@@ -15,7 +18,7 @@ export const SelectProject = ({
   orgId: string;
   defaultValue?: string;
   className?: string;
-  onSelect: (value: SelectBoxOption) => void;
+  onSelect: (value: SelectProjectOption) => void;
   name?: string;
   id?: string;
   disabled?: boolean;
@@ -29,7 +32,7 @@ export const SelectProject = ({
     }
   }, [error]);
 
-  const options = useMemo(() => {
+  const options = useMemo<SelectProjectOption[]>(() => {
     return projects.map((project) => ({
       value: project.name,
       label: project.displayName,
@@ -38,19 +41,20 @@ export const SelectProject = ({
   }, [projects]);
 
   return (
-    <SelectBox
+    <Autocomplete<SelectProjectOption>
       value={defaultValue}
       name={name}
       id={id}
       className={className}
-      onChange={(value: SelectBoxOption) => {
-        if (value) {
-          onSelect(value);
+      onValueChange={(value) => {
+        const option = options.find((opt) => opt.value === value);
+        if (option) {
+          onSelect(option);
         }
       }}
       options={options}
       placeholder="Select a Project"
-      isLoading={isLoading}
+      loading={isLoading}
       disabled={disabled}
     />
   );

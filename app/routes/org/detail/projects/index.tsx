@@ -18,10 +18,10 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue } from '@datum-cloud/datum-ui/task-queue';
-import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { FolderRoot, PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -51,6 +51,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { headers } = await setAlertClosed(request, 'projects_understanding');
   return data({ success: true }, { headers });
 };
+
+function ProjectResourceName({ field }: { field: NormalizedFieldState }) {
+  const description = useWatch('description') as string | undefined;
+
+  return (
+    <InputName
+      required
+      label="Resource ID"
+      showTooltip={false}
+      description="This unique resource ID will be used to identify your project and cannot be changed."
+      field={field}
+      baseName={description}
+    />
+  );
+}
 
 export default function OrgProjectsPage() {
   const { orgId } = useParams();
@@ -323,16 +338,7 @@ export default function OrgProjectsPage() {
           </Form.Field>
 
           <Form.Field name="name">
-            {({ field, fields }) => (
-              <InputName
-                required
-                label="Resource ID"
-                showTooltip={false}
-                description="This unique resource ID will be used to identify your project and cannot be changed."
-                field={field}
-                baseName={fields.description?.value as string}
-              />
-            )}
+            {({ field }) => <ProjectResourceName field={field} />}
           </Form.Field>
         </div>
       </Form.Dialog>

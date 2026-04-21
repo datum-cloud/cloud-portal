@@ -1,6 +1,6 @@
 import { Field } from '@/components/field/field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
-import { SelectBox } from '@/components/select-box/select-box';
+import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
@@ -158,9 +158,9 @@ export default function FormFieldsDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <Field label="Flat Select Box" description="Single level select">
-            <SelectBox
+            <Autocomplete
               value={selectBoxValue}
-              onChange={(option) => setSelectBoxValue(option?.value)}
+              onValueChange={(value) => setSelectBoxValue(value)}
               placeholder="Select a role"
               options={[
                 { value: 'owner', label: 'Owner', description: 'Full access to workspace' },
@@ -173,9 +173,9 @@ export default function FormFieldsDemo() {
           <Field
             label="Grouped Select Box"
             description="Use groups to organize large sets of options">
-            <SelectBox
+            <Autocomplete
               placeholder="Select a cluster"
-              groups={[
+              options={[
                 {
                   label: 'Production',
                   options: [

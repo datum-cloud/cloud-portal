@@ -13,6 +13,7 @@ import { csrf, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import { ConformAdapter } from '@datum-cloud/datum-ui/form/adapters/conform';
 import { configureProgress, startProgress, stopProgress } from '@datum-cloud/datum-ui/nprogress';
 import { ThemeProvider, ThemeScript, useTheme } from '@datum-cloud/datum-ui/theme';
 import { Toaster, useToast } from '@datum-cloud/datum-ui/toast';
@@ -229,7 +230,9 @@ export default function AppWithProviders() {
         <QueryClientProvider client={queryClient}>
           <GraphQLProvider urqlState={urqlState}>
             <NuqsAdapter>
-              <Outlet />
+              <ConformAdapter>
+                <Outlet />
+              </ConformAdapter>
             </NuqsAdapter>
           </GraphQLProvider>
         </QueryClientProvider>

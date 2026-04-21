@@ -1,6 +1,6 @@
 import { SelectRole } from '@/components/select-role/select-role';
 import { invitationFormSchema, type InvitationFormSchema } from '@/resources/invitations';
-import { getSelectProps, useInputControl } from '@conform-to/react';
+import { toStringArray } from '@/utils/helpers/form-value.helper';
 import {
   Card,
   CardContent,
@@ -9,21 +9,22 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Form, useField, type FormFieldRenderProps } from '@datum-cloud/datum-ui/form';
 import { TagsInput } from '@datum-cloud/datum-ui/tag-input';
-import { Form, type FormFieldRenderProps } from '@datum-ui/components/form';
 import { useNavigate } from 'react-router';
 
 /**
  * RoleFieldContent - Extracted component to properly use hooks
- * This is needed because useInputControl cannot be called inside a callback
+ * This is needed because useField cannot be called inside a callback
  */
-const RoleFieldContent = ({ control, meta, fields }: FormFieldRenderProps) => {
-  const roleNamespaceControl = useInputControl(fields.roleNamespace as any);
-  const roleValue = Array.isArray(control.value) ? control.value[0] : control.value;
+const RoleFieldContent = ({ control, meta }: FormFieldRenderProps) => {
+  const { control: roleNamespaceControl } = useField('roleNamespace');
+  const roleValue = Array.isArray(control.value)
+    ? (control.value[0] as string | undefined)
+    : (control.value as string | undefined);
 
   return (
     <SelectRole
-      {...getSelectProps(fields.role)}
       name={meta.name}
       id={meta.id}
       key={meta.id}
@@ -53,6 +54,7 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
       <Form.Root
         id="invitation-form"
         schema={invitationFormSchema}
+        mode="onBlur"
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
         defaultValues={{
@@ -74,8 +76,9 @@ export const InvitationForm = ({ onSubmit, isSubmitting }: InvitationFormProps) 
             description="Enter one or more emails (e.g., example@example.com). Press Enter, comma, or semicolon to add each email.">
             {({ control, field }) => (
               <TagsInput
-                {...getSelectProps(field, { value: false })}
-                value={(control.value as string[]) || []}
+                id={field.id}
+                name={field.name}
+                value={toStringArray(control.value)}
                 onValueChange={control.change}
                 placeholder="Enter email"
                 delimiters={['Enter', ',', ';', ' ']}
