@@ -76,7 +76,8 @@ describe('Organisations — regression', () => {
 
   it('should show quotas on the org quotas tab', () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.quotas, { orgId: resourceId }));
-    cy.get('[data-e2e="org-quota-card"]').should('have.length.at.least', 1);
+    // Quotas are provisioned async after org creation — allow extra time
+    cy.get('[data-e2e="org-quota-card"]', { timeout: 15000 }).should('have.length.at.least', 1);
   });
 
   it('should delete the org and remove it from the list', () => {

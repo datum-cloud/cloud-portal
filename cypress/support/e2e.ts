@@ -222,8 +222,14 @@ Cypress.Commands.add('logout', () => {
  */
 Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainable<string> => {
   cy.visit(paths.account.organizations.root);
-  cy.get('[data-e2e="create-organization-button"]').click();
-  cy.get('[data-e2e="create-organization-name-input"]').type(displayName);
+  // Wait for the list to finish its loading → loaded transition before clicking
+  // the header action. Otherwise the CardList re-renders mid-click and detaches
+  // the button, causing `cy.click()` to fail with "page updated while executing".
+  cy.get('[data-e2e="organization-card-personal"]', { timeout: 10000 }).should('be.visible');
+  cy.get('[data-e2e="create-organization-button"]').should('be.visible').click();
+  cy.get('[data-e2e="create-organization-name-input"]', { timeout: 10000 })
+    .should('be.visible')
+    .type(displayName);
   cy.contains('button', 'Confirm').click();
 
   return cy
