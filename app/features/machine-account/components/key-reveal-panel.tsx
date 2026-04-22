@@ -1,6 +1,8 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { DatumCredentialsFile } from '@/resources/machine-accounts';
-import { Button, CloseIcon, Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { CloseIcon } from '@datum-cloud/datum-ui/icons';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
 import { CheckIcon, CopyIcon, DownloadIcon, ThumbsUpIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 

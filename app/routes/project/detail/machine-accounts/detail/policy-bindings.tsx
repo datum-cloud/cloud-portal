@@ -13,8 +13,9 @@ import {
   type PolicyBinding,
 } from '@/resources/policy-bindings';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Button, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { ShieldIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 import { MetaFunction, useParams } from 'react-router';
