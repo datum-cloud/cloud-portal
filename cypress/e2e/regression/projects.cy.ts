@@ -84,7 +84,8 @@ describe('Projects — regression', () => {
 
   it('should show quotas on the project quotas tab', () => {
     cy.visit(getPathWithParams(paths.project.detail.settings.quotas, { projectId: resourceId }));
-    cy.get('[data-e2e="project-quota-card"]').should('have.length.at.least', 1);
+    // Quotas are provisioned async after project creation — allow extra time
+    cy.get('[data-e2e="project-quota-card"]', { timeout: 15000 }).should('have.length.at.least', 1);
   });
 
   it('should delete the project and remove it from the list', () => {
