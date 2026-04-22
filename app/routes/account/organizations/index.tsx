@@ -1,5 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
+import { CardList } from '@/components/card-list';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
@@ -16,10 +17,8 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { DataTable } from '@datum-ui/components';
 import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
-import { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -99,46 +98,6 @@ export default function AccountOrganizations() {
     alertFetcher.submit({}, { method: 'POST' });
   };
 
-  const columns: ColumnDef<Organization>[] = useMemo(
-    () => [
-      {
-        header: 'Organization',
-        accessorKey: 'name',
-        id: 'name',
-        cell: ({ row }) => {
-          return (
-            <div
-              className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2"
-              data-e2e={`organization-card-${row.original.type.toLowerCase()}`}>
-              <div className="flex items-center gap-5">
-                <Icon
-                  icon={Building}
-                  className={cn(
-                    'text-icon-primary size-4',
-                    row.original.type === 'Personal' && 'text-primary'
-                  )}
-                />
-                <span>{row.original.displayName || row.original.name}</span>
-              </div>
-              <div className="flex w-full items-center justify-between gap-4 md:w-auto md:gap-6">
-                <BadgeCopy
-                  data-e2e={`organization-card-id-copy`}
-                  value={row.original.name ?? ''}
-                  text={row.original.name ?? ''}
-                  badgeTheme="solid"
-                  badgeType="muted"
-                  textClassName="max-w-[8rem] truncate sm:max-w-[12rem] md:max-w-none"
-                />
-                <BadgeStatus status={row.original.type} />
-              </div>
-            </div>
-          );
-        },
-      },
-    ],
-    []
-  );
-
   const handleSubmit = async (formData: z.infer<typeof organizationFormSchema>) => {
     await createMutation.mutateAsync({
       name: formData.name,
@@ -152,23 +111,14 @@ export default function AccountOrganizations() {
     <div className="mx-auto flex w-full flex-col gap-4 sm:gap-6">
       <Row gutter={[0, 24]}>
         <Col span={24}>
-          <DataTable
-            error={orgsError}
-            isLoading={_isLoading}
-            hideHeader
-            mode="card"
-            hidePagination
-            columns={columns}
+          <CardList<Organization>
             data={orgs}
-            tableCardClassName={(row: Organization) => {
-              return row.type === 'Personal' ? 'text-primary border-primary ' : '';
-            }}
-            onRowClick={(row) => {
-              navigate(getPathWithParams(paths.org.detail.root, { orgId: row.name }));
-            }}
-            tableTitle={{
-              title: 'Organizations',
-              actions: (
+            getId={(org) => org.name}
+            loading={_isLoading}
+            error={orgsError}>
+            <CardList.Header
+              title="Organizations"
+              actions={
                 <Button
                   htmlType="button"
                   onClick={() => setOpenDialog(true)}
@@ -180,29 +130,58 @@ export default function AccountOrganizations() {
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
                   Create organization
                 </Button>
-              ),
-            }}
-            emptyContent={{
-              title: "Looks like you don't have any organizations added yet",
-              actions: [
-                {
-                  type: 'button',
-                  label: 'Add a organization',
-                  onClick: () => setOpenDialog(true),
-                  variant: 'default',
-                  icon: <Icon icon={ArrowRightIcon} className="size-4" />,
-                  iconPosition: 'end',
-                },
-              ],
-            }}
-            toolbar={{
-              layout: 'compact',
-              includeSearch: {
-                placeholder: 'Search organizations',
-              },
-              filtersDisplay: 'dropdown',
-            }}
-          />
+              }>
+              <CardList.Search<Organization>
+                placeholder="Search organizations"
+                fields={['displayName', 'name']}
+              />
+            </CardList.Header>
+            <CardList.Items<Organization>
+              renderCard={(org) => (
+                <div
+                  className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2"
+                  data-e2e={`organization-card-${org.type.toLowerCase()}`}>
+                  <div className="flex items-center gap-5">
+                    <Icon
+                      icon={Building}
+                      className={cn(
+                        'text-icon-primary size-4',
+                        org.type === 'Personal' && 'text-primary'
+                      )}
+                    />
+                    <span>{org.displayName || org.name}</span>
+                  </div>
+                  <div className="flex w-full items-center justify-between gap-4 md:w-auto md:gap-6">
+                    <BadgeCopy
+                      data-e2e="organization-card-id-copy"
+                      value={org.name ?? ''}
+                      text={org.name ?? ''}
+                      badgeTheme="solid"
+                      badgeType="muted"
+                      textClassName="max-w-[8rem] truncate sm:max-w-[12rem] md:max-w-none"
+                    />
+                    <BadgeStatus status={org.type} />
+                  </div>
+                </div>
+              )}
+              cardClassName={(org) =>
+                org.type === 'Personal' ? 'text-primary border-primary' : ''
+              }
+              onSelect={(org) =>
+                navigate(getPathWithParams(paths.org.detail.root, { orgId: org.name }))
+              }
+            />
+            <CardList.Empty
+              title="Looks like you don't have any organizations added yet"
+              action={{
+                label: 'Add a organization',
+                onClick: () => setOpenDialog(true),
+                icon: <Icon icon={ArrowRightIcon} className="size-4" />,
+                iconPosition: 'end',
+                variant: 'default',
+              }}
+            />
+          </CardList>
         </Col>
 
         {showAlert && !_isLoading && (
