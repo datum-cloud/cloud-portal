@@ -1,10 +1,10 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { PolicyBindingTable } from '@/features/policy-binding';
+import type { PolicyBindingTableRowAction } from '@/features/policy-binding';
 import {
   PolicyBindingFormDialog,
   type PolicyBindingFormDialogRef,
 } from '@/features/policy-binding/form/policy-binding-form-dialog';
-import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import { useMachineAccount } from '@/resources/machine-accounts';
 import {
@@ -71,7 +71,7 @@ export default function MachineAccountPolicyBindingsPage() {
     [confirm, deleteMutation]
   );
 
-  const rowActions: DataTableRowActionsProps<PolicyBinding>[] = useMemo(
+  const rowActions: PolicyBindingTableRowAction[] = useMemo(
     () => [
       {
         key: 'delete',
