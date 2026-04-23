@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react';
-
 import { EmptyContent } from '@datum-ui/components/empty-content';
+import type { ReactNode } from 'react';
 
 export interface EmptyContentConfig {
   title?: string;
@@ -23,7 +22,7 @@ export interface EmptyContentConfig {
  * - `EmptyContentConfig`   → `<EmptyContent ... />`
  */
 export function resolveEmptyContent(
-  emptyContent: string | EmptyContentConfig | undefined,
+  emptyContent: string | EmptyContentConfig | undefined
 ): ReactNode {
   if (emptyContent === undefined) {
     return undefined;
@@ -35,15 +34,17 @@ export function resolveEmptyContent(
 
   const { title, description, actions } = emptyContent;
 
-  return EmptyContent({
-    title,
-    subtitle: description,
-    actions: actions?.map(({ label, type, onClick, href, icon }) => ({
-      label,
-      type,
-      onClick,
-      to: href,
-      icon,
-    })),
-  });
+  return (
+    <EmptyContent
+      title={title}
+      subtitle={description}
+      actions={actions?.map(({ label, type, onClick, href, icon }) => ({
+        label,
+        type,
+        onClick,
+        to: href,
+        icon,
+      }))}
+    />
+  );
 }
