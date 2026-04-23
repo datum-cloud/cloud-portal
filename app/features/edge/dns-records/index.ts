@@ -1,11 +1,11 @@
 export { DnsRecordAiEdgeCell } from './dns-record-ai-edge-cell';
 export { DnsRecordTable } from './dns-record-table';
+export type { DnsRecordTableProps } from './dns-record-table';
 export { DnsRecordCard } from './dns-record-card';
 export { isEligibleForProtect } from './utils';
 
 export type {
   DnsRecordCardProps,
-  DnsRecordTableProps,
   DnsRecordInlineFormProps,
   DnsRecordModalFormProps,
 } from './types';
