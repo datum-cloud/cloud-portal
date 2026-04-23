@@ -1,26 +1,33 @@
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
+import type { ActionItem } from '@/components/data-table';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { DataTable, DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
-import { DataTableTitleProps } from '@/modules/datum-ui/components/data-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { EmptyContentProps } from '@datum-cloud/datum-ui/empty-content';
 import { ColumnDef } from '@tanstack/react-table';
+import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 
 export interface NameserverTableProps {
   data: IDnsNameserver[];
   registration?: IDnsRegistration;
-  tableTitle?: DataTableTitleProps;
-  emptyContent?: EmptyContentProps;
+  title?: string;
+  titleActions?: ReactNode;
+  emptyMessage?: string;
   className?: string;
-  rowActions?: DataTableRowActionsProps<IDnsNameserver>[];
+  rowActions?: ActionItem<IDnsNameserver>[];
 }
 
 export const NameserverTable = ({
   data,
   registration,
-  tableTitle,
-  emptyContent,
+  title,
+  titleActions,
+  emptyMessage,
   className,
   rowActions,
 }: NameserverTableProps) => {
@@ -75,23 +82,25 @@ export const NameserverTable = ({
           );
         },
       },
+      ...(rowActions && rowActions.length > 0
+        ? [createActionsColumn<IDnsNameserver>(rowActions)]
+        : []),
     ],
-    [registration]
+    [registration, rowActions]
   );
 
+  const stateAdapter = useNuqsAdapter();
+
   return (
-    <DataTable
-      className={className}
-      hidePagination
+    <DataTable.Client
+      stateAdapter={stateAdapter}
       columns={columns}
       data={data}
-      tableTitle={tableTitle}
-      emptyContent={
-        emptyContent || {
-          title: 'No nameservers found',
-        }
-      }
-      rowActions={rowActions}
-    />
+      className={className}>
+      {(title || titleActions) && (
+        <DataTableToolbar title={title} actions={titleActions ? [titleActions] : undefined} />
+      )}
+      <DataTable.Content emptyMessage={emptyMessage ?? 'No nameservers found'} />
+    </DataTable.Client>
   );
 };

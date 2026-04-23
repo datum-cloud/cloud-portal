@@ -1,6 +1,11 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import { useGroups, useDeleteGroup } from '@/resources/groups';
@@ -122,7 +127,21 @@ export default function GroupsPage() {
         header: 'Group Name',
         accessorKey: 'name',
         enableSorting: false,
-        cell: ({ row }) => <span className="text-sm font-semibold">{row.original.name}</span>,
+        cell: ({ row }) => (
+          <button
+            type="button"
+            className="w-full text-left"
+            onClick={() =>
+              navigate(
+                getPathWithParams(paths.org.detail.team.groupDetail, {
+                  orgId,
+                  groupId: row.original.name,
+                })
+              )
+            }>
+            <span className="text-sm font-semibold">{row.original.name}</span>
+          </button>
+        ),
       },
       {
         header: 'Members',
@@ -144,65 +163,45 @@ export default function GroupsPage() {
           );
         },
       },
+      createActionsColumn<GroupRow>([
+        {
+          key: 'delete',
+          label: 'Delete group',
+          variant: 'destructive',
+          icon: <Icon icon={TrashIcon} className="size-4" />,
+          hidden: (row) => !hasDeleteGroupPermission || row.memberCount > 0,
+          onClick: (row) => deleteGroup(row),
+        },
+      ]),
     ],
-    []
+    [hasDeleteGroupPermission, deleteGroup, navigate, orgId]
   );
 
-  const rowActions = useMemo(
-    () => [
-      {
-        key: 'delete',
-        label: 'Delete group',
-        variant: 'destructive' as const,
-        icon: <Icon icon={TrashIcon} className="size-4" />,
-        hidden: (row: GroupRow) => !hasDeleteGroupPermission || row.memberCount > 0,
-        action: (row: GroupRow) => deleteGroup(row),
-      },
-    ],
-    [hasDeleteGroupPermission, deleteGroup]
-  );
+  const stateAdapter = useNuqsAdapter();
 
   return (
-    <DataTable
-      isLoading={isLoading}
-      columns={columns}
-      data={groupRows}
-      tableTitle={{
-        title: 'Groups',
-        actions: hasCreateGroupPermission && (
-          <Link
-            to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
-            className="w-full sm:w-auto">
-            <Button className="w-full">
-              <Icon icon={PlusIcon} className="size-4" />
-              Create Group
-            </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: { placeholder: 'Search groups' },
-      }}
-      rowActions={rowActions}
-      onRowClick={(row) =>
-        navigate(getPathWithParams(paths.org.detail.team.groupDetail, { orgId, groupId: row.name }))
-      }
-      emptyContent={{
-        title: 'No groups yet',
-        actions: hasCreateGroupPermission
-          ? [
-              {
-                type: 'link',
-                label: 'Create a group',
-                to: getPathWithParams(paths.org.detail.team.groupCreate, { orgId }),
-                variant: 'default',
-                icon: <Icon icon={ArrowRightIcon} className="size-4" />,
-                iconPosition: 'end',
-              },
-            ]
-          : [],
-      }}
-    />
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={groupRows}>
+      <DataTableToolbar
+        title="Groups"
+        search={{ placeholder: 'Search groups' }}
+        actions={
+          hasCreateGroupPermission
+            ? [
+                <Link
+                  key="create"
+                  to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
+                  className="w-full sm:w-auto">
+                  <Button className="w-full">
+                    <Icon icon={PlusIcon} className="size-4" />
+                    Create Group
+                  </Button>
+                </Link>,
+              ]
+            : []
+        }
+      />
+      <DataTable.Content />
+      <DataTable.Pagination />
+    </DataTable.Client>
   );
 }

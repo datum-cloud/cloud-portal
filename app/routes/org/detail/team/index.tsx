@@ -1,6 +1,11 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { useCancelInvitation, useResendInvitation, useInvitations } from '@/resources/invitations';
@@ -14,8 +19,8 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
+import { useMemo, useCallback } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 
 // Generic interface for combined team data
@@ -179,72 +184,84 @@ export default function OrgTeamPage() {
     return ownerCount === 1; // True if user is the only owner
   }, [teamMembers, user?.email]);
 
-  const cancelInvitation = async (row: ITeamMember) => {
-    await confirm({
-      title: 'Cancel Invitation',
-      description: (
-        <span>
-          Are you sure you want to cancel the invitation for&nbsp;
-          <strong>{row.email}</strong>?
-        </span>
-      ),
-      submitText: 'Cancel',
-      cancelText: 'Close',
-      variant: 'destructive',
-      showConfirmInput: false,
-      onSubmit: async () => {
-        cancelInvitationMutation.mutate(row?.id ?? '');
-      },
-    });
-  };
+  const cancelInvitation = useCallback(
+    async (row: ITeamMember) => {
+      await confirm({
+        title: 'Cancel Invitation',
+        description: (
+          <span>
+            Are you sure you want to cancel the invitation for&nbsp;
+            <strong>{row.email}</strong>?
+          </span>
+        ),
+        submitText: 'Cancel',
+        cancelText: 'Close',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          cancelInvitationMutation.mutate(row?.id ?? '');
+        },
+      });
+    },
+    [confirm, cancelInvitationMutation]
+  );
 
-  const resendInvitation = async (id: string) => {
-    resendInvitationMutation.mutate(id);
-  };
+  const resendInvitation = useCallback(
+    async (id: string) => {
+      resendInvitationMutation.mutate(id);
+    },
+    [resendInvitationMutation]
+  );
 
-  const removeMember = async (row: ITeamMember) => {
-    await confirm({
-      title: 'Remove Member',
-      description: (
-        <span>
-          Are you sure you want to remove&nbsp;
-          <strong>
-            {row.fullName} ({row.email})
-          </strong>{' '}
-          from the organization?
-        </span>
-      ),
-      submitText: 'Remove',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: false,
-      onSubmit: async () => {
-        removeMemberMutation.mutate(row?.name ?? '');
-      },
-    });
-  };
+  const removeMember = useCallback(
+    async (row: ITeamMember) => {
+      await confirm({
+        title: 'Remove Member',
+        description: (
+          <span>
+            Are you sure you want to remove&nbsp;
+            <strong>
+              {row.fullName} ({row.email})
+            </strong>{' '}
+            from the organization?
+          </span>
+        ),
+        submitText: 'Remove',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          removeMemberMutation.mutate(row?.name ?? '');
+        },
+      });
+    },
+    [confirm, removeMemberMutation]
+  );
 
-  const leaveTeam = async (row: ITeamMember) => {
-    await confirm({
-      title: 'Leave Organization',
-      description: (
-        <span>
-          Are you sure you want to leave this organization? You will lose access to all organization
-          resources and will need to be re-invited to rejoin.
-        </span>
-      ),
-      submitText: 'Leave',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: false,
-      onSubmit: async () => {
-        leaveOrganizationMutation.mutate({
-          orgId,
-          memberName: row?.name ?? '',
-        });
-      },
-    });
-  };
+  const leaveTeam = useCallback(
+    async (row: ITeamMember) => {
+      await confirm({
+        title: 'Leave Organization',
+        description: (
+          <span>
+            Are you sure you want to leave this organization? You will lose access to all
+            organization resources and will need to be re-invited to rejoin.
+          </span>
+        ),
+        submitText: 'Leave',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          leaveOrganizationMutation.mutate({
+            orgId,
+            memberName: row?.name ?? '',
+          });
+        },
+      });
+    },
+    [confirm, leaveOrganizationMutation, orgId]
+  );
 
   const columns: ColumnDef<ITeamMember>[] = useMemo(() => {
     return [
@@ -257,7 +274,7 @@ export default function OrgTeamPage() {
           const name = row.original.fullName ?? row.original.email;
           const subtitle = row.original.email;
 
-          return (
+          const content = (
             <div className="flex w-full items-center justify-between gap-2">
               <div className="flex items-center gap-3">
                 <ProfileIdentity
@@ -289,148 +306,108 @@ export default function OrgTeamPage() {
               )}
             </div>
           );
-        },
-      },
-    ];
-  }, []);
 
-  const rowActions = useMemo(
-    () => [
-      // Resend invitation (for pending invites only)
-      {
-        key: 'resend',
-        label: 'Resend invitation',
-        display: 'inline' as const,
-        icon: <Icon icon={Redo2Icon} className="size-4" />,
-        hidden: (row: ITeamMember) =>
-          row.type !== 'invitation' || row.invitationState !== 'Pending',
-        action: (row: ITeamMember) => resendInvitation(row.id),
-        'data-e2e': 'resend-invitation-button',
-      },
-      // Cancel invitation (for invites only)
-      {
-        key: 'cancel',
-        label: 'Cancel invitation',
-        display: 'inline' as const,
-        variant: 'destructive' as const,
-        icon: <Icon icon={TrashIcon} className="size-4" />,
-        hidden: (row: ITeamMember) => row.type !== 'invitation',
-        action: (row: ITeamMember) => cancelInvitation(row),
-        'data-e2e': 'cancel-invitation-button',
-      },
-      // Remove member (for OTHER members, not self)
-      {
-        key: 'remove',
-        label: 'Remove member',
-        display: 'inline' as const,
-        variant: 'destructive' as const,
-        icon: <Icon icon={TrashIcon} className="size-4" />,
-        hidden: (row: ITeamMember) => {
-          // Hide if not a member
-          if (row.type !== 'member') return true;
-
-          // Hide if it's current user (use "Leave" instead)
-          if (row.email === user?.email) return true;
-
-          // Hide if no permission
-          if (!hasRemoveMemberPermission) return true;
-
-          return false;
-        },
-        action: (row: ITeamMember) => removeMember(row),
-      },
-      // Leave team (for current user only)
-      {
-        key: 'leave',
-        label: 'Leave team',
-        display: 'inline' as const,
-        hidden: (row: ITeamMember) => {
-          // Only show for members
-          if (row.type !== 'member') return true;
-
-          // Only show for current user
-          if (row.email !== user?.email) return true;
-
-          return false;
-        },
-        disabled: (_row: ITeamMember) => {
-          // Disable if user is the last owner
-          if (isLastOwner) return true;
-
-          return false;
-        },
-        tooltip: (_row: ITeamMember) => {
-          // Show helpful message when disabled
-          if (isLastOwner) {
-            return (
-              <span>
-                You are the last owner. To leave the organization, <br /> first assign ownership to
-                another member.
-              </span>
-            );
+          if (row.original.type !== 'member') {
+            return content;
           }
-          return undefined;
+
+          return (
+            <button
+              type="button"
+              className="w-full text-left"
+              onClick={() =>
+                navigate(
+                  getPathWithParams(paths.org.detail.team.roles, {
+                    orgId,
+                    memberId: row.original.name ?? '',
+                  })
+                )
+              }>
+              {content}
+            </button>
+          );
         },
-        action: (row: ITeamMember) => leaveTeam(row),
       },
-    ],
-    [user?.email, hasRemoveMemberPermission, isLastOwner]
-  );
+      createActionsColumn<ITeamMember>((row) => [
+        // Resend invitation (for pending invites only)
+        {
+          key: 'resend',
+          label: 'Resend invitation',
+          icon: <Icon icon={Redo2Icon} className="size-4" />,
+          hidden: row.type !== 'invitation' || row.invitationState !== 'Pending',
+          onClick: (r) => resendInvitation(r.id),
+        },
+        // Cancel invitation (for invites only)
+        {
+          key: 'cancel',
+          label: 'Cancel invitation',
+          variant: 'destructive' as const,
+          icon: <Icon icon={TrashIcon} className="size-4" />,
+          hidden: row.type !== 'invitation',
+          onClick: (r) => cancelInvitation(r),
+        },
+        // Remove member (for OTHER members, not self)
+        {
+          key: 'remove',
+          label: 'Remove member',
+          variant: 'destructive' as const,
+          icon: <Icon icon={TrashIcon} className="size-4" />,
+          hidden:
+            row.type !== 'member' || row.email === user?.email || !hasRemoveMemberPermission,
+          onClick: (r) => removeMember(r),
+        },
+        // Leave team (for current user only)
+        {
+          key: 'leave',
+          label: 'Leave team',
+          hidden: row.type !== 'member' || row.email !== user?.email,
+          disabled: isLastOwner,
+          tooltip: isLastOwner
+            ? 'You are the last owner. To leave the organization, first assign ownership to another member.'
+            : undefined,
+          onClick: (r) => leaveTeam(r),
+        },
+      ]),
+    ];
+  }, [
+    user?.email,
+    hasRemoveMemberPermission,
+    isLastOwner,
+    orgId,
+    navigate,
+    resendInvitation,
+    cancelInvitation,
+    removeMember,
+    leaveTeam,
+  ]);
+
+  const stateAdapter = useNuqsAdapter();
 
   return (
-    <>
-      <DataTable
-        isLoading={isLoading}
-        columns={columns}
-        data={orderedTeamMembers ?? []}
-        tableTitle={{
-          title: 'Team',
-          actions: hasInviteMemberPermission && (
-            <Link
-              to={getPathWithParams(paths.org.detail.team.invite, {
-                orgId,
-              })}
-              className="w-full sm:w-auto">
-              <Button className="w-full" data-e2e="invite-member-button">
-                <Icon icon={UserPlusIcon} className="size-4" />
-                Invite Member
-              </Button>
-            </Link>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search team members',
-          },
-        }}
-        onRowClick={(row) => {
-          if (row.type !== 'member') return;
-          navigate(
-            getPathWithParams(paths.org.detail.team.roles, {
-              orgId,
-              memberId: row.name ?? '',
-            })
-          );
-        }}
-        rowActions={rowActions}
-        maxInlineActions={4}
-        emptyContent={{
-          title: "Looks like you don't have any team members added yet",
-          actions: [
-            {
-              type: 'link',
-              label: 'Invite a team member',
-              to: getPathWithParams(paths.org.detail.team.invite, {
-                orgId,
-              }),
-              variant: 'default',
-              icon: <Icon icon={ArrowRightIcon} className="size-4" />,
-              iconPosition: 'end',
-            },
-          ],
-        }}
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={orderedTeamMembers ?? []}>
+      <DataTableToolbar
+        title="Team"
+        search={{ placeholder: 'Search team members' }}
+        actions={
+          hasInviteMemberPermission
+            ? [
+                <Link
+                  key="invite"
+                  to={getPathWithParams(paths.org.detail.team.invite, {
+                    orgId,
+                  })}
+                  className="w-full sm:w-auto">
+                  <Button className="w-full" data-e2e="invite-member-button">
+                    <Icon icon={UserPlusIcon} className="size-4" />
+                    Invite Member
+                  </Button>
+                </Link>,
+              ]
+            : []
+        }
       />
-    </>
+      <DataTable.Content />
+      <DataTable.Pagination />
+    </DataTable.Client>
   );
 }

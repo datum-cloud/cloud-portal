@@ -1,4 +1,4 @@
-import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { DataTable, useNuqsAdapter } from '@/components/data-table';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -134,14 +134,12 @@ export const QuotasTable = ({
     ];
   }, [data, resourceType]);
 
+  const stateAdapter = useNuqsAdapter();
+
   return (
-    <DataTable
-      columns={columns}
-      data={data}
-      emptyContent={{
-        title: 'No quotas found',
-        subtitle: 'No quota information is available at this time.',
-      }}
-    />
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data}>
+      <DataTable.Content emptyMessage="No quotas found" />
+      <DataTable.Pagination />
+    </DataTable.Client>
   );
 };
