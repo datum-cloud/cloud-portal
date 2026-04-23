@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import type { ReactNode } from 'react'
-import type { MultiAction } from './data-table-toolbar-actions'
-import { DataTable } from '@datum-cloud/datum-ui/data-table'
-import { PageTitle } from '@datum-ui/components/page-title'
-import { cn } from '@shadcn/lib/utils'
-import { DataTableToolbarActions } from './data-table-toolbar-actions'
-import { DataTableToolbarRowCount } from './data-table-toolbar-row-count'
+import type { MultiAction } from './data-table-toolbar-actions';
+import { DataTableToolbarActions } from './data-table-toolbar-actions';
+import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';
+import { DataTable } from '@datum-cloud/datum-ui/data-table';
+import { PageTitle } from '@datum-ui/components/page-title';
+import { cn } from '@shadcn/lib/utils';
+import type { ReactNode } from 'react';
 
 export interface DataTableToolbarProps<TData = unknown> {
-  variant?: 'compact' | 'stacked'
-  title?: string
-  description?: ReactNode
-  search?: boolean | { placeholder?: string }
-  filters?: ReactNode[]
-  actions?: ReactNode[]
-  multiActions?: MultiAction<TData>[]
-  className?: string
+  variant?: 'compact' | 'stacked';
+  title?: string;
+  description?: ReactNode;
+  search?: boolean | { placeholder?: string };
+  filters?: ReactNode[];
+  actions?: ReactNode[];
+  multiActions?: MultiAction<TData>[];
+  className?: string;
 }
 
 export function DataTableToolbar<TData = unknown>({
@@ -29,7 +29,7 @@ export function DataTableToolbar<TData = unknown>({
   multiActions,
   className,
 }: DataTableToolbarProps<TData>) {
-  const searchPlaceholder = typeof search === 'object' ? search.placeholder : 'Search...'
+  const searchPlaceholder = typeof search === 'object' ? search.placeholder : 'Search...';
 
   return (
     <div className={cn('space-y-2', className)}>
@@ -47,13 +47,10 @@ export function DataTableToolbar<TData = unknown>({
       <div
         className={cn(
           'flex w-full gap-2',
-          variant === 'compact' ? 'flex-row flex-wrap items-center' : 'flex-col',
+          variant === 'compact' ? 'flex-row flex-wrap items-center' : 'flex-col'
         )}>
         {search && (
-          <DataTable.Search
-            placeholder={searchPlaceholder}
-            className="w-full flex-1 sm:max-w-md"
-          />
+          <DataTable.Search placeholder={searchPlaceholder} className="w-full flex-1 sm:max-w-md" />
         )}
         {filters && filters.length > 0 && (
           <div className="flex flex-wrap items-center gap-2">{filters}</div>
@@ -67,5 +64,5 @@ export function DataTableToolbar<TData = unknown>({
       </div>
       {filters && filters.length > 0 && <DataTable.ActiveFilters />}
     </div>
-  )
+  );
 }

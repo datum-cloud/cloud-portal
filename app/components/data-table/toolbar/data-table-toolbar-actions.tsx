@@ -1,52 +1,52 @@
-'use client'
+'use client';
 
-import type { ReactNode } from 'react'
-import { DataTable, useDataTableSelection } from '@datum-cloud/datum-ui/data-table'
-import { Button } from '@datum-ui/components/button/button'
-import { cn } from '@shadcn/lib/utils'
+import { DataTable, useDataTableSelection } from '@datum-cloud/datum-ui/data-table';
+import { Button } from '@datum-ui/components/button/button';
+import { cn } from '@shadcn/lib/utils';
+import type { ReactNode } from 'react';
 
 export interface MultiActionButton<TData> {
-  key: string
-  label: string
-  icon?: ReactNode
+  key: string;
+  label: string;
+  icon?: ReactNode;
   /** Button type variant. Defaults to 'quaternary'. */
-  type?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'danger' | 'success' | 'warning'
+  type?: 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'danger' | 'success' | 'warning';
   /** Button theme. Defaults to 'outline'. */
-  theme?: 'solid' | 'outline' | 'light' | 'link' | 'borderless'
+  theme?: 'solid' | 'outline' | 'light' | 'link' | 'borderless';
   /** Button size. Defaults to 'small'. */
-  size?: 'default' | 'small' | 'xs' | 'large' | 'icon'
-  disabled?: (rows: TData[]) => boolean
-  action: (rows: TData[]) => void
-  className?: string
+  size?: 'default' | 'small' | 'xs' | 'large' | 'icon';
+  disabled?: (rows: TData[]) => boolean;
+  action: (rows: TData[]) => void;
+  className?: string;
 }
 
 export interface MultiActionRender<TData> {
-  key: string
+  key: string;
   render: (args: {
-    selectedRows: TData[]
-    selectedRowIds: string[]
-    clearSelection: () => void
-  }) => ReactNode
+    selectedRows: TData[];
+    selectedRowIds: string[];
+    clearSelection: () => void;
+  }) => ReactNode;
 }
 
-export type MultiAction<TData> = MultiActionButton<TData> | MultiActionRender<TData>
+export type MultiAction<TData> = MultiActionButton<TData> | MultiActionRender<TData>;
 
 function isButtonAction<TData>(a: MultiAction<TData>): a is MultiActionButton<TData> {
-  return 'action' in a
+  return 'action' in a;
 }
 
 export interface DataTableToolbarActionsProps<TData> {
-  actions: MultiAction<TData>[]
-  className?: string
+  actions: MultiAction<TData>[];
+  className?: string;
 }
 
 export function DataTableToolbarActions<TData>({
   actions,
   className,
 }: DataTableToolbarActionsProps<TData>) {
-  const { selectedRows, rowSelection, setRowSelection } = useDataTableSelection<TData>()
-  const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id])
-  const clearSelection = () => setRowSelection({})
+  const { selectedRows, rowSelection, setRowSelection } = useDataTableSelection<TData>();
+  const selectedRowIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+  const clearSelection = () => setRowSelection({});
 
   return (
     <DataTable.BulkActions<TData>>
@@ -67,16 +67,16 @@ export function DataTableToolbarActions<TData>({
                   className={cn('w-full sm:w-auto', action.className)}>
                   {action.label}
                 </Button>
-              )
+              );
             }
             return (
               <span key={action.key}>
                 {action.render({ selectedRows, selectedRowIds, clearSelection })}
               </span>
-            )
+            );
           })}
         </div>
       )}
     </DataTable.BulkActions>
-  )
+  );
 }

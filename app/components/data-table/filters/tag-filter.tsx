@@ -1,41 +1,44 @@
-'use client'
+'use client';
 
-import { useEffect } from 'react'
-import { useDataTableFilters } from '@datum-cloud/datum-ui/data-table'
-import { Badge } from '@datum-ui/components'
-import { Button } from '@datum-ui/components/button/button'
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover'
-import { cn } from '@shadcn/lib/utils'
+import { useDataTableFilters } from '@datum-cloud/datum-ui/data-table';
+import { Badge } from '@datum-ui/components';
+import { Button } from '@datum-ui/components/button/button';
+import { cn } from '@shadcn/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 
 export interface TagFilterOption {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 export interface TagFilterProps {
-  column: string
-  label: string
-  options: TagFilterOption[]
-  className?: string
+  column: string;
+  label: string;
+  options: TagFilterOption[];
+  className?: string;
 }
 
 export function TagFilter({ column, label, options, className }: TagFilterProps) {
-  const { filters, setFilter, clearFilter } = useDataTableFilters()
+  const { filters, setFilter, clearFilter } = useDataTableFilters();
 
-  const selected = (filters[column] as string[] | undefined) ?? []
+  const selected = (filters[column] as string[] | undefined) ?? [];
 
   function toggle(value: string) {
     const next = selected.includes(value)
       ? selected.filter((v) => v !== value)
-      : [...selected, value]
-    if (next.length > 0) setFilter(column, next)
-    else clearFilter(column)
+      : [...selected, value];
+    if (next.length > 0) setFilter(column, next);
+    else clearFilter(column);
   }
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button type="quaternary" theme="outline" size="small" className={cn('h-8 border-dashed', className)}>
+        <Button
+          type="quaternary"
+          theme="outline"
+          size="small"
+          className={cn('h-8 border-dashed', className)}>
           {label}
           {selected.length > 0 && (
             <Badge type="secondary" className="ml-1 rounded-sm px-1 font-normal">
@@ -51,15 +54,16 @@ export function TagFilter({ column, label, options, className }: TagFilterProps)
             type="button"
             onClick={() => toggle(opt.value)}
             className={cn(
-              'flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-muted',
+              'hover:bg-muted flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs',
               selected.includes(opt.value) && 'font-medium'
             )}>
-            <span className={cn(
-              'flex size-4 items-center justify-center rounded-sm border',
-              selected.includes(opt.value)
-                ? 'bg-primary border-primary text-primary-foreground'
-                : 'border-muted-foreground'
-            )}>
+            <span
+              className={cn(
+                'flex size-4 items-center justify-center rounded-sm border',
+                selected.includes(opt.value)
+                  ? 'bg-primary border-primary text-primary-foreground'
+                  : 'border-muted-foreground'
+              )}>
               {selected.includes(opt.value) && '✓'}
             </span>
             {opt.label}
@@ -67,5 +71,5 @@ export function TagFilter({ column, label, options, className }: TagFilterProps)
         ))}
       </PopoverContent>
     </Popover>
-  )
+  );
 }

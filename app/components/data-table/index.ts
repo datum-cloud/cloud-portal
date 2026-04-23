@@ -6,7 +6,11 @@ export { DataTableToolbar } from './toolbar/data-table-toolbar';
 export type { DataTableToolbarProps } from './toolbar/data-table-toolbar';
 
 // Toolbar actions
-export type { MultiAction, MultiActionButton, MultiActionRender } from './toolbar/data-table-toolbar-actions';
+export type {
+  MultiAction,
+  MultiActionButton,
+  MultiActionRender,
+} from './toolbar/data-table-toolbar-actions';
 
 // Local filters
 export { TagFilter } from './filters/tag-filter';

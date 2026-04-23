@@ -22,7 +22,7 @@ export {
   DEFAULT_PAGE_SIZES,
   // Store creation
   createDataTableStore,
-} from '@datum-cloud/datum-ui/data-table'
+} from '@datum-cloud/datum-ui/data-table';
 
 export type {
   // Type exports
@@ -61,4 +61,4 @@ export type {
   UseDataTableClientOptions,
   UseDataTableServerOptions,
   UseNuqsAdapterOptions,
-} from '@datum-cloud/datum-ui/data-table'
+} from '@datum-cloud/datum-ui/data-table';

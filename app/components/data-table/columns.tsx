@@ -1,6 +1,6 @@
-import type { ColumnDef } from '@tanstack/react-table'
-import type { ActionItem } from '@datum-cloud/datum-ui/data-table'
-import { DataTable } from '@datum-cloud/datum-ui/data-table'
+import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
+import { DataTable } from '@datum-cloud/datum-ui/data-table';
+import type { ColumnDef } from '@tanstack/react-table';
 
 /**
  * Creates a standardized actions column for data tables.
@@ -57,5 +57,5 @@ export function createActionsColumn<TData>(
         actions={typeof actions === 'function' ? actions(row.original) : actions}
       />
     ),
-  }
+  };
 }
