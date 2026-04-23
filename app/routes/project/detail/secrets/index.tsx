@@ -1,9 +1,14 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
+import type { ActionItem } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/secret-form-dialog';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
   createSecretService,
   useDeleteSecret,
@@ -130,42 +135,32 @@ export default function SecretsPage() {
     [projectId]
   );
 
-  const rowActions: DataTableRowActionsProps<Secret>[] = useMemo(
+  const rowActions: ActionItem<Secret>[] = useMemo(
     () => [
       {
-        key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteSecret(row),
+        onClick: (row) => deleteSecret(row),
       },
     ],
-    [projectId]
+    [deleteSecret]
   );
+
+  const columnsWithActions = useMemo(
+    () => [...columns, createActionsColumn<Secret>(rowActions)],
+    [columns, rowActions]
+  );
+
+  const stateAdapter = useNuqsAdapter();
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        data={data ?? []}
-        emptyContent={{
-          title: "let's add a secret to get you started",
-          actions: [
-            {
-              type: 'button',
-              label: 'Add secret',
-              onClick: () => secretFormDialogRef.current?.show(),
-              variant: 'default',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
-            },
-          ],
-        }}
-        tableTitle={{
-          title: 'Secrets',
-          description:
-            'Store sensitive values like API keys and tokens that can be securely referenced by other resources without exposing the underlying value.',
-          actions: (
+      <DataTable.Client stateAdapter={stateAdapter} columns={columnsWithActions} data={data ?? []}>
+        <DataTableToolbar
+          title="Secrets"
+          actions={[
             <Button
+              key="add-secret"
               type="primary"
               theme="solid"
               size="small"
@@ -174,26 +169,12 @@ export default function SecretsPage() {
               onClick={() => secretFormDialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add secret
-            </Button>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search secrets',
-          },
-        }}
-        defaultSorting={[{ id: 'createdAt', desc: true }]}
-        rowActions={rowActions}
-        onRowClick={(row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.secrets.detail.overview, {
-              projectId,
-              secretId: row.name,
-            })
-          );
-        }}
-      />
+            </Button>,
+          ]}
+        />
+        <DataTable.Content />
+        <DataTable.Pagination />
+      </DataTable.Client>
       <SecretFormDialog ref={secretFormDialogRef} />
     </>
   );

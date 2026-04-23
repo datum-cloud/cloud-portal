@@ -1,8 +1,8 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { CodeEditor } from '@/components/code-editor/code-editor';
+import { DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -64,6 +64,8 @@ export const WorkloadSinksTable = ({
   data: IExportPolicyControlResponse['sinks'];
   status: IExportPolicyControlResponse['status'];
 }) => {
+  const stateAdapter = useNuqsAdapter();
+
   const columns = useMemo(() => {
     const sinkStatus = status?.sinks;
     return [
@@ -153,11 +155,10 @@ export const WorkloadSinksTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <DataTable
-          columns={columns}
-          data={data ?? []}
-          emptyContent={{ title: 'No sinks found.' }}
-        />
+        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []}>
+          <DataTableToolbar title="Sinks" />
+          <DataTable.Content />
+        </DataTable.Client>
       </CardContent>
     </Card>
   );
