@@ -53,7 +53,7 @@ export default function HttpProxyPage() {
 
   useHttpProxiesWatch(projectId);
 
-  const { data, isLoading, error } = useHttpProxies(projectId, {
+  const { data } = useHttpProxies(projectId, {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });

@@ -26,7 +26,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { LoaderFunctionArgs, useLoaderData, useParams, useNavigate } from 'react-router';
+import { LoaderFunctionArgs, useLoaderData, useParams } from 'react-router';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
@@ -43,7 +43,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 export default function SecretsPage() {
   const initialData = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
   const secretFormDialogRef = useRef<SecretFormDialogRef>(null);
   const { projectId } = useParams();

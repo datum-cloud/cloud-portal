@@ -56,17 +56,15 @@ export default function GroupsPage() {
     throw new Error('Organization ID is required');
   }
 
-  const { data: groups = [], isLoading: groupsLoading } = useGroups(orgId, {
+  const { data: groups = [] } = useGroups(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-  const { data: memberships = [], isLoading: membershipsLoading } = useGroupMemberships(orgId, {
+  const { data: memberships = [] } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-  const { data: members = [], isLoading: membersLoading } = useMembers(orgId, {
+  const { data: members = [] } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-
-  const isLoading = groupsLoading || membershipsLoading || membersLoading;
 
   const { hasPermission: hasCreateGroupPermission } = useHasPermission('groups', 'create', {
     namespace: buildOrganizationNamespace(orgId),

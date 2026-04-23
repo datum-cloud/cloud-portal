@@ -49,14 +49,12 @@ export default function OrgTeamPage() {
     throw new Error('Organization ID is required');
   }
 
-  const { data: members = [], isLoading: membersLoading } = useMembers(orgId, {
+  const { data: members = [] } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-  const { data: invitations = [], isLoading: invitationsLoading } = useInvitations(orgId, {
+  const { data: invitations = [] } = useInvitations(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-
-  const isLoading = membersLoading || invitationsLoading;
 
   // Transform members to team members format
   const memberTeamMembers: ITeamMember[] = useMemo(() => {
