@@ -1,5 +1,11 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import {
@@ -8,8 +14,6 @@ import {
 } from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { DataTable, type DataTableRef } from '@/modules/datum-ui/components/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import {
   createDnsZoneService,
@@ -154,7 +158,7 @@ export default function DomainsPage() {
   const { project, organization } = useApp();
   const domainFormRef = useRef<DomainFormDialogRef>(null);
   const [bulkAddPopoverOpen, setBulkAddPopoverOpen] = useState(false);
-  const tableRef = useRef<DataTableRef<FormattedDomain>>(null);
+  const stateAdapter = useNuqsAdapter();
 
   // Open create dialog from URL search params (e.g. ?action=create)
   useEffect(() => {
@@ -234,6 +238,15 @@ export default function DomainsPage() {
     }
   };
 
+  const handleNavigateToDomain = (row: FormattedDomain) => {
+    navigate(
+      getPathWithParams(paths.project.detail.domains.detail.overview, {
+        projectId,
+        domainId: row.name,
+      })
+    );
+  };
+
   const columns: ColumnDef<FormattedDomain>[] = useMemo(
     () => [
       {
@@ -242,9 +255,13 @@ export default function DomainsPage() {
         id: 'domainName',
         cell: ({ row }) => {
           return (
-            <div data-e2e="domain-card">
+            <button
+              type="button"
+              data-e2e="domain-card"
+              className="cursor-pointer text-left"
+              onClick={() => handleNavigateToDomain(row.original)}>
               <span data-e2e="domain-name">{row.original.domainName}</span>
-            </div>
+            </button>
           );
         },
         meta: {
@@ -362,35 +379,26 @@ export default function DomainsPage() {
           sortType: 'text',
         },
       },
-    ],
-    []
-  );
-
-  const rowActions: DataTableRowActionsProps<FormattedDomain>[] = useMemo(
-    () => [
-      {
-        key: 'refresh',
-        label: 'Refresh',
-        variant: 'default',
-        action: (row) => handleRefreshDomain(row),
-      },
-      {
-        key: 'dnsZone',
-        label: 'Manage DNS Zone',
-        variant: 'default',
-        action: (row) => handleManageDnsZone(row),
-      },
-      {
-        key: 'delete',
-        label: 'Delete',
-        variant: 'destructive',
-        action: (row) => handleDeleteDomain(row),
-      },
+      createActionsColumn<FormattedDomain>([
+        {
+          label: 'Refresh',
+          onClick: (row) => handleRefreshDomain(row),
+        },
+        {
+          label: 'Manage DNS Zone',
+          onClick: (row) => handleManageDnsZone(row),
+        },
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onClick: (row) => handleDeleteDomain(row),
+        },
+      ]),
     ],
     [projectId]
   );
 
-  const handleDeleteDomains = async (domains: FormattedDomain[]) => {
+  const handleDeleteDomains = async (domains: FormattedDomain[], clearSelection: () => void) => {
     await confirm({
       title: 'Delete Domains',
       description: (
@@ -462,90 +470,83 @@ export default function DomainsPage() {
           },
         });
 
-        tableRef.current?.clearSelection();
+        clearSelection();
       },
     });
   };
 
   return (
     <>
-      <DataTable
-        ref={tableRef}
-        pageSize={50}
+      <DataTable.Client
+        stateAdapter={stateAdapter}
         columns={columns}
         data={formattedDomains}
-        enableMultiSelect
         getRowId={(row) => row.name}
-        onRowClick={(row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.domains.detail.overview, {
-              projectId,
-              domainId: row.name,
-            })
-          );
-        }}
-        emptyContent={{
-          title: "let's add a domain to get you started",
-          actions: [
+        enableRowSelection>
+        <DataTableToolbar<FormattedDomain>
+          title="Domains"
+          description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
+          search={{ placeholder: 'Search domains' }}
+          actions={[
+            <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
+            <Button
+              key="create"
+              type="primary"
+              theme="solid"
+              size="small"
+              className="w-full sm:w-auto"
+              data-e2e="create-domain-button"
+              onClick={() => domainFormRef.current?.show()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Add domain
+            </Button>,
+          ]}
+          multiActions={[
             {
-              type: 'button',
-              label: 'Add domain',
-              onClick: () => domainFormRef.current?.show(),
-              variant: 'default',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
+              key: 'delete',
+              render: ({ selectedRows, clearSelection }) => (
+                <Button
+                  type="danger"
+                  theme="outline"
+                  size="small"
+                  icon={<Icon icon={TrashIcon} className="size-4" />}
+                  iconPosition="left"
+                  onClick={() => handleDeleteDomains(selectedRows, clearSelection)}>
+                  Delete Selected
+                </Button>
+              ),
             },
-            {
-              type: 'button',
-              label: 'Bulk add domains',
-              onClick: () => setBulkAddPopoverOpen(true),
-              variant: 'outline',
-              icon: <Icon icon={ListChecksIcon} className="size-3" />,
-              iconPosition: 'start',
-            },
-          ],
-        }}
-        tableTitle={{
-          description:
-            'Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features.',
-          title: 'Domains',
-          actions: (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
-              <BulkAddDomainsAction projectId={projectId!} />
-              <Button
-                type="primary"
-                theme="solid"
-                size="small"
-                className="w-full sm:w-auto"
-                data-e2e="create-domain-button"
-                onClick={() => domainFormRef.current?.show()}>
-                <Icon icon={PlusIcon} className="size-4" />
-                Add domain
-              </Button>
+          ]}
+        />
+        <DataTable.Content
+          emptyMessage={
+            <div className="flex flex-col items-center gap-3 py-6">
+              <p className="text-muted-foreground text-sm">
+                {"let's add a domain to get you started"}
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button
+                  type="primary"
+                  theme="solid"
+                  size="small"
+                  onClick={() => domainFormRef.current?.show()}>
+                  <Icon icon={PlusIcon} className="size-3" />
+                  Add domain
+                </Button>
+                <Button
+                  type="quaternary"
+                  theme="outline"
+                  size="small"
+                  onClick={() => setBulkAddPopoverOpen(true)}>
+                  <Icon icon={ListChecksIcon} className="size-3" />
+                  Bulk add domains
+                </Button>
+              </div>
             </div>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search domains',
-          },
-          filtersDisplay: 'dropdown',
-          showRowCount: true,
-        }}
-        multiActions={[
-          {
-            key: 'delete',
-            label: 'Delete Selected',
-            size: 'small',
-            icon: <Icon icon={TrashIcon} className="size-4" />,
-            type: 'danger',
-            theme: 'outline',
-            action: (rows) => handleDeleteDomains(rows),
-          },
-        ]}
-        rowActions={rowActions}
-      />
+          }
+        />
+        <DataTable.Pagination />
+      </DataTable.Client>
 
       <DomainFormDialog
         ref={domainFormRef}
