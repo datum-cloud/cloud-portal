@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -159,7 +160,7 @@ export default function ExportPoliciesPage() {
   );
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={policies ?? []}>
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={policies ?? []} className="space-y-4">
       <DataTableToolbar
         title="Export Policies"
         description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
@@ -176,8 +177,10 @@ export default function ExportPoliciesPage() {
           </Link>,
         ]}
       />
-      <DataTable.Content emptyMessage="let's add an export policy to get you started" />
-      <DataTable.Pagination />
+      <DataTablePanel>
+        <DataTable.Content emptyMessage="let's add an export policy to get you started" />
+        <DataTable.Pagination />
+      </DataTablePanel>
     </DataTable.Client>
   );
 }

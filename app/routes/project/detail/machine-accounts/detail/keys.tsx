@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -200,7 +201,7 @@ export default function MachineAccountKeysPage() {
         </div>
       )}
 
-      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={keys}>
+      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={keys} className="space-y-4">
         <DataTableToolbar
           title="Keys"
           actions={[
@@ -217,8 +218,10 @@ export default function MachineAccountKeysPage() {
             </Button>,
           ]}
         />
-        <DataTable.Content />
-        <DataTable.Pagination />
+        <DataTablePanel>
+          <DataTable.Content />
+          <DataTable.Pagination />
+        </DataTablePanel>
       </DataTable.Client>
 
       <MachineAccountKeyFormDialog

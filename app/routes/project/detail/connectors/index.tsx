@@ -1,5 +1,5 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
+import { DataTable, DataTablePanel, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
@@ -286,7 +286,7 @@ export default function ConnectorsPage() {
   );
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={tableData}>
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={tableData} className="space-y-4">
       <DataTableToolbar
         title="Connectors"
         search={{ placeholder: 'Search' }}
@@ -296,8 +296,10 @@ export default function ConnectorsPage() {
             : undefined
         }
       />
-      <DataTable.Content emptyMessage="No connectors found" />
-      <DataTable.Pagination />
+      <DataTablePanel>
+        <DataTable.Content emptyMessage="No connectors found" />
+        <DataTable.Pagination />
+      </DataTablePanel>
     </DataTable.Client>
   );
 }

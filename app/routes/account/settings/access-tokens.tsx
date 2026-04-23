@@ -1,5 +1,5 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { createActionsColumn, DataTable, useNuqsAdapter } from '@/components/data-table';
+import { createActionsColumn, DataTable, DataTablePanel, useNuqsAdapter } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -98,9 +98,11 @@ export default function AccountActiveSessionsPage() {
         </Button>
       </Col>
       <Col span={24}>
-        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={DUMMIES}>
-          <DataTable.Content emptyMessage="No access tokens found." />
-          <DataTable.Pagination />
+        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={DUMMIES} className="space-y-4">
+          <DataTablePanel>
+            <DataTable.Content emptyMessage="No access tokens found." />
+            <DataTable.Pagination />
+          </DataTablePanel>
         </DataTable.Client>
       </Col>
     </Row>

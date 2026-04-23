@@ -1,6 +1,7 @@
 import { getPolicyBindingColumns } from './policy-binding.columns';
 import {
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   createActionsColumn,
   useNuqsAdapter,
@@ -47,14 +48,16 @@ export const PolicyBindingTable = ({
   const actions = tableTitle?.actions ? [tableTitle.actions] : undefined;
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={bindings ?? []}>
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={bindings ?? []} className="space-y-4">
       <DataTableToolbar
         title={tableTitle?.title}
         description={tableTitle?.description}
         actions={actions}
       />
-      <DataTable.Content emptyMessage="No roles found." />
-      <DataTable.Pagination />
+      <DataTablePanel>
+        <DataTable.Content emptyMessage="No roles found." />
+        <DataTable.Pagination />
+      </DataTablePanel>
     </DataTable.Client>
   );
 };

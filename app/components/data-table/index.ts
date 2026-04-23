@@ -18,5 +18,8 @@ export type { TagFilterProps, TagFilterOption } from './filters/tag-filter';
 export { TimeRangeFilter } from './filters/time-range-filter';
 export type { TimeRangeFilterProps } from './filters/time-range-filter';
 
+// Panel (bordered + rounded container for Content + Pagination)
+export { DataTablePanel } from './data-table-panel';
+
 // Helpers
 export { createActionsColumn } from './columns';

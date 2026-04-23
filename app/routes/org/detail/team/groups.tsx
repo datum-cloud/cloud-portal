@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -178,7 +179,7 @@ export default function GroupsPage() {
   const stateAdapter = useNuqsAdapter();
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={groupRows}>
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={groupRows} className="space-y-4">
       <DataTableToolbar
         title="Groups"
         search={{ placeholder: 'Search groups' }}
@@ -198,8 +199,10 @@ export default function GroupsPage() {
             : []
         }
       />
-      <DataTable.Content />
-      <DataTable.Pagination />
+      <DataTablePanel>
+        <DataTable.Content />
+        <DataTable.Pagination />
+      </DataTablePanel>
     </DataTable.Client>
   );
 }

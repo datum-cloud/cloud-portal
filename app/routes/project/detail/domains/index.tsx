@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -500,7 +501,8 @@ export default function DomainsPage() {
         columns={columns}
         data={formattedDomains}
         getRowId={(row) => row.name}
-        enableRowSelection>
+        enableRowSelection
+        className="space-y-4">
         <DataTableToolbar<FormattedDomain>
           title="Domains"
           description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
@@ -536,34 +538,36 @@ export default function DomainsPage() {
             },
           ]}
         />
-        <DataTable.Content
-          emptyMessage={
-            <div className="flex flex-col items-center gap-3 py-6">
-              <p className="text-muted-foreground text-sm">
-                {"let's add a domain to get you started"}
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button
-                  type="primary"
-                  theme="solid"
-                  size="small"
-                  onClick={() => domainFormRef.current?.show()}>
-                  <Icon icon={PlusIcon} className="size-3" />
-                  Add domain
-                </Button>
-                <Button
-                  type="quaternary"
-                  theme="outline"
-                  size="small"
-                  onClick={() => setBulkAddPopoverOpen(true)}>
-                  <Icon icon={ListChecksIcon} className="size-3" />
-                  Bulk add domains
-                </Button>
+        <DataTablePanel>
+          <DataTable.Content
+            emptyMessage={
+              <div className="flex flex-col items-center gap-3 py-6">
+                <p className="text-muted-foreground text-sm">
+                  {"let's add a domain to get you started"}
+                </p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <Button
+                    type="primary"
+                    theme="solid"
+                    size="small"
+                    onClick={() => domainFormRef.current?.show()}>
+                    <Icon icon={PlusIcon} className="size-3" />
+                    Add domain
+                  </Button>
+                  <Button
+                    type="quaternary"
+                    theme="outline"
+                    size="small"
+                    onClick={() => setBulkAddPopoverOpen(true)}>
+                    <Icon icon={ListChecksIcon} className="size-3" />
+                    Bulk add domains
+                  </Button>
+                </div>
               </div>
-            </div>
-          }
-        />
-        <DataTable.Pagination />
+            }
+          />
+          <DataTable.Pagination />
+        </DataTablePanel>
       </DataTable.Client>
 
       <DomainFormDialog

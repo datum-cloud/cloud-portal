@@ -3,6 +3,7 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -225,7 +226,7 @@ export default function HttpProxyPage() {
 
   return (
     <>
-      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []}>
+      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []} className="space-y-4">
         <DataTableToolbar
           title="AI Edge"
           description="Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services."
@@ -244,8 +245,10 @@ export default function HttpProxyPage() {
             </Button>,
           ]}
         />
-        <DataTable.Content emptyMessage="let's add an AI Edge to get you started" />
-        <DataTable.Pagination />
+        <DataTablePanel>
+          <DataTable.Content emptyMessage="let's add an AI Edge to get you started" />
+          <DataTable.Pagination />
+        </DataTablePanel>
       </DataTable.Client>
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />

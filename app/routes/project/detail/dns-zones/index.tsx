@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -327,7 +328,7 @@ export default function DnsZonesPage() {
   return (
     <>
       <DnsZoneFormDialog ref={dialogRef} projectId={projectId ?? ''} />
-      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={zonesWithStatus}>
+      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={zonesWithStatus} className="space-y-4">
         <DataTableToolbar
           title="DNS"
           description="Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain."
@@ -346,8 +347,10 @@ export default function DnsZonesPage() {
             </Button>,
           ]}
         />
-        <DataTable.Content emptyMessage="let's add a DNS to get you started" />
-        <DataTable.Pagination />
+        <DataTablePanel>
+          <DataTable.Content emptyMessage="let's add a DNS to get you started" />
+          <DataTable.Pagination />
+        </DataTablePanel>
       </DataTable.Client>
     </>
   );

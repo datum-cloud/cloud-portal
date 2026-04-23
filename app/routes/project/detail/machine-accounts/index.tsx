@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -294,7 +295,7 @@ export default function MachineAccountsPage() {
       {data.length === 0 ? (
         <MachineAccountsEmptyState onSelectUseCase={openWizard} />
       ) : (
-        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data}>
+        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data} className="space-y-4">
           <DataTableToolbar
             title="Machine Accounts"
             search={{ placeholder: 'Search machine accounts' }}
@@ -310,8 +311,10 @@ export default function MachineAccountsPage() {
               </Button>,
             ]}
           />
-          <DataTable.Content />
-          <DataTable.Pagination />
+          <DataTablePanel>
+            <DataTable.Content />
+            <DataTable.Pagination />
+          </DataTablePanel>
         </DataTable.Client>
       )}
 

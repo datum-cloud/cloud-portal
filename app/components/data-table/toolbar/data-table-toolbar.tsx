@@ -29,14 +29,8 @@ export function DataTableToolbar<TData = unknown>({
   const searchPlaceholder = typeof search === 'object' ? search.placeholder : 'Search...';
 
   return (
-    <div className={cn('space-y-3', className)}>
-      {title && (
-        <PageTitle
-          title={title}
-          description={description}
-          actionsPosition="inline"
-        />
-      )}
+    <div className={cn('space-y-4', className)}>
+      {title && <PageTitle title={title} description={description} actionsPosition="inline" />}
       <div
         className={cn(
           'flex w-full flex-wrap items-center gap-2',

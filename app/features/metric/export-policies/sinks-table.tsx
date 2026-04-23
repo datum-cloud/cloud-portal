@@ -155,7 +155,7 @@ export const WorkloadSinksTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []}>
+        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []} className="space-y-4">
           <DataTableToolbar title="Sinks" />
           <DataTable.Content />
         </DataTable.Client>

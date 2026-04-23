@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -152,7 +153,7 @@ export default function SecretsPage() {
 
   return (
     <>
-      <DataTable.Client stateAdapter={stateAdapter} columns={columnsWithActions} data={data ?? []}>
+      <DataTable.Client stateAdapter={stateAdapter} columns={columnsWithActions} data={data ?? []} className="space-y-4">
         <DataTableToolbar
           title="Secrets"
           actions={[
@@ -169,8 +170,10 @@ export default function SecretsPage() {
             </Button>,
           ]}
         />
-        <DataTable.Content />
-        <DataTable.Pagination />
+        <DataTablePanel>
+          <DataTable.Content />
+          <DataTable.Pagination />
+        </DataTablePanel>
       </DataTable.Client>
       <SecretFormDialog ref={secretFormDialogRef} />
     </>

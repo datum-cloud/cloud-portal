@@ -2,6 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import {
   createActionsColumn,
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   useNuqsAdapter,
 } from '@/components/data-table';
@@ -381,7 +382,7 @@ export default function OrgTeamPage() {
   const stateAdapter = useNuqsAdapter();
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={orderedTeamMembers ?? []}>
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={orderedTeamMembers ?? []} className="space-y-4">
       <DataTableToolbar
         title="Team"
         search={{ placeholder: 'Search team members' }}
@@ -403,8 +404,10 @@ export default function OrgTeamPage() {
             : []
         }
       />
-      <DataTable.Content />
-      <DataTable.Pagination />
+      <DataTablePanel>
+        <DataTable.Content />
+        <DataTable.Pagination />
+      </DataTablePanel>
     </DataTable.Client>
   );
 }

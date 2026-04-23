@@ -2,10 +2,12 @@ import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
 import {
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   createActionsColumn,
   useNuqsAdapter,
 } from '@/components/data-table';
+import { cn } from '@shadcn/lib/utils';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -323,7 +325,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
 
   return (
     <DataTable.Client
-      className={className}
+      className={cn('space-y-4', className)}
       columns={columns}
       data={data}
       stateAdapter={stateAdapter}>
@@ -349,8 +351,10 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
           />
         )}
       </DataTable.InlineContent>
-      <DataTable.Content emptyMessage="No DNS records found." />
-      <DataTable.Pagination />
+      <DataTablePanel>
+        <DataTable.Content emptyMessage="No DNS records found." />
+        <DataTable.Pagination />
+      </DataTablePanel>
     </DataTable.Client>
   );
 }

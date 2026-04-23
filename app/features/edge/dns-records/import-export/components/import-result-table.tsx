@@ -172,7 +172,7 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
       stateAdapter={stateAdapter}
       columns={columns}
       data={details}
-      className="rounded-xl">
+      className="space-y-4 rounded-xl">
       <DataTable.Content
         emptyMessage="No import results"
         tableClassName="rounded-xl max-h-[400px]"

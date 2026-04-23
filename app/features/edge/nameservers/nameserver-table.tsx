@@ -5,6 +5,7 @@ import {
   useNuqsAdapter,
 } from '@/components/data-table';
 import type { ActionItem } from '@/components/data-table';
+import { cn } from '@shadcn/lib/utils';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -96,7 +97,7 @@ export const NameserverTable = ({
       stateAdapter={stateAdapter}
       columns={columns}
       data={data}
-      className={className}>
+      className={cn('space-y-4', className)}>
       {(title || titleActions) && (
         <DataTableToolbar title={title} actions={titleActions ? [titleActions] : undefined} />
       )}

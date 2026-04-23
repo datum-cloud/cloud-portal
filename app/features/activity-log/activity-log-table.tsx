@@ -2,11 +2,13 @@ import { getActivityLogColumns } from './activity-log-columns';
 import { getResourceFilterOptions, getActionFilterOptions } from './activity-log-filters';
 import {
   DataTable,
+  DataTablePanel,
   DataTableToolbar,
   TagFilter,
   TimeRangeFilter,
   useNuqsAdapter,
 } from '@/components/data-table';
+import { cn } from '@shadcn/lib/utils';
 import { useApp } from '@/providers/app.provider';
 import type { ActivityLogScope } from '@/resources/activity-logs';
 import {
@@ -250,7 +252,7 @@ export function ActivityLogTable({
       })}
       stateAdapter={hideFilters ? undefined : stateAdapter}
       defaultFilters={defaultFilters}
-      className={className}>
+      className={cn('space-y-4', className)}>
       {/* Error toast handler — must live inside DataTable.Server context */}
       <ActivityLogErrorHandler />
 
@@ -280,9 +282,10 @@ export function ActivityLogTable({
         />
       )}
 
-      <DataTable.Content emptyMessage="No activity found." />
-
-      {!hidePagination && <DataTable.Pagination />}
+      <DataTablePanel>
+        <DataTable.Content emptyMessage="No activity found." />
+        {!hidePagination && <DataTable.Pagination />}
+      </DataTablePanel>
     </DataTable.Server>
   );
 }
