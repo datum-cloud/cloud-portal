@@ -64,3 +64,25 @@
 .tiptap p.is-editor-empty:first-child {
   position: relative;
 }
+
+/* ── DataTable cloud-portal overrides ── */
+.datum-ui-data-table [data-slot="dt-header-row"] {
+  @apply hover:bg-transparent;
+}
+.datum-ui-data-table [data-slot="dt-header-cell"] {
+  @apply bg-background text-foreground h-[42px] border-r px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5;
+}
+.datum-ui-data-table [data-slot="dt-row"] {
+  @apply bg-table-cell hover:bg-table-cell-hover relative transition-colors;
+}
+.datum-ui-data-table [data-slot="dt-cell"] {
+  @apply px-4 py-3 text-xs;
+}
+.datum-ui-data-table [data-slot="dt-cell"]:has([data-slot="dt-row-actions"]) {
+  @apply w-[1%] whitespace-nowrap sticky right-0 bg-table-cell z-20;
+  box-shadow: inset 1px 0 0 0 var(--border);
+}
+.datum-ui-data-table [data-slot="dt-header-cell"]:last-child:empty {
+  @apply bg-background sticky right-0;
+  box-shadow: none;
+}
