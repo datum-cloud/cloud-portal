@@ -1,11 +1,5 @@
-import {
-  createActionsColumn,
-  DataTable,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import type { ActionItem } from '@/components/data-table';
-import { cn } from '@shadcn/lib/utils';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -90,18 +84,15 @@ export const NameserverTable = ({
     [registration, rowActions]
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   return (
-    <DataTable.Client
-      stateAdapter={stateAdapter}
+    <Table.Client
       columns={columns}
       data={data}
-      className={cn('space-y-4', className)}>
-      {(title || titleActions) && (
-        <DataTableToolbar title={title} actions={titleActions ? [titleActions] : undefined} />
-      )}
-      <DataTable.Content emptyMessage={emptyMessage ?? 'No nameservers found'} />
-    </DataTable.Client>
+      title={title}
+      actions={titleActions ? [titleActions] : undefined}
+      emptyContent={emptyMessage ?? 'No nameservers found'}
+      pagination={false}
+      className={className}
+    />
   );
 };

@@ -1,11 +1,5 @@
 import { getPolicyBindingColumns } from './policy-binding.columns';
-import {
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  createActionsColumn,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { Table, createActionsColumn } from '@/components/data-table';
 import type { PolicyBinding } from '@/resources/policy-bindings';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import type { ReactNode } from 'react';
@@ -31,8 +25,6 @@ export const PolicyBindingTable = ({
   tableTitle,
   rowActions = [],
 }: PolicyBindingTableProps) => {
-  const stateAdapter = useNuqsAdapter();
-
   const mappedActions: ActionItem<PolicyBinding>[] = rowActions.map(
     ({ action, display: _display, ...rest }) => ({
       ...rest,
@@ -48,16 +40,13 @@ export const PolicyBindingTable = ({
   const actions = tableTitle?.actions ? [tableTitle.actions] : undefined;
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={bindings ?? []} className="space-y-4">
-      <DataTableToolbar
-        title={tableTitle?.title}
-        description={tableTitle?.description}
-        actions={actions}
-      />
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="No roles found." />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={bindings ?? []}
+      title={tableTitle?.title}
+      description={tableTitle?.description}
+      actions={actions}
+      emptyContent="No roles found."
+    />
   );
 };

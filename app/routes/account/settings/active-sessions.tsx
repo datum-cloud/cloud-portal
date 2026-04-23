@@ -1,5 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { createActionsColumn, DataTable, DataTablePanel, useNuqsAdapter } from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { useApp } from '@/providers/app.provider';
 import {
@@ -114,8 +114,6 @@ export default function AccountActiveSessionsPage() {
     [confirm, revokeMutation]
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   const columns: ColumnDef<UserActiveSession>[] = useMemo(
     () => [
       {
@@ -169,11 +167,10 @@ export default function AccountActiveSessionsPage() {
   );
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={sessionsData} className="space-y-4">
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="No active sessions found." />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={sessionsData}
+      emptyContent="No active sessions found."
+    />
   );
 }

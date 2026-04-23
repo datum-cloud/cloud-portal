@@ -1,14 +1,10 @@
 import { getActivityLogColumns } from './activity-log-columns';
 import { getResourceFilterOptions, getActionFilterOptions } from './activity-log-filters';
 import {
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
+  Table,
   TagFilter,
   TimeRangeFilter,
-  useNuqsAdapter,
 } from '@/components/data-table';
-import { cn } from '@shadcn/lib/utils';
 import { useApp } from '@/providers/app.provider';
 import type { ActivityLogScope } from '@/resources/activity-logs';
 import {
@@ -205,11 +201,8 @@ export function ActivityLogTable({
     return { actions: actionsArray };
   }, [initialActions]);
 
-  // State adapter — syncs sort/search/pagination/filters to URL
-  const stateAdapter = useNuqsAdapter();
-
   return (
-    <DataTable.Server
+    <Table.Server
       columns={columns}
       limit={defaultPageSize}
       fetchFn={async ({ cursor, limit, filters, search }) => {
@@ -250,42 +243,37 @@ export function ActivityLogTable({
         cursor: response.nextCursor ?? undefined,
         hasNextPage: response.hasMore,
       })}
-      stateAdapter={hideFilters ? undefined : stateAdapter}
       defaultFilters={defaultFilters}
-      className={cn('space-y-4', className)}>
-      {/* Error toast handler — must live inside DataTable.Server context */}
+      syncUrl={!hideFilters}
+      search={!hideFilters ? { placeholder: 'Search activity' } : undefined}
+      filters={
+        !hideFilters
+          ? [
+              <TimeRangeFilter key="period" column="period" disableFuture />,
+              <TagFilter
+                key="actions"
+                column="actions"
+                label="Action"
+                options={sortedActionOptions}
+              />,
+              ...(!defaultResource
+                ? [
+                    <TagFilter
+                      key="resources"
+                      column="resources"
+                      label="Resource"
+                      options={sortedResourceOptions}
+                    />,
+                  ]
+                : []),
+            ]
+          : undefined
+      }
+      actions={!hideFilters ? [<ActivityLogRefreshButton key="refresh" />] : undefined}
+      emptyContent="No activity found."
+      pagination={!hidePagination}
+      className={className}>
       <ActivityLogErrorHandler />
-
-      {!hideFilters && (
-        <DataTableToolbar
-          search={{ placeholder: 'Search activity' }}
-          filters={[
-            <TimeRangeFilter key="period" column="period" disableFuture />,
-            <TagFilter
-              key="actions"
-              column="actions"
-              label="Action"
-              options={sortedActionOptions}
-            />,
-            ...(!defaultResource
-              ? [
-                  <TagFilter
-                    key="resources"
-                    column="resources"
-                    label="Resource"
-                    options={sortedResourceOptions}
-                  />,
-                ]
-              : []),
-          ]}
-          actions={[<ActivityLogRefreshButton key="refresh" />]}
-        />
-      )}
-
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="No activity found." />
-        {!hidePagination && <DataTable.Pagination />}
-      </DataTablePanel>
-    </DataTable.Server>
+    </Table.Server>
   );
 }

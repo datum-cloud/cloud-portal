@@ -1,6 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CodeEditor } from '@/components/code-editor/code-editor';
-import { DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
+import { Table } from '@/components/data-table';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -66,8 +66,6 @@ export const WorkloadSourcesTable = ({
 }: {
   data: IExportPolicyControlResponse['sources'];
 }) => {
-  const stateAdapter = useNuqsAdapter();
-
   const columns = useMemo(
     () => [
       {
@@ -105,10 +103,12 @@ export const WorkloadSourcesTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []} className="space-y-4">
-          <DataTableToolbar title="Sources" />
-          <DataTable.Content />
-        </DataTable.Client>
+        <Table.Client
+          columns={columns}
+          data={data ?? []}
+          pagination={false}
+          syncUrl={false}
+        />
       </CardContent>
     </Card>
   );

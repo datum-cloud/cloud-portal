@@ -1,12 +1,6 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { useHasPermission } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import { useGroups, useDeleteGroup } from '@/resources/groups';
@@ -176,33 +170,27 @@ export default function GroupsPage() {
     [hasDeleteGroupPermission, deleteGroup, navigate, orgId]
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={groupRows} className="space-y-4">
-      <DataTableToolbar
-        title="Groups"
-        search={{ placeholder: 'Search groups' }}
-        actions={
-          hasCreateGroupPermission
-            ? [
-                <Link
-                  key="create"
-                  to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
-                  className="w-full sm:w-auto">
-                  <Button className="w-full">
-                    <Icon icon={PlusIcon} className="size-4" />
-                    Create Group
-                  </Button>
-                </Link>,
-              ]
-            : []
-        }
-      />
-      <DataTablePanel>
-        <DataTable.Content />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={groupRows}
+      title="Groups"
+      search={{ placeholder: 'Search groups' }}
+      actions={
+        hasCreateGroupPermission
+          ? [
+              <Link
+                key="create"
+                to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
+                className="w-full sm:w-auto">
+                <Button className="w-full">
+                  <Icon icon={PlusIcon} className="size-4" />
+                  Create Group
+                </Button>
+              </Link>,
+            ]
+          : []
+      }
+    />
   );
 }

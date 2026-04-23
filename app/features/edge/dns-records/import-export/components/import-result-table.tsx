@@ -1,4 +1,4 @@
-import { DataTable, useNuqsAdapter } from '@/components/data-table';
+import { Table } from '@/components/data-table';
 import { formatTTL, type ImportDetail } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -165,18 +165,15 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
     []
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   return (
-    <DataTable.Client
-      stateAdapter={stateAdapter}
+    <Table.Client
       columns={columns}
       data={details}
-      className="space-y-4 rounded-xl">
-      <DataTable.Content
-        emptyMessage="No import results"
-        tableClassName="rounded-xl max-h-[400px]"
-      />
-    </DataTable.Client>
+      pagination={false}
+      syncUrl={false}
+      emptyContent="No import results"
+      contentProps={{ tableClassName: 'rounded-xl max-h-[400px]' }}
+      className="rounded-xl"
+    />
   );
 };

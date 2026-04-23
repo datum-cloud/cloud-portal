@@ -1,25 +1,15 @@
-// Core compounds (from datum-ui via barrel)
-export * from './data-table';
+export { Table } from './table'
+export type { TableClientProps, TableServerProps } from './table'
+export type { EmptyContentConfig } from './table-utils'
 
-// Toolbar
-export { DataTableToolbar } from './toolbar/data-table-toolbar';
-export type { DataTableToolbarProps } from './toolbar/data-table-toolbar';
+export { createActionsColumn } from './columns'
 
-// Toolbar actions
-export type {
-  MultiAction,
-  MultiActionButton,
-  MultiActionRender,
-} from './toolbar/data-table-toolbar-actions';
+export { TagFilter } from './filters/tag-filter'
+export type { TagFilterProps, TagFilterOption } from './filters/tag-filter'
 
-// Local filters
-export { TagFilter } from './filters/tag-filter';
-export type { TagFilterProps, TagFilterOption } from './filters/tag-filter';
-export { TimeRangeFilter } from './filters/time-range-filter';
-export type { TimeRangeFilterProps } from './filters/time-range-filter';
+export { TimeRangeFilter } from './filters/time-range-filter'
+export type { TimeRangeFilterProps } from './filters/time-range-filter'
 
-// Panel (bordered + rounded container for Content + Pagination)
-export { DataTablePanel } from './data-table-panel';
-
-// Helpers
-export { createActionsColumn } from './columns';
+// Type pass-throughs needed by column definitions
+export type { MultiAction } from './toolbar/data-table-toolbar-actions'
+export type { ActionItem } from '@datum-cloud/datum-ui/data-table'

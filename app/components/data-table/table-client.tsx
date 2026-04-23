@@ -1,9 +1,3 @@
-import { DataTable, useNuqsAdapter } from '@datum-cloud/datum-ui/data-table';
-import type { ContentProps } from '@datum-cloud/datum-ui/data-table';
-import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
-import { cn } from '@shadcn/lib/utils';
-import type { ColumnDef, RowData } from '@tanstack/react-table';
-import type { ReactNode } from 'react';
 import { createActionsColumn } from './columns';
 import { DataTablePanel } from './data-table-panel';
 import { TableContent } from './table-content';
@@ -11,9 +5,15 @@ import { resolveEmptyContent } from './table-utils';
 import type { EmptyContentConfig } from './table-utils';
 import { DataTableToolbar } from './toolbar/data-table-toolbar';
 import type { MultiAction } from './toolbar/data-table-toolbar-actions';
+import { DataTable, useNuqsAdapter } from '@datum-cloud/datum-ui/data-table';
+import type { ContentProps } from '@datum-cloud/datum-ui/data-table';
+import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
+import { cn } from '@shadcn/lib/utils';
+import type { ColumnDef, RowData } from '@tanstack/react-table';
+import type { ReactNode } from 'react';
 
 // Suppress unused RowData import — needed to satisfy the generic constraint
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 type _RowData = RowData;
 
 interface InlineContentConfig<TData> {
@@ -53,6 +53,12 @@ export interface TableClientProps<TData> {
   inlineContent?: InlineContentConfig<TData>;
   /** Empty-state content. String for simple message, config for rich UI. */
   emptyContent?: string | EmptyContentConfig;
+  /** Raw ReactNode empty state. Takes precedence over emptyContent. Use for complex custom empty states. */
+  emptyMessage?: ReactNode;
+  /** Function to get a stable row ID from row data. Forwarded to DataTable.Client. */
+  getRowId?: (row: TData) => string;
+  /** Enable row selection checkboxes. Forwarded to DataTable.Client. */
+  enableRowSelection?: boolean;
   /** Show pagination row. Defaults to true. */
   pagination?: boolean;
   /** Pass-through for any other DataTable.Content props. */
@@ -78,6 +84,9 @@ export function TableClient<TData>({
   onRowClick,
   inlineContent,
   emptyContent,
+  emptyMessage,
+  getRowId,
+  enableRowSelection,
   pagination = true,
   contentProps,
   syncUrl = true,
@@ -104,6 +113,8 @@ export function TableClient<TData>({
       stateAdapter={syncUrl ? stateAdapter : undefined}
       columns={resolvedColumns}
       data={data}
+      getRowId={getRowId}
+      enableRowSelection={enableRowSelection}
       className={cn('space-y-4', className)}>
       {children}
       {hasToolbar && (
@@ -128,7 +139,7 @@ export function TableClient<TData>({
       )}
       <DataTablePanel>
         <TableContent<TData>
-          emptyMessage={resolveEmptyContent(emptyContent)}
+          emptyMessage={emptyMessage ?? resolveEmptyContent(emptyContent)}
           onRowClick={onRowClick}
           {...(contentProps as ContentProps<TData>)}
         />

@@ -1,11 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
@@ -379,35 +373,29 @@ export default function OrgTeamPage() {
     leaveTeam,
   ]);
 
-  const stateAdapter = useNuqsAdapter();
-
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={orderedTeamMembers ?? []} className="space-y-4">
-      <DataTableToolbar
-        title="Team"
-        search={{ placeholder: 'Search team members' }}
-        actions={
-          hasInviteMemberPermission
-            ? [
-                <Link
-                  key="invite"
-                  to={getPathWithParams(paths.org.detail.team.invite, {
-                    orgId,
-                  })}
-                  className="w-full sm:w-auto">
-                  <Button className="w-full" data-e2e="invite-member-button">
-                    <Icon icon={UserPlusIcon} className="size-4" />
-                    Invite Member
-                  </Button>
-                </Link>,
-              ]
-            : []
-        }
-      />
-      <DataTablePanel>
-        <DataTable.Content />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={orderedTeamMembers ?? []}
+      title="Team"
+      search={{ placeholder: 'Search team members' }}
+      actions={
+        hasInviteMemberPermission
+          ? [
+              <Link
+                key="invite"
+                to={getPathWithParams(paths.org.detail.team.invite, {
+                  orgId,
+                })}
+                className="w-full sm:w-auto">
+                <Button className="w-full" data-e2e="invite-member-button">
+                  <Icon icon={UserPlusIcon} className="size-4" />
+                  Invite Member
+                </Button>
+              </Link>,
+            ]
+          : []
+      }
+    />
   );
 }

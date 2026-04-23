@@ -1,12 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import {
@@ -159,7 +153,6 @@ export default function DomainsPage() {
   const { project, organization } = useApp();
   const domainFormRef = useRef<DomainFormDialogRef>(null);
   const [bulkAddPopoverOpen, setBulkAddPopoverOpen] = useState(false);
-  const stateAdapter = useNuqsAdapter();
 
   // Open create dialog from URL search params (e.g. ?action=create)
   useEffect(() => {
@@ -496,79 +489,70 @@ export default function DomainsPage() {
 
   return (
     <>
-      <DataTable.Client
-        stateAdapter={stateAdapter}
+      <Table.Client
         columns={columns}
         data={formattedDomains}
         getRowId={(row) => row.name}
         enableRowSelection
-        className="space-y-4">
-        <DataTableToolbar<FormattedDomain>
-          title="Domains"
-          description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
-          search={{ placeholder: 'Search domains' }}
-          actions={[
-            <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
-            <Button
-              key="create"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-domain-button"
-              onClick={() => domainFormRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add domain
-            </Button>,
-          ]}
-          multiActions={[
-            {
-              key: 'delete',
-              render: ({ selectedRows, clearSelection }) => (
-                <Button
-                  type="danger"
-                  theme="outline"
-                  size="small"
-                  icon={<Icon icon={TrashIcon} className="size-4" />}
-                  iconPosition="left"
-                  onClick={() => handleDeleteDomains(selectedRows, clearSelection)}>
-                  Delete Selected
-                </Button>
-              ),
-            },
-          ]}
-        />
-        <DataTablePanel>
-          <DataTable.Content
-            emptyMessage={
-              <div className="flex flex-col items-center gap-3 py-6">
-                <p className="text-muted-foreground text-sm">
-                  {"let's add a domain to get you started"}
-                </p>
-                <div className="flex flex-wrap justify-center gap-2">
-                  <Button
-                    type="primary"
-                    theme="solid"
-                    size="small"
-                    onClick={() => domainFormRef.current?.show()}>
-                    <Icon icon={PlusIcon} className="size-3" />
-                    Add domain
-                  </Button>
-                  <Button
-                    type="quaternary"
-                    theme="outline"
-                    size="small"
-                    onClick={() => setBulkAddPopoverOpen(true)}>
-                    <Icon icon={ListChecksIcon} className="size-3" />
-                    Bulk add domains
-                  </Button>
-                </div>
-              </div>
-            }
-          />
-          <DataTable.Pagination />
-        </DataTablePanel>
-      </DataTable.Client>
+        title="Domains"
+        description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
+        search={{ placeholder: 'Search domains' }}
+        actions={[
+          <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
+          <Button
+            key="create"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-domain-button"
+            onClick={() => domainFormRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add domain
+          </Button>,
+        ]}
+        multiActions={[
+          {
+            key: 'delete',
+            render: ({ selectedRows, clearSelection }) => (
+              <Button
+                type="danger"
+                theme="outline"
+                size="small"
+                icon={<Icon icon={TrashIcon} className="size-4" />}
+                iconPosition="left"
+                onClick={() => handleDeleteDomains(selectedRows, clearSelection)}>
+                Delete Selected
+              </Button>
+            ),
+          },
+        ]}
+        emptyMessage={
+          <div className="flex flex-col items-center gap-3 py-6">
+            <p className="text-muted-foreground text-sm">
+              {"let's add a domain to get you started"}
+            </p>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button
+                type="primary"
+                theme="solid"
+                size="small"
+                onClick={() => domainFormRef.current?.show()}>
+                <Icon icon={PlusIcon} className="size-3" />
+                Add domain
+              </Button>
+              <Button
+                type="quaternary"
+                theme="outline"
+                size="small"
+                onClick={() => setBulkAddPopoverOpen(true)}>
+                <Icon icon={ListChecksIcon} className="size-3" />
+                Bulk add domains
+              </Button>
+            </div>
+          </div>
+        }
+      />
 
       <DomainFormDialog
         ref={domainFormRef}

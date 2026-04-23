@@ -1,19 +1,14 @@
 import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
-import {
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  createActionsColumn,
-  useNuqsAdapter,
-} from '@/components/data-table';
-import { cn } from '@shadcn/lib/utils';
+import { DataTable } from '@datum-cloud/datum-ui/data-table';
+import { Table, createActionsColumn } from '@/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { InfoIcon, LockIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -276,7 +271,6 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
 
   // Hooks must be called unconditionally — resolve mode first, then call once.
   const baseColumns = useDnsRecordColumns(resolvedMode, projectId, showStatus, renderAiEdgeCell);
-  const stateAdapter = useNuqsAdapter();
   const rowIndexMap = useMemo(() => new Map(data.map((row, i) => [row, i])), [data]);
 
   if (resolvedMode !== 'full') {
@@ -324,23 +318,20 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
   const toolbarActions = tableTitle?.actions ? [tableTitle.actions] : undefined;
 
   return (
-    <DataTable.Client
-      className={cn('space-y-4', className)}
+    <Table.Client
       columns={columns}
       data={data}
-      stateAdapter={stateAdapter}>
-      <DataTableToolbar
-        title={tableTitle?.title}
-        description={tableTitle?.description}
-        actions={toolbarActions}
-        search
-      />
-      <DataTable.InlineContent<IFlattenedDnsRecord>
-        open={inlineOpen}
-        position={inlinePosition}
-        rowId={inlineRowId}
-        onClose={onInlineClose}>
-        {({ onClose, rowData }) => (
+      className={className}
+      title={tableTitle?.title}
+      description={tableTitle?.description}
+      actions={toolbarActions}
+      search
+      inlineContent={{
+        open: inlineOpen,
+        position: inlinePosition,
+        rowId: inlineRowId,
+        onClose: onInlineClose,
+        render: ({ onClose, rowData }) => (
           <DnsRecordInlineForm
             mode={rowData ? 'edit' : 'create'}
             initialData={rowData ?? null}
@@ -349,13 +340,10 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
             dnsZoneName={dnsZoneName}
             onClose={onClose}
           />
-        )}
-      </DataTable.InlineContent>
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="No DNS records found." />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+        ),
+      }}
+      emptyContent="No DNS records found."
+    />
   );
 }
 

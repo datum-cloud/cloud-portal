@@ -1,11 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
 import {
@@ -60,8 +54,6 @@ export default function ExportPoliciesPage() {
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
-  const stateAdapter = useNuqsAdapter();
-
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
     onError: (error) => {
       toast.error(error.message);
@@ -160,27 +152,24 @@ export default function ExportPoliciesPage() {
   );
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={policies ?? []} className="space-y-4">
-      <DataTableToolbar
-        title="Export Policies"
-        description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
-        search={{ placeholder: 'Search export policies' }}
-        actions={[
-          <Link
-            key="create-policy"
-            to={getPathWithParams(paths.project.detail.metrics.new, { projectId })}
-            className="w-full sm:w-auto">
-            <Button type="primary" theme="solid" size="small" className="w-full">
-              <Icon icon={PlusIcon} className="size-4" />
-              Create an export policy
-            </Button>
-          </Link>,
-        ]}
-      />
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="let's add an export policy to get you started" />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={policies ?? []}
+      title="Export Policies"
+      description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
+      search={{ placeholder: 'Search export policies' }}
+      actions={[
+        <Link
+          key="create-policy"
+          to={getPathWithParams(paths.project.detail.metrics.new, { projectId })}
+          className="w-full sm:w-auto">
+          <Button type="primary" theme="solid" size="small" className="w-full">
+            <Icon icon={PlusIcon} className="size-4" />
+            Create an export policy
+          </Button>
+        </Link>,
+      ]}
+      emptyContent="let's add an export policy to get you started"
+    />
   );
 }

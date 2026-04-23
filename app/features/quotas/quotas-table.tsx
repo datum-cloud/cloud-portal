@@ -1,4 +1,4 @@
-import { DataTable, DataTablePanel, useNuqsAdapter } from '@/components/data-table';
+import { Table } from '@/components/data-table';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -134,14 +134,11 @@ export const QuotasTable = ({
     ];
   }, [data, resourceType]);
 
-  const stateAdapter = useNuqsAdapter();
-
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data} className="space-y-4">
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="No quotas found" />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={data}
+      emptyContent="No quotas found"
+    />
   );
 };
