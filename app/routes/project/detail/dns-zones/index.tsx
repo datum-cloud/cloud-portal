@@ -1,5 +1,11 @@
 import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
 import {
@@ -26,7 +32,6 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { createActionsColumn, DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -341,9 +346,7 @@ export default function DnsZonesPage() {
             </Button>,
           ]}
         />
-        <DataTable.Content
-          emptyMessage="let's add a DNS to get you started"
-        />
+        <DataTable.Content emptyMessage="let's add a DNS to get you started" />
         <DataTable.Pagination />
       </DataTable.Client>
     </>

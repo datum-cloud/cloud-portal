@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { createActionsColumn, DataTable, useNuqsAdapter } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { useApp } from '@/providers/app.provider';
 import {
@@ -15,7 +16,6 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { createActionsColumn, DataTable, useNuqsAdapter } from '@/components/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { jwtDecode } from 'jwt-decode';
 import { Trash2Icon } from 'lucide-react';

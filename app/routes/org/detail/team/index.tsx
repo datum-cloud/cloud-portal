@@ -352,8 +352,7 @@ export default function OrgTeamPage() {
           label: 'Remove member',
           variant: 'destructive' as const,
           icon: <Icon icon={TrashIcon} className="size-4" />,
-          hidden:
-            row.type !== 'member' || row.email === user?.email || !hasRemoveMemberPermission,
+          hidden: row.type !== 'member' || row.email === user?.email || !hasRemoveMemberPermission,
           onClick: (r) => removeMember(r),
         },
         // Leave team (for current user only)

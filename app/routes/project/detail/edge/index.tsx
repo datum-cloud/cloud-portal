@@ -1,5 +1,11 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
@@ -7,7 +13,6 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
-import { createActionsColumn, DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
@@ -30,7 +35,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { MetaFunction, useNavigate, useParams, useSearchParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -239,9 +244,7 @@ export default function HttpProxyPage() {
             </Button>,
           ]}
         />
-        <DataTable.Content
-          emptyMessage="let's add an AI Edge to get you started"
-        />
+        <DataTable.Content emptyMessage="let's add an AI Edge to get you started" />
         <DataTable.Pagination />
       </DataTable.Client>
 

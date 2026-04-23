@@ -1,6 +1,11 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  createActionsColumn,
+  DataTable,
+  DataTableToolbar,
+  useNuqsAdapter,
+} from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
-import { createActionsColumn, DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
 import {
   createExportPolicyService,
@@ -64,7 +69,8 @@ export default function ExportPoliciesPage() {
 
   const deleteExportPolicy = useCallback(
     async (exportPolicy: ExportPolicy) => {
-      const displayLabel = exportPolicy.annotations?.['app.kubernetes.io/name'] || exportPolicy.name;
+      const displayLabel =
+        exportPolicy.annotations?.['app.kubernetes.io/name'] || exportPolicy.name;
 
       await confirm({
         title: 'Delete Export Policy',
@@ -170,9 +176,7 @@ export default function ExportPoliciesPage() {
           </Link>,
         ]}
       />
-      <DataTable.Content
-        emptyMessage="let's add an export policy to get you started"
-      />
+      <DataTable.Content emptyMessage="let's add an export policy to get you started" />
       <DataTable.Pagination />
     </DataTable.Client>
   );

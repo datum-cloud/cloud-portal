@@ -21,7 +21,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
 import { Link, useNavigate, useParams, type MetaFunction } from 'react-router';
 

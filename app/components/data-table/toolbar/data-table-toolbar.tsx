@@ -1,6 +1,5 @@
 import type { MultiAction } from './data-table-toolbar-actions';
 import { DataTableToolbarActions } from './data-table-toolbar-actions';
-import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';
 import { DataTable } from '@datum-cloud/datum-ui/data-table';
 import { PageTitle } from '@datum-ui/components/page-title';
 import { cn } from '@shadcn/lib/utils';
@@ -35,24 +34,20 @@ export function DataTableToolbar<TData = unknown>({
         <PageTitle
           title={title}
           description={description}
-          actions={actions && actions.length > 0 ? <>{actions}</> : undefined}
           actionsPosition="inline"
         />
       )}
       <div
         className={cn(
-          'flex w-full gap-2',
-          variant === 'compact' ? 'flex-row flex-wrap items-center' : 'flex-col'
+          'flex w-full flex-wrap items-center gap-2',
+          variant === 'stacked' && 'flex-col'
         )}>
         {search && (
           <DataTable.Search placeholder={searchPlaceholder} className="w-full flex-1 sm:max-w-md" />
         )}
-        {filters && filters.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">{filters}</div>
-        )}
+        {filters}
         <div className="ml-auto flex items-center gap-2">
-          {!title && actions && actions.length > 0 && <>{actions}</>}
-          <DataTableToolbarRowCount />
+          {actions && actions.length > 0 && <>{actions}</>}
           {multiActions && multiActions.length > 0 && (
             <DataTableToolbarActions actions={multiActions} />
           )}
