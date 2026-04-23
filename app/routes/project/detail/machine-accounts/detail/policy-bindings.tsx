@@ -5,6 +5,7 @@ import {
   type PolicyBindingFormDialogRef,
 } from '@/features/policy-binding/form/policy-binding-form-dialog';
 import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import { useHasPermission } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { useMachineAccount } from '@/resources/machine-accounts';
 import {
@@ -12,10 +13,12 @@ import {
   useDeletePolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ShieldIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 import { MetaFunction, useParams } from 'react-router';
@@ -31,6 +34,11 @@ export default function MachineAccountPolicyBindingsPage() {
   const { orgId } = useApp();
   const dialogRef = useRef<PolicyBindingFormDialogRef>(null);
   const { confirm } = useConfirmationDialog();
+
+  const { hasPermission: canGrantRole } = useHasPermission('policybindings', 'create', {
+    namespace: buildOrganizationNamespace(orgId ?? ''),
+    group: 'iam.miloapis.com',
+  });
 
   const { data: machineAccount } = useMachineAccount(projectId ?? '', machineAccountId ?? '');
 
@@ -90,14 +98,24 @@ export default function MachineAccountPolicyBindingsPage() {
         bindings={bindings}
         tableTitle={{
           actions: (
-            <Button
-              type="quaternary"
-              theme="outline"
-              size="small"
-              onClick={() => dialogRef.current?.show()}>
-              <Icon icon={ShieldIcon} className="size-4" />
-              Grant role on this project
-            </Button>
+            <Tooltip
+              message={
+                canGrantRole
+                  ? undefined
+                  : 'You must be an Owner of this project to grant roles to machine accounts'
+              }>
+              <span className="inline-block">
+                <Button
+                  type="quaternary"
+                  theme="outline"
+                  size="small"
+                  disabled={!canGrantRole}
+                  onClick={() => dialogRef.current?.show()}>
+                  <Icon icon={ShieldIcon} className="size-4" />
+                  Grant role on this project
+                </Button>
+              </span>
+            </Tooltip>
           ),
         }}
         rowActions={rowActions}
