@@ -1,12 +1,14 @@
 import { DataTable, useNuqsAdapter } from '@datum-cloud/datum-ui/data-table';
-import type { UseDataTableServerOptions } from '@datum-cloud/datum-ui/data-table';
-import { DataTablePanel } from './data-table-panel';
-import { TableContent } from './table-content';
-import type { DataTableToolbarProps } from './toolbar/data-table-toolbar';
-import { DataTableToolbar } from './toolbar/data-table-toolbar';
+import type { ContentProps, UseDataTableServerOptions } from '@datum-cloud/datum-ui/data-table';
 import { cn } from '@shadcn/lib/utils';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
+import { DataTablePanel } from './data-table-panel';
+import { TableContent } from './table-content';
+import { resolveEmptyContent } from './table-utils';
+import type { EmptyContentConfig } from './table-utils';
+import { DataTableToolbar } from './toolbar/data-table-toolbar';
+import type { MultiAction } from './toolbar/data-table-toolbar-actions';
 
 export interface TableServerProps<TData, TResponse = unknown> {
   /** Column definitions for the table. */
@@ -15,35 +17,36 @@ export interface TableServerProps<TData, TResponse = unknown> {
   fetchFn: UseDataTableServerOptions<TResponse, TData>['fetchFn'];
   /** Transforms the raw fetch response into the shape DataTable.Server expects. */
   transform: UseDataTableServerOptions<TResponse, TData>['transform'];
-  /** Page size limit passed to the server. */
+  /** Page size passed to the server. */
   limit?: number;
-  /** Toolbar configuration. Omit to render no toolbar. */
-  toolbar?: DataTableToolbarProps<TData>;
-  /** Message shown when the table has no rows. */
-  emptyMessage?: string;
-  /** Called when a row is clicked. Do not combine with inlineContent. */
+  /** Default filter values applied on mount. */
+  defaultFilters?: UseDataTableServerOptions<TResponse, TData>['defaultFilters'];
+  /** Table title rendered in the toolbar. */
+  title?: string;
+  /** Table description rendered below the title. */
+  description?: ReactNode;
+  /** Enable global search. Pass `{ placeholder }` to customise the input. */
+  search?: boolean | { placeholder?: string };
+  /** Filter controls rendered in the toolbar row. */
+  filters?: ReactNode[];
+  /** Action buttons rendered on the right side of the toolbar. */
+  actions?: ReactNode[];
+  /** Multi-row action items rendered in the bulk-actions dropdown. */
+  multiActions?: MultiAction<TData>[];
+  /** Called when a row is clicked. */
   onRowClick?: (row: TData) => void;
-  /** Whether to hide the pagination row. Defaults to false. */
-  hidePagination?: boolean;
-  /** Additional content rendered inside the panel, after the table. */
-  footer?: ReactNode;
-  /**
-   * Extra children rendered inside DataTable.Server but outside the panel
-   * (e.g. error handlers, refresh buttons that need server context).
-   */
-  contextChildren?: ReactNode;
+  /** Empty-state content. String for simple message, config for rich UI. */
+  emptyContent?: string | EmptyContentConfig;
+  /** Show pagination row. Defaults to true. */
+  pagination?: boolean;
+  /** Pass-through for any other DataTable.Content props. */
+  contentProps?: Omit<ContentProps<TData>, 'emptyMessage'>;
+  /** Sync table state (page, sort, search) to the URL via nuqs. Defaults to true. */
+  syncUrl?: boolean;
   /** Additional className applied to the DataTable.Server root. */
   className?: string;
-  /**
-   * Override the state adapter. Defaults to a nuqs adapter so table state
-   * is synced to the URL automatically.
-   */
-  stateAdapter?: UseDataTableServerOptions<TResponse, TData>['stateAdapter'];
-  /** Pass-through for any other DataTable.Server props. */
-  tableProps?: Omit<
-    UseDataTableServerOptions<TResponse, TData>,
-    'columns' | 'fetchFn' | 'transform' | 'limit' | 'stateAdapter'
-  >;
+  /** Extra children rendered inside DataTable.Server (e.g. error handlers, refresh buttons). */
+  children?: ReactNode;
 }
 
 export function TableServer<TData, TResponse = unknown>({
@@ -51,18 +54,31 @@ export function TableServer<TData, TResponse = unknown>({
   fetchFn,
   transform,
   limit,
-  toolbar,
-  emptyMessage = 'No results found.',
+  defaultFilters,
+  title,
+  description,
+  search,
+  filters,
+  actions,
+  multiActions,
   onRowClick,
-  hidePagination = false,
-  footer,
-  contextChildren,
+  emptyContent,
+  pagination = true,
+  contentProps,
+  syncUrl = true,
   className,
-  stateAdapter: stateAdapterProp,
-  tableProps,
+  children,
 }: TableServerProps<TData, TResponse>) {
-  const nuqsAdapter = useNuqsAdapter();
-  const stateAdapter = stateAdapterProp ?? nuqsAdapter;
+  const stateAdapter = useNuqsAdapter();
+
+  const hasToolbar = !!(
+    title ||
+    description ||
+    search ||
+    filters?.length ||
+    actions?.length ||
+    multiActions?.length
+  );
 
   return (
     <DataTable.Server
@@ -70,15 +86,27 @@ export function TableServer<TData, TResponse = unknown>({
       fetchFn={fetchFn}
       transform={transform}
       limit={limit}
-      stateAdapter={stateAdapter}
-      className={cn('space-y-4', className)}
-      {...tableProps}>
-      {contextChildren}
-      {toolbar && <DataTableToolbar {...toolbar} />}
+      defaultFilters={defaultFilters}
+      stateAdapter={syncUrl ? stateAdapter : undefined}
+      className={cn('space-y-4', className)}>
+      {children}
+      {hasToolbar && (
+        <DataTableToolbar<TData>
+          title={title}
+          description={description}
+          search={search}
+          filters={filters}
+          actions={actions}
+          multiActions={multiActions}
+        />
+      )}
       <DataTablePanel>
-        <TableContent emptyMessage={emptyMessage} onRowClick={onRowClick} />
-        {!hidePagination && <DataTable.Pagination />}
-        {footer}
+        <TableContent<TData>
+          emptyMessage={resolveEmptyContent(emptyContent)}
+          onRowClick={onRowClick}
+          {...(contentProps as ContentProps<TData>)}
+        />
+        {pagination && <DataTable.Pagination />}
       </DataTablePanel>
     </DataTable.Server>
   );
