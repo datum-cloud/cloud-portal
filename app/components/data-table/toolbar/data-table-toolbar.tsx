@@ -30,7 +30,7 @@ export function DataTableToolbar<TData = unknown>({
   const searchPlaceholder = typeof search === 'object' ? search.placeholder : 'Search...';
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-3', className)}>
       {title && (
         <PageTitle
           title={title}
@@ -38,9 +38,6 @@ export function DataTableToolbar<TData = unknown>({
           actions={actions && actions.length > 0 ? <>{actions}</> : undefined}
           actionsPosition="inline"
         />
-      )}
-      {!title && actions && actions.length > 0 && (
-        <div className="flex w-full justify-end gap-2">{actions}</div>
       )}
       <div
         className={cn(
@@ -54,6 +51,7 @@ export function DataTableToolbar<TData = unknown>({
           <div className="flex flex-wrap items-center gap-2">{filters}</div>
         )}
         <div className="ml-auto flex items-center gap-2">
+          {!title && actions && actions.length > 0 && <>{actions}</>}
           <DataTableToolbarRowCount />
           {multiActions && multiActions.length > 0 && (
             <DataTableToolbarActions actions={multiActions} />

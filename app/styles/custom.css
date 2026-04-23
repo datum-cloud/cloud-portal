@@ -86,3 +86,16 @@
   @apply bg-background sticky right-0;
   box-shadow: none;
 }
+
+/* Issue 4: Table container border + rounded corners (matches old bordered DataTable) */
+.datum-ui-data-table [data-slot="dt-table"] {
+  @apply border rounded-lg overflow-hidden;
+}
+
+/* Issue 3: Search input styling — match old SearchInput (h-9, text-xs) */
+.datum-ui-data-table [data-slot="dt-search"] {
+  @apply h-9;
+}
+.datum-ui-data-table [data-slot="dt-search"] input {
+  @apply text-xs placeholder:text-xs h-full;
+}
