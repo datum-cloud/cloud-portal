@@ -1,5 +1,3 @@
-'use client';
-
 import { DataTable, useDataTableSelection } from '@datum-cloud/datum-ui/data-table';
 import { Button } from '@datum-ui/components/button/button';
 import { cn } from '@shadcn/lib/utils';

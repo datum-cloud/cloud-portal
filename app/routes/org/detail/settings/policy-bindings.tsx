@@ -91,7 +91,7 @@ export default function OrgPolicyBindingsPage() {
         action: (row) => deletePolicyBinding(row),
       },
     ],
-    [orgId, deletePolicyBinding]
+    [deletePolicyBinding]
   );
 
   return (

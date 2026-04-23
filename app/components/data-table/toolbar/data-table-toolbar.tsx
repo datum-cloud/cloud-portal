@@ -1,5 +1,3 @@
-'use client';
-
 import type { MultiAction } from './data-table-toolbar-actions';
 import { DataTableToolbarActions } from './data-table-toolbar-actions';
 import { DataTableToolbarRowCount } from './data-table-toolbar-row-count';

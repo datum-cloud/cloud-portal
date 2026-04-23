@@ -181,6 +181,15 @@ export function ActivityLogTable({
   const resourceOptions = useMemo(() => getResourceFilterOptions(scope.type), [scope.type]);
   const actionOptions = useMemo(() => getActionFilterOptions(), []);
 
+  const sortedActionOptions = useMemo(
+    () => [...actionOptions].sort((a, b) => a.label.localeCompare(b.label)),
+    [actionOptions]
+  );
+  const sortedResourceOptions = useMemo(
+    () => [...resourceOptions].sort((a, b) => a.label.localeCompare(b.label)),
+    [resourceOptions]
+  );
+
   // Normalize defaultResource to array for use inside fetchFn closure
   const effectiveDefaultResources = useMemo<string[] | undefined>(() => {
     if (!defaultResource) return undefined;
@@ -254,7 +263,7 @@ export function ActivityLogTable({
               key="actions"
               column="actions"
               label="Action"
-              options={actionOptions.sort((a, b) => a.label.localeCompare(b.label))}
+              options={sortedActionOptions}
             />,
             ...(!defaultResource
               ? [
@@ -262,7 +271,7 @@ export function ActivityLogTable({
                     key="resources"
                     column="resources"
                     label="Resource"
-                    options={resourceOptions.sort((a, b) => a.label.localeCompare(b.label))}
+                    options={sortedResourceOptions}
                   />,
                 ]
               : []),

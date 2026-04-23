@@ -1,5 +1,3 @@
-'use client';
-
 import { useDataTableRows } from '@datum-cloud/datum-ui/data-table';
 
 export function DataTableToolbarRowCount() {

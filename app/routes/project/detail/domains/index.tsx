@@ -47,7 +47,7 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { GlobeIcon, ListChecksIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   data,
   LoaderFunctionArgs,
@@ -185,67 +185,79 @@ export default function DomainsPage() {
     },
   });
 
-  const handleDeleteDomain = async (domain: FormattedDomain) => {
-    await confirm({
-      title: 'Delete Domain',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>{domain.domainName}</strong>?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: false,
-      onSubmit: async () => {
-        try {
-          await deleteDomainMutation.mutateAsync(domain?.name ?? '');
-        } catch (error) {
-          toast.error('Domain', {
-            description: (error as Error).message || 'Failed to delete domain',
-          });
-        }
-      },
-    });
-  };
+  const handleDeleteDomain = useCallback(
+    async (domain: FormattedDomain) => {
+      await confirm({
+        title: 'Delete Domain',
+        description: (
+          <span>
+            Are you sure you want to delete&nbsp;
+            <strong>{domain.domainName}</strong>?
+          </span>
+        ),
+        submitText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          try {
+            await deleteDomainMutation.mutateAsync(domain?.name ?? '');
+          } catch (error) {
+            toast.error('Domain', {
+              description: (error as Error).message || 'Failed to delete domain',
+            });
+          }
+        },
+      });
+    },
+    [confirm, deleteDomainMutation]
+  );
 
-  const handleRefreshDomain = async (domain: FormattedDomain) => {
-    refreshDomainMutation.mutate(domain?.name ?? '');
-  };
+  const handleRefreshDomain = useCallback(
+    async (domain: FormattedDomain) => {
+      refreshDomainMutation.mutate(domain?.name ?? '');
+    },
+    [refreshDomainMutation]
+  );
 
-  const handleManageDnsZone = async (domain: FormattedDomain) => {
-    if (domain.dnsZone) {
+  const handleManageDnsZone = useCallback(
+    async (domain: FormattedDomain) => {
+      if (domain.dnsZone) {
+        navigate(
+          getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+            projectId,
+            dnsZoneId: domain.dnsZone.name ?? '',
+          })
+        );
+      } else {
+        navigate(
+          getPathWithParams(
+            paths.project.detail.dnsZones.root,
+            {
+              projectId,
+            },
+            new URLSearchParams({
+              action: 'create',
+              domainName: domain.domainName,
+            })
+          )
+        );
+      }
+    },
+    [navigate, projectId]
+  );
+
+  const handleNavigateToDomain = useCallback(
+    (row: FormattedDomain) => {
       navigate(
-        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+        getPathWithParams(paths.project.detail.domains.detail.overview, {
           projectId,
-          dnsZoneId: domain.dnsZone.name ?? '',
+          domainId: row.name,
         })
       );
-    } else {
-      navigate(
-        getPathWithParams(
-          paths.project.detail.dnsZones.root,
-          {
-            projectId,
-          },
-          new URLSearchParams({
-            action: 'create',
-            domainName: domain.domainName,
-          })
-        )
-      );
-    }
-  };
-
-  const handleNavigateToDomain = (row: FormattedDomain) => {
-    navigate(
-      getPathWithParams(paths.project.detail.domains.detail.overview, {
-        projectId,
-        domainId: row.name,
-      })
-    );
-  };
+    },
+    [navigate, projectId]
+  );
 
   const columns: ColumnDef<FormattedDomain>[] = useMemo(
     () => [
@@ -395,7 +407,13 @@ export default function DomainsPage() {
         },
       ]),
     ],
-    [projectId]
+    [
+      projectId,
+      handleNavigateToDomain,
+      handleRefreshDomain,
+      handleManageDnsZone,
+      handleDeleteDomain,
+    ]
   );
 
   const handleDeleteDomains = async (domains: FormattedDomain[], clearSelection: () => void) => {

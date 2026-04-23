@@ -77,7 +77,6 @@ export default function MachineAccountPolicyBindingsPage() {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        display: 'inline',
         action: (row) => deletePolicyBinding(row),
       },
     ],

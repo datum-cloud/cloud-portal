@@ -182,7 +182,7 @@ function useDnsRecordColumns(
                   <Badge
                     type="success"
                     theme="light"
-                    className="max-w- cursor-pointer px-1 py-0.5 text-xs">
+                    className="max-w-fit cursor-pointer px-1 py-0.5 text-xs">
                     {preference}
                   </Badge>
                 </Tooltip>
@@ -275,6 +275,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
   // Hooks must be called unconditionally — resolve mode first, then call once.
   const baseColumns = useDnsRecordColumns(resolvedMode, projectId, showStatus, renderAiEdgeCell);
   const stateAdapter = useNuqsAdapter();
+  const rowIndexMap = useMemo(() => new Map(data.map((row, i) => [row, i])), [data]);
 
   if (resolvedMode !== 'full') {
     const {
@@ -288,7 +289,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
         className={className}
         columns={baseColumns}
         data={data}
-        getRowId={getRowId ? (row) => getRowId(row, data.indexOf(row)) : undefined}
+        getRowId={getRowId ? (row) => getRowId(row, rowIndexMap.get(row) ?? 0) : undefined}
         enableRowSelection={enableMultiSelect ? true : undefined}>
         <DataTable.Content emptyMessage="No DNS records found." />
       </DataTable.Client>

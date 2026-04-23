@@ -1,5 +1,3 @@
-'use client';
-
 import { useDataTableFilters } from '@datum-cloud/datum-ui/data-table';
 import { Badge } from '@datum-ui/components';
 import { Button } from '@datum-ui/components/button/button';
