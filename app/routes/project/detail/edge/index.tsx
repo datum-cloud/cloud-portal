@@ -7,8 +7,7 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
+import { createActionsColumn, DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
@@ -31,7 +30,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { MetaFunction, useNavigate, useParams, useSearchParams } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -45,6 +44,7 @@ export default function HttpProxyPage() {
     throw new BadRequestError('Project ID is required');
   }
   const navigate = useNavigate();
+  const stateAdapter = useNuqsAdapter();
 
   useHttpProxiesWatch(projectId);
 
@@ -196,68 +196,38 @@ export default function HttpProxyPage() {
           return row.original.createdAt && <DateTime date={row.original.createdAt} />;
         },
       },
-    ],
-    [projectId]
-  );
-
-  const rowActions: DataTableRowActionsProps<HttpProxy>[] = useMemo(
-    () => [
-      {
-        key: 'view',
-        label: 'View',
-        action: (row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.proxy.detail.root, {
-              projectId,
-              proxyId: row.name,
-            })
-          );
+      createActionsColumn<HttpProxy>([
+        {
+          label: 'View',
+          onClick: (row) => {
+            navigate(
+              getPathWithParams(paths.project.detail.proxy.detail.root, {
+                projectId,
+                proxyId: row.name,
+              })
+            );
+          },
         },
-      },
-      {
-        key: 'delete',
-        label: 'Delete',
-        variant: 'destructive',
-        action: (row) => confirmDelete(row),
-      },
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onClick: (row) => confirmDelete(row),
+        },
+      ]),
     ],
-    [projectId, confirmDelete]
+    [projectId, navigate, confirmDelete]
   );
 
   return (
     <>
-      <DataTable
-        error={error}
-        isLoading={isLoading}
-        columns={columns}
-        data={data ?? []}
-        onRowClick={(row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.proxy.detail.root, {
-              projectId,
-              proxyId: row.name,
-            })
-          );
-        }}
-        emptyContent={{
-          title: "let's add an AI Edge to get you started",
-          actions: [
-            {
-              type: 'button',
-              label: 'New',
-              onClick: () => proxyFormRef.current?.show(),
-              variant: 'default',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
-            },
-          ],
-        }}
-        tableTitle={{
-          title: 'AI Edge',
-          description:
-            'Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services.',
-          actions: (
+      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []}>
+        <DataTableToolbar
+          title="AI Edge"
+          description="Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services."
+          search={{ placeholder: 'Search' }}
+          actions={[
             <Button
+              key="create-edge"
               type="primary"
               theme="solid"
               size="small"
@@ -266,17 +236,14 @@ export default function HttpProxyPage() {
               onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               New
-            </Button>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search',
-          },
-        }}
-        rowActions={rowActions}
-      />
+            </Button>,
+          ]}
+        />
+        <DataTable.Content
+          emptyMessage="let's add an AI Edge to get you started"
+        />
+        <DataTable.Pagination />
+      </DataTable.Client>
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
     </>

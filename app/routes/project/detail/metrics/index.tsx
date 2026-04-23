@@ -1,8 +1,7 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { createActionsColumn, DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
   createExportPolicyService,
   useDeleteExportPolicy,
@@ -18,7 +17,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   Link,
   LoaderFunctionArgs,
@@ -51,10 +50,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 export default function ExportPoliciesPage() {
   const { projectId } = useParams();
-  const data = useLoaderData<typeof loader>();
+  const policies = useLoaderData<typeof loader>();
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
+  const stateAdapter = useNuqsAdapter();
 
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
     onError: (error) => {
@@ -62,26 +62,29 @@ export default function ExportPoliciesPage() {
     },
   });
 
-  const deleteExportPolicy = async (exportPolicy: ExportPolicy) => {
-    const displayLabel = exportPolicy.annotations?.['app.kubernetes.io/name'] || exportPolicy.name;
+  const deleteExportPolicy = useCallback(
+    async (exportPolicy: ExportPolicy) => {
+      const displayLabel = exportPolicy.annotations?.['app.kubernetes.io/name'] || exportPolicy.name;
 
-    await confirm({
-      title: 'Delete Export Policy',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>{displayLabel}</strong>?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: true,
-      onSubmit: async () => {
-        await deleteExportPolicyMutation.mutateAsync(exportPolicy.name);
-      },
-    });
-  };
+      await confirm({
+        title: 'Delete Export Policy',
+        description: (
+          <span>
+            Are you sure you want to delete&nbsp;
+            <strong>{displayLabel}</strong>?
+          </span>
+        ),
+        submitText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: true,
+        onSubmit: async () => {
+          await deleteExportPolicyMutation.mutateAsync(exportPolicy.name);
+        },
+      });
+    },
+    [confirm, deleteExportPolicyMutation]
+  );
 
   const columns: ColumnDef<ExportPolicy>[] = useMemo(
     () => [
@@ -127,83 +130,50 @@ export default function ExportPoliciesPage() {
           return row.original.createdAt && <DateTime date={row.original.createdAt} />;
         },
       },
-    ],
-    [projectId]
-  );
-
-  const rowActions: DataTableRowActionsProps<ExportPolicy>[] = useMemo(
-    () => [
-      {
-        key: 'edit',
-        label: 'Edit',
-        action: (row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.metrics.detail.edit, {
-              projectId,
-              exportPolicyId: row.name,
-            })
-          );
+      createActionsColumn<ExportPolicy>([
+        {
+          label: 'Edit',
+          onClick: (row) => {
+            navigate(
+              getPathWithParams(paths.project.detail.metrics.detail.edit, {
+                projectId,
+                exportPolicyId: row.name,
+              })
+            );
+          },
         },
-      },
-      {
-        key: 'delete',
-        label: 'Delete',
-        variant: 'destructive',
-        action: (row) => deleteExportPolicy(row),
-      },
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onClick: (row) => deleteExportPolicy(row),
+        },
+      ]),
     ],
-    [projectId]
+    [projectId, navigate, deleteExportPolicy]
   );
 
   return (
-    <DataTable
-      columns={columns}
-      data={data ?? []}
-      onRowClick={(row) => {
-        navigate(
-          getPathWithParams(paths.project.detail.metrics.detail.overview, {
-            projectId,
-            exportPolicyId: row.name,
-          })
-        );
-      }}
-      emptyContent={{
-        title: "let's add an export policy to get you started",
-        actions: [
-          {
-            type: 'link',
-            label: 'Create an export policy',
-            to: getPathWithParams(paths.project.detail.metrics.new, { projectId }),
-            variant: 'default',
-            icon: <Icon icon={PlusIcon} className="size-3" />,
-            iconPosition: 'start',
-          },
-        ],
-      }}
-      tableTitle={{
-        title: 'Export Policies',
-        description:
-          'Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud.',
-        actions: (
+    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={policies ?? []}>
+      <DataTableToolbar
+        title="Export Policies"
+        description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
+        search={{ placeholder: 'Search export policies' }}
+        actions={[
           <Link
-            to={getPathWithParams(paths.project.detail.metrics.new, {
-              projectId,
-            })}
+            key="create-policy"
+            to={getPathWithParams(paths.project.detail.metrics.new, { projectId })}
             className="w-full sm:w-auto">
             <Button type="primary" theme="solid" size="small" className="w-full">
               <Icon icon={PlusIcon} className="size-4" />
               Create an export policy
             </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search export policies',
-        },
-      }}
-      rowActions={rowActions}
-    />
+          </Link>,
+        ]}
+      />
+      <DataTable.Content
+        emptyMessage="let's add an export policy to get you started"
+      />
+      <DataTable.Pagination />
+    </DataTable.Client>
   );
 }

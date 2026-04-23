@@ -26,7 +26,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { DataTable, type DataTableRowActionsProps } from '@datum-ui/components';
+import { createActionsColumn, DataTable, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
@@ -92,6 +92,7 @@ export default function DnsZonesPage() {
   const { confirm } = useConfirmationDialog();
   const dialogRef = useRef<DnsZoneFormDialogRef>(null);
   const [searchParams, setSearchParams] = useSearchParams();
+  const stateAdapter = useNuqsAdapter();
 
   // Sync dialog state from URL search params (for external links like ?action=create&domainName=...)
   useEffect(() => {
@@ -183,18 +184,6 @@ export default function DnsZonesPage() {
     [deleteMutation, confirm]
   );
 
-  const handleRowClick = useCallback(
-    (row: DnsZoneWithComputed) => {
-      navigate(
-        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
-          projectId,
-          dnsZoneId: row.name,
-        })
-      );
-    },
-    [projectId, navigate]
-  );
-
   const columns: ColumnDef<DnsZoneWithComputed>[] = useMemo(
     () => [
       {
@@ -229,7 +218,6 @@ export default function DnsZonesPage() {
           const nameservers = row.original?.status?.domainRef?.status?.nameservers;
 
           if (!hasNameservers) {
-            // Show dash if there's an error, spinner if still loading
             if (hasError) {
               return <span data-e2e="dns-zone-nameservers">-</span>;
             }
@@ -305,38 +293,28 @@ export default function DnsZonesPage() {
           );
         },
       },
-    ],
-    []
-  );
-
-  const rowActions: DataTableRowActionsProps<DnsZoneWithComputed>[] = useMemo(
-    () => [
-      {
-        key: 'edit',
-        label: 'Edit',
-        variant: 'default',
-        action: (row) =>
-          navigate(
-            getPathWithParams(paths.project.detail.dnsZones.detail.root, {
-              projectId,
-              dnsZoneId: row.name,
-            })
-          ),
-      },
-      {
-        key: 'refresh',
-        label: 'Refresh nameservers',
-        variant: 'default',
-        hidden: (row) => !row.status?.domainRef?.name,
-        action: (row) => refreshDomain(row),
-      },
-      {
-        key: 'delete',
-        label: 'Delete',
-        variant: 'destructive',
-        action: (row) => deleteDnsZone(row),
-        'data-e2e': 'delete-dns-zone-button',
-      },
+      createActionsColumn<DnsZoneWithComputed>([
+        {
+          label: 'Edit',
+          onClick: (row) =>
+            navigate(
+              getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+                projectId,
+                dnsZoneId: row.name,
+              })
+            ),
+        },
+        {
+          label: 'Refresh nameservers',
+          hidden: (row) => !row.status?.domainRef?.name,
+          onClick: (row) => refreshDomain(row),
+        },
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onClick: (row) => deleteDnsZone(row),
+        },
+      ]),
     ],
     [projectId, navigate, refreshDomain, deleteDnsZone]
   );
@@ -344,30 +322,14 @@ export default function DnsZonesPage() {
   return (
     <>
       <DnsZoneFormDialog ref={dialogRef} projectId={projectId ?? ''} />
-      <DataTable
-        columns={columns}
-        data={zonesWithStatus}
-        rowActions={rowActions}
-        onRowClick={handleRowClick}
-        emptyContent={{
-          title: "let's add a DNS to get you started",
-          actions: [
-            {
-              type: 'button',
-              label: 'Add zone',
-              onClick: () => dialogRef.current?.show(),
-              variant: 'default',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
-            },
-          ],
-        }}
-        tableTitle={{
-          title: 'DNS',
-          description:
-            'Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain.',
-          actions: (
+      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={zonesWithStatus}>
+        <DataTableToolbar
+          title="DNS"
+          description="Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain."
+          search={{ placeholder: 'Search DNS' }}
+          actions={[
             <Button
+              key="add-zone"
               type="primary"
               theme="solid"
               size="small"
@@ -376,16 +338,14 @@ export default function DnsZonesPage() {
               onClick={() => dialogRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               Add zone
-            </Button>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search DNS',
-          },
-        }}
-      />
+            </Button>,
+          ]}
+        />
+        <DataTable.Content
+          emptyMessage="let's add a DNS to get you started"
+        />
+        <DataTable.Pagination />
+      </DataTable.Client>
     </>
   );
 }
