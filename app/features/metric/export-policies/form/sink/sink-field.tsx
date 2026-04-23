@@ -2,8 +2,9 @@ import { PrometheusField } from './prometheus/prometheus-field';
 import { MultiSelect } from '@/components/multi-select/multi-select';
 import { POLICY_SINK_TYPES } from '@/features/metric/constants';
 import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
-import { Form } from '@datum-ui/components/form';
-import type { FormFieldRenderProps } from '@datum-ui/components/form';
+import { toStringArray } from '@/utils/helpers/form-value.helper';
+import { Form } from '@datum-cloud/datum-ui/form';
+import type { FormFieldRenderProps } from '@datum-cloud/datum-ui/form';
 import { isEqual } from 'es-toolkit/compat';
 import { useState, useEffect, useRef } from 'react';
 
@@ -26,10 +27,11 @@ const SourcesMultiSelect = ({
     }
   }, [sourceList]);
 
-  // Initialize from form value
+  // Initialize from form value (adapter may serialize arrays as JSON strings)
   useEffect(() => {
-    if (control.value && Array.isArray(control.value) && selectedSources.length === 0) {
-      setSelectedSources(control.value as string[]);
+    const arr = toStringArray(control.value);
+    if (arr.length > 0 && selectedSources.length === 0) {
+      setSelectedSources(arr);
     }
   }, [control.value]);
 

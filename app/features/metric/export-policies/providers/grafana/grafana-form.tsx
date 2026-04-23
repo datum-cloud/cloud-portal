@@ -16,8 +16,14 @@ import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helper
 import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
+import { Form, useField } from '@datum-cloud/datum-ui/form';
+import {
+  FormStepper,
+  FormStep,
+  StepperNavigation,
+  StepperControls,
+} from '@datum-cloud/datum-ui/form/stepper';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import { z } from 'zod';
@@ -73,6 +79,66 @@ const steps = [
 // ============================================================================
 // Component
 // ============================================================================
+
+function PrometheusConfigEditor() {
+  const { field, control } = useField('prometheusConfig');
+
+  return (
+    <CodeEditor
+      language="yaml"
+      value={(control.value ?? '') as string}
+      onChange={(newValue) => control.change(newValue)}
+      id={field.id}
+      name={field.name}
+      error={field.errors?.[0]}
+      minHeight="128px"
+      placeholder="e.g.
+  remote_write:
+    - url: https://prometheus-prod-56-prod-us-east-2.grafana.net/api/prom/push
+      basic_auth:
+        username: 123456
+        password: glc_eyJyIjoiNzA2...."
+    />
+  );
+}
+
+function SecretNameInput() {
+  const { field } = useField('secretName');
+
+  return (
+    <InputName
+      required
+      field={field}
+      description={''}
+      label="Secret name"
+      autoGenerate
+      showTooltip={false}
+      labelClassName="text-xs font-medium"
+      className="flex-1"
+      disabledRandomSuffix={true}
+      baseName="grafana-prometheus-secret"
+    />
+  );
+}
+
+function ExportPolicyNameInput() {
+  const { field } = useField('exportPolicyName');
+
+  return (
+    <InputName
+      required
+      field={field}
+      description={''}
+      label="Export policy name"
+      autoGenerate
+      showTooltip={false}
+      labelClassName="text-xs font-medium"
+      className="flex-1"
+      disabledRandomSuffix={true}
+      baseName="grafana-export-policy"
+    />
+  );
+}
 
 export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps) {
   const createSecretMutation = useCreateSecret(projectId);
@@ -156,7 +222,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
   };
 
   return (
-    <Form.Stepper
+    <FormStepper
       steps={steps}
       onComplete={(data) => handleSubmit(data as GrafanaFormData)}
       className="flex min-h-0 flex-1 flex-col space-y-0"
@@ -181,11 +247,11 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
             <Dialog.Body className="p-0">
               {/* Step navigation */}
               <div className="border-stepper-line border-b p-5">
-                <Form.StepperNavigation variant="horizontal" className="mx-auto max-w-[265px]" />
+                <StepperNavigation variant="horizontal" className="mx-auto max-w-[265px]" />
               </div>
 
               {/* Step 1: Grafana Access */}
-              <Form.Step id="grafana">
+              <FormStep id="grafana">
                 <div className="divide-stepper-line divide-y">
                   <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-col gap-1.5">
@@ -220,10 +286,10 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                     </Form.Field>
                   </div>
                 </div>
-              </Form.Step>
+              </FormStep>
 
               {/* Step 2: Prometheus Config */}
-              <Form.Step id="prometheus">
+              <FormStep id="prometheus">
                 <div className="divide-stepper-line divide-y">
                   <div className="flex flex-col gap-4 p-5">
                     <div className="flex flex-col gap-1.5">
@@ -268,27 +334,9 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                         Secret and ExportPolicy resources
                       </p>
                     </div>
-                    <Form.Custom>
-                      {({ form, fields }) => (
-                        <CodeEditor
-                          language="yaml"
-                          value={fields.prometheusConfig.value as string}
-                          onChange={(newValue) => {
-                            form.update({ name: 'prometheusConfig', value: newValue });
-                          }}
-                          id={fields.prometheusConfig.id}
-                          name={fields.prometheusConfig.name}
-                          error={fields.prometheusConfig.errors?.[0]}
-                          minHeight="128px"
-                          placeholder="e.g.
-  remote_write:
-    - url: https://prometheus-prod-56-prod-us-east-2.grafana.net/api/prom/push
-      basic_auth:
-        username: 123456
-        password: glc_eyJyIjoiNzA2...."
-                        />
-                      )}
-                    </Form.Custom>
+                    <Form.Field name="prometheusConfig">
+                      <PrometheusConfigEditor />
+                    </Form.Field>
                   </div>
                   <div className="p-5">
                     <Collapsible>
@@ -297,47 +345,21 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                         Advanced options
                       </CollapsibleTrigger>
                       <CollapsibleContent className="mt-5 flex flex-col gap-5 sm:flex-row">
-                        <Form.Custom>
-                          {({ fields }) => (
-                            <InputName
-                              required
-                              field={fields.secretName}
-                              description={''}
-                              label="Secret name"
-                              autoGenerate
-                              showTooltip={false}
-                              labelClassName="text-xs font-medium"
-                              className="flex-1"
-                              disabledRandomSuffix={true}
-                              baseName="grafana-prometheus-secret"
-                            />
-                          )}
-                        </Form.Custom>
+                        <Form.Field name="secretName">
+                          <SecretNameInput />
+                        </Form.Field>
 
-                        <Form.Custom>
-                          {({ fields }) => (
-                            <InputName
-                              required
-                              field={fields.exportPolicyName}
-                              description={''}
-                              label="Export policy name"
-                              autoGenerate
-                              showTooltip={false}
-                              labelClassName="text-xs font-medium"
-                              className="flex-1"
-                              disabledRandomSuffix={true}
-                              baseName="grafana-export-policy"
-                            />
-                          )}
-                        </Form.Custom>
+                        <Form.Field name="exportPolicyName">
+                          <ExportPolicyNameInput />
+                        </Form.Field>
                       </CollapsibleContent>
                     </Collapsible>
                   </div>
                 </div>
-              </Form.Step>
+              </FormStep>
             </Dialog.Body>
             <Dialog.Footer className="border-stepper-line border-t">
-              <Form.StepperControls
+              <StepperControls
                 prevLabel={(isFirst) => (isFirst ? 'Cancel' : 'Back')}
                 nextLabel={(isLast) => (isLast ? 'Submit' : 'Continue')}
                 loading={isPending}
@@ -349,6 +371,6 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
           </div>
         );
       }}
-    </Form.Stepper>
+    </FormStepper>
   );
 }

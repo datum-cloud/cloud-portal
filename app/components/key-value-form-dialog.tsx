@@ -1,4 +1,4 @@
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import type { z } from 'zod';
 

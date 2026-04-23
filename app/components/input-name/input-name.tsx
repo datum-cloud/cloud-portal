@@ -1,9 +1,8 @@
 import { Field } from '../field/field';
 import { FieldLabel } from '@/components/field/field-label';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
-import { FieldMetadata, useInputControl } from '@conform-to/react';
-import { getInputProps } from '@conform-to/react';
 import { Checkbox } from '@datum-cloud/datum-ui/checkbox';
+import { type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -16,7 +15,7 @@ interface InputNameProps {
   description?: string;
   readOnly?: boolean;
   required?: boolean;
-  field: FieldMetadata;
+  field: NormalizedFieldState;
   inputRef?: React.RefObject<HTMLInputElement | null>;
   autoGenerate?: boolean;
   baseName?: string;
@@ -42,13 +41,6 @@ export const InputName = ({
   disabledRandomSuffix = false,
   autoFocus = false,
 }: InputNameProps) => {
-  const nameControl = useInputControl({
-    key: field.id,
-    name: field.name,
-    formId: field.formId,
-    initialValue: field.initialValue as string,
-  });
-
   const [auto, setAuto] = useState(autoGenerate);
 
   const randomSuffix = useMemo(() => generateRandomString(6), []);
@@ -56,7 +48,7 @@ export const InputName = ({
   // Auto generate name when base name is provided and auto generate is enabled
   useEffect(() => {
     if (baseName && auto) {
-      nameControl.change(
+      field.change(
         generateId(baseName, {
           randomText: randomSuffix,
           randomLength: disabledRandomSuffix ? 0 : 6,
@@ -65,13 +57,16 @@ export const InputName = ({
     }
   }, [baseName, auto, disabledRandomSuffix]);
 
+  const hasErrors = field.errors && field.errors.length > 0;
+  const inputProps = (field.inputProps ?? {}) as Record<string, unknown>;
+
   return (
     <div className={cn('flex flex-col space-y-2', className)}>
       <div className="flex items-center gap-5">
         <FieldLabel
           label={label}
           className={cn('text-xs font-semibold', labelClassName)}
-          isError={!!field.errors}
+          isError={hasErrors}
           isRequired={required}
           tooltipInfo={
             autoGenerate
@@ -102,7 +97,13 @@ export const InputName = ({
       </div>
       <Field isRequired={required} description={description}>
         <Input
-          {...getInputProps(field, { type: 'text' })}
+          type="text"
+          {...inputProps}
+          id={field.id}
+          name={field.name}
+          value={(field.value ?? '') as string}
+          onChange={(e) => field.change(e.target.value)}
+          onBlur={() => field.blur()}
           readOnly={readOnly || auto}
           key={field.id}
           ref={inputRef}

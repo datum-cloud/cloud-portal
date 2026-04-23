@@ -29,9 +29,9 @@ import {
   CardFooter,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';
@@ -211,6 +211,7 @@ export const ExportPolicyUpdateForm = ({
       <Form.Root
         id="export-policy-form"
         schema={updateExportPolicySchema}
+        mode="onBlur"
         onSubmit={handleSubmit}
         defaultValues={formattedValues}
         isSubmitting={isPending}

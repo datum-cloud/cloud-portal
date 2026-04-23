@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { useNavigate } from 'react-router';
 
 interface GroupFormProps {
@@ -25,7 +25,7 @@ export const GroupForm = ({ onSubmit, isSubmitting }: GroupFormProps) => {
         <CardTitle>Create Group</CardTitle>
         <CardDescription>Create a new IAM group for your organization.</CardDescription>
       </CardHeader>
-      <Form.Root schema={createGroupSchema} onSubmit={onSubmit}>
+      <Form.Root schema={createGroupSchema} mode="onBlur" onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           <Form.Field name="name" label="Group Name" required>
             <Form.Input placeholder="platform-engineering" />

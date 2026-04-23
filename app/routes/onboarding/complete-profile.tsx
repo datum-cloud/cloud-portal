@@ -11,8 +11,8 @@ import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Link,
@@ -93,6 +93,7 @@ export default function CompleteProfilePage() {
             name="complete-profile"
             id="complete-profile-form"
             schema={userSchema}
+            mode="onBlur"
             defaultValues={{ email }}
             isSubmitting={updateMutation.isPending}
             onSubmit={async (data) => {

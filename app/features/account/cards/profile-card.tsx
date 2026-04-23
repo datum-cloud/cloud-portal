@@ -2,8 +2,8 @@ import { useApp } from '@/providers/app.provider';
 import { useUpdateUser, userSchema } from '@/resources/users';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 
 /**
  * Account Profile Settings Card Component
@@ -36,6 +36,7 @@ export const AccountProfileSettingsCard = () => {
         name="update-profile"
         id="update-profile-form"
         schema={userSchema}
+        mode="onBlur"
         defaultValues={{
           firstName: user?.givenName ?? '',
           lastName: user?.familyName ?? '',
@@ -82,13 +83,7 @@ export const AccountProfileSettingsCard = () => {
                 disabled={isSubmitting}
                 size="xs"
                 onClick={() => {
-                  form.update({
-                    value: {
-                      firstName: user?.givenName ?? '',
-                      lastName: user?.familyName ?? '',
-                      email: user?.email ?? '',
-                    },
-                  });
+                  form.reset();
                 }}>
                 Cancel
               </Button>

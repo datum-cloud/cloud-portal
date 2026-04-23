@@ -1,4 +1,3 @@
-import { SelectBox } from '@/components/select-box/select-box';
 import { SelectGroup } from '@/components/select-group/select-group';
 import { SelectMember } from '@/components/select-member/select-member';
 import { SelectProject } from '@/components/select-project/select-project';
@@ -17,10 +16,10 @@ import {
 } from '@/resources/policy-bindings';
 import { useProject } from '@/resources/projects';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
@@ -55,10 +54,10 @@ function ResourceSection({ isEdit }: { isEdit: boolean }) {
             disabled={isEdit}
             defaultValue={control.value as string}
             onValueChange={(value) => {
-              control.change(value.value);
-              setCurrentRef(POLICY_RESOURCES[value.value as keyof typeof POLICY_RESOURCES]);
+              control.change(value);
+              setCurrentRef(POLICY_RESOURCES[value as keyof typeof POLICY_RESOURCES]);
 
-              if (value.value === 'resourcemanager.miloapis.com-organization') {
+              if (value === 'resourcemanager.miloapis.com-organization') {
                 resourceName.control.change(organization?.name ?? '');
                 resourceNamespace.control.change(organization?.namespace ?? '');
                 resourceUid.control.change(organization?.uid ?? '');
@@ -163,16 +162,12 @@ function SubjectRow({
       <div className="flex w-full flex-col gap-4">
         <div className="flex w-full gap-4">
           <Form.Field name={`subjects.${index}.kind`} label="Type" required className="w-1/3">
-            {({ control }) => (
-              <SelectBox
-                value={control.value as string}
-                onChange={(value) => control.change(value.value)}
-                options={Object.values(PolicyBindingSubjectKind).map((kind) => ({
-                  value: kind,
-                  label: kind,
-                }))}
-              />
-            )}
+            <Form.Combobox
+              options={Object.values(PolicyBindingSubjectKind).map((kind) => ({
+                value: kind,
+                label: kind,
+              }))}
+            />
           </Form.Field>
 
           <Form.Field name={`subjects.${index}.name`} label="Subject" required className="w-2/3">

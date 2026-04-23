@@ -16,8 +16,10 @@ import {
   type MachineAccountKey,
 } from '@/resources/machine-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Badge, Button, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { AlertCircleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

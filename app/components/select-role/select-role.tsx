@@ -1,7 +1,14 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import type { Role } from '@/resources/roles';
 import { useRoles } from '@/resources/roles';
+import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
+
+export type SelectRoleOption = AutocompleteOption &
+  Role & {
+    product: string;
+    sortOrder: number;
+  };
 
 export const SelectRole = ({
   defaultValue,
@@ -14,7 +21,7 @@ export const SelectRole = ({
 }: {
   defaultValue?: string;
   className?: string;
-  onSelect: (value: SelectBoxOption) => void;
+  onSelect: (value: SelectRoleOption) => void;
   name?: string;
   id?: string;
   disabled?: boolean;
@@ -30,7 +37,7 @@ export const SelectRole = ({
 
   const groups = useMemo(() => {
     // Create options from API-fetched roles
-    const apiRoleOptions = roles.map((role) => {
+    const apiRoleOptions: SelectRoleOption[] = roles.map((role) => {
       const displayName =
         role.annotations?.['kubernetes.io/display-name'] ?? role.displayName ?? role.name;
       const description = role.annotations?.['kubernetes.io/description'] ?? role.description ?? '';
@@ -46,7 +53,7 @@ export const SelectRole = ({
     });
 
     // Group roles by product
-    const groupedRoles = new Map<string, typeof apiRoleOptions>();
+    const groupedRoles = new Map<string, SelectRoleOption[]>();
     apiRoleOptions.forEach((role) => {
       if (!groupedRoles.has(role.product)) {
         groupedRoles.set(role.product, []);
@@ -76,28 +83,31 @@ export const SelectRole = ({
       })
       .map(([product, options]) => ({
         label: product,
-        options: options as SelectBoxOption[],
+        options,
       }));
 
     return sortedGroups;
   }, [roles]);
 
+  const flatOptions = useMemo(() => groups.flatMap((group) => group.options), [groups]);
+
   return (
-    <SelectBox
+    <Autocomplete<SelectRoleOption>
       disabled={disabled}
       name={name}
       id={id}
       value={defaultValue}
       className={className}
-      onChange={(value: SelectBoxOption) => {
-        if (value) {
-          onSelect(value);
+      onValueChange={(value) => {
+        const option = flatOptions.find((opt) => opt.value === value);
+        if (option) {
+          onSelect(option);
         }
       }}
-      groups={groups}
+      options={groups}
       placeholder="Select a Role"
-      searchable={false}
-      isLoading={isLoading}
+      disableSearch
+      loading={isLoading}
       modal={modal}
     />
   );

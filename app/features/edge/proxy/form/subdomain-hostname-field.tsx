@@ -3,9 +3,8 @@ import { SelectDomain } from '@/features/edge/domain/select-domain';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useDomains } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { useInputControl } from '@conform-to/react';
+import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { useFieldContext } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 import { AlertTriangleIcon, GlobeIcon, XIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -58,9 +57,11 @@ export function SubdomainHostnameField({
   excludeValues,
   onRemove,
 }: SubdomainHostnameFieldProps) {
-  const { fieldMeta, disabled: fieldDisabled, errors } = useFieldContext();
-  const control = useInputControl(fieldMeta as any);
-  const currentValue = Array.isArray(control.value) ? control.value[0] : control.value;
+  const { name, disabled: fieldDisabled, errors } = useFieldContext();
+  const { control } = useField(name);
+  const currentValue = Array.isArray(control.value)
+    ? String(control.value[0] ?? '')
+    : String(control.value ?? '');
 
   const { confirm } = useConfirmationDialog();
   const { data: domains = [], isLoading: domainsLoading } = useDomains(projectId);

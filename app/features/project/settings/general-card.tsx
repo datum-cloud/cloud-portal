@@ -4,8 +4,8 @@ import { projectKeys, updateProjectSchema, useUpdateProject } from '@/resources/
 import { Button } from '@datum-cloud/datum-ui/button';
 import { CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -44,6 +44,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
         name="update-project"
         id="update-project-form"
         schema={updateProjectSchema.pick({ description: true, name: true })}
+        mode="onBlur"
         defaultValues={{
           description: project?.description ?? '',
           name: project?.name ?? '',
@@ -77,12 +78,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                 disabled={isSubmitting}
                 size="xs"
                 onClick={() => {
-                  form.update({
-                    value: {
-                      description: project?.description ?? '',
-                      name: project?.name ?? '',
-                    },
-                  });
+                  form.reset();
                 }}>
                 Cancel
               </Button>

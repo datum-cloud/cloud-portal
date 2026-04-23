@@ -14,10 +14,10 @@ import { paths } from '@/utils/config/paths.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -44,6 +44,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { headers } = await setAlertClosed(request, 'organizations_understanding');
   return data({ success: true }, { headers });
 };
+
+function OrganizationResourceName({ field }: { field: NormalizedFieldState }) {
+  const description = useWatch('description') as string | undefined;
+
+  return (
+    <InputName
+      required
+      showTooltip={false}
+      description="This unique resource name will be used to identify your organization and cannot be changed."
+      field={field}
+      baseName={description}
+    />
+  );
+}
 
 export default function AccountOrganizations() {
   const { alertClosed } = useLoaderData<typeof loader>();
@@ -239,15 +253,7 @@ export default function AccountOrganizations() {
           </Form.Field>
 
           <Form.Field name="name">
-            {({ field, fields }) => (
-              <InputName
-                required
-                showTooltip={false}
-                description="This unique resource name will be used to identify your organization and cannot be changed."
-                field={field}
-                baseName={fields.description?.value as string}
-              />
-            )}
+            {({ field }) => <OrganizationResourceName field={field} />}
           </Form.Field>
         </div>
       </Form.Dialog>
