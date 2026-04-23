@@ -153,12 +153,7 @@ export const WorkloadSinksTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <Table.Client
-          columns={columns}
-          data={data ?? []}
-          pagination={false}
-          syncUrl={false}
-        />
+        <Table.Client columns={columns} data={data ?? []} pagination={false} syncUrl={false} />
       </CardContent>
     </Card>
   );

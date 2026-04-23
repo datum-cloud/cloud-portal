@@ -1,12 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
@@ -50,7 +44,6 @@ export default function HttpProxyPage() {
     throw new BadRequestError('Project ID is required');
   }
   const navigate = useNavigate();
-  const stateAdapter = useNuqsAdapter();
 
   useHttpProxiesWatch(projectId);
 
@@ -226,30 +219,27 @@ export default function HttpProxyPage() {
 
   return (
     <>
-      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data ?? []} className="space-y-4">
-        <DataTableToolbar
-          title="AI Edge"
-          description="Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services."
-          search={{ placeholder: 'Search' }}
-          actions={[
-            <Button
-              key="create-edge"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-ai-edge-button"
-              onClick={() => proxyFormRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              New
-            </Button>,
-          ]}
-        />
-        <DataTablePanel>
-          <DataTable.Content emptyMessage="let's add an AI Edge to get you started" />
-          <DataTable.Pagination />
-        </DataTablePanel>
-      </DataTable.Client>
+      <Table.Client
+        columns={columns}
+        data={data ?? []}
+        title="AI Edge"
+        description="Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services."
+        search={{ placeholder: 'Search' }}
+        emptyContent="let's add an AI Edge to get you started"
+        actions={[
+          <Button
+            key="create-edge"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-ai-edge-button"
+            onClick={() => proxyFormRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            New
+          </Button>,
+        ]}
+      />
 
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
     </>

@@ -134,11 +134,5 @@ export const QuotasTable = ({
     ];
   }, [data, resourceType]);
 
-  return (
-    <Table.Client
-      columns={columns}
-      data={data}
-      emptyContent="No quotas found"
-    />
-  );
+  return <Table.Client columns={columns} data={data} emptyContent="No quotas found" />;
 };

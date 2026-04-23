@@ -1,11 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { MachineAccountFormDialog } from '@/features/machine-account/form/machine-account-form-dialog';
 import type { MachineAccountFormDialogRef } from '@/features/machine-account/form/machine-account-form-dialog';
@@ -277,8 +271,6 @@ export default function MachineAccountsPage() {
     [projectId, deleteAccount, toggleAccount]
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   const navigateToAccount = (accountName: string, keyResponse?: CreateMachineAccountKeyResponse) =>
     navigate(
       getPathWithParams(paths.project.detail.machineAccounts.detail.keys, {
@@ -295,27 +287,23 @@ export default function MachineAccountsPage() {
       {data.length === 0 ? (
         <MachineAccountsEmptyState onSelectUseCase={openWizard} />
       ) : (
-        <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={data} className="space-y-4">
-          <DataTableToolbar
-            title="Machine Accounts"
-            search={{ placeholder: 'Search machine accounts' }}
-            actions={[
-              <Button
-                key="create"
-                type="primary"
-                theme="solid"
-                size="small"
-                onClick={() => openWizard()}>
-                <Icon icon={PlusIcon} className="size-4" />
-                Create Machine Account
-              </Button>,
-            ]}
-          />
-          <DataTablePanel>
-            <DataTable.Content />
-            <DataTable.Pagination />
-          </DataTablePanel>
-        </DataTable.Client>
+        <Table.Client
+          columns={columns}
+          data={data}
+          title="Machine Accounts"
+          search={{ placeholder: 'Search machine accounts' }}
+          actions={[
+            <Button
+              key="create"
+              type="primary"
+              theme="solid"
+              size="small"
+              onClick={() => openWizard()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Create Machine Account
+            </Button>,
+          ]}
+        />
       )}
 
       {/* Edit-only dialog — create path uses the wizard below */}

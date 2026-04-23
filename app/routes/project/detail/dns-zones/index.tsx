@@ -1,12 +1,6 @@
 import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
 import {
@@ -98,7 +92,6 @@ export default function DnsZonesPage() {
   const { confirm } = useConfirmationDialog();
   const dialogRef = useRef<DnsZoneFormDialogRef>(null);
   const [searchParams, setSearchParams] = useSearchParams();
-  const stateAdapter = useNuqsAdapter();
 
   // Sync dialog state from URL search params (for external links like ?action=create&domainName=...)
   useEffect(() => {
@@ -328,30 +321,27 @@ export default function DnsZonesPage() {
   return (
     <>
       <DnsZoneFormDialog ref={dialogRef} projectId={projectId ?? ''} />
-      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={zonesWithStatus} className="space-y-4">
-        <DataTableToolbar
-          title="DNS"
-          description="Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain."
-          search={{ placeholder: 'Search DNS' }}
-          actions={[
-            <Button
-              key="add-zone"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-dns-zone-button"
-              onClick={() => dialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add zone
-            </Button>,
-          ]}
-        />
-        <DataTablePanel>
-          <DataTable.Content emptyMessage="let's add a DNS to get you started" />
-          <DataTable.Pagination />
-        </DataTablePanel>
-      </DataTable.Client>
+      <Table.Client
+        columns={columns}
+        data={zonesWithStatus}
+        title="DNS"
+        description="Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain."
+        search={{ placeholder: 'Search DNS' }}
+        emptyContent="let's add a DNS to get you started"
+        actions={[
+          <Button
+            key="add-zone"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-dns-zone-button"
+            onClick={() => dialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add zone
+          </Button>,
+        ]}
+      />
     </>
   );
 }

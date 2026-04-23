@@ -1,11 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import type { ActionItem } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { SECRET_TYPES } from '@/features/secret/constants';
@@ -149,32 +143,26 @@ export default function SecretsPage() {
     [columns, rowActions]
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   return (
     <>
-      <DataTable.Client stateAdapter={stateAdapter} columns={columnsWithActions} data={data ?? []} className="space-y-4">
-        <DataTableToolbar
-          title="Secrets"
-          actions={[
-            <Button
-              key="add-secret"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-secret-button"
-              onClick={() => secretFormDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add secret
-            </Button>,
-          ]}
-        />
-        <DataTablePanel>
-          <DataTable.Content />
-          <DataTable.Pagination />
-        </DataTablePanel>
-      </DataTable.Client>
+      <Table.Client
+        columns={columnsWithActions}
+        data={data ?? []}
+        title="Secrets"
+        actions={[
+          <Button
+            key="add-secret"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-secret-button"
+            onClick={() => secretFormDialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add secret
+          </Button>,
+        ]}
+      />
       <SecretFormDialog ref={secretFormDialogRef} />
     </>
   );

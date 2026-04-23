@@ -1,12 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import {
-  createActionsColumn,
-  DataTable,
-  DataTablePanel,
-  DataTableToolbar,
-  useNuqsAdapter,
-} from '@/components/data-table';
+import { createActionsColumn, Table } from '@/components/data-table';
 import type { ActionItem } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { KeyRevealPanel } from '@/features/machine-account/components/key-reveal-panel';
@@ -161,8 +155,6 @@ export default function MachineAccountKeysPage() {
     [rowActions]
   );
 
-  const stateAdapter = useNuqsAdapter();
-
   const isPolling = pollerResult.status === 'polling';
   const isProvisioningFailed = pollerResult.status === 'timeout' || pollerResult.status === 'error';
 
@@ -201,28 +193,24 @@ export default function MachineAccountKeysPage() {
         </div>
       )}
 
-      <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={keys} className="space-y-4">
-        <DataTableToolbar
-          title="Keys"
-          actions={[
-            <Button
-              key="add-key"
-              type="primary"
-              theme="solid"
-              size="small"
-              disabled={isPolling || isProvisioningFailed}
-              title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
-              onClick={() => keyFormDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add Key
-            </Button>,
-          ]}
-        />
-        <DataTablePanel>
-          <DataTable.Content />
-          <DataTable.Pagination />
-        </DataTablePanel>
-      </DataTable.Client>
+      <Table.Client
+        columns={columns}
+        data={keys}
+        title="Keys"
+        actions={[
+          <Button
+            key="add-key"
+            type="primary"
+            theme="solid"
+            size="small"
+            disabled={isPolling || isProvisioningFailed}
+            title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
+            onClick={() => keyFormDialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add Key
+          </Button>,
+        ]}
+      />
 
       <MachineAccountKeyFormDialog
         ref={keyFormDialogRef}

@@ -1,14 +1,13 @@
 import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
-import { DataTable } from '@datum-cloud/datum-ui/data-table';
 import { Table, createActionsColumn } from '@/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
+import { DataTable } from '@datum-cloud/datum-ui/data-table';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { InfoIcon, LockIcon } from 'lucide-react';
 import { useMemo } from 'react';

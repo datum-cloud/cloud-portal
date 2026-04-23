@@ -1,10 +1,6 @@
 import { getActivityLogColumns } from './activity-log-columns';
 import { getResourceFilterOptions, getActionFilterOptions } from './activity-log-filters';
-import {
-  Table,
-  TagFilter,
-  TimeRangeFilter,
-} from '@/components/data-table';
+import { Table, TagFilter, TimeRangeFilter } from '@/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import type { ActivityLogScope } from '@/resources/activity-logs';
 import {

@@ -1,5 +1,5 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { DataTable, DataTablePanel, DataTableToolbar, useNuqsAdapter } from '@/components/data-table';
+import { Table } from '@/components/data-table';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
@@ -81,8 +81,6 @@ export default function ConnectorsPage() {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
-
-  const stateAdapter = useNuqsAdapter();
 
   const tableData = useMemo((): ConnectorWithProxies[] => {
     if (!connectorsData) return [];
@@ -286,20 +284,17 @@ export default function ConnectorsPage() {
   );
 
   return (
-    <DataTable.Client stateAdapter={stateAdapter} columns={columns} data={tableData} className="space-y-4">
-      <DataTableToolbar
-        title="Connectors"
-        search={{ placeholder: 'Search' }}
-        actions={
-          isDownloadVisible
-            ? [<ConnectorDownloadCard key="download" onDismiss={handleDismissDownload} />]
-            : undefined
-        }
-      />
-      <DataTablePanel>
-        <DataTable.Content emptyMessage="No connectors found" />
-        <DataTable.Pagination />
-      </DataTablePanel>
-    </DataTable.Client>
+    <Table.Client
+      columns={columns}
+      data={tableData}
+      title="Connectors"
+      search={{ placeholder: 'Search' }}
+      emptyContent="No connectors found"
+      actions={
+        isDownloadVisible
+          ? [<ConnectorDownloadCard key="download" onDismiss={handleDismissDownload} />]
+          : undefined
+      }
+    />
   );
 }

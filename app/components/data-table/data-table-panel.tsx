@@ -7,7 +7,7 @@ interface DataTablePanelProps extends HTMLAttributes<HTMLDivElement> {
 
 export function DataTablePanel({ children, className, ...rest }: DataTablePanelProps) {
   return (
-    <div className={cn('rounded-lg border overflow-hidden', className)} {...rest}>
+    <div className={cn('overflow-hidden rounded-lg border', className)} {...rest}>
       {children}
     </div>
   );

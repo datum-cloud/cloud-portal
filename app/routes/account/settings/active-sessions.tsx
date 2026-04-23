@@ -167,10 +167,6 @@ export default function AccountActiveSessionsPage() {
   );
 
   return (
-    <Table.Client
-      columns={columns}
-      data={sessionsData}
-      emptyContent="No active sessions found."
-    />
+    <Table.Client columns={columns} data={sessionsData} emptyContent="No active sessions found." />
   );
 }

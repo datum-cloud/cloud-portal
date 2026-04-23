@@ -96,11 +96,7 @@ export default function AccountActiveSessionsPage() {
         </Button>
       </Col>
       <Col span={24}>
-        <Table.Client
-          columns={columns}
-          data={DUMMIES}
-          emptyContent="No access tokens found."
-        />
+        <Table.Client columns={columns} data={DUMMIES} emptyContent="No access tokens found." />
       </Col>
     </Row>
   );
