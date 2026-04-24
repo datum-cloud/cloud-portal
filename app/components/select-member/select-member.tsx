@@ -1,7 +1,10 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import type { Member } from '@/resources/members';
 import { useMembers } from '@/resources/members/member.queries';
+import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
+
+export type SelectMemberOption = AutocompleteOption & Member;
 
 export const SelectMember = ({
   orgId,
@@ -15,7 +18,7 @@ export const SelectMember = ({
   orgId: string;
   defaultValue?: string;
   className?: string;
-  onSelect: (value: SelectBoxOption) => void;
+  onSelect: (value: SelectMemberOption) => void;
   name?: string;
   id?: string;
   exceptItems?: string[];
@@ -28,7 +31,7 @@ export const SelectMember = ({
     }
   }, [error]);
 
-  const options = useMemo(() => {
+  const options = useMemo<SelectMemberOption[]>(() => {
     return members.map((member) => {
       const id = member.user.id ?? '';
       const label = `${member?.user?.givenName ?? ''} ${member?.user?.familyName ?? ''}`.trim();
@@ -42,19 +45,20 @@ export const SelectMember = ({
   }, [members, exceptItems]);
 
   return (
-    <SelectBox
+    <Autocomplete<SelectMemberOption>
       name={name}
       id={id}
       value={defaultValue}
       className={className}
-      onChange={(value: SelectBoxOption) => {
-        if (value) {
-          onSelect(value);
+      onValueChange={(value) => {
+        const option = options.find((opt) => opt.value === value);
+        if (option) {
+          onSelect(option);
         }
       }}
       options={options}
       placeholder="Select a User"
-      isLoading={isLoading}
+      loading={isLoading}
     />
   );
 };

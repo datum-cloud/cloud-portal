@@ -1,10 +1,10 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { PolicyBindingTable } from '@/features/policy-binding';
+import type { PolicyBindingTableRowAction } from '@/features/policy-binding';
 import {
   PolicyBindingFormDialog,
   type PolicyBindingFormDialogRef,
 } from '@/features/policy-binding/form/policy-binding-form-dialog';
-import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import { useMachineAccount } from '@/resources/machine-accounts';
 import {
@@ -13,8 +13,9 @@ import {
   type PolicyBinding,
 } from '@/resources/policy-bindings';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Button, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { ShieldIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 import { MetaFunction, useParams } from 'react-router';
@@ -70,13 +71,12 @@ export default function MachineAccountPolicyBindingsPage() {
     [confirm, deleteMutation]
   );
 
-  const rowActions: DataTableRowActionsProps<PolicyBinding>[] = useMemo(
+  const rowActions: PolicyBindingTableRowAction[] = useMemo(
     () => [
       {
         key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        display: 'inline',
         action: (row) => deletePolicyBinding(row),
       },
     ],

@@ -7,11 +7,11 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { FileInputButton } from '@datum-cloud/datum-ui/dropzone';
+import { Form, useWatch } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, GlobeIcon, ListChecksIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -22,6 +22,26 @@ interface BulkAddDomainsActionProps {
   popoverOpen?: boolean;
   onPopoverOpenChange?: (open: boolean) => void;
 }
+
+const BulkDomainsSubmitButton = () => {
+  const domains = useWatch('domains') as string | undefined;
+  const domainsCount = domains ? parseDomains(domains).length : 0;
+
+  return (
+    <Form.Submit
+      icon={<Icon icon={ArrowRightIcon} className="size-4" />}
+      iconPosition="right"
+      type="secondary"
+      theme="solid"
+      size="small"
+      htmlType="submit"
+      disabled={domainsCount === 0}>
+      {domainsCount > 0
+        ? `Add ${domainsCount === 1 ? 'domain' : 'domains'} (${domainsCount})`
+        : 'Add domains'}
+    </Form.Submit>
+  );
+};
 
 export const BulkAddDomainsAction = ({
   projectId,
@@ -144,32 +164,13 @@ export const BulkAddDomainsAction = ({
         mode="onSubmit"
         onSubmit={handleFormSubmit}
         className="space-y-4">
-        {({ fields }) => {
-          const domains = fields.domains?.value;
-          const domainsCount = domains ? parseDomains(domains as string).length : 0;
-          return (
-            <>
-              <Form.Field name="domains" required>
-                <Form.Textarea
-                  placeholder={'example.com, example.org\nexample.net'}
-                  className="h-48 resize-none"
-                />
-              </Form.Field>
-              <Form.Submit
-                icon={<Icon icon={ArrowRightIcon} className="size-4" />}
-                iconPosition="right"
-                type="secondary"
-                theme="solid"
-                size="small"
-                htmlType="submit"
-                disabled={domainsCount === 0}>
-                {domainsCount > 0
-                  ? `Add ${domainsCount === 1 ? 'domain' : 'domains'} (${domainsCount})`
-                  : 'Add domains'}
-              </Form.Submit>
-            </>
-          );
-        }}
+        <Form.Field name="domains" required>
+          <Form.Textarea
+            placeholder={'example.com, example.org\nexample.net'}
+            className="h-48 resize-none"
+          />
+        </Form.Field>
+        <BulkDomainsSubmitButton />
       </Form.Root>
 
       <div className="mt-6 space-y-4">

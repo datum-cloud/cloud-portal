@@ -1,7 +1,10 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
+import type { Group } from '@/resources/groups';
 import { useGroups } from '@/resources/groups';
+import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo } from 'react';
+
+export type SelectGroupOption = AutocompleteOption & Group;
 
 export const SelectGroup = ({
   orgId,
@@ -14,7 +17,7 @@ export const SelectGroup = ({
   orgId: string;
   defaultValue?: string;
   className?: string;
-  onSelect: (value: SelectBoxOption) => void;
+  onSelect: (value: SelectGroupOption) => void;
   name?: string;
   id?: string;
 }) => {
@@ -26,7 +29,7 @@ export const SelectGroup = ({
     }
   }, [error]);
 
-  const options = useMemo(() => {
+  const options = useMemo<SelectGroupOption[]>(() => {
     return groups.map((group) => {
       return {
         value: group.name,
@@ -37,19 +40,20 @@ export const SelectGroup = ({
   }, [groups]);
 
   return (
-    <SelectBox
+    <Autocomplete<SelectGroupOption>
       name={name}
       id={id}
       value={defaultValue}
       className={className}
-      onChange={(value: SelectBoxOption) => {
-        if (value) {
-          onSelect(value);
+      onValueChange={(value) => {
+        const option = options.find((opt) => opt.value === value);
+        if (option) {
+          onSelect(option);
         }
       }}
       options={options}
       placeholder="Select a Group"
-      isLoading={isLoading}
+      loading={isLoading}
     />
   );
 };

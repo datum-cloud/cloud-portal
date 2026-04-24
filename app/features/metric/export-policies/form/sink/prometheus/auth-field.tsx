@@ -1,11 +1,11 @@
-import { SelectBox } from '@/components/select-box/select-box';
 import { SelectSecret } from '@/components/select-secret/select-secret';
 import { SINK_AUTH_TYPES } from '@/features/metric/constants';
 import { ExportPolicyAuthenticationType } from '@/resources/export-policies';
 import { SecretType } from '@/resources/secrets';
+import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Switch } from '@datum-cloud/datum-ui/switch';
-import { Form } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 
 export const AuthField = ({ baseName, projectId }: { baseName: string; projectId?: string }) => {
@@ -28,8 +28,8 @@ export const AuthField = ({ baseName, projectId }: { baseName: string; projectId
                         if (value) {
                           authTypeControl.change(ExportPolicyAuthenticationType.BASIC_AUTH);
                         } else {
-                          authTypeControl.change(undefined as unknown as string);
-                          secretNameControl.change(undefined as unknown as string);
+                          authTypeControl.change(undefined);
+                          secretNameControl.change(undefined);
                         }
                       }}
                     />
@@ -45,16 +45,16 @@ export const AuthField = ({ baseName, projectId }: { baseName: string; projectId
                       required={isAuthenticationEnabled}
                       className="w-full sm:w-1/3">
                       {({ control, meta }) => (
-                        <SelectBox
+                        <Autocomplete
                           name={meta.name}
                           id={meta.id}
                           options={Object.values(ExportPolicyAuthenticationType).map((type) => ({
                             value: type,
                             label: SINK_AUTH_TYPES[type as keyof typeof SINK_AUTH_TYPES].label,
                           }))}
-                          onChange={(value) => {
-                            control.change(value?.value as string);
-                            secretNameControl.change(undefined as unknown as string);
+                          onValueChange={(value) => {
+                            control.change(value);
+                            secretNameControl.change(undefined);
                           }}
                           value={(control.value as string) ?? undefined}
                         />

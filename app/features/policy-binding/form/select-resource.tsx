@@ -1,5 +1,5 @@
-import { SelectBox, SelectBoxOption } from '@/components/select-box/select-box';
 import { POLICY_RESOURCES } from '@/features/policy-binding/form/constants';
+import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 
 const resourceOptions = Object.entries(POLICY_RESOURCES).map(([key, resource]) => ({
   value: key,
@@ -17,16 +17,16 @@ export const SelectResource = ({
 }: {
   defaultValue?: string;
   className?: string;
-  onValueChange: (value: SelectBoxOption) => void;
+  onValueChange: (value: string) => void;
   placeholder?: string;
   name?: string;
   id?: string;
   disabled?: boolean;
 }) => {
   return (
-    <SelectBox
+    <Autocomplete
       value={defaultValue}
-      onChange={(value) => onValueChange(value)}
+      onValueChange={(value) => onValueChange(value)}
       options={resourceOptions}
       placeholder={placeholder}
       name={name}

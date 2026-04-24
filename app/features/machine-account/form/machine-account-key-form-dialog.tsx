@@ -5,8 +5,8 @@ import {
   type MachineAccountKeyCreateSchema,
   type CreateMachineAccountKeyResponse,
 } from '@/resources/machine-accounts';
-import { toast } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { KeyRoundIcon, ShieldIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
@@ -74,18 +74,23 @@ export const MachineAccountKeyFormDialog = forwardRef<
   const [open, setOpen] = useState(false);
   const [keyType, setKeyType] = useState<KeyType>('datum-managed');
 
-  const createMutation = useCreateMachineAccountKey(projectId, machineAccountId, machineAccountEmail, {
-    onSuccess: (response) => {
-      toast.success('Key created', {
-        description: 'Machine account key has been created successfully.',
-      });
-      setOpen(false);
-      onKeyCreated?.(response);
-    },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
-  });
+  const createMutation = useCreateMachineAccountKey(
+    projectId,
+    machineAccountId,
+    machineAccountEmail,
+    {
+      onSuccess: (response) => {
+        toast.success('Key created', {
+          description: 'Machine account key has been created successfully.',
+        });
+        setOpen(false);
+        onKeyCreated?.(response);
+      },
+      onError: (error) => {
+        toast.error('Error', { description: error.message });
+      },
+    }
+  );
 
   const show = useCallback(() => {
     setKeyType('datum-managed');
@@ -110,7 +115,6 @@ export const MachineAccountKeyFormDialog = forwardRef<
 
   return (
     <Form.Dialog
-      key={open ? 'open' : 'closed'}
       open={open}
       onOpenChange={setOpen}
       title="New Key"

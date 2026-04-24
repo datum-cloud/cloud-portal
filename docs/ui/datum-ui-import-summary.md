@@ -37,16 +37,16 @@
 
 ## Header Components
 
-| File                               | Imports                                                     |
-| ---------------------------------- | ----------------------------------------------------------- |
-| `header/breadcrumb.tsx`            | Icon                                                        |
-| `header/header.tsx`                | Button, Skeleton, Tooltip, Icon, NavItem                    |
-| `header/mobile-switcher-sheet.tsx` | Skeleton, SpinnerIcon, Icon, MobileSheet                    |
-| `header/org-project-switcher.tsx`  | Skeleton                                                    |
-| `header/org-switcher.tsx`          | Icon                                                        |
-| `header/project-switcher.tsx`      | Button, SpinnerIcon, Icon                                   |
-| `header/search-bar.tsx`            | Button                                                      |
-| `header/user-dropdown.tsx`         | Button, Icon                                                |
+| File                               | Imports                                  |
+| ---------------------------------- | ---------------------------------------- |
+| `header/breadcrumb.tsx`            | Icon                                     |
+| `header/header.tsx`                | Button, Skeleton, Tooltip, Icon, NavItem |
+| `header/mobile-switcher-sheet.tsx` | Skeleton, SpinnerIcon, Icon, MobileSheet |
+| `header/org-project-switcher.tsx`  | Skeleton                                 |
+| `header/org-switcher.tsx`          | Icon                                     |
+| `header/project-switcher.tsx`      | Button, SpinnerIcon, Icon                |
+| `header/search-bar.tsx`            | Button                                   |
+| `header/user-dropdown.tsx`         | Button, Icon                             |
 
 ---
 
@@ -165,15 +165,15 @@
 
 ## Features: Edge - Domain
 
-| File                                          | Imports                                                                              |
-| --------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `domain/domain-form-dialog.tsx`               | toast, Form                                                                          |
-| `domain/expiration.tsx`                       | Badge                                                                                |
-| `domain/select-domain.tsx`                    | Button, AutocompleteOption, AutocompleteProps, useFieldContext, Autocomplete         |
-| `domain/bulk-add/bulk-add-domains-action.tsx` | Button, Dialog, toast, FileInputButton, Form, Icon, ResponsiveDropdown               |
-| `domain/overview/general-card.tsx`            | Badge, Card, CardContent, LinkButton, Tooltip                                        |
-| `domain/overview/quick-setup-card.tsx`        | Button, Card, CardContent, toast, Icon                                               |
-| `domain/overview/verification-card.tsx`       | Card, CardContent, Tooltip, toast, Icon, useCopyToClipboard                          |
+| File                                          | Imports                                                                      |
+| --------------------------------------------- | ---------------------------------------------------------------------------- |
+| `domain/domain-form-dialog.tsx`               | toast, Form                                                                  |
+| `domain/expiration.tsx`                       | Badge                                                                        |
+| `domain/select-domain.tsx`                    | Button, AutocompleteOption, AutocompleteProps, useFieldContext, Autocomplete |
+| `domain/bulk-add/bulk-add-domains-action.tsx` | Button, Dialog, toast, FileInputButton, Form, Icon, ResponsiveDropdown       |
+| `domain/overview/general-card.tsx`            | Badge, Card, CardContent, LinkButton, Tooltip                                |
+| `domain/overview/quick-setup-card.tsx`        | Button, Card, CardContent, toast, Icon                                       |
+| `domain/overview/verification-card.tsx`       | Card, CardContent, Tooltip, toast, Icon, useCopyToClipboard                  |
 
 ---
 
@@ -331,20 +331,20 @@
 
 ### Organization Routes
 
-| File                                      | Imports                                    |
-| ----------------------------------------- | ------------------------------------------ |
-| `org/detail/layout.tsx`                   | NavItem                                    |
-| `org/detail/projects/index.tsx`           | Button, Col, Row, Form, Icon               |
-| `org/detail/settings/general.tsx`         | Col, Row                                   |
-| `org/detail/settings/layout.tsx`          | PageTitle                                  |
-| `org/detail/settings/notifications.tsx`   | Col, Row                                   |
-| `org/detail/settings/policy-bindings.tsx` | Button, toast, Icon                        |
-| `org/detail/team/create-group.tsx`        | toast                                      |
-| `org/detail/team/group-detail.tsx`        | toast                                      |
-| `org/detail/team/groups.tsx`              | Badge, Button, toast, Icon                 |
-| `org/detail/team/index.tsx`               | Badge, Button, toast, Icon                 |
-| `org/detail/team/invite.tsx`              | toast                                      |
-| `org/detail/team/member-roles.tsx`        | toast                                      |
+| File                                      | Imports                      |
+| ----------------------------------------- | ---------------------------- |
+| `org/detail/layout.tsx`                   | NavItem                      |
+| `org/detail/projects/index.tsx`           | Button, Col, Row, Form, Icon |
+| `org/detail/settings/general.tsx`         | Col, Row                     |
+| `org/detail/settings/layout.tsx`          | PageTitle                    |
+| `org/detail/settings/notifications.tsx`   | Col, Row                     |
+| `org/detail/settings/policy-bindings.tsx` | Button, toast, Icon          |
+| `org/detail/team/create-group.tsx`        | toast                        |
+| `org/detail/team/group-detail.tsx`        | toast                        |
+| `org/detail/team/groups.tsx`              | Badge, Button, toast, Icon   |
+| `org/detail/team/index.tsx`               | Badge, Button, toast, Icon   |
+| `org/detail/team/invite.tsx`              | toast                        |
+| `org/detail/team/member-roles.tsx`        | toast                        |
 
 ### Project Routes
 

@@ -1,8 +1,8 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { CodeEditor } from '@/components/code-editor/code-editor';
+import { Table } from '@/components/table';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -108,6 +108,7 @@ export const WorkloadSinksTable = ({
         },
       },
       {
+        id: 'status',
         header: 'Status',
         enableSorting: false,
         cell: ({ row }: any) => {
@@ -153,11 +154,7 @@ export const WorkloadSinksTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <DataTable
-          columns={columns}
-          data={data ?? []}
-          emptyContent={{ title: 'No sinks found.' }}
-        />
+        <Table.Client columns={columns} data={data ?? []} pagination={false} urlSync={false} />
       </CardContent>
     </Card>
   );

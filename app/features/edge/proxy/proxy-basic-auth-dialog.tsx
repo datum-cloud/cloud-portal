@@ -7,11 +7,11 @@ import {
 } from '@/resources/http-proxies';
 import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Form, useFormContext } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form, useFormContext } from '@datum-ui/components/form';
 import { Switch } from '@shadcn/ui/switch';
 import { Eye, EyeOff, PlusIcon, TrashIcon, TriangleAlert } from 'lucide-react';
 import { forwardRef, useCallback, useMemo, useImperativeHandle, useState } from 'react';

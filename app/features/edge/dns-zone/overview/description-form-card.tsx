@@ -8,8 +8,8 @@ import {
   CardFooter,
   CardHeader,
 } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 
 export const DescriptionFormCard = ({
   projectId,
@@ -41,6 +41,7 @@ export const DescriptionFormCard = ({
       <Form.Root
         id="description-form"
         schema={createDnsZoneSchema}
+        mode="onBlur"
         defaultValues={{
           domainName: defaultValue?.domainName ?? '',
           description: defaultValue?.description ?? '',
@@ -73,11 +74,7 @@ export const DescriptionFormCard = ({
                 size="xs"
                 className="w-full sm:w-auto"
                 onClick={() => {
-                  form.update({
-                    value: {
-                      description: defaultValue?.description ?? '',
-                    },
-                  });
+                  form.reset();
                 }}>
                 Cancel
               </Button>

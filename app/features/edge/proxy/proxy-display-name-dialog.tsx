@@ -1,6 +1,6 @@
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
 

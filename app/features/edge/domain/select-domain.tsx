@@ -8,11 +8,10 @@ import {
   type Domain,
 } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { useInputControl } from '@conform-to/react';
+import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Button } from '@datum-cloud/datum-ui/button';
-import type { AutocompleteOption, AutocompleteProps } from '@datum-ui/components/form';
-import { useFieldContext } from '@datum-ui/components/form';
-import { Autocomplete } from '@datum-ui/components/form/primitives';
+import type { AutocompleteOption, AutocompleteProps } from '@datum-cloud/datum-ui/form';
+import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
 import { cn } from '@shadcn/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangleIcon, CheckIcon, PlusIcon } from 'lucide-react';
@@ -268,8 +267,8 @@ SelectDomain.displayName = 'SelectDomain';
 type FormSelectDomainProps = Omit<SelectDomainProps, 'value' | 'onValueChange'>;
 
 export function FormSelectDomain({ disabled, triggerClassName, ...props }: FormSelectDomainProps) {
-  const { fieldMeta, disabled: fieldDisabled, errors } = useFieldContext();
-  const control = useInputControl(fieldMeta as any);
+  const { name, disabled: fieldDisabled, errors } = useFieldContext();
+  const { control } = useField(name);
 
   const isDisabled = disabled ?? fieldDisabled;
   const hasErrors = errors && errors.length > 0;
@@ -278,7 +277,7 @@ export function FormSelectDomain({ disabled, triggerClassName, ...props }: FormS
   return (
     <SelectDomain
       {...props}
-      value={selectValue ?? ''}
+      value={String(selectValue ?? '')}
       onValueChange={control.change}
       disabled={isDisabled}
       triggerClassName={cn(hasErrors && 'border-destructive', triggerClassName)}

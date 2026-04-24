@@ -1,15 +1,23 @@
 import { getPolicyBindingColumns } from './policy-binding.columns';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import {
-  DataTableRowActionsProps,
-  DataTableTitleProps,
-} from '@/modules/datum-ui/components/data-table';
+import { Table, createActionsColumn } from '@/components/table';
 import type { PolicyBinding } from '@/resources/policy-bindings';
+import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
+import type { ReactNode } from 'react';
+
+export type PolicyBindingTableRowAction = Omit<ActionItem<PolicyBinding>, 'onClick'> & {
+  action: (row: PolicyBinding) => void | Promise<void>;
+  /** @deprecated No-op in the new DataTable API. Was used to show inline buttons in the old table. */
+  display?: 'dropdown' | 'inline';
+};
 
 export type PolicyBindingTableProps = {
   bindings: PolicyBinding[];
-  tableTitle?: DataTableTitleProps;
-  rowActions?: DataTableRowActionsProps<PolicyBinding>[];
+  tableTitle?: {
+    title?: string;
+    description?: string;
+    actions?: ReactNode;
+  };
+  rowActions?: PolicyBindingTableRowAction[];
   onRowClick?: (row: PolicyBinding) => void;
 };
 
@@ -19,16 +27,29 @@ export const PolicyBindingTable = ({
   rowActions = [],
   onRowClick,
 }: PolicyBindingTableProps) => {
-  const columns = getPolicyBindingColumns();
+  const mappedActions: ActionItem<PolicyBinding>[] = rowActions.map(
+    ({ action, display: _display, ...rest }) => ({
+      ...rest,
+      onClick: action,
+    })
+  );
+
+  const columns = [
+    ...getPolicyBindingColumns(),
+    ...(mappedActions.length > 0 ? [createActionsColumn<PolicyBinding>(mappedActions)] : []),
+  ];
+
+  const actions = tableTitle?.actions ? [tableTitle.actions] : undefined;
 
   return (
-    <DataTable
+    <Table.Client
       columns={columns}
       data={bindings ?? []}
+      title={tableTitle?.title}
+      description={tableTitle?.description}
+      actions={actions}
       onRowClick={onRowClick}
-      emptyContent={{ title: 'No roles found.' }}
-      tableTitle={tableTitle}
-      rowActions={rowActions}
+      empty="No roles found."
     />
   );
 };

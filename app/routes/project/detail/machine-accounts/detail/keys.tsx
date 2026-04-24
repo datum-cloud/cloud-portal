@@ -1,11 +1,11 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { createActionsColumn, Table } from '@/components/table';
+import type { ActionItem } from '@/components/table';
 import { KeyRevealPanel } from '@/features/machine-account/components/key-reveal-panel';
 import { MachineAccountKeyFormDialog } from '@/features/machine-account/form/machine-account-key-form-dialog';
 import type { MachineAccountKeyFormDialogRef } from '@/features/machine-account/form/machine-account-key-form-dialog';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
   useMachineAccount,
   useMachineAccountKeys,
@@ -16,8 +16,10 @@ import {
   type MachineAccountKey,
 } from '@/resources/machine-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Badge, Button, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { AlertCircleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -98,6 +100,17 @@ export default function MachineAccountKeysPage() {
     [confirm, revokeMutation]
   );
 
+  const rowActions: ActionItem<MachineAccountKey>[] = useMemo(
+    () => [
+      {
+        label: 'Revoke',
+        variant: 'destructive',
+        onClick: (row) => revokeKey(row),
+      },
+    ],
+    [revokeKey]
+  );
+
   const columns: ColumnDef<MachineAccountKey>[] = useMemo(
     () => [
       {
@@ -137,21 +150,9 @@ export default function MachineAccountKeysPage() {
         cell: ({ row }) =>
           row.original.expiresAt ? <DateTime date={row.original.expiresAt} /> : <span>Never</span>,
       },
+      createActionsColumn<MachineAccountKey>(rowActions),
     ],
-    []
-  );
-
-  const rowActions: DataTableRowActionsProps<MachineAccountKey>[] = useMemo(
-    () => [
-      {
-        key: 'revoke',
-        label: 'Revoke',
-        variant: 'destructive',
-        display: 'inline',
-        action: (row) => revokeKey(row),
-      },
-    ],
-    [revokeKey]
+    [rowActions]
   );
 
   const isPolling = pollerResult.status === 'polling';
@@ -192,29 +193,23 @@ export default function MachineAccountKeysPage() {
         </div>
       )}
 
-      <DataTable
+      <Table.Client
         columns={columns}
         data={keys}
-        emptyContent={{
-          title: 'No keys yet.',
-          subtitle: 'Add a key to allow this machine account to authenticate.',
-        }}
-        tableTitle={{
-          title: 'Keys',
-          actions: (
-            <Button
-              type="primary"
-              theme="solid"
-              size="small"
-              disabled={isPolling || isProvisioningFailed}
-              title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
-              onClick={() => keyFormDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add Key
-            </Button>
-          ),
-        }}
-        rowActions={rowActions}
+        title="Keys"
+        actions={[
+          <Button
+            key="add-key"
+            type="primary"
+            theme="solid"
+            size="small"
+            disabled={isPolling || isProvisioningFailed}
+            title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
+            onClick={() => keyFormDialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add Key
+          </Button>,
+        ]}
       />
 
       <MachineAccountKeyFormDialog

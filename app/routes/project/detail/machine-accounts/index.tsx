@@ -1,10 +1,9 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { createActionsColumn, Table } from '@/components/table';
 import { MachineAccountFormDialog } from '@/features/machine-account/form/machine-account-form-dialog';
 import type { MachineAccountFormDialogRef } from '@/features/machine-account/form/machine-account-form-dialog';
 import { CreateMachineAccountWizard } from '@/features/machine-account/wizard/create-machine-account-wizard';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import type { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { cn } from '@/modules/shadcn/lib/utils';
 import {
   createMachineAccountService,
@@ -20,12 +19,15 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge, Button, toast } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { GitBranchIcon, PlusIcon, ServerIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
+  Link,
   LoaderFunctionArgs,
   MetaFunction,
   useLoaderData,
@@ -219,10 +221,15 @@ export default function MachineAccountsPage() {
         header: 'Name',
         accessorKey: 'name',
         cell: ({ row }) => (
-          <div className="flex flex-col gap-0.5">
+          <Link
+            to={getPathWithParams(paths.project.detail.machineAccounts.detail.overview, {
+              projectId,
+              machineAccountId: row.original.name,
+            })}
+            className="flex flex-col gap-0.5 hover:underline">
             <span className="font-medium">{row.original.displayName ?? row.original.name}</span>
             <span className="text-muted-foreground text-xs">{row.original.identityEmail}</span>
-          </div>
+          </Link>
         ),
       },
       {
@@ -245,32 +252,23 @@ export default function MachineAccountsPage() {
         cell: ({ row }) =>
           row.original.createdAt ? <DateTime date={row.original.createdAt} /> : null,
       },
+      createActionsColumn<MachineAccount>([
+        {
+          label: 'Edit',
+          onClick: (row) => formDialogRef.current?.show(row),
+        },
+        {
+          label: 'Disable / Enable',
+          onClick: (row) => toggleAccount(row),
+        },
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onClick: (row) => deleteAccount(row),
+        },
+      ]),
     ],
-    []
-  );
-
-  const rowActions: DataTableRowActionsProps<MachineAccount>[] = useMemo(
-    () => [
-      {
-        key: 'edit',
-        label: 'Edit',
-        variant: 'default',
-        action: (row) => formDialogRef.current?.show(row),
-      },
-      {
-        key: 'toggle',
-        label: 'Disable / Enable',
-        variant: 'default',
-        action: (row) => toggleAccount(row),
-      },
-      {
-        key: 'delete',
-        label: 'Delete',
-        variant: 'destructive',
-        action: (row) => deleteAccount(row),
-      },
-    ],
-    [deleteAccount, toggleAccount]
+    [projectId, deleteAccount, toggleAccount]
   );
 
   const navigateToAccount = (accountName: string, keyResponse?: CreateMachineAccountKeyResponse) =>
@@ -289,20 +287,11 @@ export default function MachineAccountsPage() {
       {data.length === 0 ? (
         <MachineAccountsEmptyState onSelectUseCase={openWizard} />
       ) : (
-        <DataTable
+        <Table.Client
           columns={columns}
           data={data}
-          tableTitle={{
-            title: 'Machine Accounts',
-            actions: (
-              <Button type="primary" theme="solid" size="small" onClick={() => openWizard()}>
-                <Icon icon={PlusIcon} className="size-4" />
-                Create Machine Account
-              </Button>
-            ),
-          }}
-          toolbar={{ layout: 'compact', includeSearch: { placeholder: 'Search machine accounts' } }}
-          rowActions={rowActions}
+          title="Machine Accounts"
+          search="Search machine accounts"
           onRowClick={(row) =>
             navigate(
               getPathWithParams(paths.project.detail.machineAccounts.detail.overview, {
@@ -311,6 +300,17 @@ export default function MachineAccountsPage() {
               })
             )
           }
+          actions={[
+            <Button
+              key="create"
+              type="primary"
+              theme="solid"
+              size="small"
+              onClick={() => openWizard()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Create Machine Account
+            </Button>,
+          ]}
         />
       )}
 
