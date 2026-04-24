@@ -1,6 +1,6 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { createActionsColumn, Table } from '@/components/table';
 import { useHasPermission } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import { useGroups, useDeleteGroup } from '@/resources/groups';
@@ -16,7 +16,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowRightIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
 import { Link, useNavigate, useParams, type MetaFunction } from 'react-router';
 
@@ -51,17 +51,15 @@ export default function GroupsPage() {
     throw new Error('Organization ID is required');
   }
 
-  const { data: groups = [], isLoading: groupsLoading } = useGroups(orgId, {
+  const { data: groups = [] } = useGroups(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-  const { data: memberships = [], isLoading: membershipsLoading } = useGroupMemberships(orgId, {
+  const { data: memberships = [] } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-  const { data: members = [], isLoading: membersLoading } = useMembers(orgId, {
+  const { data: members = [] } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
-
-  const isLoading = groupsLoading || membershipsLoading || membersLoading;
 
   const { hasPermission: hasCreateGroupPermission } = useHasPermission('groups', 'create', {
     namespace: buildOrganizationNamespace(orgId),
@@ -122,7 +120,21 @@ export default function GroupsPage() {
         header: 'Group Name',
         accessorKey: 'name',
         enableSorting: false,
-        cell: ({ row }) => <span className="text-sm font-semibold">{row.original.name}</span>,
+        cell: ({ row }) => (
+          <button
+            type="button"
+            className="w-full text-left"
+            onClick={() =>
+              navigate(
+                getPathWithParams(paths.org.detail.team.groupDetail, {
+                  orgId,
+                  groupId: row.original.name,
+                })
+              )
+            }>
+            <span className="text-sm font-semibold">{row.original.name}</span>
+          </button>
+        ),
       },
       {
         header: 'Members',
@@ -144,65 +156,58 @@ export default function GroupsPage() {
           );
         },
       },
+      createActionsColumn<GroupRow>([
+        {
+          key: 'delete',
+          label: 'Delete group',
+          variant: 'destructive',
+          icon: <Icon icon={TrashIcon} className="size-4" />,
+          hidden: (row) => !hasDeleteGroupPermission || row.memberCount > 0,
+          onClick: (row) => deleteGroup(row),
+        },
+      ]),
     ],
-    []
-  );
-
-  const rowActions = useMemo(
-    () => [
-      {
-        key: 'delete',
-        label: 'Delete group',
-        variant: 'destructive' as const,
-        icon: <Icon icon={TrashIcon} className="size-4" />,
-        hidden: (row: GroupRow) => !hasDeleteGroupPermission || row.memberCount > 0,
-        action: (row: GroupRow) => deleteGroup(row),
-      },
-    ],
-    [hasDeleteGroupPermission, deleteGroup]
+    [hasDeleteGroupPermission, deleteGroup, navigate, orgId]
   );
 
   return (
-    <DataTable
-      isLoading={isLoading}
+    <Table.Client
       columns={columns}
       data={groupRows}
-      tableTitle={{
-        title: 'Groups',
-        actions: hasCreateGroupPermission && (
-          <Link
-            to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
-            className="w-full sm:w-auto">
-            <Button className="w-full">
-              <Icon icon={PlusIcon} className="size-4" />
-              Create Group
-            </Button>
-          </Link>
-        ),
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: { placeholder: 'Search groups' },
-      }}
-      rowActions={rowActions}
+      title="Groups"
+      search="Search groups"
       onRowClick={(row) =>
         navigate(getPathWithParams(paths.org.detail.team.groupDetail, { orgId, groupId: row.name }))
       }
-      emptyContent={{
-        title: 'No groups yet',
+      empty={{
+        title: 'create your first group',
         actions: hasCreateGroupPermission
           ? [
               {
-                type: 'link',
-                label: 'Create a group',
-                to: getPathWithParams(paths.org.detail.team.groupCreate, { orgId }),
-                variant: 'default',
-                icon: <Icon icon={ArrowRightIcon} className="size-4" />,
-                iconPosition: 'end',
+                type: 'button',
+                label: 'Create Group',
+                onClick: () =>
+                  navigate(getPathWithParams(paths.org.detail.team.groupCreate, { orgId })),
+                icon: <Icon icon={PlusIcon} className="size-3" />,
               },
             ]
-          : [],
+          : undefined,
       }}
+      actions={
+        hasCreateGroupPermission
+          ? [
+              <Link
+                key="create"
+                to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
+                className="w-full sm:w-auto">
+                <Button className="w-full">
+                  <Icon icon={PlusIcon} className="size-4" />
+                  Create Group
+                </Button>
+              </Link>,
+            ]
+          : []
+      }
     />
   );
 }

@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CodeEditor } from '@/components/code-editor/code-editor';
+import { Table } from '@/components/table';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-cloud/datum-ui/card';
@@ -103,11 +103,7 @@ export const WorkloadSourcesTable = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <DataTable
-          columns={columns}
-          data={data ?? []}
-          emptyContent={{ title: 'No sources found.' }}
-        />
+        <Table.Client columns={columns} data={data ?? []} pagination={false} urlSync={false} />
       </CardContent>
     </Card>
   );

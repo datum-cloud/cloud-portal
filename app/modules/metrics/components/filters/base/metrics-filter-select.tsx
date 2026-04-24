@@ -2,13 +2,13 @@
  * MetricsFilterSelect - Select filter component for metrics with URL state support
  * Delegates UI to shared components:
  * - Multi-select: '@/components/multi-select/multi-select'
- * - Single-select: '@/components/select-box/select-box'
+ * - Single-select: '@datum-cloud/datum-ui/autocomplete'
  */
 import { MultiSelect, type MultiSelectOption } from '@/components/multi-select/multi-select';
-import { SelectBox, type SelectBoxOption } from '@/components/select-box/select-box';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
+import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { cn } from '@shadcn/lib/utils';
 import { useQueryState } from 'nuqs';
@@ -20,6 +20,7 @@ export interface MetricsFilterSelectProps {
   description?: string;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
   disabled?: boolean;
   multiple?: boolean;
   searchable?: boolean;
@@ -31,7 +32,7 @@ export interface MetricsFilterSelectProps {
   maxCount?: number | -1;
   showSelectAll?: boolean;
   showClearButton?: boolean;
-  itemPreview?: (option: SelectBoxOption) => React.ReactNode;
+  itemPreview?: (option: AutocompleteOption) => React.ReactNode;
   emptyContent?: string;
 }
 
@@ -41,6 +42,7 @@ export function MetricsFilterSelect({
   description,
   placeholder = 'Select...',
   className,
+  triggerClassName,
   disabled = false,
   multiple = false,
   searchable = false,
@@ -105,7 +107,7 @@ export function MetricsFilterSelect({
     [options]
   );
 
-  const optionsForSelectBox: SelectBoxOption[] = useMemo(
+  const optionsForSelectBox: AutocompleteOption[] = useMemo(
     () => options.map((opt) => ({ value: opt.value, label: opt.label })),
     [options]
   );
@@ -119,8 +121,8 @@ export function MetricsFilterSelect({
   );
 
   const handleSingleChange = useCallback(
-    (option: SelectBoxOption) => {
-      setUrlValue(option?.value ?? '');
+    (value: string) => {
+      setUrlValue(value ?? '');
     },
     [setUrlValue]
   );
@@ -135,7 +137,7 @@ export function MetricsFilterSelect({
 
       {multiple ? (
         <MultiSelect
-          className="h-[36px] min-h-0"
+          className={cn('h-[36px] min-h-0', triggerClassName)}
           options={optionsForMultiSelect}
           onValueChange={handleMultiChange}
           placeholder={placeholder}
@@ -148,16 +150,16 @@ export function MetricsFilterSelect({
           emptyContent={emptyContent}
         />
       ) : (
-        <SelectBox
-          className="h-[36px] min-h-0"
+        <Autocomplete
+          triggerClassName={cn('h-[36px] min-h-0', triggerClassName)}
           value={currentValue as string}
-          onChange={handleSingleChange}
+          onValueChange={handleSingleChange}
           options={optionsForSelectBox}
           placeholder={placeholder}
           disabled={disabled}
-          searchable={searchable}
-          itemPreview={itemPreview}
-          isLoading={isLoading}
+          disableSearch={!searchable}
+          renderValue={itemPreview}
+          loading={isLoading}
           emptyContent={emptyContent}
         />
       )}

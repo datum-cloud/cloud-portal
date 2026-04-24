@@ -1,4 +1,4 @@
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { TriangleAlertIcon } from 'lucide-react';
 
 export interface WizardStepPollerFailureProps {

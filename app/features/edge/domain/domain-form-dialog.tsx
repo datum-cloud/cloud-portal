@@ -1,7 +1,7 @@
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { type DomainSchema, domainSchema, useCreateDomain, type Domain } from '@/resources/domains';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 export interface DomainFormDialogRef {
@@ -53,7 +53,6 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
 
     return (
       <Form.Dialog
-        key={open ? 'open' : 'closed'}
         open={open}
         onOpenChange={setOpen}
         title="Add a Domain"

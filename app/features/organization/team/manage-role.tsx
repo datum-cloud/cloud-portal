@@ -1,8 +1,7 @@
 import { SelectRole } from '@/components/select-role/select-role';
 import { memberUpdateRoleSchema, useUpdateMemberRole } from '@/resources/members';
-import { getSelectProps, useInputControl } from '@conform-to/react';
+import { Form, useField } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import type { z } from 'zod';
 
@@ -102,15 +101,15 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
 ManageRoleModalForm.displayName = 'ManageRoleModalForm';
 
 const RoleField = () => {
-  const { fields } = Form.useFormContext();
-  const roleNamespaceField = fields.roleNamespace as any;
-  const roleNamespaceControl = useInputControl(roleNamespaceField);
+  const { control: roleNamespaceControl } = useField('roleNamespace');
 
   return (
     <Form.Field name="role" label="Role" required>
       {({ control, field }) => (
         <SelectRole
-          {...getSelectProps(field, { value: false })}
+          name={field.name}
+          id={field.id}
+          key={field.id}
           modal
           defaultValue={control.value as string}
           onSelect={(value) => {
@@ -124,11 +123,8 @@ const RoleField = () => {
 };
 
 const RoleNamespaceHiddenField = () => {
-  const { fields } = Form.useFormContext();
-  const roleNamespaceField = fields.roleNamespace as any;
-  const control = useInputControl(roleNamespaceField);
+  const { field } = useField('roleNamespace');
+  const value = field.value as string | undefined;
 
-  return (
-    <input type="hidden" name={roleNamespaceField.name} value={control.value ?? 'datum-cloud'} />
-  );
+  return <input type="hidden" name={field.name} value={value ?? 'datum-cloud'} />;
 };

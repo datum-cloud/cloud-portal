@@ -1,6 +1,8 @@
-import { SelectBox, SelectBoxOption } from '../select-box/select-box';
 import { useSecrets, type Secret } from '@/resources/secrets';
+import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { useMemo } from 'react';
+
+export type SelectSecretOption = AutocompleteOption & Secret;
 
 export const SelectSecret = ({
   projectId,
@@ -14,7 +16,7 @@ export const SelectSecret = ({
   projectId?: string;
   defaultValue?: string;
   className?: string;
-  onValueChange: (value?: SelectBoxOption) => void;
+  onValueChange: (value?: SelectSecretOption) => void;
   name?: string;
   id?: string;
   filter?: Record<string, string>;
@@ -23,7 +25,7 @@ export const SelectSecret = ({
     enabled: !!projectId,
   });
 
-  const options = useMemo(() => {
+  const options = useMemo<SelectSecretOption[]>(() => {
     return secrets
       .filter((secret: Secret) => {
         if (!filter) return true;
@@ -39,19 +41,22 @@ export const SelectSecret = ({
   }, [secrets, filter]);
 
   return (
-    <SelectBox
+    <Autocomplete<SelectSecretOption>
       value={defaultValue}
       className={className}
-      onChange={(value: SelectBoxOption) => {
-        if (value) {
-          onValueChange(value);
+      onValueChange={(value) => {
+        if (!value) {
+          onValueChange(undefined);
+          return;
         }
+        const option = options.find((opt) => opt.value === value);
+        onValueChange(option);
       }}
       options={options}
       name={name}
       id={id}
       placeholder="Select a Secret"
-      isLoading={isLoading}
+      loading={isLoading}
     />
   );
 };

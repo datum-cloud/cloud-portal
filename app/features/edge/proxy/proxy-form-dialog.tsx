@@ -9,8 +9,8 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -93,7 +93,6 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     return (
       <Form.Dialog
-        key={open ? 'open-create' : 'closed'}
         open={open}
         onOpenChange={setOpen}
         title="New AI Edge"

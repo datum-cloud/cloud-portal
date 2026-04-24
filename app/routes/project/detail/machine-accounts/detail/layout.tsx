@@ -12,7 +12,9 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge, Button, toast } from '@datum-ui/components';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { BotIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import {

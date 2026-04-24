@@ -1,8 +1,8 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
+import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { Organization } from '@/resources/organizations';
 import {
@@ -18,14 +18,13 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue } from '@datum-cloud/datum-ui/task-queue';
-import { Form } from '@datum-ui/components/form';
 import { useQueryClient } from '@tanstack/react-query';
-import { ColumnDef } from '@tanstack/react-table';
 import { FolderRoot, PlusIcon } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActionFunctionArgs,
   data,
@@ -52,6 +51,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { headers } = await setAlertClosed(request, 'projects_understanding');
   return data({ success: true }, { headers });
 };
+
+function ProjectResourceName({ field }: { field: NormalizedFieldState }) {
+  const description = useWatch('description') as string | undefined;
+
+  return (
+    <InputName
+      required
+      label="Resource ID"
+      showTooltip={false}
+      description="This unique resource ID will be used to identify your project and cannot be changed."
+      field={field}
+      baseName={description}
+    />
+  );
+}
 
 export default function OrgProjectsPage() {
   const { orgId } = useParams();
@@ -107,44 +121,6 @@ export default function OrgProjectsPage() {
   const showAlert = !alertClosed;
   const isPersonalOrg = organization?.type === 'Personal';
   const projectLimit = isPersonalOrg ? 2 : 10;
-
-  const columns: ColumnDef<Project>[] = useMemo(
-    () => [
-      {
-        header: 'Project',
-        accessorKey: 'name',
-        id: 'name',
-        cell: ({ row }) => {
-          return (
-            <div
-              className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2"
-              data-e2e="project-card">
-              <div className="flex items-center gap-5">
-                <Icon icon={FolderRoot} className="text-icon-primary size-4" />
-                <span>{row.original.displayName}</span>
-              </div>
-              <div className="flex w-full flex-col items-start justify-between gap-4 md:w-auto md:flex-row md:items-center md:gap-6">
-                <BadgeCopy
-                  data-e2e="project-card-id-copy"
-                  value={row.original.name ?? ''}
-                  text={row.original.name ?? ''}
-                  badgeTheme="solid"
-                  badgeType="muted"
-                />
-                <span className="text-muted-foreground text-xs">
-                  Added:{' '}
-                  {row.original.createdAt && (
-                    <DateTime date={row.original.createdAt} format="yyyy-MM-dd" />
-                  )}
-                </span>
-              </div>
-            </div>
-          );
-        },
-      },
-    ],
-    []
-  );
 
   const handleAlertClose = () => {
     alertSubmittedRef.current = true;
@@ -240,59 +216,71 @@ export default function OrgProjectsPage() {
     <>
       <Row gutter={[0, 24]}>
         <Col span={24}>
-          <DataTable
-            isLoading={projectsLoading}
-            hideHeader
-            mode="card"
-            hidePagination
-            columns={columns}
-            data={projects ?? []}
-            onRowClick={(row) => {
-              if (row.name) {
-                return navigate(
-                  getPathWithParams(paths.project.detail.root, { projectId: row.name })
-                );
-              }
-
-              return undefined;
-            }}
-            tableTitle={{
-              title: 'Projects',
-              actions: (
+          <CardList<Project>
+            data={projects}
+            getId={(project) => project.name ?? ''}
+            loading={projectsLoading}>
+            <CardList.Header
+              title="Projects"
+              actions={
                 <Button
+                  htmlType="button"
+                  onClick={() => setOpenDialog(true)}
                   type="primary"
                   theme="solid"
                   size="small"
                   data-e2e="create-project-button"
                   className="w-full sm:w-auto"
-                  onClick={() => setOpenDialog(true)}>
-                  <Icon icon={PlusIcon} className="size-4" />
+                  icon={<Icon icon={PlusIcon} className="size-4" />}>
                   Create project
                 </Button>
-              ),
-            }}
-            emptyContent={{
-              title: "let's create your first project!",
-              actions: [
-                {
-                  type: 'button',
-                  label: 'Create project',
-                  onClick: () => setOpenDialog(true),
-                  variant: 'default',
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                  iconPosition: 'start',
-                },
-              ],
-            }}
-            toolbar={{
-              layout: 'compact',
-              includeSearch: {
-                placeholder: 'Search projects',
-                filterKey: 'q',
-              },
-            }}
-            defaultSorting={[{ id: 'name', desc: true }]}
-          />
+              }>
+              <CardList.Search<Project>
+                placeholder="Search projects"
+                fields={['displayName', 'name']}
+              />
+            </CardList.Header>
+            <CardList.Items<Project>
+              renderCard={(project) => (
+                <div
+                  className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2"
+                  data-e2e="project-card">
+                  <div className="flex items-center gap-5">
+                    <Icon icon={FolderRoot} className="text-icon-primary size-4" />
+                    <span>{project.displayName}</span>
+                  </div>
+                  <div className="flex w-full flex-col items-start justify-between gap-4 md:w-auto md:flex-row md:items-center md:gap-6">
+                    <BadgeCopy
+                      data-e2e="project-card-id-copy"
+                      value={project.name ?? ''}
+                      text={project.name ?? ''}
+                      badgeTheme="solid"
+                      badgeType="muted"
+                    />
+                    <span className="text-muted-foreground text-xs">
+                      Added:{' '}
+                      {project.createdAt && (
+                        <DateTime date={project.createdAt} format="yyyy-MM-dd" />
+                      )}
+                    </span>
+                  </div>
+                </div>
+              )}
+              onSelect={(project) =>
+                navigate(getPathWithParams(paths.project.detail.root, { projectId: project.name }))
+              }
+            />
+            <CardList.Empty
+              title="Let's create your first project!"
+              action={{
+                label: 'Create project',
+                onClick: () => setOpenDialog(true),
+                icon: <Icon icon={PlusIcon} className="size-4" />,
+                iconPosition: 'start',
+                variant: 'default',
+              }}
+            />
+          </CardList>
         </Col>
         {showAlert && !projectsLoading && (
           <Col span={24}>
@@ -350,16 +338,7 @@ export default function OrgProjectsPage() {
           </Form.Field>
 
           <Form.Field name="name">
-            {({ field, fields }) => (
-              <InputName
-                required
-                label="Resource ID"
-                showTooltip={false}
-                description="This unique resource ID will be used to identify your project and cannot be changed."
-                field={field}
-                baseName={fields.description?.value as string}
-              />
-            )}
+            {({ field }) => <ProjectResourceName field={field} />}
           </Form.Field>
         </div>
       </Form.Dialog>

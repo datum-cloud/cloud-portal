@@ -1,7 +1,7 @@
 import { NotificationCheckboxItem } from './notification-checkbox-item';
 import type { NotificationSettingsCardProps } from './types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
 import type { z } from 'zod';
 
 export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
@@ -23,6 +23,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
 
       <Form.Root
         schema={schema}
+        mode="onBlur"
         defaultValues={defaultValues}
         onSubmit={onSubmit}
         isSubmitting={isLoading}

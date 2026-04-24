@@ -9,7 +9,7 @@ import {
   type CreateMachineAccountKeyResponse,
   type MachineAccount,
 } from '@/resources/machine-accounts';
-import { Dialog } from '@datum-ui/components/dialog';
+import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { useMemo, useRef, useState } from 'react';
 
 // ---------------------------------------------------------------------------

@@ -2,7 +2,7 @@ import { KeyRevealPanel } from '@/features/machine-account/components/key-reveal
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import type { CreateMachineAccountKeyResponse } from '@/resources/machine-accounts';
 import { env } from '@/utils/env';
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { CheckCircleIcon, CopyIcon, CheckIcon } from 'lucide-react';
 import { useState } from 'react';
 

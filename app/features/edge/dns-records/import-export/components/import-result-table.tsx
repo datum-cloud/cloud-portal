@@ -1,4 +1,4 @@
-import { DataTable } from '@/modules/datum-ui/components/data-table';
+import { Table } from '@/components/table';
 import { formatTTL, type ImportDetail } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -166,13 +166,13 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
   );
 
   return (
-    <DataTable
-      className="rounded-xl"
-      tableContainerClassName="rounded-xl max-h-[400px]"
-      hidePagination
+    <Table.Client
       columns={columns}
       data={details}
-      emptyContent={{ title: 'No import results' }}
+      pagination={false}
+      urlSync={false}
+      empty="No import results"
+      className="max-h-[400px] rounded-xl"
     />
   );
 };

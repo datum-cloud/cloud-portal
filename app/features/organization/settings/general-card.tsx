@@ -3,8 +3,8 @@ import { type Organization, useUpdateOrganization } from '@/resources/organizati
 import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Form } from '@datum-ui/components/form';
 
 const schema = updateOrganizationSchema.pick({ description: true, name: true });
 
@@ -39,6 +39,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
         name="update-organization"
         id="update-organization-form"
         schema={schema}
+        mode="onBlur"
         defaultValues={{
           description: organization?.displayName ?? '',
           name: organization?.name ?? '',
@@ -85,12 +86,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                   disabled={isSubmitting}
                   size="xs"
                   onClick={() => {
-                    form.update({
-                      value: {
-                        description: organization?.displayName ?? '',
-                        name: organization?.name ?? '',
-                      },
-                    });
+                    form.reset();
                   }}>
                   Cancel
                 </Button>

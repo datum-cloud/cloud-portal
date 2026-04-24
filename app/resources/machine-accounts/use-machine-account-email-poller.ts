@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { createMachineAccountService, machineAccountKeys } from './machine-account.service';
+import { useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 
 export type PollerStatus = 'idle' | 'polling' | 'resolved' | 'timeout' | 'error';
 

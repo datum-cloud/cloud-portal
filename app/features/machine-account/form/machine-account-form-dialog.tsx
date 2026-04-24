@@ -8,8 +8,8 @@ import {
   type MachineAccountCreateSchema,
   type MachineAccountUpdateSchema,
 } from '@/resources/machine-accounts';
-import { toast } from '@datum-ui/components';
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 export interface MachineAccountFormDialogRef {

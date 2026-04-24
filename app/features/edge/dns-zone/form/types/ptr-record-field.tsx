@@ -1,4 +1,4 @@
-import { Form } from '@datum-ui/components/form';
+import { Form } from '@datum-cloud/datum-ui/form';
 
 export const PTRRecordField = () => (
   <Form.Field name="ptr.content" label="Target Domain" required>

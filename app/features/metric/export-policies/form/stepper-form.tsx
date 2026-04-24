@@ -27,10 +27,11 @@ import {
   CardDescription,
   CardContent,
 } from '@datum-cloud/datum-ui/card';
+import { Form } from '@datum-cloud/datum-ui/form';
+import { FormStepper, FormStep } from '@datum-cloud/datum-ui/form/stepper';
+import type { StepConfig } from '@datum-cloud/datum-ui/form/stepper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
-import { Form } from '@datum-ui/components/form';
-import type { StepConfig } from '@datum-ui/components/form';
 import { cn } from '@shadcn/lib/utils';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';
@@ -138,7 +139,7 @@ export const ExportPolicyStepperForm = ({
             : 'Create a new export policy to get started with Datum Cloud.'}
         </CardDescription>
       </CardHeader>
-      <Form.Stepper
+      <FormStepper
         steps={stepConfigs}
         onComplete={handleComplete}
         formComponent={RouterForm}
@@ -173,7 +174,7 @@ export const ExportPolicyStepperForm = ({
                       </li>
                       {isActive && !isPending ? (
                         <div className="flex-1 py-6 pl-7">
-                          <Form.Step id={step.id}>
+                          <FormStep id={step.id}>
                             {step.id === 'metadata' && <MetadataForm isEdit={isEdit} />}
                             {step.id === 'sources' && <SourcesForm isEdit={isEdit} />}
                             {step.id === 'sinks' && (
@@ -185,7 +186,7 @@ export const ExportPolicyStepperForm = ({
                                 }
                               />
                             )}
-                          </Form.Step>
+                          </FormStep>
 
                           <div className="mt-4 flex items-center justify-end gap-2 border-t pt-4">
                             <Button
@@ -221,7 +222,7 @@ export const ExportPolicyStepperForm = ({
             </nav>
           </CardContent>
         )}
-      </Form.Stepper>
+      </FormStepper>
     </Card>
   );
 };
