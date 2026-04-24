@@ -166,7 +166,13 @@ export function DnsRecordForm({
       onSubmit={handleSubmit}
       formComponent={RouterForm}
       isSubmitting={loading}
-      className={cn('flex flex-row items-start gap-5 space-y-0', style === 'modal' && 'flex-col')}>
+      className={cn(
+        'flex flex-row items-start gap-5 space-y-0',
+        style === 'modal' && 'flex-col',
+        // Reserve space on the right so the inline panel's close button
+        // doesn't overlap the form's rightmost column.
+        style === 'inline' && 'pr-8'
+      )}>
       {() => (
         <>
           <PreserveAllFieldsTouched />

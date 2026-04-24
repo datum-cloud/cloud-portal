@@ -1,5 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
   UserActiveSession,
@@ -15,11 +16,10 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { DataTable } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { jwtDecode } from 'jwt-decode';
 import { Trash2Icon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { LoaderFunctionArgs, MetaFunction, data, useLoaderData, useNavigate } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -96,20 +96,23 @@ export default function AccountActiveSessionsPage() {
     });
   }, [queryData, sessions, currentSession]);
 
-  const revokeSession = async (session: UserActiveSession) => {
-    setSelectedSession(session);
-    await confirm({
-      title: 'Revoke Session',
-      description: <span>Are you sure you want to revoke the session for {session.ip}?</span>,
-      submitText: 'Revoke',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: false,
-      onSubmit: async () => {
-        revokeMutation.mutate(session.name);
-      },
-    });
-  };
+  const revokeSession = useCallback(
+    async (session: UserActiveSession) => {
+      setSelectedSession(session);
+      await confirm({
+        title: 'Revoke Session',
+        description: <span>Are you sure you want to revoke the session for {session.ip}?</span>,
+        submitText: 'Revoke',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          revokeMutation.mutate(session.name);
+        },
+      });
+    },
+    [confirm, revokeMutation]
+  );
 
   const columns: ColumnDef<UserActiveSession>[] = useMemo(
     () => [
@@ -134,14 +137,6 @@ export default function AccountActiveSessionsPage() {
           );
         },
       },
-      /* {
-        header: 'Fingerprint ID',
-        accessorKey: 'fingerprintID',
-        id: 'fingerprintID',
-        cell: ({ row }) => {
-          return row.original.fingerprintID ?? '-';
-        },
-      }, */
       {
         header: 'Created At',
         accessorKey: 'createdAt',
@@ -160,26 +155,16 @@ export default function AccountActiveSessionsPage() {
           return row.original.expiresAt ? <DateTime date={row.original.expiresAt} /> : '-';
         },
       },
-    ],
-    []
-  );
-
-  return (
-    <DataTable
-      columns={columns}
-      data={sessionsData}
-      emptyContent={{ title: 'No active sessions found.' }}
-      rowActions={[
+      createActionsColumn<UserActiveSession>([
         {
-          key: 'revoke',
           label: 'Revoke',
           icon: <Icon icon={Trash2Icon} className="size-3.5" />,
-          display: 'inline',
-          showLabel: false,
-          className: 'w-6 h-6 px-0',
-          action: (session) => revokeSession(session),
+          onClick: (session) => revokeSession(session),
         },
-      ]}
-    />
+      ]),
+    ],
+    [currentSession, revokeSession]
   );
+
+  return <Table.Client columns={columns} data={sessionsData} empty="No active sessions found." />;
 }

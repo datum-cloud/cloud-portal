@@ -1,10 +1,10 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
+import { createActionsColumn, Table } from '@/components/table';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { CloseIcon, Icon } from '@datum-cloud/datum-ui/icons';
-import { DataTable } from '@datum-ui/components';
 import { ColumnDef } from '@tanstack/react-table';
 import { ThumbsUpIcon, Trash2Icon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -23,8 +23,11 @@ const DUMMIES = [
     expiresAt: new Date('2025-12-30T14:30:00Z'),
   },
 ];
+
+type TokenRow = (typeof DUMMIES)[0];
+
 export default function AccountActiveSessionsPage() {
-  const columns: ColumnDef<any>[] = useMemo(
+  const columns: ColumnDef<TokenRow>[] = useMemo(
     () => [
       {
         header: 'Name',
@@ -53,9 +56,19 @@ export default function AccountActiveSessionsPage() {
         id: 'expiresAt',
         cell: ({ row }) => <DateTime date={row.original.expiresAt} />,
       },
+      createActionsColumn<TokenRow>([
+        {
+          label: 'Revoke',
+          icon: <Icon icon={Trash2Icon} className="size-3.5" />,
+          onClick: () => {
+            console.log('Revoke');
+          },
+        },
+      ]),
     ],
     []
   );
+
   return (
     <Row gutter={[0, 16]}>
       <Col span={24}>
@@ -83,24 +96,7 @@ export default function AccountActiveSessionsPage() {
         </Button>
       </Col>
       <Col span={24}>
-        <DataTable
-          columns={columns}
-          data={DUMMIES ?? []}
-          emptyContent={{ title: 'No active sessions found.' }}
-          rowActions={[
-            {
-              key: 'revoke',
-              label: 'Revoke',
-              icon: <Icon icon={Trash2Icon} className="size-3.5" />,
-              display: 'inline',
-              showLabel: false,
-              className: 'w-6 h-6 px-0',
-              action: () => {
-                console.log('Revoke');
-              },
-            },
-          ]}
-        />
+        <Table.Client columns={columns} data={DUMMIES} empty="No access tokens found." />
       </Col>
     </Row>
   );

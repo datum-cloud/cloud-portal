@@ -43,9 +43,9 @@ export default function DnsZoneNameserversPage() {
     <Row gutter={[0, 32]}>
       <Col span={24}>
         <NameserverTable
-          tableTitle={{
-            title: 'Nameservers',
-            actions: domain?.name && (
+          title="Nameservers"
+          titleActions={
+            domain?.name && (
               <RefreshNameserversButton
                 size="xs"
                 type="secondary"
@@ -56,8 +56,8 @@ export default function DnsZoneNameserversPage() {
                 label="Refresh nameservers"
                 icon={<Icon icon={RefreshCcwIcon} size={12} />}
               />
-            ),
-          }}
+            )
+          }
           data={dnsZone?.status?.domainRef?.status?.nameservers ?? []}
           registration={domain?.status?.registration ?? {}}
         />

@@ -1,9 +1,9 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
+import { createActionsColumn, Table } from '@/components/table';
+import type { ActionItem } from '@/components/table';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/secret-form-dialog';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import {
   createSecretService,
   useDeleteSecret,
@@ -23,7 +23,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { LoaderFunctionArgs, useLoaderData, useParams, useNavigate } from 'react-router';
+import { LoaderFunctionArgs, useLoaderData, useNavigate, useParams } from 'react-router';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
@@ -40,10 +40,10 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 export default function SecretsPage() {
   const initialData = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
   const secretFormDialogRef = useRef<SecretFormDialogRef>(null);
   const { projectId } = useParams();
+  const navigate = useNavigate();
 
   // Hydrate cache with SSR data (runs once on mount)
   useHydrateSecrets(projectId ?? '', initialData ?? []);
@@ -130,61 +130,28 @@ export default function SecretsPage() {
     [projectId]
   );
 
-  const rowActions: DataTableRowActionsProps<Secret>[] = useMemo(
+  const rowActions: ActionItem<Secret>[] = useMemo(
     () => [
       {
-        key: 'delete',
         label: 'Delete',
         variant: 'destructive',
-        action: (row) => deleteSecret(row),
+        onClick: (row) => deleteSecret(row),
       },
     ],
-    [projectId]
+    [deleteSecret]
+  );
+
+  const columnsWithActions = useMemo(
+    () => [...columns, createActionsColumn<Secret>(rowActions)],
+    [columns, rowActions]
   );
 
   return (
     <>
-      <DataTable
-        columns={columns}
+      <Table.Client
+        columns={columnsWithActions}
         data={data ?? []}
-        emptyContent={{
-          title: "let's add a secret to get you started",
-          actions: [
-            {
-              type: 'button',
-              label: 'Add secret',
-              onClick: () => secretFormDialogRef.current?.show(),
-              variant: 'default',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
-            },
-          ],
-        }}
-        tableTitle={{
-          title: 'Secrets',
-          description:
-            'Store sensitive values like API keys and tokens that can be securely referenced by other resources without exposing the underlying value.',
-          actions: (
-            <Button
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-secret-button"
-              onClick={() => secretFormDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add secret
-            </Button>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search secrets',
-          },
-        }}
-        defaultSorting={[{ id: 'createdAt', desc: true }]}
-        rowActions={rowActions}
+        title="Secrets"
         onRowClick={(row) => {
           navigate(
             getPathWithParams(paths.project.detail.secrets.detail.overview, {
@@ -193,6 +160,30 @@ export default function SecretsPage() {
             })
           );
         }}
+        empty={{
+          title: "let's add a secret to get you started",
+          actions: [
+            {
+              type: 'button',
+              label: 'Add secret',
+              onClick: () => secretFormDialogRef.current?.show(),
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+            },
+          ],
+        }}
+        actions={[
+          <Button
+            key="add-secret"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-secret-button"
+            onClick={() => secretFormDialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add secret
+          </Button>,
+        ]}
       />
       <SecretFormDialog ref={secretFormDialogRef} />
     </>

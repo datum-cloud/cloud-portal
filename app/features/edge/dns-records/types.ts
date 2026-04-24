@@ -1,58 +1,7 @@
 /**
  * Shared type definitions for DNS Records components
  */
-import { DataTableProps } from '@/modules/datum-ui/components/data-table';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
-import { EmptyContentProps } from '@datum-cloud/datum-ui/empty-content';
-import type { ReactNode } from 'react';
-
-// =============================================================================
-// Table Component Types
-// =============================================================================
-
-/**
- * Base props shared by both compact and full table modes
- */
-export interface DnsRecordTableBaseProps {
-  data: IFlattenedDnsRecord[];
-  projectId: string;
-  className?: string;
-  tableContainerClassName?: string;
-  emptyContent?: EmptyContentProps;
-  showStatus?: boolean;
-  enableMultiSelect?: boolean;
-  getRowId?: (row: IFlattenedDnsRecord, index: number) => string;
-  onSelectionChange?: (selectedIds: string[], selectedRows: IFlattenedDnsRecord[]) => void;
-  /** When set (full mode), adds an AI Edge column before TTL with this cell renderer. */
-  renderAiEdgeCell?: (record: IFlattenedDnsRecord) => ReactNode;
-}
-
-/**
- * Compact mode props
- * Simple table without actions, pagination, or toolbar (for overview pages)
- */
-export interface DnsRecordTableCompactProps extends DnsRecordTableBaseProps {
-  mode: 'compact';
-}
-
-/**
- * Full mode props
- * Inherits ALL DataTable props for complete functionality (for standalone pages)
- */
-export interface DnsRecordTableFullProps
-  extends
-    DnsRecordTableBaseProps,
-    Omit<
-      DataTableProps<IFlattenedDnsRecord, any>,
-      'data' | 'columns' | 'className' | 'emptyContent' | 'mode'
-    > {
-  mode: 'full';
-}
-
-/**
- * Discriminated union: mode determines available props
- */
-export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFullProps;
 
 // =============================================================================
 // Card Component Types

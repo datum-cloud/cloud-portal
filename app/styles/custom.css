@@ -64,3 +64,62 @@
 .tiptap p.is-editor-empty:first-child {
   position: relative;
 }
+
+/* ── DataTable cloud-portal overrides ── */
+.datum-ui-data-table [data-slot='dt-header-row'] {
+  @apply hover:bg-transparent;
+}
+.datum-ui-data-table [data-slot='dt-header-cell'] {
+  @apply bg-background text-foreground h-[42px] border-r px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5;
+}
+.datum-ui-data-table [data-slot='dt-row'] {
+  @apply bg-table-cell hover:bg-table-cell-hover relative transition-colors;
+}
+.datum-ui-data-table [data-slot='dt-cell'] {
+  @apply px-4 py-3 text-xs;
+}
+.datum-ui-data-table [data-slot='dt-cell']:has([data-slot='dt-row-actions']) {
+  @apply bg-table-cell sticky right-0 z-20 w-[1%] whitespace-nowrap;
+  box-shadow: inset 1px 0 0 0 var(--border);
+}
+.datum-ui-data-table [data-slot='dt-header-cell']:last-child:empty {
+  @apply bg-background sticky right-0;
+  box-shadow: none;
+}
+
+/* Filtered-empty cell: drop base TableCell padding + whitespace-nowrap so
+   the EmptyContent card fills the row and the message wraps, matching the
+   standalone (no-filter) empty state. */
+.datum-ui-data-table [data-slot='dt-empty'] {
+  @apply p-0 whitespace-normal;
+}
+
+/* Skeleton rows: match the real row's white cell background + padding so the
+   loading state reads as a real table. pageSize defaults to 20 for actual
+   pagination, but we cap skeleton rows at 10 to keep the loading area
+   compact and avoid an awkward overflow. */
+.datum-ui-data-table [data-slot='dt-skeleton-row'] {
+  @apply bg-table-cell;
+}
+.datum-ui-data-table [data-slot='dt-skeleton-cell'] {
+  @apply px-4 py-3;
+}
+.datum-ui-data-table [data-slot='dt-skeleton-row']:nth-of-type(n + 11) {
+  display: none;
+}
+
+/* Issue 3: Search input styling — match old SearchInput (h-9, text-xs) */
+.datum-ui-data-table [data-slot='dt-search'] {
+  @apply h-9;
+}
+.datum-ui-data-table [data-slot='dt-search'] input {
+  @apply h-full text-xs placeholder:text-xs;
+}
+
+.datum-ui-data-table__pagination {
+  @apply p-0;
+}
+
+.datum-ui-data-table__pagination [data-slot='select-trigger'] {
+  @apply min-h-8;
+}

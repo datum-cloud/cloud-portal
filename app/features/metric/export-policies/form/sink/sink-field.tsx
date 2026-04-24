@@ -94,7 +94,7 @@ export const SinkField = ({
         </Form.Field>
       </div>
 
-      <Form.Field name={`${baseName}.type`}>
+      <Form.Field name={`${baseName}.type`} className="w-full">
         {({ control: typeControl }) =>
           typeControl.value === ExportPolicySinkTypeEnum.PROMETHEUS ? (
             <PrometheusField baseName={`${baseName}.prometheusRemoteWrite`} projectId={projectId} />

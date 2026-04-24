@@ -2,9 +2,9 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
+import { Table } from '@/components/table';
 import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
 import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
-import { DataTable } from '@/modules/datum-ui/components/data-table';
 import { ControlPlaneStatus } from '@/resources/base';
 import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/connectors';
 import { type HttpProxy, useHttpProxies, useHttpProxiesWatch } from '@/resources/http-proxies';
@@ -72,7 +72,7 @@ export default function ConnectorsPage() {
 
   useHttpProxiesWatch(projectId);
 
-  const { data: connectorsData, isLoading } = useConnectors(projectId, {
+  const { data: connectorsData } = useConnectors(projectId, {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
@@ -284,25 +284,15 @@ export default function ConnectorsPage() {
   );
 
   return (
-    <DataTable
-      isLoading={isLoading}
+    <Table.Client
       columns={columns}
       data={tableData}
-      emptyContent={{
-        title: 'No connectors found',
-      }}
-      tableTitle={{
-        title: 'Connectors',
-        rightSide: isDownloadVisible ? (
-          <ConnectorDownloadCard onDismiss={handleDismissDownload} />
-        ) : undefined,
-      }}
-      toolbar={{
-        layout: 'compact',
-        includeSearch: {
-          placeholder: 'Search',
-        },
-      }}
+      title="Connectors"
+      search="Search"
+      empty="No connectors found"
+      headerExtra={
+        isDownloadVisible ? <ConnectorDownloadCard onDismiss={handleDismissDownload} /> : undefined
+      }
     />
   );
 }
