@@ -195,7 +195,7 @@
     "axios": "^1.15.0",
     "form-data": "^4.0.4",
     "dompurify": "^3.3.2",
-    "@hono/node-server": "^1.19.13",
+    "@hono/node-server": "^2.0.0",
     "picomatch": "^4.0.0"
   }
 }
