@@ -1,5 +1,4 @@
 import { isIPAddress } from '@/utils/helpers/validation.helper';
-import { useInputControl } from '@conform-to/react';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
@@ -17,18 +16,11 @@ interface ProtocolEndpointInputProps {
 }
 
 export const ProtocolEndpointInput = ({ autoFocus, onIPChange }: ProtocolEndpointInputProps) => {
-  const { fields } = Form.useFormContext();
-  const protocolField = fields.protocol as any;
-  const endpointField = fields.endpointHost as any;
+  const { control: protocolControl, meta: protocolMeta } = Form.useField('protocol');
+  const { control: endpointControl, meta: endpointMeta } = Form.useField('endpointHost');
 
-  const protocolControl = useInputControl(protocolField);
-  const endpointControl = useInputControl(endpointField);
-
-  const protocolValue =
-    (Array.isArray(protocolControl.value) ? protocolControl.value[0] : protocolControl.value) ||
-    'https';
-  const endpointValue =
-    (Array.isArray(endpointControl.value) ? endpointControl.value[0] : endpointControl.value) || '';
+  const protocolValue = (protocolControl.value as string) || 'https';
+  const endpointValue = (endpointControl.value as string) || '';
 
   const isIP = useMemo(() => {
     if (!endpointValue) return false;
@@ -52,10 +44,10 @@ export const ProtocolEndpointInput = ({ autoFocus, onIPChange }: ProtocolEndpoin
         <Select
           value={protocolValue}
           onValueChange={protocolControl.change}
-          name={protocolField.name}
+          name={protocolMeta.name}
           disabled={isIP}>
           <SelectTrigger
-            id={protocolField.id}
+            id={protocolMeta.id}
             className="bg-accent h-6 min-h-6 gap-1 border px-2 py-0 shadow-none focus:ring-0 focus-visible:ring-0">
             <SelectValue />
           </SelectTrigger>
@@ -68,8 +60,8 @@ export const ProtocolEndpointInput = ({ autoFocus, onIPChange }: ProtocolEndpoin
       value={endpointValue}
       onChange={(e) => endpointControl.change(e.target.value)}
       onBlur={endpointControl.blur}
-      name={endpointField.name}
-      id={endpointField.id}
+      name={endpointMeta.name}
+      id={endpointMeta.id}
       autoFocus={autoFocus}
       placeholder="e.g. api.example.com or 203.0.113.1:8080"
       className="text-xs!"
