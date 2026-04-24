@@ -53,7 +53,6 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
 
     return (
       <Form.Dialog
-        key={open ? 'open' : 'closed'}
         open={open}
         onOpenChange={setOpen}
         title="Add a Domain"

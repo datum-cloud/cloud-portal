@@ -93,7 +93,6 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     return (
       <Form.Dialog
-        key={open ? 'open-create' : 'closed'}
         open={open}
         onOpenChange={setOpen}
         title="New AI Edge"
