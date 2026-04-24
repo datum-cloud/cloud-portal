@@ -153,8 +153,23 @@ export function MetricChart({
 
   const chartData = useMemo(() => {
     if (!data) return [];
-    return transformForRecharts(data);
-  }, [data]);
+    const transformed = transformForRecharts(data);
+    if (transformed.length === 0) return transformed;
+
+    const seriesKeys = data.series.map((s) => s.name);
+    const zeros = Object.fromEntries(seriesKeys.map((k) => [k, 0]));
+    const startMs = finalTimeRange.start.getTime();
+    const endMs = finalTimeRange.end.getTime();
+
+    const result = [...transformed];
+    if (result[0]!.timestamp > startMs) {
+      result.unshift({ timestamp: startMs, ...zeros });
+    }
+    if (result[result.length - 1]!.timestamp < endMs) {
+      result.push({ timestamp: endMs, ...zeros });
+    }
+    return result;
+  }, [data, finalTimeRange]);
 
   // Handle data change callbacks
   useEffect(() => {
@@ -269,7 +284,7 @@ export function MetricChart({
             dataKey="timestamp"
             type="number"
             scale="time"
-            domain={['dataMin', 'dataMax']}
+            domain={[finalTimeRange.start.getTime(), finalTimeRange.end.getTime()]}
             tickFormatter={formatXAxisValue}
             tickLine={false}
             axisLine={false}

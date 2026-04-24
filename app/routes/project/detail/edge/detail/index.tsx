@@ -90,7 +90,11 @@ export default function HttpProxyDetailPage() {
               <HttpProxyEdgeRequests projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
               {effectiveProxy.trafficProtectionMode &&
                 effectiveProxy.trafficProtectionMode !== 'Disabled' && (
-                  <HttpProxyWafEvents projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
+                  <HttpProxyWafEvents
+                    projectId={projectId ?? ''}
+                    proxyId={proxyId ?? ''}
+                    trafficProtectionMode={effectiveProxy.trafficProtectionMode}
+                  />
                 )}
             </CardContent>
           </Card>

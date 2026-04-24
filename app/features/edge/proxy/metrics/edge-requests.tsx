@@ -28,8 +28,7 @@ export const HttpProxyEdgeRequests = ({
   const [series, setSeries] = useState<ChartSeries[]>([]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="text-sm font-medium">Requests per second</p>
+    <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <MetricsToolbar className="w-fit">
           <MetricsToolbar.CoreControls />
@@ -49,47 +48,45 @@ export const HttpProxyEdgeRequests = ({
         )}
       </div>
 
-      <MetricChart
-        query={({ filters, get }) => {
-          const regionFilter = createRegionFilter(get('regions'));
-          const selector = buildPrometheusLabelSelector({
-            baseLabels: {
-              resourcemanager_datumapis_com_project_name: projectId,
-              gateway_name: proxyId,
-              gateway_namespace: 'default',
-            },
-            customLabels: { label_topology_kubernetes_io_region: '!=""' },
-            filters: [regionFilter],
-          });
-          const step = filters.step ?? '15m';
-          // Group individual response codes into classes (2XX, 3XX, 4XX, 5XX).
-          // Use a sub-query (sum_over_time of 1m increases) to avoid increase()
-          // extrapolation inflating counts when data only partially covers the step window.
-          return (
-            `sum by (envoy_response_code_class) (` +
-            `sum_over_time(` +
-            `label_replace(` +
-            `increase(envoy_vhost_vcluster_upstream_rq${selector}[1m]),` +
-            `"envoy_response_code_class","$\{1}XX","envoy_response_code","([0-9]).*"` +
-            `)[${step}:1m]))`
-          );
-        }}
-        chartType="area"
-        showLegend={false}
-        colorOverrides={RESPONSE_CODE_COLORS}
-        height={220}
-        xAxisFormatter={(value) => {
-          const mins = Math.round((Date.now() - value) / 60000);
-          return mins < 60 ? `${mins}m` : `${Math.round(mins / 60)}h`;
-        }}
-        yAxisFormatter={(value) => String(Math.round(value))}
-        yAxisOptions={{ width: 55 }}
-        onSeriesChange={setSeries}
-        className="text-foreground shadow-none"
-      />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">Requests per second</p>
+          <MetricChart
+            query={({ filters, get }) => {
+              const regionFilter = createRegionFilter(get('regions'));
+              const selector = buildPrometheusLabelSelector({
+                baseLabels: {
+                  resourcemanager_datumapis_com_project_name: projectId,
+                  gateway_name: proxyId,
+                  gateway_namespace: 'default',
+                },
+                customLabels: { label_topology_kubernetes_io_region: '!=""' },
+                filters: [regionFilter],
+              });
+              const step = filters.step ?? '15m';
+              return (
+                `sum by (envoy_response_code_class) (` +
+                `sum_over_time(` +
+                `label_replace(` +
+                `increase(envoy_vhost_vcluster_upstream_rq${selector}[1m]),` +
+                `"envoy_response_code_class","$\{1}XX","envoy_response_code","([0-9]).*"` +
+                `)[${step}:1m]))`
+              );
+            }}
+            chartType="area"
+            showLegend={false}
+            colorOverrides={RESPONSE_CODE_COLORS}
+            height={140}
+            yAxisFormatter={(value) => String(Math.round(value))}
+            yAxisOptions={{ width: 55 }}
+            onSeriesChange={setSeries}
+            className="text-foreground shadow-none"
+          />
+        </div>
 
-      <p className="text-sm font-medium">P95 Upstream Latency</p>
-      <MetricChart
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium">P95 Upstream Latency</p>
+          <MetricChart
         query={({ filters }) =>
           buildHistogramQuantileQuery({
             quantile: 0.95,
@@ -108,11 +105,7 @@ export const HttpProxyEdgeRequests = ({
         showLegend={false}
         colorOverrides={{ Series: 'var(--primary)' }}
         valueFormat="milliseconds-auto"
-        height={220}
-        xAxisFormatter={(value) => {
-          const mins = Math.round((Date.now() - value) / 60000);
-          return mins < 60 ? `${mins}m` : `${Math.round(mins / 60)}h`;
-        }}
+        height={140}
         yAxisFormatter={(value) => formatValue(value, 'milliseconds-auto')}
         yAxisOptions={{ width: 55 }}
         tooltipContent={({ active, payload, label, ...props }) => {
@@ -145,6 +138,8 @@ export const HttpProxyEdgeRequests = ({
         }}
         className="text-foreground shadow-none"
       />
+        </div>
+      </div>
     </div>
   );
 };
