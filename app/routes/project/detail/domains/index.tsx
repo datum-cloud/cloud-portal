@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
+import { createActionsColumn, Table } from '@/components/table';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import {
   DomainFormDialog,
@@ -8,8 +9,6 @@ import {
 } from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { DataTable, type DataTableRef } from '@/modules/datum-ui/components/data-table';
-import { DataTableRowActionsProps } from '@/modules/datum-ui/components/data-table';
 import { useApp } from '@/providers/app.provider';
 import {
   createDnsZoneService,
@@ -43,7 +42,7 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { GlobeIcon, ListChecksIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import { useMemo, useEffect, useRef, useState } from 'react';
+import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   data,
   LoaderFunctionArgs,
@@ -154,7 +153,6 @@ export default function DomainsPage() {
   const { project, organization } = useApp();
   const domainFormRef = useRef<DomainFormDialogRef>(null);
   const [bulkAddPopoverOpen, setBulkAddPopoverOpen] = useState(false);
-  const tableRef = useRef<DataTableRef<FormattedDomain>>(null);
 
   // Open create dialog from URL search params (e.g. ?action=create)
   useEffect(() => {
@@ -181,58 +179,79 @@ export default function DomainsPage() {
     },
   });
 
-  const handleDeleteDomain = async (domain: FormattedDomain) => {
-    await confirm({
-      title: 'Delete Domain',
-      description: (
-        <span>
-          Are you sure you want to delete&nbsp;
-          <strong>{domain.domainName}</strong>?
-        </span>
-      ),
-      submitText: 'Delete',
-      cancelText: 'Cancel',
-      variant: 'destructive',
-      showConfirmInput: false,
-      onSubmit: async () => {
-        try {
-          await deleteDomainMutation.mutateAsync(domain?.name ?? '');
-        } catch (error) {
-          toast.error('Domain', {
-            description: (error as Error).message || 'Failed to delete domain',
-          });
-        }
-      },
-    });
-  };
+  const handleDeleteDomain = useCallback(
+    async (domain: FormattedDomain) => {
+      await confirm({
+        title: 'Delete Domain',
+        description: (
+          <span>
+            Are you sure you want to delete&nbsp;
+            <strong>{domain.domainName}</strong>?
+          </span>
+        ),
+        submitText: 'Delete',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        showConfirmInput: false,
+        onSubmit: async () => {
+          try {
+            await deleteDomainMutation.mutateAsync(domain?.name ?? '');
+          } catch (error) {
+            toast.error('Domain', {
+              description: (error as Error).message || 'Failed to delete domain',
+            });
+          }
+        },
+      });
+    },
+    [confirm, deleteDomainMutation]
+  );
 
-  const handleRefreshDomain = async (domain: FormattedDomain) => {
-    refreshDomainMutation.mutate(domain?.name ?? '');
-  };
+  const handleRefreshDomain = useCallback(
+    async (domain: FormattedDomain) => {
+      refreshDomainMutation.mutate(domain?.name ?? '');
+    },
+    [refreshDomainMutation]
+  );
 
-  const handleManageDnsZone = async (domain: FormattedDomain) => {
-    if (domain.dnsZone) {
+  const handleManageDnsZone = useCallback(
+    async (domain: FormattedDomain) => {
+      if (domain.dnsZone) {
+        navigate(
+          getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+            projectId,
+            dnsZoneId: domain.dnsZone.name ?? '',
+          })
+        );
+      } else {
+        navigate(
+          getPathWithParams(
+            paths.project.detail.dnsZones.root,
+            {
+              projectId,
+            },
+            new URLSearchParams({
+              action: 'create',
+              domainName: domain.domainName,
+            })
+          )
+        );
+      }
+    },
+    [navigate, projectId]
+  );
+
+  const handleNavigateToDomain = useCallback(
+    (row: FormattedDomain) => {
       navigate(
-        getPathWithParams(paths.project.detail.dnsZones.detail.root, {
+        getPathWithParams(paths.project.detail.domains.detail.overview, {
           projectId,
-          dnsZoneId: domain.dnsZone.name ?? '',
+          domainId: row.name,
         })
       );
-    } else {
-      navigate(
-        getPathWithParams(
-          paths.project.detail.dnsZones.root,
-          {
-            projectId,
-          },
-          new URLSearchParams({
-            action: 'create',
-            domainName: domain.domainName,
-          })
-        )
-      );
-    }
-  };
+    },
+    [navigate, projectId]
+  );
 
   const columns: ColumnDef<FormattedDomain>[] = useMemo(
     () => [
@@ -242,9 +261,9 @@ export default function DomainsPage() {
         id: 'domainName',
         cell: ({ row }) => {
           return (
-            <div data-e2e="domain-card">
+            <span data-e2e="domain-card">
               <span data-e2e="domain-name">{row.original.domainName}</span>
-            </div>
+            </span>
           );
         },
         meta: {
@@ -362,35 +381,32 @@ export default function DomainsPage() {
           sortType: 'text',
         },
       },
+      createActionsColumn<FormattedDomain>([
+        {
+          label: 'Refresh',
+          onClick: (row) => handleRefreshDomain(row),
+        },
+        {
+          label: 'Manage DNS Zone',
+          onClick: (row) => handleManageDnsZone(row),
+        },
+        {
+          label: 'Delete',
+          variant: 'destructive',
+          onClick: (row) => handleDeleteDomain(row),
+        },
+      ]),
     ],
-    []
+    [
+      projectId,
+      handleNavigateToDomain,
+      handleRefreshDomain,
+      handleManageDnsZone,
+      handleDeleteDomain,
+    ]
   );
 
-  const rowActions: DataTableRowActionsProps<FormattedDomain>[] = useMemo(
-    () => [
-      {
-        key: 'refresh',
-        label: 'Refresh',
-        variant: 'default',
-        action: (row) => handleRefreshDomain(row),
-      },
-      {
-        key: 'dnsZone',
-        label: 'Manage DNS Zone',
-        variant: 'default',
-        action: (row) => handleManageDnsZone(row),
-      },
-      {
-        key: 'delete',
-        label: 'Delete',
-        variant: 'destructive',
-        action: (row) => handleDeleteDomain(row),
-      },
-    ],
-    [projectId]
-  );
-
-  const handleDeleteDomains = async (domains: FormattedDomain[]) => {
+  const handleDeleteDomains = async (domains: FormattedDomain[], clearSelection: () => void) => {
     await confirm({
       title: 'Delete Domains',
       description: (
@@ -462,89 +478,64 @@ export default function DomainsPage() {
           },
         });
 
-        tableRef.current?.clearSelection();
+        clearSelection();
       },
     });
   };
 
   return (
     <>
-      <DataTable
-        ref={tableRef}
-        pageSize={50}
+      <Table.Client
         columns={columns}
         data={formattedDomains}
-        enableMultiSelect
         getRowId={(row) => row.name}
-        onRowClick={(row) => {
-          navigate(
-            getPathWithParams(paths.project.detail.domains.detail.overview, {
-              projectId,
-              domainId: row.name,
-            })
-          );
-        }}
-        emptyContent={{
+        title="Domains"
+        onRowClick={handleNavigateToDomain}
+        description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
+        search="Search domains"
+        actions={[
+          <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
+          <Button
+            key="create"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-domain-button"
+            onClick={() => domainFormRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add domain
+          </Button>,
+        ]}
+        multiActions={[
+          {
+            label: 'Delete Selected',
+            icon: <Icon icon={TrashIcon} className="size-4" />,
+            variant: 'destructive',
+            onClick: (
+              selectedRows: FormattedDomain[],
+              { clearSelection }: { clearSelection: () => void }
+            ) => handleDeleteDomains(selectedRows, clearSelection),
+          },
+        ]}
+        empty={{
           title: "let's add a domain to get you started",
           actions: [
             {
-              type: 'button',
               label: 'Add domain',
-              onClick: () => domainFormRef.current?.show(),
-              variant: 'default',
+              type: 'button',
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              iconPosition: 'start',
+              onClick: () => domainFormRef.current?.show(),
             },
             {
-              type: 'button',
               label: 'Bulk add domains',
-              onClick: () => setBulkAddPopoverOpen(true),
+              type: 'button',
               variant: 'outline',
               icon: <Icon icon={ListChecksIcon} className="size-3" />,
-              iconPosition: 'start',
+              onClick: () => setBulkAddPopoverOpen(true),
             },
           ],
         }}
-        tableTitle={{
-          description:
-            'Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features.',
-          title: 'Domains',
-          actions: (
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
-              <BulkAddDomainsAction projectId={projectId!} />
-              <Button
-                type="primary"
-                theme="solid"
-                size="small"
-                className="w-full sm:w-auto"
-                data-e2e="create-domain-button"
-                onClick={() => domainFormRef.current?.show()}>
-                <Icon icon={PlusIcon} className="size-4" />
-                Add domain
-              </Button>
-            </div>
-          ),
-        }}
-        toolbar={{
-          layout: 'compact',
-          includeSearch: {
-            placeholder: 'Search domains',
-          },
-          filtersDisplay: 'dropdown',
-          showRowCount: true,
-        }}
-        multiActions={[
-          {
-            key: 'delete',
-            label: 'Delete Selected',
-            size: 'small',
-            icon: <Icon icon={TrashIcon} className="size-4" />,
-            type: 'danger',
-            theme: 'outline',
-            action: (rows) => handleDeleteDomains(rows),
-          },
-        ]}
-        rowActions={rowActions}
       />
 
       <DomainFormDialog

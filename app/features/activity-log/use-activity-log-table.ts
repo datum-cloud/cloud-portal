@@ -8,8 +8,41 @@ import {
   getPresetRange,
   DEFAULT_PRESETS,
 } from '@datum-cloud/datum-ui/date-picker';
-import { deserializeTimeRange } from '@datum-ui/components/data-table/utils/time-range-serialization';
 import { useMemo, useState, useEffect, useCallback, useRef } from 'react';
+
+/**
+ * Deserialize a URL-encoded time range back into a TimeRangeValue.
+ * Format mirrors the URL serializer that produces these strings:
+ *   - `p:<key>`   → preset reference (timestamps recalculated by the caller).
+ *   - `c:<fromMs>_<toMs>` → custom absolute range (ms since epoch).
+ * Returns `null` for unrecognized or malformed input.
+ */
+function deserializeTimeRange(value: string): TimeRangeValue | null {
+  if (!value) return null;
+
+  if (value.startsWith('p:')) {
+    const preset = value.slice(2);
+    return { type: 'preset', preset, from: '', to: '' };
+  }
+
+  if (value.startsWith('c:')) {
+    const content = value.slice(2);
+    const separatorIndex = content.indexOf('_');
+    if (separatorIndex > 0) {
+      const fromMs = parseInt(content.slice(0, separatorIndex), 10);
+      const toMs = parseInt(content.slice(separatorIndex + 1), 10);
+      if (!isNaN(fromMs) && !isNaN(toMs)) {
+        return {
+          type: 'custom',
+          from: new Date(fromMs).toISOString(),
+          to: new Date(toMs).toISOString(),
+        };
+      }
+    }
+  }
+
+  return null;
+}
 
 // ============================================
 // TYPES

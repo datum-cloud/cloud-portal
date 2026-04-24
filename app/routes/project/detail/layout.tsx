@@ -1,6 +1,5 @@
 import { ProjectBottomBar } from '@/features/project-bottom-bar';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
-import { RbacProvider } from '@/modules/rbac';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
@@ -306,21 +305,19 @@ export default function ProjectLayout() {
   const currentProject = project ?? undefined;
 
   return (
-    <RbacProvider organizationId={currentOrg?.name}>
-      <ProjectProvider value={projectContextValue}>
-        <DashboardLayout
-          navItems={navItems}
-          sidebarCollapsible="icon"
-          currentProject={currentProject}
-          currentOrg={currentOrg}
-          expandBehavior="push"
-          showBackdrop={false}
-          sidebarLoading={projectLoading}
-          switcherLoading={projectLoading || orgLoading}
-          bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}>
-          <Outlet />
-        </DashboardLayout>
-      </ProjectProvider>
-    </RbacProvider>
+    <ProjectProvider value={projectContextValue}>
+      <DashboardLayout
+        navItems={navItems}
+        sidebarCollapsible="icon"
+        currentProject={currentProject}
+        currentOrg={currentOrg}
+        expandBehavior="push"
+        showBackdrop={false}
+        sidebarLoading={projectLoading}
+        switcherLoading={projectLoading || orgLoading}
+        bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}>
+        <Outlet />
+      </DashboardLayout>
+    </ProjectProvider>
   );
 }

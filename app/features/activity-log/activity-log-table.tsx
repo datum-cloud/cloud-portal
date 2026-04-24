@@ -1,22 +1,36 @@
 import { getActivityLogColumns } from './activity-log-columns';
 import { getResourceFilterOptions, getActionFilterOptions } from './activity-log-filters';
-import { useActivityLogTable } from './use-activity-log-table';
 import {
-  DataTable,
-  DataTableFilter,
-  DataTableToolbarConfig,
-} from '@/modules/datum-ui/components/data-table';
+  Table,
+  TagFilter,
+  TimeRangeFilter,
+  useDataTableLoading,
+  type ServerFetchArgs,
+} from '@/components/table';
 import { useApp } from '@/providers/app.provider';
-import type { ActivityLogScope } from '@/resources/activity-logs';
+import type { ActivityLog, ActivityLogList, ActivityLogScope } from '@/resources/activity-logs';
+import {
+  buildCELFilter,
+  buildCombinedFilter,
+} from '@/resources/activity-logs/activity-log.helpers';
+import { createActivityLogService } from '@/resources/activity-logs/activity-log.service';
 import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  type TimeRangeValue,
+  toApiTimeRange,
+  getBrowserTimezone,
+} from '@datum-cloud/datum-ui/date-picker';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { RefreshCcw } from 'lucide-react';
-import { useMemo, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // ============================================
 // HELPERS
 // ============================================
+
+/** Maximum characters to surface from an API error message before truncating. */
+const MAX_ERROR_MESSAGE_LENGTH = 200;
 
 /**
  * Extracts a user-friendly error message from API errors.
@@ -24,29 +38,22 @@ import { useMemo, useEffect, useRef } from 'react';
  */
 function extractErrorMessage(error: Error): string {
   try {
-    // Try to parse the error message as JSON (API errors often include JSON in message)
     const messageMatch = error.message?.match(/\{[\s\S]*\}/);
     if (messageMatch) {
       const parsed = JSON.parse(messageMatch[0]);
-
-      // Kubernetes API error format
       if (parsed.message) {
-        // Extract the core message, removing technical details
         const msg = parsed.message;
-
-        // Check for time range error
         if (msg.includes('time range') && msg.includes('exceeds maximum')) {
           return 'Time range exceeds maximum of 30 days. Please select a shorter period.';
         }
-
-        // Return the message, truncated if too long
-        return msg.length > 200 ? msg.slice(0, 200) + '...' : msg;
+        return msg.length > MAX_ERROR_MESSAGE_LENGTH
+          ? msg.slice(0, MAX_ERROR_MESSAGE_LENGTH) + '...'
+          : msg;
       }
     }
   } catch {
     // JSON parsing failed, use raw message
   }
-
   return error.message || 'An unexpected error occurred';
 }
 
@@ -81,35 +88,11 @@ export interface ActivityLogTableProps {
    * Default resource filter(s) to apply.
    * When set, the resource filter UI is hidden and only these resources are shown.
    * Useful for resource-specific activity views (e.g., DNS zones page).
-   *
-   * @example
-   * ```tsx
-   * // Show only DNS zone activity
-   * <ActivityLogTable
-   *   scope={{ type: 'project', projectId }}
-   *   defaultResource="dnszones"
-   * />
-   *
-   * // Show only domain and DNS record activity
-   * <ActivityLogTable
-   *   scope={{ type: 'project', projectId }}
-   *   defaultResource={['domains', 'dnsrecords']}
-   * />
-   * ```
    */
   defaultResource?: string | string[];
   /**
    * Initial action filter(s) for the filter UI.
    * Sets a default action filter that users can change.
-   *
-   * @example
-   * ```tsx
-   * // Default to modify operations but allow users to change
-   * <ActivityLogTable
-   *   scope={{ type: 'project', projectId }}
-   *   initialActions={['Added', 'Modified', 'Deleted']}
-   * />
-   * ```
    */
   initialActions?: string | string[];
 }
@@ -123,27 +106,9 @@ export interface ActivityLogTableProps {
  *
  * Features:
  * - Server-side filtering (search, action, resource, date range)
- * - Server-side pagination with cached pages
+ * - Server-side cursor pagination
  * - Scope-aware resource filter options
  * - Humanized action messages
- *
- * @example
- * ```tsx
- * // Project Home - compact view
- * <ActivityLogTable
- *   scope={{ type: 'project', projectId }}
- *   defaultPageSize={10}
- *   hidePagination
- *   hideFilters
- *   title="Recent Activity"
- * />
- *
- * // Project Activity Page - full view
- * <ActivityLogTable
- *   scope={{ type: 'project', projectId }}
- *   defaultPageSize={50}
- * />
- * ```
  */
 export function ActivityLogTable({
   scope,
@@ -154,40 +119,26 @@ export function ActivityLogTable({
   defaultResource,
   initialActions,
 }: ActivityLogTableProps) {
-  const { user, organization } = useApp();
+  const { user, organization, userPreferences } = useApp();
 
-  // All state management delegated to hook
-  const table = useActivityLogTable({
-    scope,
-    defaultPageSize,
-    defaultResource,
-    initialActions,
-    hideFilters,
-  });
+  // Timezone for time range conversion
+  const timezone = userPreferences?.timezone ?? getBrowserTimezone();
 
-  // Track shown errors to prevent duplicate toasts
+  // Refetch sentinel — bump to force Table.Server to re-run fetchFn.
+  const [refetchKey, setRefetchKey] = useState(0);
+  const refetch = useCallback(() => setRefetchKey((k) => k + 1), []);
+
+  // Track the last toasted error to avoid duplicate notifications.
   const shownErrorRef = useRef<string | null>(null);
-
-  // Show toast on error
-  useEffect(() => {
-    if (table.error) {
-      // Extract user-friendly message from the error
-      const errorMessage = extractErrorMessage(table.error);
-
-      // Only show toast if this is a new error (prevent duplicates)
-      if (shownErrorRef.current !== errorMessage) {
-        shownErrorRef.current = errorMessage;
-        toast.error('Activity Log', {
-          description: errorMessage,
-        });
-      }
-    } else {
-      // Clear tracked error when error is resolved
-      shownErrorRef.current = null;
+  const handleError = useCallback((error: Error) => {
+    const errorMessage = extractErrorMessage(error);
+    if (shownErrorRef.current !== errorMessage) {
+      shownErrorRef.current = errorMessage;
+      toast.error('Activity Log', { description: errorMessage });
     }
-  }, [table.error]);
+  }, []);
 
-  // Columns - hide User column for 'user' scope (it's always the logged-in user)
+  // Columns — hide User column for 'user' scope
   const columns = useMemo(() => {
     const currentUser = organization?.type !== 'Personal' ? user : undefined;
     const hideUserColumn = scope.type === 'user';
@@ -198,98 +149,162 @@ export function ActivityLogTable({
   const resourceOptions = useMemo(() => getResourceFilterOptions(scope.type), [scope.type]);
   const actionOptions = useMemo(() => getActionFilterOptions(), []);
 
-  // Toolbar configuration
-  const toolbarConfig = useMemo<DataTableToolbarConfig>(
-    () => ({
-      layout: 'compact',
-      includeSearch: hideFilters
-        ? false
-        : {
-            placeholder: 'Search activity',
-          },
-      filtersDisplay: 'auto',
-      maxInlineFilters: 1,
-      primaryFilters: ['period'],
-      alwaysShowSearchAndFilters: !hideFilters,
-    }),
-    [hideFilters]
+  const sortedActionOptions = useMemo(
+    () => [...actionOptions].sort((a, b) => a.label.localeCompare(b.label)),
+    [actionOptions]
+  );
+  const sortedResourceOptions = useMemo(
+    () => [...resourceOptions].sort((a, b) => a.label.localeCompare(b.label)),
+    [resourceOptions]
+  );
+
+  // Normalize defaultResource to array for use inside fetchFn closure
+  const effectiveDefaultResources = useMemo<string[] | undefined>(() => {
+    if (!defaultResource) return undefined;
+    return Array.isArray(defaultResource) ? defaultResource : [defaultResource];
+  }, [defaultResource]);
+
+  // Pre-populate action filter when initialActions is provided
+  const defaultFilters = useMemo(() => {
+    if (!initialActions) return undefined;
+    const actionsArray = Array.isArray(initialActions) ? initialActions : [initialActions];
+    return { actions: actionsArray };
+  }, [initialActions]);
+
+  // Pin the time range per query so paginated requests reuse the exact same
+  // startTime/endTime. Relative periods ("last 7d", etc.) resolve against the
+  // current clock, so recomputing on every fetch shifts the range forward and
+  // the server rejects the cursor with "cannot use cursor because query
+  // parameters changed." The pinned range is refreshed only when the cursor
+  // resets (fresh query) or the query identity changes. Bumping refetchKey
+  // also drops the pin so the next fetch anchors to a fresh "now".
+  const timeRangeRef = useRef<ReturnType<typeof toApiTimeRange> | null>(null);
+  const timeRangeKeyRef = useRef<string | null>(null);
+
+  // Reset the pinned range when the caller bumps refetchKey so the next
+  // fetch anchors to a fresh "now". Must be useEffect, not useMemo — React
+  // may discard+recompute useMemo values at any time (Strict Mode even does
+  // this intentionally), making ref mutations inside it non-deterministic.
+  useEffect(() => {
+    timeRangeKeyRef.current = null;
+  }, [refetchKey]);
+
+  const fetchFn = useCallback<(args: ServerFetchArgs) => Promise<ActivityLogList>>(
+    async ({ cursor, limit, filters, search }) => {
+      const service = createActivityLogService();
+
+      const periodFilter = filters['period'] as TimeRangeValue | undefined;
+      const actionsFilter = filters['actions'] as string[] | undefined;
+      const resourcesFilter = filters['resources'] as string[] | undefined;
+
+      const queryKey = JSON.stringify({
+        period: periodFilter ?? null,
+        actions: actionsFilter ?? null,
+        resources: resourcesFilter ?? null,
+        search: search || '',
+      });
+
+      if (!cursor || timeRangeKeyRef.current !== queryKey || !timeRangeRef.current) {
+        timeRangeRef.current = toApiTimeRange(periodFilter ?? null, timezone);
+        timeRangeKeyRef.current = queryKey;
+      }
+
+      const { startTime, endTime } = timeRangeRef.current;
+
+      // defaultResource prop takes precedence over the filter UI value
+      const effectiveResources = effectiveDefaultResources ?? resourcesFilter;
+
+      const celFilter = buildCELFilter({
+        search: search || undefined,
+        actions: actionsFilter,
+        resources: effectiveResources,
+        scopeType: scope.type,
+      });
+
+      const combinedFilter = buildCombinedFilter(celFilter);
+
+      return service.query({
+        scope,
+        startTime,
+        endTime,
+        filter: combinedFilter,
+        limit,
+        continue: cursor,
+      });
+    },
+    [timezone, effectiveDefaultResources, scope]
   );
 
   return (
-    <DataTable
+    <Table.Server<ActivityLog, ActivityLogList>
       columns={columns}
-      data={table.data}
-      className={className}
-      tableTitle={
+      limit={defaultPageSize}
+      fetchFn={fetchFn}
+      transform={(response: ActivityLogList) => ({
+        data: response.items,
+        cursor: response.nextCursor ?? undefined,
+        hasNextPage: response.hasMore,
+      })}
+      defaultFilters={defaultFilters}
+      refetchKey={refetchKey}
+      onError={handleError}
+      urlSync={!hideFilters}
+      search={!hideFilters ? 'Search activity' : undefined}
+      filters={
         !hideFilters
-          ? {
-              actions: (
-                <Button
-                  type="primary"
-                  theme="solid"
-                  size="small"
-                  onClick={() => table.refetch()}
-                  icon={<Icon icon={RefreshCcw} className="size-4" />}
-                  iconPosition="left"
-                  loading={table.isFetching}>
-                  <span className="hidden sm:inline">Refresh</span>
-                </Button>
-              ),
-            }
+          ? [
+              <TimeRangeFilter key="period" column="period" disableFuture />,
+              <TagFilter
+                key="actions"
+                column="actions"
+                label="Action"
+                options={sortedActionOptions}
+                className="h-9"
+              />,
+              ...(!defaultResource
+                ? [
+                    <TagFilter
+                      key="resources"
+                      column="resources"
+                      label="Resource"
+                      options={sortedResourceOptions}
+                      className="h-9"
+                    />,
+                  ]
+                : []),
+            ]
           : undefined
       }
-      isLoading={table.isLoading || table.isFetching}
-      loadingText="Loading..."
-      emptyContent={{
-        title: 'No activity found',
-        subtitle: hideFilters ? undefined : 'Try adjusting your filters.',
-      }}
-      // Server-side filtering
-      serverSideFiltering={!hideFilters}
-      defaultFilters={hideFilters ? undefined : table.filters}
-      onFiltersChange={hideFilters ? undefined : table.setFilters}
-      // Server-side pagination
-      serverSidePagination={!hidePagination}
-      hidePagination={hidePagination}
-      hasNextPage={table.hasNextPage}
-      hasPrevPage={table.hasPrevPage}
-      onPageChange={(newPage) => {
-        if (newPage > table.page) table.goToNextPage();
-        else if (newPage < table.page) table.goToPrevPage();
-      }}
-      onPageSizeChange={(size) => table.setPageSize(size)}
-      controlledPageIndex={table.page}
-      controlledPageSize={table.pageSize}
-      disableShowAll
-      // Toolbar & filters
-      toolbar={toolbarConfig}
-      filters={
-        hideFilters ? undefined : (
-          <>
-            {/* TimeRange filter - inline (primaryFilter) */}
-            <DataTableFilter.TimeRange
-              filterKey="period"
-              disableFuture
-              className="sm:min-w-[250px]"
-            />
-
-            {/* Action filter - in dropdown */}
-            <DataTableFilter.Tag
-              filterKey="actions"
-              label="Action"
-              options={actionOptions.sort((a, b) => a.label.localeCompare(b.label))}
-            />
-            {/* Resource filter - in dropdown (hidden when defaultResource is set) */}
-            {!defaultResource && (
-              <DataTableFilter.Tag
-                filterKey="resources"
-                label="Resource"
-                options={resourceOptions.sort((a, b) => a.label.localeCompare(b.label))}
-              />
-            )}
-          </>
-        )
+      actions={
+        !hideFilters ? [<ActivityLogRefreshButton key="refresh" onClick={refetch} />] : undefined
       }
+      empty="No activity found."
+      pagination={hidePagination ? false : 'simple'}
+      className={className}
     />
+  );
+}
+
+/**
+ * Refresh button that renders inside `Table.Server`'s `actions` slot. Reads
+ * loading state from the wrapper's context via `useDataTableLoading` so the
+ * button shows a spinner (and disables) while a fetch is in flight.
+ *
+ * Must be rendered inside `<Table.Server>`; the `actions` prop slot
+ * satisfies that because the toolbar is a child of `DataTable.Server`.
+ */
+function ActivityLogRefreshButton({ onClick }: { onClick: () => void }) {
+  const { isLoading } = useDataTableLoading();
+  return (
+    <Button
+      type="primary"
+      theme="solid"
+      size="small"
+      loading={isLoading}
+      onClick={onClick}
+      icon={<Icon icon={RefreshCcw} className="size-4" />}
+      iconPosition="left">
+      <span className="hidden sm:inline">Refresh</span>
+    </Button>
   );
 }
