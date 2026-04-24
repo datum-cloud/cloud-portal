@@ -115,7 +115,6 @@ export const MachineAccountKeyFormDialog = forwardRef<
 
   return (
     <Form.Dialog
-      key={open ? 'open' : 'closed'}
       open={open}
       onOpenChange={setOpen}
       title="New Key"

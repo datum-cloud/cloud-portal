@@ -61,7 +61,6 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
 
   return (
     <Form.Dialog
-      key={open ? 'open' : 'closed'}
       open={open}
       onOpenChange={setOpen}
       title="New Secret"
