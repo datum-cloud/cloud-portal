@@ -2,6 +2,7 @@ import { DangerCard } from '@/components/danger-card/danger-card';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { HttpProxyEdgeRequests } from '@/features/edge/proxy/metrics/edge-requests';
 import { HttpProxyWafEvents } from '@/features/edge/proxy/metrics/waf-events';
+import { HttpProxyWafTopRules } from '@/features/edge/proxy/metrics/waf-top-rules';
 import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
 import { HttpProxyConfigCard } from '@/features/edge/proxy/overview/config-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
@@ -90,11 +91,14 @@ export default function HttpProxyDetailPage() {
               <HttpProxyEdgeRequests projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
               {effectiveProxy.trafficProtectionMode &&
                 effectiveProxy.trafficProtectionMode !== 'Disabled' && (
-                  <HttpProxyWafEvents
-                    projectId={projectId ?? ''}
-                    proxyId={proxyId ?? ''}
-                    trafficProtectionMode={effectiveProxy.trafficProtectionMode}
-                  />
+                  <>
+                    <HttpProxyWafEvents
+                      projectId={projectId ?? ''}
+                      proxyId={proxyId ?? ''}
+                      trafficProtectionMode={effectiveProxy.trafficProtectionMode}
+                    />
+                    <HttpProxyWafTopRules projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
+                  </>
                 )}
             </CardContent>
           </Card>

@@ -4,13 +4,14 @@ import {
   MetricChartTooltipContent,
   buildPrometheusLabelSelector,
   createRegionFilter,
+  useMetrics,
+  usePrometheusCard,
+  type QueryBuilderContext,
 } from '@/modules/metrics';
-import { usePrometheusCard } from '@/modules/metrics/hooks';
-import { useMetrics } from '@/modules/metrics/context/metrics.context';
-import type { QueryBuilderContext } from '@/modules/metrics';
-import { formatValue } from '@/modules/prometheus';
-import type { ChartSeries } from '@/modules/prometheus';
-import { useMemo, useState } from 'react';
+import { formatDurationFromMs } from '@/modules/metrics/utils/date-parsers';
+import { formatValue, type ChartSeries } from '@/modules/prometheus';
+import type { TrafficProtectionMode } from '@/resources/http-proxies';
+import { useCallback, useMemo, useState } from 'react';
 
 const OUTCOME_LABELS: Record<string, string> = {
   allowed: 'Allowed',
@@ -25,27 +26,22 @@ const OUTCOME_COLORS: Record<string, string> = {
 };
 
 function windowDuration(ctx: QueryBuilderContext): string {
-  const { start, end } = ctx.timeRange;
-  const ms = end.getTime() - start.getTime();
-  const seconds = Math.round(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.round(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d`;
+  return formatDurationFromMs(ctx.timeRange.end.getTime() - ctx.timeRange.start.getTime());
 }
 
-function WafStat({
-  label,
-  query,
-}: {
-  label: string;
-  query: (ctx: QueryBuilderContext) => string;
-}) {
+function WafStat({ label, query }: { label: string; query: (ctx: QueryBuilderContext) => string }) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
-  const finalQuery = useMemo(() => query(buildQueryContext()), [query, buildQueryContext, filterState]);
-  const { data } = usePrometheusCard({ query: finalQuery, timeRange, step, metricFormat: 'short-number' });
+  const resolvedQuery = useMemo(
+    () => query(buildQueryContext()),
+    // filterState participates in identity of buildQueryContext output
+    [query, buildQueryContext, filterState]
+  );
+  const { data } = usePrometheusCard({
+    query: resolvedQuery,
+    timeRange,
+    step,
+    metricFormat: 'short-number',
+  });
   const value = data ? formatValue(data.value, 'short-number', 0) : '—';
   return (
     <div className="text-foreground flex items-center gap-1 text-xs">
@@ -62,42 +58,46 @@ export const HttpProxyWafEvents = ({
 }: {
   projectId: string;
   proxyId: string;
-  trafficProtectionMode?: string;
+  trafficProtectionMode?: TrafficProtectionMode;
 }) => {
   const [series, setSeries] = useState<ChartSeries[]>([]);
 
-  const blockedQuery = (ctx: QueryBuilderContext) => {
-    const regionFilter = createRegionFilter(ctx.get('regions'));
-    const selector = buildPrometheusLabelSelector({
-      baseLabels: {
-        resourcemanager_datumapis_com_project_name: projectId,
-        gateway_name: proxyId,
-      },
-      customLabels: {
-        label_topology_kubernetes_io_region: '!=""',
-        coraza_outcome: '=~"blocked|dropped"',
-      },
-      filters: [regionFilter],
-    });
-    return `sum(increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration(ctx)}]))`;
-  };
+  const blockedQuery = useCallback(
+    (ctx: QueryBuilderContext) => {
+      const regionFilter = createRegionFilter(ctx.get('regions'));
+      const selector = buildPrometheusLabelSelector({
+        baseLabels: {
+          resourcemanager_datumapis_com_project_name: projectId,
+          gateway_name: proxyId,
+        },
+        customLabels: {
+          label_topology_kubernetes_io_region: '!=""',
+          coraza_outcome: '=~"blocked|dropped"',
+        },
+        filters: [regionFilter],
+      });
+      return `sum(increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration(ctx)}]))`;
+    },
+    [projectId, proxyId]
+  );
 
-  const allowedQuery = (ctx: QueryBuilderContext) => {
-    const regionFilter = createRegionFilter(ctx.get('regions'));
-    const selector = buildPrometheusLabelSelector({
-      baseLabels: {
-        resourcemanager_datumapis_com_project_name: projectId,
-        gateway_name: proxyId,
-        coraza_outcome: 'allowed',
-        ...(trafficProtectionMode === 'Enforce'
-          ? { trafficprotectionpolicy_mode: 'Enforce' }
-          : { trafficprotectionpolicy_mode: 'Observe' }),
-      },
-      customLabels: { label_topology_kubernetes_io_region: '!=""' },
-      filters: [regionFilter],
-    });
-    return `sum(increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration(ctx)}]))`;
-  };
+  const allowedQuery = useCallback(
+    (ctx: QueryBuilderContext) => {
+      const regionFilter = createRegionFilter(ctx.get('regions'));
+      const selector = buildPrometheusLabelSelector({
+        baseLabels: {
+          resourcemanager_datumapis_com_project_name: projectId,
+          gateway_name: proxyId,
+          coraza_outcome: 'allowed',
+          trafficprotectionpolicy_mode: trafficProtectionMode === 'Enforce' ? 'Enforce' : 'Observe',
+        },
+        customLabels: { label_topology_kubernetes_io_region: '!=""' },
+        filters: [regionFilter],
+      });
+      return `sum(increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration(ctx)}]))`;
+    },
+    [projectId, proxyId, trafficProtectionMode]
+  );
 
   const allowedLabel = trafficProtectionMode === 'Observe' ? 'Observed' : 'Allowed';
 
@@ -146,6 +146,7 @@ export const HttpProxyWafEvents = ({
         chartType="area"
         showLegend={false}
         colorOverrides={OUTCOME_COLORS}
+        padToTimeRange
         height={140}
         yAxisFormatter={(value) => String(Math.round(value))}
         yAxisOptions={{ width: 55 }}

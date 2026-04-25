@@ -1,11 +1,15 @@
-import { buildPrometheusLabelSelector, createRegionFilter, useMetrics } from '@/modules/metrics';
-import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
+import {
+  buildPrometheusLabelSelector,
+  createRegionFilter,
+  useMetrics,
+  usePrometheusAPIQuery,
+} from '@/modules/metrics';
+import { formatDurationFromMs, parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import type { FormattedMetricData } from '@/modules/prometheus';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
-import { useQueryState } from 'nuqs';
 import { useMemo } from 'react';
 
-interface WafTopRulesProps {
+interface HttpProxyWafTopRulesProps {
   projectId: string;
   proxyId: string;
 }
@@ -35,38 +39,25 @@ const OWASP_RULE_NAMES: Record<string, string> = {
   '934100': 'Node.js Injection',
 };
 
-function ruleLabel(ruleId: string): string {
-  if (ruleId === '—') return '—';
-  return OWASP_RULE_NAMES[ruleId] ?? `Rule ${ruleId}`;
-}
-
 interface RuleRow {
   ruleId: string;
-  action: string;
+  severity: string | null;
+  action: string | null;
   events: number;
 }
 
-function durationFromMs(ms: number): string {
-  const seconds = Math.floor(ms / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
-  return `${Math.floor(hours / 24)}d`;
-}
+export const HttpProxyWafTopRules = ({ projectId, proxyId }: HttpProxyWafTopRulesProps) => {
+  const { buildQueryContext, refreshInterval, filterState } = useMetrics();
 
-export const WafTopRules = ({ projectId, proxyId }: WafTopRulesProps) => {
-  const { buildQueryContext, refreshInterval } = useMetrics();
+  const queryContext = useMemo(() => buildQueryContext(), [buildQueryContext, filterState]);
 
-  const [urlTimeRange] = useQueryState('timeRange');
-
-  const queryContext = useMemo(() => buildQueryContext(), [buildQueryContext, urlTimeRange]);
-
-  const windowDuration = useMemo(() => {
-    const { start, end } = queryContext.timeRange;
-    return durationFromMs(end.getTime() - start.getTime());
-  }, [queryContext.timeRange]);
+  const windowDuration = useMemo(
+    () =>
+      formatDurationFromMs(
+        queryContext.timeRange.end.getTime() - queryContext.timeRange.start.getTime()
+      ),
+    [queryContext.timeRange]
+  );
 
   const query = useMemo(() => {
     const regionFilter = createRegionFilter(queryContext.get('regions'));
@@ -79,27 +70,27 @@ export const WafTopRules = ({ projectId, proxyId }: WafTopRulesProps) => {
       filters: [regionFilter],
     });
     return (
-      `topk(10, sum by (coraza_rule_id, coraza_rule_action) (` +
+      `topk(10, sum by (coraza_rule_id, coraza_rule_severity, coraza_rule_action) (` +
       `increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration}])` +
       `))`
     );
   }, [projectId, proxyId, queryContext, windowDuration]);
 
-  const refetchMs = useMemo(() => {
-    if (refreshInterval === 'off') return false as const;
-    const match = refreshInterval.match(/^(\d+)([smh])$/);
-    if (!match) return false as const;
-    const val = parseInt(match[1]!, 10);
-    const unit = match[2];
-    if (unit === 's') return val * 1000;
-    if (unit === 'm') return val * 60 * 1000;
-    if (unit === 'h') return val * 3600 * 1000;
-    return false as const;
+  const refetchMs = useMemo<number | false>(() => {
+    if (refreshInterval === 'off') return false;
+    return parseDurationToMs(refreshInterval) ?? false;
   }, [refreshInterval]);
 
   const queryKey = useMemo(
-    () => ['waf-top-rules', query, projectId, proxyId],
-    [query, projectId, proxyId]
+    () => [
+      'waf-top-rules',
+      projectId,
+      proxyId,
+      query,
+      queryContext.timeRange.start.getTime(),
+      queryContext.timeRange.end.getTime(),
+    ],
+    [projectId, proxyId, query, queryContext.timeRange]
   );
 
   const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
@@ -111,14 +102,17 @@ export const WafTopRules = ({ projectId, proxyId }: WafTopRulesProps) => {
   const rows: RuleRow[] = useMemo(() => {
     if (!data?.series?.length) return [];
     return data.series
-      .map((series) => ({
-        ruleId: series.labels.coraza_rule_id ?? '—',
-        action: series.labels.coraza_rule_action ?? '—',
+      .map<RuleRow>((series) => ({
+        ruleId: series.labels.coraza_rule_id ?? '',
+        severity: series.labels.coraza_rule_severity ?? null,
+        action: series.labels.coraza_rule_action ?? null,
         events: Math.round(series.data[0]?.value ?? 0),
       }))
-      .filter((row) => row.ruleId !== '—' && row.events > 0)
+      .filter((row) => row.ruleId !== '' && row.events > 0)
       .sort((a, b) => b.events - a.events);
   }, [data]);
+
+  const ruleLabel = (ruleId: string): string => OWASP_RULE_NAMES[ruleId] ?? `Rule ${ruleId}`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -126,7 +120,7 @@ export const WafTopRules = ({ projectId, proxyId }: WafTopRulesProps) => {
       {isLoading ? (
         <div className="bg-muted h-32 animate-pulse rounded-md" />
       ) : error ? (
-        <p className="text-muted-foreground text-sm">No rule events in this time window.</p>
+        <p className="text-muted-foreground text-sm">Unable to load rule events.</p>
       ) : rows.length === 0 ? (
         <p className="text-muted-foreground text-sm">No rule events in this time window.</p>
       ) : (
@@ -145,14 +139,12 @@ export const WafTopRules = ({ projectId, proxyId }: WafTopRulesProps) => {
                 <TableRow key={`${row.ruleId}-${index}`} className="hover:bg-muted/50">
                   <TableCell>
                     <span className="text-sm">{ruleLabel(row.ruleId)}</span>
-                    {row.ruleId !== '—' && (
-                      <span className="text-muted-foreground ml-1.5 font-mono text-xs">
-                        {row.ruleId}
-                      </span>
-                    )}
+                    <span className="text-muted-foreground ml-1.5 font-mono text-xs">
+                      {row.ruleId}
+                    </span>
                   </TableCell>
-
-                  <TableCell>{row.action}</TableCell>
+                  <TableCell>{row.severity ?? '—'}</TableCell>
+                  <TableCell>{row.action ?? '—'}</TableCell>
                   <TableCell className="text-right font-mono text-sm">
                     {row.events.toLocaleString()}
                   </TableCell>
