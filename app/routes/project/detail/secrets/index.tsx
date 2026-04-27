@@ -7,7 +7,6 @@ import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/se
 import {
   createSecretService,
   useDeleteSecret,
-  useHydrateSecrets,
   useSecrets,
   useSecretsWatch,
   type Secret,
@@ -45,14 +44,13 @@ export default function SecretsPage() {
   const { projectId } = useParams();
   const navigate = useNavigate();
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateSecrets(projectId ?? '', initialData ?? []);
-
   // Subscribe to watch for real-time updates
   useSecretsWatch(projectId ?? '');
 
-  // Read from React Query cache (gets updates from watch!)
+  // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: queryData } = useSecrets(projectId ?? '', {
+    initialData: initialData ?? [],
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });

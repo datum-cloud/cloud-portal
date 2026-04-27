@@ -9,7 +9,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useDnsRecords(
   projectId: string,
@@ -199,44 +198,4 @@ export function useBulkImportDnsRecords(
       queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
-}
-
-/**
- * Hydrates React Query cache with SSR data for DNS records list.
- * Uses the same query key as useDnsRecords and useDnsRecordsWatch.
- */
-export function useHydrateDnsRecords(
-  projectId: string,
-  zoneId: string,
-  initialData: FlattenedDnsRecord[]
-) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      // Use the same query key format as useDnsRecords and useDnsRecordsWatch
-      queryClient.setQueryData(dnsRecordKeys.list(projectId, zoneId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, zoneId, initialData]);
-}
-
-/**
- * Hydrates React Query cache with SSR data for single DNS record.
- */
-export function useHydrateDnsRecord(
-  projectId: string,
-  recordSetId: string,
-  initialData: DnsRecordSet
-) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(dnsRecordKeys.detail(projectId, recordSetId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, recordSetId, initialData]);
 }

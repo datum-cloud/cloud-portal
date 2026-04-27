@@ -7,7 +7,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useHttpProxies(
   projectId: string,
@@ -159,34 +158,4 @@ export function useDeleteHttpProxy(
       options?.onSuccess?.(...args);
     },
   });
-}
-
-/**
- * Hydrates React Query cache with SSR data for HTTP proxies list.
- */
-export function useHydrateHttpProxies(projectId: string, initialData: HttpProxy[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(httpProxyKeys.list(projectId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, initialData]);
-}
-
-/**
- * Hydrates React Query cache with SSR data for single HTTP proxy.
- */
-export function useHydrateHttpProxy(projectId: string, name: string, initialData: HttpProxy) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(httpProxyKeys.detail(projectId, name), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, name, initialData]);
 }

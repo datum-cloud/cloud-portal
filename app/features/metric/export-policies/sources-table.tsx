@@ -1,10 +1,10 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { CodeEditor } from '@/components/code-editor/code-editor';
 import { Table } from '@/components/table';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-cloud/datum-ui/card';
+import { CodeEditor, type EditorLanguage } from '@datum-cloud/datum-ui/code-editor';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
@@ -36,7 +36,12 @@ function QueryButton({ value }: { value: string }) {
         </Button>
         <MobileSheet open={open} onOpenChange={setOpen} title="MetricsQL Query">
           <div className="p-4">
-            <CodeEditor value={value} language="promql" readOnly minHeight="100px" />
+            <CodeEditor
+              value={value}
+              language={'promql' as EditorLanguage}
+              readOnly
+              minHeight="100px"
+            />
           </div>
         </MobileSheet>
       </>
@@ -55,7 +60,12 @@ function QueryButton({ value }: { value: string }) {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="min-w-[400px]">
-        <CodeEditor value={value} language="promql" readOnly minHeight="100px" />
+        <CodeEditor
+          value={value}
+          language={'promql' as EditorLanguage}
+          readOnly
+          minHeight="100px"
+        />
       </PopoverContent>
     </Popover>
   );

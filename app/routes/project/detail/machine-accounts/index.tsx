@@ -7,7 +7,6 @@ import { CreateMachineAccountWizard } from '@/features/machine-account/wizard/cr
 import {
   createMachineAccountService,
   useDeleteMachineAccount,
-  useHydrateMachineAccounts,
   useMachineAccounts,
   useToggleMachineAccount,
   type CreateMachineAccountKeyResponse,
@@ -154,9 +153,9 @@ export default function MachineAccountsPage() {
     ? (initialData ?? []).filter((a) => a.name !== deletedName)
     : (initialData ?? []);
 
-  useHydrateMachineAccounts(projectId ?? '', seededData);
-
   const { data: queryData } = useMachineAccounts(projectId ?? '', {
+    initialData: seededData,
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });

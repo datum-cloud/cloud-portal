@@ -111,8 +111,6 @@ export {
   useUpdateDnsRecord,
   useDeleteDnsRecord,
   useBulkImportDnsRecords,
-  useHydrateDnsRecords,
-  useHydrateDnsRecord,
   type BulkImportOptions,
   type BulkImportInput,
   type ImportRecordDetail,

@@ -27,8 +27,6 @@ export {
   useCreateDnsZone,
   useUpdateDnsZone,
   useDeleteDnsZone,
-  useHydrateDnsZones,
-  useHydrateDnsZone,
 } from './dns-zone.queries';
 
 export * from './dns-zone.watch';
