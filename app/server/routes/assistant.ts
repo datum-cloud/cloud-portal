@@ -1,5 +1,6 @@
 import { buildSystemPrompt, createAssistantTools } from '@/modules/assistant';
 import { logger } from '@/modules/logger';
+import { buildAssistantUsageEvents, emitUsageEvents } from '@/modules/usage';
 import type { Variables } from '@/server/types';
 import { env } from '@/utils/env/env.server';
 import { createAnthropic } from '@ai-sdk/anthropic';
@@ -16,14 +17,16 @@ assistantRoutes.post('/', async (c) => {
   }
 
   const body = await c.req.json();
-  const { messages, projectName, orgName, projectDisplayName, orgDisplayName, clientOs } = body as {
-    messages: UIMessage[];
-    projectName?: string;
-    orgName?: string;
-    projectDisplayName?: string;
-    orgDisplayName?: string;
-    clientOs?: string;
-  };
+  const { id, messages, projectName, orgName, projectDisplayName, orgDisplayName, clientOs } =
+    body as {
+      id?: string;
+      messages: UIMessage[];
+      projectName?: string;
+      orgName?: string;
+      projectDisplayName?: string;
+      orgDisplayName?: string;
+      clientOs?: string;
+    };
 
   const session = c.get('session');
 
@@ -82,6 +85,27 @@ assistantRoutes.post('/', async (c) => {
           outputTokens: usage.outputTokens,
           totalTokens: usage.totalTokens,
         });
+
+        // Emit usage events to the Milo durable usage pipeline. No-op
+        // when USAGE_GATEWAY_URL is unset; never throws (the emitter
+        // logs and resolves on failure). Project-scoped only — the
+        // pipeline attributes via BillingAccountBinding on `projectRef`,
+        // so we cannot bill chats with no project context.
+        if (!projectName || !id) return;
+        const events = buildAssistantUsageEvents({
+          projectName,
+          conversationId: id,
+          model,
+          region: env.server.usageRegion,
+          tokens: {
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            cachedInputTokens: (usage as { cachedInputTokens?: number }).cachedInputTokens,
+            cacheCreationInputTokens: (usage as { cacheCreationInputTokens?: number })
+              .cacheCreationInputTokens,
+          },
+        });
+        void emitUsageEvents(events);
       },
       () => {} // already logged via result.response rejection
     );
