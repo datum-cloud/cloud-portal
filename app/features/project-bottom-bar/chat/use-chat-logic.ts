@@ -2,7 +2,7 @@ import { deleteChat, deriveTitle, listChats, saveChat, type StoredChat } from '.
 import { useSpeechInput } from './use-speech-input';
 import { useProjectContext } from '@/providers/project.provider';
 import { useChat } from '@ai-sdk/react';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';

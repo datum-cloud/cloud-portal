@@ -3,7 +3,7 @@ import { formatTTL, type ImportDetail } from '@/utils/helpers/dns-record.helper'
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { CheckCircle2, XCircle, AlertCircle, MinusCircle } from 'lucide-react';
 import { useMemo } from 'react';

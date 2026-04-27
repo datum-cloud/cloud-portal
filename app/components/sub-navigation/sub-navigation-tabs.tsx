@@ -1,5 +1,5 @@
 import { Tabs, TabsLinkTrigger, TabsList } from '@datum-cloud/datum-ui/tabs';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import type { LucideIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router';

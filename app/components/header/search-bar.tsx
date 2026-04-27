@@ -2,7 +2,6 @@ import { useOs } from '@/hooks/useOs';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { cn } from '@shadcn/lib/utils';
 import {
   CommandDialog,
   CommandEmpty,
@@ -10,7 +9,8 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@shadcn/ui/command';
+} from '@datum-cloud/datum-ui/command';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';

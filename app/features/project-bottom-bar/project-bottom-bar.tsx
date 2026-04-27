@@ -3,7 +3,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Activity, lazy, Suspense, useState } from 'react';

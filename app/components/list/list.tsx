@@ -1,4 +1,4 @@
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export interface ListItem {
   label?: React.ReactNode | string;

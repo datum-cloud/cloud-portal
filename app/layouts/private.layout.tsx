@@ -12,7 +12,6 @@ import { env as serverEnv } from '@/utils/env/env.server';
 import { authMiddleware, fraudStatusMiddleware, withMiddleware } from '@/utils/middlewares';
 import { TaskQueueProvider } from '@datum-cloud/datum-ui/task-queue';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
-import { TooltipProvider } from '@shadcn/ui/tooltip';
 import { createHmac } from 'crypto';
 import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
@@ -102,11 +101,9 @@ export default function PrivateLayout() {
       <AppProvider initialUser={data?.user}>
         <FathomWrapper>
           <TaskQueueProvider config={{ storageType: 'memory' }}>
-            <TooltipProvider>
-              <ConfirmationDialogProvider>
-                <Outlet />
-              </ConfirmationDialogProvider>
-            </TooltipProvider>
+            <ConfirmationDialogProvider>
+              <Outlet />
+            </ConfirmationDialogProvider>
 
             {helpscoutEnv.beaconId && helpscoutEnv.userSignature && (
               <HelpScoutBeacon

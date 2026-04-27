@@ -12,7 +12,7 @@ import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Button } from '@datum-cloud/datum-ui/button';
 import type { AutocompleteOption, AutocompleteProps } from '@datum-cloud/datum-ui/form';
 import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangleIcon, CheckIcon, PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';

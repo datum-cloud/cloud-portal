@@ -3,7 +3,7 @@ import { BatchField } from './batch-field';
 import { RetryField } from './retry-field';
 import { FieldLabel } from '@/components/field/field-label';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { Separator } from '@shadcn/ui/separator';
+import { Separator } from '@datum-cloud/datum-ui/separator';
 
 export const PrometheusField = ({
   baseName,

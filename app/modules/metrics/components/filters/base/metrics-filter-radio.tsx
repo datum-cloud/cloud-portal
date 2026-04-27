@@ -6,7 +6,7 @@ import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { RadioGroup, RadioGroupItem } from '@datum-cloud/datum-ui/radio-group';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 

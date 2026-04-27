@@ -1,7 +1,7 @@
 import { Equalizer } from './equalizer';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import type { Editor } from '@tiptap/react';
 import { EditorContent } from '@tiptap/react';
 import { Mic, MicOff, RotateCw, SendHorizonal, Square } from 'lucide-react';

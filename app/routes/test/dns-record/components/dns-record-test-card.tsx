@@ -1,6 +1,7 @@
 import { DnsRecordForm } from '../../../../features/edge/dns-zone/form/dns-record-form';
 import { TestScenario } from './default-test-scenarios';
 import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
@@ -9,9 +10,14 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { cn } from '@shadcn/lib/utils';
-import { Badge } from '@shadcn/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-cloud/datum-ui/select';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 interface DnsRecordTestCardProps {
   recordType: DNSRecordType;
@@ -149,20 +155,20 @@ export function DnsRecordTestCard({
   const getStatusBadge = () => {
     if (!hasBeenValidated) {
       return (
-        <Badge variant="secondary" className="text-xs">
+        <Badge type="secondary" className="text-xs">
           Not tested
         </Badge>
       );
     }
     if (isValid) {
       return (
-        <Badge variant="default" className="bg-green-600 text-xs">
+        <Badge type="primary" className="bg-green-600 text-xs">
           ✓ Valid
         </Badge>
       );
     }
     return (
-      <Badge variant="destructive" className="text-xs">
+      <Badge type="danger" className="text-xs">
         ❌ {errors.length} {errors.length === 1 ? 'error' : 'errors'}
       </Badge>
     );

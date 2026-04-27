@@ -32,7 +32,7 @@ import { FormStepper, FormStep } from '@datum-cloud/datum-ui/form/stepper';
 import type { StepConfig } from '@datum-cloud/datum-ui/form/stepper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { Form as RouterForm, useNavigate, useSubmit } from 'react-router';

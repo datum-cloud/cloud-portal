@@ -10,7 +10,7 @@ import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { Label } from '@datum-cloud/datum-ui/label';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo } from 'react';
 

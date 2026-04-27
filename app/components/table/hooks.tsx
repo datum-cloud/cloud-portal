@@ -4,7 +4,7 @@ import { useDataTableLoading, useNuqsAdapter } from '@datum-cloud/datum-ui/data-
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import type { Column, ColumnDef } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';

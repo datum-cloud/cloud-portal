@@ -1,6 +1,6 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export interface NotificationSettingsCardSkeletonProps {
   title: string;

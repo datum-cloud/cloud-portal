@@ -23,7 +23,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@shadcn/ui/chart';
+} from '@datum-cloud/datum-ui/chart';
 import { format } from 'date-fns';
 import { ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { CartesianGrid, AreaChart, BarChart, LineChart, XAxis, YAxis, YAxisProps } from 'recharts';

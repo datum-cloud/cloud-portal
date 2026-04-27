@@ -1,7 +1,7 @@
 import type { RowAction } from '../types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { isValidElement, createElement, type ComponentType, type ReactNode } from 'react';
 
 /**

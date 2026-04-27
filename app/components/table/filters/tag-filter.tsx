@@ -1,8 +1,8 @@
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { useDataTableFilters } from '@datum-cloud/datum-ui/data-table';
-import { cn } from '@shadcn/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export interface TagFilterOption {
   label: string;

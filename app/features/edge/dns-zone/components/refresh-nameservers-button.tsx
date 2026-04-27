@@ -2,7 +2,7 @@ import { useRefreshDomainRegistration } from '@/resources/domains';
 import { Button, ButtonProps } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { TimerIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

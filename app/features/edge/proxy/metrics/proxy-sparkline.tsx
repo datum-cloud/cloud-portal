@@ -1,8 +1,8 @@
 import { buildRateQuery } from '@/modules/metrics';
 import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
 import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
+import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
-import { ChartContainer, ChartTooltip, type ChartConfig } from '@shadcn/ui/chart';
 import { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 

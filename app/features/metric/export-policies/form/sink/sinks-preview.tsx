@@ -3,8 +3,8 @@ import { ExportPolicySinkTypeEnum } from '@/resources/export-policies';
 import { ExportPolicySinksSchema } from '@/resources/export-policies';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Separator } from '@datum-cloud/datum-ui/separator';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Separator } from '@shadcn/ui/separator';
 import { LinkIcon } from 'lucide-react';
 import { useMemo } from 'react';
 

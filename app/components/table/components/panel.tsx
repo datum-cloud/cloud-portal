@@ -1,4 +1,4 @@
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import type { ReactNode } from 'react';
 
 interface TablePanelProps {

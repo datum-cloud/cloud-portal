@@ -3,7 +3,7 @@ import type { Project } from '@/resources/projects';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { isTextUIPart } from 'ai';
 import { DownloadIcon, MessageSquarePlus, TrashIcon } from 'lucide-react';
 
