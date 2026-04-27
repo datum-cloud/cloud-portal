@@ -159,7 +159,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "lefthook": "^2.1.6",
     "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.7.2",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "start-server-and-test": "^3.0.2",
     "tailwind-variants": "^3.2.2",
     "tailwindcss": "^4.2.2",
