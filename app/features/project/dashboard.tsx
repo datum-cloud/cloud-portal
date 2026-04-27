@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 

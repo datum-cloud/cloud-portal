@@ -6,7 +6,7 @@ import { type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { CircleHelp } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

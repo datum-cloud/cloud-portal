@@ -12,7 +12,7 @@ import type { DateTimeProps, FormatterOptions } from './types';
 import { useApp } from '@/providers/app.provider';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useState } from 'react';
 
 /**

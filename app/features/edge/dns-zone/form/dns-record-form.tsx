@@ -29,7 +29,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Form, useWatch } from '@datum-cloud/datum-ui/form';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Form as RouterForm } from 'react-router';
 
 const TTL_AUTO_SENTINEL = 'auto';

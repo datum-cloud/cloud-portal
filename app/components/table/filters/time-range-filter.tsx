@@ -7,7 +7,7 @@ import {
   getBrowserTimezone,
   getPresetByKey,
   getPresetRange,
-} from '@datum-ui/components/time-range-picker';
+} from '@datum-cloud/datum-ui/date-picker';
 import { useCallback, useMemo } from 'react';
 
 export interface TimeRangeFilterProps {

@@ -1,5 +1,5 @@
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const PersonalBadge = ({ className }: { className?: string }) => {
   return (

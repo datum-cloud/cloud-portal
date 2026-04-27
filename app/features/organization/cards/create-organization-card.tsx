@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Plus } from 'lucide-react';
 import { motion } from 'motion/react';
 

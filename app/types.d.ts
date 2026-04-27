@@ -26,6 +26,17 @@ declare module '@tanstack/table-core' {
     // Styling
     className?: string;
 
+    // Header tooltip — string or rich config consumed by the data-table column header
+    tooltip?:
+      | string
+      | {
+          content: string | import('react').ReactNode;
+          side?: 'top' | 'bottom' | 'left' | 'right';
+          align?: 'start' | 'center' | 'end';
+          delayDuration?: number;
+          disabled?: boolean;
+        };
+
     // Sorting configuration
     sortable?: boolean | 'auto'; // false = disable, true/auto = enable with auto-detection
     sortPath?: string; // dot-notation path for nested fields (e.g., 'status.registration.registrar.name')
@@ -39,6 +50,17 @@ declare module '@tanstack/table-core' {
     searchTransform?: (value: any) => string; // Custom value transformer for search (e.g., lowercase, format)
     searchWeight?: number; // Priority in search results (future enhancement)
     searchAliases?: string[]; // Alternative search terms (future enhancement)
+  }
+}
+
+declare module '@tanstack/react-table' {
+  interface FilterFns {
+    /**
+     * Custom filter that supports OR logic for multi-select arrays.
+     * Runtime registration is owned by the data-table consumer
+     * (typically passed through customFilterFns).
+     */
+    arrayOr: import('@tanstack/react-table').FilterFn<unknown>;
   }
 }
 

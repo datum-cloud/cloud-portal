@@ -16,8 +16,8 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
 import {

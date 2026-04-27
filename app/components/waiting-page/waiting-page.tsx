@@ -1,7 +1,7 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const WaitingPage = ({ title, className }: { title: string; className?: string }) => {
   return (

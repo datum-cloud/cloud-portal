@@ -5,7 +5,7 @@ import {
   useDataTableRows,
   useDataTableSearch,
 } from '@datum-cloud/datum-ui/data-table';
-import { EmptyContent } from '@datum-ui/components/empty-content';
+import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import type { ReactNode } from 'react';
 
 /**

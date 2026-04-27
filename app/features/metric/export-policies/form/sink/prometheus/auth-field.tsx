@@ -6,7 +6,7 @@ import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Switch } from '@datum-cloud/datum-ui/switch';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const AuthField = ({ baseName, projectId }: { baseName: string; projectId?: string }) => {
   return (

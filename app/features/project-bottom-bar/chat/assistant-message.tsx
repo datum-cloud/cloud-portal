@@ -2,7 +2,7 @@ import { ThinkingBlock } from './thinking-block';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { code } from '@streamdown/code';
 import { getToolName, isReasoningUIPart, isTextUIPart, isToolUIPart, type UIMessage } from 'ai';
 import { ArrowRight } from 'lucide-react';

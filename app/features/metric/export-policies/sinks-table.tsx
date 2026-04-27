@@ -11,7 +11,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { find } from 'es-toolkit/compat';
 import { SettingsIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';

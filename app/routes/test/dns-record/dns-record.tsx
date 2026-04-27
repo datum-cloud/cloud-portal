@@ -9,9 +9,9 @@ import {
   TestScenario,
 } from '@/routes/test/dns-record/components/default-test-scenarios';
 import { DnsRecordTestCard } from '@/routes/test/dns-record/components/dns-record-test-card';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Badge } from '@shadcn/ui/badge';
 import { useState } from 'react';
 
 /**
@@ -186,7 +186,7 @@ export default function DnsRecordTestPage() {
               Test validation for all DNS record types with customizable scenarios
             </p>
           </div>
-          <Badge variant="outline" className="h-fit">
+          <Badge type="primary" theme="outline" className="h-fit">
             Test Mode
           </Badge>
         </div>
@@ -213,7 +213,7 @@ export default function DnsRecordTestPage() {
           </Button>
 
           {totalTested > 0 && (
-            <Badge variant="secondary" className="ml-2">
+            <Badge type="secondary" className="ml-2">
               {validCount}/{totalTested} Valid
             </Badge>
           )}

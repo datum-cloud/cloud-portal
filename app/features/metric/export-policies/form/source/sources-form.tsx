@@ -2,7 +2,7 @@ import { SourceField } from './source-field';
 import { ExportPolicySourceTypeEnum } from '@/resources/export-policies';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 
 export const SourcesForm = ({ isEdit = false }: { isEdit?: boolean }) => {

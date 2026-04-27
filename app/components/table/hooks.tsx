@@ -1,10 +1,10 @@
 import { createActionsColumn, type ActionsColumnOptions } from './columns';
 import type { RowAction, TableClientProps } from './types';
 import { useDataTableLoading, useNuqsAdapter } from '@datum-cloud/datum-ui/data-table';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import type { Column, ColumnDef } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
@@ -55,8 +55,8 @@ export function useTableUrlAdapter(
  * AND wraps any column with a string header so its header renders through
  * `SortableHeader`. That component emits the sort arrows when
  * `column.getCanSort()` is true and an info-icon tooltip when
- * `meta.tooltip` is set — matching the old `DataTableColumnHeader` visual
- * from `app/modules/datum-ui/components/data-table/features/columns/`.
+ * `meta.tooltip` is set — matching the `DataTableColumnHeader` visual
+ * from `@datum-cloud/datum-ui/data-table`.
  *
  * Columns with a function/ReactNode header are left alone so the consumer
  * keeps full control over the rendering.

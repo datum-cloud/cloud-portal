@@ -1,5 +1,5 @@
 import { Field } from '@/components/field/field';
-import { Input } from '@shadcn/ui/input';
+import { Input } from '@datum-cloud/datum-ui/input';
 
 describe('Form Field', () => {
   it('renders with correct label', () => {

@@ -7,7 +7,7 @@ import { useResolvedColumns, useTableUrlAdapter } from './hooks';
 import type { TableServerProps, TableServerRef } from './types';
 import { detectToolbar, toolbarPropsFrom } from './utils';
 import { DataTable, useDataTableLoading } from '@datum-cloud/datum-ui/data-table';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import {
   forwardRef,
   useCallback,

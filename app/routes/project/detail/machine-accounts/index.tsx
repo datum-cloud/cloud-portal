@@ -4,7 +4,6 @@ import { createActionsColumn, Table } from '@/components/table';
 import { MachineAccountFormDialog } from '@/features/machine-account/form/machine-account-form-dialog';
 import type { MachineAccountFormDialogRef } from '@/features/machine-account/form/machine-account-form-dialog';
 import { CreateMachineAccountWizard } from '@/features/machine-account/wizard/create-machine-account-wizard';
-import { cn } from '@/modules/shadcn/lib/utils';
 import {
   createMachineAccountService,
   useDeleteMachineAccount,
@@ -23,6 +22,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { GitBranchIcon, PlusIcon, ServerIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';

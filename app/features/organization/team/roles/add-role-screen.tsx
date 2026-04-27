@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowLeftIcon, BuildingIcon, FolderIcon, SearchIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
 

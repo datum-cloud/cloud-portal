@@ -1,6 +1,6 @@
 import { getInitials } from '@/utils/helpers/text.helper';
-import { cn } from '@shadcn/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@datum-cloud/datum-ui/avatar';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export interface AvatarStackItem {
   name: string;

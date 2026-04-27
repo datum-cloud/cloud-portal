@@ -1,7 +1,13 @@
 import { isIPAddress } from '@/utils/helpers/validation.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-cloud/datum-ui/select';
 import { useEffect, useMemo } from 'react';
 
 /**

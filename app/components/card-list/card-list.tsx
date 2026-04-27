@@ -1,9 +1,11 @@
-import { Button, InputWithAddons, Skeleton } from '@datum-ui/components';
-import { EmptyContent } from '@datum-ui/components/empty-content';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { PageTitle } from '@datum-ui/components/page-title';
-import { cn } from '@shadcn/lib/utils';
-import { Table, TableBody, TableCell, TableRow } from '@shadcn/ui/table';
+import { Button } from '@datum-cloud/datum-ui/button';
+import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Table, TableBody, TableCell, TableRow } from '@datum-cloud/datum-ui/table';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search as SearchIconLucide, X as XIconLucide } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
 import {

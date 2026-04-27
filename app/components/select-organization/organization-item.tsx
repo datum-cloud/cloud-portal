@@ -1,6 +1,6 @@
 import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import type { Organization } from '@/resources/organizations';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const OrganizationItem = ({
   org,

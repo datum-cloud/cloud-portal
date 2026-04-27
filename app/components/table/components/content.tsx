@@ -1,6 +1,6 @@
 import type { ErrorRenderer } from './empty-state';
 import { DataTable, useDataTableLoading, useDataTableRows } from '@datum-cloud/datum-ui/data-table';
-import { EmptyContent } from '@datum-ui/components/empty-content';
+import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import type { Cell } from '@tanstack/react-table';
 import { useCallback } from 'react';
 

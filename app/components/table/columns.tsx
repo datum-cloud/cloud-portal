@@ -1,7 +1,7 @@
 import { RowActions } from './components/row-actions';
 import type { RowAction } from './types';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Info } from 'lucide-react';
 import type { ReactNode } from 'react';

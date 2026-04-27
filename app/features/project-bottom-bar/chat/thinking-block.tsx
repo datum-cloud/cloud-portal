@@ -1,4 +1,4 @@
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Brain, ChevronDown } from 'lucide-react';
 import { useRef, useState } from 'react';
 

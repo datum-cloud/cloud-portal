@@ -2,8 +2,8 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/base';
 import { DOMAIN_VERIFICATION_STATUS, type Domain } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { cn } from '@shadcn/lib/utils';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@shadcn/ui/hover-card';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@datum-cloud/datum-ui/hover-card';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useMemo } from 'react';
 
 type Condition = {

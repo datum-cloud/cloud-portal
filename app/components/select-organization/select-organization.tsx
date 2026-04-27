@@ -3,9 +3,6 @@ import { useOrganizationsGql, type Organization } from '@/resources/organization
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
-import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -14,8 +11,11 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@shadcn/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+} from '@datum-cloud/datum-ui/command';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
+import { toast } from '@datum-cloud/datum-ui/toast';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { BuildingIcon, CheckIcon, ChevronDown, Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';

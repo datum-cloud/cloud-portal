@@ -1,7 +1,7 @@
-import { cn } from '@/modules/shadcn/lib/utils';
 import { machineAccountKeyCreateSchema } from '@/resources/machine-accounts';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { KeyRoundIcon, ShieldIcon } from 'lucide-react';
 import type { z } from 'zod';
 

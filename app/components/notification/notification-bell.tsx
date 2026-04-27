@@ -1,6 +1,6 @@
 import type { NotificationBellProps } from './types';
-import { Badge } from '@/modules/datum-ui/components/badge';
-import { Button } from '@/modules/datum-ui/components/button';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Bell } from 'lucide-react';
