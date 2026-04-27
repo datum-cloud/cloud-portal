@@ -1,5 +1,3 @@
-import { Icon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
 import {
   BreadcrumbItem,
   BreadcrumbLink,
@@ -7,7 +5,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
   Breadcrumb as BreadcrumbUI,
-} from '@shadcn/ui/breadcrumb';
+} from '@datum-cloud/datum-ui/breadcrumb';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Home } from 'lucide-react';
 import React, { useMemo } from 'react';
 import { useLocation, useMatches } from 'react-router';

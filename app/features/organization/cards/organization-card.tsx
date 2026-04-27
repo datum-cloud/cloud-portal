@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 import { motion } from 'motion/react';
 

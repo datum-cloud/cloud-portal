@@ -1,7 +1,7 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 

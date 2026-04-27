@@ -1,5 +1,11 @@
 import { Form } from '@datum-cloud/datum-ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@shadcn/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-cloud/datum-ui/select';
 
 const CAA_TAGS = [
   { value: 'issue', label: 'issue - Authorization to issue certificates' },

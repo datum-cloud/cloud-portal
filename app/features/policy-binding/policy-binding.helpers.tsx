@@ -6,8 +6,8 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
 import { Users } from 'lucide-react';
 
 export type ResourceTooltipProps = {

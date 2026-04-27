@@ -6,7 +6,7 @@ import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Label } from '@datum-cloud/datum-ui/label';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect } from 'react';

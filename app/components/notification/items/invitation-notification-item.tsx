@@ -8,9 +8,9 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { Avatar, AvatarFallback, AvatarImage } from '@datum-cloud/datum-ui/avatar';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Avatar, AvatarFallback, AvatarImage } from '@shadcn/ui/avatar';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 

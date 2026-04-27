@@ -1,7 +1,7 @@
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { type BadgeProps } from '@datum-cloud/datum-ui/badge';
-import { cn } from '@shadcn/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import * as React from 'react';
 
 export type ChipsOverflowItem = string | React.ReactNode;

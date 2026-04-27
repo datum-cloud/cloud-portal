@@ -6,7 +6,7 @@ import { StepControl } from '@/modules/metrics/components/controls/step-control'
 // Import existing controls (will be updated to use new context)
 import { TimeRangeControl } from '@/modules/metrics/components/controls/time-range-control';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { ReactNode } from 'react';
 
 // Main toolbar props

@@ -1,4 +1,3 @@
-import { cn } from '@/modules/shadcn/lib/utils';
 import {
   machineAccountCreateSchema,
   machineAccountUpdateSchema,
@@ -10,6 +9,7 @@ import {
 } from '@/resources/machine-accounts';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 export interface MachineAccountFormDialogRef {

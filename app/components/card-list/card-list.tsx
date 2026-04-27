@@ -4,8 +4,8 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { cn } from '@shadcn/lib/utils';
-import { Table, TableBody, TableCell, TableRow } from '@shadcn/ui/table';
+import { Table, TableBody, TableCell, TableRow } from '@datum-cloud/datum-ui/table';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search as SearchIconLucide, X as XIconLucide } from 'lucide-react';
 import { parseAsString, useQueryState } from 'nuqs';
 import {

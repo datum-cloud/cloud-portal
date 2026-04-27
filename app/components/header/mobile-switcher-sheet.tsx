@@ -5,9 +5,6 @@ import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
-import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
-import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import {
   Command,
   CommandEmpty,
@@ -15,7 +12,10 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@shadcn/ui/command';
+} from '@datum-cloud/datum-ui/command';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Building, CheckIcon, ChevronDown, FolderRoot, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';

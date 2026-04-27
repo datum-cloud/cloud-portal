@@ -3,8 +3,8 @@ import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { ProfileIdentity } from '@/components/profile-identity';
 import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Card, CardContent } from '@shadcn/ui/card';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: Organization }) => {

@@ -7,9 +7,13 @@ import BadgeStatusDemo, { statusBadgeDemoSections } from '@/components/demo/stat
 import ToastDemo, { toastDemoSections } from '@/components/demo/toast';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
 import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@datum-cloud/datum-ui/collapsible';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { ChevronRight, Moon, Sun, ChevronsUpDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
 

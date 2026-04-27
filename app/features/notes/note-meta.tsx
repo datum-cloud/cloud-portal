@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/date-time';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 interface NoteMetaProps {
   creatorDisplay: string;

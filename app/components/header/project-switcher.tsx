@@ -4,8 +4,6 @@ import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
 import {
   Command,
   CommandEmpty,
@@ -14,8 +12,10 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from '@shadcn/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@shadcn/ui/popover';
+} from '@datum-cloud/datum-ui/command';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';

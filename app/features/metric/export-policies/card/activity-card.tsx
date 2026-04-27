@@ -4,18 +4,18 @@ import { BaseMetric } from '@/modules/metrics/components/base-metric';
 import { formatValue, transformForRecharts } from '@/modules/prometheus';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@datum-cloud/datum-ui/chart';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@shadcn/ui/chart';
 import { differenceInDays, endOfDay, format, startOfDay, subDays } from 'date-fns';
 import { useCallback, useMemo, useState } from 'react';
 import { useParams } from 'react-router';

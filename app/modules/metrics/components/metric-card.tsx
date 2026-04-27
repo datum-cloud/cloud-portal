@@ -13,7 +13,7 @@ import {
   type PrometheusQueryOptions,
 } from '@/modules/prometheus';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React, { useMemo } from 'react';
 

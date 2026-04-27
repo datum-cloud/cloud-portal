@@ -5,7 +5,7 @@ import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { AppNavigation, NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-cloud/datum-ui/sidebar';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import React, { useLayoutEffect, useState } from 'react';
 import { Link, useLocation, useSearchParams } from 'react-router';
 

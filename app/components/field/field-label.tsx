@@ -1,6 +1,6 @@
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { CircleHelp } from 'lucide-react';
 import { useState } from 'react';
 

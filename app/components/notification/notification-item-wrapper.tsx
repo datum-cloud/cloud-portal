@@ -1,5 +1,5 @@
 import type { NotificationItemWrapperProps } from './types';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 /**
  * NotificationItemWrapper - Minimal base container for all notification items

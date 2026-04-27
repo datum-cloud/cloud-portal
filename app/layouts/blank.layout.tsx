@@ -1,5 +1,5 @@
 import { LogoStacked } from '@/components/logo/logo-stacked';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export default function BlankLayout({
   children,

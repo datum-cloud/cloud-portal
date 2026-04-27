@@ -23,9 +23,9 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Switch } from '@datum-cloud/datum-ui/switch';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Switch } from '@shadcn/ui/switch';
 import { CircleHelp, PencilIcon, SettingsIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 

@@ -4,7 +4,7 @@ import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navig
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { type NavItem, NavMenu } from '@datum-cloud/datum-ui/app-navigation';
 import { useSidebar } from '@datum-cloud/datum-ui/sidebar';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useLayoutEffect, useMemo } from 'react';
 import { Link, useLocation } from 'react-router';
 

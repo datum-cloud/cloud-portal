@@ -1,7 +1,7 @@
-import { cn } from '@/modules/shadcn/lib/utils';
 import { machineAccountCreateSchema } from '@/resources/machine-accounts';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import type { z } from 'zod';
 
 // UseCase is used by the landing page tile selection — kept here as the

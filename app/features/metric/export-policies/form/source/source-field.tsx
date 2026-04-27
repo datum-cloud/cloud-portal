@@ -1,7 +1,7 @@
 import { CodeEditor } from '@/components/code-editor/code-editor';
 import { POLICY_SOURCE_TYPES } from '@/features/metric/constants';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const SourceField = ({
   index,

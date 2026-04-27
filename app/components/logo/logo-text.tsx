@@ -1,6 +1,6 @@
 import { logoStyles } from './logo.styles';
 import { ClientOnly, useTheme } from '@datum-cloud/datum-ui/theme';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 const LogoTextSVG = ({
   theme,

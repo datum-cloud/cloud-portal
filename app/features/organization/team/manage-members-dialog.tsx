@@ -6,11 +6,11 @@ import {
 import { useMembers } from '@/resources/members';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Checkbox } from '@datum-cloud/datum-ui/checkbox';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Checkbox } from '@shadcn/ui/checkbox';
 import { SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

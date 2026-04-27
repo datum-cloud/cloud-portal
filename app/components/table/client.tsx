@@ -10,7 +10,7 @@ import { detectToolbar, toolbarPropsFrom } from './utils';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { DataTable } from '@datum-cloud/datum-ui/data-table';
 import { CloseIcon } from '@datum-cloud/datum-ui/icons';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 
 /**
  * Client-side data table entry point. Wraps datum-ui's DataTable.Client with

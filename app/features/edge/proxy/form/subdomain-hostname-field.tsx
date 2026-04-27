@@ -5,7 +5,7 @@ import { useDomains } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { cn } from '@shadcn/lib/utils';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { AlertTriangleIcon, GlobeIcon, XIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 

@@ -15,6 +15,11 @@ import { SecretType, useCreateSecret, type CreateSecretInput } from '@/resources
 import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helpers/format.helper';
 import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@datum-cloud/datum-ui/collapsible';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Form, useField } from '@datum-cloud/datum-ui/form';
 import {
@@ -24,7 +29,6 @@ import {
   StepperControls,
 } from '@datum-cloud/datum-ui/form/stepper';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@shadcn/ui/collapsible';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import { z } from 'zod';
 
