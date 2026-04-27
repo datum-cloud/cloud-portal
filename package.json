@@ -27,7 +27,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",
     "@ai-sdk/react": "^3.0.170",
-    "@conform-to/react": "1.19.0",
+    "@conform-to/react": "1.19.1",
     "@conform-to/zod": "1.19.0",
     "@datum-cloud/activity-ui": "^0.4.0",
     "@datum-cloud/datum-ui": "^0.8.1",
