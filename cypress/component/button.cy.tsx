@@ -1,4 +1,4 @@
-import { Button } from '@datum-ui/components';
+import { Button } from '@datum-cloud/datum-ui/button';
 
 describe('Button', () => {
   it('renders with correct text', () => {

@@ -5,7 +5,7 @@ import * as React from 'react';
 /**
  * Vanilla shadcn/ui Badge Component
  * Pure shadcn badge without Datum customizations
- * For Datum-specific variants (sunglow, butter), import from @/modules/datum-ui
+ * For Datum-specific variants (sunglow, butter), import from @datum-cloud/datum-ui/badge
  */
 
 const badgeVariants = cva(

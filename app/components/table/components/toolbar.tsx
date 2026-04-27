@@ -1,15 +1,16 @@
 import { useInitialLoading } from '../hooks';
 import type { MultiAction } from '../types';
 import { useIsStandaloneEmpty } from './empty-state';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   DataTable,
   useDataTableSearch,
   useDataTableSelection,
 } from '@datum-cloud/datum-ui/data-table';
+import { Icon } from '@datum-cloud/datum-ui/icons';
+import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { Button, InputWithAddons } from '@datum-ui/components';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
-import { PageTitle } from '@datum-ui/components/page-title';
 import { cn } from '@shadcn/lib/utils';
 import { Search as SearchIconLucide, X as XIconLucide } from 'lucide-react';
 import { Children, type ReactNode } from 'react';

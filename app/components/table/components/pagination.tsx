@@ -1,5 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { DataTable, useDataTablePagination } from '@datum-cloud/datum-ui/data-table';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import {
   Select,
   SelectContent,
@@ -7,7 +8,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
-import { Icon } from '@datum-ui/components/icons/icon-wrapper';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_SIMPLE_PAGE_SIZES = [10, 20, 30, 50] as const;

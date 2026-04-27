@@ -5,7 +5,7 @@ import * as React from 'react';
 /**
  * Vanilla shadcn/ui Tabs Component
  * Pure shadcn tabs without Datum customizations
- * For Datum-specific features (TabsLinkTrigger), import from @/modules/datum-ui
+ * For Datum-specific features (TabsLinkTrigger), import from @datum-cloud/datum-ui/tabs
  */
 
 const Tabs = TabsPrimitive.Root;

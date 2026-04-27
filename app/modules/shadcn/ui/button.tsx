@@ -6,7 +6,7 @@ import * as React from 'react';
 /**
  * Vanilla shadcn/ui Button Component
  * Pure shadcn button without Datum customizations
- * For Datum-specific features (dashed variant, isLoading), import from @/modules/datum-ui
+ * For Datum-specific features (dashed variant, isLoading), import from @datum-cloud/datum-ui/button
  */
 
 const buttonVariants = cva(

@@ -29,7 +29,7 @@ Use per-file path imports. No barrels are required or maintained.
 
 ```typescript
 // Hooks
-import { Card } from '@datum-ui/components';
+import { Card } from '@datum-cloud/datum-ui/card';
 import { useIsMobile } from '@shadcn/hooks/use-mobile';
 // Utils
 import { cn } from '@shadcn/lib/utils';

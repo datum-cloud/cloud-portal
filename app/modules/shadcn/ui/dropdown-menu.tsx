@@ -6,7 +6,7 @@ import * as React from 'react';
 /**
  * Vanilla shadcn/ui DropdownMenu Component
  * Pure shadcn dropdown without Datum customizations
- * For Datum-specific features (destructive MenuItem), import from @/modules/datum-ui
+ * For Datum-specific features (destructive MenuItem), import from @datum-cloud/datum-ui/dropdown-menu
  */
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
