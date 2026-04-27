@@ -6,7 +6,7 @@ import {
 } from '@/modules/metrics';
 import { formatDurationFromMs, parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import type { FormattedMetricData } from '@/modules/prometheus';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@shadcn/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@datum-cloud/datum-ui/table';
 import { useMemo } from 'react';
 
 interface HttpProxyWafTopRulesProps {
