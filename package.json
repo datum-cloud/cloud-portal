@@ -125,7 +125,7 @@
   "devDependencies": {
     "@eslint/compat": "^2.0.5",
     "@gqlts/cli": "^3.3.0",
-    "@hey-api/openapi-ts": "^0.96.1",
+    "@hey-api/openapi-ts": "^0.97.0",
     "@inquirer/prompts": "^8.4.2",
     "@react-router/dev": "^7.14.1",
     "@testing-library/cypress": "^10.1.0",
