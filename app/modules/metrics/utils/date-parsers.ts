@@ -6,6 +6,21 @@ import { endOfDay, startOfDay, subDays, subHours, subMinutes } from 'date-fns';
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 /**
+ * Format a millisecond duration as a Prometheus-like duration string
+ * (e.g., 90s -> "1m", 7200000ms -> "2h"). Used to interpolate the active
+ * time window into PromQL range vectors like `metric[<window>]`.
+ */
+export function formatDurationFromMs(ms: number): string {
+  const seconds = Math.max(0, Math.floor(ms / 1000));
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+  return `${Math.floor(hours / 24)}d`;
+}
+
+/**
  * Parse a Prometheus-like duration (e.g., 5s, 10m, 3h, 7d, 1w) into milliseconds.
  */
 export function parseDurationToMs(durationStr: string): number | null {

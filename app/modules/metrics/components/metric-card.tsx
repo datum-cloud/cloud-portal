@@ -203,23 +203,25 @@ export function MetricCard({
       error={error}
       className={cn('MetricCard', className)}
       isEmpty={!data}>
-      <div className="flex items-center justify-between">
-        <div className="text-2xl font-bold">{formattedValue}</div>
-        {IconComponent}
-      </div>
+      <div className="flex flex-col gap-1 px-6 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold">{formattedValue}</div>
+          {IconComponent}
+        </div>
 
-      {showTrend && trendIcon && trendText && (
-        <div className="text-muted-foreground flex items-center gap-1 text-xs">
-          {trendIcon}
-          <span>{trendText}</span>
-          <span>from last period</span>
-        </div>
-      )}
-      {data?.timestamp && (
-        <div className="text-muted-foreground text-xs">
-          Updated {new Date(data.timestamp).toLocaleTimeString()}
-        </div>
-      )}
+        {showTrend && trendIcon && trendText && (
+          <div className="text-muted-foreground flex items-center gap-1 text-xs">
+            {trendIcon}
+            <span>{trendText}</span>
+            <span>from last period</span>
+          </div>
+        )}
+        {data?.timestamp && (
+          <div className="text-muted-foreground text-xs">
+            Updated {new Date(data.timestamp).toLocaleTimeString()}
+          </div>
+        )}
+      </div>
     </BaseMetric>
   );
 }

@@ -47,7 +47,11 @@ export class PrometheusService {
       }
       case 'card': {
         const validatedOptions = validateQueryOptions(params);
-        return this.queryForCard(validatedOptions.query, params.metricFormat || 'number');
+        return this.queryForCard(
+          validatedOptions.query,
+          params.metricFormat || 'number',
+          validatedOptions.timeRange?.end
+        );
       }
       case 'connection': {
         const isConnected = await this.testConnection();

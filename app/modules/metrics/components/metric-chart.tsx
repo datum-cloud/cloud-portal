@@ -66,6 +66,13 @@ export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> 
    */
   colorOverrides?: Record<string, string>;
   /**
+   * When true, fix the X-axis domain to the active time range and pad the data
+   * with zero-valued anchor points at the start/end. Use for charts that should
+   * always span the selected window (e.g., WAF events). Defaults to false so
+   * sparkline-style charts auto-fit to their data.
+   */
+  padToTimeRange?: boolean;
+  /**
    * Children to render below the chart
    */
   children?: ReactNode;
@@ -95,6 +102,7 @@ export function MetricChart({
   yAxisOptions,
   tooltipContent,
   colorOverrides,
+  padToTimeRange = false,
   children,
 }: MetricChartProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
@@ -153,8 +161,23 @@ export function MetricChart({
 
   const chartData = useMemo(() => {
     if (!data) return [];
-    return transformForRecharts(data);
-  }, [data]);
+    const transformed = transformForRecharts(data);
+    if (!padToTimeRange || transformed.length === 0) return transformed;
+
+    const seriesKeys = data.series.map((s) => s.name);
+    const zeros = Object.fromEntries(seriesKeys.map((k) => [k, 0]));
+    const startMs = finalTimeRange.start.getTime();
+    const endMs = finalTimeRange.end.getTime();
+
+    const result = [...transformed];
+    if (result[0]!.timestamp > startMs) {
+      result.unshift({ timestamp: startMs, ...zeros });
+    }
+    if (result[result.length - 1]!.timestamp < endMs) {
+      result.push({ timestamp: endMs, ...zeros });
+    }
+    return result;
+  }, [data, finalTimeRange, padToTimeRange]);
 
   // Handle data change callbacks
   useEffect(() => {
@@ -269,7 +292,11 @@ export function MetricChart({
             dataKey="timestamp"
             type="number"
             scale="time"
-            domain={['dataMin', 'dataMax']}
+            domain={
+              padToTimeRange
+                ? [finalTimeRange.start.getTime(), finalTimeRange.end.getTime()]
+                : ['dataMin', 'dataMax']
+            }
             tickFormatter={formatXAxisValue}
             tickLine={false}
             axisLine={false}
