@@ -152,6 +152,7 @@ export default function SecretsPage() {
         columns={columnsWithActions}
         data={data ?? []}
         title="Secrets"
+        search="Search"
         onRowClick={(row) => {
           navigate(
             getPathWithParams(paths.project.detail.secrets.detail.overview, {

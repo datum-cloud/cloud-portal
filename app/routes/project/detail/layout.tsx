@@ -9,6 +9,7 @@ import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
+import { createMachineAccountService, machineAccountKeys } from '@/resources/machine-accounts';
 import { useOrganization, type Organization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
@@ -258,6 +259,12 @@ export default function ProjectLayout() {
         type: 'link',
         icon: BotIcon,
         disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: machineAccountKeys.list(pid),
+            queryFn: () => createMachineAccountService().list(pid),
+          });
+        },
       },
       {
         title: 'Project Settings',

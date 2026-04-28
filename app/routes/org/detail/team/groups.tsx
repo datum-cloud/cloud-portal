@@ -1,6 +1,7 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { createActionsColumn, Table } from '@/components/table';
+import { GroupFormDialog, type GroupFormDialogRef } from '@/features/organization/team/groups';
 import { useHasPermission } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import { useGroups, useDeleteGroup } from '@/resources/groups';
@@ -17,12 +18,8 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, TrashIcon } from 'lucide-react';
-import { useMemo, useCallback } from 'react';
-import { Link, useNavigate, useParams, type MetaFunction } from 'react-router';
-
-export const handle = {
-  breadcrumb: () => <span>Groups</span>,
-};
+import { useMemo, useCallback, useRef } from 'react';
+import { useNavigate, useParams, type MetaFunction } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Groups');
@@ -46,6 +43,7 @@ export default function GroupsPage() {
   const { orgId } = useParams();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
+  const groupFormDialogRef = useRef<GroupFormDialogRef>(null);
 
   if (!orgId) {
     throw new Error('Organization ID is required');
@@ -171,43 +169,52 @@ export default function GroupsPage() {
   );
 
   return (
-    <Table.Client
-      columns={columns}
-      data={groupRows}
-      title="Groups"
-      search="Search groups"
-      onRowClick={(row) =>
-        navigate(getPathWithParams(paths.org.detail.team.groupDetail, { orgId, groupId: row.name }))
-      }
-      empty={{
-        title: 'create your first group',
-        actions: hasCreateGroupPermission
-          ? [
-              {
-                type: 'button',
-                label: 'Create Group',
-                onClick: () =>
-                  navigate(getPathWithParams(paths.org.detail.team.groupCreate, { orgId })),
-                icon: <Icon icon={PlusIcon} className="size-3" />,
-              },
-            ]
-          : undefined,
-      }}
-      actions={
-        hasCreateGroupPermission
-          ? [
-              <Link
-                key="create"
-                to={getPathWithParams(paths.org.detail.team.groupCreate, { orgId })}
-                className="w-full sm:w-auto">
-                <Button className="w-full">
+    <>
+      <Table.Client
+        columns={columns}
+        data={groupRows}
+        search="Search"
+        onRowClick={(row) =>
+          navigate(
+            getPathWithParams(paths.org.detail.team.groupDetail, { orgId, groupId: row.name })
+          )
+        }
+        empty={{
+          title: 'create your first group',
+          actions: hasCreateGroupPermission
+            ? [
+                {
+                  type: 'button',
+                  label: 'Create Group',
+                  onClick: () => groupFormDialogRef.current?.show(),
+                  icon: <Icon icon={PlusIcon} className="size-3" />,
+                },
+              ]
+            : undefined,
+        }}
+        actions={
+          hasCreateGroupPermission
+            ? [
+                <Button
+                  key="create"
+                  className="w-full sm:w-auto"
+                  onClick={() => groupFormDialogRef.current?.show()}>
                   <Icon icon={PlusIcon} className="size-4" />
                   Create Group
-                </Button>
-              </Link>,
-            ]
-          : []
-      }
-    />
+                </Button>,
+              ]
+            : []
+        }
+      />
+      <GroupFormDialog
+        ref={groupFormDialogRef}
+        orgId={orgId}
+        onCreated={(groupName) =>
+          navigate(
+            getPathWithParams(paths.org.detail.team.groupDetail, { orgId, groupId: groupName })
+          )
+        }
+      />
+    </>
   );
 }

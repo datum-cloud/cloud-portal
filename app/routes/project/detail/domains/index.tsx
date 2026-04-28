@@ -492,7 +492,7 @@ export default function DomainsPage() {
         title="Domains"
         onRowClick={handleNavigateToDomain}
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
-        search="Search domains"
+        search="Search"
         actions={[
           <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
           <Button

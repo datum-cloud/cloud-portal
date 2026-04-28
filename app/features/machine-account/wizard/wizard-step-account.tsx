@@ -99,7 +99,7 @@ export function WizardStepAccount({
               disabled={isSubmitting}>
               Cancel
             </Button>
-            <Form.Submit>Next &rarr;</Form.Submit>
+            <Form.Submit>Next</Form.Submit>
           </div>
         </div>
       )}

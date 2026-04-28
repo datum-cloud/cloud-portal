@@ -57,12 +57,13 @@ export default [
 
         // Team of an organization
         route('team', 'routes/org/detail/team/layout.tsx', [
-          index('routes/org/detail/team/index.tsx'),
+          layout('routes/org/detail/team/list-layout.tsx', [
+            index('routes/org/detail/team/index.tsx'),
+            route('groups', 'routes/org/detail/team/groups.tsx'),
+            route('groups/:groupId', 'routes/org/detail/team/group-detail.tsx'),
+          ]),
           route('invite', 'routes/org/detail/team/invite.tsx'),
           route(':memberId/roles', 'routes/org/detail/team/member-roles.tsx'),
-          route('groups', 'routes/org/detail/team/groups.tsx'),
-          route('groups/create', 'routes/org/detail/team/create-group.tsx'),
-          route('groups/:groupId', 'routes/org/detail/team/group-detail.tsx'),
         ]),
 
         // Settings of an organization
