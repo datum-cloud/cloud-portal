@@ -13,6 +13,14 @@ export {
   ASSISTANT_SERVICE_NAME,
   type AssistantMeterKey,
 } from './meters';
+export {
+  resolveBillingContext,
+  shouldSkipEmit,
+  type BillingContext,
+  type BillingContextStatus,
+  type ResolveBillingContextDeps,
+  type ResolveBillingContextInput,
+} from './billing-context';
 export { ulid, isUlid } from './ulid';
 export type {
   ProjectRef,

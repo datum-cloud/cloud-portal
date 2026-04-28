@@ -4,6 +4,8 @@ import {
   ASSISTANT_RESOURCE_KIND,
   buildAssistantUsageEvents,
   isUlid,
+  resolveBillingContext,
+  shouldSkipEmit,
   ulid,
 } from '@/modules/usage';
 
@@ -138,5 +140,77 @@ describe('buildAssistantUsageEvents', () => {
     // Builder still produces events with empty projectName — gating is
     // the route's responsibility — but the projectRef is empty.
     expect(events.every((e) => e.projectRef.name === '')).to.equal(true);
+  });
+});
+
+describe('resolveBillingContext', () => {
+  const binding = (overrides: {
+    name: string;
+    project: string;
+    account?: string;
+    phase?: 'Active' | 'Superseded';
+  }) => ({
+    metadata: { name: overrides.name },
+    spec: {
+      projectRef: { name: overrides.project },
+      billingAccountRef: { name: overrides.account ?? 'acct-default' },
+    },
+    status: overrides.phase ? { phase: overrides.phase } : undefined,
+  });
+
+  it("returns 'no-org' (fail-open) when orgName is missing", async () => {
+    const ctx = await resolveBillingContext({ projectName: 'p' });
+    expect(ctx.status).to.equal('no-org');
+    expect(shouldSkipEmit(ctx)).to.equal(false);
+  });
+
+  it("returns 'no-binding' when no binding references the project", async () => {
+    const ctx = await resolveBillingContext(
+      { orgName: 'org-1', projectName: 'p' },
+      { listBindings: async () => [binding({ name: 'b1', project: 'other', phase: 'Active' })] }
+    );
+    expect(ctx.status).to.equal('no-binding');
+    expect(shouldSkipEmit(ctx)).to.equal(true);
+  });
+
+  it("returns 'inactive' when the project's binding is Superseded", async () => {
+    const ctx = await resolveBillingContext(
+      { orgName: 'org-1', projectName: 'p' },
+      {
+        listBindings: async () => [binding({ name: 'b1', project: 'p', phase: 'Superseded' })],
+      }
+    );
+    expect(ctx.status).to.equal('inactive');
+    expect(ctx.bindingName).to.equal('b1');
+    expect(shouldSkipEmit(ctx)).to.equal(true);
+  });
+
+  it("returns 'ready' with the active binding's account name", async () => {
+    const ctx = await resolveBillingContext(
+      { orgName: 'org-1', projectName: 'p' },
+      {
+        listBindings: async () => [
+          binding({ name: 'b-old', project: 'p', account: 'acct-old', phase: 'Superseded' }),
+          binding({ name: 'b-new', project: 'p', account: 'acct-new', phase: 'Active' }),
+        ],
+      }
+    );
+    expect(ctx.status).to.equal('ready');
+    expect(ctx.bindingName).to.equal('b-new');
+    expect(ctx.accountName).to.equal('acct-new');
+    expect(shouldSkipEmit(ctx)).to.equal(false);
+  });
+
+  it("returns 'lookup-error' (fail-open) when the lister throws", async () => {
+    const ctx = await resolveBillingContext(
+      { orgName: 'org-1', projectName: 'p' },
+      {
+        listBindings: async () => {
+          throw new Error('boom');
+        },
+      }
+    );
+    expect(ctx.status).to.equal('lookup-error');
+    expect(shouldSkipEmit(ctx)).to.equal(false);
   });
 });
