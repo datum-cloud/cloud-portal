@@ -235,10 +235,7 @@ export default function OrgProjectsPage() {
                   Create project
                 </Button>
               }>
-              <CardList.Search<Project>
-                placeholder="Search projects"
-                fields={['displayName', 'name']}
-              />
+              <CardList.Search<Project> placeholder="Search" fields={['displayName', 'name']} />
             </CardList.Header>
             <CardList.Items<Project>
               renderCard={(project) => (

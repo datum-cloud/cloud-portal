@@ -197,6 +197,7 @@ export default function MachineAccountKeysPage() {
         columns={columns}
         data={keys}
         title="Keys"
+        search="Search"
         actions={[
           <Button
             key="add-key"

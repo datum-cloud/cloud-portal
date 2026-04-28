@@ -1,3 +1,4 @@
+import { SingleDatePicker } from '@/components/date-picker/single-date-picker';
 import { machineAccountKeyCreateSchema } from '@/resources/machine-accounts';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Form } from '@datum-cloud/datum-ui/form';
@@ -158,10 +159,11 @@ function KeyFormBody({
         label="Expires"
         description="Recommended: 90 days for CI/CD, 1 year for long-lived services. Leave blank for no expiration.">
         {({ control }) => (
-          <Form.Input
-            type="date"
+          <SingleDatePicker
             value={control.value as string}
-            onChange={(e) => control.change(e.target.value)}
+            onChange={(value) => control.change(value)}
+            disablePast
+            placeholder="Select expiration date"
           />
         )}
       </Form.Field>
@@ -173,7 +175,7 @@ function KeyFormBody({
           theme="outline"
           onClick={onBack}
           disabled={isSubmitting}>
-          &larr; Back
+          Back
         </Button>
         <Form.Submit loadingText="Creating...">Create</Form.Submit>
       </div>

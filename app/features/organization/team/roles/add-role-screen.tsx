@@ -181,8 +181,9 @@ export function AddRoleScreen({
           {/* Header: back + title + scope */}
           <header className="border-b px-6 pt-5 pb-4">
             <Button
-              type="quaternary"
-              size="small"
+              type="secondary"
+              theme="outline"
+              size="xs"
               onClick={onCancel}
               className="text-muted-foreground hover:text-foreground mb-3 -ml-2">
               <Icon icon={ArrowLeftIcon} className="size-4" />

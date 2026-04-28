@@ -326,7 +326,7 @@ export default function DnsZonesPage() {
         data={zonesWithStatus}
         title="DNS"
         description="Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain."
-        search="Search DNS"
+        search="Search"
         onRowClick={(row) =>
           navigate(
             getPathWithParams(paths.project.detail.dnsZones.detail.root, {

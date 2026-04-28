@@ -1,3 +1,4 @@
+import { SingleDatePicker } from '@/components/date-picker/single-date-picker';
 import {
   machineAccountKeyCreateSchema,
   useCreateMachineAccountKey,
@@ -170,10 +171,11 @@ export const MachineAccountKeyFormDialog = forwardRef<
 
         <Form.Field name="expiresAt" label="Expires">
           {({ control }) => (
-            <Form.Input
-              type="date"
+            <SingleDatePicker
               value={control.value as string}
-              onChange={(e) => control.change(e.target.value)}
+              onChange={(value) => control.change(value)}
+              disablePast
+              placeholder="Select expiration date"
             />
           )}
         </Form.Field>
