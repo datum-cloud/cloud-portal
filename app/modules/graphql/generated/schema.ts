@@ -1,6 +1,6 @@
 export type Scalars = {
-  JSON: any;
   DateTime: any;
+  JSON: any;
   BigInt: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_message: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_reason: any;
@@ -18,6 +18,7 @@ export interface Query {
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?: com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipList;
   /** read the specified Organization */
   readResourcemanagerMiloapisComV1alpha1Organization?: com_miloapis_resourcemanager_v1alpha1_Organization;
+  sessions: ExtendedSession[];
   __typename: 'Query';
 }
 
@@ -129,6 +130,7 @@ export interface Mutation {
   deleteResourcemanagerMiloapisComV1alpha1Organization?: io_k8s_apimachinery_pkg_apis_meta_v1_Status;
   /** partially update the specified Organization */
   patchResourcemanagerMiloapisComV1alpha1Organization?: com_miloapis_resourcemanager_v1alpha1_Organization;
+  deleteSession: Scalars['Boolean'];
   __typename: 'Mutation';
 }
 
@@ -584,6 +586,34 @@ export type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items
 export type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_status =
   'True' | 'False' | 'Unknown';
 
+export interface ParsedUserAgent {
+  browser?: Scalars['String'];
+  os?: Scalars['String'];
+  formatted: Scalars['String'];
+  __typename: 'ParsedUserAgent';
+}
+
+export interface GeoLocation {
+  city?: Scalars['String'];
+  country?: Scalars['String'];
+  countryCode?: Scalars['String'];
+  formatted: Scalars['String'];
+  __typename: 'GeoLocation';
+}
+
+export interface ExtendedSession {
+  id: Scalars['String'];
+  userUID: Scalars['String'];
+  provider: Scalars['String'];
+  ipAddress?: Scalars['String'];
+  fingerprintID?: Scalars['String'];
+  createdAt: Scalars['String'];
+  lastUpdatedAt?: Scalars['String'];
+  userAgent?: ParsedUserAgent;
+  location?: GeoLocation;
+  __typename: 'ExtendedSession';
+}
+
 export interface QueryRequest {
   /** list objects of kind OrganizationMembership */
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?: [
@@ -659,6 +689,7 @@ export interface QueryRequest {
     },
     com_miloapis_resourcemanager_v1alpha1_OrganizationRequest,
   ];
+  sessions?: ExtendedSessionRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
 }
@@ -824,6 +855,7 @@ export interface MutationRequest {
     },
     com_miloapis_resourcemanager_v1alpha1_OrganizationRequest,
   ];
+  deleteSession?: [{ id: Scalars['String'] }];
   __typename?: boolean | number;
   __scalar?: boolean | number;
 }
@@ -1428,6 +1460,37 @@ export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_
   type: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_type'];
 }
 
+export interface ParsedUserAgentRequest {
+  browser?: boolean | number;
+  os?: boolean | number;
+  formatted?: boolean | number;
+  __typename?: boolean | number;
+  __scalar?: boolean | number;
+}
+
+export interface GeoLocationRequest {
+  city?: boolean | number;
+  country?: boolean | number;
+  countryCode?: boolean | number;
+  formatted?: boolean | number;
+  __typename?: boolean | number;
+  __scalar?: boolean | number;
+}
+
+export interface ExtendedSessionRequest {
+  id?: boolean | number;
+  userUID?: boolean | number;
+  provider?: boolean | number;
+  ipAddress?: boolean | number;
+  fingerprintID?: boolean | number;
+  createdAt?: boolean | number;
+  lastUpdatedAt?: boolean | number;
+  userAgent?: ParsedUserAgentRequest;
+  location?: GeoLocationRequest;
+  __typename?: boolean | number;
+  __scalar?: boolean | number;
+}
+
 const Query_possibleTypes: string[] = ['Query'];
 export const isQuery = (obj?: { __typename?: any } | null): obj is Query => {
   if (!obj?.__typename) throw new Error('__typename is missing in "isQuery"');
@@ -1780,3 +1843,21 @@ export const isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_it
       obj.__typename
     );
   };
+
+const ParsedUserAgent_possibleTypes: string[] = ['ParsedUserAgent'];
+export const isParsedUserAgent = (obj?: { __typename?: any } | null): obj is ParsedUserAgent => {
+  if (!obj?.__typename) throw new Error('__typename is missing in "isParsedUserAgent"');
+  return ParsedUserAgent_possibleTypes.includes(obj.__typename);
+};
+
+const GeoLocation_possibleTypes: string[] = ['GeoLocation'];
+export const isGeoLocation = (obj?: { __typename?: any } | null): obj is GeoLocation => {
+  if (!obj?.__typename) throw new Error('__typename is missing in "isGeoLocation"');
+  return GeoLocation_possibleTypes.includes(obj.__typename);
+};
+
+const ExtendedSession_possibleTypes: string[] = ['ExtendedSession'];
+export const isExtendedSession = (obj?: { __typename?: any } | null): obj is ExtendedSession => {
+  if (!obj?.__typename) throw new Error('__typename is missing in "isExtendedSession"');
+  return ExtendedSession_possibleTypes.includes(obj.__typename);
+};

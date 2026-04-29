@@ -162,12 +162,13 @@ export function toUserActiveSession(
   raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session
 ): UserActiveSession {
   const { metadata, status } = raw;
+  const statusAny = status as { lastUpdatedAt?: string } | undefined;
   return {
     name: metadata?.name ?? '',
     createdAt: status?.createdAt ?? '',
-    expiresAt: status?.expiresAt ?? '',
-    fingerprintID: status?.fingerprintID ?? '',
-    ip: status?.ip ?? '',
+    lastUpdatedAt: statusAny?.lastUpdatedAt ?? null,
+    fingerprintID: status?.fingerprintID ?? null,
+    ip: status?.ip ?? null,
     provider: status?.provider ?? '',
     userUID: status?.userUID ?? '',
   };

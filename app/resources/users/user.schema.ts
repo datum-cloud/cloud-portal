@@ -79,19 +79,39 @@ export const userIdentitySchema = z.object({
   providerName: z.string().optional(),
 });
 
+export const parsedUserAgentSchema = z.object({
+  browser: z.string().nullable().optional(),
+  os: z.string().nullable().optional(),
+  formatted: z.string(),
+});
+
+export const geoLocationSchema = z.object({
+  city: z.string().nullable().optional(),
+  country: z.string().nullable().optional(),
+  countryCode: z.string().nullable().optional(),
+  formatted: z.string(),
+});
+
 export const userActiveSessionSchema = z.object({
+  // `name` is kept for compatibility with consumers that key off the
+  // identity-API resource name (e.g. comparing against the OIDC `sid`).
+  // The GraphQL gateway returns this same value as `id`.
   name: z.string(),
   createdAt: z.string().optional(),
-  expiresAt: z.string().optional(),
-  fingerprintID: z.string().optional(),
-  ip: z.string().optional(),
+  lastUpdatedAt: z.string().nullable().optional(),
+  fingerprintID: z.string().nullable().optional(),
+  ip: z.string().nullable().optional(),
   provider: z.string().optional(),
   userUID: z.string().optional(),
+  userAgent: parsedUserAgentSchema.nullable().optional(),
+  location: geoLocationSchema.nullable().optional(),
 });
 
 export type UserSchema = z.infer<typeof userSchema>;
 export type UserPreferencesSchema = z.infer<typeof userPreferencesSchema>;
 export type UserIdentity = z.infer<typeof userIdentitySchema>;
+export type ParsedUserAgent = z.infer<typeof parsedUserAgentSchema>;
+export type GeoLocation = z.infer<typeof geoLocationSchema>;
 export type UserActiveSession = z.infer<typeof userActiveSessionSchema>;
 // Legacy enums
 export enum RegistrationApproval {

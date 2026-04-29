@@ -1,8 +1,8 @@
 export default {
   scalars: [0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 37, 38, 39, 40],
   types: {
-    JSON: {},
     DateTime: {},
+    JSON: {},
     BigInt: {},
     query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_message:
       {},
@@ -41,20 +41,21 @@ export default {
           resourceVersion: [11],
         },
       ],
+      sessions: [52],
       __typename: [11],
     },
     Boolean: {},
     String: {},
     Int: {},
     io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta: {
-      annotations: [0],
-      creationTimestamp: [1],
+      annotations: [1],
+      creationTimestamp: [0],
       deletionGracePeriodSeconds: [2],
-      deletionTimestamp: [1],
+      deletionTimestamp: [0],
       finalizers: [11],
       generateName: [11],
       generation: [2],
-      labels: [0],
+      labels: [1],
       managedFields: [14],
       name: [11],
       namespace: [11],
@@ -67,11 +68,11 @@ export default {
     io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntry: {
       apiVersion: [11],
       fieldsType: [11],
-      fieldsV1: [0],
+      fieldsV1: [1],
       manager: [11],
       operation: [11],
       subresource: [11],
-      time: [1],
+      time: [0],
       __typename: [11],
     },
     io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReference: {
@@ -123,7 +124,13 @@ export default {
           fieldManager: [11],
           fieldValidation: [11],
           force: [10],
-          input: [0],
+          input: [1],
+        },
+      ],
+      deleteSession: [
+        10,
+        {
+          id: [11, 'String!'],
         },
       ],
       __typename: [11],
@@ -202,7 +209,7 @@ export default {
       },
     query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_appliedRoles_items:
       {
-        appliedAt: [1],
+        appliedAt: [0],
         message: [11],
         name: [11],
         namespace: [11],
@@ -218,7 +225,7 @@ export default {
       },
     query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items:
       {
-        lastTransitionTime: [1],
+        lastTransitionTime: [0],
         message: [3],
         observedGeneration: [2],
         reason: [4],
@@ -258,7 +265,7 @@ export default {
       __typename: [11],
     },
     query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items: {
-      lastTransitionTime: [1],
+      lastTransitionTime: [0],
       message: [6],
       observedGeneration: [2],
       reason: [7],
@@ -274,14 +281,14 @@ export default {
     query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_status:
       {},
     io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta_Input: {
-      annotations: [0],
-      creationTimestamp: [1],
+      annotations: [1],
+      creationTimestamp: [0],
       deletionGracePeriodSeconds: [2],
-      deletionTimestamp: [1],
+      deletionTimestamp: [0],
       finalizers: [11],
       generateName: [11],
       generation: [2],
-      labels: [0],
+      labels: [1],
       managedFields: [42],
       name: [11],
       namespace: [11],
@@ -294,11 +301,11 @@ export default {
     io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntry_Input: {
       apiVersion: [11],
       fieldsType: [11],
-      fieldsV1: [0],
+      fieldsV1: [1],
       manager: [11],
       operation: [11],
       subresource: [11],
-      time: [1],
+      time: [0],
       __typename: [11],
     },
     io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReference_Input: {
@@ -345,7 +352,7 @@ export default {
     },
     query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_Input:
       {
-        lastTransitionTime: [1],
+        lastTransitionTime: [0],
         message: [6],
         observedGeneration: [2],
         reason: [7],
@@ -353,5 +360,30 @@ export default {
         type: [8],
         __typename: [11],
       },
+    ParsedUserAgent: {
+      browser: [11],
+      os: [11],
+      formatted: [11],
+      __typename: [11],
+    },
+    GeoLocation: {
+      city: [11],
+      country: [11],
+      countryCode: [11],
+      formatted: [11],
+      __typename: [11],
+    },
+    ExtendedSession: {
+      id: [11],
+      userUID: [11],
+      provider: [11],
+      ipAddress: [11],
+      fingerprintID: [11],
+      createdAt: [11],
+      lastUpdatedAt: [11],
+      userAgent: [50],
+      location: [51],
+      __typename: [11],
+    },
   },
 };
