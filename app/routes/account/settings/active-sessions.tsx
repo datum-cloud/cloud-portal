@@ -4,11 +4,11 @@ import { createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
   UserActiveSession,
-  useHydrateUserActiveSessions,
-  useRevokeUserActiveSession,
-  useUserActiveSessions,
+  createUserGqlService,
+  useHydrateUserActiveSessionsGql,
+  useRevokeUserActiveSessionGql,
+  useUserActiveSessionsGql,
 } from '@/resources/users';
-import { createUserService } from '@/resources/users/user.service';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getIdTokenSession, getSession } from '@/utils/cookies';
@@ -28,22 +28,19 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    // Services now use global axios client with AsyncLocalStorage
     const { session } = await getSession(request);
     const { idToken } = await getIdTokenSession(request);
 
     let currentSession = null;
-
     if (idToken) {
       const decoded = jwtDecode<{ sid: string }>(idToken);
       currentSession = decoded.sid;
     }
 
-    // Services now use global axios client with AsyncLocalStorage
-    const userService = createUserService();
-
-    // Fetch fresh data from API
-    const sessions = await userService.getUserActiveSessions(session?.sub ?? 'me');
+    // Fetch enriched sessions through the GraphQL gateway. The gateway calls
+    // milo for raw sessions and decorates each with parsed user-agent and
+    // resolved geolocation before returning.
+    const sessions = await createUserGqlService().listSessions(session?.sub ?? 'me');
 
     return data({ sessions, currentSession });
   } catch {
@@ -59,15 +56,15 @@ export default function AccountActiveSessionsPage() {
 
   const [selectedSession, setSelectedSession] = useState<UserActiveSession | null>(null);
 
-  useHydrateUserActiveSessions(user?.sub ?? 'me', sessions);
+  useHydrateUserActiveSessionsGql(user?.sub ?? 'me', sessions);
 
-  // Read from React Query cache
-  const { data: queryData } = useUserActiveSessions(user?.sub ?? 'me', {
+  // Read from React Query cache (hydrated above for SSR→CSR continuity).
+  const { data: queryData } = useUserActiveSessionsGql(user?.sub ?? 'me', {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
-  const revokeMutation = useRevokeUserActiveSession(user?.sub ?? 'me', {
+  const revokeMutation = useRevokeUserActiveSessionGql(user?.sub ?? 'me', {
     onSuccess: () => {
       if (selectedSession?.name === currentSession) {
         return navigate(paths.auth.logOut, { replace: true });
@@ -81,15 +78,12 @@ export default function AccountActiveSessionsPage() {
     },
   });
 
-  // Use React Query data, fallback to SSR data
-  // Sort with current session first, then by createdAt descending
+  // Sort with current session first, then by createdAt descending.
   const sessionsData = useMemo(() => {
     const data = queryData ?? sessions ?? [];
     return [...data].sort((a, b) => {
-      // Current session always first
       if (a.name === currentSession) return -1;
       if (b.name === currentSession) return 1;
-      // Then sort by createdAt descending (newest first)
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
@@ -101,7 +95,11 @@ export default function AccountActiveSessionsPage() {
       setSelectedSession(session);
       await confirm({
         title: 'Revoke Session',
-        description: <span>Are you sure you want to revoke the session for {session.ip}?</span>,
+        description: (
+          <span>
+            Are you sure you want to revoke the session for {session.ip ?? 'this device'}?
+          </span>
+        ),
         submitText: 'Revoke',
         cancelText: 'Cancel',
         variant: 'destructive',
@@ -121,21 +119,39 @@ export default function AccountActiveSessionsPage() {
         accessorKey: 'ip',
         id: 'ip',
         meta: { className: 'min-w-[140px]' },
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-foreground text-xs font-medium">{row.original.ip ?? '-'}</span>
-              {row.original.name === currentSession && (
-                <Badge
-                  type="quaternary"
-                  theme="outline"
-                  className="rounded-[8px] px-[7px] font-normal">
-                  Current session
-                </Badge>
-              )}
-            </div>
-          );
-        },
+        cell: ({ row }) => (
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-foreground text-xs font-medium">{row.original.ip ?? '-'}</span>
+            {row.original.name === currentSession && (
+              <Badge
+                type="quaternary"
+                theme="outline"
+                className="rounded-[8px] px-[7px] font-normal">
+                Current session
+              </Badge>
+            )}
+          </div>
+        ),
+      },
+      {
+        header: 'Location',
+        accessorKey: 'location.formatted',
+        id: 'location',
+        meta: { className: 'min-w-[160px]' },
+        cell: ({ row }) => (
+          <span className="text-foreground text-xs">{row.original.location?.formatted ?? '-'}</span>
+        ),
+      },
+      {
+        header: 'Device',
+        accessorKey: 'userAgent.formatted',
+        id: 'userAgent',
+        meta: { className: 'min-w-[160px]' },
+        cell: ({ row }) => (
+          <span className="text-foreground text-xs">
+            {row.original.userAgent?.formatted ?? '-'}
+          </span>
+        ),
       },
       {
         header: 'Created At',
@@ -147,12 +163,12 @@ export default function AccountActiveSessionsPage() {
         },
       },
       {
-        header: 'Expires At',
-        accessorKey: 'expiresAt',
-        id: 'expiresAt',
+        header: 'Last Updated',
+        accessorKey: 'lastUpdatedAt',
+        id: 'lastUpdatedAt',
         meta: { className: 'min-w-[120px]' },
         cell: ({ row }) => {
-          return row.original.expiresAt ? <DateTime date={row.original.expiresAt} /> : '-';
+          return row.original.lastUpdatedAt ? <DateTime date={row.original.lastUpdatedAt} /> : '-';
         },
       },
       createActionsColumn<UserActiveSession>([
