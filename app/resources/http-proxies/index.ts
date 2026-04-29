@@ -40,8 +40,6 @@ export {
   useCreateHttpProxy,
   useUpdateHttpProxy,
   useDeleteHttpProxy,
-  useHydrateHttpProxies,
-  useHydrateHttpProxy,
 } from './http-proxy.queries';
 
 // Watch hooks exports

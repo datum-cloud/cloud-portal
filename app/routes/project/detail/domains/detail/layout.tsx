@@ -1,7 +1,7 @@
 import { BackButton } from '@/components/back-button';
 import { SubLayout } from '@/layouts';
 import { createDnsZoneService, type DnsZone } from '@/resources/dns-zones';
-import { createDomainService, type Domain, useHydrateDomain } from '@/resources/domains';
+import { createDomainService, type Domain, useDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -56,8 +56,11 @@ export default function DomainDetailLayout() {
   const { domain } = useLoaderData<typeof loader>();
   const { projectId, domainId } = useParams();
 
-  // Hydrate cache with SSR data
-  useHydrateDomain(projectId ?? '', domainId ?? '', domain);
+  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
+  useDomain(projectId ?? '', domainId ?? '', {
+    initialData: domain,
+    initialDataUpdatedAt: Date.now(),
+  });
 
   const navItems: NavItem[] = useMemo(() => {
     return [

@@ -1,8 +1,8 @@
 import { BackButton } from '@/components/back-button';
 import { SubLayout } from '@/layouts';
 import { createDnsRecordService } from '@/resources/dns-records';
-import { createDnsZoneService, type DnsZone, useHydrateDnsZone } from '@/resources/dns-zones';
-import { createDomainService, type Domain, useHydrateDomain } from '@/resources/domains';
+import { createDnsZoneService, type DnsZone, useDnsZone } from '@/resources/dns-zones';
+import { createDomainService, type Domain, useDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
@@ -75,12 +75,19 @@ export default function DnsZoneDetailLayout() {
   const { dnsZone, domain } = useLoaderData<typeof loader>();
   const { projectId, dnsZoneId } = useParams();
 
-  // Hydrate cache with SSR data (watches are in individual pages to reduce connections)
-  useHydrateDnsZone(projectId ?? '', dnsZoneId ?? '', dnsZone);
+  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
+  useDnsZone(projectId ?? '', dnsZoneId ?? '', {
+    initialData: dnsZone,
+    initialDataUpdatedAt: Date.now(),
+  });
 
-  // Hydrate domain cache if domain exists
+  // Seed domain cache if domain exists (consumed by overview and nameservers child routes)
   const domainName = domain?.name ?? '';
-  useHydrateDomain(projectId ?? '', domainName, domain);
+  useDomain(projectId ?? '', domainName, {
+    enabled: !!domainName,
+    initialData: domain ?? undefined,
+    initialDataUpdatedAt: Date.now(),
+  });
 
   const navItems: NavItem[] = useMemo(() => {
     return [

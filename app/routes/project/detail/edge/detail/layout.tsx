@@ -1,8 +1,4 @@
-import {
-  createHttpProxyService,
-  type HttpProxy,
-  useHydrateHttpProxy,
-} from '@/resources/http-proxies';
+import { createHttpProxyService, type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import {
@@ -46,8 +42,11 @@ export default function HttpProxyDetailLayout() {
   const { projectId, proxyId } = useParams();
   const httpProxy = useLoaderData<typeof loader>();
 
-  // Hydrate cache with SSR data
-  useHydrateHttpProxy(projectId ?? '', proxyId ?? '', httpProxy);
+  // Seed cache synchronously with SSR data (eliminates skeleton flash on first render)
+  useHttpProxy(projectId ?? '', proxyId ?? '', {
+    initialData: httpProxy,
+    initialDataUpdatedAt: Date.now(),
+  });
 
   return <Outlet />;
 }

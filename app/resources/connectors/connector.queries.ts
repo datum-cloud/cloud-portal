@@ -7,7 +7,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useConnectors(
   projectId: string,
@@ -51,16 +50,4 @@ export function useDeleteConnector(
       options?.onSuccess?.(...args);
     },
   });
-}
-
-export function useHydrateConnectors(projectId: string, initialData: Connector[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(connectorKeys.list(projectId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, initialData]);
 }

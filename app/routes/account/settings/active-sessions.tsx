@@ -4,7 +4,6 @@ import { createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
   UserActiveSession,
-  useHydrateUserActiveSessions,
   useRevokeUserActiveSession,
   useUserActiveSessions,
 } from '@/resources/users';
@@ -59,10 +58,10 @@ export default function AccountActiveSessionsPage() {
 
   const [selectedSession, setSelectedSession] = useState<UserActiveSession | null>(null);
 
-  useHydrateUserActiveSessions(user?.sub ?? 'me', sessions);
-
-  // Read from React Query cache
+  // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: queryData } = useUserActiveSessions(user?.sub ?? 'me', {
+    initialData: sessions,
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });

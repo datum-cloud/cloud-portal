@@ -1,4 +1,4 @@
-import { createSecretService, useHydrateSecret, type Secret } from '@/resources/secrets';
+import { createSecretService, useSecret, type Secret } from '@/resources/secrets';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { LoaderFunctionArgs, MetaFunction, Outlet, useLoaderData, useParams } from 'react-router';
@@ -30,8 +30,11 @@ export default function SecretDetailLayout() {
   const secret = useLoaderData<typeof loader>();
   const { projectId, secretId } = useParams();
 
-  // Hydrate cache with SSR data
-  useHydrateSecret(projectId ?? '', secretId ?? '', secret);
+  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
+  useSecret(projectId ?? '', secretId ?? '', {
+    initialData: secret,
+    initialDataUpdatedAt: Date.now(),
+  });
 
   return <Outlet />;
 }

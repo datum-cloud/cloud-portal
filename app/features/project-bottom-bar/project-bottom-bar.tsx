@@ -1,4 +1,5 @@
 import { useProjectContext } from '@/providers/project.provider';
+import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
@@ -6,13 +7,15 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Activity, lazy, Suspense, useState } from 'react';
+import { Activity, Suspense, useRef, useState } from 'react';
 
-const TerminalPanel = lazy(() =>
+const TerminalPanel = lazyWithRetry(() =>
   import('./terminal-panel').then((m) => ({ default: m.TerminalPanel }))
 );
 
-const ChatPanel = lazy(() => import('./chat/chat-panel').then((m) => ({ default: m.ChatPanel })));
+const ChatPanel = lazyWithRetry(() =>
+  import('./chat/chat-panel').then((m) => ({ default: m.ChatPanel }))
+);
 
 type PanelType = 'terminal' | 'chat' | 'docs';
 
@@ -103,6 +106,8 @@ export function ProjectBottomBar() {
   const { project } = useProjectContext();
   const [activePanel, setActivePanel] = useState<PanelType | null>(null);
   const [panelHeight, setPanelHeight] = useState(400);
+  const docsEverOpened = useRef(false);
+  if (activePanel === 'docs') docsEverOpened.current = true;
 
   const handlePanelToggle = (panel: PanelType) => {
     setActivePanel((prev) => (prev === panel ? null : panel));
@@ -182,9 +187,11 @@ export function ProjectBottomBar() {
                   <ChatPanel key={project?.name ?? 'no-project'} />
                 </Suspense>
               </Activity>
-              <Activity mode={activePanel === 'docs' ? 'visible' : 'hidden'}>
-                <DocsPanel />
-              </Activity>
+              {docsEverOpened.current && (
+                <Activity mode={activePanel === 'docs' ? 'visible' : 'hidden'}>
+                  <DocsPanel />
+                </Activity>
+              )}
             </div>
           </motion.div>
         )}

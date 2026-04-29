@@ -3,7 +3,7 @@ import { ProfileIdentity } from '@/components/profile-identity';
 import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import {
   createMachineAccountService,
-  useHydrateMachineAccount,
+  useMachineAccount,
   useDeleteMachineAccount,
   useUpdateMachineAccount,
   type MachineAccount,
@@ -58,7 +58,11 @@ export default function MachineAccountDetailLayout() {
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
 
-  useHydrateMachineAccount(projectId ?? '', machineAccountId ?? '', account);
+  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
+  useMachineAccount(projectId ?? '', machineAccountId ?? '', {
+    initialData: account,
+    initialDataUpdatedAt: Date.now(),
+  });
 
   const deleteMutation = useDeleteMachineAccount(projectId ?? '', {
     onSuccess: (_, name) => {

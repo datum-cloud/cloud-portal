@@ -108,8 +108,14 @@ export default function ProjectLayout() {
     refetchOnMount: false,
   });
 
-  const { data: org, isLoading: orgLoading } = useOrganization(project?.organizationId ?? '', {
-    enabled: !!project?.organizationId,
+  // Fire in parallel with the project query: seed orgId from AppProvider (set
+  // when the user was on an org route) so useOrganization doesn't have to wait
+  // for useProject to resolve before it can start. Once the project resolves its
+  // organizationId, the query key refines; TanStack Query deduplicates the
+  // request if the id matches the appOrg already in cache.
+  const orgId = project?.organizationId ?? appOrg?.name ?? '';
+  const { data: org, isLoading: orgLoading } = useOrganization(orgId, {
+    enabled: !!orgId,
     staleTime: QUERY_STALE_TIME,
     refetchOnMount: false,
   });

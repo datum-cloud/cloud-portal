@@ -13,7 +13,6 @@ import {
   useDeleteDnsZone,
   useDnsZones,
   useDnsZonesWatch,
-  useHydrateDnsZones,
   type DnsZone,
 } from '@/resources/dns-zones';
 import { useRefreshDomainRegistration } from '@/resources/domains';
@@ -71,15 +70,14 @@ export default function DnsZonesPage() {
   const { zones: initialZones } = useLoaderData<typeof loader>();
   const { projectId } = useParams();
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateDnsZones(projectId ?? '', initialZones);
-
   // Subscribe to watch for real-time updates
   useDnsZonesWatch(projectId ?? '');
 
-  // Read from React Query cache (gets updates from watch!)
+  // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: zonesData = [] } = useDnsZones(projectId ?? '', undefined, {
-    // Don't refetch on mount - hydration already seeded the cache
+    initialData: initialZones,
+    initialDataUpdatedAt: Date.now(),
+    // Don't refetch on mount - initialData already seeded the cache
     refetchOnMount: false,
     // Consider data fresh for 5 minutes (watch keeps it updated)
     staleTime: QUERY_STALE_TIME,
