@@ -151,6 +151,7 @@
     "@vitejs/plugin-react": "^5.1.4",
     "cypress": "^15.14.0",
     "cypress-split": "^1.24.31",
+    "cypress-vite": "^1.8.0",
     "eslint": "^10.2.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.5",
