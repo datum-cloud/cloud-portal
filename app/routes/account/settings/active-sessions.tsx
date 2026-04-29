@@ -1,17 +1,14 @@
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
   UserActiveSession,
-  createUserGqlService,
-  useHydrateUserActiveSessionsGql,
   useRevokeUserActiveSessionGql,
   useUserActiveSessionsGql,
 } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { getIdTokenSession, getSession } from '@/utils/cookies';
+import { getIdTokenSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -28,39 +25,29 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    const { session } = await getSession(request);
     const { idToken } = await getIdTokenSession(request);
 
-    let currentSession = null;
+    let currentSession: string | null = null;
     if (idToken) {
       const decoded = jwtDecode<{ sid: string }>(idToken);
       currentSession = decoded.sid;
     }
 
-    // Fetch enriched sessions through the GraphQL gateway. The gateway calls
-    // milo for raw sessions and decorates each with parsed user-agent and
-    // resolved geolocation before returning.
-    const sessions = await createUserGqlService().listSessions(session?.sub ?? 'me');
-
-    return data({ sessions, currentSession });
+    return data({ currentSession });
   } catch {
-    return data({ sessions: [], currentSession: null });
+    return data({ currentSession: null });
   }
 };
 
 export default function AccountActiveSessionsPage() {
   const { user } = useApp();
-  const { sessions, currentSession } = useLoaderData<typeof loader>();
+  const { currentSession } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const { confirm } = useConfirmationDialog();
 
   const [selectedSession, setSelectedSession] = useState<UserActiveSession | null>(null);
 
-  useHydrateUserActiveSessionsGql(user?.sub ?? 'me', sessions);
-
-  // Read from React Query cache (hydrated above for SSR→CSR continuity).
-  const { data: queryData } = useUserActiveSessionsGql(user?.sub ?? 'me', {
-    refetchOnMount: false,
+  // Fetch sessions client-side via React Query.
+  const { data: queryData, isLoading } = useUserActiveSessionsGql(user?.sub ?? 'me', {
     staleTime: QUERY_STALE_TIME,
   });
 
@@ -80,7 +67,7 @@ export default function AccountActiveSessionsPage() {
 
   // Sort with current session first, then by createdAt descending.
   const sessionsData = useMemo(() => {
-    const data = queryData ?? sessions ?? [];
+    const data = queryData ?? [];
     return [...data].sort((a, b) => {
       if (a.name === currentSession) return -1;
       if (b.name === currentSession) return 1;
@@ -88,40 +75,27 @@ export default function AccountActiveSessionsPage() {
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
     });
-  }, [queryData, sessions, currentSession]);
+  }, [queryData, currentSession]);
 
   const revokeSession = useCallback(
-    async (session: UserActiveSession) => {
+    (session: UserActiveSession) => {
       setSelectedSession(session);
-      await confirm({
-        title: 'Revoke Session',
-        description: (
-          <span>
-            Are you sure you want to revoke the session for {session.ip ?? 'this device'}?
-          </span>
-        ),
-        submitText: 'Revoke',
-        cancelText: 'Cancel',
-        variant: 'destructive',
-        showConfirmInput: false,
-        onSubmit: async () => {
-          revokeMutation.mutate(session.name);
-        },
-      });
+      revokeMutation.mutate(session.name);
     },
-    [confirm, revokeMutation]
+    [revokeMutation]
   );
 
   const columns: ColumnDef<UserActiveSession>[] = useMemo(
     () => [
       {
-        header: 'IP',
-        accessorKey: 'ip',
-        id: 'ip',
-        meta: { className: 'min-w-[140px]' },
+        header: 'Device',
+        accessorKey: 'userAgent.formatted',
+        id: 'userAgent',
+        meta: { className: 'min-w-[160px]' },
         cell: ({ row }) => (
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-foreground text-xs font-medium">{row.original.ip ?? '-'}</span>
+          <span className="text-foreground flex items-center justify-between text-xs">
+            {row.original.userAgent?.formatted ?? '-'}
+
             {row.original.name === currentSession && (
               <Badge
                 type="quaternary"
@@ -130,7 +104,7 @@ export default function AccountActiveSessionsPage() {
                 Current session
               </Badge>
             )}
-          </div>
+          </span>
         ),
       },
       {
@@ -142,17 +116,7 @@ export default function AccountActiveSessionsPage() {
           <span className="text-foreground text-xs">{row.original.location?.formatted ?? '-'}</span>
         ),
       },
-      {
-        header: 'Device',
-        accessorKey: 'userAgent.formatted',
-        id: 'userAgent',
-        meta: { className: 'min-w-[160px]' },
-        cell: ({ row }) => (
-          <span className="text-foreground text-xs">
-            {row.original.userAgent?.formatted ?? '-'}
-          </span>
-        ),
-      },
+
       {
         header: 'Created At',
         accessorKey: 'createdAt',
@@ -174,13 +138,25 @@ export default function AccountActiveSessionsPage() {
       createActionsColumn<UserActiveSession>([
         {
           label: 'Revoke',
+          display: 'inline',
+          showLabel: false,
+          tooltip: 'Revoke',
+          variant: 'default',
           icon: <Icon icon={Trash2Icon} className="size-3.5" />,
-          onClick: (session) => revokeSession(session),
+          disabled: (row) => row.name === currentSession,
+          onClick: (row) => revokeSession(row),
         },
       ]),
     ],
     [currentSession, revokeSession]
   );
 
-  return <Table.Client columns={columns} data={sessionsData} empty="No active sessions found." />;
+  return (
+    <Table.Client
+      columns={columns}
+      data={sessionsData}
+      loading={isLoading}
+      empty="No active sessions found."
+    />
+  );
 }
