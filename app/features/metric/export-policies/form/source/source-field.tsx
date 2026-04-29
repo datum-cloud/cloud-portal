@@ -1,5 +1,5 @@
-import { CodeEditor } from '@/components/code-editor/code-editor';
 import { POLICY_SOURCE_TYPES } from '@/features/metric/constants';
+import { CodeEditor, type EditorLanguage } from '@datum-cloud/datum-ui/code-editor';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
@@ -40,7 +40,7 @@ export const SourceField = ({
         className={cn('w-full', isMultiple ? 'max-w-[590px]' : '')}>
         {({ control, meta }) => (
           <CodeEditor
-            language="promql"
+            language={'promql' as EditorLanguage}
             value={(control.value as string) ?? '{}'}
             onChange={(newValue) => control.change(newValue)}
             id={meta.id}

@@ -44,8 +44,6 @@ export {
   useDeleteDomain,
   useBulkCreateDomains,
   useRefreshDomainRegistration,
-  useHydrateDomains,
-  useHydrateDomain,
 } from './domain.queries';
 
 // Watch hook exports

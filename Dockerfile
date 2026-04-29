@@ -19,7 +19,8 @@ WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production \
-    PORT=3000
+    PORT=3000 \
+    BUN_RUNTIME_TRANSPILER_CACHE_PATH=/tmp/bun-transpiler-cache
     
 # ==========================================
 # BUILD STAGE - Compile and prepare the app

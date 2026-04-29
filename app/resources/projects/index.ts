@@ -29,8 +29,6 @@ export {
   useCreateProject,
   useUpdateProject,
   useDeleteProject,
-  useHydrateProjects,
-  useHydrateProject,
 } from './project.queries';
 
 // Watch hook exports (only list watch - single project watch not supported for cluster-scoped resources)

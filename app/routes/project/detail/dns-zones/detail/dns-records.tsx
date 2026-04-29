@@ -23,7 +23,6 @@ import {
   useDeleteDnsRecord,
   useDnsRecords,
   useDnsRecordsWatch,
-  useHydrateDnsRecords,
 } from '@/resources/dns-records';
 import type { DnsZone } from '@/resources/dns-zones';
 import {
@@ -42,10 +41,11 @@ import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { ClientOnly } from '@datum-cloud/datum-ui/theme';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
@@ -61,14 +61,13 @@ export default function DnsRecordsPage() {
   };
   const { projectId, dnsZoneId } = useParams();
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateDnsRecords(projectId ?? '', dnsZoneId ?? '', initialDnsRecordSets);
-
   // Subscribe to watch for real-time updates
   useDnsRecordsWatch(projectId ?? '', dnsZoneId ?? '');
 
-  // Read from React Query cache (gets updates from watch!)
+  // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: queryData } = useDnsRecords(projectId ?? '', dnsZoneId, undefined, {
+    initialData: initialDnsRecordSets,
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
@@ -104,9 +103,7 @@ export default function DnsRecordsPage() {
 
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
   const breakpoint = useBreakpoint();
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => setIsMounted(true), []);
-  const isMobile = isMounted && breakpoint === 'mobile';
+  const isMobile = breakpoint === 'mobile';
 
   // Controlled inline content state (lifted from DnsRecordTable)
   const [inlineOpen, setInlineOpen] = useState(false);
@@ -342,7 +339,9 @@ export default function DnsRecordsPage() {
     },
   ];
 
-  return (
+  // Desktop layout is the SSR-safe fallback (inline panel mode)
+  // Mobile layout (modal mode) resolves on the client after breakpoint check
+  const desktopLayout = (
     <>
       <DnsRecordModalForm
         ref={dnsRecordModalFormRef}
@@ -391,29 +390,96 @@ export default function DnsRecordsPage() {
                 theme="solid"
                 size="small"
                 className="min-w-0 flex-1 sm:flex-initial"
-                onClick={() =>
-                  isMobile ? dnsRecordModalFormRef.current?.show('create') : handleOpenCreate()
-                }>
+                onClick={() => handleOpenCreate()}>
                 <Icon icon={PlusIcon} className="size-4" />
                 Add record
               </Button>
             </div>
           ),
         }}
-        inlineOpen={!isMobile && inlineOpen}
+        inlineOpen={inlineOpen}
         inlinePosition={inlinePosition}
         inlineRowId={inlineRowId}
         onInlineClose={handleInlineClose}
         onOpenCreate={handleOpenCreate}
-        onOpenEdit={(record) => {
-          if (isMobile) {
-            dnsRecordModalFormRef.current?.show('edit', record);
-          } else {
-            handleOpenEdit(record);
-          }
-        }}
+        onOpenEdit={handleOpenEdit}
         extraRowActions={extraRowActions}
       />
     </>
+  );
+
+  return (
+    <ClientOnly fallback={desktopLayout}>
+      {isMobile ? (
+        <>
+          <DnsRecordModalForm
+            ref={dnsRecordModalFormRef}
+            projectId={projectId!}
+            dnsZoneId={dnsZoneId!}
+            onSuccess={handleOnSuccess}
+          />
+
+          <DnsRecordTable
+            mode="full"
+            data={enrichedRecords}
+            projectId={projectId!}
+            dnsZoneId={dnsZoneId!}
+            renderAiEdgeCell={(record) => (
+              <DnsRecordAiEdgeCell
+                record={record}
+                zoneDomain={zoneDomain}
+                onProtect={handleProtectWithEdge}
+                onRemove={handleRemoveEdge}
+                onViewProxy={(proxyId) =>
+                  navigate(
+                    getPathWithParams(paths.project.detail.proxy.detail.root, {
+                      projectId: projectId!,
+                      proxyId,
+                    })
+                  )
+                }
+              />
+            )}
+            tableTitle={{
+              title: 'DNS Records',
+              actions: (
+                <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+                  <DnsRecordImportAction
+                    origin={dnsZone?.domainName}
+                    existingRecords={dnsRecords}
+                    projectId={projectId!}
+                    dnsZoneId={dnsZoneId!}
+                    onSuccess={() => {
+                      // Watch will automatically update the list with real-time changes
+                    }}
+                  />
+                  <Button
+                    htmlType="button"
+                    type="primary"
+                    theme="solid"
+                    size="small"
+                    className="min-w-0 flex-1 sm:flex-initial"
+                    onClick={() => dnsRecordModalFormRef.current?.show('create')}>
+                    <Icon icon={PlusIcon} className="size-4" />
+                    Add record
+                  </Button>
+                </div>
+              ),
+            }}
+            inlineOpen={false}
+            inlinePosition={inlinePosition}
+            inlineRowId={inlineRowId}
+            onInlineClose={handleInlineClose}
+            onOpenCreate={handleOpenCreate}
+            onOpenEdit={(record) => {
+              dnsRecordModalFormRef.current?.show('edit', record);
+            }}
+            extraRowActions={extraRowActions}
+          />
+        </>
+      ) : (
+        desktopLayout
+      )}
+    </ClientOnly>
   );
 }

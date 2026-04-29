@@ -14,8 +14,28 @@ import { TaskQueueProvider } from '@datum-cloud/datum-ui/task-queue';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { createHmac } from 'crypto';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
+import { Suspense, useEffect } from 'react';
+import { Await, LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
+
+/** Skip re-running this layout's loader on Link navigations within the
+ * authenticated app. The user object loaded here rarely changes during
+ * a session. Form submissions (logout, profile updates, etc.) and
+ * explicit revalidation calls still trigger a re-fetch.
+ *
+ * Mirrors the pattern in app/root.tsx. */
+export function shouldRevalidate({
+  formData,
+  defaultShouldRevalidate,
+}: {
+  formData?: FormData;
+  defaultShouldRevalidate: boolean;
+}) {
+  // Form submissions (logout, profile edits, etc.) — revalidate to get fresh user data
+  if (formData) return defaultShouldRevalidate;
+
+  // Link navigation — skip; user data doesn't change between routes
+  return false;
+}
 
 export const loader = withMiddleware(
   async ({ request, context }: LoaderFunctionArgs) => {
@@ -29,19 +49,21 @@ export const loader = withMiddleware(
       const cachedUser = getRequestContext()?.cachedUser;
       const user = cachedUser ?? (await createUserService().get(session?.sub ?? ''));
 
-      /**
-       * Generate Help Scout signature for secure mode
-       */
-      let helpscoutSignature = null;
-      if (serverEnv.public.helpscoutBeaconId && serverEnv.server.helpscoutSecretKey) {
-        helpscoutSignature = createHmac('sha256', serverEnv.server.helpscoutSecretKey ?? '')
-          .update(user?.email ?? user?.sub ?? '')
-          .digest('hex');
-      }
+      // Compute HelpScout HMAC asynchronously — returns a promise that streams to
+      // the client instead of blocking the layout shell render. HelpScout is a
+      // non-critical support-chat widget; it can mount after first paint.
+      const helpscoutSignaturePromise: Promise<string | null> =
+        serverEnv.public.helpscoutBeaconId && serverEnv.server.helpscoutSecretKey
+          ? Promise.resolve(
+              createHmac('sha256', serverEnv.server.helpscoutSecretKey ?? '')
+                .update(user?.email ?? user?.sub ?? '')
+                .digest('hex')
+            )
+          : Promise.resolve(null);
 
       return data({
         user,
-        helpscoutSignature,
+        helpscoutSignature: helpscoutSignaturePromise,
       });
     } catch {
       return redirect(paths.auth.logOut);
@@ -68,16 +90,8 @@ function FathomWrapper({ children }: { children: ReactNode }) {
 }
 
 export default function PrivateLayout() {
-  const data: { user: User; helpscoutSignature?: string; ENV: any } =
+  const data: { user: User; helpscoutSignature: Promise<string | null> } =
     useLoaderData<typeof loader>();
-
-  const [helpscoutEnv, setHelpscoutEnv] = useState<{
-    beaconId?: string;
-    userSignature?: string;
-  }>({
-    beaconId: undefined,
-    userSignature: undefined,
-  });
 
   const { setTheme } = useTheme();
 
@@ -89,12 +103,7 @@ export default function PrivateLayout() {
       // Set app theme
       setTheme(nextTheme as ThemeValue);
     }
-
-    setHelpscoutEnv({
-      beaconId: window.ENV?.helpscoutBeaconId,
-      userSignature: data?.helpscoutSignature,
-    });
-  }, [data]);
+  }, [data?.user]);
 
   return (
     <WatchProvider>
@@ -105,17 +114,25 @@ export default function PrivateLayout() {
               <Outlet />
             </ConfirmationDialogProvider>
 
-            {helpscoutEnv.beaconId && helpscoutEnv.userSignature && (
-              <HelpScoutBeacon
-                beaconId={helpscoutEnv.beaconId}
-                displayStyle="manual"
-                user={{
-                  name: `${data?.user?.givenName} ${data?.user?.familyName}`,
-                  email: data?.user?.email ?? data?.user?.sub ?? '',
-                  signature: helpscoutEnv.userSignature ?? '',
-                }}
-              />
-            )}
+            {/* HelpScout is non-critical — mount asynchronously after the deferred
+                HMAC promise resolves so it never blocks the layout shell render. */}
+            <Suspense fallback={null}>
+              <Await resolve={data?.helpscoutSignature} errorElement={null}>
+                {(helpscoutSignature) =>
+                  helpscoutSignature && window.ENV?.helpscoutBeaconId ? (
+                    <HelpScoutBeacon
+                      beaconId={window.ENV.helpscoutBeaconId}
+                      displayStyle="manual"
+                      user={{
+                        name: `${data?.user?.givenName} ${data?.user?.familyName}`,
+                        email: data?.user?.email ?? data?.user?.sub ?? '',
+                        signature: helpscoutSignature,
+                      }}
+                    />
+                  ) : null
+                }
+              </Await>
+            </Suspense>
           </TaskQueueProvider>
         </FathomWrapper>
       </AppProvider>

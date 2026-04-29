@@ -47,8 +47,6 @@ export {
   useCreateSecret,
   useUpdateSecret,
   useDeleteSecret,
-  useHydrateSecrets,
-  useHydrateSecret,
 } from './secret.queries';
 
 // Watch hooks exports

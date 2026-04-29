@@ -7,7 +7,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
 
 export function useMembers(
   orgId: string,
@@ -35,22 +34,6 @@ export function useMember(
     enabled: !!orgId && !!name,
     ...options,
   });
-}
-
-/**
- * Hydrate React Query cache with SSR member data.
- * Runs once on mount to seed the cache, then React Query takes over.
- */
-export function useHydrateMembers(orgId: string, initialData: Member[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && orgId && initialData) {
-      queryClient.setQueryData(memberKeys.list(orgId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, orgId, initialData]);
 }
 
 export function useUpdateMemberRoles(
