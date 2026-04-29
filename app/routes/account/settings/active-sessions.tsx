@@ -100,7 +100,8 @@ export default function AccountActiveSessionsPage() {
               <Badge
                 type="quaternary"
                 theme="outline"
-                className="rounded-[8px] px-[7px] font-normal">
+                className="rounded-[8px] px-[7px] font-normal"
+                data-e2e="current-session-badge">
                 Current session
               </Badge>
             )}
@@ -143,12 +144,18 @@ export default function AccountActiveSessionsPage() {
           tooltip: 'Revoke',
           variant: 'default',
           icon: <Icon icon={Trash2Icon} className="size-3.5" />,
-          disabled: (row) => row.name === currentSession,
+          // Only disable the row whose mutation is in flight — leaves the
+          // current session locked out as before, and lets other rows stay
+          // clickable while one revoke is pending.
+          disabled: (row) =>
+            row.name === currentSession ||
+            (revokeMutation.isPending && selectedSession?.name === row.name),
           onClick: (row) => revokeSession(row),
+          'data-e2e': 'revoke-session-button',
         },
       ]),
     ],
-    [currentSession, revokeSession]
+    [currentSession, revokeMutation.isPending, selectedSession, revokeSession]
   );
 
   return (
