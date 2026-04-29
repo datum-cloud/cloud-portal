@@ -1,6 +1,7 @@
 import { registerSharedResourceTasks } from './cypress/support/shared-resources';
 import { defineConfig } from 'cypress';
 import cypressSplit from 'cypress-split';
+import vitePreprocessor from 'cypress-vite';
 import 'dotenv/config';
 
 // Set environment variables for test mode before any app code loads
@@ -19,6 +20,11 @@ export default defineConfig({
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on, config) {
       cypressSplit(on, config);
+
+      // Use Vite to bundle E2E specs so cypress shares the app's path-alias
+      // resolution (via vite-tsconfig-paths in vite.config.ts). Avoids
+      // depending on tsconfig's deprecated `baseUrl`.
+      on('file:preprocessor', vitePreprocessor());
 
       // Shared regression resources (1 org + 1 project per shard)
       registerSharedResourceTasks(on);
