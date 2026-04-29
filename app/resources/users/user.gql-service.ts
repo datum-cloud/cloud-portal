@@ -1,101 +1,70 @@
 import type { UserActiveSession } from './user.schema';
 import { userKeys } from './user.service';
 import { createGqlClient } from '@/modules/graphql/client';
+import {
+  generateQueryOp,
+  generateMutationOp,
+  type ExtendedSession,
+  type ExtendedSessionRequest,
+  type QueryRequest,
+  type MutationRequest,
+} from '@/modules/graphql/generated';
 import { logger } from '@/modules/logger';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 const SERVICE_NAME = 'UserGqlService';
 
 // ============================================================================
-// GraphQL operations
-// ----------------------------------------------------------------------------
-// These are hand-written rather than emitted by `bun run graphql` because the
-// graphql-gateway resolvers (`sessions`, `deleteSession`) are not part of the
-// federated schema the codegen introspects yet — they're additionalTypeDefs
-// resolved locally by the gateway. Once the gateway is deployed and added to
-// graphql.config.json, swap to generateQueryOp / generateMutationOp.
+// Field selection — kept in sync with UserActiveSession's shape so the
+// adapter below is exhaustive.
 // ============================================================================
+const sessionSelection: ExtendedSessionRequest = {
+  id: true,
+  userUID: true,
+  provider: true,
+  ipAddress: true,
+  fingerprintID: true,
+  createdAt: true,
+  lastUpdatedAt: true,
+  userAgent: { browser: true, os: true, formatted: true },
+  location: { city: true, country: true, countryCode: true, formatted: true },
+};
 
-const SESSIONS_QUERY = /* GraphQL */ `
-  query Sessions {
-    sessions {
-      id
-      userUID
-      provider
-      ipAddress
-      fingerprintID
-      createdAt
-      lastUpdatedAt
-      userAgent {
-        browser
-        os
-        formatted
-      }
-      location {
-        city
-        country
-        countryCode
-        formatted
-      }
-    }
-  }
-`;
-
-const DELETE_SESSION_MUTATION = /* GraphQL */ `
-  mutation DeleteSession($id: String!) {
-    deleteSession(id: $id)
-  }
-`;
-
-interface SessionsQueryData {
-  sessions: Array<{
-    id: string;
-    userUID: string;
-    provider: string;
-    ipAddress: string | null;
-    fingerprintID: string | null;
-    createdAt: string;
-    lastUpdatedAt: string | null;
-    userAgent: {
-      browser: string | null;
-      os: string | null;
-      formatted: string;
-    } | null;
-    location: {
-      city: string | null;
-      country: string | null;
-      countryCode: string | null;
-      formatted: string;
-    } | null;
-  }>;
-}
-
-interface DeleteSessionMutationData {
-  deleteSession: boolean;
-}
-
-function toUserActiveSession(node: SessionsQueryData['sessions'][number]): UserActiveSession {
+function toUserActiveSession(node: ExtendedSession): UserActiveSession {
   return {
-    // `name` keeps the existing field name consumers use to compare against
+    // `name` keeps the field name existing consumers use to compare against
     // the OIDC `sid` for "current session" highlighting.
     name: node.id,
     userUID: node.userUID,
     provider: node.provider,
-    ip: node.ipAddress,
-    fingerprintID: node.fingerprintID,
+    ip: node.ipAddress ?? null,
+    fingerprintID: node.fingerprintID ?? null,
     createdAt: node.createdAt,
-    lastUpdatedAt: node.lastUpdatedAt,
-    userAgent: node.userAgent,
-    location: node.location,
+    lastUpdatedAt: node.lastUpdatedAt ?? null,
+    userAgent: node.userAgent
+      ? {
+          browser: node.userAgent.browser ?? null,
+          os: node.userAgent.os ?? null,
+          formatted: node.userAgent.formatted,
+        }
+      : null,
+    location: node.location
+      ? {
+          city: node.location.city ?? null,
+          country: node.location.country ?? null,
+          countryCode: node.location.countryCode ?? null,
+          formatted: node.location.formatted,
+        }
+      : null,
   };
 }
 
 /**
  * GraphQL-backed service for user active sessions.
  *
- * Mirrors `createOrganizationGqlService` but talks to the gateway-local
- * `sessions` query and `deleteSession` mutation. Both go through the
- * user-scoped GraphQL endpoint so milo enforces session ownership.
+ * Uses the gateway's local `sessions` query and `deleteSession` mutation.
+ * The user-scoped GqlScope tells the gateway which user-scoped milo path to
+ * proxy through, so milo enforces session ownership.
  */
 export function createUserGqlService() {
   return {
@@ -105,11 +74,15 @@ export function createUserGqlService() {
       try {
         const client = createGqlClient({ type: 'user', userId });
 
-        const result = await client.query<SessionsQueryData>(SESSIONS_QUERY, {}).toPromise();
+        const op = generateQueryOp({
+          sessions: sessionSelection,
+        } satisfies QueryRequest);
+
+        const result = await client.query(op.query, op.variables).toPromise();
 
         if (result.error) throw mapApiError(result.error);
 
-        const items = result.data?.sessions ?? [];
+        const items = (result.data?.sessions ?? []) as ExtendedSession[];
 
         logger.service(SERVICE_NAME, 'listSessions', {
           input: { userId },
@@ -129,9 +102,11 @@ export function createUserGqlService() {
       try {
         const client = createGqlClient({ type: 'user', userId });
 
-        const result = await client
-          .mutation<DeleteSessionMutationData>(DELETE_SESSION_MUTATION, { id: sessionId })
-          .toPromise();
+        const op = generateMutationOp({
+          deleteSession: [{ id: sessionId }],
+        } satisfies MutationRequest);
+
+        const result = await client.mutation(op.query, op.variables).toPromise();
 
         if (result.error) throw mapApiError(result.error);
 
