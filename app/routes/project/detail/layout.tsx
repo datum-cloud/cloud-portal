@@ -9,6 +9,7 @@ import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
+import { createMachineAccountService, machineAccountKeys } from '@/resources/machine-accounts';
 import { useOrganization, type Organization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
@@ -107,8 +108,14 @@ export default function ProjectLayout() {
     refetchOnMount: false,
   });
 
-  const { data: org, isLoading: orgLoading } = useOrganization(project?.organizationId ?? '', {
-    enabled: !!project?.organizationId,
+  // Fire in parallel with the project query: seed orgId from AppProvider (set
+  // when the user was on an org route) so useOrganization doesn't have to wait
+  // for useProject to resolve before it can start. Once the project resolves its
+  // organizationId, the query key refines; TanStack Query deduplicates the
+  // request if the id matches the appOrg already in cache.
+  const orgId = project?.organizationId ?? appOrg?.name ?? '';
+  const { data: org, isLoading: orgLoading } = useOrganization(orgId, {
+    enabled: !!orgId,
     staleTime: QUERY_STALE_TIME,
     refetchOnMount: false,
   });
@@ -258,6 +265,12 @@ export default function ProjectLayout() {
         type: 'link',
         icon: BotIcon,
         disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: machineAccountKeys.list(pid),
+            queryFn: () => createMachineAccountService().list(pid),
+          });
+        },
       },
       {
         title: 'Project Settings',

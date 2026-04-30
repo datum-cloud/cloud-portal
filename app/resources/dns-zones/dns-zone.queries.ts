@@ -8,7 +8,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useDnsZones(
   projectId: string,
@@ -106,34 +105,4 @@ export function useDeleteDnsZone(
       options?.onSuccess?.(...args);
     },
   });
-}
-
-/**
- * Hydrates React Query cache with SSR data for DNS zones list.
- */
-export function useHydrateDnsZones(projectId: string, initialData: DnsZone[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(dnsZoneKeys.list(projectId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, initialData]);
-}
-
-/**
- * Hydrates React Query cache with SSR data for single DNS zone.
- */
-export function useHydrateDnsZone(projectId: string, name: string, initialData: DnsZone) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(dnsZoneKeys.detail(projectId, name), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, name, initialData]);
 }

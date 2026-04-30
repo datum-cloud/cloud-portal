@@ -237,6 +237,7 @@ export default function ProjectHomePage() {
 
       {/* Action cards */}
       <Row
+        type="flex"
         gutter={[
           { xs: 8, sm: 16, md: 24, xl: 32 },
           { xs: 8, sm: 16, md: 24, xl: 32 },

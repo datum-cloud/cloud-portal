@@ -12,7 +12,6 @@ import { logger } from '@/modules/logger';
 import { createRbacMiddleware, RbacService } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { createGroupService } from '@/resources/groups';
-import type { Group } from '@/resources/groups';
 import {
   createPolicyBindingService,
   useCreatePolicyBinding,
@@ -32,10 +31,6 @@ import {
   useParams,
   type MetaFunction,
 } from 'react-router';
-
-export const handle = {
-  breadcrumb: (loaderData: { group?: Group }) => <span>{loaderData?.group?.name ?? 'Roles'}</span>,
-};
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Group Roles');

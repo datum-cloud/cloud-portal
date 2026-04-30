@@ -1,5 +1,4 @@
 import type { GrafanaFormProps } from './grafana.types';
-import { CodeEditor } from '@/components/code-editor/code-editor';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
@@ -15,6 +14,7 @@ import { SecretType, useCreateSecret, type CreateSecretInput } from '@/resources
 import { isValidPrometheusConfig, isValidYaml, yamlToJson } from '@/utils/helpers/format.helper';
 import { createNameSchema } from '@/utils/helpers/validation.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { CodeEditor } from '@datum-cloud/datum-ui/code-editor';
 import {
   Collapsible,
   CollapsibleContent,
@@ -96,12 +96,6 @@ function PrometheusConfigEditor() {
       name={field.name}
       error={field.errors?.[0]}
       minHeight="128px"
-      placeholder="e.g.
-  remote_write:
-    - url: https://prometheus-prod-56-prod-us-east-2.grafana.net/api/prom/push
-      basic_auth:
-        username: 123456
-        password: glc_eyJyIjoiNzA2...."
     />
   );
 }

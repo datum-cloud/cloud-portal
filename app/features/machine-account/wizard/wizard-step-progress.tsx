@@ -43,7 +43,7 @@ export function WizardStepProgress({ phase }: WizardStepProgressProps) {
 
   return (
     <div
-      className="flex flex-col gap-4 py-4"
+      className="flex flex-col gap-4 pb-4"
       role="status"
       aria-label="Wizard orchestration progress">
       <StepRow label="Creating machine account..." status={accountStatus} />

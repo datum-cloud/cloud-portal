@@ -9,7 +9,6 @@ import {
   type UseMutationOptions,
 } from '@tanstack/react-query';
 import { differenceInMinutes } from 'date-fns';
-import { useEffect, useRef } from 'react';
 
 export function useInvitations(
   orgId: string,
@@ -46,22 +45,6 @@ export function useUserInvitations(
     enabled: !!userId,
     ...options,
   });
-}
-
-/**
- * Hydrate React Query cache with SSR invitation data.
- * Runs once on mount to seed the cache, then React Query takes over.
- */
-export function useHydrateInvitations(orgId: string, initialData: Invitation[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && orgId && initialData) {
-      queryClient.setQueryData(invitationKeys.list(orgId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, orgId, initialData]);
 }
 
 export function useCreateInvitation(

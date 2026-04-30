@@ -15,7 +15,6 @@ import {
   dnsZoneKeys,
   useDnsZones,
   useDnsZonesWatch,
-  useHydrateDnsZones,
   type DnsZone,
 } from '@/resources/dns-zones';
 import {
@@ -24,7 +23,6 @@ import {
   useDeleteDomain,
   useDomains,
   useDomainsWatch,
-  useHydrateDomains,
   useRefreshDomainRegistration,
   domainKeys,
 } from '@/resources/domains';
@@ -99,21 +97,21 @@ export default function DomainsPage() {
     };
   }, [queryClient, projectId]);
 
-  // Hydrate cache with SSR data (runs once on mount)
-  useHydrateDomains(projectId ?? '', initialDomains);
-  useHydrateDnsZones(projectId ?? '', initialDnsZones);
-
   // Subscribe to watch for real-time updates
   useDomainsWatch(projectId ?? '');
   useDnsZonesWatch(projectId ?? '');
 
-  // Read from React Query cache (gets updates from watch!)
+  // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: domainsData } = useDomains(projectId ?? '', {
+    initialData: initialDomains,
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
   const { data: dnsZonesData } = useDnsZones(projectId ?? '', undefined, {
+    initialData: initialDnsZones,
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
@@ -492,7 +490,7 @@ export default function DomainsPage() {
         title="Domains"
         onRowClick={handleNavigateToDomain}
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
-        search="Search domains"
+        search="Search"
         actions={[
           <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
           <Button

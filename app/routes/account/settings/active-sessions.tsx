@@ -1,17 +1,14 @@
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
   UserActiveSession,
-  useHydrateUserActiveSessions,
-  useRevokeUserActiveSession,
-  useUserActiveSessions,
+  useRevokeUserActiveSessionGql,
+  useUserActiveSessionsGql,
 } from '@/resources/users';
-import { createUserService } from '@/resources/users/user.service';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { getIdTokenSession, getSession } from '@/utils/cookies';
+import { getIdTokenSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -28,46 +25,33 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
-    // Services now use global axios client with AsyncLocalStorage
-    const { session } = await getSession(request);
     const { idToken } = await getIdTokenSession(request);
 
-    let currentSession = null;
-
+    let currentSession: string | null = null;
     if (idToken) {
       const decoded = jwtDecode<{ sid: string }>(idToken);
       currentSession = decoded.sid;
     }
 
-    // Services now use global axios client with AsyncLocalStorage
-    const userService = createUserService();
-
-    // Fetch fresh data from API
-    const sessions = await userService.getUserActiveSessions(session?.sub ?? 'me');
-
-    return data({ sessions, currentSession });
+    return data({ currentSession });
   } catch {
-    return data({ sessions: [], currentSession: null });
+    return data({ currentSession: null });
   }
 };
 
 export default function AccountActiveSessionsPage() {
   const { user } = useApp();
-  const { sessions, currentSession } = useLoaderData<typeof loader>();
+  const { currentSession } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
-  const { confirm } = useConfirmationDialog();
 
   const [selectedSession, setSelectedSession] = useState<UserActiveSession | null>(null);
 
-  useHydrateUserActiveSessions(user?.sub ?? 'me', sessions);
-
-  // Read from React Query cache
-  const { data: queryData } = useUserActiveSessions(user?.sub ?? 'me', {
-    refetchOnMount: false,
+  // Fetch sessions client-side via React Query.
+  const { data: queryData, isLoading } = useUserActiveSessionsGql(user?.sub ?? 'me', {
     staleTime: QUERY_STALE_TIME,
   });
 
-  const revokeMutation = useRevokeUserActiveSession(user?.sub ?? 'me', {
+  const revokeMutation = useRevokeUserActiveSessionGql(user?.sub ?? 'me', {
     onSuccess: () => {
       if (selectedSession?.name === currentSession) {
         return navigate(paths.auth.logOut, { replace: true });
@@ -81,62 +65,59 @@ export default function AccountActiveSessionsPage() {
     },
   });
 
-  // Use React Query data, fallback to SSR data
-  // Sort with current session first, then by createdAt descending
+  // Sort with current session first, then by createdAt descending.
   const sessionsData = useMemo(() => {
-    const data = queryData ?? sessions ?? [];
+    const data = queryData ?? [];
     return [...data].sort((a, b) => {
-      // Current session always first
       if (a.name === currentSession) return -1;
       if (b.name === currentSession) return 1;
-      // Then sort by createdAt descending (newest first)
       const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
       const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
       return dateB - dateA;
     });
-  }, [queryData, sessions, currentSession]);
+  }, [queryData, currentSession]);
 
   const revokeSession = useCallback(
-    async (session: UserActiveSession) => {
+    (session: UserActiveSession) => {
       setSelectedSession(session);
-      await confirm({
-        title: 'Revoke Session',
-        description: <span>Are you sure you want to revoke the session for {session.ip}?</span>,
-        submitText: 'Revoke',
-        cancelText: 'Cancel',
-        variant: 'destructive',
-        showConfirmInput: false,
-        onSubmit: async () => {
-          revokeMutation.mutate(session.name);
-        },
-      });
+      revokeMutation.mutate(session.name);
     },
-    [confirm, revokeMutation]
+    [revokeMutation]
   );
 
   const columns: ColumnDef<UserActiveSession>[] = useMemo(
     () => [
       {
-        header: 'IP',
-        accessorKey: 'ip',
-        id: 'ip',
-        meta: { className: 'min-w-[140px]' },
-        cell: ({ row }) => {
-          return (
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-foreground text-xs font-medium">{row.original.ip ?? '-'}</span>
-              {row.original.name === currentSession && (
-                <Badge
-                  type="quaternary"
-                  theme="outline"
-                  className="rounded-[8px] px-[7px] font-normal">
-                  Current session
-                </Badge>
-              )}
-            </div>
-          );
-        },
+        header: 'Device',
+        accessorKey: 'userAgent.formatted',
+        id: 'userAgent',
+        meta: { className: 'min-w-[160px]' },
+        cell: ({ row }) => (
+          <span className="text-foreground flex items-center justify-between text-xs">
+            {row.original.userAgent?.formatted ?? '-'}
+
+            {row.original.name === currentSession && (
+              <Badge
+                type="quaternary"
+                theme="outline"
+                className="rounded-[8px] px-[7px] font-normal"
+                data-e2e="current-session-badge">
+                Current session
+              </Badge>
+            )}
+          </span>
+        ),
       },
+      {
+        header: 'Location',
+        accessorKey: 'location.formatted',
+        id: 'location',
+        meta: { className: 'min-w-[160px]' },
+        cell: ({ row }) => (
+          <span className="text-foreground text-xs">{row.original.location?.formatted ?? '-'}</span>
+        ),
+      },
+
       {
         header: 'Created At',
         accessorKey: 'createdAt',
@@ -147,24 +128,42 @@ export default function AccountActiveSessionsPage() {
         },
       },
       {
-        header: 'Expires At',
-        accessorKey: 'expiresAt',
-        id: 'expiresAt',
+        header: 'Last Updated',
+        accessorKey: 'lastUpdatedAt',
+        id: 'lastUpdatedAt',
         meta: { className: 'min-w-[120px]' },
         cell: ({ row }) => {
-          return row.original.expiresAt ? <DateTime date={row.original.expiresAt} /> : '-';
+          return row.original.lastUpdatedAt ? <DateTime date={row.original.lastUpdatedAt} /> : '-';
         },
       },
       createActionsColumn<UserActiveSession>([
         {
           label: 'Revoke',
+          display: 'inline',
+          showLabel: false,
+          tooltip: 'Revoke',
+          variant: 'default',
           icon: <Icon icon={Trash2Icon} className="size-3.5" />,
-          onClick: (session) => revokeSession(session),
+          // Only disable the row whose mutation is in flight — leaves the
+          // current session locked out as before, and lets other rows stay
+          // clickable while one revoke is pending.
+          disabled: (row) =>
+            row.name === currentSession ||
+            (revokeMutation.isPending && selectedSession?.name === row.name),
+          onClick: (row) => revokeSession(row),
+          'data-e2e': 'revoke-session-button',
         },
       ]),
     ],
-    [currentSession, revokeSession]
+    [currentSession, revokeMutation.isPending, selectedSession, revokeSession]
   );
 
-  return <Table.Client columns={columns} data={sessionsData} empty="No active sessions found." />;
+  return (
+    <Table.Client
+      columns={columns}
+      data={sessionsData}
+      loading={isLoading}
+      empty="No active sessions found."
+    />
+  );
 }

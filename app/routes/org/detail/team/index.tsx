@@ -363,8 +363,7 @@ export default function OrgTeamPage() {
     <Table.Client
       columns={columns}
       data={orderedTeamMembers ?? []}
-      title="Team"
-      search="Search team members"
+      search="Search"
       onRowClick={(row) => {
         if (row.type !== 'member') return;
         navigate(

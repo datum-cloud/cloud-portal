@@ -33,7 +33,6 @@
     "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./app/*"]
     },

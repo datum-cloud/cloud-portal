@@ -157,7 +157,7 @@ export default function ExportPoliciesPage() {
       data={policies ?? []}
       title="Export Policies"
       description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
-      search="Search export policies"
+      search="Search"
       onRowClick={(row) => {
         navigate(
           getPathWithParams(paths.project.detail.metrics.detail.overview, {

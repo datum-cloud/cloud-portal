@@ -51,10 +51,6 @@ export default defineConfig((config) => {
     '@': resolve(__dirname, './app'),
   };
 
-  if (isProduction) {
-    aliases['react-dom/server'] = 'react-dom/server.node';
-  }
-
   return {
     resolve: {
       alias: aliases,
@@ -64,22 +60,17 @@ export default defineConfig((config) => {
     },
     optimizeDeps: {
       include: [
-        '@radix-ui/react-avatar',
-        '@radix-ui/react-checkbox',
-        '@radix-ui/react-collapsible',
-        '@radix-ui/react-dialog',
-        '@radix-ui/react-dropdown-menu',
-        '@radix-ui/react-hover-card',
-        '@radix-ui/react-label',
-        '@radix-ui/react-popover',
-        '@radix-ui/react-radio-group',
-        '@radix-ui/react-select',
-        '@radix-ui/react-separator',
-        '@radix-ui/react-slot',
-        '@radix-ui/react-switch',
-        '@radix-ui/react-tabs',
-        '@radix-ui/react-tooltip',
-        '@radix-ui/react-visually-hidden',
+        // Top-imported datum-ui subpaths (counts from PR #1205 audit)
+        '@datum-cloud/datum-ui/popover', // 9 consumer files
+        '@datum-cloud/datum-ui/chart', // 6
+        '@datum-cloud/datum-ui/command', // 5
+        '@datum-cloud/datum-ui/separator', // 4
+        '@datum-cloud/datum-ui/avatar', // 4
+        '@datum-cloud/datum-ui/table', // 3
+        '@datum-cloud/datum-ui/select', // 3
+        '@datum-cloud/datum-ui/button', // heavy use across migrated files
+        '@datum-cloud/datum-ui/badge', // heavy use
+        '@datum-cloud/datum-ui/utils', // cn helper, 81 consumer files
       ],
     },
     ssr: {
@@ -111,6 +102,19 @@ export default defineConfig((config) => {
       chunkSizeWarningLimit: 1000, // Increase size limit to 1000kb
       target: 'esnext', // Compiles to modern JavaScript features for latest browsers
       sourcemap: sentryConfig.isSourcemapEnabled ? 'hidden' : false,
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Splits heavy vendor packages into stable chunks so feature
+            // changes don't invalidate the entire JS payload for repeat visits.
+            'vendor-react': ['react', 'react-dom', 'react-router'],
+            'vendor-datum-ui': ['@datum-cloud/datum-ui'],
+            'vendor-recharts': ['recharts'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-streamdown': ['streamdown'], // pulls mermaid, elk, shiki — ~5MB
+          },
+        },
+      },
     },
   };
 });

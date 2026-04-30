@@ -8,7 +8,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useDomains(
   projectId: string,
@@ -139,38 +138,4 @@ export function useRefreshDomainRegistration(
       options?.onSuccess?.(...args);
     },
   });
-}
-
-/**
- * Hydrates React Query cache with SSR data for domains list.
- */
-export function useHydrateDomains(projectId: string, initialData: Domain[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(domainKeys.list(projectId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, initialData]);
-}
-
-/**
- * Hydrates React Query cache with SSR data for single domain.
- */
-export function useHydrateDomain(
-  projectId: string,
-  name: string,
-  initialData: Domain | null | undefined
-) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData && name) {
-      queryClient.setQueryData(domainKeys.detail(projectId, name), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, name, initialData]);
 }

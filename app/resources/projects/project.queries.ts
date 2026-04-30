@@ -13,7 +13,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useProjects(
   orgId: string,
@@ -93,38 +92,4 @@ export function useDeleteProject(options?: UseMutationOptions<void, Error, strin
       options?.onSettled?.(...args);
     },
   });
-}
-
-/**
- * Hydrates React Query cache with SSR data for projects list.
- */
-export function useHydrateProjects(orgId: string, initialData: Project[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(projectKeys.list(orgId), {
-        items: initialData,
-        hasMore: false,
-        nextCursor: null,
-      });
-      hydrated.current = true;
-    }
-  }, [queryClient, orgId, initialData]);
-}
-
-/**
- * Hydrates React Query cache with SSR data for single project.
- */
-export function useHydrateProject(name: string, initialData: Project) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(projectKeys.detail(name), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, name, initialData]);
 }

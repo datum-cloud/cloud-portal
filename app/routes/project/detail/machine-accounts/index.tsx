@@ -7,7 +7,6 @@ import { CreateMachineAccountWizard } from '@/features/machine-account/wizard/cr
 import {
   createMachineAccountService,
   useDeleteMachineAccount,
-  useHydrateMachineAccounts,
   useMachineAccounts,
   useToggleMachineAccount,
   type CreateMachineAccountKeyResponse,
@@ -21,6 +20,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ColumnDef } from '@tanstack/react-table';
@@ -74,8 +74,10 @@ function UseCaseTile({
       <p className="text-muted-foreground text-sm">{description}</p>
       <ul className="flex flex-col gap-1.5">
         {bullets.map((b) => (
-          <li key={b} className="text-muted-foreground flex items-start gap-2 text-xs">
-            <span className="text-primary mt-0.5 shrink-0">→</span>
+          <li
+            key={b}
+            className="text-muted-foreground flex items-center justify-start gap-2 text-xs">
+            <span className="text-primary mb-0.5 shrink-0">→</span>
             {b}
           </li>
         ))}
@@ -91,14 +93,11 @@ interface MachineAccountsEmptyStateProps {
 
 function MachineAccountsEmptyState({ onSelectUseCase }: MachineAccountsEmptyStateProps) {
   return (
-    <div className="flex flex-col gap-8 py-10">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-foreground text-lg font-semibold">Machine Accounts</h2>
-        <p className="text-muted-foreground max-w-xl text-sm">
-          Machine accounts give non-human workloads a cryptographic identity to authenticate with
-          Datum APIs — no shared passwords or long-lived tokens.
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageTitle
+        title="Machine Accounts"
+        description="Machine accounts give non-human workloads a cryptographic identity to authenticate with Datum APIs — no shared passwords or long-lived tokens."
+      />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <UseCaseTile
           icon={GitBranchIcon}
@@ -154,9 +153,9 @@ export default function MachineAccountsPage() {
     ? (initialData ?? []).filter((a) => a.name !== deletedName)
     : (initialData ?? []);
 
-  useHydrateMachineAccounts(projectId ?? '', seededData);
-
   const { data: queryData } = useMachineAccounts(projectId ?? '', {
+    initialData: seededData,
+    initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
@@ -291,7 +290,7 @@ export default function MachineAccountsPage() {
           columns={columns}
           data={data}
           title="Machine Accounts"
-          search="Search machine accounts"
+          search="Search"
           onRowClick={(row) =>
             navigate(
               getPathWithParams(paths.project.detail.machineAccounts.detail.overview, {

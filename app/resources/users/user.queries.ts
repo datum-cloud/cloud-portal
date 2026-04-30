@@ -13,7 +13,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useEffect, useRef } from 'react';
 
 export function useUser(
   userId: string,
@@ -135,17 +134,4 @@ export function useRevokeUserActiveSession(
     },
     ...options,
   });
-}
-
-export function useHydrateUserActiveSessions(userId: string, initialData: UserActiveSession[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      // Use the same query key format as useDnsRecords and useDnsRecordsWatch
-      queryClient.setQueryData(userKeys.activeSessions(userId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, userId, initialData]);
 }

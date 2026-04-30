@@ -146,7 +146,7 @@ export default function AccountOrganizations() {
                 </Button>
               }>
               <CardList.Search<Organization>
-                placeholder="Search organizations"
+                placeholder="Search"
                 fields={['displayName', 'name']}
               />
             </CardList.Header>

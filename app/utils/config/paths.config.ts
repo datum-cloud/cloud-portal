@@ -42,7 +42,6 @@ export const paths = {
         invite: '/org/[orgId]/team/invite',
         roles: '/org/[orgId]/team/[memberId]/roles',
         groups: '/org/[orgId]/team/groups',
-        groupCreate: '/org/[orgId]/team/groups/create',
         groupDetail: '/org/[orgId]/team/groups/[groupId]',
       },
       projects: {

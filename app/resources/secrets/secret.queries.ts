@@ -7,7 +7,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useSecrets(
   projectId: string,
@@ -93,34 +92,4 @@ export function useDeleteSecret(
       options?.onSuccess?.(...args);
     },
   });
-}
-
-/**
- * Hydrates React Query cache with SSR data for secrets list.
- */
-export function useHydrateSecrets(projectId: string, initialData: Secret[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(secretKeys.list(projectId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, initialData]);
-}
-
-/**
- * Hydrates React Query cache with SSR data for single secret.
- */
-export function useHydrateSecret(projectId: string, name: string, initialData: Secret) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(secretKeys.detail(projectId, name), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, name, initialData]);
 }

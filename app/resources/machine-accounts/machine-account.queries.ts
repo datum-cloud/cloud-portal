@@ -14,7 +14,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-import { useRef, useEffect } from 'react';
 
 export function useMachineAccounts(
   projectId: string,
@@ -180,32 +179,4 @@ export function useRevokeMachineAccountKey(
       options?.onSuccess?.(...args);
     },
   });
-}
-
-export function useHydrateMachineAccounts(projectId: string, initialData: MachineAccount[]) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(machineAccountKeys.list(projectId), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, initialData]);
-}
-
-export function useHydrateMachineAccount(
-  projectId: string,
-  name: string,
-  initialData: MachineAccount
-) {
-  const queryClient = useQueryClient();
-  const hydrated = useRef(false);
-
-  useEffect(() => {
-    if (!hydrated.current && initialData) {
-      queryClient.setQueryData(machineAccountKeys.detail(projectId, name), initialData);
-      hydrated.current = true;
-    }
-  }, [queryClient, projectId, name, initialData]);
 }

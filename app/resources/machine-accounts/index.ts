@@ -40,8 +40,6 @@ export {
   useMachineAccountKeys,
   useCreateMachineAccountKey,
   useRevokeMachineAccountKey,
-  useHydrateMachineAccounts,
-  useHydrateMachineAccount,
 } from './machine-account.queries';
 
 export {

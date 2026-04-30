@@ -3,7 +3,7 @@ import { ProfileIdentity } from '@/components/profile-identity';
 import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
 import {
   createMachineAccountService,
-  useHydrateMachineAccount,
+  useMachineAccount,
   useDeleteMachineAccount,
   useUpdateMachineAccount,
   type MachineAccount,
@@ -58,7 +58,11 @@ export default function MachineAccountDetailLayout() {
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
 
-  useHydrateMachineAccount(projectId ?? '', machineAccountId ?? '', account);
+  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
+  useMachineAccount(projectId ?? '', machineAccountId ?? '', {
+    initialData: account,
+    initialDataUpdatedAt: Date.now(),
+  });
 
   const deleteMutation = useDeleteMachineAccount(projectId ?? '', {
     onSuccess: (_, name) => {
@@ -153,7 +157,7 @@ export default function MachineAccountDetailLayout() {
             size="lg"
             avatarOnly
             fallbackIcon={BotIcon}
-            fallbackClassName="bg-muted text-muted-foreground"
+            fallbackClassName="bg-card text-muted-foreground"
           />
           <div className="flex flex-col gap-1">
             <h1 className="text-foreground text-lg font-semibold">{displayName}</h1>
@@ -164,8 +168,7 @@ export default function MachineAccountDetailLayout() {
                 )}
               </span>
               <span className="bg-border inline-block size-1 rounded-full" />
-              <span className="font-medium">Machine account</span>
-              <span className="bg-border inline-block size-1 rounded-full" />
+
               <Badge
                 type={account.status === 'Active' ? 'success' : 'secondary'}
                 className="text-xs">
