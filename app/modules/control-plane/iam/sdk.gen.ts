@@ -35,6 +35,9 @@ import type {
   CreateIamMiloapisComV1Alpha1ProtectedResourceData,
   CreateIamMiloapisComV1Alpha1ProtectedResourceErrors,
   CreateIamMiloapisComV1Alpha1ProtectedResourceResponses,
+  CreateIamMiloapisComV1Alpha1ServiceAccountData,
+  CreateIamMiloapisComV1Alpha1ServiceAccountErrors,
+  CreateIamMiloapisComV1Alpha1ServiceAccountResponses,
   CreateIamMiloapisComV1Alpha1UserData,
   CreateIamMiloapisComV1Alpha1UserDeactivationData,
   CreateIamMiloapisComV1Alpha1UserDeactivationErrors,
@@ -77,6 +80,9 @@ import type {
   DeleteIamMiloapisComV1Alpha1CollectionProtectedResourceData,
   DeleteIamMiloapisComV1Alpha1CollectionProtectedResourceErrors,
   DeleteIamMiloapisComV1Alpha1CollectionProtectedResourceResponses,
+  DeleteIamMiloapisComV1Alpha1CollectionServiceAccountData,
+  DeleteIamMiloapisComV1Alpha1CollectionServiceAccountErrors,
+  DeleteIamMiloapisComV1Alpha1CollectionServiceAccountResponses,
   DeleteIamMiloapisComV1Alpha1CollectionUserData,
   DeleteIamMiloapisComV1Alpha1CollectionUserDeactivationData,
   DeleteIamMiloapisComV1Alpha1CollectionUserDeactivationErrors,
@@ -119,6 +125,9 @@ import type {
   DeleteIamMiloapisComV1Alpha1ProtectedResourceData,
   DeleteIamMiloapisComV1Alpha1ProtectedResourceErrors,
   DeleteIamMiloapisComV1Alpha1ProtectedResourceResponses,
+  DeleteIamMiloapisComV1Alpha1ServiceAccountData,
+  DeleteIamMiloapisComV1Alpha1ServiceAccountErrors,
+  DeleteIamMiloapisComV1Alpha1ServiceAccountResponses,
   DeleteIamMiloapisComV1Alpha1UserData,
   DeleteIamMiloapisComV1Alpha1UserDeactivationData,
   DeleteIamMiloapisComV1Alpha1UserDeactivationErrors,
@@ -173,6 +182,9 @@ import type {
   ListIamMiloapisComV1Alpha1RoleForAllNamespacesData,
   ListIamMiloapisComV1Alpha1RoleForAllNamespacesErrors,
   ListIamMiloapisComV1Alpha1RoleForAllNamespacesResponses,
+  ListIamMiloapisComV1Alpha1ServiceAccountData,
+  ListIamMiloapisComV1Alpha1ServiceAccountErrors,
+  ListIamMiloapisComV1Alpha1ServiceAccountResponses,
   ListIamMiloapisComV1Alpha1UserData,
   ListIamMiloapisComV1Alpha1UserDeactivationData,
   ListIamMiloapisComV1Alpha1UserDeactivationErrors,
@@ -251,6 +263,12 @@ import type {
   PatchIamMiloapisComV1Alpha1ProtectedResourceStatusData,
   PatchIamMiloapisComV1Alpha1ProtectedResourceStatusErrors,
   PatchIamMiloapisComV1Alpha1ProtectedResourceStatusResponses,
+  PatchIamMiloapisComV1Alpha1ServiceAccountData,
+  PatchIamMiloapisComV1Alpha1ServiceAccountErrors,
+  PatchIamMiloapisComV1Alpha1ServiceAccountResponses,
+  PatchIamMiloapisComV1Alpha1ServiceAccountStatusData,
+  PatchIamMiloapisComV1Alpha1ServiceAccountStatusErrors,
+  PatchIamMiloapisComV1Alpha1ServiceAccountStatusResponses,
   PatchIamMiloapisComV1Alpha1UserData,
   PatchIamMiloapisComV1Alpha1UserDeactivationData,
   PatchIamMiloapisComV1Alpha1UserDeactivationErrors,
@@ -335,6 +353,12 @@ import type {
   ReadIamMiloapisComV1Alpha1ProtectedResourceStatusData,
   ReadIamMiloapisComV1Alpha1ProtectedResourceStatusErrors,
   ReadIamMiloapisComV1Alpha1ProtectedResourceStatusResponses,
+  ReadIamMiloapisComV1Alpha1ServiceAccountData,
+  ReadIamMiloapisComV1Alpha1ServiceAccountErrors,
+  ReadIamMiloapisComV1Alpha1ServiceAccountResponses,
+  ReadIamMiloapisComV1Alpha1ServiceAccountStatusData,
+  ReadIamMiloapisComV1Alpha1ServiceAccountStatusErrors,
+  ReadIamMiloapisComV1Alpha1ServiceAccountStatusResponses,
   ReadIamMiloapisComV1Alpha1UserData,
   ReadIamMiloapisComV1Alpha1UserDeactivationData,
   ReadIamMiloapisComV1Alpha1UserDeactivationErrors,
@@ -419,6 +443,12 @@ import type {
   ReplaceIamMiloapisComV1Alpha1ProtectedResourceStatusData,
   ReplaceIamMiloapisComV1Alpha1ProtectedResourceStatusErrors,
   ReplaceIamMiloapisComV1Alpha1ProtectedResourceStatusResponses,
+  ReplaceIamMiloapisComV1Alpha1ServiceAccountData,
+  ReplaceIamMiloapisComV1Alpha1ServiceAccountErrors,
+  ReplaceIamMiloapisComV1Alpha1ServiceAccountResponses,
+  ReplaceIamMiloapisComV1Alpha1ServiceAccountStatusData,
+  ReplaceIamMiloapisComV1Alpha1ServiceAccountStatusErrors,
+  ReplaceIamMiloapisComV1Alpha1ServiceAccountStatusResponses,
   ReplaceIamMiloapisComV1Alpha1UserData,
   ReplaceIamMiloapisComV1Alpha1UserDeactivationData,
   ReplaceIamMiloapisComV1Alpha1UserDeactivationErrors,
@@ -442,7 +472,8 @@ import type {
 export type Options<
   TData extends TDataShape = TDataShape,
   ThrowOnError extends boolean = boolean,
-> = Options2<TData, ThrowOnError> & {
+  TResponse = unknown,
+> = Options2<TData, ThrowOnError, TResponse> & {
   /**
    * You can provide a client instance returned by `createClient()` instead of
    * individual options. This might be also useful if you want to implement a
@@ -2488,6 +2519,176 @@ export const listIamMiloapisComV1Alpha1RoleForAllNamespaces = <
     ListIamMiloapisComV1Alpha1RoleForAllNamespacesErrors,
     ThrowOnError
   >({ url: '/apis/iam.miloapis.com/v1alpha1/roles', ...options });
+
+/**
+ * delete collection of ServiceAccount
+ */
+export const deleteIamMiloapisComV1Alpha1CollectionServiceAccount = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<DeleteIamMiloapisComV1Alpha1CollectionServiceAccountData, ThrowOnError>
+) =>
+  (options?.client ?? client).delete<
+    DeleteIamMiloapisComV1Alpha1CollectionServiceAccountResponses,
+    DeleteIamMiloapisComV1Alpha1CollectionServiceAccountErrors,
+    ThrowOnError
+  >({ url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts', ...options });
+
+/**
+ * list objects of kind ServiceAccount
+ */
+export const listIamMiloapisComV1Alpha1ServiceAccount = <ThrowOnError extends boolean = false>(
+  options?: Options<ListIamMiloapisComV1Alpha1ServiceAccountData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<
+    ListIamMiloapisComV1Alpha1ServiceAccountResponses,
+    ListIamMiloapisComV1Alpha1ServiceAccountErrors,
+    ThrowOnError
+  >({ url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts', ...options });
+
+/**
+ * create a ServiceAccount
+ */
+export const createIamMiloapisComV1Alpha1ServiceAccount = <ThrowOnError extends boolean = false>(
+  options: Options<CreateIamMiloapisComV1Alpha1ServiceAccountData, ThrowOnError>
+) =>
+  (options.client ?? client).post<
+    CreateIamMiloapisComV1Alpha1ServiceAccountResponses,
+    CreateIamMiloapisComV1Alpha1ServiceAccountErrors,
+    ThrowOnError
+  >({
+    url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete a ServiceAccount
+ */
+export const deleteIamMiloapisComV1Alpha1ServiceAccount = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteIamMiloapisComV1Alpha1ServiceAccountData, ThrowOnError>
+) =>
+  (options.client ?? client).delete<
+    DeleteIamMiloapisComV1Alpha1ServiceAccountResponses,
+    DeleteIamMiloapisComV1Alpha1ServiceAccountErrors,
+    ThrowOnError
+  >({
+    url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified ServiceAccount
+ */
+export const readIamMiloapisComV1Alpha1ServiceAccount = <ThrowOnError extends boolean = false>(
+  options: Options<ReadIamMiloapisComV1Alpha1ServiceAccountData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadIamMiloapisComV1Alpha1ServiceAccountResponses,
+    ReadIamMiloapisComV1Alpha1ServiceAccountErrors,
+    ThrowOnError
+  >({ url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}', ...options });
+
+/**
+ * partially update the specified ServiceAccount
+ */
+export const patchIamMiloapisComV1Alpha1ServiceAccount = <ThrowOnError extends boolean = false>(
+  options: Options<PatchIamMiloapisComV1Alpha1ServiceAccountData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchIamMiloapisComV1Alpha1ServiceAccountResponses,
+    PatchIamMiloapisComV1Alpha1ServiceAccountErrors,
+    ThrowOnError
+  >({
+    url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified ServiceAccount
+ */
+export const replaceIamMiloapisComV1Alpha1ServiceAccount = <ThrowOnError extends boolean = false>(
+  options: Options<ReplaceIamMiloapisComV1Alpha1ServiceAccountData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceIamMiloapisComV1Alpha1ServiceAccountResponses,
+    ReplaceIamMiloapisComV1Alpha1ServiceAccountErrors,
+    ThrowOnError
+  >({
+    url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified ServiceAccount
+ */
+export const readIamMiloapisComV1Alpha1ServiceAccountStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadIamMiloapisComV1Alpha1ServiceAccountStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadIamMiloapisComV1Alpha1ServiceAccountStatusResponses,
+    ReadIamMiloapisComV1Alpha1ServiceAccountStatusErrors,
+    ThrowOnError
+  >({ url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}/status', ...options });
+
+/**
+ * partially update status of the specified ServiceAccount
+ */
+export const patchIamMiloapisComV1Alpha1ServiceAccountStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchIamMiloapisComV1Alpha1ServiceAccountStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchIamMiloapisComV1Alpha1ServiceAccountStatusResponses,
+    PatchIamMiloapisComV1Alpha1ServiceAccountStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified ServiceAccount
+ */
+export const replaceIamMiloapisComV1Alpha1ServiceAccountStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceIamMiloapisComV1Alpha1ServiceAccountStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceIamMiloapisComV1Alpha1ServiceAccountStatusResponses,
+    ReplaceIamMiloapisComV1Alpha1ServiceAccountStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/iam.miloapis.com/v1alpha1/serviceaccounts/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
 
 /**
  * delete collection of UserDeactivation

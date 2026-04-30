@@ -235,7 +235,7 @@ export type PolicyBindingService = ReturnType<typeof createPolicyBindingService>
 /**
  * Project-scoped policy binding service.
  * Uses the project control plane endpoint and the 'default' namespace,
- * matching how other project-scoped resources (e.g. MachineAccount) are accessed.
+ * matching how other project-scoped resources (e.g. ServiceAccount) are accessed.
  */
 export function createProjectPolicyBindingService() {
   return {

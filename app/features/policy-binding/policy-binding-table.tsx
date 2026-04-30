@@ -1,5 +1,6 @@
 import { getPolicyBindingColumns } from './policy-binding.columns';
 import { Table, createActionsColumn } from '@/components/table';
+import type { EmptyContentConfig } from '@/components/table/types';
 import type { PolicyBinding } from '@/resources/policy-bindings';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import type { ReactNode } from 'react';
@@ -12,6 +13,7 @@ export type PolicyBindingTableRowAction = Omit<ActionItem<PolicyBinding>, 'onCli
 
 export type PolicyBindingTableProps = {
   bindings: PolicyBinding[];
+  empty?: string | EmptyContentConfig;
   tableTitle?: {
     title?: string;
     description?: string;
@@ -23,6 +25,7 @@ export type PolicyBindingTableProps = {
 
 export const PolicyBindingTable = ({
   bindings,
+  empty,
   tableTitle,
   rowActions = [],
   onRowClick,
@@ -49,7 +52,7 @@ export const PolicyBindingTable = ({
       description={tableTitle?.description}
       actions={actions}
       onRowClick={onRowClick}
-      empty="No roles found."
+      empty={empty ?? 'No roles found.'}
     />
   );
 };

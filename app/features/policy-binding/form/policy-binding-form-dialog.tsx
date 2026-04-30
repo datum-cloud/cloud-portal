@@ -359,7 +359,7 @@ export const PolicyBindingFormDialog = forwardRef<
         role: data.role,
         roleNamespace: data.roleNamespace,
         subjects: data.subjects.map((s) => ({
-          kind: s.kind as 'User' | 'Group' | 'MachineAccount',
+          kind: s.kind as 'User' | 'Group' | 'ServiceAccount',
           name: s.name,
           uid: s.uid,
         })),

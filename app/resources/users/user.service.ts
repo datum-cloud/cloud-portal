@@ -167,7 +167,7 @@ export function createUserService() {
 
       try {
         const response = await listIdentityMiloapisComV1Alpha1UserIdentity({
-          baseUrl: getUserScopedBase(userId),
+          baseURL: getUserScopedBase(userId),
         });
 
         logger.service(SERVICE_NAME, 'getUserIdentity', {
@@ -193,7 +193,7 @@ export function createUserService() {
 
       try {
         const response = await listIdentityMiloapisComV1Alpha1Session({
-          baseUrl: getUserScopedBase(userId),
+          baseURL: getUserScopedBase(userId),
         });
 
         logger.service(SERVICE_NAME, 'getUserActiveSessions', {
@@ -215,7 +215,7 @@ export function createUserService() {
 
       try {
         await deleteIdentityMiloapisComV1Alpha1Session({
-          baseUrl: getUserScopedBase(userId),
+          baseURL: getUserScopedBase(userId),
           path: {
             name: sessionId,
           },

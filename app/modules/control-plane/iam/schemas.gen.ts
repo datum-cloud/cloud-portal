@@ -1280,14 +1280,14 @@ export const com_miloapis_iam_v1alpha1_PolicyBindingSchema = {
           minItems: 1,
           items: {
             description:
-              'Subject contains a reference to the object or user identities a role binding applies to.\nThis can be a User, Group, or MachineAccount.',
+              'Subject contains a reference to the object or user identities a role binding applies to.\nThis can be a User, Group, or ServiceAccount.',
             type: 'object',
             required: ['kind', 'name'],
             properties: {
               kind: {
                 description: 'Kind of object being referenced. Values defined in Kind constants.',
                 type: 'string',
-                enum: ['User', 'Group', 'MachineAccount'],
+                enum: ['User', 'Group', 'ServiceAccount'],
               },
               name: {
                 description:
@@ -1296,7 +1296,7 @@ export const com_miloapis_iam_v1alpha1_PolicyBindingSchema = {
               },
               namespace: {
                 description:
-                  'Namespace of the referenced object.\nIf not specified for a Group, User or MachineAccount, it is ignored.',
+                  'Namespace of the referenced object.\nIf not specified for a Group, User or ServiceAccount, it is ignored.',
                 type: 'string',
               },
               uid: {
@@ -1856,6 +1856,165 @@ export const com_miloapis_iam_v1alpha1_RoleListSchema = {
     {
       group: 'iam.miloapis.com',
       kind: 'RoleList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_ServiceAccountSchema = {
+  description: 'ServiceAccount is the Schema for the service accounts API',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'ServiceAccountSpec defines the desired state of ServiceAccount',
+      type: 'object',
+      properties: {
+        state: {
+          description:
+            'The state of the service account. This state can be safely changed as needed.\nStates:\n  - Active: The service account can be used to authenticate.\n  - Inactive: The service account is prohibited to be used to authenticate, and revokes all existing sessions.',
+          type: 'string',
+          default: 'Active',
+          enum: ['Active', 'Inactive'],
+        },
+      },
+    },
+    status: {
+      description: 'ServiceAccountStatus defines the observed state of ServiceAccount',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            'Conditions provide conditions that represent the current status of the ServiceAccount.',
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+        },
+        email: {
+          description:
+            'The computed email of the service account following the pattern:\n{metadata.name}@{metadata.namespace}.{project.metadata.name}.{global-suffix}',
+          type: 'string',
+        },
+        state: {
+          description:
+            'State represents the current activation state of the service account from the auth provider.\nThis field tracks the state from the previous generation and is updated when state changes\nare successfully propagated to the auth provider. It helps optimize performance by only\nupdating the auth provider when a state change is detected.',
+          type: 'string',
+          enum: ['Active', 'Inactive'],
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'ServiceAccount',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_ServiceAccountListSchema = {
+  description: 'ServiceAccountList is a list of ServiceAccount',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of serviceaccounts. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.ServiceAccount',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'ServiceAccountList',
       version: 'v1alpha1',
     },
   ],
