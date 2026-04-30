@@ -64,6 +64,7 @@ export const loader = withMiddleware(
       return data({
         user,
         helpscoutSignature: helpscoutSignaturePromise,
+        helpscoutBeaconId: serverEnv.public.helpscoutBeaconId ?? null,
       });
     } catch {
       return redirect(paths.auth.logOut);
@@ -90,8 +91,11 @@ function FathomWrapper({ children }: { children: ReactNode }) {
 }
 
 export default function PrivateLayout() {
-  const data: { user: User; helpscoutSignature: Promise<string | null> } =
-    useLoaderData<typeof loader>();
+  const data: {
+    user: User;
+    helpscoutSignature: Promise<string | null>;
+    helpscoutBeaconId: string | null;
+  } = useLoaderData<typeof loader>();
 
   const { setTheme } = useTheme();
 
@@ -119,9 +123,9 @@ export default function PrivateLayout() {
             <Suspense fallback={null}>
               <Await resolve={data?.helpscoutSignature} errorElement={null}>
                 {(helpscoutSignature) =>
-                  helpscoutSignature && window.ENV?.helpscoutBeaconId ? (
+                  helpscoutSignature && data?.helpscoutBeaconId ? (
                     <HelpScoutBeacon
-                      beaconId={window.ENV.helpscoutBeaconId}
+                      beaconId={data.helpscoutBeaconId}
                       displayStyle="manual"
                       user={{
                         name: `${data?.user?.givenName} ${data?.user?.familyName}`,
