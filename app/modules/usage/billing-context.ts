@@ -20,9 +20,15 @@ import {
   type ComMiloapisBillingV1Alpha1BillingAccountBinding,
   type ComMiloapisBillingV1Alpha1BillingAccountBindingList,
 } from '@/modules/control-plane/billing';
-import { logger } from '@/modules/logger';
 import { getOrgScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
+
+// Intentionally no `@/modules/logger` import — that module pulls in
+// `env.server`, and the Cypress component-test bundle now follows the
+// `@/` alias all the way through, which exits the test runner on
+// `process.exit(1)` from server-only validation. The route logs the
+// lookup-error case via `BillingContext.errorMessage`; keeping this
+// resolver browser-safe lets the test import it directly.
 
 export type BillingContextStatus =
   /** Active binding for the project — emit. */
@@ -42,6 +48,8 @@ export interface BillingContext {
   accountName?: string;
   /** metadata.name of the binding (Active when 'ready', otherwise first match). */
   bindingName?: string;
+  /** Error message captured when status === 'lookup-error'. The route logs it. */
+  errorMessage?: string;
 }
 
 /**
@@ -89,12 +97,10 @@ export async function resolveBillingContext(
   try {
     bindings = await lister(orgName);
   } catch (err) {
-    logger.warn('usage.billing-context.lookup-failed', {
-      orgName,
-      projectName,
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return { status: 'lookup-error' };
+    return {
+      status: 'lookup-error',
+      errorMessage: err instanceof Error ? err.message : String(err),
+    };
   }
 
   const projectBindings = bindings.filter((b) => b.spec?.projectRef?.name === projectName);

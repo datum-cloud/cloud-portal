@@ -104,6 +104,13 @@ assistantRoutes.post('/', async (c) => {
           // resolve (no orgName, RBAC, network) falls through to emit —
           // the Gateway is authoritative.
           const ctx = await resolveBillingContext({ orgName, projectName });
+          if (ctx.status === 'lookup-error') {
+            logger.warn('usage.billing-context.lookup-failed', {
+              projectId: projectName,
+              orgId: orgName,
+              error: ctx.errorMessage,
+            });
+          }
           if (shouldSkipEmit(ctx)) {
             logger.info('usage.emit.skipped', {
               reason: ctx.status,

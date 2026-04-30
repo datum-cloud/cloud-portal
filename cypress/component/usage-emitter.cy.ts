@@ -1,13 +1,15 @@
+// Import the pure submodules directly. The `@/modules/usage` barrel
+// also re-exports `emitter.ts`, which depends on `@/utils/env/env.server`
+// and would call `process.exit(1)` inside the Cypress browser bundle on
+// validation failure. Each of these files is browser-safe.
+import { buildAssistantUsageEvents } from '@/modules/usage/assistant-events';
+import { resolveBillingContext, shouldSkipEmit } from '@/modules/usage/billing-context';
 import {
   ASSISTANT_METERS,
   ASSISTANT_RESOURCE_GROUP,
   ASSISTANT_RESOURCE_KIND,
-  buildAssistantUsageEvents,
-  isUlid,
-  resolveBillingContext,
-  shouldSkipEmit,
-  ulid,
-} from '@/modules/usage';
+} from '@/modules/usage/meters';
+import { isUlid, ulid } from '@/modules/usage/ulid';
 
 describe('ulid', () => {
   it('produces a 26-character Crockford-base32 string', () => {
@@ -211,6 +213,9 @@ describe('resolveBillingContext', () => {
       }
     );
     expect(ctx.status).to.equal('lookup-error');
+    // The route is responsible for logging this; the resolver only
+    // surfaces the message so it stays browser-safe.
+    expect(ctx.errorMessage).to.equal('boom');
     expect(shouldSkipEmit(ctx)).to.equal(false);
   });
 });
