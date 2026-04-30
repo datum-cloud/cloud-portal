@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Service catalog registration for the Datum Cloud AI assistant.
+#
+# Owned by this repo for the same reason `config/billing/` is: the
+# `services` API surface lives inside Milo, but the registration of a
+# concrete `services.miloapis.com.Service` is a deployable artefact
+# that the producing service publishes as part of its own deployment
+# process. See
+# https://github.com/datum-cloud/services/pull/2#issuecomment for the
+# canonical decision.
+#
+# Ships in `phase: Draft`. Promotion to `Published` is gated on the
+# services-operator landing in staging and the Service shape being
+# signed off. This bundle is NOT applied by the cloud-portal Deployment
+# overlay -- it is deployed into the services-operator's namespace by
+# Flux from the infra repo alongside every other producer's Service
+# registration.
+resources:
+  - services_v1alpha1_service_assistant.yaml

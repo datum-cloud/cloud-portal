@@ -1,0 +1,19 @@
+apiVersion: services.miloapis.com/v1alpha1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: cloud-portal
+    app.kubernetes.io/managed-by: kustomize
+  name: assistant-miloapis-com
+spec:
+  serviceName: assistant.miloapis.com
+  phase: Draft
+  displayName: AI Assistant
+  description: |
+    Conversational AI assistance embedded in the Datum Cloud portal.
+    Helps users explore their resources, understand telemetry, and run
+    guided workflows. Billed via the assistant.miloapis.com/conversation
+    meter family declared by this service.
+  owner:
+    producerProjectRef:
+      name: cloud-portal

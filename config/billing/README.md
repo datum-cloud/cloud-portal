@@ -4,7 +4,9 @@ Catalog identifiers the cloud-portal emits usage events against. Owned
 by this repo because the rule established on
 [milo-os/billing#11](https://github.com/milo-os/billing/pull/11#issuecomment-4343165104)
 is "meter definitions live with the service that produces the
-metering events".
+metering events". The same rule put the `Service` registration in
+[`config/services/`](../services/README.md) — see that README for the
+producer-side identity (`serviceName`, `producerProjectRef`).
 
 ## Contents
 
