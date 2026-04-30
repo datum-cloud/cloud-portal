@@ -1,0 +1,28 @@
+apiVersion: billing.miloapis.com/v1alpha1
+kind: MeterDefinition
+metadata:
+  labels:
+    app.kubernetes.io/name: cloud-portal
+    app.kubernetes.io/managed-by: kustomize
+    services.miloapis.com/owner-service: assistant.miloapis.com
+  name: assistant-conversation-cache-read-tokens
+spec:
+  meterName: assistant.miloapis.com/conversation/cache-read-tokens
+  displayName: Assistant Cache-Read Tokens
+  description: |
+    Tokens served from the model provider's prompt cache during an
+    assistant request. Charged at a different rate than fresh input
+    tokens by every provider that offers prompt caching, so they are
+    metered as a distinct dimension. Summed across the billing period.
+  phase: Draft
+  measurement:
+    aggregation: Sum
+    unit: "{token}"
+    dimensions:
+      - model
+      - region
+  billing:
+    consumedUnit: "{token}"
+    pricingUnit: "k{token}"
+  monitoredResourceTypes:
+    - assistant.miloapis.com/Conversation

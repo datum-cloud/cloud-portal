@@ -1,0 +1,29 @@
+apiVersion: billing.miloapis.com/v1alpha1
+kind: MeterDefinition
+metadata:
+  labels:
+    app.kubernetes.io/name: cloud-portal
+    app.kubernetes.io/managed-by: kustomize
+    services.miloapis.com/owner-service: assistant.miloapis.com
+  name: assistant-conversation-cache-write-tokens
+spec:
+  meterName: assistant.miloapis.com/conversation/cache-write-tokens
+  displayName: Assistant Cache-Write Tokens
+  description: |
+    Tokens written to the model provider's prompt cache during an
+    assistant request -- the one-time cost of populating a cached
+    prefix that subsequent requests can read from. Charged at a
+    premium over standard input tokens by most providers, so they are
+    metered as a distinct dimension.
+  phase: Draft
+  measurement:
+    aggregation: Sum
+    unit: "{token}"
+    dimensions:
+      - model
+      - region
+  billing:
+    consumedUnit: "{token}"
+    pricingUnit: "k{token}"
+  monitoredResourceTypes:
+    - assistant.miloapis.com/Conversation
