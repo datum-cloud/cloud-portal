@@ -1,0 +1,28 @@
+apiVersion: billing.miloapis.com/v1alpha1
+kind: MeterDefinition
+metadata:
+  labels:
+    app.kubernetes.io/name: cloud-portal
+    app.kubernetes.io/managed-by: kustomize
+    services.miloapis.com/owner-service: assistant.miloapis.com
+  name: assistant-conversation-messages
+spec:
+  meterName: assistant.miloapis.com/conversation/messages
+  displayName: Assistant Messages
+  description: |
+    Number of completed assistant request/response cycles in the
+    billing period. Useful as a request-count signal for tier caps
+    that prefer "messages per month" framing over raw token counts,
+    or as a billing safety-net when token data is unavailable.
+  phase: Draft
+  measurement:
+    aggregation: Count
+    unit: "{message}"
+    dimensions:
+      - model
+      - region
+  billing:
+    consumedUnit: "{message}"
+    pricingUnit: "{message}"
+  monitoredResourceTypes:
+    - assistant.miloapis.com/Conversation

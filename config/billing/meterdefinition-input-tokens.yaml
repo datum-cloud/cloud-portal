@@ -1,0 +1,28 @@
+apiVersion: billing.miloapis.com/v1alpha1
+kind: MeterDefinition
+metadata:
+  labels:
+    app.kubernetes.io/name: cloud-portal
+    app.kubernetes.io/managed-by: kustomize
+    services.miloapis.com/owner-service: assistant.miloapis.com
+  name: assistant-conversation-input-tokens
+spec:
+  meterName: assistant.miloapis.com/conversation/input-tokens
+  displayName: Assistant Input Tokens
+  description: |
+    Input tokens consumed by the Datum Cloud AI assistant -- the number
+    of tokens sent to the model per request, summed across the billing
+    period. Cached input tokens are reported separately under the
+    cache-read-tokens meter and are NOT double-counted here.
+  phase: Draft
+  measurement:
+    aggregation: Sum
+    unit: "{token}"
+    dimensions:
+      - model
+      - region
+  billing:
+    consumedUnit: "{token}"
+    pricingUnit: "k{token}"
+  monitoredResourceTypes:
+    - assistant.miloapis.com/Conversation

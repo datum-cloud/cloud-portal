@@ -73,6 +73,12 @@ export interface ServerEnv {
   // Optional: AI Assistant
   anthropicApiKey?: string;
   anthropicModel?: string;
+
+  // Optional: Usage Pipeline (Milo billing → Amberflo)
+  // When unset, usage events are silently dropped (i.e. no-op). Once the
+  // platform's per-project Ingestion Gateway exists, point this at it.
+  // See https://github.com/datum-cloud/billing/blob/docs/usage-pipeline/docs/enhancements/usage-pipeline.md
+  usageGatewayUrl?: string;
 }
 
 /**

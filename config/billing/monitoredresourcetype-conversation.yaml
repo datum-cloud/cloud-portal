@@ -1,0 +1,34 @@
+apiVersion: billing.miloapis.com/v1alpha1
+kind: MonitoredResourceType
+metadata:
+  labels:
+    app.kubernetes.io/name: cloud-portal
+    app.kubernetes.io/managed-by: kustomize
+    services.miloapis.com/owner-service: assistant.miloapis.com
+  name: assistant-miloapis-com-conversation
+spec:
+  resourceTypeName: assistant.miloapis.com/Conversation
+  phase: Draft
+  displayName: Assistant Conversation
+  description: |
+    A single chat with the Datum Cloud AI assistant. One Conversation
+    is created per top-level chat session and emits a usage event for
+    each completed model response (input tokens, output tokens, and
+    optional cache-read/cache-write tokens). Used by the
+    assistant.miloapis.com/conversation/* meter family.
+  gvk:
+    group: assistant.miloapis.com
+    kind: Conversation
+  labels:
+    - name: model
+      required: true
+      description: |
+        The model identifier handling the conversation (e.g.
+        "claude-sonnet-4-6"). Required so per-model unit economics
+        remain visible all the way to the bill.
+    - name: region
+      required: false
+      description: |
+        Optional Datum deployment region serving the request. Useful for
+        cost attribution when the portal is deployed in multiple regions
+        or when egress charges differ per region.

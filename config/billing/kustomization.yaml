@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Billing catalog for the Datum Cloud AI assistant.
+#
+# This bundle declares the identifiers the durable usage pipeline needs
+# to attribute and price assistant chats: one MonitoredResourceType
+# defining the Conversation Kind, plus five MeterDefinitions covering
+# the token/messages axes the cloud-portal emitter actually populates.
+#
+# All resources currently ship in `phase: Draft`. Promotion to
+# `Published` is gated on the Ingestion Gateway being deployed and the
+# meter shape being signed off by the billing team.
+#
+# This bundle is NOT applied by the cloud-portal Deployment overlay —
+# catalog identifiers are control-plane resources, deployed
+# independently via Flux into the billing service's namespace alongside
+# every other service's catalog. Keeping it under config/billing/ on
+# the cloud-portal repo follows the "catalog ships with the producing
+# service" rule established in
+# https://github.com/milo-os/billing/pull/11#issuecomment-4343165104.
+resources:
+  - monitoredresourcetype-conversation.yaml
+  - meterdefinition-input-tokens.yaml
+  - meterdefinition-output-tokens.yaml
+  - meterdefinition-cache-read-tokens.yaml
+  - meterdefinition-cache-write-tokens.yaml
+  - meterdefinition-messages.yaml
