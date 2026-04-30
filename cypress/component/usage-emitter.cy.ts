@@ -3,7 +3,6 @@
 // and would call `process.exit(1)` inside the Cypress browser bundle on
 // validation failure. Each of these files is browser-safe.
 import { buildAssistantUsageEvents } from '@/modules/usage/assistant-events';
-import { resolveBillingContext, shouldSkipEmit } from '@/modules/usage/billing-context';
 import {
   ASSISTANT_METERS,
   ASSISTANT_RESOURCE_GROUP,
@@ -97,7 +96,6 @@ describe('buildAssistantUsageEvents', () => {
     const events = buildAssistantUsageEvents({
       ...baseInput,
       conversationUid: 'a8f3a1b2-uid',
-      region: 'us-east-1',
       tokens: { inputTokens: 10 },
     });
     const evt = events.find((e) => e.meterName === ASSISTANT_METERS.inputTokens)!;
@@ -106,7 +104,7 @@ describe('buildAssistantUsageEvents', () => {
     expect(evt.timestamp).to.equal('2026-04-27T17:00:00.000Z');
     expect(evt.projectRef).to.deep.equal({ name: 'proj-abc' });
     expect(evt.value).to.equal('10');
-    expect(evt.dimensions).to.deep.equal({ model: 'claude-sonnet-4-6', region: 'us-east-1' });
+    expect(evt.dimensions).to.deep.equal({ model: 'claude-sonnet-4-6' });
     expect(evt.resource).to.deep.equal({
       ref: {
         projectRef: { name: 'proj-abc' },
@@ -116,106 +114,18 @@ describe('buildAssistantUsageEvents', () => {
         name: 'chat-123',
         uid: 'a8f3a1b2-uid',
       },
-      labels: { model: 'claude-sonnet-4-6', region: 'us-east-1' },
+      labels: { model: 'claude-sonnet-4-6' },
     });
   });
 
-  it('omits the region dimension when not provided', () => {
-    const events = buildAssistantUsageEvents({
-      ...baseInput,
-      tokens: { inputTokens: 10 },
-    });
-    const evt = events.find((e) => e.meterName === ASSISTANT_METERS.inputTokens)!;
-    expect(evt.dimensions).to.deep.equal({ model: 'claude-sonnet-4-6' });
-    expect(evt.resource.labels).to.deep.equal({ model: 'claude-sonnet-4-6' });
-  });
-
-  it('returns an empty array when no project name is provided', () => {
-    // Caller is expected to gate on projectName, but the builder also
-    // refuses to produce events without one (project is required for
-    // attribution to a BillingAccountBinding).
+  it('returns events with empty projectRef when projectName is empty', () => {
+    // Caller is expected to gate on projectName, but the builder still
+    // produces events — gating is the route's responsibility.
     const events = buildAssistantUsageEvents({
       ...baseInput,
       projectName: '',
       tokens: { inputTokens: 100 },
     });
-    // Builder still produces events with empty projectName — gating is
-    // the route's responsibility — but the projectRef is empty.
     expect(events.every((e) => e.projectRef.name === '')).to.equal(true);
-  });
-});
-
-describe('resolveBillingContext', () => {
-  const binding = (overrides: {
-    name: string;
-    project: string;
-    account?: string;
-    phase?: 'Active' | 'Superseded';
-  }) => ({
-    metadata: { name: overrides.name },
-    spec: {
-      projectRef: { name: overrides.project },
-      billingAccountRef: { name: overrides.account ?? 'acct-default' },
-    },
-    status: overrides.phase ? { phase: overrides.phase } : undefined,
-  });
-
-  it("returns 'no-org' (fail-open) when orgName is missing", async () => {
-    const ctx = await resolveBillingContext({ projectName: 'p' });
-    expect(ctx.status).to.equal('no-org');
-    expect(shouldSkipEmit(ctx)).to.equal(false);
-  });
-
-  it("returns 'no-binding' when no binding references the project", async () => {
-    const ctx = await resolveBillingContext(
-      { orgName: 'org-1', projectName: 'p' },
-      { listBindings: async () => [binding({ name: 'b1', project: 'other', phase: 'Active' })] }
-    );
-    expect(ctx.status).to.equal('no-binding');
-    expect(shouldSkipEmit(ctx)).to.equal(true);
-  });
-
-  it("returns 'inactive' when the project's binding is Superseded", async () => {
-    const ctx = await resolveBillingContext(
-      { orgName: 'org-1', projectName: 'p' },
-      {
-        listBindings: async () => [binding({ name: 'b1', project: 'p', phase: 'Superseded' })],
-      }
-    );
-    expect(ctx.status).to.equal('inactive');
-    expect(ctx.bindingName).to.equal('b1');
-    expect(shouldSkipEmit(ctx)).to.equal(true);
-  });
-
-  it("returns 'ready' with the active binding's account name", async () => {
-    const ctx = await resolveBillingContext(
-      { orgName: 'org-1', projectName: 'p' },
-      {
-        listBindings: async () => [
-          binding({ name: 'b-old', project: 'p', account: 'acct-old', phase: 'Superseded' }),
-          binding({ name: 'b-new', project: 'p', account: 'acct-new', phase: 'Active' }),
-        ],
-      }
-    );
-    expect(ctx.status).to.equal('ready');
-    expect(ctx.bindingName).to.equal('b-new');
-    expect(ctx.accountName).to.equal('acct-new');
-    expect(shouldSkipEmit(ctx)).to.equal(false);
-  });
-
-  it("returns 'lookup-error' (fail-open) when the lister throws", async () => {
-    const ctx = await resolveBillingContext(
-      { orgName: 'org-1', projectName: 'p' },
-      {
-        listBindings: async () => {
-          throw new Error('boom');
-        },
-      }
-    );
-    expect(ctx.status).to.equal('lookup-error');
-    // The route is responsible for logging this; the resolver only
-    // surfaces the message so it stays browser-safe.
-    expect(ctx.errorMessage).to.equal('boom');
-    expect(shouldSkipEmit(ctx)).to.equal(false);
   });
 });

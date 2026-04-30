@@ -1,11 +1,6 @@
 import { buildSystemPrompt, createAssistantTools } from '@/modules/assistant';
 import { logger } from '@/modules/logger';
-import {
-  buildAssistantUsageEvents,
-  emitUsageEvents,
-  resolveBillingContext,
-  shouldSkipEmit,
-} from '@/modules/usage';
+import { buildAssistantUsageEvents, emitUsageEvents } from '@/modules/usage';
 import type { Variables } from '@/server/types';
 import { env } from '@/utils/env/env.server';
 import { createAnthropic } from '@ai-sdk/anthropic';
@@ -95,47 +90,23 @@ assistantRoutes.post('/', async (c) => {
         // when USAGE_GATEWAY_URL is unset; never throws (the emitter
         // logs and resolves on failure). Project-scoped only — the
         // pipeline attributes via BillingAccountBinding on `projectRef`,
-        // so we cannot bill chats with no project context.
+        // so we cannot bill chats with no project context. The portal
+        // intentionally does not pre-filter on attribution state: the
+        // Gateway is the authority on what is billable.
         if (!projectName || !id) return;
-        void (async () => {
-          // Soft pre-emit gate: if we can prove there's no Active
-          // BillingAccountBinding for this project, drop locally rather
-          // than letting the Gateway quarantine and page. Failure to
-          // resolve (no orgName, RBAC, network) falls through to emit —
-          // the Gateway is authoritative.
-          const ctx = await resolveBillingContext({ orgName, projectName });
-          if (ctx.status === 'lookup-error') {
-            logger.warn('usage.billing-context.lookup-failed', {
-              projectId: projectName,
-              orgId: orgName,
-              error: ctx.errorMessage,
-            });
-          }
-          if (shouldSkipEmit(ctx)) {
-            logger.info('usage.emit.skipped', {
-              reason: ctx.status,
-              projectId: projectName,
-              orgId: orgName,
-              bindingName: ctx.bindingName,
-            });
-            return;
-          }
-
-          const events = buildAssistantUsageEvents({
-            projectName,
-            conversationId: id,
-            model,
-            region: env.server.usageRegion,
-            tokens: {
-              inputTokens: usage.inputTokens,
-              outputTokens: usage.outputTokens,
-              cachedInputTokens: (usage as { cachedInputTokens?: number }).cachedInputTokens,
-              cacheCreationInputTokens: (usage as { cacheCreationInputTokens?: number })
-                .cacheCreationInputTokens,
-            },
-          });
-          await emitUsageEvents(events);
-        })();
+        const events = buildAssistantUsageEvents({
+          projectName,
+          conversationId: id,
+          model,
+          tokens: {
+            inputTokens: usage.inputTokens,
+            outputTokens: usage.outputTokens,
+            cachedInputTokens: (usage as { cachedInputTokens?: number }).cachedInputTokens,
+            cacheCreationInputTokens: (usage as { cacheCreationInputTokens?: number })
+              .cacheCreationInputTokens,
+          },
+        });
+        void emitUsageEvents(events);
       },
       () => {} // already logged via result.response rejection
     );

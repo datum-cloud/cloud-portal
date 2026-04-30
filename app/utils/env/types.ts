@@ -79,8 +79,6 @@ export interface ServerEnv {
   // platform's per-project Ingestion Gateway exists, point this at it.
   // See https://github.com/datum-cloud/billing/blob/docs/usage-pipeline/docs/enhancements/usage-pipeline.md
   usageGatewayUrl?: string;
-  usageGatewayToken?: string;
-  usageRegion?: string;
 }
 
 /**

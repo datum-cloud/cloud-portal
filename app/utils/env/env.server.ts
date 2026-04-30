@@ -136,12 +136,10 @@ const serverSchema = z.object({
   // Optional: Usage Pipeline (Milo billing → Amberflo)
   //
   // When USAGE_GATEWAY_URL is unset, usage emission is a no-op. Once the
-  // platform's per-project Ingestion Gateway lands, point this at it (and
-  // optionally provide a bearer token + region tag).
+  // platform's per-project Ingestion Gateway lands, point this at it.
+  // Authentication will be mTLS, wired in a follow-up.
   // ─────────────────────────────────────────────────────────
   USAGE_GATEWAY_URL: urlSchemaOptional(),
-  USAGE_GATEWAY_TOKEN: z.string().optional(),
-  USAGE_REGION: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
@@ -214,8 +212,6 @@ export const env: Env = {
     anthropicModel: data.ANTHROPIC_MODEL,
     // Usage Pipeline
     usageGatewayUrl: data.USAGE_GATEWAY_URL,
-    usageGatewayToken: data.USAGE_GATEWAY_TOKEN,
-    usageRegion: data.USAGE_REGION,
     // Redis
     redisUrl: data.REDIS_URL,
     redisMaxRetries: data.REDIS_MAX_RETRIES,

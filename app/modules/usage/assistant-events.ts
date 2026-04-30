@@ -26,8 +26,6 @@ export interface BuildAssistantUsageInput {
   conversationUid?: string;
   /** Anthropic model id, e.g. `claude-sonnet-4-6`. */
   model: string;
-  /** Optional region tag (e.g. portal deployment region). */
-  region?: string;
   namespace?: string;
   tokens: AssistantUsageTokens;
   /** Override for testing. Defaults to `Date.now()`. */
@@ -45,7 +43,6 @@ export function buildAssistantUsageEvents(input: BuildAssistantUsageInput): Usag
     conversationId,
     conversationUid,
     model,
-    region,
     namespace = 'default',
     tokens,
     now = Date.now(),
@@ -55,10 +52,8 @@ export function buildAssistantUsageEvents(input: BuildAssistantUsageInput): Usag
   const projectRef = { name: projectName };
 
   const dimensions: Record<string, string> = { model };
-  if (region) dimensions.region = region;
 
   const labels: Record<string, string> = { model };
-  if (region) labels.region = region;
 
   const resource = {
     ref: {

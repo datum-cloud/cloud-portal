@@ -49,9 +49,6 @@ export async function emitUsageEvents(events: UsageEvent[]): Promise<EmitResult>
 
   const url = new URL('/v1alpha1/events', gateway).toString();
   const headers: Record<string, string> = { 'content-type': 'application/json' };
-  if (env.server.usageGatewayToken) {
-    headers.authorization = `Bearer ${env.server.usageGatewayToken}`;
-  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), EMIT_TIMEOUT_MS);
