@@ -140,7 +140,11 @@ assistantRoutes.post('/', async (c) => {
       () => {} // already logged via result.response rejection
     );
 
-    return result.toUIMessageStreamResponse({ sendReasoning: true });
+    // Suppress reasoning parts from the wire. Extended thinking stays
+    // enabled on the provider side (better answer quality, though the
+    // budget tokens are still billed) but the model's reasoning trace
+    // never reaches the client and never renders in the chat bubble.
+    return result.toUIMessageStreamResponse({ sendReasoning: false });
   } catch (err) {
     logger.error('assistant request failed', {
       userId: session.sub,

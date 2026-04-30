@@ -1,10 +1,9 @@
-import { ThinkingBlock } from './thinking-block';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { code } from '@streamdown/code';
-import { getToolName, isReasoningUIPart, isTextUIPart, isToolUIPart, type UIMessage } from 'ai';
+import { getToolName, isTextUIPart, isToolUIPart, type UIMessage } from 'ai';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 import { type ExtraProps, Streamdown } from 'streamdown';
@@ -50,11 +49,6 @@ export function AssistantMessage({ msg, isLastMessage, status }: AssistantMessag
     <div className="flex w-full justify-start">
       <div className="bg-muted text-foreground w-full rounded-xl px-3 py-2 text-sm">
         {msg.parts.map((part, i) => {
-          if (isReasoningUIPart(part)) {
-            const isThinkingStreaming = isStreaming && i === msg.parts.length - 1;
-            return <ThinkingBlock key={i} text={part.text} isStreaming={isThinkingStreaming} />;
-          }
-
           if (isTextUIPart(part) && part.text) {
             return (
               <Streamdown
