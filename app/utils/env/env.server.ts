@@ -133,6 +133,17 @@ const serverSchema = z.object({
   ANTHROPIC_MODEL: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Usage Pipeline (Milo billing → Amberflo)
+  //
+  // When USAGE_GATEWAY_URL is unset, usage emission is a no-op. Once the
+  // platform's per-project Ingestion Gateway lands, point this at it (and
+  // optionally provide a bearer token + region tag).
+  // ─────────────────────────────────────────────────────────
+  USAGE_GATEWAY_URL: urlSchemaOptional(),
+  USAGE_GATEWAY_TOKEN: z.string().optional(),
+  USAGE_REGION: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
   // ─────────────────────────────────────────────────────────
   REDIS_URL: urlSchemaOptional(),
@@ -201,6 +212,10 @@ export const env: Env = {
     // AI Assistant
     anthropicApiKey: data.ANTHROPIC_API_KEY,
     anthropicModel: data.ANTHROPIC_MODEL,
+    // Usage Pipeline
+    usageGatewayUrl: data.USAGE_GATEWAY_URL,
+    usageGatewayToken: data.USAGE_GATEWAY_TOKEN,
+    usageRegion: data.USAGE_REGION,
     // Redis
     redisUrl: data.REDIS_URL,
     redisMaxRetries: data.REDIS_MAX_RETRIES,
