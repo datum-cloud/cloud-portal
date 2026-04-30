@@ -100,7 +100,7 @@ function formatPolicyBindingPayload(
         namespace: input.roleNamespace ?? 'datum-cloud',
       },
       subjects: input.subjects.map((subject) => ({
-        kind: subject.kind as 'User' | 'Group' | 'MachineAccount',
+        kind: subject.kind as 'User' | 'Group' | 'ServiceAccount',
         name: subject.name,
         uid: subject.uid ?? '',
       })),

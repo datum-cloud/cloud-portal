@@ -9,10 +9,10 @@ import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
-import { createMachineAccountService, machineAccountKeys } from '@/resources/machine-accounts';
 import { useOrganization, type Organization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
+import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
@@ -260,15 +260,15 @@ export default function ProjectLayout() {
         },
       },
       {
-        title: 'Machine Accounts',
-        href: getPathWithParams(paths.project.detail.machineAccounts.root, { projectId: pid }),
+        title: 'Service Accounts',
+        href: getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId: pid }),
         type: 'link',
         icon: BotIcon,
         disabled: !isReady,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
-            queryKey: machineAccountKeys.list(pid),
-            queryFn: () => createMachineAccountService().list(pid),
+            queryKey: serviceAccountKeys.list(pid),
+            queryFn: () => createServiceAccountService().list(pid),
           });
         },
       },

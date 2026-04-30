@@ -2,7 +2,7 @@ import type { ComMiloapisIamV1Alpha1PolicyBinding } from '@/modules/control-plan
 import { z } from 'zod';
 
 // Subject kind values
-export const POLICY_BINDING_SUBJECT_KIND_VALUES = ['User', 'Group', 'MachineAccount'] as const;
+export const POLICY_BINDING_SUBJECT_KIND_VALUES = ['User', 'Group', 'ServiceAccount'] as const;
 export type PolicyBindingSubjectKindValue = (typeof POLICY_BINDING_SUBJECT_KIND_VALUES)[number];
 
 // Subject schema
@@ -85,7 +85,7 @@ export type CreatePolicyBindingInput = {
   role: string;
   roleNamespace?: string;
   subjects: Array<{
-    kind: 'User' | 'Group' | 'MachineAccount';
+    kind: 'User' | 'Group' | 'ServiceAccount';
     name: string;
     uid?: string;
   }>;
@@ -97,7 +97,7 @@ export type UpdatePolicyBindingInput = CreatePolicyBindingInput;
 export enum PolicyBindingSubjectKind {
   User = 'User',
   Group = 'Group',
-  MachineAccount = 'MachineAccount',
+  ServiceAccount = 'ServiceAccount',
 }
 
 // Form validation schemas

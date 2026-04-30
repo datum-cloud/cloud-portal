@@ -163,21 +163,21 @@ export default [
           ),
         ]),
 
-        // Machine Accounts
-        route('machine-accounts', 'routes/project/detail/machine-accounts/layout.tsx', [
-          index('routes/project/detail/machine-accounts/index.tsx'),
+        // Service Accounts
+        route('service-accounts', 'routes/project/detail/service-accounts/layout.tsx', [
+          index('routes/project/detail/service-accounts/index.tsx'),
           route(
-            ':machineAccountId',
-            'routes/project/detail/machine-accounts/detail/layout.tsx',
-            { id: 'machine-account-detail' },
+            ':serviceAccountId',
+            'routes/project/detail/service-accounts/detail/layout.tsx',
+            { id: 'service-account-detail' },
             [
-              route('overview', 'routes/project/detail/machine-accounts/detail/overview.tsx'),
-              route('keys', 'routes/project/detail/machine-accounts/detail/keys.tsx'),
+              route('overview', 'routes/project/detail/service-accounts/detail/overview.tsx'),
+              route('keys', 'routes/project/detail/service-accounts/detail/keys.tsx'),
               route(
                 'policy-bindings',
-                'routes/project/detail/machine-accounts/detail/policy-bindings.tsx'
+                'routes/project/detail/service-accounts/detail/policy-bindings.tsx'
               ),
-              route('activity', 'routes/project/detail/machine-accounts/detail/activity.tsx'),
+              route('activity', 'routes/project/detail/service-accounts/detail/activity.tsx'),
             ]
           ),
         ]),
