@@ -41,10 +41,15 @@ describe('Load account settings', () => {
   it('should navigate to active sessions tab and render the sessions table', () => {
     cy.visit(paths.account.settings.activeSessions);
 
-    // Smoke goal: the page loads without crashing. The table is always rendered
-    // (even when the sessions list is empty) so waiting for it confirms the
-    // page settled past the React Query fetch.
-    cy.get('table', { timeout: 10000 }).should('exist');
+    // Smoke goal: the page loads without crashing. When sessions exist a
+    // <table> is rendered; when there are none, TableBodyOrEmpty swaps it for
+    // an EmptyContent card. Wait for either to confirm the page settled past
+    // the React Query fetch.
+    cy.get('body', { timeout: 10000 }).should(($body) => {
+      const hasTable = $body.find('table').length > 0;
+      const hasEmpty = $body.text().includes('No active sessions found.');
+      expect(hasTable || hasEmpty, 'sessions table or empty-state card').to.be.true;
+    });
 
     // Both `cy.login()` and the GraphQL sessions query are bypass-style: the
     // login helper signs the `_session` cookie directly and never seeds an
