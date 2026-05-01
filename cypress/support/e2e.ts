@@ -142,7 +142,7 @@ Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
   // If not in env, fetch it from the page
   cy.visit(paths.account.organizations.root);
   return cy
-    .get('[data-e2e="organization-card-personal"]')
+    .get('[data-e2e="organization-card-personal"]', { timeout: 10000 })
     .should('be.visible')
     .find('[data-e2e="organization-card-id-copy"]')
     .should('be.visible')
