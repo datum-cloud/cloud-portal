@@ -125,6 +125,14 @@ export default function ServiceAccountDetailLayout() {
         }),
         type: 'link',
       },
+      {
+        title: 'Settings',
+        href: getPathWithParams(paths.project.detail.serviceAccounts.detail.settings, {
+          projectId,
+          serviceAccountId: id,
+        }),
+        type: 'link',
+      },
     ];
   }, [projectId, serviceAccountId, account.name]);
 

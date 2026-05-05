@@ -165,8 +165,10 @@ export default [
 
         // Service Accounts
         route('service-accounts', 'routes/project/detail/service-accounts/layout.tsx', [
-          index('routes/project/detail/service-accounts/index.tsx'),
-          route('new', 'routes/project/detail/service-accounts/new.tsx'),
+          layout('routes/project/detail/service-accounts/listing-layout.tsx', [
+            index('routes/project/detail/service-accounts/index.tsx'),
+            route('new', 'routes/project/detail/service-accounts/new.tsx'),
+          ]),
           route(
             ':serviceAccountId',
             'routes/project/detail/service-accounts/detail/layout.tsx',
@@ -179,6 +181,7 @@ export default [
                 'routes/project/detail/service-accounts/detail/policy-bindings.tsx'
               ),
               route('activity', 'routes/project/detail/service-accounts/detail/activity.tsx'),
+              route('settings', 'routes/project/detail/service-accounts/detail/settings.tsx'),
             ]
           ),
         ]),

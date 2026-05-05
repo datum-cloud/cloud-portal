@@ -130,6 +130,7 @@ export const paths = {
           policyBindings:
             '/project/[projectId]/service-accounts/[serviceAccountId]/policy-bindings',
           activity: '/project/[projectId]/service-accounts/[serviceAccountId]/activity',
+          settings: '/project/[projectId]/service-accounts/[serviceAccountId]/settings',
         },
       },
     },
