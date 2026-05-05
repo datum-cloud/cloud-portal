@@ -23,6 +23,7 @@ import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  BarChart3Icon,
   BotIcon,
   CableIcon,
   ChartSplineIcon,
@@ -245,6 +246,13 @@ export default function ProjectLayout() {
             queryFn: () => createExportPolicyService().list(pid),
           });
         },
+      },
+      {
+        title: 'Usage',
+        href: getPathWithParams(paths.project.detail.usage, { projectId: pid }),
+        type: 'link',
+        icon: BarChart3Icon,
+        disabled: !isReady,
       },
       {
         title: 'Secrets',
