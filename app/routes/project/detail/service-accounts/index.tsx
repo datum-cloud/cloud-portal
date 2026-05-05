@@ -1,3 +1,4 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
@@ -16,7 +17,6 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -109,8 +109,6 @@ export default function ServiceAccountsPage() {
         cancelText: 'Cancel',
         variant: 'destructive',
         showConfirmInput: true,
-        confirmValue: account.name,
-        confirmInputLabel: `Type "${account.name}" to confirm.`,
         onSubmit: async () => {
           deleteMutation.mutate(account.name);
         },
@@ -148,9 +146,10 @@ export default function ServiceAccountsPage() {
         header: 'Status',
         accessorKey: 'status',
         cell: ({ row }) => (
-          <Badge type={row.original.status === 'Active' ? 'success' : 'danger'} theme="light">
-            {row.original.status}
-          </Badge>
+          <BadgeStatus status={row.original.status} />
+          // <Badge type={row.original.status === 'Active' ? 'success' : 'danger'} theme="light">
+          //   {row.original.status}
+          // </Badge>
         ),
       },
       {

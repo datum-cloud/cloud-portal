@@ -1,3 +1,4 @@
+import type { ServiceAccountDetailContext } from './layout';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
@@ -7,7 +8,6 @@ import { KeyRevealPanel } from '@/features/service-account/components/key-reveal
 import { ServiceAccountKeyFormDialog } from '@/features/service-account/form/service-account-key-form-dialog';
 import type { ServiceAccountKeyFormDialogRef } from '@/features/service-account/form/service-account-key-form-dialog';
 import {
-  useServiceAccount,
   useServiceAccountKeys,
   useServiceAccountEmailPoller,
   useRevokeServiceAccountKey,
@@ -18,13 +18,15 @@ import {
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { AlertCircleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MetaFunction } from 'react-router';
-import { useLocation, useNavigate, useParams } from 'react-router';
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Keys</span>,
@@ -58,7 +60,7 @@ export default function ServiceAccountKeysPage() {
     }
   }, []);
 
-  const { data: serviceAccount } = useServiceAccount(projectId ?? '', serviceAccountId ?? '');
+  const { account: serviceAccount } = useOutletContext<ServiceAccountDetailContext>();
 
   const pollerResult = useServiceAccountEmailPoller(
     projectId ?? '',
@@ -164,60 +166,71 @@ export default function ServiceAccountKeysPage() {
   const isProvisioningFailed = pollerResult.status === 'timeout' || pollerResult.status === 'error';
 
   return (
-    <div className="flex flex-col gap-4">
+    <Row type="flex" gutter={[24, 24]}>
+      <Col span={24}>
+        <PageTitle title="Keys" />
+      </Col>
+
       {newCredentials && serviceAccount && (
-        <KeyRevealPanel
-          credentials={newCredentials}
-          serviceAccountName={serviceAccount.name}
-          defaultTab={initialDefaultRevealTab}
-          onDismiss={() => setNewCredentials(null)}
-        />
+        <Col span={24}>
+          <KeyRevealPanel
+            credentials={newCredentials}
+            serviceAccountName={serviceAccount.name}
+            defaultTab={initialDefaultRevealTab}
+            onDismiss={() => setNewCredentials(null)}
+          />
+        </Col>
       )}
 
       {isPolling && (
-        <div className="border-border bg-muted/50 text-muted-foreground flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm">
-          <Loader2Icon className="size-4 shrink-0 animate-spin" />
-          <span>Setting up account identity&hellip; This usually takes a few seconds.</span>
-        </div>
+        <Col span={24}>
+          <div className="border-border bg-muted/50 text-muted-foreground flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm">
+            <Loader2Icon className="size-4 shrink-0 animate-spin" />
+            <span>Setting up account identity&hellip; This usually takes a few seconds.</span>
+          </div>
+        </Col>
       )}
 
       {isProvisioningFailed && (
-        <div className="border-destructive/30 bg-destructive/5 flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm">
-          <AlertCircleIcon className="text-destructive mt-0.5 size-4 shrink-0" />
-          <div className="flex flex-1 flex-col gap-1">
-            <span className="text-destructive font-medium">Account provisioning failed</span>
-            <span className="text-muted-foreground">{pollerResult.error}</span>
+        <Col span={24}>
+          <div className="border-destructive/30 bg-destructive/5 flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm">
+            <AlertCircleIcon className="text-destructive mt-0.5 size-4 shrink-0" />
+            <div className="flex flex-1 flex-col gap-1">
+              <span className="text-destructive font-medium">Account provisioning failed</span>
+              <span className="text-muted-foreground">{pollerResult.error}</span>
+            </div>
+            <Button
+              htmlType="button"
+              type="quaternary"
+              theme="outline"
+              size="small"
+              onClick={() => window.location.reload()}>
+              Retry
+            </Button>
           </div>
-          <Button
-            htmlType="button"
-            type="quaternary"
-            theme="outline"
-            size="small"
-            onClick={() => window.location.reload()}>
-            Retry
-          </Button>
-        </div>
+        </Col>
       )}
 
-      <Table.Client
-        columns={columns}
-        data={keys}
-        title="Keys"
-        search="Search"
-        actions={[
-          <Button
-            key="add-key"
-            type="primary"
-            theme="solid"
-            size="small"
-            disabled={isPolling || isProvisioningFailed}
-            title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
-            onClick={() => keyFormDialogRef.current?.show()}>
-            <Icon icon={PlusIcon} className="size-4" />
-            Add Key
-          </Button>,
-        ]}
-      />
+      <Col span={24}>
+        <Table.Client
+          columns={columns}
+          data={keys}
+          search="Search"
+          actions={[
+            <Button
+              key="add-key"
+              type="primary"
+              theme="solid"
+              size="small"
+              disabled={isPolling || isProvisioningFailed}
+              title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
+              onClick={() => keyFormDialogRef.current?.show()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Add Key
+            </Button>,
+          ]}
+        />
+      </Col>
 
       <ServiceAccountKeyFormDialog
         ref={keyFormDialogRef}
@@ -228,6 +241,6 @@ export default function ServiceAccountKeysPage() {
           if (response.credentials) setNewCredentials(response.credentials);
         }}
       />
-    </div>
+    </Row>
   );
 }
