@@ -92,7 +92,7 @@ export function createServiceAccountService() {
       try {
         const response = await createIamMiloapisComV1Alpha1ServiceAccount({
           baseURL: getProjectScopedBase(projectId),
-          body: toCreateServiceAccountPayload(input.name, input.displayName),
+          body: toCreateServiceAccountPayload(input.name, input.displayName, input.useCase),
           headers: { 'Content-Type': 'application/json' },
         });
         const data = response.data as ComMiloapisIamV1Alpha1ServiceAccount;

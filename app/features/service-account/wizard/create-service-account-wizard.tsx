@@ -1,342 +1,276 @@
-import { type Step1Values, WizardStepAccount } from './wizard-step-account';
-import { type Step2Values, WizardStepKey } from './wizard-step-key';
-import { WizardStepPartialFailure } from './wizard-step-partial-failure';
-import { WizardStepPollerFailure } from './wizard-step-poller-failure';
-import { type OrchestratingPhase, WizardStepProgress } from './wizard-step-progress';
+import { type OrchestrationPhase, useWizardOrchestration } from './use-wizard-orchestration';
+import { WizardStepAccount } from './wizard-step-account';
+import { WizardStepFailure } from './wizard-step-failure';
+import { keyStepSchema, WizardStepKey } from './wizard-step-key';
+import { USE_CASE_DEFAULTS } from './wizard.types';
 import {
-  createServiceAccountService,
-  pollForEmail,
+  serviceAccountCreateSchema,
   type CreateServiceAccountKeyResponse,
-  type ServiceAccount,
+  type UseCase,
 } from '@/resources/service-accounts';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
-import { useMemo, useRef, useState } from 'react';
+import {
+  FormStep,
+  FormStepper,
+  StepperControls,
+  StepperNavigation,
+} from '@datum-cloud/datum-ui/form/stepper';
+import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { addDays, format } from 'date-fns';
+import { AnimatePresence, motion } from 'motion/react';
+import { useMemo, useState } from 'react';
 
-// ---------------------------------------------------------------------------
-// State machine
-// ---------------------------------------------------------------------------
-
-type WizardState =
-  | { step: 'account'; previous?: Partial<Step1Values> }
-  | { step: 'key'; account: Step1Values }
-  | {
-      step: 'orchestrating';
-      account: Step1Values;
-      key: Step2Values;
-      phase: OrchestratingPhase;
-      createdAccount?: ServiceAccount;
-    }
-  | {
-      step: 'partial-failure';
-      createdAccount: ServiceAccount;
-      key: Step2Values;
-      email: string;
-      error: string;
-    }
-  | {
-      step: 'poller-failure';
-      createdAccount: ServiceAccount;
-      key: Step2Values;
-      error: string;
-    };
-
-// ---------------------------------------------------------------------------
-// Props
-// ---------------------------------------------------------------------------
+const RUNNING_MESSAGE: Record<OrchestrationPhase, string> = {
+  polling: 'Setting up identity for your account...',
+  'creating-key': 'Generating authentication key...',
+};
 
 export interface CreateServiceAccountWizardProps {
   projectId: string;
+  /**
+   * Use-case the user picked from the picker page. Threaded into:
+   *  - default key expiry length (90d for cicd, 365d for service)
+   *  - the K8s annotation `iam.miloapis.com/use-case`
+   *  - `defaultRevealTab` passed back to the keys page
+   */
+  useCase?: UseCase;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onNavigateToAccount: (accountName: string, keyResponse?: CreateServiceAccountKeyResponse) => void;
+  onNavigateToAccount: (
+    accountName: string,
+    keyResponse?: CreateServiceAccountKeyResponse,
+    defaultRevealTab?: 'github' | 'kubernetes'
+  ) => void;
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+// FormStepper auto-merges step schemas. Step 2 uses `keyName` (not `name`,
+// see keyStepSchema) so the merged form data has no name collisions.
+const STEPS = [
+  { id: 'account', label: 'Account Details', schema: serviceAccountCreateSchema },
+  { id: 'key', label: 'Authentication Key', schema: keyStepSchema },
+];
 
-function dialogTitle(state: WizardState): string {
-  switch (state.step) {
-    case 'account':
-    case 'key':
-      return 'Create Service Account';
-    case 'orchestrating':
-      return 'Setting up…';
-    case 'partial-failure':
-    case 'poller-failure':
-      return 'Setup Incomplete';
-  }
+const DIALOG_TITLES: Record<UseCase | 'default', string> = {
+  cicd: 'Create CI/CD Service Account',
+  service: 'Create Service Workload Account',
+  default: 'Create Service Account',
+};
+
+function buildFormDefaults(useCase: UseCase | undefined) {
+  const expiryDays = useCase ? USE_CASE_DEFAULTS[useCase].expiryDays : undefined;
+  const expiresAt = expiryDays ? format(addDays(new Date(), expiryDays), 'yyyy-MM-dd') : '';
+
+  return {
+    name: '',
+    displayName: '',
+    keyName: '',
+    type: 'datum-managed' as const,
+    publicKey: '',
+    expiresAt,
+  };
 }
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 export function CreateServiceAccountWizard({
   projectId,
+  useCase,
   open,
   onOpenChange,
   onNavigateToAccount,
 }: CreateServiceAccountWizardProps) {
-  const [wizardState, setWizardState] = useState<WizardState>({ step: 'account' });
-  const [keyError, setKeyError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
-  // Guards against double-click triggering two orchestration runs
-  const orchestratingRef = useRef(false);
+  const [accountCreateError, setAccountCreateError] = useState<string | null>(null);
+  // True while `service.create()` is awaiting. Form stays mounted; the
+  // StepperControls Submit button shows a loading state. On error the
+  // form re-enables; on success the wizard transitions to the post-form
+  // orchestration view (so `isSubmitting` becomes irrelevant).
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const service = useMemo(() => createServiceAccountService(), []);
+  const { state, isRunning, start, retryKey, retryPolling, reset } = useWizardOrchestration({
+    projectId,
+    useCase,
+    onSuccess: (account, keyResponse) => {
+      const tab = useCase ? USE_CASE_DEFAULTS[useCase].revealTab : undefined;
+      onNavigateToAccount(account.name, keyResponse, tab);
+      onOpenChange(false);
+    },
+    onAccountCreateError: setAccountCreateError,
+  });
 
-  // Tracks whether we have a created account — used to decide whether
-  // "close" should navigate instead of discarding.
-  const createdAccount: ServiceAccount | undefined =
-    wizardState.step === 'orchestrating'
-      ? wizardState.createdAccount
-      : wizardState.step === 'partial-failure' || wizardState.step === 'poller-failure'
-        ? wizardState.createdAccount
-        : undefined;
+  // Recomputed when the picker flips between cards so the date is fresh and
+  // the default expiry follows the new use case.
+  const formDefaults = useMemo(() => buildFormDefaults(useCase), [useCase]);
 
-  const isOrchestrating = wizardState.step === 'orchestrating';
+  // Has an account been created in any post-form state? Closing the dialog
+  // after that point should navigate to /keys instead of discarding.
+  const createdAccount =
+    state.kind === 'running' || state.kind === 'partial-failure' || state.kind === 'poller-failure'
+      ? state.createdAccount
+      : undefined;
 
-  // Reset wizard to initial state
-  function reset() {
-    abortRef.current?.abort();
-    abortRef.current = null;
-    orchestratingRef.current = false;
-    setWizardState({ step: 'account' });
-    setKeyError(null);
-  }
-
-  // Handle dialog open-change. During orchestration, prevent accidental close.
-  // Once an account exists, closing navigates to Keys tab.
   function handleOpenChange(next: boolean) {
     if (next) {
       onOpenChange(true);
       return;
     }
-    if (isOrchestrating) {
-      // Block backdrop click during orchestration
-      return;
-    }
+    // Backdrop / X click during any in-flight phase is ignored — covers
+    // both `isSubmitting` (account-create call) and `isRunning` (post-form
+    // orchestration). Recovery states ARE closeable; the user navigates
+    // to /keys via the failure card's "Go to Keys" button.
+    if (isSubmitting || isRunning) return;
+
     if (createdAccount) {
       onNavigateToAccount(createdAccount.name);
-      reset();
-      onOpenChange(false);
-      return;
     }
     reset();
+    setAccountCreateError(null);
     onOpenChange(false);
   }
 
-  // ---------------------------------------------------------------------------
-  // Orchestration
-  // ---------------------------------------------------------------------------
-
-  async function runKeyCreation(
-    account: ServiceAccount,
-    email: string,
-    key: Step2Values,
-    account1Values: Step1Values
-  ) {
-    setWizardState({
-      step: 'orchestrating',
-      account: account1Values,
-      key,
-      phase: 'creating-key',
-      createdAccount: account,
-    });
+  async function handleComplete(data: Record<string, unknown>) {
+    setAccountCreateError(null);
+    setIsSubmitting(true);
     try {
-      const keyResponse = await service.createKey(projectId, email, {
-        name: key.name,
-        type: key.type,
-        publicKey: key.publicKey,
-        expiresAt: key.expiresAt,
-      });
-      onNavigateToAccount(account.name, keyResponse);
-      reset();
-      onOpenChange(false);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Key creation failed.';
-      setWizardState({
-        step: 'partial-failure',
-        createdAccount: account,
-        key,
-        email,
-        error: message,
+      await start({
+        account: {
+          name: data.name as string,
+          displayName: (data.displayName as string) || undefined,
+        },
+        key: {
+          name: data.keyName as string,
+          type: data.type as 'datum-managed' | 'user-managed',
+          publicKey:
+            data.type === 'user-managed' ? (data.publicKey as string) || undefined : undefined,
+          expiresAt: (data.expiresAt as string) || undefined,
+        },
       });
     } finally {
-      orchestratingRef.current = false;
+      // On success the wizard has already transitioned to `running` and
+      // re-renders without the FormStepper, so flipping this back is
+      // cosmetic. On error the form is still mounted; clearing the flag
+      // re-enables the Submit button so the user can retry.
+      setIsSubmitting(false);
     }
   }
 
-  async function orchestrate(account1: Step1Values, key: Step2Values) {
-    if (orchestratingRef.current) return;
-    orchestratingRef.current = true;
+  const formDialogTitle = DIALOG_TITLES[useCase ?? 'default'];
 
-    const abort = new AbortController();
-    abortRef.current = abort;
-
-    // Phase 1: create account
-    setWizardState({ step: 'orchestrating', account: account1, key, phase: 'creating-account' });
-    let newAccount: ServiceAccount;
-    try {
-      newAccount = await service.create(projectId, {
-        name: account1.name,
-        displayName: account1.displayName,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to create service account.';
-      setKeyError(message);
-      setWizardState({ step: 'key', account: account1 });
-      orchestratingRef.current = false;
-      return;
-    }
-
-    if (abort.signal.aborted) {
-      orchestratingRef.current = false;
-      return;
-    }
-
-    // Phase 2: poll for email
-    setWizardState({
-      step: 'orchestrating',
-      account: account1,
-      key,
-      phase: 'polling',
-      createdAccount: newAccount,
-    });
-    let email: string;
-    try {
-      email = await pollForEmail(projectId, newAccount.name, abort.signal);
-    } catch (err) {
-      if (abort.signal.aborted) {
-        orchestratingRef.current = false;
-        return;
-      }
-      const message = err instanceof Error ? err.message : 'Identity setup failed.';
-      setWizardState({
-        step: 'poller-failure',
-        createdAccount: newAccount,
-        key,
-        error: message,
-      });
-      orchestratingRef.current = false;
-      return;
-    }
-
-    if (abort.signal.aborted) {
-      orchestratingRef.current = false;
-      return;
-    }
-
-    // Phase 3: create key (manages orchestratingRef itself via finally)
-    await runKeyCreation(newAccount, email, key, account1);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-
-  const contentClass = wizardState.step === 'partial-failure' ? 'sm:max-w-3xl' : 'sm:max-w-2xl';
+  const contentClass = state.kind === 'partial-failure' ? 'sm:max-w-3xl' : 'sm:max-w-2xl';
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <Dialog.Content className={contentClass}>
-        <Dialog.Header title={dialogTitle(wizardState)} />
-        <Dialog.Body className="max-h-[80vh] overflow-y-auto px-5 py-5">
-          {wizardState.step === 'account' && (
-            <WizardStepAccount
-              projectId={projectId}
-              defaultValues={wizardState.previous}
-              onNext={(values) => {
-                setKeyError(null);
-                setWizardState({ step: 'key', account: values });
-              }}
-              onCancel={() => handleOpenChange(false)}
+        {state.kind === 'idle' ? (
+          // Form mode — grafana-style sectioned shell with header/footer borders.
+          <FormStepper
+            steps={STEPS}
+            defaultValues={formDefaults}
+            onComplete={handleComplete}
+            className="flex min-h-0 flex-1 flex-col space-y-0">
+            <Dialog.Header
+              title={formDialogTitle}
+              className="border-stepper-line border-b"
+              onClose={() => handleOpenChange(false)}
             />
-          )}
+            <Dialog.Body className="p-0">
+              <div className="border-stepper-line border-b p-5">
+                <StepperNavigation variant="horizontal" className="mx-auto w-[265px]" />
+              </div>
 
-          {wizardState.step === 'key' && (
-            <>
-              {keyError && (
-                <div className="border-destructive/30 bg-destructive/5 text-destructive mb-4 rounded-md border px-4 py-3 text-sm">
-                  {keyError}
+              {accountCreateError && (
+                <div className="border-stepper-line border-b px-5 py-4">
+                  <div className="border-destructive/30 bg-destructive/5 text-destructive rounded-md border px-4 py-3 text-sm">
+                    {accountCreateError}
+                  </div>
                 </div>
               )}
-              <WizardStepKey
-                isSubmitting={isOrchestrating}
-                onBack={() => setWizardState({ step: 'account', previous: wizardState.account })}
-                onSubmit={(keyValues) => orchestrate(wizardState.account, keyValues)}
+
+              <FormStep id="account">
+                <WizardStepAccount projectId={projectId} />
+              </FormStep>
+
+              <FormStep id="key">
+                <WizardStepKey useCase={useCase} />
+              </FormStep>
+            </Dialog.Body>
+            <Dialog.Footer className="border-stepper-line border-t">
+              <StepperControls
+                prevLabel={(isFirst) => (isFirst ? 'Cancel' : 'Back')}
+                nextLabel={(isLast) => (isLast ? 'Submit' : 'Continue')}
+                loading={isSubmitting}
+                disabled={isSubmitting}
+                loadingText="Creating..."
+                onCancel={() => handleOpenChange(false)}
               />
-            </>
-          )}
+            </Dialog.Footer>
+          </FormStepper>
+        ) : (
+          <>
+            <Dialog.Body className="p-0">
+              <AnimatePresence mode="wait">
+                {state.kind === 'running' && (
+                  <motion.div
+                    key="running"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className="flex min-h-[346px] flex-col items-center justify-center gap-4 px-5 text-center"
+                    role="status"
+                    aria-label="Wizard orchestration progress">
+                    <SpinnerIcon size="xl" aria-hidden="true" />
+                    <p className="text-foreground text-sm font-semibold">
+                      {RUNNING_MESSAGE[state.phase]}
+                    </p>
+                  </motion.div>
+                )}
 
-          {wizardState.step === 'orchestrating' && <WizardStepProgress phase={wizardState.phase} />}
-
-          {wizardState.step === 'partial-failure' && (
-            <WizardStepPartialFailure
-              accountName={wizardState.createdAccount.name}
-              error={wizardState.error}
-              onRetry={() => {
-                const { createdAccount: acc, key, email } = wizardState;
-                const step1: Step1Values = { name: acc.name, displayName: acc.displayName };
-                runKeyCreation(acc, email, key, step1);
-              }}
-              onGoToKeys={() => {
-                onNavigateToAccount(wizardState.createdAccount.name);
-                reset();
-                onOpenChange(false);
-              }}
-            />
-          )}
-
-          {wizardState.step === 'poller-failure' && (
-            <WizardStepPollerFailure
-              accountName={wizardState.createdAccount.name}
-              error={wizardState.error}
-              onRetry={() => {
-                const { createdAccount: acc, key } = wizardState;
-                const abort = new AbortController();
-                abortRef.current = abort;
-                orchestratingRef.current = true;
-                const step1: Step1Values = { name: acc.name, displayName: acc.displayName };
-                setWizardState({
-                  step: 'orchestrating',
-                  account: step1,
-                  key,
-                  phase: 'polling',
-                  createdAccount: acc,
-                });
-                pollForEmail(projectId, acc.name, abort.signal)
-                  .then((email) => {
-                    if (!abort.signal.aborted) {
-                      runKeyCreation(acc, email, key, step1);
-                    } else {
-                      orchestratingRef.current = false;
+                {state.kind === 'partial-failure' && (
+                  <WizardStepFailure
+                    key="partial-failure"
+                    title="Service account created, but key creation failed"
+                    description={
+                      <>
+                        <span className="text-foreground font-medium">
+                          &ldquo;{state.createdAccount.name}&rdquo;
+                        </span>{' '}
+                        was created successfully. The key could not be created: {state.error}
+                      </>
                     }
-                  })
-                  .catch((err) => {
-                    if (abort.signal.aborted) {
-                      orchestratingRef.current = false;
-                      return;
+                    retryLabel="Retry Key Creation"
+                    onRetry={retryKey}
+                    onGoToKeys={() => {
+                      onNavigateToAccount(state.createdAccount.name);
+                      reset();
+                      onOpenChange(false);
+                    }}
+                  />
+                )}
+
+                {state.kind === 'poller-failure' && (
+                  <WizardStepFailure
+                    key="poller-failure"
+                    title="Account created, but identity setup is taking longer than expected"
+                    description={
+                      <>
+                        <span className="text-foreground font-medium">
+                          &ldquo;{state.createdAccount.name}&rdquo;
+                        </span>{' '}
+                        was created. The identity provider has not assigned an email yet:{' '}
+                        {state.error}
+                      </>
                     }
-                    const message = err instanceof Error ? err.message : 'Identity setup failed.';
-                    setWizardState({
-                      step: 'poller-failure',
-                      createdAccount: acc,
-                      key,
-                      error: message,
-                    });
-                    orchestratingRef.current = false;
-                  });
-              }}
-              onGoToKeys={() => {
-                onNavigateToAccount(wizardState.createdAccount.name);
-                reset();
-                onOpenChange(false);
-              }}
-            />
-          )}
-        </Dialog.Body>
+                    retryLabel="Retry Setup"
+                    onRetry={retryPolling}
+                    onGoToKeys={() => {
+                      onNavigateToAccount(state.createdAccount.name);
+                      reset();
+                      onOpenChange(false);
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+            </Dialog.Body>
+          </>
+        )}
       </Dialog.Content>
     </Dialog>
   );

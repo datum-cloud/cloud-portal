@@ -166,6 +166,7 @@ export default [
         // Service Accounts
         route('service-accounts', 'routes/project/detail/service-accounts/layout.tsx', [
           index('routes/project/detail/service-accounts/index.tsx'),
+          route('new', 'routes/project/detail/service-accounts/new.tsx'),
           route(
             ':serviceAccountId',
             'routes/project/detail/service-accounts/detail/layout.tsx',

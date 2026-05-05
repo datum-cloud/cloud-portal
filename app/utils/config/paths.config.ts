@@ -122,6 +122,7 @@ export const paths = {
       },
       serviceAccounts: {
         root: '/project/[projectId]/service-accounts',
+        new: '/project/[projectId]/service-accounts/new',
         detail: {
           root: '/project/[projectId]/service-accounts/[serviceAccountId]',
           overview: '/project/[projectId]/service-accounts/[serviceAccountId]/overview',

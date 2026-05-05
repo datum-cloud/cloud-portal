@@ -4,6 +4,7 @@ import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navig
 import {
   createServiceAccountService,
   useServiceAccount,
+  useServiceAccountWatch,
   useDeleteServiceAccount,
   useUpdateServiceAccount,
   type ServiceAccount,
@@ -16,7 +17,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { BotIcon } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   LoaderFunctionArgs,
   MetaFunction,
@@ -53,18 +54,53 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export default function ServiceAccountDetailLayout() {
-  const account = useLoaderData<typeof loader>();
+  const loaderAccount = useLoaderData<typeof loader>();
   const { projectId, serviceAccountId } = useParams();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
 
-  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
-  useServiceAccount(projectId ?? '', serviceAccountId ?? '', {
-    initialData: account,
+  // Set during the delete -> navigate window so the cache + watch go quiet
+  // and we don't trigger a 404 refetch against the just-deleted resource.
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Seed cache from SSR loader; consume the live value for the header below
+  // so toggle/delete/external changes flow through the React Query cache.
+  const { data: liveAccount } = useServiceAccount(projectId ?? '', serviceAccountId ?? '', {
+    initialData: loaderAccount,
     initialDataUpdatedAt: Date.now(),
+    enabled: !isDeleting,
   });
 
+  // Subscribe to live updates from the K8s watch SSE so the header avatar/
+  // email/status badge reflect external changes without a page refresh.
+  useServiceAccountWatch(projectId ?? '', serviceAccountId ?? '', { enabled: !isDeleting });
+
+  // Live cache wins; fall back to the SSR snapshot until the cache hydrates.
+  const account = liveAccount ?? loaderAccount;
+
+  // Detect external deletion: the watch's DELETED event evicts the cache,
+  // turning a previously-defined liveAccount into undefined. When that
+  // transition happens AND we're not in our own delete flow, the resource
+  // is gone (deleted via CLI / another tab / terraform) — bail back to the
+  // list with a toast so the page doesn't sit on stale loaderAccount data.
+  const prevLiveRef = useRef(liveAccount);
+  useEffect(() => {
+    if (!isDeleting && prevLiveRef.current && !liveAccount) {
+      toast.info('Service account', {
+        description: 'No longer exists. Returning to the list.',
+      });
+      navigate(getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }));
+      return;
+    }
+    prevLiveRef.current = liveAccount;
+  }, [liveAccount, isDeleting, navigate, projectId]);
+
   const deleteMutation = useDeleteServiceAccount(projectId ?? '', {
+    onMutate: () => {
+      // Quiet the live query + watch so they don't refetch a 404 between
+      // mutation success and the navigate-away below.
+      setIsDeleting(true);
+    },
     onSuccess: (_, name) => {
       toast.success('Service account deleted');
       navigate(getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }), {
@@ -72,6 +108,8 @@ export default function ServiceAccountDetailLayout() {
       });
     },
     onError: (error) => {
+      // Re-enable the live data path so the user can see status + retry.
+      setIsDeleting(false);
       toast.error('Error', { description: error.message });
     },
   });

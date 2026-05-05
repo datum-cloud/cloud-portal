@@ -2,9 +2,11 @@ export {
   serviceAccountCreateSchema,
   serviceAccountUpdateSchema,
   serviceAccountKeyCreateSchema,
+  useCaseSchema,
   type ServiceAccountCreateSchema,
   type ServiceAccountUpdateSchema,
   type ServiceAccountKeyCreateSchema,
+  type UseCase,
 } from './service-account.schema';
 
 export type {
@@ -49,3 +51,5 @@ export {
 } from './use-service-account-email-poller';
 
 export { pollForEmail } from './poll-for-email';
+
+export { useServiceAccountsWatch, useServiceAccountWatch } from './service-account.watch';

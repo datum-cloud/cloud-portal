@@ -3,13 +3,12 @@ import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
 import { ServiceAccountFormDialog } from '@/features/service-account/form/service-account-form-dialog';
 import type { ServiceAccountFormDialogRef } from '@/features/service-account/form/service-account-form-dialog';
-import { CreateServiceAccountWizard } from '@/features/service-account/wizard/create-service-account-wizard';
 import {
   createServiceAccountService,
   useDeleteServiceAccount,
   useServiceAccounts,
+  useServiceAccountsWatch,
   useToggleServiceAccount,
-  type CreateServiceAccountKeyResponse,
   type ServiceAccount,
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
@@ -20,12 +19,11 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { cn } from '@datum-cloud/datum-ui/utils';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
-import { GitBranchIcon, PlusIcon, ServerIcon } from 'lucide-react';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { PlusIcon } from 'lucide-react';
+import { useCallback, useMemo, useRef } from 'react';
 import {
   Link,
   LoaderFunctionArgs,
@@ -37,94 +35,6 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Service Accounts'));
-
-// ---------------------------------------------------------------------------
-// Empty state landing page
-// ---------------------------------------------------------------------------
-
-interface UseCaseTileProps {
-  icon: React.ElementType;
-  title: string;
-  description: string;
-  bullets: string[];
-  onClick: () => void;
-}
-
-function UseCaseTile({
-  icon: IconComponent,
-  title,
-  description,
-  bullets,
-  onClick,
-}: UseCaseTileProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        'flex flex-col gap-4 rounded-xl border p-6 text-left transition-colors',
-        'border-border hover:border-primary/50 hover:bg-primary/5 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none'
-      )}>
-      <div className="flex items-center gap-3">
-        <div className="bg-primary/10 flex size-9 shrink-0 items-center justify-center rounded-lg">
-          <IconComponent className="text-primary size-5" aria-hidden="true" />
-        </div>
-        <span className="text-foreground text-sm font-semibold">{title}</span>
-      </div>
-      <p className="text-muted-foreground text-sm">{description}</p>
-      <ul className="flex flex-col gap-1.5">
-        {bullets.map((b) => (
-          <li
-            key={b}
-            className="text-muted-foreground flex items-center justify-start gap-2 text-xs">
-            <span className="text-primary mb-0.5 shrink-0">→</span>
-            {b}
-          </li>
-        ))}
-      </ul>
-      <span className="text-primary text-xs font-medium">Get started →</span>
-    </button>
-  );
-}
-
-interface ServiceAccountsEmptyStateProps {
-  onSelectUseCase: () => void;
-}
-
-function ServiceAccountsEmptyState({ onSelectUseCase }: ServiceAccountsEmptyStateProps) {
-  return (
-    <div className="flex flex-col gap-5">
-      <PageTitle
-        title="Service Accounts"
-        description="Service accounts give non-human workloads a cryptographic identity to authenticate with Datum APIs — no shared passwords or long-lived tokens."
-      />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <UseCaseTile
-          icon={GitBranchIcon}
-          title="CI/CD Pipeline"
-          description="Authenticate automated jobs in GitHub Actions, GitLab CI, Jenkins, or any other pipeline."
-          bullets={[
-            'Generates a credentials file you store as a CI secret',
-            'Step-by-step setup instructions for GitHub Actions and GitLab CI',
-            'Rotate keys without changing workflow files',
-          ]}
-          onClick={onSelectUseCase}
-        />
-        <UseCaseTile
-          icon={ServerIcon}
-          title="Service"
-          description="Give a backend service or workload a stable identity to call Datum APIs without human credentials."
-          bullets={[
-            'Mount credentials as a Kubernetes secret or env vars',
-            'Works with any language via JWT assertion exchange',
-            'Disable or rotate keys without redeploying',
-          ]}
-          onClick={onSelectUseCase}
-        />
-      </div>
-    </div>
-  );
-}
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
@@ -144,7 +54,10 @@ export default function ServiceAccountsPage() {
   const { confirm } = useConfirmationDialog();
   const { projectId } = useParams();
   const formDialogRef = useRef<ServiceAccountFormDialogRef>(null);
-  const [wizardOpen, setWizardOpen] = useState(false);
+
+  // Subscribe to live updates so the table reflects K8s state changes
+  // (creates/deletes from elsewhere, status flips) without a page refresh.
+  useServiceAccountsWatch(projectId ?? '');
 
   // When navigating back after a delete, the loader may return stale data that still
   // includes the deleted account. Filter it out so the UI is immediately consistent.
@@ -218,24 +131,24 @@ export default function ServiceAccountsPage() {
     () => [
       {
         header: 'Name',
-        accessorKey: 'name',
+        accessorKey: 'displayName',
         cell: ({ row }) => (
-          <Link
-            to={getPathWithParams(paths.project.detail.serviceAccounts.detail.overview, {
-              projectId,
-              serviceAccountId: row.original.name,
-            })}
-            className="flex flex-col gap-0.5 hover:underline">
-            <span className="font-medium">{row.original.displayName ?? row.original.name}</span>
+          <div className="flex flex-col gap-0.5">
+            {/*<span className="font-medium">{row.original.displayName ?? row.original.name}</span>*/}
+            <Tooltip message={row.original.name} hidden={!row.original.displayName}>
+              <span className="font-medium" data-e2e="service-name">
+                {row.original.displayName || row.original.name}
+              </span>
+            </Tooltip>
             <span className="text-muted-foreground text-xs">{row.original.identityEmail}</span>
-          </Link>
+          </div>
         ),
       },
       {
         header: 'Status',
         accessorKey: 'status',
         cell: ({ row }) => (
-          <Badge type={row.original.status === 'Active' ? 'success' : 'secondary'}>
+          <Badge type={row.original.status === 'Active' ? 'success' : 'danger'} theme="light">
             {row.original.status}
           </Badge>
         ),
@@ -257,8 +170,14 @@ export default function ServiceAccountsPage() {
           onClick: (row) => formDialogRef.current?.show(row),
         },
         {
-          label: 'Disable / Enable',
+          label: 'Disable',
           onClick: (row) => toggleAccount(row),
+          hidden: (row: ServiceAccount) => row.status === 'Disabled',
+        },
+        {
+          label: 'Enable',
+          onClick: (row) => toggleAccount(row),
+          hidden: (row: ServiceAccount) => row.status === 'Active',
         },
         {
           label: 'Delete',
@@ -270,58 +189,38 @@ export default function ServiceAccountsPage() {
     [projectId, deleteAccount, toggleAccount]
   );
 
-  const navigateToAccount = (accountName: string, keyResponse?: CreateServiceAccountKeyResponse) =>
-    navigate(
-      getPathWithParams(paths.project.detail.serviceAccounts.detail.keys, {
-        projectId,
-        serviceAccountId: accountName,
-      }),
-      { state: keyResponse ? { keyResponse } : undefined }
-    );
-
-  const openWizard = () => setWizardOpen(true);
-
   return (
     <>
-      {data.length === 0 ? (
-        <ServiceAccountsEmptyState onSelectUseCase={openWizard} />
-      ) : (
-        <Table.Client
-          columns={columns}
-          data={data}
-          title="Service Accounts"
-          search="Search"
-          onRowClick={(row) =>
-            navigate(
-              getPathWithParams(paths.project.detail.serviceAccounts.detail.overview, {
-                projectId,
-                serviceAccountId: row.name,
-              })
-            )
-          }
-          actions={[
-            <Button
-              key="create"
-              type="primary"
-              theme="solid"
-              size="small"
-              onClick={() => openWizard()}>
+      <Table.Client
+        columns={columns}
+        data={data}
+        title="Service Accounts"
+        description="Service accounts give non-human workloads a cryptographic identity to authenticate with Datum APIs — no shared passwords or long-lived tokens."
+        search="Search"
+        onRowClick={(row) =>
+          navigate(
+            getPathWithParams(paths.project.detail.serviceAccounts.detail.overview, {
+              projectId,
+              serviceAccountId: row.name,
+            })
+          )
+        }
+        actions={[
+          <Link
+            key="create"
+            to={getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })}
+            className="w-full sm:w-auto">
+            <Button type="primary" theme="solid" size="small" className="w-full">
               <Icon icon={PlusIcon} className="size-4" />
-              Create Service Account
-            </Button>,
-          ]}
-        />
-      )}
-
-      {/* Edit-only dialog — create path uses the wizard below */}
-      <ServiceAccountFormDialog ref={formDialogRef} projectId={projectId ?? ''} />
-
-      <CreateServiceAccountWizard
-        projectId={projectId ?? ''}
-        open={wizardOpen}
-        onOpenChange={setWizardOpen}
-        onNavigateToAccount={navigateToAccount}
+              Create a Service Account
+            </Button>
+          </Link>,
+        ]}
+        empty="let's add a service account to get you started"
       />
+
+      {/* Edit-only dialog — create flow lives at /service-accounts/new */}
+      <ServiceAccountFormDialog ref={formDialogRef} projectId={projectId ?? ''} />
     </>
   );
 }

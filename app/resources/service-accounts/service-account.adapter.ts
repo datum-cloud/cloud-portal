@@ -1,8 +1,13 @@
+import type { UseCase } from './service-account.schema';
 import type { ServiceAccount, ServiceAccountKey } from './types';
 import type { ComMiloapisIamV1Alpha1ServiceAccount } from '@/modules/control-plane/iam';
 import type { ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey } from '@/modules/control-plane/identity';
 
 const DESCRIPTION_ANNOTATION = 'kubernetes.io/description';
+// Cross-tool annotation: any client (web, CLI, terraform) that knows the
+// user's intent at creation time stamps it here so consumers can group/filter
+// service accounts by purpose. Namespaced under the resource's own API group.
+export const USE_CASE_ANNOTATION = 'iam.miloapis.com/use-case';
 
 export function toServiceAccount(raw: ComMiloapisIamV1Alpha1ServiceAccount): ServiceAccount {
   const name = raw.metadata?.name ?? '';
@@ -40,16 +45,19 @@ export function toServiceAccountKey(
 
 export function toCreateServiceAccountPayload(
   name: string,
-  displayName?: string
+  displayName?: string,
+  useCase?: UseCase
 ): ComMiloapisIamV1Alpha1ServiceAccount {
+  const annotations: Record<string, string> = {};
+  if (displayName) annotations[DESCRIPTION_ANNOTATION] = displayName;
+  if (useCase) annotations[USE_CASE_ANNOTATION] = useCase;
+
   return {
     apiVersion: 'iam.miloapis.com/v1alpha1',
     kind: 'ServiceAccount',
     metadata: {
       name,
-      ...(displayName && {
-        annotations: { [DESCRIPTION_ANNOTATION]: displayName },
-      }),
+      ...(Object.keys(annotations).length > 0 && { annotations }),
     },
     spec: { state: 'Active' },
   };

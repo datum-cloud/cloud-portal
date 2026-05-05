@@ -38,9 +38,14 @@ export default function ServiceAccountKeysPage() {
   const keyFormDialogRef = useRef<ServiceAccountKeyFormDialogRef>(null);
   const location = useLocation();
   const navigate = useNavigate();
-  const initialKeyResponse = (
-    location.state as { keyResponse?: CreateServiceAccountKeyResponse } | null
-  )?.keyResponse;
+  const initialState = location.state as {
+    keyResponse?: CreateServiceAccountKeyResponse;
+    defaultRevealTab?: 'github' | 'kubernetes';
+  } | null;
+  const initialKeyResponse = initialState?.keyResponse;
+  // Captured once on mount; KeyRevealPanel uses this to pre-select the right
+  // onboarding snippet tab (GitHub Actions for cicd, Kubernetes for service).
+  const initialDefaultRevealTab = initialState?.defaultRevealTab;
 
   const [newCredentials, setNewCredentials] = useState<DatumCredentialsFile | null>(
     initialKeyResponse?.credentials ?? null
@@ -164,6 +169,7 @@ export default function ServiceAccountKeysPage() {
         <KeyRevealPanel
           credentials={newCredentials}
           serviceAccountName={serviceAccount.name}
+          defaultTab={initialDefaultRevealTab}
           onDismiss={() => setNewCredentials(null)}
         />
       )}
