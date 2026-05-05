@@ -19,7 +19,7 @@ export const zitadelStrategy = await OAuth2.discover<IAuthSession>(
     clientId: env.server.authOidcClientId ?? '',
     clientSecret: '',
     redirectURI: `${env.public.appUrl ?? 'http://localhost:3000'}${paths.auth.callback}`,
-    scopes: ['openid', 'profile', 'email', 'phone', 'address', 'offline_access'],
+    scopes: ['openid', 'profile', 'email', 'offline_access'],
     // codeChallengeMethod: CodeChallengeMethod.S256,
   },
   async ({ tokens }) => {

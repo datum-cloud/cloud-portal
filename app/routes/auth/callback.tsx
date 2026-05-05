@@ -54,14 +54,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
       expiredAt: rest.expiredAt,
     });
 
-    // Decode Access token to get sub
-    const decoded = jwtDecode<{ sub: string; email: string }>(rest.accessToken);
+    // Decode tokens to get user identity.
+    // Dex puts the human-readable username in the 'name' claim (identity.Username).
+    // The 'sub' from Dex is protobuf-encoded and not a valid k8s resource name.
+    const decoded = jwtDecode<{ sub: string; email: string; name?: string; preferred_username?: string }>(rest.accessToken);
+    const decodedId = idToken
+      ? jwtDecode<{ sub: string; name?: string; preferred_username?: string }>(idToken)
+      : decoded;
+    const miloSub = decoded.preferred_username || decodedId.preferred_username || decoded.name || decodedId.name || decoded.sub;
 
     // Handle access token session (short-lived cookie)
     const sessionHeaders = await AuthService.setSession(cookieHeader, {
       accessToken: rest.accessToken,
       expiredAt: rest.expiredAt,
-      sub: decoded.sub,
+      sub: miloSub,
     });
 
     // Handle refresh token (long-lived cookie) - SEPARATE from session
@@ -101,7 +107,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Redirect to the intended destination
     return redirect(destination, { headers });
-  } catch {
+  } catch (error) {
+    console.error('[Auth Callback Error]', error);
     return redirect(paths.auth.logIn);
   }
 }
