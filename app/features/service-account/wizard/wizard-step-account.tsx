@@ -1,108 +1,75 @@
-import { serviceAccountCreateSchema } from '@/resources/service-accounts';
-import { Button } from '@datum-cloud/datum-ui/button';
-import { Form } from '@datum-cloud/datum-ui/form';
+import { InputName } from '@/components/input-name/input-name';
+import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import type { z } from 'zod';
-
-// UseCase is used by the landing page tile selection — kept here as the
-// canonical definition even though the wizard form no longer has a use-case field.
-export type UseCase = 'cicd' | 'service';
 
 export interface Step1Values {
   name: string;
   displayName?: string;
 }
 
-type Step1Schema = z.infer<typeof serviceAccountCreateSchema>;
+interface ResourceNameInputProps {
+  field: NormalizedFieldState;
+  projectId: string;
+}
 
-const STEP1_DEFAULTS: Step1Schema = {
-  name: '',
-  displayName: '',
-};
-
-function NamePreview({ projectId }: { projectId: string }) {
-  const name = Form.useWatch<string>('name');
+/**
+ * Auto-generated resource name field. Mirrors the org-dialog pattern:
+ * the user types a friendly display name above; this field watches that
+ * value and asks <InputName> to derive a kebab-cased identifier with a
+ * random suffix. The user can uncheck "Auto-generate" to type their own.
+ *
+ * <Form.Field> wraps this component (in WizardStepAccount below) so Zod
+ * validation errors render automatically; <InputName> alone only colors
+ * the label red and would not show the error message text.
+ */
+function ResourceNameInput({ field, projectId }: ResourceNameInputProps) {
+  const displayName = useWatch('displayName') as string | undefined;
+  const name = useWatch('name') as string | undefined;
 
   return (
-    <p className={cn('mt-1 text-xs', name ? 'text-muted-foreground' : 'text-muted-foreground/50')}>
-      Identity email:{' '}
-      <span className="font-mono">
-        {name || '<name>'}@{projectId}.iam.datumapis.com
-      </span>
-    </p>
+    <div className="flex flex-col gap-1.5">
+      <InputName
+        field={field}
+        label="Resource Name"
+        description="This unique resource name will identify your service account and cannot be changed."
+        baseName={displayName}
+        showTooltip={false}
+        required
+      />
+      <p className={cn('text-xs', name ? 'text-muted-foreground' : 'text-muted-foreground/50')}>
+        Identity email:{' '}
+        <span className="font-mono">
+          {name || '<name>'}@{projectId}.iam.datumapis.com
+        </span>
+      </p>
+    </div>
   );
 }
 
-interface WizardStepAccountProps {
+export interface WizardStepAccountProps {
   projectId: string;
-  defaultValues?: Partial<Step1Values>;
-  onNext: (values: Step1Values) => void;
-  onCancel: () => void;
 }
 
-export function WizardStepAccount({
-  projectId,
-  defaultValues,
-  onNext,
-  onCancel,
-}: WizardStepAccountProps) {
-  const mergedDefaults: Step1Schema = {
-    ...STEP1_DEFAULTS,
-    ...defaultValues,
-  };
-
-  const handleSubmit = (data: Step1Schema) => {
-    onNext({
-      name: data.name,
-      displayName: data.displayName || undefined,
-    });
-  };
-
+/**
+ * Pure form body for step 1. Owns its own padding + per-field dividers;
+ * the wizard parent's <FormStep> renders this directly without an extra
+ * wrapper. No <Form.Root>, no buttons — those are owned by <FormStepper>
+ * and <StepperControls>.
+ */
+export function WizardStepAccount({ projectId }: WizardStepAccountProps) {
   return (
-    <Form.Root
-      schema={serviceAccountCreateSchema}
-      defaultValues={mergedDefaults}
-      onSubmit={handleSubmit}
-      className="space-y-0">
-      {({ isSubmitting }) => (
-        <div className="space-y-5">
-          <Form.Field name="name" label="Name" required>
-            {({ control }) => (
-              <>
-                <Form.Input
-                  placeholder="my-service-account"
-                  autoFocus
-                  value={control.value as string}
-                  onChange={(e) => control.change(e.target.value)}
-                />
-                <NamePreview projectId={projectId} />
-              </>
-            )}
-          </Form.Field>
+    <div className="divide-stepper-line space-y-0 divide-y [&>*]:p-5">
+      <Form.Field
+        name="displayName"
+        label="Display Name"
+        description="A friendly name to recognize this account in lists. This can be changed later."
+        required>
+        <Form.Input placeholder="e.g. My Service Account" autoFocus />
+      </Form.Field>
 
-          <Form.Field name="displayName" label="Display Name">
-            {({ control }) => (
-              <Form.Input
-                placeholder="My Service Account"
-                value={control.value as string}
-                onChange={(e) => control.change(e.target.value)}
-              />
-            )}
-          </Form.Field>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button
-              htmlType="button"
-              type="secondary"
-              theme="outline"
-              onClick={onCancel}
-              disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Form.Submit>Next</Form.Submit>
-          </div>
-        </div>
-      )}
-    </Form.Root>
+      <Form.Field name="name">
+        {({ field }) => <ResourceNameInput field={field} projectId={projectId} />}
+      </Form.Field>
+    </div>
   );
 }

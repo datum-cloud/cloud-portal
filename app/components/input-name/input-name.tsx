@@ -58,7 +58,14 @@ export const InputName = ({
   }, [baseName, auto, disabledRandomSuffix]);
 
   const hasErrors = field.errors && field.errors.length > 0;
-  const inputProps = (field.inputProps ?? {}) as Record<string, unknown>;
+  // Conform's inputProps includes `defaultValue` for the uncontrolled flow.
+  // We use the controlled flow below (`value={field.value ?? ''}`), so strip
+  // defaultValue to avoid React's "both value and defaultValue" warning.
+  const { defaultValue: _ignoredDefault, ...inputProps } = (field.inputProps ?? {}) as Record<
+    string,
+    unknown
+  >;
+  void _ignoredDefault;
 
   return (
     <div className={cn('flex flex-col space-y-2', className)}>

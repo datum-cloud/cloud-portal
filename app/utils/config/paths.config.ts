@@ -122,6 +122,7 @@ export const paths = {
       },
       serviceAccounts: {
         root: '/project/[projectId]/service-accounts',
+        new: '/project/[projectId]/service-accounts/new',
         detail: {
           root: '/project/[projectId]/service-accounts/[serviceAccountId]',
           overview: '/project/[projectId]/service-accounts/[serviceAccountId]/overview',
@@ -129,6 +130,7 @@ export const paths = {
           policyBindings:
             '/project/[projectId]/service-accounts/[serviceAccountId]/policy-bindings',
           activity: '/project/[projectId]/service-accounts/[serviceAccountId]/activity',
+          settings: '/project/[projectId]/service-accounts/[serviceAccountId]/settings',
         },
       },
     },

@@ -1,3 +1,5 @@
+import type { UseCase } from './service-account.schema';
+
 export interface ServiceAccount {
   uid: string;
   name: string;
@@ -22,6 +24,7 @@ export interface ServiceAccountKey {
 export interface CreateServiceAccountInput {
   name: string;
   displayName?: string;
+  useCase?: UseCase;
 }
 
 export interface UpdateServiceAccountInput {

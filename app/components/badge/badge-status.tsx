@@ -57,6 +57,11 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     badgeTheme: 'light',
     defaultLabel: 'Inactive',
   },
+  disabled: {
+    badgeType: 'secondary',
+    badgeTheme: 'light',
+    defaultLabel: 'Inactive',
+  },
   success: {
     badgeType: 'success',
     badgeTheme: 'light',

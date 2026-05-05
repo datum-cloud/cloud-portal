@@ -1,3 +1,4 @@
+import type { ServiceAccountDetailContext } from './layout';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { PolicyBindingTable } from '@/features/policy-binding';
 import type { PolicyBindingTableRowAction } from '@/features/policy-binding';
@@ -11,14 +12,15 @@ import {
   useDeletePolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { useServiceAccount } from '@/resources/service-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ShieldIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
-import { MetaFunction, useParams } from 'react-router';
+import { MetaFunction, useOutletContext, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Roles</span>,
@@ -27,12 +29,12 @@ export const handle = {
 export const meta: MetaFunction = mergeMeta(() => metaObject('Roles'));
 
 export default function ServiceAccountPolicyBindingsPage() {
-  const { projectId, serviceAccountId } = useParams();
+  const { projectId } = useParams();
   const { orgId } = useApp();
   const dialogRef = useRef<PolicyBindingFormDialogRef>(null);
   const { confirm } = useConfirmationDialog();
 
-  const { data: serviceAccount } = useServiceAccount(projectId ?? '', serviceAccountId ?? '');
+  const { account: serviceAccount } = useOutletContext<ServiceAccountDetailContext>();
 
   const { data: allBindings = [] } = usePolicyBindings(orgId ?? '');
 
@@ -84,34 +86,39 @@ export default function ServiceAccountPolicyBindingsPage() {
   );
 
   return (
-    <>
-      <PolicyBindingTable
-        bindings={bindings}
-        empty={{
-          title: 'No roles found',
-          actions: [
-            {
-              label: 'Grant role on this project',
-              type: 'button',
-              onClick: () => dialogRef.current?.show(),
-              icon: <ShieldIcon className="size-4" />,
-            },
-          ],
-        }}
-        tableTitle={{
-          actions: (
-            <Button
-              type="quaternary"
-              theme="outline"
-              size="small"
-              onClick={() => dialogRef.current?.show()}>
-              <Icon icon={ShieldIcon} className="size-4" />
-              Grant role on this project
-            </Button>
-          ),
-        }}
-        rowActions={rowActions}
-      />
+    <Row type="flex" gutter={[24, 24]}>
+      <Col span={24}>
+        <PageTitle title="Roles" />
+      </Col>
+      <Col span={24}>
+        <PolicyBindingTable
+          bindings={bindings}
+          empty={{
+            title: 'No roles found',
+            actions: [
+              {
+                label: 'Grant role on this project',
+                type: 'button',
+                onClick: () => dialogRef.current?.show(),
+                icon: <ShieldIcon className="size-4" />,
+              },
+            ],
+          }}
+          tableTitle={{
+            actions: (
+              <Button
+                type="quaternary"
+                theme="outline"
+                size="small"
+                onClick={() => dialogRef.current?.show()}>
+                <Icon icon={ShieldIcon} className="size-4" />
+                Grant role on this project
+              </Button>
+            ),
+          }}
+          rowActions={rowActions}
+        />
+      </Col>
       <PolicyBindingFormDialog
         ref={dialogRef}
         orgId={orgId ?? ''}
@@ -123,6 +130,6 @@ export default function ServiceAccountPolicyBindingsPage() {
             : undefined
         }
       />
-    </>
+    </Row>
   );
 }

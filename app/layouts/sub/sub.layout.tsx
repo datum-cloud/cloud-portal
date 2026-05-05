@@ -65,7 +65,7 @@ export function SubLayout({
       <aside
         className={cn(
           'bg-sidebar border-sidebar-border shrink-0 overflow-y-auto px-3.5 py-5',
-          'h-full w-51 border-r'
+          'h-full min-w-56 border-r'
         )}>
         <div className="flex min-h-0 flex-1 flex-col gap-0 overflow-auto group-data-[collapsible=icon]:overflow-hidden">
           <div className="flex flex-1 flex-col items-start justify-start">
