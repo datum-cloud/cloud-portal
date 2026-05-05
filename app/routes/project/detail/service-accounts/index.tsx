@@ -145,12 +145,7 @@ export default function ServiceAccountsPage() {
       {
         header: 'Status',
         accessorKey: 'status',
-        cell: ({ row }) => (
-          <BadgeStatus status={row.original.status} />
-          // <Badge type={row.original.status === 'Active' ? 'success' : 'danger'} theme="light">
-          //   {row.original.status}
-          // </Badge>
-        ),
+        cell: ({ row }) => <BadgeStatus status={row.original.status} />,
       },
       {
         header: 'Keys',

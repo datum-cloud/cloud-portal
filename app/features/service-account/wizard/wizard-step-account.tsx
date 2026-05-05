@@ -61,7 +61,7 @@ export function WizardStepAccount({ projectId }: WizardStepAccountProps) {
     <div className="divide-stepper-line space-y-0 divide-y [&>*]:p-5">
       <Form.Field
         name="displayName"
-        label="Service Account Name"
+        label="Display Name"
         description="A friendly name to recognize this account in lists. This can be changed later."
         required>
         <Form.Input placeholder="e.g. My Service Account" autoFocus />

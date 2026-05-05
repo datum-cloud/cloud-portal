@@ -1,10 +1,11 @@
 import type { ServiceAccountDetailContext } from './layout';
 import { BadgeCopy } from '@/components/badge/badge-copy';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { List, type ListItem } from '@/components/list/list';
+import { NoteCard } from '@/components/note-card/note-card';
 import { useUpdateServiceAccount } from '@/resources/service-accounts';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
@@ -45,7 +46,7 @@ export default function ServiceAccountOverviewPage() {
 
   const listItems: ListItem[] = useMemo(() => {
     return [
-      { label: 'Name', content: account.name },
+      { label: 'Resource Name', content: account.name },
       { label: 'Display Name', content: account.displayName ?? '—' },
       {
         label: 'Identity Email',
@@ -59,7 +60,7 @@ export default function ServiceAccountOverviewPage() {
       },
       {
         label: 'Status',
-        content: <Badge type={isActive ? 'success' : 'secondary'}>{account.status}</Badge>,
+        content: <BadgeStatus status={account.status} />,
       },
       {
         label: 'Created',
@@ -78,7 +79,7 @@ export default function ServiceAccountOverviewPage() {
         <div className="flex items-center justify-between gap-4">
           <PageTitle title={account.displayName ?? account.name} />
           <Button
-            type="quaternary"
+            type="secondary"
             theme="outline"
             size="small"
             loading={toggleMutation.isPending}
@@ -98,21 +99,24 @@ export default function ServiceAccountOverviewPage() {
       </Col>
 
       <Col span={24}>
-        <div className="bg-muted/40 flex items-start gap-3 rounded-lg border p-4 text-sm">
-          <Icon icon={InfoIcon} className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-          <p className="text-muted-foreground">
-            Service accounts allow workloads, CI/CD pipelines, and automated systems to authenticate
-            with Datum Cloud using short-lived tokens via{' '}
-            <a
-              href="https://datatracker.ietf.org/doc/html/rfc7523"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline">
-              RFC 7523
-            </a>{' '}
-            JWT exchange.
-          </p>
-        </div>
+        <NoteCard
+          icon={<Icon icon={InfoIcon} className="size-5" />}
+          title="About Service Accounts"
+          description={
+            <span className="text-sm">
+              Service accounts allow workloads, CI/CD pipelines, and automated systems to
+              authenticate with Datum Cloud using short-lived tokens via{' '}
+              <a
+                href="https://datatracker.ietf.org/doc/html/rfc7523"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline">
+                RFC 7523
+              </a>{' '}
+              JWT exchange.
+            </span>
+          }
+        />
       </Col>
     </Row>
   );
