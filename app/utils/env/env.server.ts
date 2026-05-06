@@ -149,7 +149,7 @@ const serverSchema = z.object({
   // Meter names are discovered automatically from platform MeterDefinition resources.
   // ─────────────────────────────────────────────────────────
   AMBERFLO_API_KEY: z.string().optional(),
-  AMBERFLO_BASE_URL: z.url().default('https://app.amberflo.io').optional(),
+  AMBERFLO_BASE_URL: z.url().default('https://app.amberflo.io'),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)

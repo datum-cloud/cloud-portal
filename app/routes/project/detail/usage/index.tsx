@@ -3,7 +3,7 @@ import {
   readBillingMiloapisComV1Alpha1NamespacedBillingAccount,
 } from '@/modules/control-plane/billing';
 import { client } from '@/modules/control-plane/shared/client.gen';
-import { getOrgScopedBase } from '@/resources/base/utils';
+import { getOrgScopedBase, getProjectScopedBase } from '@/resources/base/utils';
 import { createProjectService } from '@/resources/projects';
 import { env } from '@/utils/env/env.server';
 import { BadRequestError } from '@/utils/errors';
@@ -38,11 +38,12 @@ interface MeterDefinition {
   displayName: string;
 }
 
-async function listMeterDefinitions(): Promise<MeterDefinition[]> {
+async function listMeterDefinitions(projectId: string): Promise<MeterDefinition[]> {
   try {
-    const axios = client.getConfig().axios!;
-    const baseUrl = axios.defaults?.baseURL ?? '';
-    const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
+    const axios = client.getConfig().axios;
+    if (!axios) return [];
+    const baseUrl = `${getProjectScopedBase(projectId)}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`;
+    const resp = await axios.get(baseUrl);
     const items: { spec?: { meterName?: string; displayName?: string } }[] = resp.data?.items ?? [];
     return items
       .map((item) => ({
@@ -116,11 +117,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     return data({ status: 'no-billing-account' as const, meters: [] });
   }
 
-  const baseUrl = env.server.amberfloBaseUrl ?? 'https://app.amberflo.io';
+  const baseUrl = env.server.amberfloBaseUrl;
   const nowSec = Math.floor(Date.now() / 1000);
   const startSec = nowSec - 30 * 24 * 3600;
 
-  const meterDefs = await listMeterDefinitions();
+  const meterDefs = await listMeterDefinitions(projectId);
 
   const meters = await Promise.all(
     meterDefs.map(async ({ meterName, displayName }): Promise<MeterSeries> => {
@@ -220,8 +221,7 @@ export default function UsagePage() {
         <BarChart3Icon className="text-muted-foreground h-10 w-10" />
         <p className="text-lg font-medium">Usage data not available</p>
         <p className="text-muted-foreground max-w-sm text-sm">
-          Configure <code>AMBERFLO_API_KEY</code> and <code>AMBERFLO_METER_NAMES</code> to enable
-          this view.
+          Configure <code>AMBERFLO_API_KEY</code> to enable this view.
         </p>
       </div>
     );
@@ -258,11 +258,21 @@ export default function UsagePage() {
         <h1 className="text-xl font-semibold">Usage</h1>
         <p className="text-muted-foreground text-sm">Resource consumption for this project.</p>
       </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        {result.meters.map((meter: MeterSeries) => (
-          <MeterChart key={meter.meterApiName} meter={meter} />
-        ))}
-      </div>
+      {result.meters.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
+          <BarChart3Icon className="text-muted-foreground h-10 w-10" />
+          <p className="text-lg font-medium">No usage meters configured</p>
+          <p className="text-muted-foreground max-w-sm text-sm">
+            No <code>MeterDefinition</code> resources are available for this project.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2">
+          {result.meters.map((meter) => (
+            <MeterChart key={meter.meterApiName} meter={meter} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
