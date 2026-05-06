@@ -66,6 +66,15 @@ export default [
           route(':memberId/roles', 'routes/org/detail/team/member-roles.tsx'),
         ]),
 
+        // Support tickets
+        route('support', 'routes/org/detail/support/layout.tsx', [
+          index('routes/org/detail/support/index.tsx'),
+          route('new', 'routes/org/detail/support/new.tsx'),
+          route(':ticketName', 'routes/org/detail/support/$ticketName/layout.tsx', [
+            index('routes/org/detail/support/$ticketName/index.tsx'),
+          ]),
+        ]),
+
         // Settings of an organization
         layout('routes/org/detail/settings/layout.tsx', [
           route('general', 'routes/org/detail/settings/general.tsx'),

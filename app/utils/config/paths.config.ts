@@ -52,6 +52,11 @@ export const paths = {
         new: '/org/[orgId]/policy-bindings/new',
         edit: '/org/[orgId]/policy-bindings/[policyBindingId]/edit',
       },
+      support: {
+        root: '/org/[orgId]/support',
+        new: '/org/[orgId]/support/new',
+        detail: '/org/[orgId]/support/[ticketName]',
+      },
       settings: {
         general: '/org/[orgId]/general',
         notifications: '/org/[orgId]/notifications',

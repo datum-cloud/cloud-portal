@@ -8,7 +8,7 @@ import { clearProjectSession, redirectWithToast, setOrgSession } from '@/utils/c
 import { NotFoundError } from '@/utils/errors';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
-import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
+import { FolderRoot, LifeBuoy, SettingsIcon, UsersIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -98,6 +98,12 @@ export default function OrgLayout() {
         type: 'link',
         hidden: org?.type === 'Personal',
         icon: UsersIcon,
+      },
+      {
+        title: 'Support',
+        href: getPathWithParams(paths.org.detail.support.root, { orgId }),
+        type: 'link',
+        icon: LifeBuoy,
       },
       {
         title: 'Organization Settings',
