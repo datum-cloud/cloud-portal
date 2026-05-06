@@ -25,6 +25,10 @@ export async function fraudStatusMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
+  if (process.env.FRAUD_CHECK_DISABLED === 'true') {
+    return next();
+  }
+
   const { request } = ctx;
 
   // Short-circuit for the logout route so users can always sign out.
