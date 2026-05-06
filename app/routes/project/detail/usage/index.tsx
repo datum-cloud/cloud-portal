@@ -2,6 +2,8 @@ import {
   listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding,
   readBillingMiloapisComV1Alpha1NamespacedBillingAccount,
 } from '@/modules/control-plane/billing';
+import { client } from '@/modules/control-plane/shared/client.gen';
+import { getOrgScopedBase } from '@/resources/base/utils';
 import { createProjectService } from '@/resources/projects';
 import { env } from '@/utils/env/env.server';
 import { BadRequestError } from '@/utils/errors';
@@ -27,7 +29,30 @@ import {
 
 interface MeterSeries {
   meterApiName: string;
+  label: string;
   values: { timestamp: number; value: number }[];
+}
+
+interface MeterDefinition {
+  meterName: string;
+  displayName: string;
+}
+
+async function listMeterDefinitions(): Promise<MeterDefinition[]> {
+  try {
+    const axios = client.getConfig().axios!;
+    const baseUrl = axios.defaults?.baseURL ?? '';
+    const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
+    const items: { spec?: { meterName?: string; displayName?: string } }[] = resp.data?.items ?? [];
+    return items
+      .map((item) => ({
+        meterName: item.spec?.meterName ?? '',
+        displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
+      }))
+      .filter((m) => m.meterName);
+  } catch {
+    return [];
+  }
 }
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
@@ -42,15 +67,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     return data({ status: 'unconfigured' as const, meters: [] });
   }
 
-  const meterNames = (env.server.amberfloMeterNames ?? '')
-    .split(',')
-    .map((s: string) => s.trim())
-    .filter(Boolean);
-
-  if (meterNames.length === 0) {
-    return data({ status: 'no-meters' as const, meters: [] });
-  }
-
   // Resolve BillingAccount uid (= Amberflo customerId) for this project.
   const projectService = createProjectService();
   const project = await projectService.get(projectId);
@@ -59,6 +75,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   let bindingsResp;
   try {
     bindingsResp = await listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding({
+      baseURL: getOrgScopedBase(project.organizationId),
       path: { namespace: orgNamespace },
     });
   } catch (err: unknown) {
@@ -83,6 +100,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   let accountResp;
   try {
     accountResp = await readBillingMiloapisComV1Alpha1NamespacedBillingAccount({
+      baseURL: getOrgScopedBase(project.organizationId),
       path: { namespace: orgNamespace, name: billingAccountName },
     });
   } catch (err: unknown) {
@@ -102,8 +120,10 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const nowSec = Math.floor(Date.now() / 1000);
   const startSec = nowSec - 30 * 24 * 3600;
 
+  const meterDefs = await listMeterDefinitions();
+
   const meters = await Promise.all(
-    meterNames.map(async (meterApiName: string): Promise<MeterSeries> => {
+    meterDefs.map(async ({ meterName, displayName }): Promise<MeterSeries> => {
       try {
         const resp = await fetch(`${baseUrl}/usage/sparse`, {
           method: 'POST',
@@ -112,7 +132,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
             'x-api-key': apiKey,
           },
           body: JSON.stringify({
-            meterApiName,
+            meterApiName: meterName,
             timeRange: { startTimeInSeconds: startSec, endTimeInSeconds: nowSec },
             filter: { customerId: [customerId] },
             groupBy: ['customerId'],
@@ -120,7 +140,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
         });
 
         if (!resp.ok) {
-          return { meterApiName, values: [] };
+          return { meterApiName: meterName, label: displayName, values: [] };
         }
 
         const json = (await resp.json()) as {
@@ -128,11 +148,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
         };
         const raw = json.clientMeters?.[0]?.values ?? [];
         return {
-          meterApiName,
+          meterApiName: meterName,
+          label: displayName,
           values: raw.map((v) => ({ timestamp: v.secondsSinceEpochUtc * 1000, value: v.value })),
         };
       } catch {
-        return { meterApiName, values: [] };
+        return { meterApiName: meterName, label: displayName, values: [] };
       }
     })
   );
@@ -141,12 +162,10 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 function MeterChart({ meter }: { meter: MeterSeries }) {
-  const label = meter.meterApiName.split('/').pop() ?? meter.meterApiName;
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base capitalize">{label.replace(/-/g, ' ')}</CardTitle>
+        <CardTitle className="text-base">{meter.label}</CardTitle>
         <CardDescription>Last 30 days</CardDescription>
       </CardHeader>
       <CardContent>
@@ -228,19 +247,6 @@ export default function UsagePage() {
         <p className="text-lg font-medium">No billing account linked</p>
         <p className="text-muted-foreground max-w-sm text-sm">
           This project does not have a billing account binding. Contact your organization admin.
-        </p>
-      </div>
-    );
-  }
-
-  if (result.status === 'no-meters') {
-    return (
-      <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
-        <BarChart3Icon className="text-muted-foreground h-10 w-10" />
-        <p className="text-lg font-medium">No meters configured</p>
-        <p className="text-muted-foreground max-w-sm text-sm">
-          Set <code>AMBERFLO_METER_NAMES</code> to a comma-separated list of Amberflo meter API
-          names.
         </p>
       </div>
     );

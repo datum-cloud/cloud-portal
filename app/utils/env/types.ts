@@ -83,11 +83,8 @@ export interface ServerEnv {
   // Optional: Amberflo usage query (read path for the usage chart)
   // amberfloApiKey: secret key used server-side to call POST /usage/sparse
   // amberfloBaseUrl: defaults to https://app.amberflo.io
-  // amberfloMeterNames: comma-separated Amberflo meterApiName values (= MeterDefinition UIDs)
-  //   Obtain from the MeterDefinition API once billing is fully provisioned.
   amberfloApiKey?: string;
   amberfloBaseUrl?: string;
-  amberfloMeterNames?: string;
 }
 
 /**
