@@ -5,9 +5,12 @@ import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
 import {
   createExportPolicyService,
   useDeleteExportPolicy,
+  useExportPolicies,
+  useExportPoliciesWatch,
   type ExportPolicy,
 } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { dataWithToast } from '@/utils/cookies';
 import { AppError, BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -50,10 +53,25 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
 export default function ExportPoliciesPage() {
   const { projectId } = useParams();
-  const policies = useLoaderData<typeof loader>();
+  const initialData = useLoaderData<typeof loader>();
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
+
+  // Subscribe to live updates so the table reflects K8s state changes
+  // (status flips, creates/deletes from elsewhere) without per-row watches.
+  useExportPoliciesWatch(projectId ?? '');
+
+  // Seed the query cache from the SSR loader so the watch has a list to patch.
+  const { data: queryData } = useExportPolicies(projectId ?? '', {
+    initialData: initialData ?? [],
+    initialDataUpdatedAt: Date.now(),
+    refetchOnMount: false,
+    staleTime: QUERY_STALE_TIME,
+  });
+
+  const policies = queryData ?? initialData ?? [];
+
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
     onError: (error) => {
       toast.error(error.message);
@@ -115,8 +133,6 @@ export default function ExportPoliciesPage() {
           return (
             <ExportPolicyStatus
               currentStatus={transformControlPlaneStatus(row.original.status)}
-              projectId={projectId}
-              id={row.original.name}
               showTooltip={false}
             />
           );

@@ -28,6 +28,14 @@ export function useExportPoliciesWatch(projectId: string, options?: { enabled?: 
     queryKey: exportPolicyKeys.list(projectId),
     transform: (item) => toExportPolicy(item as ComDatumapisTelemetryV1Alpha1ExportPolicy),
     enabled: options?.enabled ?? true,
+    // In-place cache update for MODIFIED events. The list cache is a plain
+    // ExportPolicy[] (no { items: [] } envelope), so we map the array.
+    getItemKey: (policy) => policy.name,
+    updateListCache: (oldData, newItem) => {
+      const old = oldData as ExportPolicy[] | undefined;
+      if (!old) return [newItem];
+      return old.map((p) => (p.name === newItem.name ? newItem : p));
+    },
   });
 }
 
