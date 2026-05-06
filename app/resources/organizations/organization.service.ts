@@ -114,7 +114,6 @@ export function createOrganizationService() {
 
     async fetchOne(name: string): Promise<Organization> {
       const response = await readResourcemanagerMiloapisComV1Alpha1Organization({
-        baseURL: getUserScopedBase(),
         path: { name },
       });
 

@@ -1,5 +1,5 @@
 import { OrganizationItem } from './organization-item';
-import { useOrganizationsGql, type Organization } from '@/resources/organizations';
+import { useOrganizations, type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -39,7 +39,7 @@ export const SelectOrganization = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const { data, isLoading, error } = useOrganizationsGql(undefined, {
+  const { data, isLoading, error } = useOrganizations(undefined, {
     enabled: open,
   });
   const organizations = [...(data?.items ?? [])].sort((a, b) => {

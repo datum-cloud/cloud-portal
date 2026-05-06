@@ -1,6 +1,6 @@
 import { OrganizationItem } from '@/components/select-organization/organization-item';
 import { useApp } from '@/providers/app.provider';
-import { type Organization, useOrganizationsGql } from '@/resources/organizations';
+import { type Organization, useOrganizations } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
@@ -35,7 +35,7 @@ function OrgSwitcherSheet({
 }) {
   const { setOrganization } = useApp();
   const navigate = useNavigate();
-  const { data, isLoading } = useOrganizationsGql(undefined, { enabled: open });
+  const { data, isLoading } = useOrganizations(undefined, { enabled: open });
 
   const organizations = useMemo(() => {
     const items = [...(data?.items ?? [])];

@@ -7,7 +7,7 @@ import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   organizationFormSchema,
   useCreateOrganization,
-  useOrganizationsGql,
+  useOrganizations,
   type Organization,
 } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
@@ -66,7 +66,7 @@ export default function AccountOrganizations() {
     isLoading: _isLoading,
     refetch: refetchOrgs,
     error: orgsError,
-  } = useOrganizationsGql();
+  } = useOrganizations();
   const orgs = orgList?.items ?? [];
   const navigate = useNavigate();
   const revalidator = useRevalidator();
