@@ -47,6 +47,24 @@ export function createApiApp() {
   api.use('/assistant/*', rateLimiter(RateLimitPresets.assistant));
   api.route('/assistant', assistantRoutes);
 
+  // Image upload: accept a multipart file, return a base64 data URL.
+  // Used by the markdown editor's image-paste handler in support ticket replies.
+  api.post('/uploads/image', async (c) => {
+    try {
+      const body = await c.req.parseBody();
+      const file = body['file'];
+      if (!file || typeof file === 'string') {
+        return c.json({ error: 'No file provided' }, 400);
+      }
+      const buf = await (file as File).arrayBuffer();
+      const b64 = Buffer.from(buf).toString('base64');
+      const mime = (file as File).type || 'image/png';
+      return c.json({ url: `data:${mime};base64,${b64}` });
+    } catch {
+      return c.json({ error: 'Upload failed' }, 500);
+    }
+  });
+
   // 404 for unregistered routes
   api.all('*', (c) =>
     c.json({ code: 'NOT_FOUND', message: 'API endpoint not found', status: 404 }, 404)
