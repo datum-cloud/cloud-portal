@@ -132,6 +132,7 @@
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.1",
     "@vitejs/plugin-react": "^5.1.4",
+    "bun-types": "^1.3.13",
     "cypress": "^15.14.0",
     "cypress-split": "^1.24.31",
     "cypress-vite": "^1.8.0",
