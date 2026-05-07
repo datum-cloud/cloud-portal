@@ -60,17 +60,13 @@ export default defineConfig((config) => {
     },
     optimizeDeps: {
       include: [
-        // Top-imported datum-ui subpaths (counts from PR #1205 audit)
-        '@datum-cloud/datum-ui/popover', // 9 consumer files
-        '@datum-cloud/datum-ui/chart', // 6
-        '@datum-cloud/datum-ui/command', // 5
-        '@datum-cloud/datum-ui/separator', // 4
-        '@datum-cloud/datum-ui/avatar', // 4
-        '@datum-cloud/datum-ui/table', // 3
-        '@datum-cloud/datum-ui/select', // 3
-        '@datum-cloud/datum-ui/button', // heavy use across migrated files
-        '@datum-cloud/datum-ui/badge', // heavy use
-        '@datum-cloud/datum-ui/utils', // cn helper, 81 consumer files
+        // Pre-bundle all datum-ui subpath exports so navigating to a route
+        // that pulls in a not-yet-seen component doesn't trigger a re-optimize
+        // + full page reload in dev.
+        '@datum-cloud/datum-ui/*',
+        'recharts',
+        'class-variance-authority',
+        'd3-geo',
       ],
     },
     ssr: {
