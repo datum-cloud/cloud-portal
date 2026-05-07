@@ -45,7 +45,6 @@ export const ProxyHostHeaderDialog = forwardRef<
   const [proxyName, setProxyName] = useState('');
   const [defaultValues, setDefaultValues] = useState<Partial<HostHeaderSchema>>();
   const [isAdvanced, setIsAdvanced] = useState(false);
-  const yamlHref: string | undefined = undefined;
 
   const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
@@ -90,14 +89,6 @@ export const ProxyHostHeaderDialog = forwardRef<
                   This proxy has advanced configuration that the portal form doesn&apos;t support.
                   To make changes, use <code className="text-xs font-semibold">datumctl</code> or
                   edit the resource directly.
-                  {yamlHref && (
-                    <>
-                      {' '}
-                      <a href={yamlHref} className="underline">
-                        View YAML
-                      </a>
-                    </>
-                  )}
                 </p>
               </AlertDescription>
             </Alert>
