@@ -50,7 +50,7 @@ function TableServerImpl<TData, TResponse>(
   props: TableServerProps<TData, TResponse>,
   ref: Ref<TableServerRef>
 ) {
-  const stateAdapter = useTableUrlAdapter(props.urlSync ?? true);
+  const stateAdapter = useTableUrlAdapter(props.urlSync ?? true, props.filterParsers);
   const columns = useResolvedColumns(props.columns, props.rowActions, {
     hideRowActions: props.hideRowActions,
     disableRowActions: props.disableRowActions,

@@ -10,14 +10,14 @@ producer-side identity (`serviceName`, `producerProjectRef`).
 
 ## Contents
 
-| Resource | meterName / GVK | Aggregation | Notes |
-| --- | --- | --- | --- |
-| `MonitoredResourceType` | `assistant.miloapis.com/Conversation` | — | One per top-level chat session. Closed label set: `model` (required), `region` (optional). |
-| `MeterDefinition` | `assistant.miloapis.com/conversation/input-tokens` | `Sum` `{token}` | Fresh input tokens. Cached input is split out below so it does not double-count. |
-| `MeterDefinition` | `assistant.miloapis.com/conversation/output-tokens` | `Sum` `{token}` | Includes any extended-thinking tokens. |
-| `MeterDefinition` | `assistant.miloapis.com/conversation/cache-read-tokens` | `Sum` `{token}` | Tokens served from prompt cache; priced lower than input. |
-| `MeterDefinition` | `assistant.miloapis.com/conversation/cache-write-tokens` | `Sum` `{token}` | Tokens written to prompt cache; priced higher than input. |
-| `MeterDefinition` | `assistant.miloapis.com/conversation/messages` | `Count` `{message}` | Tier-cap signal and billing safety-net when token totals are unavailable. |
+| Resource                | meterName / GVK                                          | Aggregation         | Notes                                                                                      |
+| ----------------------- | -------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------ |
+| `MonitoredResourceType` | `assistant.miloapis.com/Conversation`                    | —                   | One per top-level chat session. Closed label set: `model` (required), `region` (optional). |
+| `MeterDefinition`       | `assistant.miloapis.com/conversation/input-tokens`       | `Sum` `{token}`     | Fresh input tokens. Cached input is split out below so it does not double-count.           |
+| `MeterDefinition`       | `assistant.miloapis.com/conversation/output-tokens`      | `Sum` `{token}`     | Includes any extended-thinking tokens.                                                     |
+| `MeterDefinition`       | `assistant.miloapis.com/conversation/cache-read-tokens`  | `Sum` `{token}`     | Tokens served from prompt cache; priced lower than input.                                  |
+| `MeterDefinition`       | `assistant.miloapis.com/conversation/cache-write-tokens` | `Sum` `{token}`     | Tokens written to prompt cache; priced higher than input.                                  |
+| `MeterDefinition`       | `assistant.miloapis.com/conversation/messages`           | `Count` `{message}` | Tier-cap signal and billing safety-net when token totals are unavailable.                  |
 
 All ship in `phase: Draft`. The five MeterDefinitions reference the
 MonitoredResourceType via `spec.monitoredResourceTypes`; the

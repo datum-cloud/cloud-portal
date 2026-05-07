@@ -1,6 +1,10 @@
 import { createActionsColumn, type ActionsColumnOptions } from './columns';
 import type { RowAction, TableClientProps } from './types';
-import { useDataTableLoading, useNuqsAdapter } from '@datum-cloud/datum-ui/data-table';
+import {
+  useDataTableLoading,
+  useNuqsAdapter,
+  type UseNuqsAdapterOptions,
+} from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -24,11 +28,23 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react';
  *
  * The nuqs adapter writes `page: 0` for pageIndex 0, which gets stripped as
  * the default value, keeping the URL clean for the first page.
+ *
+ * `filterParsers` lets the consumer sync arbitrary filter state to the URL
+ * (e.g. `?type=A,MX`). Each entry maps a filter column name to a nuqs
+ * parser. Filter state flows in both directions — datum-ui's adapter reads
+ * the URL into `state.filters[column]` and writes any change back to the
+ * URL. Existing `read`/`write` here already forwards `state.filters` via
+ * the spread, so no extra wiring is needed beyond passing the parsers in.
+ *
+ * Pass a stable reference for `filterParsers` (e.g. a module-level
+ * constant) — nuqs treats parser identity as the schema of the URL state,
+ * so a new object every render would re-init the underlying query stores.
  */
 export function useTableUrlAdapter(
-  urlSync?: boolean
+  urlSync?: boolean,
+  filterParsers?: UseNuqsAdapterOptions['filters']
 ): ReturnType<typeof useNuqsAdapter> | undefined {
-  const adapter = useNuqsAdapter();
+  const adapter = useNuqsAdapter({ filters: filterParsers });
   return useMemo(() => {
     if (urlSync === false) return undefined;
     return {
