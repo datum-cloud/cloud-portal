@@ -1,3 +1,5 @@
+import { FeatureFlag } from '@/lib/feature-flags';
+import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
 import {
   listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding,
   readBillingMiloapisComV1Alpha1NamespacedBillingAccount,
@@ -72,6 +74,15 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const projectService = createProjectService();
   const project = await projectService.get(projectId);
   const orgNamespace = `organization-${project.organizationId}`;
+
+  // Gate the page on the org-level feature flag — deep-link should 404 when off.
+  const enabled = await isFeatureEnabled(
+    FeatureFlag.UsageMeteringDashboard,
+    project.organizationId
+  );
+  if (!enabled) {
+    throw data('Usage metering is not enabled for this organization', { status: 404 });
+  }
 
   let bindingsResp;
   try {

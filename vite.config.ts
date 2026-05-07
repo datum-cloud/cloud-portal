@@ -67,6 +67,8 @@ export default defineConfig((config) => {
         'recharts',
         'class-variance-authority',
         'd3-geo',
+        'nuqs',
+        'motion/react',
       ],
     },
     ssr: {
