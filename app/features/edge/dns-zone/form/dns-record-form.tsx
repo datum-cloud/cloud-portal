@@ -186,7 +186,13 @@ export function DnsRecordForm({
           <div
             className={cn(
               'grid flex-1 gap-5',
-              style === 'inline' ? 'grid-cols-4' : 'grid-cols-1 sm:grid-cols-2'
+              // Inline mode lives inside an `@container` panel (see
+              // app/components/table/client.tsx), so use container-query
+              // variants to reflow the grid when the panel is narrow on
+              // reduced-width desktops. 1 col → 2 → 4 as space allows.
+              style === 'inline'
+                ? 'grid-cols-1 @sm:grid-cols-2 @lg:grid-cols-4'
+                : 'grid-cols-1 sm:grid-cols-2'
             )}>
             {/* Record Type */}
             <Form.Field name="recordType" label="Type" required>

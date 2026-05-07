@@ -111,25 +111,9 @@ export function toFlattenedDnsRecords(recordSets: DnsRecordSet[]): FlattenedDnsR
     });
   });
 
-  // Sort descending by createdAt (most recent first), then by name for same timestamp
-  return flattened.sort((a, b) => {
-    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-    if (dateA !== dateB) {
-      return dateB - dateA;
-    }
-    return a.name.localeCompare(b.name);
-  });
-}
-
-/**
- * Transform DnsRecordSet list to flattened records sorted by type priority
- * Used for discovery preview where type priority matters more than creation date
- */
-export function toFlattenedDnsRecordsByPriority(recordSets: DnsRecordSet[]): FlattenedDnsRecord[] {
-  const flattened = toFlattenedDnsRecords(recordSets);
-
-  // Sort by type priority, then by name
+  // Sort by DNS type priority (SOA → NS → A → AAAA → CNAME → ALIAS → MX → ...)
+  // then by name within the same type. Groups records of the same type
+  // together so the table reads as a logical zonefile.
   return flattened.sort((a, b) => {
     const priorityDiff =
       getDnsRecordTypePriority(a.type as SupportedDnsRecordType) -
@@ -137,6 +121,15 @@ export function toFlattenedDnsRecordsByPriority(recordSets: DnsRecordSet[]): Fla
     if (priorityDiff !== 0) return priorityDiff;
     return a.name.localeCompare(b.name);
   });
+}
+
+/**
+ * Backwards-compatible alias for `toFlattenedDnsRecords`. Kept so external
+ * callers that imported the priority-sorted variant directly keep working.
+ * Both functions now apply the same type-priority sort.
+ */
+export function toFlattenedDnsRecordsByPriority(recordSets: DnsRecordSet[]): FlattenedDnsRecord[] {
+  return toFlattenedDnsRecords(recordSets);
 }
 
 /**

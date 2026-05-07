@@ -39,7 +39,11 @@ import { getRecordHostname } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
-import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
+import {
+  useDataTablePagination,
+  useDataTableSearch,
+  type ActionItem,
+} from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ClientOnly } from '@datum-cloud/datum-ui/theme';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -51,6 +55,41 @@ import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
 };
+
+/**
+ * "Add record" button rendered inside the table toolbar.
+ *
+ * Lives inside `<DataTable.Client>` (via `tableTitle.actions`), so it can
+ * reach datum-ui's pagination + search hooks. Before opening the inline
+ * create form we reset pageIndex to 0 and clear the search query — the
+ * inline panel renders at the top of the *current* paginated/filtered
+ * slice, so opening it on page 3 with a search active makes the form
+ * appear in a seemingly random row position. Resetting both first
+ * guarantees the form lands on the first row of an unfiltered page 1.
+ */
+function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
+  const { setPageIndex } = useDataTablePagination();
+  const { clearSearch } = useDataTableSearch();
+
+  const handleClick = () => {
+    clearSearch();
+    setPageIndex(0);
+    onClick();
+  };
+
+  return (
+    <Button
+      htmlType="button"
+      type="primary"
+      theme="solid"
+      size="small"
+      className="min-w-0 flex-1 sm:flex-initial"
+      onClick={handleClick}>
+      <Icon icon={PlusIcon} className="size-4" />
+      Add record
+    </Button>
+  );
+}
 
 export default function DnsRecordsPage() {
   const { dnsZone, dnsRecordSets: initialDnsRecordSets } = useRouteLoaderData(
@@ -384,16 +423,7 @@ export default function DnsRecordsPage() {
                   // Watch will automatically update the list with real-time changes
                 }}
               />
-              <Button
-                htmlType="button"
-                type="primary"
-                theme="solid"
-                size="small"
-                className="min-w-0 flex-1 sm:flex-initial"
-                onClick={() => handleOpenCreate()}>
-                <Icon icon={PlusIcon} className="size-4" />
-                Add record
-              </Button>
+              <AddDnsRecordButton onClick={handleOpenCreate} />
             </div>
           ),
         }}
