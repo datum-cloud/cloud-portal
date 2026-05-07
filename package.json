@@ -22,7 +22,8 @@
     "test:e2e:preview": "cypress run --config-file cypress.config.ts --quiet",
     "test:e2e:debug": "start-server-and-test 'bun run start' http://localhost:3000/_healthz 'cypress open'",
     "test:unit:prod": "cypress run --component --config-file cypress.config.ts --quiet",
-    "test:unit:debug": "cypress open --component"
+    "test:unit:debug": "cypress open --component",
+    "test:lib": "bun test app/lib"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",
@@ -35,6 +36,7 @@
     "@gqlts/runtime": "^3.3.0",
     "@hono/prometheus": "^1.0.3",
     "@monaco-editor/react": "^4.7.0",
+    "@openfeature/server-sdk": "^1.21.0",
     "@opentelemetry/auto-instrumentations-node": "^0.75.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.216.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.216.0",
