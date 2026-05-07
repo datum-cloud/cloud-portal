@@ -27,6 +27,10 @@ export {
   toHttpProxyList,
   toCreateHttpProxyPayload,
   toUpdateHttpProxyPayload,
+  classifyHttpProxyComplexity,
+  validateHostHeader,
+  extractHostHeader,
+  type HttpProxyComplexity,
 } from './http-proxy.adapter';
 
 // Service exports

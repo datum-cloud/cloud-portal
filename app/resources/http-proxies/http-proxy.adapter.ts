@@ -13,6 +13,164 @@ import {
 } from '@/modules/control-plane/networking';
 
 /**
+ * Classify the complexity of an HTTPProxy resource for portal rendering.
+ *
+ * - 'simple':    No rule-level filters on the backend rule (or no backend rules).
+ *                Portal renders the full form without a host header value.
+ * - 'host-only': The backend rule (rule 0 with backends) has exactly one filter:
+ *                a requestHeaderModifier that sets exactly one header whose name
+ *                is 'host' (case-insensitive), with no add/remove operations.
+ *                Portal renders the full form with the hostHeader field populated.
+ * - 'advanced':  Any other filter combination (multiple filters, non-Host header,
+ *                multiple set entries, add/remove, backend-level filters, or
+ *                multiple backend rules). Portal renders a read-only banner.
+ */
+export type HttpProxyComplexity = 'simple' | 'host-only' | 'advanced';
+
+export function classifyHttpProxyComplexity(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): HttpProxyComplexity {
+  const rules = raw.spec?.rules ?? [];
+
+  // Find the backend rule (has backends). Redirect rules are benign and ignored.
+  const backendRules = rules.filter((r) => r.backends && r.backends.length > 0);
+
+  // Multiple backend rules → advanced
+  if (backendRules.length > 1) return 'advanced';
+
+  const backendRule = backendRules[0];
+  if (!backendRule) return 'simple';
+
+  // Any backend-level filter → advanced
+  if (
+    backendRule.backends?.some((b) => {
+      const bf = (b as { filters?: unknown[] }).filters;
+      return bf && bf.length > 0;
+    })
+  ) {
+    return 'advanced';
+  }
+
+  const filters = backendRule.filters ?? [];
+
+  // No rule-level filters → simple
+  if (filters.length === 0) return 'simple';
+
+  // More than one rule-level filter → advanced
+  if (filters.length > 1) return 'advanced';
+
+  const filter = filters[0];
+
+  // Filter is not a requestHeaderModifier → advanced
+  if (!filter.requestHeaderModifier) return 'advanced';
+
+  const rhm = filter.requestHeaderModifier;
+
+  // requestHeaderModifier has add or remove → advanced
+  if ((rhm.add && rhm.add.length > 0) || (rhm.remove && rhm.remove.length > 0)) {
+    return 'advanced';
+  }
+
+  const setHeaders = rhm.set ?? [];
+
+  // Not exactly one set header → advanced
+  if (setHeaders.length !== 1) return 'advanced';
+
+  // The one set header is not 'host' (case-insensitive) → advanced
+  if (setHeaders[0].name.toLowerCase() !== 'host') return 'advanced';
+
+  return 'host-only';
+}
+
+/**
+ * Validate a Host header override value.
+ *
+ * Returns null if valid, or a user-facing error string if invalid.
+ *
+ * Rules (per spec FR-5 and ui-patterns):
+ * - Empty / whitespace-only → valid (means "no override").
+ * - Whitespace-only (non-empty after trim) → error.
+ * - Contains internal whitespace → error.
+ * - Bare IPv4 (\d{1,3}(\.\d{1,3}){3}) → error.
+ * - Bare IPv6 (contains '::' or wrapped in '[') → error.
+ * - Exceeds 253 characters → error.
+ * - Illegal characters (not RFC 1123 hostname + optional port) → error.
+ * - Valid: localhost, *.localhost, *.internal, RFC 1123 hostnames, hostname:port.
+ */
+export function validateHostHeader(value: string): string | null {
+  // Empty is valid (passthrough)
+  if (!value) return null;
+
+  // Whitespace-only
+  if (value.trim() === '') {
+    return 'Enter a hostname or leave the field blank.';
+  }
+
+  // Internal whitespace
+  if (/\s/.test(value)) {
+    return 'Hostnames cannot contain spaces.';
+  }
+
+  // Bare IPv6: contains '::' or is wrapped in '[...]' — check before port stripping
+  // so that '::1' (which port-strip would parse as host=':' + port='1') is caught here.
+  if (value.includes('::') || value.startsWith('[')) {
+    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+  }
+
+  // Separate optional port suffix (hostname:port)
+  let hostPart = value;
+  const portMatch = value.match(/^(.+):(\d{1,5})$/);
+  if (portMatch) {
+    const portNum = Number(portMatch[2]);
+    if (portNum >= 1 && portNum <= 65535) {
+      hostPart = portMatch[1];
+    }
+    // If port is out of range, fall through to character validation
+  }
+
+  // Bare IPv4: exactly four dot-separated numeric groups (no TLD)
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostPart)) {
+    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+  }
+
+  // Length check (on the full value including port)
+  if (value.length > 253) {
+    return 'Hostnames must be 253 characters or fewer.';
+  }
+
+  // RFC 1123 hostname validation: labels are [a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?
+  // Wildcards (*) are permitted as the leading label only.
+  // hostPart may be dotted labels, with an optional leading '*.'
+  const normalised = hostPart.startsWith('*.') ? hostPart.slice(2) : hostPart;
+  const labelRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+  const labels = normalised.split('.');
+  const allLabelsValid = labels.every(
+    (label) => label === 'localhost' || labelRe.test(label) || label === '*'
+  );
+  if (!allLabelsValid || normalised === '') {
+    return 'Enter a valid hostname (letters, numbers, hyphens, and dots only).';
+  }
+
+  return null;
+}
+
+/**
+ * Extract the Host header value from an HTTPProxy resource's rule-0 filters.
+ * Matches case-insensitively per RFC 7230.
+ * Returns empty string if no Host filter is present.
+ */
+export function extractHostHeader(raw: ComDatumapisNetworkingV1AlphaHttpProxy): string {
+  const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
+  const filters = backendRule?.filters ?? [];
+  for (const filter of filters) {
+    const setHeaders = filter.requestHeaderModifier?.set ?? [];
+    const hostEntry = setHeaders.find((h) => h.name.toLowerCase() === 'host');
+    if (hostEntry) return hostEntry.value;
+  }
+  return '';
+}
+
+/**
  * Generate htpasswd file content from a list of users using SHA1 hashing.
  * Uses the Web Crypto API (available in Node.js 15+, Bun, and browsers).
  */
@@ -230,6 +388,13 @@ export function toHttpProxy(
     });
   });
 
+  // Extract Host header from rule-level filters (case-insensitive per RFC 7230)
+  const hostHeader = extractHostHeader(raw);
+
+  // FR-4: classify the underlying resource so callers can decide between
+  // editable form and read-only banner without re-reading the raw resource.
+  const complexity = classifyHttpProxyComplexity(raw);
+
   return {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
@@ -242,6 +407,8 @@ export function toHttpProxy(
     origins: origins.length > 0 ? origins : undefined,
     hostnames: raw.spec?.hostnames,
     tlsHostname: backend?.tls?.hostname,
+    ...(hostHeader && { hostHeader }),
+    complexity,
     status: raw.status,
     canonicalHostname: raw.status?.canonicalHostname,
     hostnameStatuses: raw.status?.hostnameStatuses,
@@ -334,7 +501,13 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
   spec: {
     hostnames: string[];
     rules: Array<
-      | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
+      | {
+          backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+          filters?: Array<{
+            type: 'RequestHeaderModifier';
+            requestHeaderModifier: { set: Array<{ name: string; value: string }> };
+          }>;
+        }
       | {
           matches?: Array<{
             path?: { type: 'PathPrefix'; value: string };
@@ -361,8 +534,32 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
 
   const metadataAnnotations = Object.keys(annotations).length > 0 ? annotations : undefined;
 
+  // Build rule-level filters for the backend rule
+  const backendRuleFilters: Array<{
+    type: 'RequestHeaderModifier';
+    requestHeaderModifier: {
+      set: Array<{ name: string; value: string }>;
+    };
+  }> = [];
+
+  const trimmedHostHeader = input.hostHeader?.trim();
+  if (trimmedHostHeader) {
+    backendRuleFilters.push({
+      type: 'RequestHeaderModifier',
+      requestHeaderModifier: {
+        set: [{ name: 'Host', value: trimmedHostHeader }],
+      },
+    });
+  }
+
   const rules: Array<
-    | { backends: Array<{ endpoint: string; tls?: { hostname: string } }> }
+    | {
+        backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+        filters?: Array<{
+          type: 'RequestHeaderModifier';
+          requestHeaderModifier: { set: Array<{ name: string; value: string }> };
+        }>;
+      }
     | {
         matches?: Array<{
           path?: { type: 'PathPrefix'; value: string };
@@ -396,9 +593,10 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
     });
   }
 
-  // Add backend rule
+  // Add backend rule (with optional Host header filter)
   rules.push({
     backends: [backend],
+    ...(backendRuleFilters.length > 0 && { filters: backendRuleFilters }),
   });
 
   return {
@@ -427,6 +625,10 @@ type RedirectRule = {
 };
 type BackendRule = {
   backends: Array<{ endpoint: string; tls?: { hostname: string }; connector?: { name: string } }>;
+  filters?: Array<{
+    type: 'RequestHeaderModifier';
+    requestHeaderModifier: { set: Array<{ name: string; value: string }> };
+  }>;
 };
 
 /**
@@ -457,7 +659,10 @@ export function toUpdateHttpProxyPayload(
 
   const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
 
-  const hasRulesChange = input.endpoint !== undefined || input.enableHttpRedirect !== undefined;
+  const hasRulesChange =
+    input.endpoint !== undefined ||
+    input.enableHttpRedirect !== undefined ||
+    input.hostHeader !== undefined;
 
   let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
 
@@ -492,12 +697,33 @@ export function toUpdateHttpProxyPayload(
       const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
       if (effectiveEndpoint) {
         const effectiveTls = input.tlsHostname ?? currentProxy?.tlsHostname;
+
+        // Determine effective host header: explicit input > current proxy value
+        // A defined-but-empty string in input means "clear the host header"
+        const effectiveHostHeader =
+          input.hostHeader !== undefined
+            ? input.hostHeader.trim()
+            : (currentProxy?.hostHeader?.trim() ?? '');
+
+        const backendFilters: BackendRule['filters'] = [];
+        if (effectiveHostHeader) {
+          backendFilters.push({
+            type: 'RequestHeaderModifier',
+            requestHeaderModifier: {
+              set: [{ name: 'Host', value: effectiveHostHeader }],
+            },
+          });
+        }
+
         const backend: BackendRule['backends'][0] = {
           endpoint: effectiveEndpoint,
           ...(effectiveTls && { tls: { hostname: effectiveTls } }),
           ...(currentProxy?.connector && { connector: currentProxy.connector }),
         };
-        rules.push({ backends: [backend] });
+        rules.push({
+          backends: [backend],
+          ...(backendFilters.length > 0 && { filters: backendFilters }),
+        });
       }
 
       spec.rules = rules;

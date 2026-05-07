@@ -3,6 +3,42 @@ import { nameSchema } from '@/resources/base';
 import { createSubdomainSchema, isIPAddress } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
+// Forward-declare validateHostHeader to avoid circular import.
+// The canonical implementation lives in http-proxy.adapter.ts; we inline a
+// minimal re-implementation here so Zod schemas don't import the adapter.
+function _validateHostHeaderForSchema(value: string): string | null {
+  if (!value) return null;
+  if (value.trim() === '') return 'Enter a hostname or leave the field blank.';
+  if (/\s/.test(value)) return 'Hostnames cannot contain spaces.';
+
+  // Check for IPv6 before port stripping so that '::1' is caught here.
+  if (value.includes('::') || value.startsWith('[')) {
+    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+  }
+
+  let hostPart = value;
+  const portMatch = value.match(/^(.+):(\d{1,5})$/);
+  if (portMatch) {
+    const portNum = Number(portMatch[2]);
+    if (portNum >= 1 && portNum <= 65535) hostPart = portMatch[1];
+  }
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostPart)) {
+    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+  }
+  if (value.length > 253) return 'Hostnames must be 253 characters or fewer.';
+
+  const normalised = hostPart.startsWith('*.') ? hostPart.slice(2) : hostPart;
+  const labelRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+  const labels = normalised.split('.');
+  const allLabelsValid = labels.every(
+    (label) => label === 'localhost' || labelRe.test(label) || label === '*'
+  );
+  if (!allLabelsValid || normalised === '') {
+    return 'Enter a valid hostname (letters, numbers, hyphens, and dots only).';
+  }
+  return null;
+}
+
 const hostnameStatusConditionSchema = z.object({
   type: z.string(),
   status: z.enum(['True', 'False', 'Unknown']),
@@ -53,6 +89,20 @@ export const httpProxyResourceSchema = z.object({
   basicAuthUserCount: z.number().int().min(0).optional(),
   /** Usernames visible to the UI (never passwords) */
   basicAuthUsernames: z.array(z.string()).optional(),
+  /**
+   * Optional upstream Host header override.
+   * Maps to spec.rules[backendRule].filters[].requestHeaderModifier.set[name=Host].value.
+   * Empty / undefined means "no override" (forward the incoming Host unchanged).
+   */
+  hostHeader: z.string().optional(),
+  /**
+   * Form-editability classification of the underlying resource (FR-4):
+   * - 'simple'    — no rule-level filters; safe to edit via form
+   * - 'host-only' — only a host-header filter; safe to edit via form
+   * - 'advanced'  — multi-rule, backend-level filters, or filters the form
+   *   cannot represent without data loss; show read-only banner
+   */
+  complexity: z.enum(['simple', 'host-only', 'advanced']).optional(),
 });
 
 export type HttpProxy = z.infer<typeof httpProxyResourceSchema>;
@@ -113,6 +163,12 @@ export type CreateHttpProxyInput = {
   };
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
+  /**
+   * Optional upstream Host header override.
+   * When set, emits a rule-level requestHeaderModifier filter with name=Host.
+   * Empty / undefined means "no override".
+   */
+  hostHeader?: string;
 };
 
 export type UpdateHttpProxyInput = {
@@ -143,6 +199,12 @@ export type UpdateHttpProxyInput = {
     /** undefined = disable; non-empty array = enable/update */
     users?: BasicAuthUser[];
   };
+  /**
+   * Optional upstream Host header override update.
+   * Pass an empty string to remove the Host header filter.
+   * undefined means "don't change the host header".
+   */
+  hostHeader?: string;
 };
 
 const userEntrySchema = z.object({
@@ -282,6 +344,20 @@ export const httpProxySchema = z
           'Origin must be a valid hostname or IP address with optional port (e.g., api.example.com:8080)',
       }),
     tlsHostname: z.string().min(1).max(253).optional(),
+    /**
+     * Optional upstream Host header override.
+     * Validated on blur and submit; empty string is valid (passthrough).
+     */
+    hostHeader: z
+      .string()
+      .superRefine((val, ctx) => {
+        if (!val) return; // empty is valid (passthrough)
+        const error = _validateHostHeaderForSchema(val);
+        if (error) {
+          ctx.addIssue({ code: 'custom', message: error });
+        }
+      })
+      .optional(),
     trafficProtectionMode: trafficProtectionModeSchema.default('Enforce'),
     paranoiaLevelBlocking: z.preprocess((val) => {
       if (val === undefined || val === null || val === '') return undefined;

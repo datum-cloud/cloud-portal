@@ -9,6 +9,10 @@ import {
   ProxyDisplayNameDialog,
   type ProxyDisplayNameDialogRef,
 } from '@/features/edge/proxy/proxy-display-name-dialog';
+import {
+  ProxyHostHeaderDialog,
+  type ProxyHostHeaderDialogRef,
+} from '@/features/edge/proxy/proxy-host-header-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
@@ -39,6 +43,7 @@ export const HttpProxyConfigCard = ({
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const basicAuthDialogRef = useRef<ProxyBasicAuthDialogRef>(null);
+  const hostHeaderDialogRef = useRef<ProxyHostHeaderDialogRef>(null);
   const updateMutation = useUpdateHttpProxy(projectId ?? '', proxy.name);
   const { data: connector, isLoading: isConnectorLoading } = useConnector(
     projectId ?? '',
@@ -63,6 +68,29 @@ export const HttpProxyConfigCard = ({
                 type="button"
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => displayNameDialogRef.current?.show(proxy)}>
+                <Icon icon={PencilIcon} size={12} />
+              </button>
+            )}
+          </div>
+        ),
+      },
+
+      {
+        label: 'Host Header',
+        content: (
+          <div className="flex items-center gap-1.5">
+            {proxy.hostHeader ? (
+              <span className="text-sm">{proxy.hostHeader}</span>
+            ) : (
+              <span className="text-muted-foreground" aria-label="Not set">
+                &mdash;
+              </span>
+            )}
+            {projectId && (
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => hostHeaderDialogRef.current?.show(proxy)}>
                 <Icon icon={PencilIcon} size={12} />
               </button>
             )}
@@ -277,6 +305,7 @@ export const HttpProxyConfigCard = ({
           <ProxyWafDialog ref={wafDialogRef} projectId={projectId} />
           <ProxyDisplayNameDialog ref={displayNameDialogRef} projectId={projectId} />
           <ProxyBasicAuthDialog ref={basicAuthDialogRef} projectId={projectId} />
+          <ProxyHostHeaderDialog ref={hostHeaderDialogRef} projectId={projectId} />
         </>
       )}
     </Card>

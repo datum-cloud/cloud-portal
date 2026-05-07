@@ -453,7 +453,7 @@ export function createHttpProxyService() {
         const response = await createNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
           baseURL: getProjectScopedBase(projectId),
           path: { namespace: 'default' },
-          body: payload,
+          body: payload as ComDatumapisNetworkingV1AlphaHttpProxy,
           query: options?.dryRun ? { dryRun: 'All' } : undefined,
           headers: { 'Content-Type': 'application/json' },
         });
