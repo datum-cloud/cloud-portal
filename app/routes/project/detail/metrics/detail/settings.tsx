@@ -4,7 +4,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { MetaFunction, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Edit</span>,
+  breadcrumb: () => <span>Settings</span>,
 };
 
 export const meta: MetaFunction = mergeMeta(({ matches }) => {
@@ -14,7 +14,7 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
   return metaObject((exportPolicy as ExportPolicy)?.name || 'Export Policy');
 });
 
-export default function ExportPolicyEditPage() {
+export default function ExportPolicySettingsPage() {
   const exportPolicy = useRouteLoaderData('export-policy-detail');
 
   const { projectId } = useParams();

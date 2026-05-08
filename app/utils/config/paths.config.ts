@@ -70,12 +70,15 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/secrets/[secretId]',
           overview: '/project/[projectId]/secrets/[secretId]/overview',
+          activity: '/project/[projectId]/secrets/[secretId]/activity',
         },
       },
       proxy: {
         root: '/project/[projectId]/edge',
         detail: {
           root: '/project/[projectId]/edge/[proxyId]',
+          overview: '/project/[projectId]/edge/[proxyId]/overview',
+          activity: '/project/[projectId]/edge/[proxyId]/activity',
         },
       },
       domains: {
@@ -103,7 +106,8 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/export-policies/[exportPolicyId]',
           overview: '/project/[projectId]/export-policies/[exportPolicyId]/overview',
-          edit: '/project/[projectId]/export-policies/[exportPolicyId]/edit',
+          activity: '/project/[projectId]/export-policies/[exportPolicyId]/activity',
+          settings: '/project/[projectId]/export-policies/[exportPolicyId]/settings',
         },
       },
       connectors: {

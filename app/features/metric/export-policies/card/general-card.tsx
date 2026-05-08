@@ -77,11 +77,11 @@ export const ExportPolicyGeneralCard = ({
             as={Link}
             size="xs"
             icon={<PencilIcon size={12} />}
-            href={getPathWithParams(paths.project.detail.metrics.detail.edit, {
+            href={getPathWithParams(paths.project.detail.metrics.detail.settings, {
               projectId: projectId ?? '',
               exportPolicyId: exportPolicy?.name ?? '',
             })}>
-            Edit
+            Settings
           </LinkButton>
         </CardTitle>
       </CardHeader>

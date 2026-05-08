@@ -147,10 +147,10 @@ export default function ExportPoliciesPage() {
       },
       createActionsColumn<ExportPolicy>([
         {
-          label: 'Edit',
+          label: 'Settings',
           onClick: (row) => {
             navigate(
-              getPathWithParams(paths.project.detail.metrics.detail.edit, {
+              getPathWithParams(paths.project.detail.metrics.detail.settings, {
                 projectId,
                 exportPolicyId: row.name,
               })
