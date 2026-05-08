@@ -18,7 +18,7 @@ export default function DnsZoneActivityPage() {
   return (
     <Row type="flex" gutter={[24, 24]}>
       <Col span={24}>
-        <PageTitle title="Activity" description="Audit trail for this DNS zone and its records." />
+        <PageTitle title="Activity" />
       </Col>
       <Col span={24}>
         <ResourceActivityFeed

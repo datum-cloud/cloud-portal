@@ -18,7 +18,7 @@ export default function ServiceAccountActivityPage() {
   return (
     <Row type="flex" gutter={[24, 24]}>
       <Col span={24}>
-        <PageTitle title="Activity" description="Audit trail for this service account." />
+        <PageTitle title="Activity" />
       </Col>
       <Col span={24}>
         <ResourceActivityFeed

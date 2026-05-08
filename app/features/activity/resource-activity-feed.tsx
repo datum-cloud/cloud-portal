@@ -145,6 +145,7 @@ export function ResourceActivityFeed({
       initialTimeRange={initialTimeRange}
       hiddenFilters={hiddenFilters}
       onFiltersChange={effectiveUrlSync ? handleFiltersChange : undefined}
+      className="bg-card text-card-foreground border-card-border rounded-xl border py-0 shadow-none"
       {...feedProps}
     />
   );
