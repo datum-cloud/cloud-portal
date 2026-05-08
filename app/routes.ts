@@ -103,7 +103,11 @@ export default [
             ':proxyId',
             'routes/project/detail/edge/detail/layout.tsx',
             { id: 'proxy-detail' },
-            [index('routes/project/detail/edge/detail/index.tsx')]
+            [
+              index('routes/project/detail/edge/detail/index.tsx'),
+              route('overview', 'routes/project/detail/edge/detail/overview.tsx'),
+              route('activity', 'routes/project/detail/edge/detail/activity.tsx'),
+            ]
           ),
         ]),
 
@@ -158,7 +162,9 @@ export default [
             [
               index('routes/project/detail/metrics/detail/index.tsx'),
               route('overview', 'routes/project/detail/metrics/detail/overview.tsx'),
-              route('edit', 'routes/project/detail/metrics/detail/edit.tsx'),
+              route('activity', 'routes/project/detail/metrics/detail/activity.tsx'),
+              route('settings', 'routes/project/detail/metrics/detail/settings.tsx'),
+              route('edit', 'routes/project/detail/metrics/detail/edit-redirect.tsx'),
             ]
           ),
         ]),
@@ -196,6 +202,7 @@ export default [
             [
               index('routes/project/detail/secrets/detail/index.tsx'),
               route('overview', 'routes/project/detail/secrets/detail/overview.tsx'),
+              route('activity', 'routes/project/detail/secrets/detail/activity.tsx'),
             ]
           ),
         ]),
