@@ -13,15 +13,14 @@ import { useEffect, useMemo } from 'react';
 /**
  * Custom component that combines protocol selector with endpoint input.
  * Used in proxy forms to allow users to select HTTP/HTTPS protocol and enter an endpoint hostname.
- *
- * When the entered origin is an IP address, the protocol is forced to HTTPS.
  */
 interface ProtocolEndpointInputProps {
   autoFocus?: boolean;
   onIPChange?: (isIP: boolean) => void;
+  onProtocolChange?: (protocol: string) => void;
 }
 
-export const ProtocolEndpointInput = ({ autoFocus, onIPChange }: ProtocolEndpointInputProps) => {
+export const ProtocolEndpointInput = ({ autoFocus, onIPChange, onProtocolChange }: ProtocolEndpointInputProps) => {
   const { control: protocolControl, meta: protocolMeta } = Form.useField('protocol');
   const { control: endpointControl, meta: endpointMeta } = Form.useField('endpointHost');
 
@@ -35,14 +34,12 @@ export const ProtocolEndpointInput = ({ autoFocus, onIPChange }: ProtocolEndpoin
   }, [endpointValue]);
 
   useEffect(() => {
-    if (isIP && protocolValue !== 'https') {
-      protocolControl.change('https');
-    }
-  }, [isIP, protocolValue, protocolControl]);
-
-  useEffect(() => {
     onIPChange?.(isIP);
   }, [isIP, onIPChange]);
+
+  useEffect(() => {
+    onProtocolChange?.(protocolValue);
+  }, [protocolValue, onProtocolChange]);
 
   return (
     <InputWithAddons
@@ -50,8 +47,7 @@ export const ProtocolEndpointInput = ({ autoFocus, onIPChange }: ProtocolEndpoin
         <Select
           value={protocolValue}
           onValueChange={protocolControl.change}
-          name={protocolMeta.name}
-          disabled={isIP}>
+          name={protocolMeta.name}>
           <SelectTrigger
             id={protocolMeta.id}
             className="bg-accent h-6 min-h-6 gap-1 border px-2 py-0 shadow-none focus:ring-0 focus-visible:ring-0">
