@@ -116,6 +116,14 @@ export default function DnsZoneDetailLayout() {
         type: 'link',
       },
       {
+        title: 'Activity',
+        href: getPathWithParams(paths.project.detail.dnsZones.detail.activity, {
+          projectId,
+          dnsZoneId: dnsZone?.name ?? '',
+        }),
+        type: 'link',
+      },
+      {
         title: 'Settings',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.settings, {
           projectId,

@@ -73,6 +73,14 @@ export default function DomainDetailLayout() {
         type: 'link',
       },
       {
+        title: 'Activity',
+        href: getPathWithParams(paths.project.detail.domains.detail.activity, {
+          projectId,
+          domainId: domain?.name ?? '',
+        }),
+        type: 'link',
+      },
+      {
         title: 'Settings',
         href: getPathWithParams(paths.project.detail.domains.detail.settings, {
           projectId,

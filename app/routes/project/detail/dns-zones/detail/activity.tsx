@@ -11,21 +11,21 @@ export const handle = {
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Activity'));
 
-export default function ServiceAccountActivityPage() {
-  const { serviceAccountId } = useParams();
+export default function DnsZoneActivityPage() {
+  const { dnsZoneId } = useParams();
   const { client, resourceLinkResolver } = useProjectActivityClient();
 
   return (
     <Row type="flex" gutter={[24, 24]}>
       <Col span={24}>
-        <PageTitle title="Activity" description="Audit trail for this service account." />
+        <PageTitle title="Activity" description="Audit trail for this DNS zone and its records." />
       </Col>
       <Col span={24}>
         <ResourceActivityFeed
           client={client}
           resourceLinkResolver={resourceLinkResolver}
-          resourceKinds={['ServiceAccount', 'ServiceAccountKey']}
-          resourceName={serviceAccountId}
+          resourceKinds={['DNSZone', 'DNSRecordSet']}
+          resourceName={dnsZoneId}
         />
       </Col>
     </Row>
