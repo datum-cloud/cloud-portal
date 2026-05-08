@@ -34,6 +34,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
     const [proxy, setProxy] = useState<HttpProxy | null>(null);
     const [defaultValues, setDefaultValues] = useState<Partial<OriginsConfigSchema>>();
     const [isIPOrigin, setIsIPOrigin] = useState(false);
+    const [protocol, setProtocol] = useState('https');
 
     const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
@@ -44,6 +45,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       const { protocol, endpointHost } = parseEndpoint(proxyData.endpoint);
       const hostname = endpointHost.split(':')[0];
       setIsIPOrigin(isIPAddress(hostname));
+      setProtocol(protocol);
 
       setDefaultValues({
         protocol,
@@ -101,10 +103,10 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
             name="endpointHost"
             label="Origin"
             required>
-            <ProtocolEndpointInput autoFocus onIPChange={setIsIPOrigin} />
+            <ProtocolEndpointInput autoFocus onIPChange={setIsIPOrigin} onProtocolChange={setProtocol} />
           </Form.Field>
 
-          {isIPOrigin && <ProxyTlsField required />}
+          {isIPOrigin && <ProxyTlsField required={protocol === 'https'} />}
         </div>
       </Form.Dialog>
     );

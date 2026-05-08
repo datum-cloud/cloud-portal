@@ -29,6 +29,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [open, setOpen] = useState(false);
     const [nameRandomSuffix] = useState(() => generateRandomString(6));
     const [isIPOrigin, setIsIPOrigin] = useState(false);
+    const [protocol, setProtocol] = useState('https');
 
     const navigate = useNavigate();
     const { trackAction } = useAnalytics();
@@ -138,10 +139,10 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
             name="endpointHost"
             label="Origin"
             required>
-            <ProtocolEndpointInput onIPChange={setIsIPOrigin} />
+            <ProtocolEndpointInput onIPChange={setIsIPOrigin} onProtocolChange={setProtocol} />
           </Form.Field>
 
-          {isIPOrigin && <ProxyTlsField required />}
+          {isIPOrigin && <ProxyTlsField required={protocol === 'https'} />}
         </div>
       </Form.Dialog>
     );
