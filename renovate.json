@@ -6,6 +6,15 @@
     "labels": ["security", "renovate"]
   },
   "osvVulnerabilityAlerts": true,
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["^\\.github/workflows/[^/]+\\.ya?ml$"],
+      "matchStrings": [
+        "bun-version:\\s*(?<currentValue>\\S+)\\s*}\\s*#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)"
+      ]
+    }
+  ],
   "packageRules": [
     {
       "matchPackagePatterns": [".*"],
