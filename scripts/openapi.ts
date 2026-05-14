@@ -15,6 +15,21 @@ import { join } from 'node:path';
 const CONTROL_PLANE_DIR = 'app/modules/control-plane';
 const TEMP_SPEC_FILE = 'temp-openapi-spec.json';
 
+/**
+ * Validates that a URL uses http or https. Rejects file://, data://, etc.
+ */
+function assertHttpUrl(url: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`URL must use http or https, got: ${parsed.protocol}`);
+  }
+}
+
 interface ResourceSelection {
   resource: string;
   folder: string;
@@ -30,6 +45,7 @@ interface ResourceInfo {
  * Fetch the list of available OpenAPI resources from the API
  */
 async function fetchResourceList(apiUrl: string, token: string): Promise<ResourceInfo[]> {
+  assertHttpUrl(apiUrl);
   const url = `${apiUrl}/openapi/v3`;
 
   console.log(`\nFetching available resources from ${url}...`);
@@ -83,6 +99,7 @@ async function fetchSpec(
   serverRelativeURL: string
 ): Promise<object> {
   // serverRelativeURL is like "/openapi/v3/apis/iam.miloapis.com/v1alpha1?hash=..."
+  assertHttpUrl(apiUrl);
   const url = `${apiUrl}${serverRelativeURL}`;
 
   const response = await fetch(url, {

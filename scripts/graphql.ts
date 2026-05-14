@@ -32,9 +32,26 @@ import {
   type DefinitionNode,
   type TypeDefinitionNode,
 } from 'graphql';
-import { spawn, execSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+
+/**
+ * Validates that a URL uses http or https. Rejects file://, data://, etc.
+ * to prevent the script from being pointed at unexpected schemes.
+ */
+function assertHttpUrl(url: string): URL {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    throw new Error(`Invalid URL: ${url}`);
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new Error(`URL must use http or https, got: ${parsed.protocol}`);
+  }
+  return parsed;
+}
 
 const OUTPUT_DIR = 'app/modules/graphql/generated';
 const TEMP_SCHEMA_FILE = 'temp-filtered-schema.graphql';
@@ -75,7 +92,6 @@ function exec(command: string, args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       stdio: 'inherit',
-      shell: true,
     });
 
     child.on('close', (code) => {
@@ -96,31 +112,33 @@ function exec(command: string, args: string[]): Promise<void> {
 async function fetchSchema(url: string): Promise<GraphQLSchema> {
   console.log(`Fetching full schema (this may take a moment)...`);
 
+  const parsed = assertHttpUrl(url);
   const query = getIntrospectionQuery();
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 300_000);
+
   try {
-    // Write query to temp file to avoid shell escaping issues
-    const tempQueryFile = '/tmp/graphql-introspection-query.json';
-    await writeFile(tempQueryFile, JSON.stringify({ query }));
+    const response = await fetch(parsed, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+      signal: controller.signal,
+    });
 
-    // Use curl with file input for reliable large response handling
-    const result = execSync(
-      `curl -s -X POST "${url}" -H "Content-Type: application/json" -d @${tempQueryFile}`,
-      {
-        maxBuffer: 100 * 1024 * 1024, // 100MB buffer
-        timeout: 300000, // 5 minute timeout
-      }
-    ).toString();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status} ${response.statusText}`);
+    }
 
-    await rm(tempQueryFile, { force: true });
-
-    const data = JSON.parse(result) as { data: IntrospectionQuery };
+    const data = (await response.json()) as { data?: IntrospectionQuery };
     if (!data.data) {
       throw new Error('Invalid introspection response');
     }
     return buildClientSchema(data.data);
   } catch (error) {
     throw new Error(`Failed to fetch schema: ${error}`);
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
