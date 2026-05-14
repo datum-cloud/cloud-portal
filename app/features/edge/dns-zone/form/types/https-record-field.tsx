@@ -7,11 +7,21 @@ export const HTTPSRecordField = () => (
     </Form.Field>
 
     <Form.Field name="https.target" label="Target" required>
-      <Form.Input placeholder="e.g., example.com or ." />
+      <Form.Input
+        placeholder="e.g., example.com or ."
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
 
     <Form.Field name="https.params" label="Value" className="col-span-full sm:col-span-2">
-      <Form.Input placeholder='e.g., alpn="h3,h2" ipv4hint="127.0.0.1" ipv6hint="::1"' />
+      <Form.Input
+        placeholder='e.g., alpn="h3,h2" ipv4hint="127.0.0.1" ipv6hint="::1"'
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
   </>
 );

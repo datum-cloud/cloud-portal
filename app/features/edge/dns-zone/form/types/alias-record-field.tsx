@@ -2,6 +2,11 @@ import { Form } from '@datum-cloud/datum-ui/form';
 
 export const ALIASRecordField = () => (
   <Form.Field name="alias.content" label="Target Domain" required>
-    <Form.Input placeholder="e.g., example.com" />
+    <Form.Input
+      placeholder="e.g., example.com"
+      autoCapitalize="none"
+      autoCorrect="off"
+      spellCheck={false}
+    />
   </Form.Field>
 );

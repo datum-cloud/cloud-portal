@@ -20,7 +20,11 @@ interface ProtocolEndpointInputProps {
   onProtocolChange?: (protocol: string) => void;
 }
 
-export const ProtocolEndpointInput = ({ autoFocus, onIPChange, onProtocolChange }: ProtocolEndpointInputProps) => {
+export const ProtocolEndpointInput = ({
+  autoFocus,
+  onIPChange,
+  onProtocolChange,
+}: ProtocolEndpointInputProps) => {
   const { control: protocolControl, meta: protocolMeta } = Form.useField('protocol');
   const { control: endpointControl, meta: endpointMeta } = Form.useField('endpointHost');
 
@@ -65,6 +69,9 @@ export const ProtocolEndpointInput = ({ autoFocus, onIPChange, onProtocolChange 
       name={endpointMeta.name}
       id={endpointMeta.id}
       autoFocus={autoFocus}
+      autoCapitalize="none"
+      autoCorrect="off"
+      spellCheck={false}
       placeholder="e.g. api.example.com or 203.0.113.1:8080"
       className="text-xs!"
     />
