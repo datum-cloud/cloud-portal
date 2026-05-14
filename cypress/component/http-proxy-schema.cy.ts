@@ -40,15 +40,19 @@ describe('httpProxySchema – endpointHost (Origin)', () => {
       ).to.equal(true);
     });
 
-    it('accepts an IPv4 address', () => {
+    it('accepts an IPv4 address (with required tlsHostname for HTTPS)', () => {
       expect(
-        httpProxySchema.safeParse(makeInput({ endpointHost: '203.0.113.1' })).success
+        httpProxySchema.safeParse(
+          makeInput({ endpointHost: '203.0.113.1', tlsHostname: 'tls.example.com' })
+        ).success
       ).to.equal(true);
     });
 
-    it('accepts an IPv4 address with a port', () => {
+    it('accepts an IPv4 address with a port (with required tlsHostname for HTTPS)', () => {
       expect(
-        httpProxySchema.safeParse(makeInput({ endpointHost: '203.0.113.1:8080' })).success
+        httpProxySchema.safeParse(
+          makeInput({ endpointHost: '203.0.113.1:8080', tlsHostname: 'tls.example.com' })
+        ).success
       ).to.equal(true);
     });
   });
