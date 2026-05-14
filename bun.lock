@@ -7,8 +7,8 @@
       "dependencies": {
         "@ai-sdk/anthropic": "^3.0.71",
         "@ai-sdk/react": "^3.0.170",
-        "@conform-to/react": "1.19.1",
-        "@conform-to/zod": "1.19.1",
+        "@conform-to/react": "1.19.2",
+        "@conform-to/zod": "1.19.2",
         "@datum-cloud/activity-ui": "^0.5.0",
         "@datum-cloud/datum-ui": "^0.8.1",
         "@epic-web/client-hints": "^1.3.9",
@@ -255,11 +255,11 @@
 
     "@chevrotain/utils": ["@chevrotain/utils@12.0.0", "", {}, "sha512-lB59uJoaGIfOOL9knQqQRfhl9g7x8/wqFkp13zTdkRu1huG9kg6IJs1O8hqj9rs6h7orGxHJUKb+mX3rPbWGhA=="],
 
-    "@conform-to/dom": ["@conform-to/dom@1.19.1", "", {}, "sha512-h4/T04zgASuiHMVEiXiyQA4jIW9zhpVFbp0HrWCQUDBxd8Zc1JbTarR7cuJyzkmqshC4tdm4VKIHguLp+7AYCw=="],
+    "@conform-to/dom": ["@conform-to/dom@1.19.2", "", {}, "sha512-CzuY8tP2hp4K15NpvVRHn4O5LE8QVT6I5D3Cjns8/4JMJ8AnlUmswhj3O5dcPWA3vJcTJgNhI/4xDjd4bN4Pwg=="],
 
-    "@conform-to/react": ["@conform-to/react@1.19.1", "", { "dependencies": { "@conform-to/dom": "1.19.1" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" } }, "sha512-RrSfpy3B7bn1RoXCztlmQYMs113AWcvtqAluDqAx4yVbbVB+EcHWc3Ze/EXJhbtFDmljT2nMtcx/VY8f2RPGFg=="],
+    "@conform-to/react": ["@conform-to/react@1.19.2", "", { "dependencies": { "@conform-to/dom": "1.19.2" }, "peerDependencies": { "react": ">=18", "react-dom": ">=18" } }, "sha512-SCGunoi4pC/et0cxhV1H3BlzjerBufVGXSQrxA9qSFCBgAi7MKpRohOV3MhdMIY16T0TLdAShuib/CL8yqe+zw=="],
 
-    "@conform-to/zod": ["@conform-to/zod@1.19.1", "", { "dependencies": { "@conform-to/dom": "1.19.1" }, "peerDependencies": { "zod": "^3.21.0 || ^4.0.0" } }, "sha512-S/C+Byhk87RdutjCuxhKcDf9lrmTx0V1OrtZPt5zrVG3RqcXVZz3NvLLZ7pNqdSg5DHGvuzPuotGfmPVu936ow=="],
+    "@conform-to/zod": ["@conform-to/zod@1.19.2", "", { "dependencies": { "@conform-to/dom": "1.19.2" }, "peerDependencies": { "zod": "^3.21.0 || ^4.0.0" } }, "sha512-+gHFXv/U54hWhH0fKWG1so+JY+XBrSUtdNueW1YZhcMJ2BqOuT5ieiWgXQtj+B2KCKsNCc48Gk7s4phNoNdEJQ=="],
 
     "@csstools/color-helpers": ["@csstools/color-helpers@6.0.2", "", {}, "sha512-LMGQLS9EuADloEFkcTBR3BwV/CGHV7zyDxVRtVDTwdI2Ca4it0CCVTT9wCkxSgokjE5Ho41hEPgb8OEUwoXr6Q=="],
 
