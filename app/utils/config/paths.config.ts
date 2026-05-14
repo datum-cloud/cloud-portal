@@ -114,6 +114,7 @@ export const paths = {
       },
       activity: '/project/[projectId]/activity',
       quotas: '/project/[projectId]/quotas',
+      usage: '/project/[projectId]/usage',
       settings: {
         general: '/project/[projectId]/general',
         notifications: '/project/[projectId]/notifications',
