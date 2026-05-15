@@ -26,6 +26,7 @@ import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 export const dnsRecordKeys = {
@@ -157,7 +158,7 @@ export function createDnsRecordService() {
       });
 
       if (!response.data) {
-        throw new Error(`DNS RecordSet ${recordSetId} not found`);
+        throw new NotFoundError('DNS Record Set', recordSetId);
       }
 
       return toDnsRecordSet(response.data);

@@ -146,11 +146,24 @@ export function getResourceFilterOptions(scopeType: ScopeType): FilterOption[] {
 // ============================================
 
 /**
+ * Choose the correct indefinite article ('a' / 'an') for a label.
+ *
+ * Heuristic: 'an' before words starting with A/E/I/O.
+ * 'U' is intentionally excluded because words/acronyms beginning with U often
+ * produce a 'you' consonant sound ("a User", "a URL"). Acronyms like "AI",
+ * "Export Policy", "Invitation", "Organization" all correctly resolve to 'an'.
+ */
+function indefiniteArticle(label: string): 'a' | 'an' {
+  return /^[aeioAEIO]/.test(label) ? 'an' : 'a';
+}
+
+/**
  * Humanizes an action based on verb and resource.
  *
  * @example
  * humanizeAction('create', 'domains') // "Added a Domain"
  * humanizeAction('delete', 'dnszones') // "Deleted a DNS Zone"
+ * humanizeAction('create', 'httpproxies') // "Added an AI Edge"
  */
 export function humanizeAction(verb: string, resource: string): string {
   const verbText = VERB_PAST_TENSE[verb] || verb.charAt(0).toUpperCase() + verb.slice(1);
@@ -158,7 +171,7 @@ export function humanizeAction(verb: string, resource: string): string {
   const label = getResourceLabel(resource);
   const singularLabel = label !== resource ? label : resource.replace(/s$/, '');
 
-  return `${verbText} a ${singularLabel}`;
+  return `${verbText} ${indefiniteArticle(singularLabel)} ${singularLabel}`;
 }
 
 /**

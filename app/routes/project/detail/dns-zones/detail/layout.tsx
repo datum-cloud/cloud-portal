@@ -5,7 +5,7 @@ import { createDnsZoneService, type DnsZone, useDnsZone } from '@/resources/dns-
 import { createDomainService, type Domain, useDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
-import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
@@ -28,7 +28,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(dnsZone?.domainName || 'DNS');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId, dnsZoneId } = params;
 
   if (!projectId || !dnsZoneId) {
@@ -69,7 +69,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const dnsRecordSets = await dnsRecordService.list(projectId, dnsZoneId);
 
   return data({ dnsZone, domain, dnsRecordSets });
-};
+});
 
 export default function DnsZoneDetailLayout() {
   const { dnsZone, domain } = useLoaderData<typeof loader>();

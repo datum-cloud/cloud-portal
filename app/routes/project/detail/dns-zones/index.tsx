@@ -18,7 +18,7 @@ import {
 import { useRefreshDomainRegistration } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError } from '@/utils/errors';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -43,7 +43,7 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('DNS');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
   if (!projectId) {
@@ -55,7 +55,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const zones = await dnsZoneService.list(projectId);
 
   return data({ zones });
-};
+});
 
 interface DnsZoneWithComputed extends DnsZone {
   _computed: {

@@ -1,5 +1,5 @@
 import { createExportPolicyService, type ExportPolicy } from '@/resources/export-policies';
-import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { LoaderFunctionArgs, data, MetaFunction, Outlet } from 'react-router';
 
@@ -12,7 +12,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(exportPolicy?.name || 'ExportPolicy');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId, exportPolicyId } = params;
 
   if (!projectId || !exportPolicyId) {
@@ -25,11 +25,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const exportPolicy = await exportPolicyService.get(projectId, exportPolicyId);
 
   if (!exportPolicy) {
-    throw new NotFoundError('ExportPolicy not found');
+    throw new NotFoundError('Export Policy', exportPolicyId);
   }
 
   return data(exportPolicy);
-};
+});
 
 export default function ExportPolicyDetailLayout() {
   return <Outlet />;

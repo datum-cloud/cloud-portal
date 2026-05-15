@@ -14,7 +14,7 @@ import {
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError } from '@/utils/errors';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -36,7 +36,7 @@ import {
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Service Accounts'));
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
   if (!projectId) {
@@ -45,7 +45,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   const service = createServiceAccountService();
   return service.list(projectId);
-};
+});
 
 export default function ServiceAccountsPage() {
   const initialData = useLoaderData<typeof loader>();

@@ -21,7 +21,7 @@ const RESOURCE_LABELS: Readonly<Record<string, string>> = Object.freeze({
   dnsrecords: 'DNS Record',
   dnsrecordsets: 'DNS Record Set',
   dnszonediscoveries: 'DNS Zone Discovery',
-  httpproxies: 'HTTP Proxy',
+  httpproxies: 'AI Edge',
   secrets: 'Secret',
   policybindings: 'Role',
   exportpolicies: 'Export Policy',

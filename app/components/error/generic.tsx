@@ -7,7 +7,7 @@ import { BuildingIcon, RefreshCcwIcon } from 'lucide-react';
 // import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
-export const GenericError = ({ message }: { message: string }) => {
+export const GenericError = ({ message, status }: { message: string; status?: number }) => {
   const navigate = useNavigate();
   // const [isDebug, setIsDebug] = useState(false);
 
@@ -15,16 +15,39 @@ export const GenericError = ({ message }: { message: string }) => {
   //   setIsDebug(window.ENV?.DEBUG || ['localhost', '127.0.0.1'].includes(window.location.hostname));
   // }, []);
 
+  const isNotFound = status === 404;
+  const isForbidden = status === 403;
+  const title = isNotFound
+    ? "We couldn't find that page."
+    : isForbidden
+      ? "You don't have access to this."
+      : 'Whoops! Something went wrong.';
+
   return (
     <Card>
       <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
         <LogoIcon width={64} className="mb-4" />
         <div className="flex max-w-xl flex-col gap-2">
-          <p className="w-full text-center text-2xl font-bold">Whoops! Something went wrong.</p>
+          <p className="w-full text-center text-2xl font-bold">{title}</p>
 
           <p className="text-muted-foreground text-center text-sm">
-            Something went wrong on our end. Our team has been notified, and we&apos;re working to
-            fix it. Please try again later. If the issue persists, reach out to{' '}
+            {isNotFound ? (
+              <>
+                The page or resource you&apos;re looking for doesn&apos;t exist or has been moved.
+                Check the URL or head back to your organization. If you think this is a mistake,
+                reach out to{' '}
+              </>
+            ) : isForbidden ? (
+              <>
+                You don&apos;t have permission to view this resource. If you think you should, ask
+                an administrator for access or reach out to{' '}
+              </>
+            ) : (
+              <>
+                Something went wrong on our end. Our team has been notified, and we&apos;re working
+                to fix it. Please try again later. If the issue persists, reach out to{' '}
+              </>
+            )}
             <Link to={`mailto:support@datum.net`} className="text-primary underline">
               support@datum.net
             </Link>

@@ -1,5 +1,5 @@
 import { createHttpProxyService, type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
-import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import {
   LoaderFunctionArgs,
@@ -19,7 +19,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(httpProxy?.name || 'Proxy');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId, proxyId } = params;
 
   if (!projectId || !proxyId) {
@@ -32,11 +32,11 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const httpProxy = await httpProxyService.get(projectId, proxyId);
 
   if (!httpProxy) {
-    throw new NotFoundError('Proxy not found');
+    throw new NotFoundError('AI Edge', proxyId);
   }
 
   return data(httpProxy);
-};
+});
 
 export default function HttpProxyDetailLayout() {
   const { projectId, proxyId } = useParams();
