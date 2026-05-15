@@ -37,7 +37,7 @@ export const ProxyDisplayNameDialog = forwardRef<
   const show = useCallback((proxy: HttpProxy) => {
     setProxyName(proxy.name);
     setDefaultValues({
-      chosenName: proxy.chosenName || '',
+      chosenName: proxy.chosenName || proxy.name || '',
     });
     setOpen(true);
   }, []);

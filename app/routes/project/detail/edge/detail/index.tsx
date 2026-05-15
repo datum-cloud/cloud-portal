@@ -52,7 +52,7 @@ export default function HttpProxyDetailPage() {
       <Row type="flex" gutter={[24, 32]}>
         <Col span={24}>
           <div className="flex items-center justify-between">
-            <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'AI Edge'} />
+            <PageTitle title={effectiveProxy.chosenName || effectiveProxy.name || 'AI Edge'} />
             <Button
               type="danger"
               theme="outline"
