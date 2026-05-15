@@ -20,6 +20,7 @@ import {
 } from '@/modules/control-plane/notification';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
+import { NotFoundError } from '@/utils/errors';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -82,7 +83,7 @@ export function createNotificationContactGroupMembershipService() {
         });
 
         const data = response.data as ComMiloapisNotificationV1Alpha1ContactGroupMembership;
-        if (!data) throw new Error(`ContactGroupMembership ${name} not found`);
+        if (!data) throw new NotFoundError('Contact Group Membership', name);
 
         const result = toContactGroupMembership(data);
 

@@ -11,6 +11,7 @@ import { queryClient } from '@/modules/tanstack/query';
 import RootCSS from '@/styles/root.css?url';
 import { csrf, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
+import { isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { ConformAdapter } from '@datum-cloud/datum-ui/form/adapters/conform';
@@ -270,6 +271,7 @@ function ErrorLayout({ children }: { children: React.ReactNode }) {
 export function ErrorBoundary() {
   const error = useRouteError();
   let message = "We've encountered a problem, please try again. Sorry!";
+  let status: number | undefined;
 
   if (isRouteErrorResponse(error)) {
     if (error.statusText === 'AUTH_ERROR') {
@@ -283,15 +285,22 @@ export function ErrorBoundary() {
     } else {
       message = `${error.status} ${error.statusText}`;
     }
+    status = error.status;
   } else if (error instanceof Error) {
-    // you only want to capture non 404-errors that reach the boundary
-    Sentry.captureException(error);
+    // Skip expected user-facing statuses (401/403/404). Other 4xx reaching the
+    // boundary likely indicate a bug, so we still capture them.
+    // The `status` field on AppError survives React Router's error serialization,
+    // so this duck-typed check works during both SSR hydration and client navigation.
+    status = (error as { status?: number }).status;
+    if (!isUserFacingErrorStatus(status)) {
+      Sentry.captureException(error);
+    }
     message = error.message;
   }
 
   return (
     <ErrorLayout>
-      <GenericError message={message} />
+      <GenericError message={message} status={status} />
     </ErrorLayout>
   );
 }

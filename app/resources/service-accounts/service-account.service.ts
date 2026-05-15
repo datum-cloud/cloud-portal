@@ -31,6 +31,7 @@ import {
 } from '@/modules/control-plane/identity';
 import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 export const serviceAccountKeys = {
@@ -75,7 +76,7 @@ export function createServiceAccountService() {
           path: { name },
         });
         const data = response.data as ComMiloapisIamV1Alpha1ServiceAccount;
-        if (!data) throw new Error(`Service account ${name} not found`);
+        if (!data) throw new NotFoundError('Service Account', name);
         logger.service(SERVICE_NAME, 'get', {
           input: { projectId, name },
           duration: Date.now() - startTime,

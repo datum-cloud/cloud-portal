@@ -19,6 +19,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getOrgScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { NotFoundError } from '@/utils/errors';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -109,7 +110,7 @@ export function createGroupService() {
       const data = response.data as ComMiloapisIamV1Alpha1Group;
 
       if (!data) {
-        throw new Error(`Group ${name} not found`);
+        throw new NotFoundError('Group', name);
       }
 
       return toGroup(data);

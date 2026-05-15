@@ -11,6 +11,7 @@ import { MetricsProvider } from '@/modules/metrics';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { NotFoundError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -45,7 +46,7 @@ export default function HttpProxyDetailPage() {
     },
   });
 
-  if (!effectiveProxy) return null;
+  if (!effectiveProxy) throw new NotFoundError('AI Edge', proxyId);
 
   return (
     <MetricsProvider>

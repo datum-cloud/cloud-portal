@@ -1,5 +1,5 @@
 import { createSecretService, useSecret, type Secret } from '@/resources/secrets';
-import { BadRequestError } from '@/utils/errors';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { LoaderFunctionArgs, MetaFunction, Outlet, useLoaderData, useParams } from 'react-router';
 
@@ -12,7 +12,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(secret?.name || 'Secret');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId, secretId } = params;
 
   if (!projectId || !secretId) {
@@ -23,8 +23,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const secretService = createSecretService();
   const secret = await secretService.get(projectId, secretId);
 
+  if (!secret) {
+    throw new NotFoundError('Secret', secretId);
+  }
+
   return secret;
-};
+});
 
 export default function SecretDetailLayout() {
   const secret = useLoaderData<typeof loader>();

@@ -17,6 +17,7 @@ import {
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 export const secretKeys = {
@@ -92,7 +93,7 @@ export function createSecretService() {
       const secretData = response.data as IoK8sApiCoreV1Secret;
 
       if (!secretData) {
-        throw new Error(`Secret ${name} not found`);
+        throw new NotFoundError('Secret', name);
       }
 
       return toSecret(secretData);
