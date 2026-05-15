@@ -115,6 +115,9 @@ export const InputName = ({
           key={field.id}
           ref={inputRef}
           autoFocus={autoFocus}
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
           placeholder="e.g. my-name-3sd122"
         />
       </Field>

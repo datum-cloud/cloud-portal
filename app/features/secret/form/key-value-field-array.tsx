@@ -30,6 +30,9 @@ export function KeyValueFieldArray({ name = 'variables' }: KeyValueFieldArrayPro
                       onFocus={control.focus}
                       placeholder="e.g. username"
                       className="text-xs!"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
                     />
                   )}
                 </Form.Field>

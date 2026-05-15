@@ -205,7 +205,13 @@ export function DnsRecordForm({
 
             {/* Name */}
             <Form.Field name="name" label="Name" required>
-              <Form.Input placeholder="e.g., www or @" disabled={loading} />
+              <Form.Input
+                placeholder="e.g., www or @"
+                disabled={loading}
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+              />
             </Form.Field>
 
             {/* TTL */}

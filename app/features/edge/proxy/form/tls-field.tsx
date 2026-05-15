@@ -15,7 +15,12 @@ export const ProxyTlsField = ({ required = false }: ProxyTlsFieldProps) => {
           ? 'The hostname to use for TLS certificate validation with your IP-based endpoint (required for SNI and certificate hostname matching)'
           : 'The hostname to use for TLS certificate validation (SNI and certificate hostname matching). Leave empty to use the hostname from the endpoint URL.'
       }>
-      <Form.Input placeholder="e.g. secure.example.com" />
+      <Form.Input
+        placeholder="e.g. secure.example.com"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
   );
 };

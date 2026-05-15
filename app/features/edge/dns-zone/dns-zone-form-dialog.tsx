@@ -86,6 +86,9 @@ export const DnsZoneFormDialog = forwardRef<DnsZoneFormDialogRef, DnsZoneFormDia
             required>
             <Form.Input
               autoFocus
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               placeholder="e.g. example.com"
               data-e2e="create-dns-zone-name-input"
             />
