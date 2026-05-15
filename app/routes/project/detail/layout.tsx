@@ -1,5 +1,7 @@
 import { ProjectBottomBar } from '@/features/project-bottom-bar';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
+import { FeatureFlag } from '@/lib/feature-flags';
+import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
@@ -10,7 +12,7 @@ import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
 import { useOrganization, type Organization } from '@/resources/organizations';
-import { useProject, type Project } from '@/resources/projects';
+import { createProjectService, useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
@@ -23,6 +25,7 @@ import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import {
+  BarChart3Icon,
   BotIcon,
   CableIcon,
   ChartSplineIcon,
@@ -40,13 +43,32 @@ import {
   Outlet,
   data,
   useFetcher,
+  useLoaderData,
   useNavigate,
   useParams,
 } from 'react-router';
 
-/** Minimal loader - returns projectId for breadcrumbs only. No blocking fetch. */
+/**
+ * Loader returns projectId for breadcrumbs and resolves org-scoped feature flags
+ * that drive nav rendering. Org name is fetched from the project so the loader
+ * can be the single source of truth for layout-level gating.
+ */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  return data({ projectId: params.projectId });
+  const { projectId } = params;
+  if (!projectId) return data({ projectId, usageMeteringEnabled: false });
+
+  let usageMeteringEnabled = false;
+  try {
+    const project = await createProjectService().get(projectId);
+    usageMeteringEnabled = await isFeatureEnabled(
+      FeatureFlag.UsageMeteringDashboard,
+      project.organizationId
+    );
+  } catch {
+    // Closed-by-default — leave the flag off if we can't resolve it.
+  }
+
+  return data({ projectId, usageMeteringEnabled });
 };
 
 /** Sets org and project session cookies when user enters a project. Used for "return to last project" on next visit. */
@@ -91,6 +113,7 @@ export function shouldRevalidate({
 
 export default function ProjectLayout() {
   const { projectId } = useParams();
+  const { usageMeteringEnabled } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionFetcher = useFetcher({ key: 'session-cookies' });
@@ -246,6 +269,17 @@ export default function ProjectLayout() {
           });
         },
       },
+      ...(usageMeteringEnabled
+        ? [
+            {
+              title: 'Usage',
+              href: getPathWithParams(paths.project.detail.usage, { projectId: pid }),
+              type: 'link' as const,
+              icon: BarChart3Icon,
+              disabled: !isReady,
+            },
+          ]
+        : []),
       {
         title: 'Secrets',
         href: getPathWithParams(paths.project.detail.secrets.root, { projectId: pid }),
@@ -283,7 +317,7 @@ export default function ProjectLayout() {
         tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
       },
     ];
-  }, [project, queryClient]);
+  }, [project, queryClient, usageMeteringEnabled]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;

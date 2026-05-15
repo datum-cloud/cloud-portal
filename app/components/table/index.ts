@@ -2,7 +2,7 @@
 export { Table } from './table';
 export { createActionsColumn, columnHeader } from './columns';
 export type { ActionsColumnOptions, ColumnHeaderOptions } from './columns';
-export { TagFilter } from './filters/tag-filter';
+export { TagFilter, tagFilterParser } from './filters/tag-filter';
 export { TimeRangeFilter } from './filters/time-range-filter';
 
 // Types — props and configs

@@ -66,6 +66,14 @@
 }
 
 /* ── DataTable cloud-portal overrides ── */
+/* Establish a container-query context on the horizontal scroll container.
+   `.datum-ui-data-table` is the `<div data-slot="dt" style="overflow-x:auto">`
+   wrapper; its inline-size = the visible scroll-viewport width (the table
+   element inside may be wider when columns overflow). Used below by inline-
+   content rows to size themselves to the visible width. */
+.datum-ui-data-table {
+  container-type: inline-size;
+}
 .datum-ui-data-table [data-slot='dt-header-row'] {
   @apply hover:bg-transparent;
 }
@@ -85,6 +93,39 @@
 .datum-ui-data-table [data-slot='dt-header-cell']:last-child:empty {
   @apply bg-background sticky right-0;
   box-shadow: none;
+}
+
+/* Inline content row (rendered by datum-ui's `<DataTable.InlineContent>`).
+   The `<td>` falls through to TableCell's default `data-slot="table-cell"`
+   — NOT `dt-cell` — so we target it via `> td` directly.
+
+   The cell has `colspan=N` so its intrinsic width is the full table width
+   (which exceeds the visible scroll viewport when columns overflow). To
+   keep the form anchored to the visible viewport's left edge and sized to
+   the scroll container's width, we:
+
+   1. Strip the cell's padding so the inner panel can fill the cell edge-
+      to-edge in the visible region.
+   2. Apply `position: sticky; left: 0` to the inner panel — its scroll
+      ancestor is `.datum-ui-data-table`, so it tracks left=0 of the
+      visible viewport as the user scrolls horizontally.
+   3. Size the inner panel to `100cqw` — that resolves against
+      `.datum-ui-data-table`'s container-query context (set above), giving
+      the form the visible width instead of the full table width.
+
+   The form inside should declare `@container` and use Tailwind container-
+   query variants (`@xs:`, `@md:`, …) so its grid reflows when the panel
+   is narrow on reduced-width desktops. */
+.datum-ui-data-table [data-slot='dt-inline-content'] > td {
+  padding: 0;
+  background-color: transparent;
+}
+.datum-ui-data-table [data-slot='dt-inline-content'] > td > * {
+  position: sticky;
+  left: 0;
+  width: 100cqw;
+  max-width: 100cqw;
+  box-sizing: border-box;
 }
 
 /* Filtered-empty cell: drop base TableCell padding + whitespace-nowrap so

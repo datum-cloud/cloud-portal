@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types -- TypeScript provides runtime-equivalent guarantees; the rule mis-fires on destructured discriminated-union props. */
 import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
-import { Table, createActionsColumn } from '@/components/table';
-import { IFlattenedDnsRecord } from '@/resources/dns-records';
+import { Table, TagFilter, createActionsColumn, tagFilterParser } from '@/components/table';
+import { IFlattenedDnsRecord, type SupportedDnsRecordType } from '@/resources/dns-records';
+import { getDnsRecordTypePriority } from '@/utils/helpers/dns';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { DataTable, useDataTableSelection } from '@datum-cloud/datum-ui/data-table';
@@ -10,7 +11,7 @@ import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
-import { InfoIcon, LockIcon } from 'lucide-react';
+import { InfoIcon, ListFilter, LockIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
 
@@ -75,11 +76,22 @@ interface DnsRecordTableFullProps extends DnsRecordTableBaseProps {
 export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFullProps;
 
 /**
+ * URL-sync parsers for the DNS records full-mode table. Module-level so
+ * the object identity stays stable across renders — passing a fresh
+ * object literal would make nuqs re-init the underlying query stores.
+ */
+const dnsRecordFilterParsers = {
+  type: tagFilterParser,
+};
+
+/**
  * Build a stable, per-row id for a flattened DNS record. A single record set
  * can flatten into multiple rows (e.g. MX preference/exchange pairs, multi-IP
- * A records), so `recordSetName` alone is not unique — we combine it with
- * `value`. For pre-save rows without `recordSetName`, fall back to
- * `type:name:value`.
+ * A records, or multiple subdomains pointing at the same IP), so neither
+ * `recordSetName` alone nor `recordSetName + value` is unique — two records
+ * in the same set can share a value but differ on `name`. Combine all three
+ * to guarantee uniqueness. For pre-save rows without `recordSetName`, fall
+ * back to `type:name:value`.
  *
  * NOTE: `record.value` must be the persisted value at render time. If the
  * row's `value` mutates during an in-progress edit before save, the synthesized
@@ -90,7 +102,7 @@ export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFul
  */
 export function getDnsRecordRowId(record: IFlattenedDnsRecord): string {
   if (record.recordSetName) {
-    return `${record.recordSetName}::${record.value}`;
+    return `${record.recordSetName}::${record.name}::${record.value}`;
   }
   return `${record.type}:${record.name}:${record.value}`;
 }
@@ -111,7 +123,6 @@ function useDnsRecordColumns(
         header: 'Type',
         accessorKey: 'type',
         size: 120,
-        filterFn: 'arrayOr',
         cell: ({ row }) => {
           const { type, _meta, lockReason } = row.original;
           const wasTransformed = _meta?.transformedFrom;
@@ -294,6 +305,20 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
   const baseColumns = useDnsRecordColumns(resolvedMode, projectId, showStatus, renderAiEdgeCell);
   const rowIndexMap = useMemo(() => new Map(data.map((row, i) => [row, i])), [data]);
 
+  // Derive type-filter options from the actual data, deduped and sorted by
+  // DNS type priority (SOA → NS → A → AAAA → ...). Computed unconditionally
+  // (rules-of-hooks); the compact branch below simply ignores it.
+  const typeFilterOptions = useMemo(() => {
+    const uniqueTypes = Array.from(new Set(data.map((row) => row.type)));
+    return uniqueTypes
+      .sort(
+        (a, b) =>
+          getDnsRecordTypePriority(a as SupportedDnsRecordType) -
+          getDnsRecordTypePriority(b as SupportedDnsRecordType)
+      )
+      .map((type) => ({ label: type, value: type }));
+  }, [data]);
+
   if (resolvedMode !== 'full') {
     const {
       tableContainerClassName: _tableContainerClassName,
@@ -342,6 +367,23 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
 
   const toolbarActions = tableTitle?.actions ? [tableTitle.actions] : undefined;
 
+  // Hide the filter when there's only one type in the dataset — nothing
+  // meaningful to choose. `typeFilterOptions` is computed at the top of
+  // the component so it stays inside React's hook order.
+  const toolbarFilters =
+    typeFilterOptions.length > 1
+      ? [
+          <TagFilter
+            key="type"
+            column="type"
+            label="Type"
+            options={typeFilterOptions}
+            icon={<Icon icon={ListFilter} className="size-3.5" />}
+            className="h-9"
+          />,
+        ]
+      : undefined;
+
   return (
     <Table.Client
       columns={columns}
@@ -350,12 +392,23 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
       // Match the id shape used by the parent for `inlineRowId` so
       // `DataTable.InlineContent` can anchor the panel to the correct row.
       // A record set can flatten to many rows (multi-value MX, multi-IP A,
-      // etc.) so we key on recordSetName + value — see `getDnsRecordRowId`.
+      // multiple subdomains pointing at the same value, etc.) so we key on
+      // recordSetName + name + value — see `getDnsRecordRowId`.
       getRowId={getDnsRecordRowId}
       title={tableTitle?.title}
       description={tableTitle?.description}
       actions={toolbarActions}
+      filters={toolbarFilters}
+      // Sync the multi-select Type filter to a `?type=A,MX` URL param so
+      // the filter survives reload/share, matching the existing nuqs
+      // setup for search and pagination. `tagFilterParser` is a stable
+      // module-level constant.
+      filterParsers={dnsRecordFilterParsers}
       search
+      // Constrain free-text search to user-meaningful fields. Datum-ui's
+      // default scans every value on the row (including recordSetName,
+      // dnsZoneId, and stringified nested objects), which over-matches.
+      searchableColumns={['name', 'value']}
       inline={{
         open: inlineOpen,
         position: inlinePosition,

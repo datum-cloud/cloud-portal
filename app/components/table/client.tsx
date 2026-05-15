@@ -20,7 +20,14 @@ import { cn } from '@datum-cloud/datum-ui/utils';
  * Layout:
  * - Toolbar on top (title/description always; search/filters/actions row
  *   hides when the table is standalone-empty).
- * - Optional inline content panel.
+ * - Optional inline content panel — rendered inside the table via
+ *   `<DataTable.InlineContent>` so the form sits under the column headers
+ *   (or replaces a row when `position='row'`). On narrow viewports the
+ *   panel uses sticky-left positioning + container-query sizing (see
+ *   `app/styles/custom.css` for `[data-slot='dt-inline-content']`) so its
+ *   visible width matches the scroll container instead of the overflowing
+ *   table width. Inner forms should declare `@container` and use Tailwind
+ *   container-query variants (`@xs:`, `@md:` …) to reflow at narrow widths.
  * - Bordered table panel, then pagination OUTSIDE the border. Pagination
  *   auto-hides when there is only one page.
  * - When data is empty AND no filter/search active, the table chrome is
@@ -35,7 +42,7 @@ import { cn } from '@datum-cloud/datum-ui/utils';
  * - `urlSync` defaults to true; pass `false` to disable URL state sync.
  */
 export function TableClient<TData>(props: TableClientProps<TData>) {
-  const stateAdapter = useTableUrlAdapter(props.urlSync ?? true);
+  const stateAdapter = useTableUrlAdapter(props.urlSync ?? true, props.filterParsers);
   const columns = useResolvedColumns(props.columns, props.rowActions, {
     hideRowActions: props.hideRowActions,
     disableRowActions: props.disableRowActions,
@@ -58,6 +65,7 @@ export function TableClient<TData>(props: TableClientProps<TData>) {
       enableRowSelection={!!props.multiActions?.length}
       loading={props.loading}
       pageSize={props.pageSize}
+      searchableColumns={props.searchableColumns}
       className={cn('space-y-4', props.className)}>
       <PagePreserver<TData> data={props.data} />
 
@@ -71,7 +79,7 @@ export function TableClient<TData>(props: TableClientProps<TData>) {
           onClose={props.inline.onClose}
           className={props.inline.className}>
           {(params) => (
-            <div className="bg-table-cell animate-in fade-in-0 slide-in-from-top-2 relative rounded-md p-3.5 duration-200 ease-out">
+            <div className="bg-table-cell animate-in fade-in-0 slide-in-from-top-2 @container relative rounded-md p-3.5 duration-200 ease-out">
               <Button
                 type="quaternary"
                 theme="link"

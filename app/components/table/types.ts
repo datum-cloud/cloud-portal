@@ -1,4 +1,8 @@
-import type { ActionItem, UseDataTableServerOptions } from '@datum-cloud/datum-ui/data-table';
+import type {
+  ActionItem,
+  UseDataTableServerOptions,
+  UseNuqsAdapterOptions,
+} from '@datum-cloud/datum-ui/data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 
@@ -85,7 +89,25 @@ export type TableSharedProps<TData> = {
   title?: string;
   description?: ReactNode;
   search?: string | true;
+  /**
+   * Restrict search to specific row paths (e.g. `['name', 'value']`).
+   * When omitted, datum-ui falls back to scanning every value on the row,
+   * which over-matches when the row carries internal/nested fields. Path
+   * strings are resolved via `resolvePath` in datum-ui and may use
+   * dot-notation for nested keys.
+   */
+  searchableColumns?: string[];
   filters?: ReactNode[];
+  /**
+   * URL parsers for filter state. Each entry maps a column name to a nuqs
+   * parser (e.g. `parseAsArrayOf(parseAsString).withDefault([])`) so the
+   * filter is mirrored into a query parameter — same one-line URL sync
+   * pattern that already works for search and pagination. Pass a stable
+   * reference (module-level constant) so the parser schema doesn't churn
+   * between renders. Common parsers are exported alongside their filter
+   * components (e.g. `tagFilterParser` from `@/components/table`).
+   */
+  filterParsers?: UseNuqsAdapterOptions['filters'];
   actions?: ReactNode | ReactNode[];
   /**
    * Extra content rendered in the PageTitle row, aligned to the right of

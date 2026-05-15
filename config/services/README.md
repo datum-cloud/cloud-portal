@@ -12,24 +12,24 @@ service publishes as part of its own deployment process — same
 
 ## Identity
 
-| Field | Value |
-| --- | --- |
-| `serviceName` | `assistant.miloapis.com` |
-| `owner.producerProjectRef.name` | `cloud-portal` |
-| `phase` | `Draft` |
+| Field                           | Value                    |
+| ------------------------------- | ------------------------ |
+| `serviceName`                   | `assistant.miloapis.com` |
+| `owner.producerProjectRef.name` | `cloud-portal`           |
+| `phase`                         | `Draft`                  |
 
 The canonical CR is `services_v1alpha1_service_assistant.yaml`.
 
 ## Relationship to `config/billing/`
 
-| Repo | API group | Resources | Directory |
-| --- | --- | --- | --- |
-| `cloud-portal` | `services.miloapis.com/v1alpha1` | `Service` | `config/services/` |
-| `cloud-portal` | `billing.miloapis.com/v1alpha1` | `MeterDefinition`, `MonitoredResourceType` | `config/billing/` |
+| Repo           | API group                        | Resources                                  | Directory          |
+| -------------- | -------------------------------- | ------------------------------------------ | ------------------ |
+| `cloud-portal` | `services.miloapis.com/v1alpha1` | `Service`                                  | `config/services/` |
+| `cloud-portal` | `billing.miloapis.com/v1alpha1`  | `MeterDefinition`, `MonitoredResourceType` | `config/billing/`  |
 
-The Service registration declares *that the assistant exists as a
-billable service*; the billing-side resources declare *what gets
-metered and how*. They are deployed independently (the
+The Service registration declares _that the assistant exists as a
+billable service_; the billing-side resources declare _what gets
+metered and how_. They are deployed independently (the
 services-operator's downstream-push controller will eventually let the
 Service own the meters too, but until then both sides are kept in sync
 manually — see [`config/billing/README.md`](../billing/README.md) for

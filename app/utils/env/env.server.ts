@@ -142,6 +142,16 @@ const serverSchema = z.object({
   USAGE_GATEWAY_URL: urlSchemaOptional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Amberflo usage query (read path for usage chart)
+  //
+  // AMBERFLO_API_KEY: secret key for POST /usage/sparse — never sent to browser.
+  // AMBERFLO_BASE_URL: defaults to https://app.amberflo.io.
+  // Meter names are discovered automatically from platform MeterDefinition resources.
+  // ─────────────────────────────────────────────────────────
+  AMBERFLO_API_KEY: z.string().optional(),
+  AMBERFLO_BASE_URL: z.url().default('https://app.amberflo.io'),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
   // ─────────────────────────────────────────────────────────
   REDIS_URL: urlSchemaOptional(),
@@ -212,6 +222,9 @@ export const env: Env = {
     anthropicModel: data.ANTHROPIC_MODEL,
     // Usage Pipeline
     usageGatewayUrl: data.USAGE_GATEWAY_URL,
+    // Amberflo read
+    amberfloApiKey: data.AMBERFLO_API_KEY,
+    amberfloBaseUrl: data.AMBERFLO_BASE_URL,
     // Redis
     redisUrl: data.REDIS_URL,
     redisMaxRetries: data.REDIS_MAX_RETRIES,
