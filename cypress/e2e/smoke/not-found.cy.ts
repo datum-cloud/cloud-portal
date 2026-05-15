@@ -86,9 +86,7 @@ describe('Not found page', () => {
         const url = pathOf(projectId);
 
         // Document response must carry HTTP 404, not 500.
-        cy.request({ url, failOnStatusCode: false })
-          .its('status')
-          .should('eq', 404);
+        cy.request({ url, failOnStatusCode: false }).its('status').should('eq', 404);
 
         // Rendered page must be the 404 view, not the generic 5xx view.
         cy.visit(url, { failOnStatusCode: false });
@@ -96,10 +94,7 @@ describe('Not found page', () => {
           'contain.text',
           "We couldn't find that page."
         );
-        cy.get('[data-e2e="error-page"]').should(
-          'not.contain.text',
-          'Our team has been notified'
-        );
+        cy.get('[data-e2e="error-page"]').should('not.contain.text', 'Our team has been notified');
       });
     });
   });
