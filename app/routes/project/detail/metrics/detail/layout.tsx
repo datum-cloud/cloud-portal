@@ -1,4 +1,4 @@
-import { BackButton } from '@/components/back-button';
+import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
 import {
   createExportPolicyService,
@@ -9,7 +9,6 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -58,51 +57,35 @@ export default function ExportPolicyDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const id = exportPolicyId ?? exportPolicy?.name ?? '';
     return [
       {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.metrics.detail.overview, {
           projectId,
           exportPolicyId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Activity',
+        label: 'Activity',
         href: getPathWithParams(paths.project.detail.metrics.detail.activity, {
           projectId,
           exportPolicyId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Settings',
+        label: 'Settings',
         href: getPathWithParams(paths.project.detail.metrics.detail.settings, {
           projectId,
           exportPolicyId: id,
         }),
-        type: 'link',
       },
     ];
   }, [projectId, exportPolicyId, exportPolicy?.name]);
 
   return (
-    <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.metrics.root, {
-              projectId,
-            })}>
-            Back to Export Policies
-          </BackButton>
-          <span className="text-primary text-sm font-semibold">Manage Export Policy</span>
-        </div>
-      }
-      navItems={navItems}>
+    <SubLayout title={exportPolicy?.name ?? 'Export Policy'} navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

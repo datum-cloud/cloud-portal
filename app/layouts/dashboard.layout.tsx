@@ -65,6 +65,7 @@ export function DashboardLayout({
   sidebarLoading = false,
   switcherLoading = false,
   bottomBar,
+  defaultSidebarOpen,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -83,6 +84,8 @@ export function DashboardLayout({
   switcherLoading?: boolean;
   /** Optional bar rendered at the bottom of the layout */
   bottomBar?: React.ReactNode;
+  /** Initial sidebar state. Falls back to expanded on desktop, collapsed on tablet. */
+  defaultSidebarOpen?: boolean;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -101,7 +104,7 @@ export function DashboardLayout({
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
       <SidebarProvider
-        defaultOpen={!isTablet}
+        defaultOpen={defaultSidebarOpen ?? !isTablet}
         expandOnHover={isTablet}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}

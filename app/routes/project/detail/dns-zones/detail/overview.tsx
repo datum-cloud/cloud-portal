@@ -12,7 +12,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useParams, useRouteLoaderData } from 'react-router';
@@ -46,9 +45,6 @@ export default function DnsZoneOverviewPage() {
 
   return (
     <Row gutter={[0, 28]}>
-      <Col span={24}>
-        <PageTitle title={dnsZone?.domainName ?? 'DNS Zone'} />
-      </Col>
       <Col span={24}>
         {dnsSetupStatus.hasAnySetup ? (
           <DnsRecordCard
