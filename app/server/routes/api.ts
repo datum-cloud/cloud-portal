@@ -1,4 +1,5 @@
 import { assistantRoutes } from './assistant';
+import { billingStatusRoutes } from './billing-status';
 import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
 import { grafanaRoutes } from './grafana';
@@ -36,6 +37,7 @@ export function createApiApp() {
 
   // Routes
   api.route('/fraud-status', fraudStatusRoutes);
+  api.route('/billing-status', billingStatusRoutes);
   api.route('/proxy', proxyRoutes);
   api.route('/graphql', graphqlRoutes);
   api.route('/cloudvalid', cloudvalidRoutes);
