@@ -1,5 +1,6 @@
 import { type MiddlewareContext, type NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
+import { createBillingService } from '@/resources/billing';
 import { createUserService } from '@/resources/users';
 import { RegistrationApproval } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
@@ -10,7 +11,8 @@ import { redirect } from 'react-router';
 /**
  * Fraud status middleware that gates access based on user.status fields set by
  * the fraud operator via Milo IAM resources (UserDeactivation, PlatformAccessApproval,
- * PlatformAccessRejection).
+ * PlatformAccessRejection) AND on the BillingAccount payment-method-attached
+ * condition set by the milo-billing Stripe webhook.
  *
  * Algorithm:
  * 1. Read session; if no sub, call next() (let authMiddleware handle)
@@ -19,7 +21,8 @@ import { redirect } from 'react-router';
  * 4. state === 'Inactive'                  → /account-suspended
  * 5. registrationApproval === 'Approved'   → if nameReviewRequired and not on onboarding complete-profile → redirect there; else next()
  * 6. registrationApproval === 'Rejected'   → /account-under-review
- * 7. Pending or undefined                  → /verifying
+ * 7. BillingAccount present and paymentMethodAttached=false → /billing-setup
+ * 8. Otherwise (Pending fraud, or BA still provisioning) → /verifying
  */
 export async function fraudStatusMiddleware(
   ctx: MiddlewareContext,
@@ -29,6 +32,11 @@ export async function fraudStatusMiddleware(
 
   // Short-circuit for the logout route so users can always sign out.
   if (new URL(request.url).pathname === paths.auth.logOut) {
+    return next();
+  }
+  // /billing-setup runs its own auth + billing-account lookup; bouncing
+  // back to this middleware would create a redirect loop.
+  if (new URL(request.url).pathname === paths.billing.setup) {
     return next();
   }
 
@@ -82,7 +90,30 @@ export async function fraudStatusMiddleware(
       return redirect(paths.fraud.accountUnderReview);
     }
 
-    // Pending or undefined — evaluation still in progress
+    // Approval is Pending. Decide between /billing-setup and /verifying
+    // based on the BillingAccount state. Failure here is non-fatal: fall
+    // back to /verifying so the user sees a spinner rather than an
+    // error page while the billing API hiccups.
+    try {
+      const billing = await createBillingService().getBillingAccountForUser(session.sub);
+      if (reqCtx) {
+        reqCtx.cachedBillingAccount = billing ?? null;
+      }
+      if (billing && !billing.paymentMethodAttached) {
+        return redirect(paths.billing.setup);
+      }
+    } catch (billingError) {
+      // 403 on a brand-new user usually means OpenFGA hasn't propagated
+      // the user's billing permissions yet. Send them to /verifying so
+      // the polling loop waits for it to land.
+      if (billingError instanceof AuthorizationError || billingError instanceof NotFoundError) {
+        return redirect(paths.fraud.verifying);
+      }
+      // Any other error: fall through to /verifying. The verifying page
+      // also reads the BA status and will redirect to /billing-setup as
+      // soon as one appears.
+    }
+
     return redirect(paths.fraud.verifying);
   } catch {
     // Fail-open on unexpected errors

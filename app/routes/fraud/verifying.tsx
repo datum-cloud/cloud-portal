@@ -26,13 +26,27 @@ export default function VerifyingPage() {
       if (stopped) return;
 
       try {
-        const response = await fetch(paths.fraud.statusApi);
+        // Fire both probes in parallel — the fraud check is the
+        // terminal gate but the billing check can bounce the user back
+        // to /billing-setup if the BA exists without a card.
+        const [fraudResp, billingResp] = await Promise.all([
+          fetch(paths.fraud.statusApi),
+          fetch(paths.billing.statusApi).catch(() => null),
+        ]);
 
-        if (!response.ok) {
+        if (billingResp && billingResp.ok) {
+          const billing = await billingResp.json();
+          if (billing.status === 'needs-payment-method') {
+            window.location.replace(paths.billing.setup);
+            return;
+          }
+        }
+
+        if (!fraudResp.ok) {
           return;
         }
 
-        const result = await response.json();
+        const result = await fraudResp.json();
 
         if (result.status === 'completed') {
           const decision = result.decision;
@@ -89,7 +103,8 @@ export default function VerifyingPage() {
           </div>
           <h2 className="mb-3 text-center text-xl font-medium">Verifying your account</h2>
           <p className="text-center text-[14px] leading-5 font-normal">
-            We&apos;re running a quick security check. This usually takes less than 30 seconds.
+            We&apos;re finalising your payment setup and running a quick security check. This
+            usually takes less than 30 seconds.
           </p>
           <div className="mt-6 text-center">
             <Link
