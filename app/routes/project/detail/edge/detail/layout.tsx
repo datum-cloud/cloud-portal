@@ -76,7 +76,7 @@ export default function HttpProxyDetailLayout() {
 
   return (
     <SubLayout
-      title={httpProxy?.name}
+      title={httpProxy.chosenName || httpProxy?.name}
       actions={httpProxy && <ProxyHeaderActions projectId={projectId ?? ''} proxy={httpProxy} />}
       navItems={navItems}>
       <Outlet />
