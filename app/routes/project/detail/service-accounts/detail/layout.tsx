@@ -1,4 +1,5 @@
-import { BackButton } from '@/components/back-button';
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { ServiceAccountHeaderActions } from '@/features/service-account/service-account-header-actions';
 import { SubLayout } from '@/layouts';
 import {
   createServiceAccountService,
@@ -10,7 +11,6 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -90,48 +90,43 @@ export default function ServiceAccountDetailLayout() {
     prevLiveRef.current = liveAccount;
   }, [liveAccount, isDeleting, navigate, projectId]);
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const id = serviceAccountId ?? account.name;
     return [
       {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.serviceAccounts.detail.overview, {
           projectId,
           serviceAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Keys',
+        label: 'Keys',
         href: getPathWithParams(paths.project.detail.serviceAccounts.detail.keys, {
           projectId,
           serviceAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Roles',
+        label: 'Roles',
         href: getPathWithParams(paths.project.detail.serviceAccounts.detail.policyBindings, {
           projectId,
           serviceAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Activity',
+        label: 'Activity',
         href: getPathWithParams(paths.project.detail.serviceAccounts.detail.activity, {
           projectId,
           serviceAccountId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Settings',
+        label: 'Settings',
         href: getPathWithParams(paths.project.detail.serviceAccounts.detail.settings, {
           projectId,
           serviceAccountId: id,
         }),
-        type: 'link',
       },
     ];
   }, [projectId, serviceAccountId, account.name]);
@@ -144,15 +139,15 @@ export default function ServiceAccountDetailLayout() {
 
   return (
     <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId })}>
-            Back to Service Accounts
-          </BackButton>
-          <span className="text-primary text-sm font-semibold">Manage Service Account</span>
-        </div>
+      title={account?.displayName ?? account?.name}
+      actions={
+        account && (
+          <ServiceAccountHeaderActions
+            projectId={projectId ?? ''}
+            serviceAccountId={serviceAccountId ?? ''}
+            account={account}
+          />
+        )
       }
       navItems={navItems}>
       <Outlet context={outletContext} />

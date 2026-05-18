@@ -6,7 +6,6 @@ import { WorkloadSourcesTable } from '@/features/metric/export-policies/sources-
 import { IExportPolicyControlResponse } from '@/resources/export-policies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { MetaFunction, useRouteLoaderData } from 'react-router';
 
 export const handle = {
@@ -25,11 +24,6 @@ export default function ExportPolicyOverview() {
 
   return (
     <div className="mx-auto w-full">
-      <Row gutter={[24, 32]}>
-        <Col span={24}>
-          <PageTitle title={exportPolicy?.name ?? 'Export Policy'} />
-        </Col>
-      </Row>
       <Row type="flex" gutter={[24, 32]}>
         <Col
           span={24}

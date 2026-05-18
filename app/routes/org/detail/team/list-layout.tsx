@@ -1,7 +1,7 @@
-import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { SubLayout } from '@/layouts';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useMemo } from 'react';
 import { Outlet, useParams } from 'react-router';
 
@@ -17,14 +17,8 @@ export default function TeamListLayout() {
   );
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-8">
-      <PageTitle title="Team" />
-      <SubNavigationTabs tabs={navItems} />
-      <div className="h-full w-full pt-2">
-        <div className="flex h-full flex-1 flex-col">
-          <Outlet />
-        </div>
-      </div>
-    </div>
+    <SubLayout title="Team" navItems={navItems}>
+      <Outlet />
+    </SubLayout>
   );
 }

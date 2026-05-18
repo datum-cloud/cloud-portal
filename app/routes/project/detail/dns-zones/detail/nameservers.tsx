@@ -43,7 +43,6 @@ export default function DnsZoneNameserversPage() {
     <Row gutter={[0, 32]}>
       <Col span={24}>
         <NameserverTable
-          title="Nameservers"
           titleActions={
             domain?.name && (
               <RefreshNameserversButton

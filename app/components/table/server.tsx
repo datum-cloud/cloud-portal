@@ -91,7 +91,7 @@ function TableServerImpl<TData, TResponse>(
       defaultFilters={props.defaultFilters}
       getRowId={props.getRowId}
       enableRowSelection={!!props.multiActions?.length}
-      className={cn('space-y-4', props.className)}>
+      className={cn('space-y-6', props.className)}>
       <ErrorBridge onError={props.onError} />
 
       {hasToolbar && <TableToolbar<TData> {...toolbarPropsFrom(props)} />}

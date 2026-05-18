@@ -10,13 +10,8 @@ import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useEffect, useRef, useState } from 'react';
 import { MetaFunction, useNavigate, useParams, useSearchParams } from 'react-router';
-
-export const handle = {
-  breadcrumb: () => <span>Create a Service Account</span>,
-};
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Create a Service Account'));
 
@@ -68,8 +63,6 @@ export default function ServiceAccountsNewPage() {
 
   return (
     <div className="flex w-full flex-col gap-8">
-      <PageTitle title="Create a Service Account" />
-
       <Row gutter={[16, 16]}>
         <Col xs={24} md={12} className="w-full md:h-full">
           <CiCdCard onCreate={() => openWith('cicd')} />

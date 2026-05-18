@@ -103,7 +103,11 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
             name="endpointHost"
             label="Origin"
             required>
-            <ProtocolEndpointInput autoFocus onIPChange={setIsIPOrigin} onProtocolChange={setProtocol} />
+            <ProtocolEndpointInput
+              autoFocus
+              onIPChange={setIsIPOrigin}
+              onProtocolChange={setProtocol}
+            />
           </Form.Field>
 
           {isIPOrigin && <ProxyTlsField required={protocol === 'https'} />}

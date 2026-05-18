@@ -13,16 +13,14 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { NotFoundError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { ChartSplineIcon, Trash2Icon } from 'lucide-react';
+import { ChartSplineIcon } from 'lucide-react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
-export default function HttpProxyDetailPage() {
+export default function HttpProxyOverviewPage() {
   const loaderData = useRouteLoaderData('proxy-detail') as HttpProxy | undefined;
   const { projectId, proxyId } = useParams();
   const navigate = useNavigate();
@@ -51,20 +49,6 @@ export default function HttpProxyDetailPage() {
   return (
     <MetricsProvider>
       <Row type="flex" gutter={[24, 32]}>
-        <Col span={24}>
-          <div className="flex items-center justify-between">
-            <PageTitle title={effectiveProxy.chosenName ?? effectiveProxy.name ?? 'AI Edge'} />
-            <Button
-              type="danger"
-              theme="outline"
-              size="small"
-              loading={isDeleting}
-              onClick={() => confirmDelete(effectiveProxy)}>
-              <Icon icon={Trash2Icon} size={14} />
-              Delete
-            </Button>
-          </div>
-        </Col>
         <Col span={24} lg={12}>
           <HttpProxyGeneralCard proxy={effectiveProxy} />
         </Col>

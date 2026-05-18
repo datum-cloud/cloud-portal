@@ -411,7 +411,6 @@ export default function DnsRecordsPage() {
           />
         )}
         tableTitle={{
-          title: 'DNS Records',
           actions: (
             <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
               <DnsRecordImportAction
@@ -471,7 +470,6 @@ export default function DnsRecordsPage() {
               />
             )}
             tableTitle={{
-              title: 'DNS Records',
               actions: (
                 <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
                   <DnsRecordImportAction

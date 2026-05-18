@@ -1,8 +1,8 @@
-import { SubNavigationTabs, type SubNavigationTab } from '@/components/sub-navigation';
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { SubLayout } from '@/layouts';
 import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useMemo } from 'react';
 import { Outlet, useRouteLoaderData } from 'react-router';
 
@@ -43,14 +43,8 @@ export default function OrgSettingsLayout() {
   }, [org]);
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-8">
-      <PageTitle title="Organization Settings" />
-      <SubNavigationTabs tabs={navItems} />
-      <div className="h-full w-full pt-2">
-        <div className="flex h-full flex-1 flex-col">
-          <Outlet />
-        </div>
-      </div>
-    </div>
+    <SubLayout title="Organization Settings" navItems={navItems}>
+      <Outlet />
+    </SubLayout>
   );
 }

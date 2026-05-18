@@ -66,7 +66,7 @@ export function TableClient<TData>(props: TableClientProps<TData>) {
       loading={props.loading}
       pageSize={props.pageSize}
       searchableColumns={props.searchableColumns}
-      className={cn('space-y-4', props.className)}>
+      className={cn('space-y-6', props.className)}>
       <PagePreserver<TData> data={props.data} />
 
       {hasToolbar && <TableToolbar<TData> {...toolbarPropsFrom(props)} />}

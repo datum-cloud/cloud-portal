@@ -188,7 +188,6 @@ export default function ServiceAccountsPage() {
       <Table.Client
         columns={columns}
         data={data}
-        title="Service Accounts"
         description="Service accounts give non-human workloads a cryptographic identity to authenticate with Datum APIs — no shared passwords or long-lived tokens."
         search="Search"
         onRowClick={(row) =>

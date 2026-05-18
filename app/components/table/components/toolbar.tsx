@@ -51,11 +51,12 @@ export function TableToolbar<TData>({
   const hasHeaderRow = !!(title || description || headerExtra);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {hasHeaderRow && (
         <PageTitle
           title={title}
           description={description}
+          descriptionClassName="max-w-none"
           actions={headerExtra}
           className={headerExtra ? 'items-start' : undefined}
         />
