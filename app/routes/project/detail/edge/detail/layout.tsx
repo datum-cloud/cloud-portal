@@ -1,11 +1,11 @@
-import { BackButton } from '@/components/back-button';
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { ProxyHeaderActions } from '@/features/edge/proxy/proxy-header-actions';
 import { SubLayout } from '@/layouts';
 import { createHttpProxyService, type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -54,42 +54,30 @@ export default function HttpProxyDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const id = proxyId ?? httpProxy?.name ?? '';
     return [
       {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.proxy.detail.overview, {
           projectId,
           proxyId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Activity',
+        label: 'Activity',
         href: getPathWithParams(paths.project.detail.proxy.detail.activity, {
           projectId,
           proxyId: id,
         }),
-        type: 'link',
       },
     ];
   }, [projectId, proxyId, httpProxy?.name]);
 
   return (
     <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.proxy.root, {
-              projectId,
-            })}>
-            Back to AI Edge
-          </BackButton>
-          <span className="text-primary text-sm font-semibold">Manage AI Edge</span>
-        </div>
-      }
+      title={httpProxy?.name}
+      actions={httpProxy && <ProxyHeaderActions projectId={projectId ?? ''} proxy={httpProxy} />}
       navItems={navItems}>
       <Outlet />
     </SubLayout>

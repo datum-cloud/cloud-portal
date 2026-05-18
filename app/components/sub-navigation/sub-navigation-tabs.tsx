@@ -1,6 +1,7 @@
 import { Tabs, TabsLinkTrigger, TabsList } from '@datum-cloud/datum-ui/tabs';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import type { LucideIcon } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useMemo } from 'react';
 import { Link, useLocation } from 'react-router';
 
@@ -47,23 +48,33 @@ export function SubNavigationTabs({ tabs, className, containerClassName }: SubNa
       <div className={cn('w-full', containerClassName)}>
         <Tabs value={activeHref}>
           <TabsList className="bg-background scrollbar-hide flex h-auto w-full justify-start gap-0 overflow-x-auto rounded-none p-0">
-            {visibleTabs.map((tab) => (
-              <TabsLinkTrigger
-                key={tab.href}
-                value={tab.href}
-                href={tab.href}
-                linkComponent={Link}
-                className={cn(
-                  'flex w-fit shrink-0 items-center gap-2 rounded-none border-b-2 border-transparent px-0',
-                  'py-2.5 md:py-2',
-                  'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
-                  'data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:font-medium data-[state=active]:shadow-none',
-                  'text-foreground mx-3.5 !flex-none text-xs font-normal transition-all first:ml-0 last:mr-0'
-                )}>
-                {tab.icon && <tab.icon className="size-4" />}
-                {tab.label}
-              </TabsLinkTrigger>
-            ))}
+            {visibleTabs.map((tab) => {
+              const isActive = activeHref === tab.href;
+              return (
+                <TabsLinkTrigger
+                  key={tab.href}
+                  value={tab.href}
+                  href={tab.href}
+                  linkComponent={Link}
+                  className={cn(
+                    'relative flex w-fit shrink-0 items-center gap-2 rounded-none border-b-2 border-transparent px-0',
+                    'py-2.5 md:py-2',
+                    'bg-background focus-visible:ring-0 focus-visible:outline-hidden',
+                    'data-[state=active]:text-primary data-[state=active]:font-medium data-[state=active]:shadow-none',
+                    'text-foreground mx-3.5 !flex-none text-xs font-normal transition-colors first:ml-0 last:mr-0'
+                  )}>
+                  {tab.icon && <tab.icon className="size-4" />}
+                  {tab.label}
+                  {isActive && (
+                    <motion.span
+                      layoutId="active-tab-indicator"
+                      className="bg-primary absolute inset-x-0 bottom-0 h-0.5"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
+                  )}
+                </TabsLinkTrigger>
+              );
+            })}
           </TabsList>
         </Tabs>
       </div>

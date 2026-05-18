@@ -171,7 +171,6 @@ export default function ExportPoliciesPage() {
     <Table.Client
       columns={columns}
       data={policies ?? []}
-      title="Export Policies"
       description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
       search="Search"
       onRowClick={(row) => {

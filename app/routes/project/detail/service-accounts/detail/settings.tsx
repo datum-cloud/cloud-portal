@@ -7,7 +7,6 @@ import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import type { MetaFunction } from 'react-router';
 import { useNavigate, useOutletContext, useParams } from 'react-router';
@@ -63,10 +62,6 @@ export default function ServiceAccountSettingsPage() {
 
   return (
     <Row type="flex" gutter={[24, 24]}>
-      <Col span={24}>
-        <PageTitle title="Settings" />
-      </Col>
-
       <Col span={24}>
         <h3 className="mb-4 text-base font-medium">Display Name</h3>
         <DisplayNameFormCard projectId={projectId ?? ''} defaultValue={account} />
