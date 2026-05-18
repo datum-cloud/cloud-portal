@@ -1,3 +1,4 @@
+import type { BillingAccount } from '@/resources/billing';
 import type { User } from '@/resources/users';
 import { AsyncLocalStorage } from 'async_hooks';
 
@@ -18,6 +19,14 @@ export interface RequestContext {
    * to avoid a second upstream API call on the same request.
    */
   cachedUser?: User;
+  /**
+   * Per-request BillingAccount cache. Written by fraudStatusMiddleware
+   * after looking up the user's BillingAccount for the
+   * payment-method-attached gate. `null` is a meaningful value (the
+   * lookup succeeded but the user has no BA yet); `undefined` means it
+   * hasn't been resolved this request.
+   */
+  cachedBillingAccount?: BillingAccount | null;
 }
 
 // Use globalThis to share the store across modules (axios, gqlts, etc.)

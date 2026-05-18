@@ -17,6 +17,10 @@ export const paths = {
     accountSuspended: '/account-suspended',
     statusApi: '/api/fraud-status',
   },
+  billing: {
+    setup: '/billing-setup',
+    statusApi: '/api/billing-status',
+  },
   invitationAccept: '/invitation/:invitationId/accept',
   account: {
     root: '/account',

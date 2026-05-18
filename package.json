@@ -29,6 +29,8 @@
     "@ai-sdk/anthropic": "^3.0.71",
     "@ai-sdk/react": "^3.0.170",
     "@conform-to/react": "1.19.2",
+    "@stripe/react-stripe-js": "^3.0.0",
+    "@stripe/stripe-js": "^5.0.0",
     "@conform-to/zod": "1.19.2",
     "@datum-cloud/activity-ui": "^0.5.0",
     "@datum-cloud/datum-ui": "^0.10.0",
