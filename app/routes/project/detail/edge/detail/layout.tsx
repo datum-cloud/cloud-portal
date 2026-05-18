@@ -1,6 +1,12 @@
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { ProxyHeaderActions } from '@/features/edge/proxy/proxy-header-actions';
+import { SubLayout } from '@/layouts';
 import { createHttpProxyService, type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
   MetaFunction,
@@ -48,5 +54,32 @@ export default function HttpProxyDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  return <Outlet />;
+  const navItems: SubNavigationTab[] = useMemo(() => {
+    const id = proxyId ?? httpProxy?.name ?? '';
+    return [
+      {
+        label: 'Overview',
+        href: getPathWithParams(paths.project.detail.proxy.detail.overview, {
+          projectId,
+          proxyId: id,
+        }),
+      },
+      {
+        label: 'Activity',
+        href: getPathWithParams(paths.project.detail.proxy.detail.activity, {
+          projectId,
+          proxyId: id,
+        }),
+      },
+    ];
+  }, [projectId, proxyId, httpProxy?.name]);
+
+  return (
+    <SubLayout
+      title={httpProxy.chosenName || httpProxy?.name}
+      actions={httpProxy && <ProxyHeaderActions projectId={projectId ?? ''} proxy={httpProxy} />}
+      navItems={navItems}>
+      <Outlet />
+    </SubLayout>
+  );
 }

@@ -4,7 +4,6 @@ import { SecretDangerCard } from '@/features/secret/form/overview/danger-card';
 import { SecretGeneralCard } from '@/features/secret/form/overview/general-card';
 import { useSecret } from '@/resources/secrets';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useParams, useRouteLoaderData } from 'react-router';
 
 export default function EditSecret() {
@@ -22,9 +21,6 @@ export default function EditSecret() {
   return (
     <div className="mx-auto w-full">
       <Row gutter={[24, 32]}>
-        <Col span={24}>
-          <PageTitle title={secret?.name ?? 'Secret'} />
-        </Col>
         <Col span={24}>
           <SecretGeneralCard secret={(secret ?? {}) as any} />
         </Col>

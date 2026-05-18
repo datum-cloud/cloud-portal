@@ -1,6 +1,11 @@
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { SubLayout } from '@/layouts';
 import { createSecretService, useSecret, type Secret } from '@/resources/secrets';
+import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { useMemo } from 'react';
 import { LoaderFunctionArgs, MetaFunction, Outlet, useLoaderData, useParams } from 'react-router';
 
 export const handle = {
@@ -40,5 +45,29 @@ export default function SecretDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  return <Outlet />;
+  const navItems: SubNavigationTab[] = useMemo(() => {
+    const id = secretId ?? secret?.name ?? '';
+    return [
+      {
+        label: 'Overview',
+        href: getPathWithParams(paths.project.detail.secrets.detail.overview, {
+          projectId,
+          secretId: id,
+        }),
+      },
+      {
+        label: 'Activity',
+        href: getPathWithParams(paths.project.detail.secrets.detail.activity, {
+          projectId,
+          secretId: id,
+        }),
+      },
+    ];
+  }, [projectId, secretId, secret?.name]);
+
+  return (
+    <SubLayout title={secret?.name} navItems={navItems}>
+      <Outlet />
+    </SubLayout>
+  );
 }

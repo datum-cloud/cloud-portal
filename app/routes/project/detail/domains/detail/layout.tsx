@@ -1,4 +1,5 @@
-import { BackButton } from '@/components/back-button';
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { DomainHeaderActions } from '@/features/edge/domain/domain-header-actions';
 import { SubLayout } from '@/layouts';
 import { createDnsZoneService, type DnsZone } from '@/resources/dns-zones';
 import { createDomainService, type Domain, useDomain } from '@/resources/domains';
@@ -6,7 +7,6 @@ import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -53,7 +53,7 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
 });
 
 export default function DomainDetailLayout() {
-  const { domain } = useLoaderData<typeof loader>();
+  const { domain, dnsZone } = useLoaderData<typeof loader>();
   const { projectId, domainId } = useParams();
 
   // Seed cache synchronously with SSR data so child routes read it without skeleton flash
@@ -62,40 +62,39 @@ export default function DomainDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     return [
       {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.domains.detail.overview, {
           projectId,
           domainId: domain?.name ?? '',
         }),
-        type: 'link',
       },
       {
-        title: 'Settings',
+        label: 'Activity',
+        href: getPathWithParams(paths.project.detail.domains.detail.activity, {
+          projectId,
+          domainId: domain?.name ?? '',
+        }),
+      },
+      {
+        label: 'Settings',
         href: getPathWithParams(paths.project.detail.domains.detail.settings, {
           projectId,
           domainId: domain?.name ?? '',
         }),
-        type: 'link',
       },
     ];
   }, [projectId, domain]);
 
   return (
     <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.domains.root, {
-              projectId,
-            })}>
-            Back to Domains
-          </BackButton>
-          <span className="text-primary text-sm font-semibold">Manage Domain</span>
-        </div>
+      title={domain?.domainName}
+      actions={
+        domain && (
+          <DomainHeaderActions projectId={projectId ?? ''} domain={domain} dnsZone={dnsZone} />
+        )
       }
       navItems={navItems}>
       <Outlet />

@@ -147,10 +147,10 @@ export default function ExportPoliciesPage() {
       },
       createActionsColumn<ExportPolicy>([
         {
-          label: 'Edit',
+          label: 'Settings',
           onClick: (row) => {
             navigate(
-              getPathWithParams(paths.project.detail.metrics.detail.edit, {
+              getPathWithParams(paths.project.detail.metrics.detail.settings, {
                 projectId,
                 exportPolicyId: row.name,
               })
@@ -171,7 +171,6 @@ export default function ExportPoliciesPage() {
     <Table.Client
       columns={columns}
       data={policies ?? []}
-      title="Export Policies"
       description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
       search="Search"
       onRowClick={(row) => {

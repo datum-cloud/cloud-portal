@@ -356,6 +356,7 @@ export default function ProjectLayout() {
       <DashboardLayout
         navItems={navItems}
         sidebarCollapsible="icon"
+        defaultSidebarOpen={false}
         currentProject={currentProject}
         currentOrg={currentOrg}
         expandBehavior="push"

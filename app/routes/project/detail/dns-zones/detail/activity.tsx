@@ -10,8 +10,8 @@ export const handle = {
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Activity'));
 
-export default function ServiceAccountActivityPage() {
-  const { serviceAccountId } = useParams();
+export default function DnsZoneActivityPage() {
+  const { dnsZoneId } = useParams();
   const { client, resourceLinkResolver } = useProjectActivityClient();
 
   return (
@@ -20,8 +20,8 @@ export default function ServiceAccountActivityPage() {
         <ResourceActivityFeed
           client={client}
           resourceLinkResolver={resourceLinkResolver}
-          resourceKinds={['ServiceAccount', 'ServiceAccountKey']}
-          resourceName={serviceAccountId}
+          resourceKinds={['DNSZone', 'DNSRecordSet']}
+          resourceName={dnsZoneId}
         />
       </Col>
     </Row>
