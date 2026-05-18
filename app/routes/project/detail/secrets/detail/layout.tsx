@@ -1,11 +1,10 @@
-import { BackButton } from '@/components/back-button';
+import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
 import { createSecretService, useSecret, type Secret } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import { LoaderFunctionArgs, MetaFunction, Outlet, useLoaderData, useParams } from 'react-router';
 
@@ -46,43 +45,28 @@ export default function SecretDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     const id = secretId ?? secret?.name ?? '';
     return [
       {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.secrets.detail.overview, {
           projectId,
           secretId: id,
         }),
-        type: 'link',
       },
       {
-        title: 'Activity',
+        label: 'Activity',
         href: getPathWithParams(paths.project.detail.secrets.detail.activity, {
           projectId,
           secretId: id,
         }),
-        type: 'link',
       },
     ];
   }, [projectId, secretId, secret?.name]);
 
   return (
-    <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.secrets.root, {
-              projectId,
-            })}>
-            Back to Secrets
-          </BackButton>
-          <span className="text-primary text-sm font-semibold">Manage Secret</span>
-        </div>
-      }
-      navItems={navItems}>
+    <SubLayout title={secret?.name} navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

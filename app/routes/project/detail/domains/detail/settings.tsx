@@ -5,7 +5,6 @@ import { useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
@@ -55,9 +54,6 @@ export default function DomainSettingsPage() {
 
   return (
     <Row gutter={[24, 32]}>
-      <Col span={24}>
-        <PageTitle title="Settings" />
-      </Col>
       <Col span={24}>
         <h3 className="mb-4 text-base font-medium">Coming Soon</h3>
         <ComingSoonFeatureCard

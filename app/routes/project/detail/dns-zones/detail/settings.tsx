@@ -6,7 +6,6 @@ import { useDeleteDnsZone } from '@/resources/dns-zones';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export const handle = {
@@ -53,8 +52,6 @@ export default function DnsZoneSettingsPage() {
 
   return (
     <div className="flex w-full flex-col gap-8">
-      <PageTitle title="Settings" />
-
       <Row gutter={[0, 24]}>
         <Col span={24}>
           <h3 className="mb-4 text-base font-medium">Zone Description</h3>

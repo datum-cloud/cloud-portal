@@ -133,7 +133,7 @@ function CardListRoot<TData>({
 
   return (
     <CardListContext.Provider value={ctxValue as unknown as CardListContextValue}>
-      <div className={cn('space-y-4', className)} {...rest}>
+      <div className={cn('space-y-6', className)} {...rest}>
         {children}
       </div>
     </CardListContext.Provider>
@@ -160,7 +160,7 @@ function CardListHeader({
   ...rest
 }: CardListHeaderProps) {
   return (
-    <div className={cn('flex flex-col gap-5', className)} {...rest}>
+    <div className={cn('flex flex-col gap-6', className)} {...rest}>
       <PageTitle title={title} description={description} />
       {(children || actions) && (
         <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
