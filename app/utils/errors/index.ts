@@ -6,6 +6,8 @@ export {
   NotFoundError,
   ConflictError,
   RateLimitError,
+  USER_FACING_ERROR_STATUSES,
+  isUserFacingErrorStatus,
   type ErrorDetail,
   type SerializedError,
   type K8sErrorDetails,
@@ -35,3 +37,5 @@ export { formatZodError, fromZodError, parseOrThrow } from './error-formatter';
 export { mapApiError } from './error-mapper';
 
 export { parseK8sMessage } from './error-parser';
+
+export { withLoaderErrors } from './loader';

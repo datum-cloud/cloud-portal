@@ -9,8 +9,8 @@ describe('getResourceLabel', () => {
     expect(getResourceLabel('dnszones')).to.equal('DNS Zone');
   });
 
-  it('returns label for HTTP proxies', () => {
-    expect(getResourceLabel('httpproxies')).to.equal('HTTP Proxy');
+  it('returns label for HTTP proxies (AI Edge)', () => {
+    expect(getResourceLabel('httpproxies')).to.equal('AI Edge');
   });
 
   it('returns label for domains', () => {

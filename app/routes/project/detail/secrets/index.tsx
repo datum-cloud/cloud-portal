@@ -13,7 +13,7 @@ import {
 } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError } from '@/utils/errors';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -24,7 +24,7 @@ import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import { LoaderFunctionArgs, useLoaderData, useNavigate, useParams } from 'react-router';
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
   if (!projectId) {
@@ -35,7 +35,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const secretService = createSecretService();
   const secrets = await secretService.list(projectId);
   return secrets;
-};
+});
 
 export default function SecretsPage() {
   const initialData = useLoaderData<typeof loader>();

@@ -62,7 +62,13 @@ export const KeyValueFormDialog = forwardRef<KeyValueFormDialogRef, KeyValueForm
         className="sm:max-w-lg">
         <div className="space-y-4 px-5 py-5">
           <Form.Field name="key" label="Key" required>
-            <Form.Input autoFocus placeholder="e.g. app" />
+            <Form.Input
+              autoFocus
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="e.g. app"
+            />
           </Form.Field>
           <Form.Field name="value" label="Value" required>
             <Form.Input placeholder="e.g. Nginx" />

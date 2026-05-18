@@ -2,6 +2,59 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import '@testing-library/cypress/add-commands';
 
+/**
+ * Stub the "ambient" authenticated-page polling that fires on every visit so
+ * the e2e suite doesn't trip the upstream IAM rate limiter for the test
+ * account. None of the smoke specs exercise these endpoints — they're noise
+ * from global header components (notification bell, watch SSE, org switcher,
+ * marker.io feedback widget).
+ *
+ * Without this, every `cy.visit` opens a fresh QueryClient + WatchManager
+ * that hammers IAM, and in CI — where specs run back-to-back against the
+ * same test account — the cumulative load returns 429s. The user-visible
+ * symptom is a "Too Many Requests" toast on whatever spec runs latest in
+ * the suite (most often the alphabetically-last `secrets.cy.ts`).
+ *
+ * Specs that genuinely exercise one of these endpoints can override the
+ * intercept locally (later `cy.intercept` calls for the same route win) or
+ * disable the helper entirely via `Cypress.env('E2E_ALLOW_AMBIENT_APIS')`.
+ */
+function stubAmbientApis(): void {
+  // Notification bell — user-scoped invitation list.
+  // Scoped tightly to `users/me/...userinvitations` so the org-scoped
+  // invitation tables (covered by `members.cy.ts`) are unaffected.
+  cy.intercept('GET', '**/users/me/**/userinvitations*', {
+    statusCode: 200,
+    body: {
+      kind: 'UserInvitationList',
+      apiVersion: 'iam.miloapis.com/v1alpha1',
+      items: [],
+    },
+  });
+
+  // Multiplexed watch SSE. We can't easily simulate a real SSE stream from
+  // `cy.intercept`, so we hold the request open longer than any test could
+  // run. The client-side WatchManager sits awaiting `fetch` and never enters
+  // its retry loop, never opens upstream K8s watches, and never reconnects.
+  cy.intercept('GET', '/api/watch/stream*', {
+    statusCode: 200,
+    headers: { 'content-type': 'text/event-stream' },
+    body: '',
+    delay: 5 * 60 * 1000,
+  });
+  cy.intercept('POST', '/api/watch/subscribe', { statusCode: 200, body: {} });
+  cy.intercept('POST', '/api/watch/unsubscribe', { statusCode: 200, body: {} });
+
+  // Marker.io feedback widget — third-party, not under test.
+  cy.intercept(/api\.marker\.io/, { statusCode: 204, body: '' });
+}
+
+beforeEach(() => {
+  if (!Cypress.env('E2E_ALLOW_AMBIENT_APIS')) {
+    stubAmbientApis();
+  }
+});
+
 Cypress.Commands.add('login', (options?: { accessToken?: string; sub?: string }) => {
   // Get accessToken and sub from options or environment variables
   cy.env(['ACCESS_TOKEN', 'SUB']).then((env) => {

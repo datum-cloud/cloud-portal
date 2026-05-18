@@ -7,7 +7,7 @@ import {
   type ServiceAccount,
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
@@ -31,7 +31,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(account?.displayName ?? account?.name ?? 'Service Account');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId, serviceAccountId } = params;
 
   if (!projectId || !serviceAccountId) {
@@ -46,7 +46,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   }
 
   return account;
-};
+});
 
 export type ServiceAccountDetailContext = {
   account: ServiceAccount;

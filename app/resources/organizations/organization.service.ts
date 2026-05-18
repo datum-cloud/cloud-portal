@@ -22,6 +22,7 @@ import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getUserScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -119,7 +120,7 @@ export function createOrganizationService() {
       });
 
       if (!response.data) {
-        throw new Error(`Organization ${name} not found`);
+        throw new NotFoundError('Organization', name);
       }
 
       return toOrganization(response.data);

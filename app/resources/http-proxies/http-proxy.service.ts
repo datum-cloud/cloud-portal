@@ -39,6 +39,7 @@ import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 export const httpProxyKeys = {
@@ -427,7 +428,7 @@ export function createHttpProxyService() {
       const data = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
       if (!data) {
-        throw new Error(`HTTP Proxy ${name} not found`);
+        throw new NotFoundError('AI Edge', name);
       }
 
       const wafMode = getTrafficProtectionMode(policyResponse.data);

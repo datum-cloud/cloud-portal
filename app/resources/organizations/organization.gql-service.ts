@@ -20,6 +20,7 @@ import type {
 } from '@/modules/graphql/generated';
 import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 const SERVICE_NAME = 'OrganizationGqlService';
@@ -151,7 +152,7 @@ export function createOrganizationGqlService() {
         const data = result.data?.readResourcemanagerMiloapisComV1alpha1Organization;
 
         if (!data) {
-          throw new Error(`Organization ${name} not found`);
+          throw new NotFoundError('Organization', name);
         }
 
         logger.service(SERVICE_NAME, 'get', {

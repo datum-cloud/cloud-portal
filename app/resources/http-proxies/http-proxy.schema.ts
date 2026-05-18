@@ -302,30 +302,48 @@ export const httpProxyHostnameSchema = z.object({
 });
 
 // Helper function to validate hostname:port (without protocol)
-function isValidHostnamePort(value: string): boolean {
-  if (!value || typeof value !== 'string') return false;
+function parseHostnamePort(value: string): { hostname: string; port?: string } | null {
+  if (!value || typeof value !== 'string') return null;
   const trimmed = value.trim();
-  if (trimmed !== value) return false;
+  if (trimmed !== value) return null;
 
   // Check for port separator
   const parts = trimmed.split(':');
-  if (parts.length > 2) return false; // Only one colon allowed for port
+  if (parts.length > 2) return null; // Only one colon allowed for port
 
   const hostname = parts[0];
   const port = parts[1];
 
-  // Validate hostname (can be hostname or IP)
-  if (!hostname || hostname.length === 0) return false;
+  if (!hostname || hostname.length === 0 || hostname.length > 253) return null;
 
   // Validate port if present
   if (port !== undefined) {
     const portNum = Number.parseInt(port, 10);
-    if (Number.isNaN(portNum) || portNum < 1 || portNum > 65535) return false;
+    if (Number.isNaN(portNum) || portNum < 1 || portNum > 65535) return null;
   }
 
-  // Hostname can be a valid hostname or IP address
-  // Basic validation - more detailed validation happens when combining with protocol
-  return hostname.length > 0 && hostname.length <= 253;
+  return { hostname, port };
+}
+
+function isValidHostnamePort(value: string): boolean {
+  return parseHostnamePort(value) !== null;
+}
+
+/**
+ * Returns true when the host portion of a hostname:port string is either:
+ *   - A valid IP address, or
+ *   - A fully qualified domain (contains at least two dot-separated labels).
+ *
+ * This mirrors the API server's admission rule that rejects single-label
+ * hostnames like "hello" with "must be a domain with at least two segments
+ * separated by dots".
+ */
+function isFullyQualifiedHostOrIP(value: string): boolean {
+  const parsed = parseHostnamePort(value);
+  if (!parsed) return false;
+  if (isIPAddress(parsed.hostname)) return true;
+  const labels = parsed.hostname.split('.').filter(Boolean);
+  return labels.length >= 2;
 }
 
 export const httpProxySchema = z
@@ -342,6 +360,10 @@ export const httpProxySchema = z
       .refine(isValidHostnamePort, {
         message:
           'Origin must be a valid hostname or IP address with optional port (e.g., api.example.com:8080)',
+      })
+      .refine(isFullyQualifiedHostOrIP, {
+        message:
+          'Origin must be a fully qualified domain with at least two segments separated by dots (e.g., api.example.com) or a valid IP address',
       }),
     tlsHostname: z.string().min(1).max(253).optional(),
     /**

@@ -40,7 +40,12 @@ export const CAARecordField = () => (
     </Form.Field>
 
     <Form.Field name="caa.value" label="Value" required>
-      <Form.Input placeholder="e.g., letsencrypt.org" />
+      <Form.Input
+        placeholder="e.g., letsencrypt.org"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
   </>
 );

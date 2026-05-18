@@ -168,6 +168,9 @@ export const BulkAddDomainsAction = ({
           <Form.Textarea
             placeholder={'example.com, example.org\nexample.net'}
             className="h-48 resize-none"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
           />
         </Form.Field>
         <BulkDomainsSubmitButton />

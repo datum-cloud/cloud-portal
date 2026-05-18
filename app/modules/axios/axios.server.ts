@@ -14,6 +14,7 @@ import {
   AppError,
   AuthenticationError,
   AuthorizationError,
+  isUserFacingErrorStatus,
   NotFoundError,
   ValidationError,
 } from '@/utils/errors';
@@ -158,15 +159,19 @@ const onResponseError = (error: AxiosError): Promise<never> => {
 
   const message = parsed?.message ?? resolveRawMessage(responseData, error);
 
-  // Capture API error to Sentry with resource context and fingerprinting
-  captureApiError({
-    error,
-    method: config?.method,
-    url: config?.url,
-    status: httpStatus,
-    message: parsed?.originalMessage ?? message,
-    requestId,
-  });
+  // Capture API error to Sentry with resource context and fingerprinting.
+  // Skip expected user-facing statuses (401/403/404) — these are not bugs and
+  // are surfaced to the user via the route error boundary.
+  if (!isUserFacingErrorStatus(httpStatus)) {
+    captureApiError({
+      error,
+      method: config?.method,
+      url: config?.url,
+      status: httpStatus,
+      message: parsed?.originalMessage ?? message,
+      requestId,
+    });
+  }
 
   switch (httpStatus) {
     case 401: {

@@ -240,6 +240,9 @@ export function SubdomainHostnameField({
             onChange={handleCustomChange}
             onBlur={control.blur}
             disabled={fieldDisabled}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder="e.g. api.external-domain.com"
             className="text-input-foreground placeholder:text-input-placeholder h-9 min-w-0 flex-1 bg-transparent px-3 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden"
           />
@@ -301,6 +304,9 @@ export function SubdomainHostnameField({
             onChange={handlePrefixChange}
             onBlur={control.blur}
             disabled={fieldDisabled}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             placeholder="subdomain (leave blank to use apex)"
             className="text-input-foreground placeholder:text-input-placeholder h-9 min-w-0 flex-1 bg-transparent px-3 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden"
           />
