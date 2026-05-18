@@ -8,7 +8,7 @@ import {
 } from '@/resources/http-proxies';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { CopyIcon, GlobeIcon, LockIcon, PencilIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
@@ -107,79 +107,73 @@ export const HttpProxyHostnamesCard = ({
                   <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px]">
                     {val.verified ? (
                       <Tooltip message="This hostname has been verified by Datum">
-                        <span className="font-medium text-(--color-badge-success)">Verified</span>
+                        <span className="font-medium text-(--color-badge-success)">
+                          Hostname Verified
+                        </span>
+                      </Tooltip>
+                    ) : val.message ? (
+                      <Tooltip message={val.message}>
+                        <span className="font-medium text-(--color-badge-danger)">Unverified</span>
                       </Tooltip>
                     ) : (
-                      <Tooltip message={val.message ?? 'Hostname verification pending'}>
-                        <span
-                          className={
-                            val.message
-                              ? 'font-medium text-(--color-badge-danger)'
-                              : 'font-medium text-(--color-badge-warning)'
-                          }>
-                          {val.message ? 'Unverified' : 'Pending'}
+                      <Tooltip message="Waiting for hostname ownership verification to complete">
+                        <span className="inline-flex items-center gap-1 font-medium text-(--color-badge-warning)">
+                          <SpinnerIcon size="xs" aria-hidden="true" />
+                          Verifying hostname
                         </span>
                       </Tooltip>
                     )}
+                    <span className="text-muted-foreground/60" aria-hidden>
+                      ·
+                    </span>
                     {val.dnsProgrammed ? (
-                      <>
-                        <span className="text-muted-foreground/60" aria-hidden>
-                          ·
-                        </span>
-                        <Tooltip message="DNS records have been programmed for this hostname">
-                          <span className="font-medium text-(--color-badge-success)">
-                            DNS Ready
-                          </span>
-                        </Tooltip>
-                      </>
+                      <Tooltip message="DNS records have been programmed for this hostname">
+                        <span className="font-medium text-(--color-badge-success)">DNS Ready</span>
+                      </Tooltip>
                     ) : (
-                      <>
-                        <span className="text-muted-foreground/60" aria-hidden>
-                          ·
+                      <Tooltip message="Programming DNS records for this hostname">
+                        <span className="inline-flex items-center gap-1 font-medium text-(--color-badge-warning)">
+                          <SpinnerIcon size="xs" aria-hidden="true" />
+                          Configuring DNS
                         </span>
-                        <Tooltip message={'DNS record pending'}>
-                          <span className={'font-medium text-(--color-badge-warning)'}>
-                            DNS Pending
-                          </span>
-                        </Tooltip>
-                      </>
+                      </Tooltip>
                     )}
-                    {val.certStatus !== undefined && (
-                      <>
-                        <span className="text-muted-foreground/60" aria-hidden>
-                          ·
+                    <span className="text-muted-foreground/60" aria-hidden>
+                      ·
+                    </span>
+                    {val.certStatus === 'ready' ? (
+                      <Tooltip message="TLS certificate is issued and ready for this hostname">
+                        <span className="font-medium text-(--color-badge-success)">TLS Ready</span>
+                      </Tooltip>
+                    ) : val.certStatus === 'failed' ? (
+                      <Tooltip
+                        message={
+                          val.certCondition?.message || 'TLS certificate provisioning failed'
+                        }>
+                        <span className="font-medium text-(--color-badge-danger)">TLS Failed</span>
+                      </Tooltip>
+                    ) : val.certStatus === 'challenge' ? (
+                      <Tooltip
+                        message={
+                          val.certCondition?.message ||
+                          'Completing ACME challenge with the certificate authority'
+                        }>
+                        <span className="inline-flex items-center gap-1 font-medium text-(--color-badge-warning)">
+                          <SpinnerIcon size="xs" aria-hidden="true" />
+                          Solving ACME challenge
                         </span>
-                        {val.certStatus === 'ready' ? (
-                          <Tooltip message="TLS certificate is issued and ready for this hostname">
-                            <span className="font-medium text-(--color-badge-success)">
-                              TLS Ready
-                            </span>
-                          </Tooltip>
-                        ) : val.certStatus === 'failed' ? (
-                          <Tooltip
-                            message={
-                              val.certCondition?.message || 'TLS certificate provisioning failed'
-                            }>
-                            <span className="font-medium text-(--color-badge-danger)">
-                              TLS Failed
-                            </span>
-                          </Tooltip>
-                        ) : val.certStatus === 'challenge' ? (
-                          <Tooltip
-                            message={val.certCondition?.message || 'ACME challenge in progress'}>
-                            <span className="font-medium text-(--color-badge-warning)">
-                              TLS Challenge
-                            </span>
-                          </Tooltip>
-                        ) : (
-                          <Tooltip
-                            message={val.certCondition?.message || 'TLS certificate pending'}>
-                            <span className="font-medium text-(--color-badge-warning)">
-                              TLS Pending
-                            </span>
-                          </Tooltip>
-                        )}
-                      </>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip
+                        message={
+                          val.certCondition?.message ||
+                          'Requesting a TLS certificate from the certificate authority'
+                        }>
+                        <span className="inline-flex items-center gap-1 font-medium text-(--color-badge-warning)">
+                          <SpinnerIcon size="xs" aria-hidden="true" />
+                          Issuing TLS certificate
+                        </span>
+                      </Tooltip>
                     )}
                   </div>
                 </div>
