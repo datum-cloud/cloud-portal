@@ -87,15 +87,25 @@ export function classifyHttpProxyComplexity(
  *
  * Returns null if valid, or a user-facing error string if invalid.
  *
+ * The Host header is forwarded verbatim by Envoy to the upstream, so it must
+ * be a single literal hostname. Wildcards (e.g. `*.example.com`) belong in
+ * `spec.hostnames` (route matching) but are meaningless in a Host header:
+ * no upstream certificate or virtual host can match a wildcard literal.
+ *
+ * IP literals (IPv4 and bracketed IPv6) are technically permitted by RFC 7230
+ * but rejected here: upstream TLS certificates and virtual hosts cannot match
+ * an IP literal in the Host header, so the request would fail in practice.
+ *
  * Rules (per spec FR-5 and ui-patterns):
  * - Empty / whitespace-only → valid (means "no override").
  * - Whitespace-only (non-empty after trim) → error.
  * - Contains internal whitespace → error.
- * - Bare IPv4 (\d{1,3}(\.\d{1,3}){3}) → error.
- * - Bare IPv6 (contains '::' or wrapped in '[') → error.
+ * - Contains a wildcard (`*`) → error.
+ * - Bare IPv4 (\d{1,3}(\.\d{1,3}){3}) → error (TLS cert won't match an IP).
+ * - Bare or bracketed IPv6 → error (TLS cert won't match an IP).
  * - Exceeds 253 characters → error.
  * - Illegal characters (not RFC 1123 hostname + optional port) → error.
- * - Valid: localhost, *.localhost, *.internal, RFC 1123 hostnames, hostname:port.
+ * - Valid: localhost, RFC 1123 hostnames, hostname:port.
  */
 export function validateHostHeader(value: string): string | null {
   // Empty is valid (passthrough)
@@ -111,10 +121,19 @@ export function validateHostHeader(value: string): string | null {
     return 'Hostnames cannot contain spaces.';
   }
 
+  // Wildcards: a Host header must be a single literal hostname. Wildcards
+  // belong in spec.hostnames, not here — upstream certs and virtual hosts
+  // cannot match a wildcard literal.
+  if (value.includes('*')) {
+    return 'Wildcards are not valid in a Host header. Enter a single literal hostname such as api.example.com.';
+  }
+
   // Bare IPv6: contains '::' or is wrapped in '[...]' — check before port stripping
   // so that '::1' (which port-strip would parse as host=':' + port='1') is caught here.
+  // IP literals are technically valid per RFC 7230 but no upstream TLS cert or
+  // virtual host can match an IP, so the request would fail in practice.
   if (value.includes('::') || value.startsWith('[')) {
-    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+    return 'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.';
   }
 
   // Separate optional port suffix (hostname:port)
@@ -128,9 +147,11 @@ export function validateHostHeader(value: string): string | null {
     // If port is out of range, fall through to character validation
   }
 
-  // Bare IPv4: exactly four dot-separated numeric groups (no TLD)
+  // Bare IPv4: exactly four dot-separated numeric groups (no TLD).
+  // IP literals are technically valid per RFC 7230 but no upstream TLS cert or
+  // virtual host can match an IP, so the request would fail in practice.
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostPart)) {
-    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+    return 'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.';
   }
 
   // Length check (on the full value including port)
@@ -139,15 +160,10 @@ export function validateHostHeader(value: string): string | null {
   }
 
   // RFC 1123 hostname validation: labels are [a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?
-  // Wildcards (*) are permitted as the leading label only.
-  // hostPart may be dotted labels, with an optional leading '*.'
-  const normalised = hostPart.startsWith('*.') ? hostPart.slice(2) : hostPart;
   const labelRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
-  const labels = normalised.split('.');
-  const allLabelsValid = labels.every(
-    (label) => label === 'localhost' || labelRe.test(label) || label === '*'
-  );
-  if (!allLabelsValid || normalised === '') {
+  const labels = hostPart.split('.');
+  const allLabelsValid = labels.every((label) => label === 'localhost' || labelRe.test(label));
+  if (!allLabelsValid || hostPart === '') {
     return 'Enter a valid hostname (letters, numbers, hyphens, and dots only).';
   }
 

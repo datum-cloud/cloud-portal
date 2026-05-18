@@ -313,16 +313,26 @@ describe('validateHostHeader', () => {
     expect(validateHostHeader('example.internal')).to.equal(null);
   });
 
-  it('accepts *.internal', () => {
-    expect(validateHostHeader('*.internal')).to.equal(null);
-  });
-
-  it('accepts *.localhost', () => {
-    expect(validateHostHeader('*.localhost')).to.equal(null);
-  });
-
   it('accepts api.example.com', () => {
     expect(validateHostHeader('api.example.com')).to.equal(null);
+  });
+
+  it('rejects leading wildcard *.example.com', () => {
+    expect(validateHostHeader('*.example.com')).to.equal(
+      'Wildcards are not valid in a Host header. Enter a single literal hostname such as api.example.com.'
+    );
+  });
+
+  it('rejects bare * wildcard', () => {
+    expect(validateHostHeader('*')).to.equal(
+      'Wildcards are not valid in a Host header. Enter a single literal hostname such as api.example.com.'
+    );
+  });
+
+  it('rejects mid-label wildcard api.*.example.com', () => {
+    expect(validateHostHeader('api.*.example.com')).to.equal(
+      'Wildcards are not valid in a Host header. Enter a single literal hostname such as api.example.com.'
+    );
   });
 
   it('accepts hyphenated IP-shaped label 192-168-1-1.nip.io', () => {
@@ -339,25 +349,25 @@ describe('validateHostHeader', () => {
 
   it('rejects bare IPv4 address', () => {
     expect(validateHostHeader('192.168.1.10')).to.equal(
-      'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.'
+      'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.'
     );
   });
 
   it('rejects bare IPv4 with port', () => {
     expect(validateHostHeader('192.168.1.10:8080')).to.equal(
-      'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.'
+      'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.'
     );
   });
 
   it('rejects bare IPv6 with ::', () => {
     expect(validateHostHeader('::1')).to.equal(
-      'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.'
+      'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.'
     );
   });
 
   it('rejects bracketed IPv6', () => {
     expect(validateHostHeader('[::1]')).to.equal(
-      'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.'
+      'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.'
     );
   });
 

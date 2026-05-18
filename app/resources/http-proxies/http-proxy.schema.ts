@@ -6,14 +6,24 @@ import { z } from 'zod';
 // Forward-declare validateHostHeader to avoid circular import.
 // The canonical implementation lives in http-proxy.adapter.ts; we inline a
 // minimal re-implementation here so Zod schemas don't import the adapter.
+// Keep this in sync with validateHostHeader in http-proxy.adapter.ts.
 function _validateHostHeaderForSchema(value: string): string | null {
   if (!value) return null;
   if (value.trim() === '') return 'Enter a hostname or leave the field blank.';
   if (/\s/.test(value)) return 'Hostnames cannot contain spaces.';
 
+  // A Host header must be a single literal hostname. Wildcards belong in
+  // spec.hostnames, not here — upstream certs and virtual hosts cannot match
+  // a wildcard literal.
+  if (value.includes('*')) {
+    return 'Wildcards are not valid in a Host header. Enter a single literal hostname such as api.example.com.';
+  }
+
   // Check for IPv6 before port stripping so that '::1' is caught here.
+  // IP literals are technically valid per RFC 7230 but no upstream TLS cert
+  // or virtual host can match an IP, so the request would fail in practice.
   if (value.includes('::') || value.startsWith('[')) {
-    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+    return 'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.';
   }
 
   let hostPart = value;
@@ -23,17 +33,14 @@ function _validateHostHeaderForSchema(value: string): string | null {
     if (portNum >= 1 && portNum <= 65535) hostPart = portMatch[1];
   }
   if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostPart)) {
-    return 'IP addresses are not valid Host header values. Use a hostname such as localhost or api.example.internal.';
+    return 'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.';
   }
   if (value.length > 253) return 'Hostnames must be 253 characters or fewer.';
 
-  const normalised = hostPart.startsWith('*.') ? hostPart.slice(2) : hostPart;
   const labelRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
-  const labels = normalised.split('.');
-  const allLabelsValid = labels.every(
-    (label) => label === 'localhost' || labelRe.test(label) || label === '*'
-  );
-  if (!allLabelsValid || normalised === '') {
+  const labels = hostPart.split('.');
+  const allLabelsValid = labels.every((label) => label === 'localhost' || labelRe.test(label));
+  if (!allLabelsValid || hostPart === '') {
     return 'Enter a valid hostname (letters, numbers, hyphens, and dots only).';
   }
   return null;
