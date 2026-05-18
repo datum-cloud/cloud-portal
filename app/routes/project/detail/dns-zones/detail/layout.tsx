@@ -1,4 +1,4 @@
-import { BackButton } from '@/components/back-button';
+import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
 import { createDnsRecordService } from '@/resources/dns-records';
 import { createDnsZoneService, type DnsZone, useDnsZone } from '@/resources/dns-zones';
@@ -8,7 +8,6 @@ import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useMemo } from 'react';
 import {
   LoaderFunctionArgs,
@@ -89,58 +88,48 @@ export default function DnsZoneDetailLayout() {
     initialDataUpdatedAt: Date.now(),
   });
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: SubNavigationTab[] = useMemo(() => {
     return [
       /* {
-        title: 'Overview',
+        label: 'Overview',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.overview, {
           projectId,
           dnsZoneId: dnsZone?.name ?? '',
         }),
-        type: 'link',
       }, */
       {
-        title: 'DNS Records',
+        label: 'DNS Records',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
           projectId,
           dnsZoneId: dnsZone?.name ?? '',
         }),
-        type: 'link',
       },
       {
-        title: 'Nameservers',
+        label: 'Nameservers',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
           projectId,
           dnsZoneId: dnsZone?.name ?? '',
         }),
-        type: 'link',
       },
       {
-        title: 'Settings',
+        label: 'Activity',
+        href: getPathWithParams(paths.project.detail.dnsZones.detail.activity, {
+          projectId,
+          dnsZoneId: dnsZone?.name ?? '',
+        }),
+      },
+      {
+        label: 'Settings',
         href: getPathWithParams(paths.project.detail.dnsZones.detail.settings, {
           projectId,
           dnsZoneId: dnsZone?.name ?? '',
         }),
-        type: 'link',
       },
     ];
   }, [projectId, dnsZone]);
 
   return (
-    <SubLayout
-      sidebarHeader={
-        <div className="flex flex-col gap-5.5">
-          <BackButton
-            className="hidden md:flex"
-            to={getPathWithParams(paths.project.detail.dnsZones.root, {
-              projectId,
-            })}>
-            Back to DNS
-          </BackButton>
-          <span className="text-primary text-sm font-semibold">Manage Zone</span>
-        </div>
-      }
-      navItems={navItems}>
+    <SubLayout title={dnsZone?.domainName} navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

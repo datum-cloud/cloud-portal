@@ -70,12 +70,15 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/secrets/[secretId]',
           overview: '/project/[projectId]/secrets/[secretId]/overview',
+          activity: '/project/[projectId]/secrets/[secretId]/activity',
         },
       },
       proxy: {
         root: '/project/[projectId]/edge',
         detail: {
           root: '/project/[projectId]/edge/[proxyId]',
+          overview: '/project/[projectId]/edge/[proxyId]/overview',
+          activity: '/project/[projectId]/edge/[proxyId]/activity',
         },
       },
       domains: {
@@ -83,6 +86,7 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/domains/[domainId]',
           overview: '/project/[projectId]/domains/[domainId]/overview',
+          activity: '/project/[projectId]/domains/[domainId]/activity',
           settings: '/project/[projectId]/domains/[domainId]/settings',
         },
       },
@@ -94,6 +98,7 @@ export const paths = {
           discovery: '/project/[projectId]/dns-zones/[dnsZoneId]/discovery',
           dnsRecords: '/project/[projectId]/dns-zones/[dnsZoneId]/dns-records',
           nameservers: '/project/[projectId]/dns-zones/[dnsZoneId]/nameservers',
+          activity: '/project/[projectId]/dns-zones/[dnsZoneId]/activity',
           settings: '/project/[projectId]/dns-zones/[dnsZoneId]/settings',
         },
       },
@@ -103,7 +108,8 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/export-policies/[exportPolicyId]',
           overview: '/project/[projectId]/export-policies/[exportPolicyId]/overview',
-          edit: '/project/[projectId]/export-policies/[exportPolicyId]/edit',
+          activity: '/project/[projectId]/export-policies/[exportPolicyId]/activity',
+          settings: '/project/[projectId]/export-policies/[exportPolicyId]/settings',
         },
       },
       connectors: {
