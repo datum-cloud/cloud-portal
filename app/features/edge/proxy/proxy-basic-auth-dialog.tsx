@@ -178,6 +178,9 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                               onBlur={control.blur}
                               onFocus={control.focus}
                               placeholder="username"
+                              autoCapitalize="none"
+                              autoCorrect="off"
+                              spellCheck={false}
                             />
                           )}
                         </Form.Field>

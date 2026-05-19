@@ -1,7 +1,23 @@
-import { createExportPolicyService, type ExportPolicy } from '@/resources/export-policies';
-import { BadRequestError, NotFoundError } from '@/utils/errors';
+import { type SubNavigationTab } from '@/components/sub-navigation';
+import { SubLayout } from '@/layouts';
+import {
+  createExportPolicyService,
+  type ExportPolicy,
+  useExportPolicy,
+} from '@/resources/export-policies';
+import { paths } from '@/utils/config/paths.config';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { LoaderFunctionArgs, data, MetaFunction, Outlet } from 'react-router';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { useMemo } from 'react';
+import {
+  LoaderFunctionArgs,
+  MetaFunction,
+  Outlet,
+  data,
+  useLoaderData,
+  useParams,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: (exportPolicy: ExportPolicy) => <span>{exportPolicy?.name ?? 'Export Policy'}</span>,
@@ -12,7 +28,7 @@ export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(exportPolicy?.name || 'ExportPolicy');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId, exportPolicyId } = params;
 
   if (!projectId || !exportPolicyId) {
@@ -25,12 +41,52 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const exportPolicy = await exportPolicyService.get(projectId, exportPolicyId);
 
   if (!exportPolicy) {
-    throw new NotFoundError('ExportPolicy not found');
+    throw new NotFoundError('Export Policy', exportPolicyId);
   }
 
   return data(exportPolicy);
-};
+});
 
 export default function ExportPolicyDetailLayout() {
-  return <Outlet />;
+  const { projectId, exportPolicyId } = useParams();
+  const exportPolicy = useLoaderData<typeof loader>();
+
+  // Seed cache synchronously with SSR data (eliminates skeleton flash on first render)
+  useExportPolicy(projectId ?? '', exportPolicyId ?? '', {
+    initialData: exportPolicy,
+    initialDataUpdatedAt: Date.now(),
+  });
+
+  const navItems: SubNavigationTab[] = useMemo(() => {
+    const id = exportPolicyId ?? exportPolicy?.name ?? '';
+    return [
+      {
+        label: 'Overview',
+        href: getPathWithParams(paths.project.detail.metrics.detail.overview, {
+          projectId,
+          exportPolicyId: id,
+        }),
+      },
+      {
+        label: 'Activity',
+        href: getPathWithParams(paths.project.detail.metrics.detail.activity, {
+          projectId,
+          exportPolicyId: id,
+        }),
+      },
+      {
+        label: 'Settings',
+        href: getPathWithParams(paths.project.detail.metrics.detail.settings, {
+          projectId,
+          exportPolicyId: id,
+        }),
+      },
+    ];
+  }, [projectId, exportPolicyId, exportPolicy?.name]);
+
+  return (
+    <SubLayout title={exportPolicy?.name ?? 'Export Policy'} navItems={navItems}>
+      <Outlet />
+    </SubLayout>
+  );
 }

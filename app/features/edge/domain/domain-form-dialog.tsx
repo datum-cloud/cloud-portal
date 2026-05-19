@@ -71,6 +71,9 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
           <Form.Input
             placeholder="e.g. example.com"
             autoFocus
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             data-e2e="create-domain-name-input"
           />
         </Form.Field>

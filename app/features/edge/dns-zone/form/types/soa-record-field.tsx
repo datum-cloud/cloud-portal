@@ -3,11 +3,21 @@ import { Form } from '@datum-cloud/datum-ui/form';
 export const SOARecordField = () => (
   <>
     <Form.Field name="soa.mname" label="Primary Nameserver (MNAME)" required>
-      <Form.Input placeholder="e.g., ns1.example.com" />
+      <Form.Input
+        placeholder="e.g., ns1.example.com"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
 
     <Form.Field name="soa.rname" label="Responsible Email (RNAME)" required>
-      <Form.Input placeholder="e.g., admin.example.com" />
+      <Form.Input
+        placeholder="e.g., admin.example.com"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
 
     <Form.Field name="soa.serial" label="Serial">

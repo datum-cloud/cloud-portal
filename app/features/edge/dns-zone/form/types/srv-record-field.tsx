@@ -3,7 +3,12 @@ import { Form } from '@datum-cloud/datum-ui/form';
 export const SRVRecordField = () => (
   <>
     <Form.Field name="srv.target" label="Target Server" required>
-      <Form.Input placeholder="e.g., server.example.com" />
+      <Form.Input
+        placeholder="e.g., server.example.com"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
 
     <Form.Field name="srv.priority" label="Priority" required>

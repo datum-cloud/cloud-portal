@@ -3,7 +3,12 @@ import { Form } from '@datum-cloud/datum-ui/form';
 export const MXRecordField = () => (
   <>
     <Form.Field name="mx.exchange" label="Mail Server" required>
-      <Form.Input placeholder="e.g., mail.example.com" />
+      <Form.Input
+        placeholder="e.g., mail.example.com"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
     </Form.Field>
 
     <Form.Field name="mx.preference" label="Priority" required>

@@ -23,6 +23,9 @@ export const TLSARecordField = () => (
         placeholder="e.g., 0EED2700D3F228FDB..."
         className="font-mono text-xs"
         rows={3}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
       />
     </Form.Field>
   </>

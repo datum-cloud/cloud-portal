@@ -22,6 +22,7 @@ import type { IExtendedControlPlaneStatus } from '@/resources/base';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
@@ -98,7 +99,7 @@ export function createDomainService() {
       });
 
       if (!response.data) {
-        throw new Error(`Domain ${name} not found`);
+        throw new NotFoundError('Domain', name);
       }
 
       return toDomain(response.data);

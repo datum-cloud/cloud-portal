@@ -10,7 +10,7 @@ import {
   useDeletePolicyBinding,
   type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { BadRequestError } from '@/utils/errors';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -23,7 +23,7 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Roles');
 });
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { orgId } = params;
 
   if (!orgId) {
@@ -34,7 +34,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const policyBindingService = createPolicyBindingService();
   const bindings = await policyBindingService.list(orgId);
   return bindings;
-};
+});
 
 export default function OrgPolicyBindingsPage() {
   const { orgId } = useParams();

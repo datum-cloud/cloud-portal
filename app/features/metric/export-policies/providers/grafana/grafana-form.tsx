@@ -280,7 +280,12 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                       </p>
                     </div>
                     <Form.Field name="instanceUrl" required>
-                      <Form.Input placeholder="e.g. https://your-instance.grafana.net" />
+                      <Form.Input
+                        placeholder="e.g. https://your-instance.grafana.net"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                      />
                     </Form.Field>
                   </div>
                 </div>

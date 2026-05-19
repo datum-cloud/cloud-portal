@@ -17,7 +17,13 @@ export const PrometheusField = ({
       <FieldLabel label="Prometheus Configuration" />
       <div className="flex w-full flex-col gap-4 rounded-md border p-4">
         <Form.Field name={`${baseName}.endpoint`} label="Endpoint URL" required className="w-full">
-          <Form.Input type="text" placeholder="e.g. http://localhost:9090" />
+          <Form.Input
+            type="text"
+            placeholder="e.g. http://localhost:9090"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
         </Form.Field>
 
         <Separator />

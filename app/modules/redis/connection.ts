@@ -21,7 +21,9 @@ export const redisClient: Redis | null = redisConfig.enabled
       commandTimeout: redisConfig.commandTimeout,
       keyPrefix: redisConfig.keyPrefix,
       lazyConnect: true, // Won't connect until first command
-      enableOfflineQueue: false, // Fail fast instead of queuing commands
+      // Briefly queue commands issued before the initial handshake completes.
+      // Fail-fast on a down server is still enforced via maxRetriesPerRequest.
+      enableOfflineQueue: true,
       enableReadyCheck: true, // Wait for Redis to be ready
 
       retryStrategy(times) {

@@ -3,6 +3,49 @@ import { nameSchema } from '@/resources/base';
 import { createSubdomainSchema, isIPAddress } from '@/utils/helpers/validation.helper';
 import { z } from 'zod';
 
+// Forward-declare validateHostHeader to avoid circular import.
+// The canonical implementation lives in http-proxy.adapter.ts; we inline a
+// minimal re-implementation here so Zod schemas don't import the adapter.
+// Keep this in sync with validateHostHeader in http-proxy.adapter.ts.
+function _validateHostHeaderForSchema(value: string): string | null {
+  if (!value) return null;
+  if (value.trim() === '') return 'Enter a hostname or leave the field blank.';
+  if (/\s/.test(value)) return 'Hostnames cannot contain spaces.';
+
+  // A Host header must be a single literal hostname. Wildcards belong in
+  // spec.hostnames, not here — upstream certs and virtual hosts cannot match
+  // a wildcard literal.
+  if (value.includes('*')) {
+    return 'Wildcards are not valid in a Host header. Enter a single literal hostname such as api.example.com.';
+  }
+
+  // Check for IPv6 before port stripping so that '::1' is caught here.
+  // IP literals are technically valid per RFC 7230 but no upstream TLS cert
+  // or virtual host can match an IP, so the request would fail in practice.
+  if (value.includes('::') || value.startsWith('[')) {
+    return 'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.';
+  }
+
+  let hostPart = value;
+  const portMatch = value.match(/^(.+):(\d{1,5})$/);
+  if (portMatch) {
+    const portNum = Number(portMatch[2]);
+    if (portNum >= 1 && portNum <= 65535) hostPart = portMatch[1];
+  }
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(hostPart)) {
+    return 'Upstream TLS certificates will not match an IP. Use a hostname such as localhost or api.example.internal.';
+  }
+  if (value.length > 253) return 'Hostnames must be 253 characters or fewer.';
+
+  const labelRe = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+  const labels = hostPart.split('.');
+  const allLabelsValid = labels.every((label) => label === 'localhost' || labelRe.test(label));
+  if (!allLabelsValid || hostPart === '') {
+    return 'Enter a valid hostname (letters, numbers, hyphens, and dots only).';
+  }
+  return null;
+}
+
 const hostnameStatusConditionSchema = z.object({
   type: z.string(),
   status: z.enum(['True', 'False', 'Unknown']),
@@ -53,6 +96,20 @@ export const httpProxyResourceSchema = z.object({
   basicAuthUserCount: z.number().int().min(0).optional(),
   /** Usernames visible to the UI (never passwords) */
   basicAuthUsernames: z.array(z.string()).optional(),
+  /**
+   * Optional upstream Host header override.
+   * Maps to spec.rules[backendRule].filters[].requestHeaderModifier.set[name=Host].value.
+   * Empty / undefined means "no override" (forward the incoming Host unchanged).
+   */
+  hostHeader: z.string().optional(),
+  /**
+   * Form-editability classification of the underlying resource (FR-4):
+   * - 'simple'    — no rule-level filters; safe to edit via form
+   * - 'host-only' — only a host-header filter; safe to edit via form
+   * - 'advanced'  — multi-rule, backend-level filters, or filters the form
+   *   cannot represent without data loss; show read-only banner
+   */
+  complexity: z.enum(['simple', 'host-only', 'advanced']).optional(),
 });
 
 export type HttpProxy = z.infer<typeof httpProxyResourceSchema>;
@@ -113,6 +170,12 @@ export type CreateHttpProxyInput = {
   };
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
+  /**
+   * Optional upstream Host header override.
+   * When set, emits a rule-level requestHeaderModifier filter with name=Host.
+   * Empty / undefined means "no override".
+   */
+  hostHeader?: string;
 };
 
 export type UpdateHttpProxyInput = {
@@ -143,6 +206,12 @@ export type UpdateHttpProxyInput = {
     /** undefined = disable; non-empty array = enable/update */
     users?: BasicAuthUser[];
   };
+  /**
+   * Optional upstream Host header override update.
+   * Pass an empty string to remove the Host header filter.
+   * undefined means "don't change the host header".
+   */
+  hostHeader?: string;
 };
 
 const userEntrySchema = z.object({
@@ -240,30 +309,48 @@ export const httpProxyHostnameSchema = z.object({
 });
 
 // Helper function to validate hostname:port (without protocol)
-function isValidHostnamePort(value: string): boolean {
-  if (!value || typeof value !== 'string') return false;
+function parseHostnamePort(value: string): { hostname: string; port?: string } | null {
+  if (!value || typeof value !== 'string') return null;
   const trimmed = value.trim();
-  if (trimmed !== value) return false;
+  if (trimmed !== value) return null;
 
   // Check for port separator
   const parts = trimmed.split(':');
-  if (parts.length > 2) return false; // Only one colon allowed for port
+  if (parts.length > 2) return null; // Only one colon allowed for port
 
   const hostname = parts[0];
   const port = parts[1];
 
-  // Validate hostname (can be hostname or IP)
-  if (!hostname || hostname.length === 0) return false;
+  if (!hostname || hostname.length === 0 || hostname.length > 253) return null;
 
   // Validate port if present
   if (port !== undefined) {
     const portNum = Number.parseInt(port, 10);
-    if (Number.isNaN(portNum) || portNum < 1 || portNum > 65535) return false;
+    if (Number.isNaN(portNum) || portNum < 1 || portNum > 65535) return null;
   }
 
-  // Hostname can be a valid hostname or IP address
-  // Basic validation - more detailed validation happens when combining with protocol
-  return hostname.length > 0 && hostname.length <= 253;
+  return { hostname, port };
+}
+
+function isValidHostnamePort(value: string): boolean {
+  return parseHostnamePort(value) !== null;
+}
+
+/**
+ * Returns true when the host portion of a hostname:port string is either:
+ *   - A valid IP address, or
+ *   - A fully qualified domain (contains at least two dot-separated labels).
+ *
+ * This mirrors the API server's admission rule that rejects single-label
+ * hostnames like "hello" with "must be a domain with at least two segments
+ * separated by dots".
+ */
+function isFullyQualifiedHostOrIP(value: string): boolean {
+  const parsed = parseHostnamePort(value);
+  if (!parsed) return false;
+  if (isIPAddress(parsed.hostname)) return true;
+  const labels = parsed.hostname.split('.').filter(Boolean);
+  return labels.length >= 2;
 }
 
 export const httpProxySchema = z
@@ -280,8 +367,26 @@ export const httpProxySchema = z
       .refine(isValidHostnamePort, {
         message:
           'Origin must be a valid hostname or IP address with optional port (e.g., api.example.com:8080)',
+      })
+      .refine(isFullyQualifiedHostOrIP, {
+        message:
+          'Origin must be a fully qualified domain with at least two segments separated by dots (e.g., api.example.com) or a valid IP address',
       }),
     tlsHostname: z.string().min(1).max(253).optional(),
+    /**
+     * Optional upstream Host header override.
+     * Validated on blur and submit; empty string is valid (passthrough).
+     */
+    hostHeader: z
+      .string()
+      .superRefine((val, ctx) => {
+        if (!val) return; // empty is valid (passthrough)
+        const error = _validateHostHeaderForSchema(val);
+        if (error) {
+          ctx.addIssue({ code: 'custom', message: error });
+        }
+      })
+      .optional(),
     trafficProtectionMode: trafficProtectionModeSchema.default('Enforce'),
     paranoiaLevelBlocking: z.preprocess((val) => {
       if (val === undefined || val === null || val === '') return undefined;

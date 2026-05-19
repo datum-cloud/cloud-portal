@@ -18,6 +18,7 @@ import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getOrgScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -98,7 +99,7 @@ export function createProjectService() {
       });
 
       if (!response.data) {
-        throw new Error(`Project ${name} not found`);
+        throw new NotFoundError('Project', name);
       }
 
       return toProject(response.data);

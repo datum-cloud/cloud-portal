@@ -1,10 +1,11 @@
 import { NonceProvider } from '@/hooks/useNonce';
+import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import * as Sentry from '@sentry/react-router';
 import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';
 import { renderToPipeableStream } from 'react-dom/server';
-import type { AppLoadContext, EntryContext } from 'react-router';
+import type { AppLoadContext, EntryContext, HandleErrorFunction } from 'react-router';
 import { ServerRouter } from 'react-router';
 
 const ABORT_DELAY = 5_000;
@@ -68,7 +69,14 @@ async function handleRequest(
 // Wrap the handleRequest function with Sentry
 export default Sentry.wrapSentryHandleRequest(handleRequest);
 
-// Export handleError for Sentry error capture
-export const handleError = Sentry.createSentryHandleError({
-  logErrors: false,
-});
+// Export handleError for Sentry error capture.
+// Skip expected user-facing statuses (401/403/404) and aborted requests — these are
+// not bugs. Other 4xx codes (400/409/429/...) reaching this handler usually indicate
+// a code path that forgot to catch an error inline, so we still want them captured.
+export const handleError: HandleErrorFunction = (error, { request }) => {
+  if (request.signal.aborted) return;
+
+  if (error instanceof AppError && isUserFacingErrorStatus(error.status)) return;
+
+  Sentry.captureException(error);
+};

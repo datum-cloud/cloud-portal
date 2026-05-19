@@ -79,6 +79,12 @@ export interface ServerEnv {
   // platform's per-project Ingestion Gateway exists, point this at it.
   // See https://github.com/datum-cloud/billing/blob/docs/usage-pipeline/docs/enhancements/usage-pipeline.md
   usageGatewayUrl?: string;
+
+  // Optional: Amberflo usage query (read path for the usage chart)
+  // amberfloApiKey: secret key used server-side to call POST /usage/sparse
+  // amberfloBaseUrl: defaults to https://app.amberflo.io
+  amberfloApiKey?: string;
+  amberfloBaseUrl?: string;
 }
 
 /**

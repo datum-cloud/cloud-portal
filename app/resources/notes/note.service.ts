@@ -10,6 +10,7 @@ import {
 } from '@/modules/control-plane/notes';
 import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 const SERVICE_NAME = 'NoteService';
@@ -57,7 +58,7 @@ export function createNoteService() {
           path: { namespace: NAMESPACE, name: noteName },
         });
         if (!response.data) {
-          throw new Error('Note not found');
+          throw new NotFoundError('Note', noteName);
         }
         const note = toNote(response.data);
         logger.service(SERVICE_NAME, 'get', {

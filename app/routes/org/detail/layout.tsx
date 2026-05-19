@@ -5,7 +5,7 @@ import { useApp } from '@/providers/app.provider';
 import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { clearProjectSession, redirectWithToast, setOrgSession } from '@/utils/cookies';
-import { NotFoundError } from '@/utils/errors';
+import { NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
@@ -35,7 +35,7 @@ export function shouldRevalidate({
   return defaultShouldRevalidate;
 }
 
-export const loader = async ({ params, request }: LoaderFunctionArgs) => {
+export const loader = withLoaderErrors(async ({ params, request }: LoaderFunctionArgs) => {
   const { orgId } = params;
 
   if (!orgId) {
@@ -63,7 +63,7 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
       type: 'error',
     });
   }
-};
+});
 
 export default function OrgLayout() {
   const initialOrg = useLoaderData<typeof loader>();

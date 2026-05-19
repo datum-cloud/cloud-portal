@@ -16,7 +16,6 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ShieldIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
@@ -87,9 +86,6 @@ export default function ServiceAccountPolicyBindingsPage() {
 
   return (
     <Row type="flex" gutter={[24, 24]}>
-      <Col span={24}>
-        <PageTitle title="Roles" />
-      </Col>
       <Col span={24}>
         <PolicyBindingTable
           bindings={bindings}
