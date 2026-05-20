@@ -75,10 +75,10 @@ export default defineConfig((config) => {
       optimizeDeps: {
         include: ['react-dom/server.node'],
       },
-      // Force hono through Vite's transform pipeline so patchHonoBunAdapter()
-      // can guard the top-level `Bun` reference in hono/bun/ssg.js.
-      // Without this, SSR external modules bypass all transform hooks.
-      noExternal: ['hono'],
+      // Only bundle hono's Bun adapter files so patchHonoBunAdapter() can
+      // guard the top-level `Bun` references. Bundling all of hono breaks
+      // its exports under rolldown (Vite 8).
+      noExternal: [/hono\/dist\/.*bun/],
     },
     plugins: [
       patchHonoBunAdapter(),
