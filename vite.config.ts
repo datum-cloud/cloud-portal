@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { reactRouterHonoServer } from 'react-router-hono-server/dev';
+import type { ManualChunksOption } from 'rollup';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -110,7 +111,7 @@ export default defineConfig((config) => {
             'vendor-recharts': ['recharts'],
             'vendor-icons': ['lucide-react'],
             'vendor-streamdown': ['streamdown'], // pulls mermaid, elk, shiki — ~5MB
-          },
+          } satisfies ManualChunksOption,
         },
       },
     },
