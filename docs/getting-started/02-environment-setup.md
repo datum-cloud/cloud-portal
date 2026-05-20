@@ -7,7 +7,7 @@ This guide walks you through configuring environment variables for local develop
 ## Step 1: Clone the Repository
 
 ```bash
-git clone git@github.com:datum/cloud-portal.git
+git clone git@github.com:datum-cloud/cloud-portal.git
 cd cloud-portal
 ```
 
