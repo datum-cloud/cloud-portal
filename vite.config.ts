@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { reactRouterHonoServer } from 'react-router-hono-server/dev';
-import type { ManualChunksOption } from 'rollup';
 import type { Plugin } from 'vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -103,15 +102,21 @@ export default defineConfig((config) => {
       sourcemap: sentryConfig.isSourcemapEnabled ? 'hidden' : false,
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Splits heavy vendor packages into stable chunks so feature
-            // changes don't invalidate the entire JS payload for repeat visits.
-            'vendor-react': ['react', 'react-dom', 'react-router'],
-            'vendor-datum-ui': ['@datum-cloud/datum-ui'],
-            'vendor-recharts': ['recharts'],
-            'vendor-icons': ['lucide-react'],
-            'vendor-streamdown': ['streamdown'], // pulls mermaid, elk, shiki — ~5MB
-          } satisfies ManualChunksOption,
+          // Splits heavy vendor packages into stable chunks so feature
+          // changes don't invalidate the entire JS payload for repeat visits.
+          manualChunks(id) {
+            if (!id.includes('/node_modules/')) return;
+            if (
+              id.includes('/react/') ||
+              id.includes('/react-dom/') ||
+              id.includes('/react-router/')
+            )
+              return 'vendor-react';
+            if (id.includes('/@datum-cloud/datum-ui/')) return 'vendor-datum-ui';
+            if (id.includes('/recharts/')) return 'vendor-recharts';
+            if (id.includes('/lucide-react/')) return 'vendor-icons';
+            if (id.includes('/streamdown/')) return 'vendor-streamdown'; // pulls mermaid, elk, shiki — ~5MB
+          },
         },
       },
     },
