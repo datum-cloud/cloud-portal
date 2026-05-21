@@ -1,5 +1,4 @@
 // app/features/search/SearchEntry.tsx
-import { CmdKPalette } from './surfaces/CmdKPalette';
 import { MobileSearchSheet } from './surfaces/MobileSearchSheet';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -9,22 +8,22 @@ import { Search } from 'lucide-react';
 import { useState } from 'react';
 
 /**
- * Single mount point used by the header. Picks the cmd-K palette on
- * desktop only (>=1024px) and a full-screen mobile sheet on mobile
- * AND tablet. The icon-button trigger is rendered for both compact
- * tiers because the project switcher already eats most of the header
- * width below 1024px — there's no room for an inline search input
- * (handled separately by ProjectSearchBar which now uses `lg:flex`).
- * Cmd-K stays hotkey-driven on desktop because power users have a
- * keyboard.
+ * Global header mount for compact viewports (mobile + tablet) only.
+ *
+ * On mobile + tablet (<1024px) the project switcher eats most of the
+ * header width, so this surface provides an icon-button that opens
+ * the MobileSearchSheet on tap.
+ *
+ * On desktop (≥1024px) this component renders nothing — desktop users
+ * search via the always-visible <ProjectSearchBar/> mounted by the
+ * project-detail layout, which also owns the ⌘K / Ctrl+K hotkey for
+ * focusing its input.
  */
 export function SearchEntry() {
   const breakpoint = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  if (breakpoint === 'desktop') {
-    return <CmdKPalette />;
-  }
+  if (breakpoint === 'desktop') return null;
 
   return (
     <>

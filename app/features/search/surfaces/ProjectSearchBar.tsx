@@ -17,16 +17,18 @@ import { SearchEmptyState } from '../shared/SearchEmptyState';
 import { SearchPartialPermissionNote } from '../shared/SearchPartialPermissionNote';
 import { SearchResultList } from '../shared/SearchResultList';
 import { SearchScopeFooter } from '../shared/SearchScopeFooter';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Command, CommandEmpty, CommandList } from '@datum-cloud/datum-ui/command';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '@datum-cloud/datum-ui/popover';
 import { Search, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export function ProjectSearchBar() {
   const { project } = useActiveProject();
+  const breakpoint = useBreakpoint();
   const [open, setOpen] = useState(false);
   const [partialDismissed, setPartialDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,6 +42,27 @@ export function ProjectSearchBar() {
     open,
     onOpenChange: setOpen,
   });
+
+  // ⌘K / Ctrl+K → focus the inline search input. Desktop only — on mobile
+  // and tablet the inline bar is hidden via `hidden lg:flex`, so focusing
+  // an invisible element would be a no-op (or worse, jump scroll on some
+  // browsers). preventDefault stops the browser's default focus-omnibox
+  // behavior on Chrome/Firefox.
+  useEffect(() => {
+    if (breakpoint !== 'desktop') return;
+    const onKey = (e: KeyboardEvent) => {
+      const isK = e.key === 'k' || e.key === 'K';
+      if (!isK || !(e.metaKey || e.ctrlKey)) return;
+      // If the user is already typing in OUR input, let the browser handle
+      // the keystroke normally (so they can use Cmd+K inside the input for
+      // OS-level shortcuts if any).
+      if (e.target === inputRef.current) return;
+      e.preventDefault();
+      inputRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [breakpoint]);
 
   if (!project) return null;
 

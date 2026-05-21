@@ -22,7 +22,7 @@ describe('emitSearchEvent', () => {
 
   it('emits a Sentry breadcrumb and a structured log line', () => {
     emitSearchEvent('search.opened', {
-      surface: 'cmd-k',
+      surface: 'project-bar',
       scope: 'global',
       hasRecents: false,
     });
@@ -30,17 +30,17 @@ describe('emitSearchEvent', () => {
       'info',
       'search.opened',
       'search',
-      expect.objectContaining({ surface: 'cmd-k', scope: 'global' })
+      expect.objectContaining({ surface: 'project-bar', scope: 'global' })
     );
     expect(loggerInfo).toHaveBeenCalledWith(
       'search.opened',
-      expect.objectContaining({ surface: 'cmd-k', scope: 'global' })
+      expect.objectContaining({ surface: 'project-bar', scope: 'global' })
     );
   });
 
   it('never includes raw query text — only queryLength', () => {
     emitSearchEvent('search.queried', {
-      surface: 'cmd-k',
+      surface: 'project-bar',
       scope: 'global',
       queryLength: 4,
       kindCount: 4,
@@ -54,7 +54,7 @@ describe('emitSearchEvent', () => {
 
   it('scrubs payload on error events (no leak of internal Error)', () => {
     emitSearchEvent('search.error', {
-      surface: 'cmd-k',
+      surface: 'project-bar',
       scope: 'global',
       statusCode: 500,
       queryLength: 3,

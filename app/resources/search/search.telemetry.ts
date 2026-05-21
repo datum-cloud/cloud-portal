@@ -2,7 +2,7 @@
 import { logger } from '@/modules/logger';
 import { addBreadcrumb } from '@/modules/sentry';
 
-export type SearchSurface = 'cmd-k' | 'project-bar' | 'mobile-sheet';
+export type SearchSurface = 'project-bar' | 'mobile-sheet';
 export type ScopeKey = 'global' | `project:${string}`;
 
 export type SearchEventPayloads = {
