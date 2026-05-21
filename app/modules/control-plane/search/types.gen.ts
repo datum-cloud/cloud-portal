@@ -569,7 +569,7 @@ export type NetMiloapisGoSearchPkgApisSearchV1Alpha1ResourceIndexPolicyList = {
  */
 export type NetMiloapisGoSearchPkgApisSearchV1Alpha1ResourceIndexPolicySpec = {
   /**
-   * Conditions filter which resources are indexed using CEL expressions. Multiple conditions can be specified and are evaluated with OR semantics - a resource is indexed if it satisfies ANY condition. Use && within a single expression to require multiple criteria together.
+   * Conditions filter which resources are indexed using CEL expressions. When no conditions are specified, all resources of the target type are indexed. Multiple conditions can be specified and are evaluated with OR semantics - a resource is indexed if it satisfies ANY condition. Use && within a single expression to require multiple criteria together.
    *
    * Each condition has: - name: A unique identifier for the condition, used in status reporting
    * and debugging to identify which condition(s) matched a resource.
@@ -578,7 +578,7 @@ export type NetMiloapisGoSearchPkgApisSearchV1Alpha1ResourceIndexPolicySpec = {
    *
    * Available CEL operations: - Field access: spec.replicas, metadata.name, status.phase - Map access: metadata.labels["app"], metadata.annotations["key"] - Comparisons: ==, !=, <, <=, >, >= - Logical operators: &&, ||, ! - String functions: contains(), startsWith(), endsWith(), matches() - List functions: exists(), all(), size(), map(), filter() - Membership: "value" in list, "key" in map - Ternary: condition ? trueValue : falseValue
    */
-  conditions: Array<NetMiloapisGoSearchPkgApisSearchV1Alpha1PolicyCondition>;
+  conditions?: Array<NetMiloapisGoSearchPkgApisSearchV1Alpha1PolicyCondition>;
   /**
    * Fields defines which fields from the resource are indexed.
    */
