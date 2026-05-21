@@ -1,4 +1,5 @@
 import { ProjectBottomBar } from '@/features/project-bottom-bar';
+import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/lib/feature-flags';
 import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
@@ -363,7 +364,8 @@ export default function ProjectLayout() {
         showBackdrop={false}
         sidebarLoading={projectLoading}
         switcherLoading={projectLoading || orgLoading}
-        bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}>
+        bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}
+        headerContent={<ProjectSearchBar />}>
         <Outlet />
       </DashboardLayout>
     </ProjectProvider>

@@ -4,6 +4,7 @@ import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { MobileMenu } from '@/components/mobile-menu';
 import { NotificationDropdown } from '@/components/notification';
+import { SearchEntry } from '@/features/search/SearchEntry';
 import { helpScoutAPI } from '@/modules/helpscout';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -22,11 +23,14 @@ export const Header = ({
   currentOrg,
   switcherLoading = false,
   navItems = [],
+  headerContent,
 }: {
   currentProject?: Project;
   currentOrg?: Organization;
   switcherLoading?: boolean;
   navItems?: NavItem[];
+  /** Optional content rendered between the org/project switcher and the global search entry. */
+  headerContent?: React.ReactNode;
 }) => {
   return (
     <div className="sticky top-0 z-50 flex flex-col">
@@ -57,6 +61,9 @@ export const Header = ({
             />
           </div>
         </div>
+        {headerContent}
+        {/* Search */}
+        <SearchEntry />
         {/* Right Section */}
         <div className="border-sidebar-border flex h-full items-center justify-end border-l">
           <div className="flex h-full items-center justify-end">
