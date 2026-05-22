@@ -2,7 +2,6 @@ node_modules
 
 /.cache
 /build
-.env
 .DS_Store
 .react-router/
 
@@ -29,3 +28,4 @@ cypress/results
 
 # Playwright MCP
 .playwright-mcp/
+config.bat

@@ -281,7 +281,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
-    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@545f34cd6f35e9688c9a04a7e890281bcdbaefd2 # v1.14.0
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@f8f2a7df9e691c6eec21ffb22c554c7e9a0bf9d9 # v1.15.0
     with:
       image-name: cloud-portal
     # NOTE: `secrets: inherit` is required because the upstream workflow
@@ -298,7 +298,7 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@545f34cd6f35e9688c9a04a7e890281bcdbaefd2 # v1.14.0
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@f8f2a7df9e691c6eec21ffb22c554c7e9a0bf9d9 # v1.15.0
     with:
       bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
       bundle-path: config
