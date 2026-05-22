@@ -9,20 +9,25 @@ export const DangerCard = ({
   deleteText = 'Delete',
   loading = false,
   disabled = false,
+  actionHidden = false,
   onDelete,
   'data-e2e': dataE2e,
+  children,
 }: {
   title?: string;
   description?: string | React.ReactNode;
   deleteText?: string;
   loading?: boolean;
   disabled?: boolean;
+  actionHidden?: boolean;
   onDelete: () => void;
   'data-e2e'?: string;
+  children?: React.ReactNode;
 }) => {
   const isDisabled = loading || disabled;
   return (
-    <Card className="border-destructive overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
+    <Card className="border-destructive relative overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
+      {children}
       <CardContent className="flex flex-col items-end justify-between gap-4 p-0 sm:px-6 sm:pb-4 md:flex-row md:items-center md:justify-between md:gap-2">
         <div className="flex items-center gap-8">
           <Icon
@@ -35,20 +40,22 @@ export const DangerCard = ({
             <span className="text-1xs leading-relaxed font-normal">{description}</span>
           </div>
         </div>
-        <div className="flex w-full justify-end md:w-auto">
-          <Button
-            htmlType="button"
-            type="danger"
-            theme="solid"
-            size="xs"
-            className="w-full md:w-auto"
-            data-e2e={dataE2e}
-            disabled={isDisabled}
-            loading={loading}
-            onClick={onDelete}>
-            {loading ? 'Deleting...' : deleteText}
-          </Button>
-        </div>
+        {!actionHidden && (
+          <div className="flex w-full justify-end md:w-auto">
+            <Button
+              htmlType="button"
+              type="danger"
+              theme="solid"
+              size="xs"
+              className="w-full md:w-auto"
+              data-e2e={dataE2e}
+              disabled={isDisabled}
+              loading={loading}
+              onClick={onDelete}>
+              {loading ? 'Deleting...' : deleteText}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
