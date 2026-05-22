@@ -1,17 +1,11 @@
 // NOTE: This is the CLIENT barrel and must stay browser-safe.
-// Server-only entrypoints (`createRbacMiddleware`, `rbacMiddleware`,
-// `RbacService`) must be imported directly from `@/modules/rbac/server/*` —
-// re-exporting them here drags server-only dependencies (prom-client, axios,
-// control-plane SDK) into the browser bundle.
+// Server-only entrypoints (`RbacService`, `canInLoader`) must be imported
+// directly from `@/modules/rbac/server/*` — re-exporting them here drags
+// server-only dependencies (prom-client, axios, control-plane SDK) into the
+// browser bundle.
 
 // Types
-export type {
-  PermissionVerb,
-  PermissionCheckScope,
-  IRbacMiddlewareConfig,
-  OnDeniedContext,
-  OnDeniedHandler,
-} from './types';
+export type { PermissionVerb, PermissionCheckScope } from './types';
 export { PermissionVerbSchema, PermissionCheckSchema } from './types';
 
 // Context + Provider

@@ -1,3 +1,4 @@
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { GroupHeader } from '@/features/organization/team/group-header';
 import type { UserRoleAssignment, PendingRemove } from '@/features/organization/team/roles';
 import {
@@ -9,8 +10,7 @@ import {
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
 import { logger } from '@/modules/logger';
-import { createRbacMiddleware } from '@/modules/rbac/server/rbac.middleware';
-import { RbacService } from '@/modules/rbac/server/rbac.service';
+import { canInLoader } from '@/modules/rbac/server/check-permission';
 import { useApp } from '@/providers/app.provider';
 import { createGroupService } from '@/resources/groups';
 import {
@@ -21,8 +21,8 @@ import {
 import { createProjectService } from '@/resources/projects';
 import { createRoleService } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { withMiddleware } from '@/utils/middlewares';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useMemo } from 'react';
 import {
@@ -39,6 +39,18 @@ export const meta: MetaFunction = mergeMeta(() => {
 
 const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, groupId } = params as { orgId: string; groupId: string };
+
+  // Access gate first — skip data fetching the user isn't permitted to see.
+  const canView = await canInLoader(orgId, {
+    resource: 'policybindings',
+    verb: 'list',
+    group: 'iam.miloapis.com',
+    namespace: buildOrganizationNamespace(orgId),
+  });
+
+  if (!canView) {
+    return data({ restricted: true as const });
+  }
 
   const groupResult = await createGroupService()
     .get(orgId, groupId)
@@ -63,30 +75,25 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
             ReturnType<ReturnType<typeof createProjectService>['list']>
           >['items'],
         })),
-      new RbacService()
-        .checkPermission(orgId, {
-          resource: 'policybindings',
-          verb: 'create',
-          group: 'iam.miloapis.com',
-          namespace: buildOrganizationNamespace(orgId),
-        })
-        .then((r) => r.allowed && !r.denied)
-        .catch(() => false),
-      new RbacService()
-        .checkPermission(orgId, {
-          resource: 'policybindings',
-          verb: 'delete',
-          group: 'iam.miloapis.com',
-          namespace: buildOrganizationNamespace(orgId),
-        })
-        .then((r) => r.allowed && !r.denied)
-        .catch(() => false),
+      canInLoader(orgId, {
+        resource: 'policybindings',
+        verb: 'create',
+        group: 'iam.miloapis.com',
+        namespace: buildOrganizationNamespace(orgId),
+      }),
+      canInLoader(orgId, {
+        resource: 'policybindings',
+        verb: 'delete',
+        group: 'iam.miloapis.com',
+        namespace: buildOrganizationNamespace(orgId),
+      }),
     ]);
 
   // Editing roles requires BOTH adding (create) and removing (delete) policy bindings.
   const canManageRoles = canCreatePolicyBinding && canDeletePolicyBinding;
 
   return data({
+    restricted: false as const,
     group: groupResult,
     roles,
     policyBindings,
@@ -95,19 +102,30 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
   });
 };
 
-export const loader = withMiddleware(
-  _loader,
-  createRbacMiddleware({
-    resource: 'policybindings',
-    verb: 'list',
-    group: 'iam.miloapis.com',
-    namespace: (params) => buildOrganizationNamespace(params.orgId),
-  })
-);
+export const loader = withLoaderErrors(_loader);
 
 export default function GroupDetailPage() {
-  const { group, roles, policyBindings, projects, canManageRoles } =
-    useLoaderData<typeof _loader>();
+  const loaderData = useLoaderData<typeof _loader>();
+
+  if (loaderData.restricted) {
+    return <RestrictedState message="You don't have permission to view this group." />;
+  }
+
+  return <GroupDetailEditor {...loaderData} />;
+}
+
+type GroupDetailEditorProps = Extract<
+  Awaited<ReturnType<typeof _loader>>['data'],
+  { restricted: false }
+>;
+
+function GroupDetailEditor({
+  group,
+  roles,
+  policyBindings,
+  projects,
+  canManageRoles,
+}: GroupDetailEditorProps) {
   const { orgId } = useParams() as { orgId: string };
   const { organization } = useApp();
   const orgDisplayName = organization?.displayName ?? orgId;

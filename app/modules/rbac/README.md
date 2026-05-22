@@ -141,30 +141,49 @@ client barrel:
 | Symbol | Import from | Description |
 | --- | --- | --- |
 | `RbacService` | `@/modules/rbac/server/rbac.service` | `checkPermission(orgId, check)` and `checkPermissions(orgId, checks)`. |
-| `createRbacMiddleware(config)` | `@/modules/rbac/server/rbac.middleware` | Loader/action middleware that enforces one permission before the route runs. |
-| `rbacMiddleware` | `@/modules/rbac/server/rbac.middleware` | Shortcuts: `canList`/`canGet`/`canCreate`/`canUpdate`/`canDelete`. |
+| `canInLoader(orgId, check)` | `@/modules/rbac/server/check-permission` | Fail-closed boolean permission check for SSR loaders. Wraps `RbacService.checkPermission`; returns `false` on any error. |
+
+SSR loaders gate access with `canInLoader` and render `<RestrictedState>` inline
+when the check fails — there is **no redirect or thrown 403**. The loader returns a
+`restricted` flag (discriminated union) and the route component renders either the
+restricted state or the gated content. The same flag pattern also drives editor
+affordances (e.g. a `canManageRoles` flag from a second `canInLoader` check).
 
 ```tsx
-import { createRbacMiddleware } from '@/modules/rbac/server/rbac.middleware';
-import { withMiddleware } from '@/utils/middlewares/middleware';
+import { canInLoader } from '@/modules/rbac/server/check-permission';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
+import { buildOrganizationNamespace } from '@/utils/common';
+import { withLoaderErrors } from '@/utils/errors';
+import { data, useLoaderData } from 'react-router';
 
-export const loader = withMiddleware(
-  async ({ params }) => loadData(params),
-  authMiddleware,
-  createRbacMiddleware({
-    resource: 'workloads',
-    verb: 'update',
-    namespace: (params) => params.projectId,
-    name: (params) => params.name,
-  })
-);
+export const loader = withLoaderErrors(async ({ params }) => {
+  const { orgId } = params;
+
+  // Permission check first — skip fetching data the user can't see.
+  const canView = await canInLoader(orgId!, {
+    resource: 'allowancebuckets',
+    verb: 'list',
+    group: 'quota.miloapis.com',
+    namespace: buildOrganizationNamespace(orgId!),
+  });
+  if (!canView) return data({ restricted: true as const });
+
+  const items = await loadData(orgId!);
+  return data({ restricted: false as const, items });
+});
+
+export default function Page() {
+  const loaderData = useLoaderData<typeof loader>();
+  if (loaderData.restricted) {
+    return <RestrictedState message="You don't have permission to view this." />;
+  }
+  return <Content items={loaderData.items} />;
+}
 ```
 
-`onDenied` controls denial handling:
-
-- `'error'` (**default**) — throws `AuthorizationError` (caught by the route ErrorBoundary).
-- `'redirect'` — redirects to `redirectTo` (default `/error/403`).
-- a function `(OnDeniedContext) => Response` — full control (e.g. `redirectWithToast`).
+`canInLoader` accepts the same `check` shape as `RbacService.checkPermission`
+(`{ resource, verb, group?, namespace?, name?, scope?, projectId? }`, scope defaults
+to `'org'`).
 
 ---
 
@@ -182,8 +201,7 @@ Prometheus metrics are exposed on `/metrics`:
 
 - `rbac_permission_denied_total{resource,verb}` — denials at enforcement points.
 
-Every middleware denial is also written to the audit log via `recordDenial`. The
-metrics module is side-effect-imported in `app/server/entry.ts` so the counter is
+The metrics module is side-effect-imported in `app/server/entry.ts` so the counter is
 registered at startup.
 
 ---
@@ -203,9 +221,9 @@ base routing and fail-closed behavior) and the access-review adapter/service.
 ## Important: client vs. server imports
 
 The client barrel `@/modules/rbac` is **browser-safe** and intentionally does **not**
-re-export server-only modules. Importing `RbacService`, `createRbacMiddleware`, or
-`rbacMiddleware` from the barrel would drag server-only dependencies (`prom-client`,
-the control-plane SDK, axios) into the browser bundle.
+re-export server-only modules. Importing `RbacService` or `canInLoader` from the barrel
+would drag server-only dependencies (`prom-client`, the control-plane SDK, axios) into
+the browser bundle.
 
 Always import those from `@/modules/rbac/server/*`. Hooks, components, types, and the
 client helpers `checkPermissionAPI`/`checkPermissionsBulkAPI` are safe from the barrel.

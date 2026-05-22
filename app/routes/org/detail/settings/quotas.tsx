@@ -1,6 +1,6 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { QuotasTable } from '@/features/quotas/quotas-table';
-import { RbacService } from '@/modules/rbac/server/rbac.service';
+import { canInLoader } from '@/modules/rbac/server/check-permission';
 import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import { buildOrganizationNamespace } from '@/utils/common';
@@ -14,15 +14,12 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
     throw new BadRequestError('Organization ID is required');
   }
 
-  const canView = await new RbacService()
-    .checkPermission(orgId, {
-      resource: 'allowancebuckets',
-      verb: 'list',
-      group: 'quota.miloapis.com',
-      namespace: buildOrganizationNamespace(orgId),
-    })
-    .then((r) => r.allowed && !r.denied)
-    .catch(() => false);
+  const canView = await canInLoader(orgId, {
+    resource: 'allowancebuckets',
+    verb: 'list',
+    group: 'quota.miloapis.com',
+    namespace: buildOrganizationNamespace(orgId),
+  });
 
   if (!canView) {
     return { restricted: true as const, allowanceBuckets: [] as AllowanceBucket[] };
