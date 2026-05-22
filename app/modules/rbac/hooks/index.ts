@@ -1,15 +1,17 @@
-/**
- * Hooks Layer exports
- */
-
 export { usePermissions } from './usePermissions';
-export { useHasPermission } from './useHasPermission';
-export { usePermissionCheck } from './usePermissionCheck';
-
-// Export hook types for consumers
-export type { IUseHasPermissionOptions, IUseHasPermissionResult } from './useHasPermission';
-export type {
-  IPermissionCheckInput,
-  IUsePermissionCheckOptions,
-  IPermissionCheckResult,
+export {
+  usePermission,
+  useHasPermission,
+  type UsePermissionOptions,
+  type UsePermissionResult,
+} from './usePermission';
+export {
+  usePermissionCheck,
+  type PermissionCheckInput,
+  type PermissionCheckResult,
 } from './usePermissionCheck';
+export {
+  useAccessReview,
+  type UseAccessReviewResult,
+  type UseAccessReviewOptions,
+} from './useAccessReview';

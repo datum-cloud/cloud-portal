@@ -1,5 +1,6 @@
-/**
- * Client API Layer - Browser-side exports
- */
-
-export * from './rbac-api';
+export {
+  checkPermissionAPI,
+  checkPermissionsBulkAPI,
+  type CheckPermissionInput,
+  type BulkCheckResult,
+} from './rbac-api';

@@ -1,95 +1,39 @@
-/**
- * RBAC Module
- * Exports all RBAC functionality with clear client/server separation
- */
+// NOTE: This is the CLIENT barrel and must stay browser-safe.
+// Server-only entrypoints (`createRbacMiddleware`, `rbacMiddleware`,
+// `RbacService`) must be imported directly from `@/modules/rbac/server/*` —
+// re-exporting them here drags server-only dependencies (prom-client, axios,
+// control-plane SDK) into the browser bundle.
 
-// ============================================================================
 // Types
-// ============================================================================
 export type {
   PermissionVerb,
-  IPermissionCheck,
-  IPermissionResult,
-  IBulkPermissionResult,
-  IPermissionCheckWithResult,
-  IPermissionContext,
-  IPermissionGateProps,
-  IPermissionCheckProps,
+  PermissionCheckScope,
   IRbacMiddlewareConfig,
-  IPermissionCacheKey,
   OnDeniedContext,
   OnDeniedHandler,
-  // Schema-derived types
-  BasePermissionCheck,
-  PermissionCheckInput,
-  BulkPermissionCheck,
-  PermissionResult,
-  BulkPermissionResult,
-  PermissionCheckResponse,
-  BulkPermissionCheckResponse,
 } from './types';
+export { PermissionVerbSchema, PermissionCheckSchema } from './types';
 
+// Context + Provider
+export { RbacContext, type RbacContextValue } from './context/rbac.context';
+export { RbacProvider } from './context/rbac.provider';
+
+// Hooks
 export {
-  PermissionDeniedError,
-  PERMISSIONS,
-  // Zod schemas
-  PermissionVerbSchema,
-  BasePermissionCheckSchema,
-  PermissionCheckSchema,
-  BulkPermissionCheckSchema,
-  PermissionResultSchema,
-  BulkPermissionResultSchema,
-  PermissionCheckResponseSchema,
-  BulkPermissionCheckResponseSchema,
-} from './types';
-
-// ============================================================================
-// Client-Side API (Browser Only)
-// ============================================================================
-export { checkPermissionAPI, checkPermissionsBulkAPI } from './client';
-
-// ============================================================================
-// Server-Side Service (Server Only)
-// ============================================================================
-export { RbacService } from './service';
-
-// ============================================================================
-// Context and Provider (Client-Side)
-// ============================================================================
-export { RbacContext, RbacProvider } from './context';
-
-// ============================================================================
-// Hooks (Client-Side)
-// ============================================================================
-export { usePermissions, useHasPermission, usePermissionCheck } from './hooks';
-export type {
-  IUseHasPermissionOptions,
-  IUseHasPermissionResult,
-  IPermissionCheckInput,
-  IUsePermissionCheckOptions,
-  IPermissionCheckResult,
+  usePermissions,
+  usePermission,
+  useHasPermission,
+  usePermissionCheck,
+  useAccessReview,
 } from './hooks';
 
-// ============================================================================
-// Middleware (Server-Side)
-// ============================================================================
-export { createRbacMiddleware, rbacMiddleware } from './rbac.middleware';
-
-// ============================================================================
-// Utilities
-// ============================================================================
-export {
-  buildPermissionCacheKey,
-  normalizePermissionCheck,
-  extractOrgIdFromPath,
-  resolveDynamicValue,
-  formatPermissionCheck,
-  isPermissionAllowed,
-  combinePermissionsAND,
-  combinePermissionsOR,
-} from './permission-checker';
-
-// ============================================================================
 // Components
-// ============================================================================
-export { PermissionGate, PermissionCheck, withPermission } from './components';
+export { PermissionGate, PermissionButton, PermissionCheck, withPermission } from './components';
+
+// Client
+export {
+  checkPermissionAPI,
+  checkPermissionsBulkAPI,
+  type CheckPermissionInput,
+  type BulkCheckResult,
+} from './client';

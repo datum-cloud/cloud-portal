@@ -1,103 +1,57 @@
+import type { PermissionCheckScope, IPermissionCheck, IPermissionResult } from '../types';
+
 /**
- * Client-side API functions for RBAC
- * Uses fetch with relative URLs (browser only)
+ * Input for a single precise check. Scope/projectId are optional and forwarded
+ * to the BFF, which routes the SelfSubjectAccessReview to the correct
+ * control-plane base.
  */
-import type { IPermissionCheck, IPermissionResult, IBulkPermissionResult } from '../types';
+export type CheckPermissionInput = IPermissionCheck & {
+  scope?: PermissionCheckScope;
+  projectId?: string;
+};
 
-interface PermissionCheckResponse {
-  success: boolean;
-  data?: IPermissionResult;
-  error?: string;
-}
-
-interface BulkPermissionCheckResponse {
-  success: boolean;
-  data?: {
-    results: IBulkPermissionResult[];
+/** Result of a bulk check item — mirrors the BFF `BulkPermissionResult` shape. */
+export interface BulkCheckResult extends IPermissionResult {
+  request: {
+    resource: string;
+    verb: IPermissionCheck['verb'];
+    group: string;
+    namespace?: string;
+    name?: string;
   };
-  error?: string;
 }
 
-/**
- * Check single permission (client-side only)
- *
- * @param check - Permission check parameters
- * @returns Permission result
- *
- * @example
- * ```typescript
- * const result = await checkPermissionAPI({
- *   organizationId: 'org-123',
- *   resource: 'workloads',
- *   verb: 'create',
- *   namespace: 'default',
- * });
- * ```
- */
-export async function checkPermissionAPI(check: IPermissionCheck): Promise<IPermissionResult> {
+/** Single precise check (escape hatch — useAccessReview / usePermission). */
+export async function checkPermissionAPI(check: CheckPermissionInput): Promise<IPermissionResult> {
   const response = await fetch('/api/permissions/check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(check),
-    credentials: 'same-origin', // Include auth cookies
+    credentials: 'same-origin',
   });
-
-  const data: PermissionCheckResponse = await response.json();
-
-  if (!response.ok || !data.success) {
+  const data: { success: boolean; data?: IPermissionResult; error?: string } =
+    await response.json();
+  if (!response.ok || !data.success || !data.data) {
     throw new Error(data.error || 'Permission check failed');
   }
-
-  if (!data.data) {
-    throw new Error('No data returned from permission check');
-  }
-
   return data.data;
 }
 
-/**
- * Check multiple permissions (client-side only)
- *
- * @param organizationId - Organization ID
- * @param checks - Array of permission checks
- * @returns Array of permission results
- *
- * @example
- * ```typescript
- * const results = await checkPermissionsBulkAPI('org-123', [
- *   { resource: 'workloads', verb: 'create' },
- *   { resource: 'secrets', verb: 'list' },
- * ]);
- * ```
- */
+/** Batch checks in a single request to avoid client-side N+1 calls. */
 export async function checkPermissionsBulkAPI(
   organizationId: string,
-  checks: Array<Omit<IPermissionCheck, 'organizationId'>>
-): Promise<IBulkPermissionResult[]> {
-  const normalizedChecks = checks.map((check) => ({
-    ...check,
-    group: check.group || '',
-  }));
-
+  checks: Array<Omit<CheckPermissionInput, 'organizationId'>>
+): Promise<BulkCheckResult[]> {
   const response = await fetch('/api/permissions/bulk-check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      organizationId,
-      checks: normalizedChecks,
-    }),
-    credentials: 'same-origin', // Include auth cookies
+    body: JSON.stringify({ organizationId, checks }),
+    credentials: 'same-origin',
   });
-
-  const data: BulkPermissionCheckResponse = await response.json();
-
-  if (!response.ok || !data.success) {
-    throw new Error(data.error || 'Bulk permission check failed');
+  const data: { success: boolean; data?: { results: BulkCheckResult[] }; error?: string } =
+    await response.json();
+  if (!response.ok || !data.success || !data.data) {
+    throw new Error(data.error || 'Permission check failed');
   }
-
-  if (!data.data) {
-    throw new Error('No data returned from bulk permission check');
-  }
-
   return data.data.results;
 }

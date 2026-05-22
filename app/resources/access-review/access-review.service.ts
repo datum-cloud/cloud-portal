@@ -27,7 +27,7 @@ export function createAccessReviewService() {
         const payload = toCreateAccessReviewPayload(input);
 
         const response = await createAuthorizationV1SelfSubjectAccessReview({
-          baseURL: getOrgScopedBase(organizationId),
+          baseURL: options?.baseURL ?? getOrgScopedBase(organizationId),
           query: {
             dryRun: options?.dryRun ? 'All' : undefined,
           },

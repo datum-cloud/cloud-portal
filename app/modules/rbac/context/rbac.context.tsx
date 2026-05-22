@@ -1,13 +1,14 @@
-/**
- * RBAC Context
- * Provides permission checking context throughout the application
- */
-import type { IPermissionContext } from '../types';
 import { createContext } from 'react';
 
 /**
- * Context for RBAC permission checks
+ * RBAC context value. The provider only supplies the org/project identifiers
+ * that scope async permission checks; all checks are resolved per-call via the
+ * BFF (SelfSubjectAccessReview).
  */
-export const RbacContext = createContext<IPermissionContext | null>(null);
+export interface RbacContextValue {
+  organizationId?: string;
+  projectId?: string;
+}
 
+export const RbacContext = createContext<RbacContextValue | null>(null);
 RbacContext.displayName = 'RbacContext';

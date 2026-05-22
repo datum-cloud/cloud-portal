@@ -2,5 +2,5 @@
  * Context Layer exports
  */
 
-export { RbacContext } from './rbac.context';
+export { RbacContext, type RbacContextValue } from './rbac.context';
 export { RbacProvider } from './rbac.provider';
