@@ -1,8 +1,9 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
 import { GroupFormDialog, type GroupFormDialogRef } from '@/features/organization/team/groups';
-import { useHasPermission } from '@/modules/rbac';
+import { PermissionButton, usePermissionCheck } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import { useGroups, useDeleteGroup } from '@/resources/groups';
 import { useMembers, type Member } from '@/resources/members';
@@ -13,7 +14,6 @@ import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
@@ -49,24 +49,27 @@ export default function GroupsPage() {
     throw new Error('Organization ID is required');
   }
 
+  const namespace = buildOrganizationNamespace(orgId);
+  const { permissions, isLoading: listPermLoading } = usePermissionCheck([
+    { resource: 'groups', verb: 'list', group: 'iam.miloapis.com', namespace },
+    { resource: 'groups', verb: 'create', group: 'iam.miloapis.com', namespace },
+    { resource: 'groups', verb: 'delete', group: 'iam.miloapis.com', namespace },
+  ]);
+  const canListGroups = permissions['groups:list']?.allowed ?? false;
+  const hasCreateGroupPermission = permissions['groups:create']?.allowed ?? false;
+  const hasDeleteGroupPermission = permissions['groups:delete']?.allowed ?? false;
+
   const { data: groups = [] } = useGroups(orgId, {
     staleTime: QUERY_STALE_TIME,
+    enabled: canListGroups,
   });
   const { data: memberships = [] } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
+    enabled: canListGroups,
   });
   const { data: members = [] } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
-  });
-
-  const { hasPermission: hasCreateGroupPermission } = useHasPermission('groups', 'create', {
-    namespace: buildOrganizationNamespace(orgId),
-    group: 'iam.miloapis.com',
-  });
-
-  const { hasPermission: hasDeleteGroupPermission } = useHasPermission('groups', 'delete', {
-    namespace: buildOrganizationNamespace(orgId),
-    group: 'iam.miloapis.com',
+    enabled: canListGroups,
   });
 
   const { mutateAsync: deleteGroupAsync } = useDeleteGroup(orgId, {
@@ -168,6 +171,15 @@ export default function GroupsPage() {
     [hasDeleteGroupPermission, deleteGroup, navigate, orgId]
   );
 
+  if (!listPermLoading && !canListGroups) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view groups."
+      />
+    );
+  }
+
   return (
     <>
       <Table.Client
@@ -180,7 +192,7 @@ export default function GroupsPage() {
           )
         }
         empty={{
-          title: 'create your first group',
+          title: hasCreateGroupPermission ? 'create your first group' : 'No groups yet',
           actions: hasCreateGroupPermission
             ? [
                 {
@@ -192,19 +204,20 @@ export default function GroupsPage() {
               ]
             : undefined,
         }}
-        actions={
-          hasCreateGroupPermission
-            ? [
-                <Button
-                  key="create"
-                  className="w-full sm:w-auto"
-                  onClick={() => groupFormDialogRef.current?.show()}>
-                  <Icon icon={PlusIcon} className="size-4" />
-                  Create Group
-                </Button>,
-              ]
-            : []
-        }
+        actions={[
+          <PermissionButton
+            key="create"
+            resource="groups"
+            verb="create"
+            group="iam.miloapis.com"
+            namespace={buildOrganizationNamespace(orgId)}
+            deniedReason="You don't have permission to create groups"
+            onClick={() => groupFormDialogRef.current?.show()}
+            className="w-full sm:w-auto">
+            <Icon icon={PlusIcon} className="size-4" />
+            Create Group
+          </PermissionButton>,
+        ]}
       />
       <GroupFormDialog
         ref={groupFormDialogRef}

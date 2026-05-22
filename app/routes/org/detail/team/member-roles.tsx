@@ -8,7 +8,8 @@ import {
   AddRoleScreen,
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
-import { createRbacMiddleware, RbacService } from '@/modules/rbac';
+import { createRbacMiddleware } from '@/modules/rbac/server/rbac.middleware';
+import { RbacService } from '@/modules/rbac/server/rbac.service';
 import { useApp } from '@/providers/app.provider';
 import { createMemberService } from '@/resources/members';
 import type { Member } from '@/resources/members';

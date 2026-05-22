@@ -9,7 +9,8 @@ import {
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
 import { logger } from '@/modules/logger';
-import { createRbacMiddleware, RbacService } from '@/modules/rbac';
+import { createRbacMiddleware } from '@/modules/rbac/server/rbac.middleware';
+import { RbacService } from '@/modules/rbac/server/rbac.service';
 import { useApp } from '@/providers/app.provider';
 import { createGroupService } from '@/resources/groups';
 import {
@@ -47,28 +48,43 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
     throw data({ message: 'Group not found' }, { status: 404 });
   }
 
-  const [roles, policyBindings, projectsList, canManageRoles] = await Promise.all([
-    createRoleService().list('datum-cloud'),
-    createPolicyBindingService()
-      .list(orgId)
-      .catch(
-        () => [] as Awaited<ReturnType<ReturnType<typeof createPolicyBindingService>['list']>>
-      ),
-    createProjectService()
-      .list(orgId)
-      .catch(() => ({
-        items: [] as Awaited<ReturnType<ReturnType<typeof createProjectService>['list']>>['items'],
-      })),
-    new RbacService()
-      .checkPermission(orgId, {
-        resource: 'policybindings',
-        verb: 'create',
-        group: 'iam.miloapis.com',
-        namespace: buildOrganizationNamespace(orgId),
-      })
-      .then((r) => r.allowed && !r.denied)
-      .catch(() => false),
-  ]);
+  const [roles, policyBindings, projectsList, canCreatePolicyBinding, canDeletePolicyBinding] =
+    await Promise.all([
+      createRoleService().list('datum-cloud'),
+      createPolicyBindingService()
+        .list(orgId)
+        .catch(
+          () => [] as Awaited<ReturnType<ReturnType<typeof createPolicyBindingService>['list']>>
+        ),
+      createProjectService()
+        .list(orgId)
+        .catch(() => ({
+          items: [] as Awaited<
+            ReturnType<ReturnType<typeof createProjectService>['list']>
+          >['items'],
+        })),
+      new RbacService()
+        .checkPermission(orgId, {
+          resource: 'policybindings',
+          verb: 'create',
+          group: 'iam.miloapis.com',
+          namespace: buildOrganizationNamespace(orgId),
+        })
+        .then((r) => r.allowed && !r.denied)
+        .catch(() => false),
+      new RbacService()
+        .checkPermission(orgId, {
+          resource: 'policybindings',
+          verb: 'delete',
+          group: 'iam.miloapis.com',
+          namespace: buildOrganizationNamespace(orgId),
+        })
+        .then((r) => r.allowed && !r.denied)
+        .catch(() => false),
+    ]);
+
+  // Editing roles requires BOTH adding (create) and removing (delete) policy bindings.
+  const canManageRoles = canCreatePolicyBinding && canDeletePolicyBinding;
 
   return data({
     group: groupResult,

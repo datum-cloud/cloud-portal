@@ -1,6 +1,6 @@
 import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { createRbacMiddleware } from '@/modules/rbac';
+import { createRbacMiddleware } from '@/modules/rbac/server/rbac.middleware';
 import {
   useCreateInvitation,
   type CreateInvitationInput,

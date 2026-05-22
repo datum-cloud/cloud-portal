@@ -1,9 +1,11 @@
+import { usePermissionCheck } from '@/modules/rbac';
 import {
   useCreateGroupMembership,
   useDeleteGroupMembership,
   useGroupMemberships,
 } from '@/resources/group-memberships';
 import { useMembers } from '@/resources/members';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Checkbox } from '@datum-cloud/datum-ui/checkbox';
@@ -34,6 +36,14 @@ export function ManageMembersDialog({
 
   const { data: allMembers = [] } = useMembers(orgId);
   const { data: memberships = [] } = useGroupMemberships(orgId);
+
+  const namespace = buildOrganizationNamespace(orgId);
+  const { permissions } = usePermissionCheck([
+    { resource: 'groupmemberships', verb: 'create', group: 'iam.miloapis.com', namespace },
+    { resource: 'groupmemberships', verb: 'delete', group: 'iam.miloapis.com', namespace },
+  ]);
+  const canAddMember = permissions['groupmemberships:create']?.allowed ?? false;
+  const canRemoveMember = permissions['groupmemberships:delete']?.allowed ?? false;
 
   const createMembership = useCreateGroupMembership(orgId);
   const deleteMembership = useDeleteGroupMembership(orgId);
@@ -178,29 +188,43 @@ export function ManageMembersDialog({
               filteredMembers.map((member) => {
                 const inGroup = isInGroup(member.user.id);
                 const displayName = getMemberDisplayName(member);
+                const currentlyInGroup = currentMemberIds.has(member.user.id);
+                // Toggling a current member removes them; toggling a non-member adds them.
+                // Hide (disable) the control when the user lacks the relevant capability.
+                const canToggle = currentlyInGroup ? canRemoveMember : canAddMember;
+                const rowContent = (
+                  <>
+                    <Checkbox
+                      checked={inGroup}
+                      onCheckedChange={() => {}}
+                      className="size-4 shrink-0"
+                      tabIndex={-1}
+                      disabled={!canToggle}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground truncate text-sm font-medium">{displayName}</p>
+                      {member.user.email && displayName !== member.user.email && (
+                        <p className="text-muted-foreground truncate text-xs">
+                          {member.user.email}
+                        </p>
+                      )}
+                    </div>
+                  </>
+                );
                 return (
                   <li key={member.user.id}>
-                    <button
-                      type="button"
-                      onClick={() => toggle(member.user.id)}
-                      className="hover:bg-muted flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors">
-                      <Checkbox
-                        checked={inGroup}
-                        onCheckedChange={() => {}}
-                        className="size-4 shrink-0"
-                        tabIndex={-1}
-                      />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-foreground truncate text-sm font-medium">
-                          {displayName}
-                        </p>
-                        {member.user.email && displayName !== member.user.email && (
-                          <p className="text-muted-foreground truncate text-xs">
-                            {member.user.email}
-                          </p>
-                        )}
+                    {canToggle ? (
+                      <button
+                        type="button"
+                        onClick={() => toggle(member.user.id)}
+                        className="hover:bg-muted flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors">
+                        {rowContent}
+                      </button>
+                    ) : (
+                      <div className="flex w-full items-center gap-3 px-5 py-2.5 text-left opacity-60">
+                        {rowContent}
                       </div>
-                    </button>
+                    )}
                   </li>
                 );
               })
@@ -212,7 +236,11 @@ export function ManageMembersDialog({
           <Button type="secondary" size="small" onClick={handleClose} disabled={saving}>
             Cancel
           </Button>
-          <Button type="primary" size="small" onClick={handleSave} disabled={saving}>
+          <Button
+            type="primary"
+            size="small"
+            onClick={handleSave}
+            disabled={saving || (pendingCount > 0 && !canAddMember && !canRemoveMember)}>
             {saving
               ? 'Saving...'
               : pendingCount > 0
