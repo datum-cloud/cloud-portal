@@ -96,4 +96,3 @@ export interface IPermissionResult {
   denied: boolean;
   reason?: string;
 }
-
