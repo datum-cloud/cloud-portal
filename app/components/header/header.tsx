@@ -4,7 +4,6 @@ import { UserDropdown } from './user-dropdown';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { MobileMenu } from '@/components/mobile-menu';
 import { NotificationDropdown } from '@/components/notification';
-import { SearchEntry } from '@/features/search/SearchEntry';
 import { helpScoutAPI } from '@/modules/helpscout';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -61,12 +60,10 @@ export const Header = ({
             />
           </div>
         </div>
-        {headerContent}
-        {/* Search */}
-        <SearchEntry />
         {/* Right Section */}
-        <div className="border-sidebar-border flex h-full items-center justify-end border-l">
-          <div className="flex h-full items-center justify-end">
+        <div className="border-sidebar-border flex h-full items-center justify-end">
+          {headerContent}
+          <div className="flex h-full items-center justify-end border-l">
             <div className="flex h-full items-center px-4">
               <Tooltip message="Get in touch">
                 <Button

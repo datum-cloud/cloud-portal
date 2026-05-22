@@ -37,7 +37,7 @@ export function SearchScopeFooter({ project, hasResults = false }: Props) {
       }
       className="text-muted-foreground flex items-center gap-2 border-t px-3 py-2 text-xs">
       {/*<KindIcon kind="Project" className="size-3.5 shrink-0 opacity-70" />*/}
-      <span className="truncate">
+      <span>
         {hasResults ? (
           <>Showing resource results for {projectName} only.</>
         ) : (

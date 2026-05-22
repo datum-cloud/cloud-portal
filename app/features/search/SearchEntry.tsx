@@ -1,6 +1,5 @@
 // app/features/search/SearchEntry.tsx
 import { MobileSearchSheet } from './surfaces/MobileSearchSheet';
-import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -20,10 +19,7 @@ import { useState } from 'react';
  * focusing its input.
  */
 export function SearchEntry() {
-  const breakpoint = useBreakpoint();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  if (breakpoint === 'desktop') return null;
 
   return (
     <>

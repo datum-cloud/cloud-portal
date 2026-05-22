@@ -22,10 +22,9 @@ import { useOs } from '@/hooks/useOs';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Command, CommandEmpty, CommandList } from '@datum-cloud/datum-ui/command';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Input } from '@datum-cloud/datum-ui/input';
+import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { Popover, PopoverAnchor, PopoverContent } from '@datum-cloud/datum-ui/popover';
-import { cn } from '@datum-cloud/datum-ui/utils';
-import { Search, X, Command as CommandIcon } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 export function ProjectSearchBar() {
@@ -85,13 +84,7 @@ export function ProjectSearchBar() {
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverAnchor asChild>
           <div ref={anchorRef} className="relative w-full">
-            <Icon
-              icon={Search}
-              size={14}
-              className="text-icon-quaternary absolute top-1/2 left-2 size-3.5 -translate-y-1/2"
-              aria-hidden
-            />
-            <Input
+            <InputWithAddons
               ref={inputRef}
               value={engine.query}
               onChange={(e) => {
@@ -99,52 +92,34 @@ export function ProjectSearchBar() {
                 setOpen(true);
               }}
               onFocus={() => setOpen(true)}
-              placeholder="Search in this project…"
+              placeholder="Search"
               aria-keyshortcuts={os === 'macos' ? 'Meta+K' : 'Control+K'}
-              className={cn(
-                'placeholder:text-secondary dark:bg-input-bg h-9 bg-white pl-7 text-xs placeholder:text-xs',
-                engine.query.length > 0 ? 'pr-7' : 'pr-14'
-              )}
+              className="h-full border-none bg-transparent pr-0 text-xs placeholder:text-xs"
+              containerClassName="border-none relative min-w-64 outline-none focus-within:shadow-none pl-1 pr-2"
+              leading={
+                <Icon icon={Search} size={14} className="text-icon-quaternary" aria-hidden />
+              }
+              trailing={
+                engine.query.length > 0 && (
+                  <Button
+                    type="quaternary"
+                    theme="borderless"
+                    size="icon"
+                    aria-label="Clear search"
+                    onClick={() => {
+                      engine.setQuery('');
+                    }}
+                    className="text-icon-quaternary hover:text-destructive absolute top-1/2 right-1.5 size-5 -translate-y-1/2 p-0 hover:bg-transparent">
+                    <Icon icon={X} size={12} className="size-3" aria-hidden />
+                  </Button>
+                )
+              }
               {...comboboxProps}
             />
-            {engine.query.length > 0 ? (
-              <Button
-                type="quaternary"
-                theme="borderless"
-                size="icon"
-                aria-label="Clear search"
-                onClick={() => {
-                  engine.setQuery('');
-                }}
-                className="text-icon-quaternary hover:text-destructive absolute top-1/2 right-1.5 size-5 -translate-y-1/2 p-0 hover:bg-transparent">
-                <Icon icon={X} size={12} className="size-3" aria-hidden />
-              </Button>
-            ) : os !== 'undetermined' ? (
-              <kbd
-                aria-hidden
-                className={cn(
-                  'bg-muted text-icon-quaternary pointer-events-none absolute top-1/2 right-1.5 hidden h-5 -translate-y-1/2 items-center gap-1 rounded border border-transparent px-1.5 font-mono text-[10px] font-medium select-none sm:flex',
-                  'bg-muted/50 leading-none'
-                )}>
-                {os === 'macos' ? (
-                  <>
-                    <Icon
-                      icon={CommandIcon}
-                      size={10}
-                      aria-hidden
-                      className="relative -top-[1px]"
-                    />{' '}
-                    <span>K</span>
-                  </>
-                ) : (
-                  'Ctrl K'
-                )}
-              </kbd>
-            ) : null}
           </div>
         </PopoverAnchor>
         <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] p-0"
+          className="popover-content-width-full min-w-3xs p-0"
           align="start"
           onOpenAutoFocus={(e) => e.preventDefault()}
           onInteractOutside={(e) => {

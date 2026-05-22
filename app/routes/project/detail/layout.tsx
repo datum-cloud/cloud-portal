@@ -1,5 +1,7 @@
 import { ProjectBottomBar } from '@/features/project-bottom-bar';
+import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
+import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/lib/feature-flags';
 import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
@@ -24,6 +26,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   BarChart3Icon,
@@ -114,6 +117,7 @@ export function shouldRevalidate({
 
 export default function ProjectLayout() {
   const { projectId } = useParams();
+  const breakpoint = useBreakpoint();
   const { usageMeteringEnabled } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -365,7 +369,14 @@ export default function ProjectLayout() {
         sidebarLoading={projectLoading}
         switcherLoading={projectLoading || orgLoading}
         bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}
-        headerContent={<ProjectSearchBar />}>
+        headerContent={
+          <div
+            className={cn('flex h-full items-center justify-end border-l px-4', {
+              'px-0': breakpoint === 'desktop',
+            })}>
+            {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+          </div>
+        }>
         <Outlet />
       </DashboardLayout>
     </ProjectProvider>
