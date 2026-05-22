@@ -5,6 +5,7 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/lib/feature-flags';
 import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
+import { RbacProvider } from '@/modules/rbac';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
@@ -59,20 +60,30 @@ import {
  */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
-  if (!projectId) return data({ projectId, usageMeteringEnabled: false });
+  if (!projectId) {
+    return data({
+      projectId,
+      usageMeteringEnabled: false,
+      organizationId: undefined as string | undefined,
+    });
+  }
 
   let usageMeteringEnabled = false;
+  let organizationId: string | undefined;
+
   try {
     const project = await createProjectService().get(projectId);
+    organizationId = project.organizationId;
+
     usageMeteringEnabled = await isFeatureEnabled(
       FeatureFlag.UsageMeteringDashboard,
-      project.organizationId
+      organizationId
     );
   } catch {
     // Closed-by-default — leave the flag off if we can't resolve it.
   }
 
-  return data({ projectId, usageMeteringEnabled });
+  return data({ projectId, usageMeteringEnabled, organizationId });
 };
 
 /** Sets org and project session cookies when user enters a project. Used for "return to last project" on next visit. */
@@ -118,7 +129,7 @@ export function shouldRevalidate({
 export default function ProjectLayout() {
   const { projectId } = useParams();
   const breakpoint = useBreakpoint();
-  const { usageMeteringEnabled } = useLoaderData<typeof loader>();
+  const { usageMeteringEnabled, organizationId: seededOrgId } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionFetcher = useFetcher({ key: 'session-cookies' });
@@ -377,7 +388,9 @@ export default function ProjectLayout() {
             {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
           </div>
         }>
-        <Outlet />
+        <RbacProvider organizationId={seededOrgId ?? currentOrg?.name} projectId={projectId}>
+          <Outlet />
+        </RbacProvider>
       </DashboardLayout>
     </ProjectProvider>
   );
