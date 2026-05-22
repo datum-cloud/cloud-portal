@@ -66,6 +66,7 @@ export function DashboardLayout({
   switcherLoading = false,
   bottomBar,
   defaultSidebarOpen,
+  headerContent,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -86,6 +87,8 @@ export function DashboardLayout({
   bottomBar?: React.ReactNode;
   /** Initial sidebar state. Falls back to expanded on desktop, collapsed on tablet. */
   defaultSidebarOpen?: boolean;
+  /** Optional content rendered between the org/project switcher and the global search entry in the header. */
+  headerContent?: React.ReactNode;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -100,6 +103,7 @@ export function DashboardLayout({
         currentOrg={currentOrg}
         switcherLoading={switcherLoading}
         navItems={navItems}
+        headerContent={headerContent}
       />
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}

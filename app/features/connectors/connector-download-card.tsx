@@ -1,34 +1,21 @@
 import { OsIcon } from '@/components/icon/os-icon';
+import { useOs } from '@/hooks/useOs';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { CloseIcon } from '@datum-cloud/datum-ui/icons';
 import { DownloadIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
-/** Detect OS from browser for download CTA (client-only). */
-function detectBrowserOs(): 'windows' | 'macos' | 'linux' | null {
-  if (typeof navigator === 'undefined') return null;
-  const ua = navigator.userAgent.toLowerCase();
-  const platform = (
-    navigator as { userAgentData?: { platform: string } }
-  ).userAgentData?.platform?.toLowerCase();
-  // Skip mobile platforms — no connector binary available
-  if (platform === 'android' || ua.includes('android')) return null;
-  if (/iphone|ipad|ipod/.test(ua)) return null;
-  if (platform === 'macos' || ua.includes('mac')) return 'macos';
-  if (platform === 'windows' || ua.includes('win')) return 'windows';
-  if (platform === 'linux' || ua.includes('linux')) return 'linux';
-  return null;
-}
+type DesktopOs = 'windows' | 'macos' | 'linux';
+const DESKTOP_OS = new Set<DesktopOs>(['windows', 'macos', 'linux']);
 
-const OS_PATH: Record<string, string> = {
+const OS_PATH: Record<DesktopOs, string> = {
   macos: 'mac-os',
   windows: 'windows',
   linux: 'linux',
 };
 
-const OS_LABELS: Record<string, string> = {
+const OS_LABELS: Record<DesktopOs, string> = {
   macos: 'macOS',
   windows: 'Windows',
   linux: 'Linux',
@@ -39,16 +26,16 @@ type ConnectorDownloadCardProps = {
 };
 
 export function ConnectorDownloadCard({ onDismiss }: ConnectorDownloadCardProps) {
-  const [os, setOs] = useState<'windows' | 'macos' | 'linux' | null>(null);
+  const detected = useOs();
 
-  useEffect(() => {
-    setOs(detectBrowserOs());
-  }, []);
+  // No connector binary for mobile or undetermined platforms. The
+  // 'undetermined' guard also covers SSR + first-client-render, where
+  // useOs hasn't resolved yet.
+  if (!DESKTOP_OS.has(detected as DesktopOs)) return null;
+  const os = detected as DesktopOs;
 
-  if (!os) return null;
-
-  const osLabel = OS_LABELS[os] ?? os;
-  const downloadUrl = `${DATUM_DESKTOP_DOWNLOAD_URL}/${OS_PATH[os] ?? os}`;
+  const osLabel = OS_LABELS[os];
+  const downloadUrl = `${DATUM_DESKTOP_DOWNLOAD_URL}/${OS_PATH[os]}`;
 
   return (
     <Card

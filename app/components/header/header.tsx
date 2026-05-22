@@ -22,11 +22,14 @@ export const Header = ({
   currentOrg,
   switcherLoading = false,
   navItems = [],
+  headerContent,
 }: {
   currentProject?: Project;
   currentOrg?: Organization;
   switcherLoading?: boolean;
   navItems?: NavItem[];
+  /** Optional content rendered between the org/project switcher and the global search entry. */
+  headerContent?: React.ReactNode;
 }) => {
   return (
     <div className="sticky top-0 z-50 flex flex-col">
@@ -58,8 +61,9 @@ export const Header = ({
           </div>
         </div>
         {/* Right Section */}
-        <div className="border-sidebar-border flex h-full items-center justify-end border-l">
-          <div className="flex h-full items-center justify-end">
+        <div className="border-sidebar-border flex h-full items-center justify-end">
+          {headerContent}
+          <div className="flex h-full items-center justify-end border-l">
             <div className="flex h-full items-center px-4">
               <Tooltip message="Get in touch">
                 <Button
