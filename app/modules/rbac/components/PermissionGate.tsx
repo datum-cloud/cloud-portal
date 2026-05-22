@@ -1,57 +1,73 @@
-/**
- * PermissionGate Component
- * Conditionally renders children based on permission check
- */
-import { useHasPermission } from '@/modules/rbac';
-import type { IPermissionGateProps } from '@/modules/rbac';
+import { usePermission } from '../hooks/usePermission';
+import type { PermissionCheckScope, PermissionVerb } from '../types';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { cloneElement, isValidElement, type ReactNode } from 'react';
 
-/**
- * Component that conditionally renders children based on permission
- *
- * @example
- * ```tsx
- * <PermissionGate
- *   resource="workloads"
- *   verb="delete"
- *   namespace="default"
- *   fallback={<DisabledButton />}
- * >
- *   <DeleteWorkloadButton />
- * </PermissionGate>
- * ```
- */
+export type PermissionGateMode = 'hide' | 'disable' | 'fallback';
+
+export interface PermissionGateProps {
+  resource: string;
+  verb: PermissionVerb;
+  group?: string;
+  name?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  projectId?: string;
+  /** Default: 'hide' */
+  mode?: PermissionGateMode;
+  /** Tooltip text in 'disable' mode. Auto-derived if omitted. */
+  deniedReason?: string;
+  fallback?: ReactNode;
+  children: ReactNode;
+}
+
 export function PermissionGate({
   resource,
   verb,
   group = '',
-  namespace,
   name,
-  children,
+  namespace,
+  scope,
+  projectId,
+  mode = 'hide',
+  deniedReason,
   fallback = null,
-  showLoading = false,
-  loadingComponent = null,
-}: IPermissionGateProps) {
-  const { hasPermission, isLoading } = useHasPermission(resource, verb, {
-    namespace,
-    name,
+  children,
+}: PermissionGateProps) {
+  const { hasPermission, isLoading } = usePermission(resource, verb, {
     group,
+    name,
+    namespace,
+    scope,
+    projectId,
   });
 
-  // Show loading state if enabled
-  if (isLoading && showLoading) {
-    return <>{loadingComponent}</>;
-  }
-
-  // If loading and showLoading is false, hide children
-  if (isLoading) {
-    return <>{fallback}</>;
-  }
-
-  // Show children if permission is granted
   if (hasPermission) {
     return <>{children}</>;
   }
 
-  // Show fallback if permission is denied
+  if (mode === 'fallback') {
+    return <>{fallback}</>;
+  }
+
+  if (mode === 'disable') {
+    const reason = isLoading
+      ? 'Verifying permissions…'
+      : (deniedReason ?? `You don't have permission to ${verb} ${resource}`);
+    const disabledChild = isValidElement(children)
+      ? cloneElement(children as React.ReactElement<{ disabled?: boolean }>, { disabled: true })
+      : children;
+    return (
+      <Tooltip message={reason}>
+        <span
+          aria-disabled={true}
+          className="inline-block cursor-not-allowed [&>*]:pointer-events-none">
+          {disabledChild}
+        </span>
+      </Tooltip>
+    );
+  }
+
+  // 'hide'
   return <>{fallback}</>;
 }

@@ -10,6 +10,9 @@ import type { Variables } from './types';
 // Token and requestId will be auto-injected via AsyncLocalStorage
 import '@/modules/control-plane/setup.server';
 import { Logger } from '@/modules/logger';
+// Side-effect import: registers RBAC prom-client metrics into the global registry
+// at module-load time so they appear on the /metrics endpoint.
+import '@/modules/rbac/observability/metrics';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
 import { watchHub } from '@/server/watch';
@@ -19,6 +22,7 @@ import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { NONCE, secureHeaders } from 'hono/secure-headers';
+import { register } from 'prom-client';
 import { createHonoServer } from 'react-router-hono-server/bun';
 
 let isShuttingDown = false;
@@ -58,8 +62,10 @@ const app = new Hono<{ Variables: Variables }>();
 
 // Prometheus metrics (OpenTelemetry handled by observability factory)
 if (env.public.otelEnabled) {
-  // Prometheus metrics
-  const { printMetrics, registerMetrics } = prometheus();
+  // Prometheus metrics — pass prom-client's global default registry so that
+  // RBAC and any other module-level metrics (auto-registered to `register`)
+  // are serialized alongside Hono's own HTTP metrics on /metrics.
+  const { printMetrics, registerMetrics } = prometheus({ registry: register });
   // Register metrics collection middleware (before other middleware)
   // Cast needed: @hono/prometheus ships its own hono peer dep whose generics
   // differ from the app's hono version at the type level only.

@@ -4,6 +4,7 @@ import { DateTime } from '@/components/date-time';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { PermissionButton, usePermission } from '@/modules/rbac';
 import { Organization } from '@/resources/organizations';
 import {
   projectFormSchema,
@@ -13,11 +14,11 @@ import {
   projectKeys,
 } from '@/resources/projects';
 import { waitForProjectReady } from '@/resources/projects/project.watch';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -92,6 +93,11 @@ export default function OrgProjectsPage() {
   const alertSubmittedRef = useRef(false);
 
   const { mutateAsync: createProject } = useCreateProject();
+
+  const { hasPermission: canCreateProject } = usePermission('projects', 'create', {
+    group: 'resourcemanager.miloapis.com',
+    namespace: buildOrganizationNamespace(orgId),
+  });
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDialog, setOpenDialog] = useState(false);
@@ -223,7 +229,12 @@ export default function OrgProjectsPage() {
             <CardList.Header
               title="Projects"
               actions={
-                <Button
+                <PermissionButton
+                  resource="projects"
+                  verb="create"
+                  group="resourcemanager.miloapis.com"
+                  namespace={buildOrganizationNamespace(orgId)}
+                  deniedReason="You don't have permission to create projects in this organization"
                   htmlType="button"
                   onClick={() => setOpenDialog(true)}
                   type="primary"
@@ -233,7 +244,7 @@ export default function OrgProjectsPage() {
                   className="w-full sm:w-auto"
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
                   Create project
-                </Button>
+                </PermissionButton>
               }>
               <CardList.Search<Project> placeholder="Search" fields={['displayName', 'name']} />
             </CardList.Header>
@@ -268,14 +279,18 @@ export default function OrgProjectsPage() {
               }
             />
             <CardList.Empty
-              title="Let's create your first project!"
-              action={{
-                label: 'Create project',
-                onClick: () => setOpenDialog(true),
-                icon: <Icon icon={PlusIcon} className="size-4" />,
-                iconPosition: 'start',
-                variant: 'default',
-              }}
+              title={canCreateProject ? "Let's create your first project!" : 'No projects yet'}
+              action={
+                canCreateProject
+                  ? {
+                      label: 'Create project',
+                      onClick: () => setOpenDialog(true),
+                      icon: <Icon icon={PlusIcon} className="size-4" />,
+                      iconPosition: 'start',
+                      variant: 'default',
+                    }
+                  : undefined
+              }
             />
           </CardList>
         </Col>

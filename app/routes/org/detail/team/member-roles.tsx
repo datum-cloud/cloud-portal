@@ -1,4 +1,5 @@
 import { ProfileIdentity } from '@/components/profile-identity';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import type { UserRoleAssignment, PendingRemove } from '@/features/organization/team/roles';
 import {
   useRolesEditor,
@@ -8,7 +9,7 @@ import {
   AddRoleScreen,
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
-import { createRbacMiddleware, RbacService } from '@/modules/rbac';
+import { canInLoader, gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { useApp } from '@/providers/app.provider';
 import { createMemberService } from '@/resources/members';
 import type { Member } from '@/resources/members';
@@ -21,8 +22,8 @@ import {
 import { createProjectService } from '@/resources/projects';
 import { createRoleService } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { withMiddleware } from '@/utils/middlewares';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useMemo } from 'react';
 import {
@@ -46,6 +47,18 @@ export const meta: MetaFunction = mergeMeta(() => {
 const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, memberId } = params as { orgId: string; memberId: string };
 
+  // Access gate first — skip data fetching the user isn't permitted to see.
+  const canView = await gateRouteAccess(orgId, {
+    resource: 'organizationmemberships',
+    verb: 'list',
+    group: 'resourcemanager.miloapis.com',
+    namespace: buildOrganizationNamespace(orgId),
+  });
+
+  if (!canView) {
+    return data({ restricted: true as const });
+  }
+
   const [members, roles, policyBindings, projectsList, canManageRoles] = await Promise.all([
     createMemberService().list(orgId),
     createRoleService().list('datum-cloud'),
@@ -59,15 +72,12 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
       .catch(() => ({
         items: [] as Awaited<ReturnType<ReturnType<typeof createProjectService>['list']>>['items'],
       })),
-    new RbacService()
-      .checkPermission(orgId, {
-        resource: 'organizationmemberships',
-        verb: 'patch',
-        group: 'resourcemanager.miloapis.com',
-        namespace: buildOrganizationNamespace(orgId),
-      })
-      .then((r) => r.allowed && !r.denied)
-      .catch(() => false),
+    canInLoader(orgId, {
+      resource: 'organizationmemberships',
+      verb: 'patch',
+      group: 'resourcemanager.miloapis.com',
+      namespace: buildOrganizationNamespace(orgId),
+    }),
   ]);
 
   const member = members.find((m: Member) => m.name === memberId);
@@ -75,22 +85,40 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
     throw data({ message: 'Member not found' }, { status: 404 });
   }
 
-  return data({ member, roles, policyBindings, projects: projectsList.items, canManageRoles });
+  return data({
+    restricted: false as const,
+    member,
+    roles,
+    policyBindings,
+    projects: projectsList.items,
+    canManageRoles,
+  });
 };
 
-export const loader = withMiddleware(
-  _loader,
-  createRbacMiddleware({
-    resource: 'organizationmemberships',
-    verb: 'list',
-    group: 'resourcemanager.miloapis.com',
-    namespace: (params) => buildOrganizationNamespace(params.orgId),
-  })
-);
+export const loader = withLoaderErrors(_loader);
 
 export default function MemberRoles() {
-  const { member, roles, policyBindings, projects, canManageRoles } =
-    useLoaderData<typeof _loader>();
+  const loaderData = useLoaderData<typeof _loader>();
+
+  if (loaderData.restricted) {
+    return <RestrictedState message="You don't have permission to view member roles." />;
+  }
+
+  return <MemberRolesEditor {...loaderData} />;
+}
+
+type MemberRolesEditorProps = Extract<
+  Awaited<ReturnType<typeof _loader>>['data'],
+  { restricted: false }
+>;
+
+function MemberRolesEditor({
+  member,
+  roles,
+  policyBindings,
+  projects,
+  canManageRoles,
+}: MemberRolesEditorProps) {
   const { orgId } = useParams() as { orgId: string };
   const { organization } = useApp();
   const orgDisplayName = organization?.displayName ?? orgId;

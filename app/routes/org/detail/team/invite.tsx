@@ -1,6 +1,7 @@
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { createRbacMiddleware } from '@/modules/rbac';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import {
   useCreateInvitation,
   type CreateInvitationInput,
@@ -8,12 +9,19 @@ import {
 } from '@/resources/invitations';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { withMiddleware } from '@/utils/middlewares';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useCallback } from 'react';
-import { data, MetaFunction, useNavigate, useParams } from 'react-router';
+import {
+  data,
+  LoaderFunctionArgs,
+  MetaFunction,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Invite Member</span>,
@@ -23,17 +31,25 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Invite Member');
 });
 
-export const loader = withMiddleware(
-  async () => {
-    return data({});
-  },
-  createRbacMiddleware({
+export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
+  const { orgId } = params;
+  if (!orgId) {
+    throw new BadRequestError('Organization ID is required');
+  }
+
+  const canInvite = await gateRouteAccess(orgId, {
     resource: 'userinvitations',
     verb: 'create',
     group: 'iam.miloapis.com',
-    namespace: (params) => buildOrganizationNamespace(params.orgId),
-  })
-);
+    namespace: buildOrganizationNamespace(orgId),
+  });
+
+  if (!canInvite) {
+    return data({ restricted: true as const });
+  }
+
+  return data({ restricted: false as const });
+});
 
 interface InvitationResult {
   email: string;
@@ -44,6 +60,7 @@ interface InvitationResult {
 
 export default function OrgTeamInvitePage() {
   const { orgId } = useParams();
+  const { restricted } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const { trackAction } = useAnalytics();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -156,6 +173,15 @@ export default function OrgTeamInvitePage() {
     },
     [orgId, createInvitation, navigate, trackAction]
   );
+
+  if (restricted) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to invite members."
+      />
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">

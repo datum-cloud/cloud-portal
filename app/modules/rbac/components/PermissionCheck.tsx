@@ -1,82 +1,39 @@
-/**
- * PermissionCheck Component
- * Check multiple permissions with AND/OR logic
- */
-import { usePermissionCheck, combinePermissionsAND, combinePermissionsOR } from '@/modules/rbac';
-import type { IPermissionCheckProps } from '@/modules/rbac';
+import { usePermissionCheck } from '../hooks/usePermissionCheck';
+import type { PermissionCheckScope, PermissionVerb } from '../types';
+import { type ReactNode } from 'react';
+
+interface Check {
+  resource: string;
+  verb: PermissionVerb;
+  group?: string;
+  namespace?: string;
+  name?: string;
+  scope?: PermissionCheckScope;
+}
+
+interface PermissionCheckProps {
+  checks: Check[];
+  operator?: 'AND' | 'OR';
+  fallback?: ReactNode;
+  children: ReactNode;
+}
 
 /**
- * Component that checks multiple permissions and conditionally renders children
- *
- * @example
- * ```tsx
- * // Require ALL permissions (AND)
- * <PermissionCheck
- *   checks={[
- *     { resource: 'workloads', verb: 'create' },
- *     { resource: 'secrets', verb: 'list' }
- *   ]}
- *   operator="AND"
- * >
- *   <CreateWorkloadForm />
- * </PermissionCheck>
- *
- * // Require ANY permission (OR)
- * <PermissionCheck
- *   checks={[
- *     { resource: 'workloads', verb: 'update' },
- *     { resource: 'workloads', verb: 'patch' }
- *   ]}
- *   operator="OR"
- * >
- *   <EditButton />
- * </PermissionCheck>
- * ```
+ * Renders children when the AND/OR over a batch of async permission checks
+ * holds. Uses a single bulk request via {@link usePermissionCheck}.
  */
 export function PermissionCheck({
   checks,
   operator = 'AND',
-  children,
   fallback = null,
-  showLoading = false,
-  loadingComponent = null,
-}: IPermissionCheckProps) {
+  children,
+}: PermissionCheckProps) {
   const { permissions, isLoading } = usePermissionCheck(checks);
 
-  // Show loading state if enabled
-  if (isLoading && showLoading) {
-    return <>{loadingComponent}</>;
-  }
+  if (isLoading) return <>{fallback}</>;
 
-  // If loading and showLoading is false, hide children
-  if (isLoading) {
-    return <>{fallback}</>;
-  }
+  const results = checks.map((c) => permissions[`${c.resource}:${c.verb}`]?.allowed ?? false);
+  const allowed = operator === 'AND' ? results.every(Boolean) : results.some(Boolean);
 
-  // Get all permission results
-  const results = checks.map((check) => {
-    const key = `${check.resource}:${check.verb}`;
-    const permission = permissions[key];
-    return {
-      allowed: permission?.allowed || false,
-      denied: !permission?.allowed,
-    };
-  });
-
-  // Check if permissions are satisfied based on operator
-  let hasPermission = false;
-
-  if (operator === 'AND') {
-    hasPermission = combinePermissionsAND(results);
-  } else {
-    hasPermission = combinePermissionsOR(results);
-  }
-
-  // Show children if permission check passes
-  if (hasPermission) {
-    return <>{children}</>;
-  }
-
-  // Show fallback if permission check fails
-  return <>{fallback}</>;
+  return <>{allowed ? children : fallback}</>;
 }

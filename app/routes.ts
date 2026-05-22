@@ -15,7 +15,6 @@ export default [
     // Test Playground
     route('test/metrics', 'routes/test/metrics.tsx'),
     route('test/sentry', 'routes/test/sentry.tsx'),
-    route('test/permissions', 'routes/test/permissions.tsx'),
     route('test/demo', 'routes/test/demo.tsx'),
     route('test/dns-record', 'routes/test/dns-record/dns-record.tsx'),
 
@@ -233,6 +232,9 @@ export default [
   route('account-suspended', 'routes/fraud/account-suspended.tsx'),
   // Global Routes
   route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
+
+  // Error pages
+  route('error/403', 'routes/error/forbidden.tsx'),
 
   // Catch-all route for 404 errors - must be last
   route('*', 'routes/not-found.tsx'),

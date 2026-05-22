@@ -1,9 +1,12 @@
+import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { useAccessReview } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useUpdateOrganization } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 
 const schema = updateOrganizationSchema.pick({ description: true, name: true });
@@ -14,6 +17,12 @@ const schema = updateOrganizationSchema.pick({ description: true, name: true });
  */
 export const OrganizationGeneralCard = ({ organization }: { organization: Organization }) => {
   const { setOrganization } = useApp();
+
+  const { allowed: canEdit, isLoading: permLoading } = useAccessReview('organizations', 'patch', {
+    group: 'resourcemanager.miloapis.com',
+    name: organization?.name,
+    scope: 'user',
+  });
 
   const updateOrganization = useUpdateOrganization(organization?.name ?? '', {
     onSuccess: (updatedOrg) => {
@@ -31,7 +40,14 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
   });
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
+    <Card className="relative gap-0 rounded-xl py-0 shadow-none">
+      {permLoading ? (
+        <LoaderOverlay />
+      ) : (
+        !canEdit && (
+          <RestrictedOverlay message="You don't have permission to edit this organization" />
+        )
+      )}
       <CardHeader className="border-b px-5 py-4">
         <CardTitle className="text-sm font-medium">Organization Info</CardTitle>
       </CardHeader>
@@ -76,7 +92,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
                 </Form.Field>
               </div>
             </CardContent>
-            {organization && organization?.type !== 'Personal' && (
+            {organization && organization?.type !== 'Personal' && !permLoading && canEdit && (
               <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
                 <Button
                   htmlType="button"

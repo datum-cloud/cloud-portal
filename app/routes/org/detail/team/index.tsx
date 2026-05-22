@@ -1,7 +1,8 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
-import { useHasPermission } from '@/modules/rbac';
+import { PermissionButton, usePermissionCheck } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { useCancelInvitation, useResendInvitation, useInvitations } from '@/resources/invitations';
 import { useRemoveMember, useLeaveOrganization, useMembers } from '@/resources/members';
@@ -10,13 +11,12 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 // Generic interface for combined team data
 interface ITeamMember {
@@ -44,11 +44,50 @@ export default function OrgTeamPage() {
     throw new Error('Organization ID is required');
   }
 
+  const orgNamespace = buildOrganizationNamespace(orgId);
+
+  // Bulk-evaluate all team permissions in a single request.
+  const { permissions: teamPermissions, isLoading: isPermissionsLoading } = usePermissionCheck([
+    {
+      resource: 'organizationmemberships',
+      verb: 'list',
+      group: 'resourcemanager.miloapis.com',
+      namespace: orgNamespace,
+    },
+    {
+      resource: 'organizationmemberships',
+      verb: 'delete',
+      group: 'resourcemanager.miloapis.com',
+      namespace: orgNamespace,
+    },
+    {
+      resource: 'userinvitations',
+      verb: 'create',
+      group: 'iam.miloapis.com',
+      namespace: orgNamespace,
+    },
+    {
+      resource: 'userinvitations',
+      verb: 'delete',
+      group: 'iam.miloapis.com',
+      namespace: orgNamespace,
+    },
+  ]);
+
+  const canListMembers = teamPermissions['organizationmemberships:list']?.allowed ?? false;
+  const hasRemoveMemberPermission =
+    teamPermissions['organizationmemberships:delete']?.allowed ?? false;
+  const canInvite = teamPermissions['userinvitations:create']?.allowed ?? false;
+  const canCancelInvite = teamPermissions['userinvitations:delete']?.allowed ?? false;
+  const canResend = canInvite && canCancelInvite;
+
   const { data: members = [] } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
+    enabled: !!orgId && canListMembers,
   });
   const { data: invitations = [] } = useInvitations(orgId, {
     staleTime: QUERY_STALE_TIME,
+    enabled: !!orgId && canListMembers,
   });
 
   // Transform members to team members format
@@ -129,24 +168,6 @@ export default function OrgTeamPage() {
     });
     return cloned;
   }, [teamMembers, user?.email]);
-
-  const { hasPermission: hasRemoveMemberPermission } = useHasPermission(
-    'organizationmemberships',
-    'delete',
-    {
-      namespace: buildOrganizationNamespace(orgId),
-      group: 'resourcemanager.miloapis.com',
-    }
-  );
-
-  const { hasPermission: hasInviteMemberPermission } = useHasPermission(
-    'userinvitations',
-    'create',
-    {
-      namespace: buildOrganizationNamespace(orgId),
-      group: 'iam.miloapis.com',
-    }
-  );
 
   // Check if current user is the last owner
   const isLastOwner = useMemo(() => {
@@ -308,7 +329,7 @@ export default function OrgTeamPage() {
           label: 'Resend',
           display: 'inline',
           icon: <Icon icon={Redo2Icon} className="size-4" />,
-          hidden: row.type !== 'invitation' || row.invitationState !== 'Pending',
+          hidden: row.type !== 'invitation' || row.invitationState !== 'Pending' || !canResend,
           onClick: (r) => resendInvitation(r.id),
           'data-e2e': 'resend-invitation-button',
         },
@@ -319,7 +340,7 @@ export default function OrgTeamPage() {
           display: 'inline',
           variant: 'destructive' as const,
           icon: <Icon icon={TrashIcon} className="size-4" />,
-          hidden: row.type !== 'invitation',
+          hidden: row.type !== 'invitation' || !canCancelInvite,
           onClick: (r) => cancelInvitation(r),
           'data-e2e': 'cancel-invitation-button',
         },
@@ -350,6 +371,8 @@ export default function OrgTeamPage() {
   }, [
     user?.email,
     hasRemoveMemberPermission,
+    canResend,
+    canCancelInvite,
     isLastOwner,
     orgId,
     navigate,
@@ -358,6 +381,17 @@ export default function OrgTeamPage() {
     removeMember,
     leaveTeam,
   ]);
+
+  // Once the list permission resolves and the user cannot list members,
+  // show a restricted state instead of the table.
+  if (!isPermissionsLoading && !canListMembers) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view team members."
+      />
+    );
+  }
 
   return (
     <Table.Client
@@ -374,8 +408,8 @@ export default function OrgTeamPage() {
         );
       }}
       empty={{
-        title: 'invite your first team member',
-        actions: hasInviteMemberPermission
+        title: canInvite ? 'invite your first team member' : 'No team members yet',
+        actions: canInvite
           ? [
               {
                 type: 'button',
@@ -386,23 +420,21 @@ export default function OrgTeamPage() {
             ]
           : undefined,
       }}
-      actions={
-        hasInviteMemberPermission
-          ? [
-              <Link
-                key="invite"
-                to={getPathWithParams(paths.org.detail.team.invite, {
-                  orgId,
-                })}
-                className="w-full sm:w-auto">
-                <Button className="w-full" data-e2e="invite-member-button">
-                  <Icon icon={UserPlusIcon} className="size-4" />
-                  Invite Member
-                </Button>
-              </Link>,
-            ]
-          : []
-      }
+      actions={[
+        <PermissionButton
+          key="invite"
+          resource="userinvitations"
+          verb="create"
+          group="iam.miloapis.com"
+          namespace={orgNamespace}
+          deniedReason="You don't have permission to invite members"
+          className="w-full sm:w-auto"
+          data-e2e="invite-member-button"
+          onClick={() => navigate(getPathWithParams(paths.org.detail.team.invite, { orgId }))}>
+          <Icon icon={UserPlusIcon} className="size-4" />
+          Invite Member
+        </PermissionButton>,
+      ]}
     />
   );
 }

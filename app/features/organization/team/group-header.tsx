@@ -1,6 +1,6 @@
 import { ManageMembersDialog } from './manage-members-dialog';
 import { AvatarStack } from '@/components/avatar-stack';
-import { useHasPermission } from '@/modules/rbac';
+import { PermissionButton } from '@/modules/rbac';
 import { useGroupMemberships } from '@/resources/group-memberships';
 import type { Group } from '@/resources/groups';
 import { useMembers, type Member } from '@/resources/members';
@@ -18,11 +18,6 @@ interface GroupHeaderProps {
 
 export function GroupHeader({ group, orgId }: GroupHeaderProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  const { hasPermission: canManageMembers } = useHasPermission('groupmemberships', 'create', {
-    namespace: buildOrganizationNamespace(orgId),
-    group: 'iam.miloapis.com',
-  });
 
   const { data: memberships = [] } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
@@ -64,17 +59,19 @@ export function GroupHeader({ group, orgId }: GroupHeaderProps) {
                 <AvatarStack items={avatarItems} max={4} size="xs" />
               </>
             )}
-            {canManageMembers && (
-              <>
-                <span className="bg-border inline-block size-1 rounded-full" />
-                <button
-                  type="button"
-                  onClick={() => setDialogOpen(true)}
-                  className="text-primary font-medium hover:underline">
-                  Manage Members
-                </button>
-              </>
-            )}
+            <span className="bg-border inline-block size-1 rounded-full" />
+            <PermissionButton
+              resource="groupmemberships"
+              verb="create"
+              group="iam.miloapis.com"
+              namespace={buildOrganizationNamespace(orgId)}
+              deniedReason="You don't have permission to manage group members"
+              type="primary"
+              theme="link"
+              size="xs"
+              onClick={() => setDialogOpen(true)}>
+              Manage Members
+            </PermissionButton>
           </div>
         </div>
       </div>
