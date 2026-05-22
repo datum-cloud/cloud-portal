@@ -1,6 +1,6 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { QuotasTable } from '@/features/quotas/quotas-table';
-import { canInLoader } from '@/modules/rbac/server/check-permission';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import { buildOrganizationNamespace } from '@/utils/common';
@@ -14,7 +14,7 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
     throw new BadRequestError('Organization ID is required');
   }
 
-  const canView = await canInLoader(orgId, {
+  const canView = await gateRouteAccess(orgId, {
     resource: 'allowancebuckets',
     verb: 'list',
     group: 'quota.miloapis.com',

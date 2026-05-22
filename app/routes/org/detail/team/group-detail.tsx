@@ -10,7 +10,7 @@ import {
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
 import { logger } from '@/modules/logger';
-import { canInLoader } from '@/modules/rbac/server/check-permission';
+import { canInLoader, gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { useApp } from '@/providers/app.provider';
 import { createGroupService } from '@/resources/groups';
 import {
@@ -41,7 +41,7 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, groupId } = params as { orgId: string; groupId: string };
 
   // Access gate first — skip data fetching the user isn't permitted to see.
-  const canView = await canInLoader(orgId, {
+  const canView = await gateRouteAccess(orgId, {
     resource: 'policybindings',
     verb: 'list',
     group: 'iam.miloapis.com',

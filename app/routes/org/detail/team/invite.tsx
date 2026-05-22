@@ -1,7 +1,7 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { canInLoader } from '@/modules/rbac/server/check-permission';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import {
   useCreateInvitation,
   type CreateInvitationInput,
@@ -37,7 +37,7 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
     throw new BadRequestError('Organization ID is required');
   }
 
-  const canInvite = await canInLoader(orgId, {
+  const canInvite = await gateRouteAccess(orgId, {
     resource: 'userinvitations',
     verb: 'create',
     group: 'iam.miloapis.com',

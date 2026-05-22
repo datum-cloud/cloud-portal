@@ -1,3 +1,4 @@
+import { recordDenial } from '../observability/metrics';
 import { RbacService } from './rbac.service';
 import type { SupportedVerb } from '@/resources/access-review';
 
@@ -26,4 +27,20 @@ export async function canInLoader(
     .checkPermission(organizationId, check)
     .then((r) => r.allowed && !r.denied)
     .catch(() => false);
+}
+
+/**
+ * Route-access gate for SSR loaders. Same as canInLoader, but records a
+ * denial metric/audit when access is refused. Use ONLY for gating route
+ * access (not for capability flags like canManageRoles).
+ */
+export async function gateRouteAccess(
+  organizationId: string,
+  check: LoaderPermissionCheck
+): Promise<boolean> {
+  const allowed = await canInLoader(organizationId, check);
+  if (!allowed) {
+    recordDenial(check.resource, check.verb);
+  }
+  return allowed;
 }

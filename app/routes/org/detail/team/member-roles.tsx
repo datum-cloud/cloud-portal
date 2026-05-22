@@ -9,7 +9,7 @@ import {
   AddRoleScreen,
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
-import { canInLoader } from '@/modules/rbac/server/check-permission';
+import { canInLoader, gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { useApp } from '@/providers/app.provider';
 import { createMemberService } from '@/resources/members';
 import type { Member } from '@/resources/members';
@@ -48,7 +48,7 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId, memberId } = params as { orgId: string; memberId: string };
 
   // Access gate first — skip data fetching the user isn't permitted to see.
-  const canView = await canInLoader(orgId, {
+  const canView = await gateRouteAccess(orgId, {
     resource: 'organizationmemberships',
     verb: 'list',
     group: 'resourcemanager.miloapis.com',
