@@ -1,3 +1,4 @@
+import { fixupPluginRules } from '@eslint/compat';
 import prettierConfig from './prettier.config.mjs';
 import eslintPluginJsxA11y from 'eslint-plugin-jsx-a11y';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
@@ -7,6 +8,10 @@ import unusedImports from 'eslint-plugin-unused-imports';
 import tseslint from 'typescript-eslint';
 
 export default [
+  // Global ignores (must be separate config object)
+  {
+    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/client.gen.ts'],
+  },
   {
     files: ['**/*.ts', '**/*.tsx'],
     ignores: [
@@ -30,10 +35,9 @@ export default [
     },
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      react: eslintPluginReact,
-      'react-hooks': eslintPluginReactHooks,
-      // import: eslintPluginImport,
-      'jsx-a11y': eslintPluginJsxA11y,
+      react: fixupPluginRules(eslintPluginReact),
+      'react-hooks': fixupPluginRules(eslintPluginReactHooks),
+      'jsx-a11y': fixupPluginRules(eslintPluginJsxA11y),
       prettier: eslintPluginPrettier,
       'unused-imports': unusedImports,
     },
@@ -44,14 +48,15 @@ export default [
       ...eslintPluginPrettier.configs.recommended.rules,
       'prettier/prettier': ['error', prettierConfig],
       'react/react-in-jsx-scope': 'off',
-      // 'import/order': [
-      //   'warn',
-      //   {
-      //     groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index'],
-      //     'newlines-between': 'never',
-      //   },
-      // ],
       'react-hooks/exhaustive-deps': 'off',
+
+      // Disable React Compiler rules (React 19) - not using React Compiler yet
+      'react-hooks/preserve-manual-memoization': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/incompatible-library': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/purity': 'off',
 
       'no-unused-vars': 'off', // or "@typescript-eslint/no-unused-vars": "off",
       'unused-imports/no-unused-imports': 'error',
