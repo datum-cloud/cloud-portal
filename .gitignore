@@ -28,4 +28,5 @@ cypress/results
 
 # Playwright MCP
 .playwright-mcp/
-config.bat
+.env
+.env.local
