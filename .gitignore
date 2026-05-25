@@ -11,4 +11,5 @@ node_modules
 cypress/screenshots
 cypress/videos
 cypress/results
-config.bat
+.env
+.env.local
