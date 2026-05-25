@@ -94,10 +94,8 @@ export const HttpProxyConfigCard = ({
           <div className="flex items-center gap-1.5">
             <span className="text-sm">{proxy.chosenName || proxy.name}</span>
             {projectId &&
-              renderEditButton(
-                canEdit,
-                "You don't have permission to edit this AI Edge",
-                () => displayNameDialogRef.current?.show(proxy)
+              renderEditButton(canEdit, "You don't have permission to edit this AI Edge", () =>
+                displayNameDialogRef.current?.show(proxy)
               )}
           </div>
         ),
@@ -115,10 +113,8 @@ export const HttpProxyConfigCard = ({
               </span>
             )}
             {projectId &&
-              renderEditButton(
-                canEdit,
-                "You don't have permission to edit this AI Edge",
-                () => hostHeaderDialogRef.current?.show(proxy)
+              renderEditButton(canEdit, "You don't have permission to edit this AI Edge", () =>
+                hostHeaderDialogRef.current?.show(proxy)
               )}
           </div>
         ),
@@ -251,16 +247,13 @@ export const HttpProxyConfigCard = ({
                   : 'Disabled'}
               </Badge>
               {projectId &&
-                renderEditButton(
-                  canEdit,
-                  "You don't have permission to edit this AI Edge",
-                  () => basicAuthDialogRef.current?.show(proxy)
+                renderEditButton(canEdit, "You don't have permission to edit this AI Edge", () =>
+                  basicAuthDialogRef.current?.show(proxy)
                 )}
             </div>
           ),
       },
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [proxy, projectId, updateMutation, canEdit, canEditWaf]);
 
   const connectorBlock = useMemo(() => {
