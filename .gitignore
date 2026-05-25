@@ -17,4 +17,5 @@ docs/plans/
 
 # OpenAPI generation temp files
 temp-openapi-spec.json
-config.bat
+.env
+.env.local
