@@ -6,4 +6,5 @@ node_modules
 .react-router/
 
 openapi-ts.config.ts
-config.bat
+.env
+.env.local
