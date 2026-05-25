@@ -1,8 +1,8 @@
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
+import { PermissionButton } from '@/modules/rbac';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Trash2Icon } from 'lucide-react';
@@ -41,7 +41,13 @@ export function ProxyHeaderActions({ projectId, proxy }: ProxyHeaderActionsProps
 
   return (
     <div className="flex w-full items-center gap-2 sm:w-auto">
-      <Button
+      <PermissionButton
+        resource="httpproxies"
+        verb="delete"
+        group="networking.datumapis.com"
+        namespace="default"
+        scope="project"
+        deniedReason="You don't have permission to delete this AI Edge"
         type="danger"
         theme="outline"
         size="small"
@@ -50,7 +56,7 @@ export function ProxyHeaderActions({ projectId, proxy }: ProxyHeaderActionsProps
         aria-label="Delete AI Edge">
         <Icon icon={Trash2Icon} size={14} />
         <span className="hidden sm:inline">Delete</span>
-      </Button>
+      </PermissionButton>
     </div>
   );
 }
