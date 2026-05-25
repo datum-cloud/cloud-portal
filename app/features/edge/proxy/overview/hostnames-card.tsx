@@ -1,6 +1,7 @@
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { PermissionButton } from '@/modules/rbac';
 import {
   type HttpProxy,
   getCertificateReadyCondition,
@@ -53,7 +54,13 @@ export const HttpProxyHostnamesCard = ({
         <div className="flex items-center gap-2.5">
           <Icon icon={GlobeIcon} size={20} className="text-secondary stroke-2" />
           <span className="text-base font-semibold">Custom Hostnames</span>
-          <Button
+          <PermissionButton
+            resource="httpproxies"
+            verb="patch"
+            group="networking.datumapis.com"
+            namespace="default"
+            scope="project"
+            deniedReason="You don't have permission to edit this AI Edge"
             type="primary"
             theme="solid"
             size="xs"
@@ -66,7 +73,7 @@ export const HttpProxyHostnamesCard = ({
             disabled={disabled}>
             <Icon icon={PencilIcon} size={12} />
             Edit hostnames
-          </Button>
+          </PermissionButton>
         </div>
 
         {proxy?.tlsHostname && (

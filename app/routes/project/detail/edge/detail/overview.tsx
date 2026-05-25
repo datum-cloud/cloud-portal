@@ -1,4 +1,5 @@
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { HttpProxyEdgeRequests } from '@/features/edge/proxy/metrics/edge-requests';
 import { HttpProxyWafEvents } from '@/features/edge/proxy/metrics/waf-events';
@@ -8,6 +9,7 @@ import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-car
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { MetricsProvider } from '@/modules/metrics';
+import { usePermission } from '@/modules/rbac';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -16,6 +18,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ChartSplineIcon } from 'lucide-react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
@@ -32,6 +35,12 @@ export default function HttpProxyOverviewPage() {
   });
 
   useHttpProxyWatch(projectId ?? '', proxyId ?? '');
+
+  const { hasPermission: canDelete, isLoading: deleteLoading } = usePermission(
+    'httpproxies',
+    'delete',
+    { group: 'networking.datumapis.com', namespace: 'default', scope: 'project' }
+  );
 
   const effectiveProxy = httpProxy ?? loaderData;
 
@@ -93,7 +102,15 @@ export default function HttpProxyOverviewPage() {
             loading={isDeleting}
             onDelete={() => confirmDelete(effectiveProxy)}
             data-e2e="delete-ai-edge-button"
-          />
+            actionHidden={deleteLoading || !canDelete}>
+            {deleteLoading ? (
+              <LoaderOverlay />
+            ) : (
+              !canDelete && (
+                <RestrictedOverlay message="You don't have permission to delete this AI Edge" />
+              )
+            )}
+          </DangerCard>
         </Col>
       </Row>
     </MetricsProvider>

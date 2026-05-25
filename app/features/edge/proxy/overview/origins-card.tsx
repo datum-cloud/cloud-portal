@@ -3,6 +3,7 @@ import {
   type ProxyOriginsDialogRef,
 } from '@/features/edge/proxy/proxy-origins-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { PermissionButton } from '@/modules/rbac';
 import { type HttpProxy } from '@/resources/http-proxies';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -39,7 +40,13 @@ export const HttpProxyOriginsCard = ({
           <Icon icon={ServerIcon} size={20} className="text-secondary stroke-2" />
           <span className="text-base font-semibold">Origin</span>
           {proxy && projectId && (
-            <Button
+            <PermissionButton
+              resource="httpproxies"
+              verb="patch"
+              group="networking.datumapis.com"
+              namespace="default"
+              scope="project"
+              deniedReason="You don't have permission to edit this AI Edge"
               type="primary"
               theme="solid"
               size="xs"
@@ -47,7 +54,7 @@ export const HttpProxyOriginsCard = ({
               onClick={() => originsDialogRef.current?.show(proxy)}>
               <Icon icon={PencilIcon} size={12} />
               Edit origin
-            </Button>
+            </PermissionButton>
           )}
         </div>
         {origins.length > 0 ? (
