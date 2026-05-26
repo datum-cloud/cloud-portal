@@ -33,15 +33,15 @@ export function getInitials(name: string): string {
 }
 
 /**
- * Converts a string to title case, handling camelCase and snake_case
+ * Converts a string to title case, handling camelCase, snake_case, and kebab-case
  * Useful for displaying formatted labels from code identifiers
  * @param str - The string to convert to title case
  * @returns Formatted string in title case with spaces between words
  */
 export function toTitleCase(str: string): string {
-  // Handle camelCase and snake_case by splitting on capitals and underscores
+  // Handle camelCase, snake_case, and kebab-case by splitting on capitals, underscores, and dashes
   return str
-    .split(/(?=[A-Z])|_/)
+    .split(/(?=[A-Z])|[_-]/)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 }

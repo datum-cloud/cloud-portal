@@ -1,3 +1,4 @@
+import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
@@ -10,6 +11,7 @@ import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { toTitleCase } from '@/utils/helpers/text.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -321,6 +323,18 @@ export default function OrgTeamPage() {
             </div>
           );
         },
+      },
+      {
+        header: 'Roles',
+        accessorKey: 'roles',
+        cell: ({ row }) =>
+          (row.original.roles ?? [])?.length > 0 ? (
+            <ChipsOverflow
+              items={(row.original.roles ?? [])?.map((role) => toTitleCase(role.name))}
+              maxVisible={2}
+              theme="outline"
+            />
+          ) : null,
       },
       createActionsColumn<ITeamMember>((row) => [
         // Resend invitation (for pending invites only)
