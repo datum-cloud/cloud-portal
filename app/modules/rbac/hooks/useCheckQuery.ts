@@ -17,6 +17,10 @@ export interface CheckQueryParams {
   /** Override the organization id from context. */
   organizationId?: string;
   enabled?: boolean;
+  /** Override the default staleTime (ms). Pass 0 to always treat as stale. */
+  staleTime?: number;
+  /** Override refetch-on-mount. Use 'always' to re-validate gates on every mount. */
+  refetchOnMount?: boolean | 'always';
 }
 
 /**
@@ -26,7 +30,17 @@ export interface CheckQueryParams {
  */
 export function useCheckQuery(params: CheckQueryParams) {
   const ctx = usePermissions();
-  const { resource, verb, group = '', namespace, name, scope, enabled = true } = params;
+  const {
+    resource,
+    verb,
+    group = '',
+    namespace,
+    name,
+    scope,
+    enabled = true,
+    staleTime = STALE_TIME,
+    refetchOnMount,
+  } = params;
 
   const organizationId = params.organizationId ?? ctx.organizationId;
   const projectId = params.projectId ?? ctx.projectId;
@@ -59,7 +73,8 @@ export function useCheckQuery(params: CheckQueryParams) {
       });
     },
     enabled: enabled && !!organizationId,
-    staleTime: STALE_TIME,
+    staleTime,
+    refetchOnMount,
     retry: 1,
   });
 

@@ -10,7 +10,12 @@ import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { MetricsProvider } from '@/modules/metrics';
 import { usePermission } from '@/modules/rbac';
-import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
+import {
+  type HttpProxy,
+  useHttpProxy,
+  useHttpProxyWatch,
+  useTrafficProtectionPolicy,
+} from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { NotFoundError } from '@/utils/errors';
@@ -21,6 +26,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ChartSplineIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
 export default function HttpProxyOverviewPage() {
@@ -42,7 +48,47 @@ export default function HttpProxyOverviewPage() {
     { group: 'networking.datumapis.com', namespace: 'default', scope: 'project' }
   );
 
-  const effectiveProxy = httpProxy ?? loaderData;
+  // WAF view permission is re-validated on every mount (staleTime 0) so the gate
+  // never renders from a stale cached result.
+  const {
+    hasPermission: canViewWaf,
+    isLoading: wafPermLoading,
+    isFetching: wafPermFetching,
+  } = usePermission('trafficprotectionpolicies', 'get', {
+    group: 'networking.datumapis.com',
+    namespace: 'default',
+    scope: 'project',
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
+
+  // WAF is fetched separately and only when viewable, then merged onto the proxy
+  // so child cards/metrics keep reading `trafficProtectionMode` unchanged.
+  const {
+    data: waf,
+    isError: wafError,
+    isLoading: wafDataLoading,
+    isFetching: wafDataFetching,
+  } = useTrafficProtectionPolicy(projectId ?? '', proxyId ?? '', {
+    staleTime: 0,
+    refetchOnMount: 'always',
+    enabled: canViewWaf,
+    retry: false,
+  });
+
+  // Still resolving permission or WAF data (including mount re-validation) — let
+  // the card show a skeleton instead of a possibly-stale verdict.
+  const wafPending =
+    wafPermLoading || wafPermFetching || (canViewWaf && (wafDataLoading || wafDataFetching));
+
+  const baseProxy = httpProxy ?? loaderData;
+  const effectiveProxy = useMemo<HttpProxy | undefined>(
+    () =>
+      baseProxy
+        ? { ...baseProxy, trafficProtectionMode: waf?.mode, paranoiaLevels: waf?.paranoiaLevels }
+        : baseProxy,
+    [baseProxy, waf]
+  );
 
   const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId ?? '', {
     onSuccess: () => {
@@ -62,7 +108,12 @@ export default function HttpProxyOverviewPage() {
           <HttpProxyGeneralCard proxy={effectiveProxy} />
         </Col>
         <Col span={24} lg={12}>
-          <HttpProxyConfigCard proxy={effectiveProxy} projectId={projectId} />
+          <HttpProxyConfigCard
+            proxy={effectiveProxy}
+            projectId={projectId}
+            canViewWaf={canViewWaf && !wafError}
+            wafPending={wafPending}
+          />
         </Col>
         <Col span={24} lg={12}>
           <HttpProxyHostnamesCard proxy={effectiveProxy} projectId={projectId} />

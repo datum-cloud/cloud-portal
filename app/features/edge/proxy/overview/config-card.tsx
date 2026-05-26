@@ -37,9 +37,13 @@ import { useMemo, useRef } from 'react';
 export const HttpProxyConfigCard = ({
   proxy,
   projectId,
+  canViewWaf = true,
+  wafPending = false,
 }: {
   proxy: HttpProxy;
   projectId?: string;
+  canViewWaf?: boolean;
+  wafPending?: boolean;
 }) => {
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
@@ -135,34 +139,40 @@ export const HttpProxyConfigCard = ({
             </Tooltip>
           </div>
         ),
-        content:
-          proxy.trafficProtectionMode !== 'Disabled' ||
+        content: wafPending ? (
+          <Skeleton className="h-6 w-24 rounded-xl" />
+        ) : !canViewWaf ? (
+          <Tooltip message="You don't have permission to view WAF protection" side="bottom">
+            <Badge
+              type="quaternary"
+              theme="outline"
+              className="text-muted-foreground rounded-xl text-xs font-normal">
+              &mdash;
+            </Badge>
+          </Tooltip>
+        ) : proxy.trafficProtectionMode !== 'Disabled' ||
           proxy.paranoiaLevels?.blocking !== undefined ||
           proxy.paranoiaLevels?.detection !== undefined ? (
-            <div className="flex items-center gap-1.5">
-              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-                {formatWafProtectionDisplay(proxy)}
-              </Badge>
-              {projectId &&
-                renderEditButton(
-                  canEditWaf,
-                  "You don't have permission to edit WAF protection",
-                  () => wafDialogRef.current?.show(proxy)
-                )}
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-                Disabled
-              </Badge>
-              {projectId &&
-                renderEditButton(
-                  canEditWaf,
-                  "You don't have permission to edit WAF protection",
-                  () => wafDialogRef.current?.show(proxy)
-                )}
-            </div>
-          ),
+          <div className="flex items-center gap-1.5">
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+              {formatWafProtectionDisplay(proxy)}
+            </Badge>
+            {projectId &&
+              renderEditButton(canEditWaf, "You don't have permission to edit WAF protection", () =>
+                wafDialogRef.current?.show(proxy)
+              )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+              Disabled
+            </Badge>
+            {projectId &&
+              renderEditButton(canEditWaf, "You don't have permission to edit WAF protection", () =>
+                wafDialogRef.current?.show(proxy)
+              )}
+          </div>
+        ),
       },
       {
         label: (
@@ -254,7 +264,7 @@ export const HttpProxyConfigCard = ({
           ),
       },
     ];
-  }, [proxy, projectId, updateMutation, canEdit, canEditWaf]);
+  }, [proxy, projectId, updateMutation, canEdit, canEditWaf, canViewWaf, wafPending]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy.connector) return null;

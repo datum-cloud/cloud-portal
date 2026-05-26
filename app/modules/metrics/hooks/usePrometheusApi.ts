@@ -128,7 +128,11 @@ export function usePrometheusAPIQuery<T>(
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
     retry: (failureCount: number, error: PrometheusError) => {
-      if (error.type === 'query') return false;
+      // Permission/auth failures (403/401) and malformed queries won't change on
+      // retry — fail fast instead of hammering the telemetry endpoint.
+      if (error.type === 'query' || error.statusCode === 403 || error.statusCode === 401) {
+        return false;
+      }
       return failureCount < 3;
     },
     retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),

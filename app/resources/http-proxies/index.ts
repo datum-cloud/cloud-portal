@@ -34,13 +34,21 @@ export {
 } from './http-proxy.adapter';
 
 // Service exports
-export { createHttpProxyService, httpProxyKeys, type HttpProxyService } from './http-proxy.service';
+export {
+  createHttpProxyService,
+  httpProxyKeys,
+  type HttpProxyService,
+  type TrafficProtectionView,
+  type TrafficProtectionMaps,
+} from './http-proxy.service';
 
 // Query hooks exports
 export {
   useHttpProxies,
   useHttpProxiesByConnector,
   useHttpProxy,
+  useTrafficProtectionPolicies,
+  useTrafficProtectionPolicy,
   useCreateHttpProxy,
   useUpdateHttpProxy,
   useDeleteHttpProxy,

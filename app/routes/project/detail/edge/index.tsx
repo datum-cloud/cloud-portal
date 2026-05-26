@@ -9,12 +9,13 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
-import { usePermissionCheck, PermissionButton } from '@/modules/rbac';
+import { usePermissionCheck, usePermission, PermissionButton } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
   useHttpProxies,
   useHttpProxiesWatch,
+  useTrafficProtectionPolicies,
   formatWafProtectionDisplay,
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
@@ -26,7 +27,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
@@ -69,9 +70,29 @@ export default function HttpProxyPage() {
       scope: 'project',
     },
   ]);
-  const canList = permissions['httpproxies:list']?.allowed ?? false;
-  const canCreate = permissions['httpproxies:create']?.allowed ?? false;
-  const canDelete = permissions['httpproxies:delete']?.allowed ?? false;
+  const { canList, canCreate, canDelete } = useMemo(
+    () => ({
+      canList: permissions['httpproxies:list']?.allowed ?? false,
+      canCreate: permissions['httpproxies:create']?.allowed ?? false,
+      canDelete: permissions['httpproxies:delete']?.allowed ?? false,
+    }),
+    [permissions]
+  );
+
+  // WAF view permission is checked on its own and re-validated on every mount
+  // (staleTime 0) so the gate never renders a verdict from a stale cached result.
+  const {
+    hasPermission: canViewWaf,
+    isLoading: wafPermLoading,
+    isFetching: wafPermFetching,
+  } = usePermission('trafficprotectionpolicies', 'list', {
+    group: 'networking.datumapis.com',
+    namespace: 'default',
+    scope: 'project',
+    enabled: canList,
+    staleTime: 0,
+    refetchOnMount: 'always',
+  });
 
   useHttpProxiesWatch(projectId, { enabled: canList });
 
@@ -80,6 +101,26 @@ export default function HttpProxyPage() {
     staleTime: QUERY_STALE_TIME,
     enabled: canList,
   });
+
+  // WAF modes are fetched separately, only when viewable, and re-validated on
+  // mount so a stale cached map can't drive a wrong "Disabled".
+  const {
+    data: wafMaps,
+    isError: wafError,
+    isLoading: wafLoading,
+    isFetching: wafFetching,
+  } = useTrafficProtectionPolicies(projectId, {
+    staleTime: 0,
+    refetchOnMount: 'always',
+    enabled: canList && canViewWaf,
+    retry: false,
+  });
+  // While the permission check or the WAF fetch is in flight (including mount
+  // re-validation) we don't yet know the verdict — show a spinner instead of
+  // guessing. Only treat "Disabled" as trustworthy once WAF data has loaded.
+  const wafPending =
+    wafPermLoading || wafPermFetching || (canViewWaf && (wafLoading || wafFetching));
+  const wafReady = canViewWaf && !wafError && !wafLoading && !!wafMaps;
 
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
 
@@ -206,12 +247,49 @@ export default function HttpProxyPage() {
         accessorKey: 'trafficProtectionMode',
         meta: { tooltip: 'What level of WAF protection is applied to this Edge' },
         cell: ({ row }) => {
+          // Still resolving permissions or WAF data — show a spinner, not a verdict.
+          if (wafPending) {
+            return (
+              <div className="flex items-center px-1">
+                <SpinnerIcon size="sm" />
+              </div>
+            );
+          }
+          if (!canViewWaf) {
+            return (
+              <Tooltip message="You don't have permission to view WAF protection">
+                <Badge
+                  type="quaternary"
+                  theme="outline"
+                  className="text-muted-foreground rounded-xl text-xs font-normal">
+                  &mdash;
+                </Badge>
+              </Tooltip>
+            );
+          }
+          // WAF fetch failed — don't imply "Disabled".
+          if (!wafReady) {
+            return (
+              <Badge
+                type="quaternary"
+                theme="outline"
+                className="text-muted-foreground rounded-xl text-xs font-normal">
+                &mdash;
+              </Badge>
+            );
+          }
+          const name = row.original.name;
+          const proxyWithWaf: HttpProxy = {
+            ...row.original,
+            trafficProtectionMode: wafMaps.modeByName.get(name),
+            paranoiaLevels: wafMaps.paranoiaByName.get(name),
+          };
           return (
             <Badge
               type="quaternary"
               theme="outline"
               className="rounded-xl text-xs font-normal capitalize">
-              {formatWafProtectionDisplay(row.original)}
+              {formatWafProtectionDisplay(proxyWithWaf)}
             </Badge>
           );
         },
@@ -244,7 +322,7 @@ export default function HttpProxyPage() {
         },
       ]),
     ],
-    [projectId, navigate, confirmDelete, canDelete]
+    [projectId, navigate, confirmDelete, canDelete, canViewWaf, wafPending, wafReady, wafMaps]
   );
 
   if (!permLoading && !canList) {

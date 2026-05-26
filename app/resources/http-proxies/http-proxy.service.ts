@@ -49,7 +49,23 @@ export const httpProxyKeys = {
   details: () => [...httpProxyKeys.all, 'detail'] as const,
   detail: (projectId: string, name: string) =>
     [...httpProxyKeys.details(), projectId, name] as const,
+  // WAF (TrafficProtectionPolicy) is fetched separately from the proxy so the
+  // request can be gated behind `trafficprotectionpolicies` view permission.
+  waf: () => [...httpProxyKeys.all, 'waf'] as const,
+  wafList: (projectId: string) => [...httpProxyKeys.waf(), 'list', projectId] as const,
+  wafDetail: (projectId: string, name: string) =>
+    [...httpProxyKeys.waf(), 'detail', projectId, name] as const,
 };
+
+/** WAF (TrafficProtectionPolicy) view data, keyed by proxy name for list merges. */
+export interface TrafficProtectionView {
+  mode?: TrafficProtectionMode;
+  paranoiaLevels?: { blocking?: number; detection?: number };
+}
+export interface TrafficProtectionMaps {
+  modeByName: Map<string, TrafficProtectionMode>;
+  paranoiaByName: Map<string, { blocking?: number; detection?: number }>;
+}
 
 const SERVICE_NAME = 'HttpProxyService';
 
@@ -93,15 +109,15 @@ export function createHttpProxyService() {
       const baseURL = getProjectScopedBase(projectId);
       const path = { namespace: 'default' as const };
 
-      const [proxyResponse, policyResponse, securityPoliciesResponse] = await Promise.all([
+      // WAF (TrafficProtectionPolicy) is intentionally NOT fetched here — it is
+      // loaded by a separate permission-gated query (listTrafficProtectionPolicies)
+      // so users without trafficprotectionpolicies access never trigger that request.
+      const [proxyResponse, securityPoliciesResponse] = await Promise.all([
         listNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path, query }),
-        listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({ baseURL, path }),
         this.listSecurityPolicies(baseURL, 'default').catch(() => ({ data: null })),
       ]);
 
       const proxyData = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxyList;
-      const modeMap = toTrafficProtectionModeMap(policyResponse.data);
-      const paranoiaLevelsMap = toParanoiaLevelsMap(policyResponse.data);
 
       const basicAuthByName = new Map<
         string,
@@ -117,10 +133,63 @@ export function createHttpProxyService() {
       }
 
       return toHttpProxyList(proxyData?.items ?? [], undefined, {
-        trafficProtectionModeByName: modeMap,
-        paranoiaLevelsByName: paranoiaLevelsMap,
         basicAuthByName,
       }).items;
+    },
+
+    /**
+     * List WAF (TrafficProtectionPolicy) modes for a project, keyed by proxy name.
+     * Decoupled from the proxy list so it can be gated behind view permission.
+     * Errors are surfaced (not swallowed) so callers can distinguish "couldn't
+     * read WAF" (show "—") from "no WAF policy" (show "Disabled"). The decoupled
+     * query isolates this failure from the proxy list.
+     */
+    async listTrafficProtectionPolicies(projectId: string): Promise<TrafficProtectionMaps> {
+      try {
+        const baseURL = getProjectScopedBase(projectId);
+        const response = await listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+          baseURL,
+          path: { namespace: 'default' },
+        });
+        const list = response.data;
+        return {
+          modeByName: toTrafficProtectionModeMap(list),
+          paranoiaByName: toParanoiaLevelsMap(list),
+        };
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.listTrafficProtectionPolicies failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    /**
+     * Read a single proxy's WAF (TrafficProtectionPolicy) view. Decoupled from the
+     * proxy fetch so it can be gated behind view permission. A genuine 404 (no
+     * policy) resolves to an empty view; other errors are surfaced so callers can
+     * distinguish "couldn't read WAF" (show "—") from "no WAF policy" ("Disabled").
+     */
+    async getTrafficProtectionPolicy(
+      projectId: string,
+      name: string
+    ): Promise<TrafficProtectionView> {
+      try {
+        const baseURL = getProjectScopedBase(projectId);
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+          baseURL,
+          path: { namespace: 'default', name },
+        });
+        return {
+          mode: getTrafficProtectionMode(response.data),
+          paranoiaLevels: getParanoiaLevels(response.data),
+        };
+      } catch (error) {
+        // No policy for this proxy is a normal "WAF disabled" state, not an error.
+        if (this.getErrorStatus(error) === 404) {
+          return { mode: undefined, paranoiaLevels: undefined };
+        }
+        logger.error(`${SERVICE_NAME}.getTrafficProtectionPolicy failed`, error as Error);
+        throw mapApiError(error);
+      }
     },
 
     async createTrafficProtectionPolicy(
@@ -414,16 +483,13 @@ export function createHttpProxyService() {
       const baseURL = getProjectScopedBase(projectId);
       const path = { namespace: 'default' as const, name };
 
-      const [proxyResponse, policyResponse, securityPolicyResponse, secretResponse] =
-        await Promise.all([
-          readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path }),
-          readNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
-            baseURL,
-            path,
-          }).catch(() => ({ data: null })),
-          this.readSecurityPolicy(baseURL, 'default', name).catch(() => ({ data: null })),
-          this.readBasicAuthSecret(baseURL, 'default', name).catch(() => ({ data: null })),
-        ]);
+      // WAF (TrafficProtectionPolicy) is intentionally NOT fetched here — it is
+      // loaded by a separate permission-gated query (getTrafficProtectionPolicy).
+      const [proxyResponse, securityPolicyResponse, secretResponse] = await Promise.all([
+        readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path }),
+        this.readSecurityPolicy(baseURL, 'default', name).catch(() => ({ data: null })),
+        this.readBasicAuthSecret(baseURL, 'default', name).catch(() => ({ data: null })),
+      ]);
 
       const data = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
@@ -431,11 +497,9 @@ export function createHttpProxyService() {
         throw new NotFoundError('AI Edge', name);
       }
 
-      const wafMode = getTrafficProtectionMode(policyResponse.data);
-      const paranoiaLevels = getParanoiaLevels(policyResponse.data);
       const usernames = parseHtpasswdUsernames(secretResponse.data);
       const basicAuth = getBasicAuthState(securityPolicyResponse.data, usernames);
-      return toHttpProxy(data, { trafficProtectionMode: wafMode, paranoiaLevels, basicAuth });
+      return toHttpProxy(data, { basicAuth });
     },
 
     /**

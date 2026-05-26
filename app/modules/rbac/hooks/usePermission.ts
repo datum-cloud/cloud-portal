@@ -12,11 +12,16 @@ export interface UsePermissionOptions {
    * Enable/disable the query. Default: true.
    */
   enabled?: boolean;
+  /** Override the default staleTime (ms). Pass 0 to always treat as stale. */
+  staleTime?: number;
+  /** Override refetch-on-mount. Use 'always' to re-validate the gate on every mount. */
+  refetchOnMount?: boolean | 'always';
 }
 
 export interface UsePermissionResult {
   hasPermission: boolean;
   isLoading: boolean;
+  isFetching: boolean;
   isError: boolean;
   error: Error | null;
   refetch: () => void;
@@ -32,7 +37,16 @@ export function usePermission(
   verb: PermissionVerb,
   options: UsePermissionOptions = {}
 ): UsePermissionResult {
-  const { namespace, name, group = '', scope, projectId, enabled = true } = options;
+  const {
+    namespace,
+    name,
+    group = '',
+    scope,
+    projectId,
+    enabled = true,
+    staleTime,
+    refetchOnMount,
+  } = options;
 
   const query = useCheckQuery({
     resource,
@@ -43,11 +57,14 @@ export function usePermission(
     scope,
     projectId,
     enabled,
+    staleTime,
+    refetchOnMount,
   });
 
   return {
     hasPermission: query.data ? query.data.allowed && !query.data.denied : false,
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
     isError: query.isError,
     error: query.error as Error | null,
     refetch: query.refetch,
