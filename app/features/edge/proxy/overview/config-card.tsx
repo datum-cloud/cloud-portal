@@ -13,6 +13,10 @@ import {
   ProxyHostHeaderDialog,
   type ProxyHostHeaderDialogRef,
 } from '@/features/edge/proxy/proxy-host-header-dialog';
+import {
+  ProxyPathsDialog,
+  type ProxyPathsDialogRef,
+} from '@/features/edge/proxy/proxy-paths-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
@@ -44,6 +48,7 @@ export const HttpProxyConfigCard = ({
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
   const basicAuthDialogRef = useRef<ProxyBasicAuthDialogRef>(null);
   const hostHeaderDialogRef = useRef<ProxyHostHeaderDialogRef>(null);
+  const pathsDialogRef = useRef<ProxyPathsDialogRef>(null);
   const updateMutation = useUpdateHttpProxy(projectId ?? '', proxy.name);
   const { data: connector, isLoading: isConnectorLoading } = useConnector(
     projectId ?? '',
@@ -80,15 +85,49 @@ export const HttpProxyConfigCard = ({
             {proxy.hostHeader ? (
               <span className="text-sm">{proxy.hostHeader}</span>
             ) : (
-              <span className="text-muted-foreground" aria-label="Not set">
-                &mdash;
-              </span>
+              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+                None
+              </Badge>
             )}
             {projectId && (
               <button
                 type="button"
                 className="text-muted-foreground hover:text-foreground transition-colors"
                 onClick={() => hostHeaderDialogRef.current?.show(proxy)}>
+                <Icon icon={PencilIcon} size={12} />
+              </button>
+            )}
+          </div>
+        ),
+      },
+
+      {
+        label: (
+          <div className="flex items-center gap-1.5">
+            <span>Paths</span>
+            <Tooltip
+              message="Route specific paths to different origins. Requests that don't match fall through to the default origin."
+              side="bottom"
+              contentClassName="max-w-xs text-wrap">
+              <Icon
+                icon={CircleHelp}
+                className="text-muted-foreground size-3.5 shrink-0 cursor-help"
+              />
+            </Tooltip>
+          </div>
+        ),
+        content: (
+          <div className="flex items-center gap-1.5">
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+              {proxy.extraPaths?.length
+                ? `${proxy.extraPaths.length} path${proxy.extraPaths.length === 1 ? '' : 's'}`
+                : 'None'}
+            </Badge>
+            {projectId && proxy.complexity !== 'advanced' && (
+              <button
+                type="button"
+                className="text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => pathsDialogRef.current?.show(proxy)}>
                 <Icon icon={PencilIcon} size={12} />
               </button>
             )}
@@ -304,6 +343,7 @@ export const HttpProxyConfigCard = ({
           <ProxyDisplayNameDialog ref={displayNameDialogRef} projectId={projectId} />
           <ProxyBasicAuthDialog ref={basicAuthDialogRef} projectId={projectId} />
           <ProxyHostHeaderDialog ref={hostHeaderDialogRef} projectId={projectId} />
+          <ProxyPathsDialog ref={pathsDialogRef} projectId={projectId} />
         </>
       )}
     </Card>

@@ -62,6 +62,35 @@ export const hostnameStatusSchema = z.object({
 
 export type HostnameStatus = z.infer<typeof hostnameStatusSchema>;
 
+/**
+ * A single non-default path rule.
+ *
+ * Represents one entry in `spec.rules[]` that has a backend and is NOT the
+ * catch-all. The catch-all (PathPrefix `/`, or a rule with no match block) is
+ * surfaced as the proxy's top-level `endpoint`/`tlsHostname`/`hostHeader`
+ * instead — extras are everything else.
+ *
+ * `name` is the optional `spec.rules[].name` from the API.
+ */
+export const proxyPathRuleSchema = z.object({
+  name: z.string().optional(),
+  match: z.object({
+    type: z.enum(['Exact', 'PathPrefix']),
+    value: z.string().min(1),
+  }),
+  endpoint: z.string().min(1),
+  tlsHostname: z.string().optional(),
+  hostHeader: z.string().optional(),
+  /**
+   * When set, traffic is tunneled to the user's device via the named Connector
+   * (Datum Desktop). NSO relaxes the FQDN check on `endpoint` when this is
+   * present, allowing `localhost` / loopback IPs.
+   */
+  connector: z.object({ name: z.string().min(1) }).optional(),
+});
+
+export type ProxyPathRule = z.infer<typeof proxyPathRuleSchema>;
+
 // HTTP Proxy resource schema (from API)
 export const httpProxyResourceSchema = z.object({
   uid: z.string(),
@@ -102,6 +131,12 @@ export const httpProxyResourceSchema = z.object({
    * Empty / undefined means "no override" (forward the incoming Host unchanged).
    */
   hostHeader: z.string().optional(),
+  /**
+   * Non-default path rules. The catch-all backend stays on `endpoint`/
+   * `tlsHostname`/`hostHeader`; entries here are the additional `spec.rules[]`
+   * with explicit path matches, in the order they appear in the resource.
+   */
+  extraPaths: z.array(proxyPathRuleSchema).optional(),
   /**
    * Form-editability classification of the underlying resource (FR-4):
    * - 'simple'    — no rule-level filters; safe to edit via form
@@ -212,6 +247,15 @@ export type UpdateHttpProxyInput = {
    * undefined means "don't change the host header".
    */
   hostHeader?: string;
+  /**
+   * Full replacement of the non-default path rules.
+   *
+   * - `undefined` → leave existing extra paths alone
+   * - `[]`        → remove all extra paths (catch-all only)
+   * - non-empty   → replace with these in the order given (catch-all stays
+   *                 the last backend rule in the emitted spec)
+   */
+  extraPaths?: ProxyPathRule[];
 };
 
 const userEntrySchema = z.object({

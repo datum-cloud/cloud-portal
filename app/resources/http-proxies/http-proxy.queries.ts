@@ -121,6 +121,9 @@ export function useUpdateHttpProxy(
             basicAuthUserCount: input.basicAuth.users?.length ?? 0,
             basicAuthUsernames: input.basicAuth.users?.map((u) => u.username) ?? [],
           }),
+          ...(input.extraPaths !== undefined && {
+            extraPaths: input.extraPaths.length > 0 ? input.extraPaths : undefined,
+          }),
         };
       });
       return { previous };

@@ -4,6 +4,7 @@ import type {
   CreateHttpProxyInput,
   UpdateHttpProxyInput,
   BasicAuthUser,
+  ProxyPathRule,
 } from './http-proxy.schema';
 import type { TrafficProtectionMode } from './http-proxy.schema';
 import {
@@ -27,59 +28,128 @@ import {
  */
 export type HttpProxyComplexity = 'simple' | 'host-only' | 'advanced';
 
+type BackendRuleRaw = NonNullable<ComDatumapisNetworkingV1AlphaHttpProxy['spec']>['rules'] extends
+  | (infer R)[]
+  | undefined
+  ? R
+  : never;
+
+type RuleEditability =
+  | { kind: 'simple' }
+  | { kind: 'host-only'; hostHeader: string }
+  | { kind: 'advanced' };
+
+/**
+ * Classify a single backend rule by whether the portal form can represent it.
+ *
+ * A rule is editable when it has:
+ * - exactly one backend with no backend-level filters
+ * - either zero rule-level filters (`simple`), or exactly one
+ *   requestHeaderModifier filter that sets a single `Host` header (`host-only`)
+ *
+ * Anything else is `advanced` — the portal renders a read-only banner.
+ *
+ * Matches are not inspected here; path/match validation is the catch-all
+ * detection's job.
+ */
+function classifyBackendRule(rule: BackendRuleRaw): RuleEditability {
+  if (!rule.backends || rule.backends.length !== 1) return { kind: 'advanced' };
+  const backendLevelFilters = (rule.backends[0] as { filters?: unknown[] }).filters;
+  if (backendLevelFilters && backendLevelFilters.length > 0) return { kind: 'advanced' };
+
+  const filters = rule.filters ?? [];
+  if (filters.length === 0) return { kind: 'simple' };
+  if (filters.length > 1) return { kind: 'advanced' };
+
+  const filter = filters[0];
+  if (!filter.requestHeaderModifier) return { kind: 'advanced' };
+  const rhm = filter.requestHeaderModifier;
+  if ((rhm.add && rhm.add.length > 0) || (rhm.remove && rhm.remove.length > 0)) {
+    return { kind: 'advanced' };
+  }
+  const setHeaders = rhm.set ?? [];
+  if (setHeaders.length !== 1) return { kind: 'advanced' };
+  if (setHeaders[0].name.toLowerCase() !== 'host') return { kind: 'advanced' };
+  return { kind: 'host-only', hostHeader: setHeaders[0].value };
+}
+
+/**
+ * Decide which `spec.rules[]` entry is the catch-all.
+ *
+ * Convention (per the datumctl path-routing wiki): the catch-all is the rule
+ * that matches `PathPrefix /` and sits last. We accept a rule with no `matches`
+ * block as a catch-all too (Gateway API treats it as PathPrefix `/`). When
+ * several candidates exist we take the last one, matching the documented
+ * convention; when none exist we fall back to the last backend rule so callers
+ * still get a sensible default origin.
+ *
+ * Returns the index into the backend-rules array, or -1 when there are none.
+ */
+function pickCatchAllIndex(backendRules: BackendRuleRaw[]): number {
+  let lastCatchAll = -1;
+  for (let i = 0; i < backendRules.length; i++) {
+    const matches = backendRules[i].matches;
+    if (!matches || matches.length === 0) {
+      lastCatchAll = i;
+      continue;
+    }
+    if (
+      matches.length === 1 &&
+      matches[0].path?.type === 'PathPrefix' &&
+      matches[0].path?.value === '/' &&
+      !matches[0].headers?.length
+    ) {
+      lastCatchAll = i;
+    }
+  }
+  if (lastCatchAll !== -1) return lastCatchAll;
+  return backendRules.length > 0 ? backendRules.length - 1 : -1;
+}
+
+/**
+ * Validate that a non-catch-all rule's matches block is one the form supports:
+ * exactly one path match (Exact or PathPrefix) and no header matches.
+ */
+function parseExtraPathMatch(
+  rule: BackendRuleRaw
+): { type: 'Exact' | 'PathPrefix'; value: string } | null {
+  const matches = rule.matches ?? [];
+  if (matches.length !== 1) return null;
+  const m = matches[0];
+  if (m.headers && m.headers.length > 0) return null;
+  const path = m.path;
+  if (!path || !path.value) return null;
+  if (path.type !== 'Exact' && path.type !== 'PathPrefix') return null;
+  return { type: path.type, value: path.value };
+}
+
 export function classifyHttpProxyComplexity(
   raw: ComDatumapisNetworkingV1AlphaHttpProxy
 ): HttpProxyComplexity {
   const rules = raw.spec?.rules ?? [];
+  const backendRules = rules.filter(
+    (r): r is BackendRuleRaw & { backends: NonNullable<BackendRuleRaw['backends']> } =>
+      !!r.backends && r.backends.length > 0
+  );
 
-  // Find the backend rule (has backends). Redirect rules are benign and ignored.
-  const backendRules = rules.filter((r) => r.backends && r.backends.length > 0);
+  if (backendRules.length === 0) return 'simple';
 
-  // Multiple backend rules → advanced
-  if (backendRules.length > 1) return 'advanced';
+  const catchAllIdx = pickCatchAllIndex(backendRules);
+  let sawHostHeader = false;
 
-  const backendRule = backendRules[0];
-  if (!backendRule) return 'simple';
+  for (let i = 0; i < backendRules.length; i++) {
+    const rule = backendRules[i];
+    const ruleClass = classifyBackendRule(rule);
+    if (ruleClass.kind === 'advanced') return 'advanced';
+    if (ruleClass.kind === 'host-only') sawHostHeader = true;
 
-  // Any backend-level filter → advanced
-  if (
-    backendRule.backends?.some((b) => {
-      const bf = (b as { filters?: unknown[] }).filters;
-      return bf && bf.length > 0;
-    })
-  ) {
-    return 'advanced';
+    if (i !== catchAllIdx) {
+      // Non-catch-all rules must have a form-representable single path match.
+      if (!parseExtraPathMatch(rule)) return 'advanced';
+    }
   }
 
-  const filters = backendRule.filters ?? [];
-
-  // No rule-level filters → simple
-  if (filters.length === 0) return 'simple';
-
-  // More than one rule-level filter → advanced
-  if (filters.length > 1) return 'advanced';
-
-  const filter = filters[0];
-
-  // Filter is not a requestHeaderModifier → advanced
-  if (!filter.requestHeaderModifier) return 'advanced';
-
-  const rhm = filter.requestHeaderModifier;
-
-  // requestHeaderModifier has add or remove → advanced
-  if ((rhm.add && rhm.add.length > 0) || (rhm.remove && rhm.remove.length > 0)) {
-    return 'advanced';
-  }
-
-  const setHeaders = rhm.set ?? [];
-
-  // Not exactly one set header → advanced
-  if (setHeaders.length !== 1) return 'advanced';
-
-  // The one set header is not 'host' (case-insensitive) → advanced
-  if (setHeaders[0].name.toLowerCase() !== 'host') return 'advanced';
-
-  return 'host-only';
+  return sawHostHeader ? 'host-only' : 'simple';
 }
 
 /**
@@ -171,12 +241,32 @@ export function validateHostHeader(value: string): string | null {
 }
 
 /**
- * Extract the Host header value from an HTTPProxy resource's rule-0 filters.
+ * Pick the rule that represents the default (catch-all) backend.
+ *
+ * Resolves to the same rule the rest of the form treats as "the proxy's
+ * origin": its endpoint, Host header, TLS hostname, and connector all come
+ * from here. Non-catch-all rules with backends are surfaced as
+ * `HttpProxy.extraPaths`.
+ */
+export function getCatchAllBackendRule(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): BackendRuleRaw | undefined {
+  const backendRules = (raw.spec?.rules ?? []).filter(
+    (r): r is BackendRuleRaw & { backends: NonNullable<BackendRuleRaw['backends']> } =>
+      !!r.backends && r.backends.length > 0
+  );
+  if (backendRules.length === 0) return undefined;
+  const idx = pickCatchAllIndex(backendRules);
+  return idx >= 0 ? backendRules[idx] : undefined;
+}
+
+/**
+ * Extract the Host header value from the catch-all rule's filters.
  * Matches case-insensitively per RFC 7230.
  * Returns empty string if no Host filter is present.
  */
 export function extractHostHeader(raw: ComDatumapisNetworkingV1AlphaHttpProxy): string {
-  const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
+  const backendRule = getCatchAllBackendRule(raw);
   const filters = backendRule?.filters ?? [];
   for (const filter of filters) {
     const setHeaders = filter.requestHeaderModifier?.set ?? [];
@@ -371,24 +461,57 @@ export function toHttpProxy(
     basicAuth?: { enabled: boolean; userCount: number; usernames: string[] };
   }
 ): HttpProxy {
-  // Find the backend rule (skip redirect rules which have no backends)
-  const backendRule = raw.spec?.rules?.find((rule) => rule.backends && rule.backends.length > 0);
+  // Find the catch-all backend rule (its endpoint/host header/TLS map onto
+  // the top-level form fields). Non-catch-all backend rules become extraPaths.
+  const allBackendRules = (raw.spec?.rules ?? []).filter(
+    (rule): rule is BackendRuleRaw & { backends: NonNullable<BackendRuleRaw['backends']> } =>
+      !!rule.backends && rule.backends.length > 0
+  );
+  const catchAllIdx = pickCatchAllIndex(allBackendRules);
+  const backendRule = catchAllIdx >= 0 ? allBackendRules[catchAllIdx] : undefined;
   const backend = backendRule?.backends?.[0] as
     | { endpoint?: string; tls?: { hostname?: string }; connector?: { name: string } }
     | undefined;
 
   // Extract all origins from all backend rules
   const origins: string[] = [];
-  if (raw.spec?.rules) {
-    for (const rule of raw.spec.rules) {
-      if (rule.backends && rule.backends.length > 0) {
-        for (const backendItem of rule.backends) {
-          if (backendItem.endpoint) {
-            origins.push(backendItem.endpoint);
-          }
-        }
+  for (const rule of allBackendRules) {
+    for (const backendItem of rule.backends) {
+      if (backendItem.endpoint) origins.push(backendItem.endpoint);
+    }
+  }
+
+  // Build extraPaths from every backend rule that isn't the catch-all.
+  // classifyHttpProxyComplexity guarantees these parse cleanly when the
+  // complexity is editable; when it's 'advanced' we still surface what we can
+  // so the read-only view has something to render.
+  const extraPaths: ProxyPathRule[] = [];
+  for (let i = 0; i < allBackendRules.length; i++) {
+    if (i === catchAllIdx) continue;
+    const rule = allBackendRules[i];
+    const match = parseExtraPathMatch(rule);
+    if (!match) continue;
+    const ruleBackend = rule.backends[0] as
+      | { endpoint?: string; tls?: { hostname?: string }; connector?: { name: string } }
+      | undefined;
+    if (!ruleBackend?.endpoint) continue;
+    let perRuleHostHeader: string | undefined;
+    for (const filter of rule.filters ?? []) {
+      const setHeaders = filter.requestHeaderModifier?.set ?? [];
+      const hostEntry = setHeaders.find((h) => h.name.toLowerCase() === 'host');
+      if (hostEntry) {
+        perRuleHostHeader = hostEntry.value;
+        break;
       }
     }
+    extraPaths.push({
+      ...(rule.name ? { name: rule.name } : {}),
+      match,
+      endpoint: ruleBackend.endpoint,
+      ...(ruleBackend.tls?.hostname && { tlsHostname: ruleBackend.tls.hostname }),
+      ...(perRuleHostHeader && { hostHeader: perRuleHostHeader }),
+      ...(ruleBackend.connector && { connector: ruleBackend.connector }),
+    });
   }
 
   // Check if HTTP redirect is enabled by looking for a redirect rule.
@@ -424,6 +547,7 @@ export function toHttpProxy(
     hostnames: raw.spec?.hostnames,
     tlsHostname: backend?.tls?.hostname,
     ...(hostHeader && { hostHeader }),
+    ...(extraPaths.length > 0 && { extraPaths }),
     complexity,
     status: raw.status,
     canonicalHostname: raw.status?.canonicalHostname,
@@ -640,12 +764,39 @@ type RedirectRule = {
   }>;
 };
 type BackendRule = {
+  name?: string;
+  matches?: Array<{ path?: { type: 'Exact' | 'PathPrefix'; value: string } }>;
   backends: Array<{ endpoint: string; tls?: { hostname: string }; connector?: { name: string } }>;
   filters?: Array<{
     type: 'RequestHeaderModifier';
     requestHeaderModifier: { set: Array<{ name: string; value: string }> };
   }>;
 };
+
+/**
+ * Serialize a domain-level ProxyPathRule into an API backend rule.
+ */
+function extraPathToBackendRule(path: ProxyPathRule): BackendRule {
+  const backend: BackendRule['backends'][0] = {
+    endpoint: path.endpoint,
+    ...(path.tlsHostname && { tls: { hostname: path.tlsHostname } }),
+    ...(path.connector && { connector: path.connector }),
+  };
+  const filters: BackendRule['filters'] = [];
+  const trimmedHostHeader = path.hostHeader?.trim();
+  if (trimmedHostHeader) {
+    filters.push({
+      type: 'RequestHeaderModifier',
+      requestHeaderModifier: { set: [{ name: 'Host', value: trimmedHostHeader }] },
+    });
+  }
+  return {
+    ...(path.name ? { name: path.name } : {}),
+    matches: [{ path: { type: path.match.type, value: path.match.value } }],
+    backends: [backend],
+    ...(filters.length > 0 && { filters }),
+  };
+}
 
 /**
  * Transform UpdateHttpProxyInput to API merge-patch payload.
@@ -678,7 +829,8 @@ export function toUpdateHttpProxyPayload(
   const hasRulesChange =
     input.endpoint !== undefined ||
     input.enableHttpRedirect !== undefined ||
-    input.hostHeader !== undefined;
+    input.hostHeader !== undefined ||
+    input.extraPaths !== undefined;
 
   let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
 
@@ -708,6 +860,14 @@ export function toUpdateHttpProxyPayload(
             },
           ],
         });
+      }
+
+      // Extra paths sit between the optional redirect rule and the catch-all
+      // backend rule. Explicit input (including []) replaces; undefined keeps
+      // the proxy's current extras.
+      const effectiveExtraPaths = input.extraPaths ?? currentProxy?.extraPaths ?? [];
+      for (const path of effectiveExtraPaths) {
+        rules.push(extraPathToBackendRule(path));
       }
 
       const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
