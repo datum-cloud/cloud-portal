@@ -15,7 +15,7 @@ spec:
     prefix that subsequent requests can read from. Charged at a
     premium over standard input tokens by most providers, so they are
     metered as a distinct dimension.
-  phase: Draft
+  phase: Published
   measurement:
     aggregation: Sum
     unit: "{token}"

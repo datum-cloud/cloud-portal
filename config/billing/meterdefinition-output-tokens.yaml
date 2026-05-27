@@ -14,7 +14,7 @@ spec:
     number of tokens produced by the model per request, summed across
     the billing period. Includes any tokens emitted by extended
     thinking when enabled on the underlying model.
-  phase: Draft
+  phase: Published
   measurement:
     aggregation: Sum
     unit: "{token}"

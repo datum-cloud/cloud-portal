@@ -14,7 +14,7 @@ spec:
     billing period. Useful as a request-count signal for tier caps
     that prefer "messages per month" framing over raw token counts,
     or as a billing safety-net when token data is unavailable.
-  phase: Draft
+  phase: Published
   measurement:
     aggregation: Count
     unit: "{message}"

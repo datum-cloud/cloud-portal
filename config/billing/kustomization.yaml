@@ -8,9 +8,10 @@ kind: Kustomization
 # defining the Conversation Kind, plus five MeterDefinitions covering
 # the token/messages axes the cloud-portal emitter actually populates.
 #
-# All resources currently ship in `phase: Draft`. Promotion to
-# `Published` is gated on the Ingestion Gateway being deployed and the
-# meter shape being signed off by the billing team.
+# All resources ship in `phase: Published`. Note that once Published,
+# `measurement.aggregation` and `measurement.unit` are immutable on
+# every MeterDefinition; renaming or rescaling a meter requires
+# creating a new MeterDefinition under a new name.
 #
 # This bundle is NOT applied by the cloud-portal Deployment overlay —
 # catalog identifiers are control-plane resources, deployed

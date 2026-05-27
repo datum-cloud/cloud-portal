@@ -14,7 +14,7 @@ spec:
     of tokens sent to the model per request, summed across the billing
     period. Cached input tokens are reported separately under the
     cache-read-tokens meter and are NOT double-counted here.
-  phase: Draft
+  phase: Published
   measurement:
     aggregation: Sum
     unit: "{token}"

@@ -14,7 +14,7 @@ spec:
     assistant request. Charged at a different rate than fresh input
     tokens by every provider that offers prompt caching, so they are
     metered as a distinct dimension. Summed across the billing period.
-  phase: Draft
+  phase: Published
   measurement:
     aggregation: Sum
     unit: "{token}"

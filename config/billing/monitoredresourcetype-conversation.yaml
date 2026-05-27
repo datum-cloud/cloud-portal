@@ -8,7 +8,7 @@ metadata:
   name: assistant-miloapis-com-conversation
 spec:
   resourceTypeName: assistant.miloapis.com/Conversation
-  phase: Draft
+  phase: Published
   displayName: Assistant Conversation
   description: |
     A single chat with the Datum Cloud AI assistant. One Conversation
