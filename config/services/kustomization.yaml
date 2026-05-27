@@ -11,11 +11,9 @@ kind: Kustomization
 # https://github.com/datum-cloud/services/pull/2#issuecomment for the
 # canonical decision.
 #
-# Ships in `phase: Draft`. Promotion to `Published` is gated on the
-# services-operator landing in staging and the Service shape being
-# signed off. This bundle is NOT applied by the cloud-portal Deployment
-# overlay -- it is deployed into the services-operator's namespace by
-# Flux from the infra repo alongside every other producer's Service
-# registration.
+# Ships in `phase: Published`. This bundle is NOT applied by the
+# cloud-portal Deployment overlay -- it is deployed into the
+# services-operator's namespace by Flux from the infra repo alongside
+# every other producer's Service registration.
 resources:
   - services_v1alpha1_service_assistant.yaml
