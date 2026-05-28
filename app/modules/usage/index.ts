@@ -14,7 +14,11 @@ export {
   type AssistantMeterKey,
 } from './meters';
 export { ulid, isUlid } from './ulid';
+export { toCloudEvent, type ToCloudEventOptions } from './to-cloud-event';
 export type {
+  CloudEvent,
+  CloudEventData,
+  CloudEventResource,
   ProjectRef,
   ResourceRef,
   ResourceLabels,

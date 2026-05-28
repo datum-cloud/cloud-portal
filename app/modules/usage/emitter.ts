@@ -1,23 +1,34 @@
 // app/modules/usage/emitter.ts
 //
-// Thin HTTP client that POSTs usage events to the durable Ingestion
-// Gateway. Until the gateway exists in the deployment env (i.e.
+// Thin HTTP client that POSTs CloudEvent batches to the durable Ingestion
+// Gateway. Until the gateway is reachable in the deployment env (i.e.
 // USAGE_GATEWAY_URL is unset), `emitUsageEvents` is a no-op; this lets
 // the rest of the codebase wire emission unconditionally without
 // breaking dev/staging.
 //
-// The contract intentionally mirrors the v0 batch endpoint shape:
-//   POST <gateway>/v1alpha1/events  { events: UsageEvent[] }
+// Wire contract (billing/internal/gateway/handler/batch.go):
+//   POST <gateway>/v1/usage/events:batchIngest
+//   Body: JSON array of CloudEvents (max 100 per batch)
+//   Headers: x-api-key when USAGE_GATEWAY_API_KEY is set
+//   Response: 200 with {"accepted": N}, 207 with per-event rejections,
+//            400 on malformed body, 401 when api key is missing/invalid
 //
 // On any error we log and resolve — never throw — so usage emission can
-// never fail a user's chat request. Drops are surfaced via the usage
-// metric counter and the structured log (operators page on
-// `usage.emit.failed` rather than user-facing 5xx).
-import type { UsageEvent } from './types';
+// never fail a user's chat request. Drops are surfaced via structured
+// logs (operators page on `usage.emit.failed` rather than user-facing
+// 5xx).
+import { toCloudEvent } from './to-cloud-event';
+import type { CloudEvent, UsageEvent } from './types';
 import { logger } from '@/modules/logger';
 import { env } from '@/utils/env/env.server';
 
 const EMIT_TIMEOUT_MS = 5_000;
+const BATCH_PATH = '/v1/usage/events:batchIngest';
+
+// Gateway enforces 100 events per batch. We slice on the client so a
+// single oversize Record() call never trips the cap. A typical assistant
+// turn emits ≤5 events, so this is purely defensive.
+const MAX_BATCH_SIZE = 100;
 
 export interface EmitResult {
   /** True when the gateway accepted the batch (2xx) OR was disabled. */
@@ -47,8 +58,47 @@ export async function emitUsageEvents(events: UsageEvent[]): Promise<EmitResult>
     return { ok: true, noop: true, count: events.length };
   }
 
-  const url = new URL('/v1alpha1/events', gateway).toString();
+  // Source URI: prefer the public portal URL so gateway logs name the
+  // origin unambiguously. Fall back to a stable opaque identifier in
+  // environments where APP_URL is absent (it's required in the env
+  // schema today, but the fallback keeps this defensive in dev).
+  const source = env.public.appUrl
+    ? `${env.public.appUrl.replace(/\/$/, '')}/api/assistant`
+    : 'cloud-portal/api/assistant';
+
+  const cloudEvents = events.map((e) => toCloudEvent(e, { source }));
+  const batches = chunk(cloudEvents, MAX_BATCH_SIZE);
+
+  let lastStatus: number | undefined;
+  for (const batch of batches) {
+    const result = await postBatch(gateway, batch);
+    lastStatus = result.status;
+    if (!result.ok) {
+      return {
+        ok: false,
+        noop: false,
+        count: events.length,
+        status: result.status,
+        error: result.error,
+      };
+    }
+  }
+
+  return { ok: true, noop: false, count: events.length, status: lastStatus };
+}
+
+interface PostBatchResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+}
+
+async function postBatch(gateway: string, batch: CloudEvent[]): Promise<PostBatchResult> {
+  const url = new URL(BATCH_PATH, gateway).toString();
   const headers: Record<string, string> = { 'content-type': 'application/json' };
+  if (env.server.usageGatewayApiKey) {
+    headers['x-api-key'] = env.server.usageGatewayApiKey;
+  }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), EMIT_TIMEOUT_MS);
@@ -57,7 +107,7 @@ export async function emitUsageEvents(events: UsageEvent[]): Promise<EmitResult>
     const res = await fetch(url, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ events }),
+      body: JSON.stringify(batch),
       signal: controller.signal,
     });
 
@@ -65,30 +115,51 @@ export async function emitUsageEvents(events: UsageEvent[]): Promise<EmitResult>
       const body = await res.text().catch(() => '');
       logger.warn('usage.emit.failed', {
         status: res.status,
-        eventCount: events.length,
-        eventIDs: events.map((e) => e.eventID),
-        meterNames: [...new Set(events.map((e) => e.meterName))],
+        eventCount: batch.length,
+        eventIDs: batch.map((e) => e.id),
+        meterNames: [...new Set(batch.map((e) => e.type))],
         body: body.slice(0, 512),
       });
-      return { ok: false, noop: false, count: events.length, status: res.status, error: body };
+      return { ok: false, status: res.status, error: body };
     }
 
-    logger.info('usage.emit.ok', {
-      status: res.status,
-      eventCount: events.length,
-      meterNames: [...new Set(events.map((e) => e.meterName))],
-    });
-    return { ok: true, noop: false, count: events.length, status: res.status };
+    // 207 Multi-Status: some events were rejected structurally. Log so
+    // operators can spot a regression in our builder; the accepted
+    // events are durable in NATS and will flow downstream.
+    if (res.status === 207) {
+      const body = await res.text().catch(() => '');
+      logger.warn('usage.emit.partial', {
+        status: res.status,
+        eventCount: batch.length,
+        body: body.slice(0, 512),
+      });
+    } else {
+      logger.info('usage.emit.ok', {
+        status: res.status,
+        eventCount: batch.length,
+        meterNames: [...new Set(batch.map((e) => e.type))],
+      });
+    }
+    return { ok: true, status: res.status };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     logger.warn('usage.emit.failed', {
-      eventCount: events.length,
-      eventIDs: events.map((e) => e.eventID),
-      meterNames: [...new Set(events.map((e) => e.meterName))],
+      eventCount: batch.length,
+      eventIDs: batch.map((e) => e.id),
+      meterNames: [...new Set(batch.map((e) => e.type))],
       error: message,
     });
-    return { ok: false, noop: false, count: events.length, error: message };
+    return { ok: false, error: message };
   } finally {
     clearTimeout(timer);
   }
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  if (items.length <= size) return [items];
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) {
+    out.push(items.slice(i, i + size));
+  }
+  return out;
 }
