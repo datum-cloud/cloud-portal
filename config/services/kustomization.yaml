@@ -1,21 +1,35 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-# Service catalog registration for the Datum Cloud AI assistant.
+# Service catalog for the Datum Cloud AI assistant.
 #
-# Owned by this repo for the same reason `config/billing/` is: the
-# `services` API surface lives inside Milo, but the registration of a
-# concrete `services.miloapis.com.Service` is a deployable artefact
-# that the producing service publishes as part of its own deployment
-# process. See
-# https://github.com/datum-cloud/services/pull/2#issuecomment for the
-# canonical decision.
+# Authors two cluster-scoped documents the services-operator uses to
+# reason about the assistant:
 #
-# Ships in `phase: Draft`. Promotion to `Published` is gated on the
-# services-operator landing in staging and the Service shape being
-# signed off. This bundle is NOT applied by the cloud-portal Deployment
-# overlay -- it is deployed into the services-operator's namespace by
-# Flux from the infra repo alongside every other producer's Service
-# registration.
+#   1. The `Service` itself (`assistant-miloapis-com`), which carries
+#      identity (`serviceName`), display metadata, and producer owner.
+#   2. A single `ServiceConfiguration` (also `assistant-miloapis-com`,
+#      same name, different Kind) that declares the Conversation
+#      MonitoredResourceType, the five conversation metrics, and the
+#      billing routing that turns those metrics into MeterDefinitions.
+#
+# Per `billing/docs/emitting-usage.md`, the `ServiceConfiguration` is
+# the *only* document a producer authors for billing. The
+# services-operator fans it out into `billing.miloapis.com/MeterDefinition`
+# and `MonitoredResourceType` objects labelled
+# `app.kubernetes.io/managed-by: services-operator`. Do not author those
+# directly -- edit this `ServiceConfiguration` and let the fan-out catch
+# up.
+#
+# Both ship in `phase: Published`. Once Published, the following are
+# immutable on a `ServiceConfiguration`:
+#   - `spec.metrics[].name`, `.kind`, `.unit`
+#   - `spec.monitoredResourceTypes[].type`, `.gvk`
+# Renames or unit changes ship as a new metric name (e.g. ".../v2").
+#
+# This bundle is NOT applied by the cloud-portal Deployment overlay --
+# it is deployed into the services-operator's namespace by Flux from
+# the infra repo (apps/cloud-portal/base/milo-services.yaml).
 resources:
   - services_v1alpha1_service_assistant.yaml
+  - services_v1alpha1_serviceconfiguration_assistant.yaml
