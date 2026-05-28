@@ -346,17 +346,37 @@ Cypress.Commands.add(
     cy.get('body', { timeout: 30000 }).then(($body) => {
       const hasToolbarCreate = $body.find('[data-e2e="create-project-button"]').length > 0;
       if (hasToolbarCreate) {
-        cy.get('[data-e2e="create-project-button"]').should('be.visible').click();
+        // create-project-button is a PermissionButton: while the projects:create
+        // permission check is in flight it renders disabled (wrapped in a Tooltip),
+        // then swaps to a bare, enabled button once the check resolves. Clicking
+        // before the check settles detaches the node mid-click ("page updated while
+        // executing"). Wait for it to become enabled, then re-query and click so the
+        // click targets the post-swap, stable node.
+        cy.get('[data-e2e="create-project-button"]').should('be.visible').and('not.be.disabled');
+        cy.get('[data-e2e="create-project-button"]').click();
         return;
       }
 
       // Fresh org empty state uses a generic "Create project" button without data-e2e.
       cy.contains('button', /^Create project$/i, { timeout: 30000 })
         .should('be.visible')
-        .click();
+        .and('not.be.disabled');
+      cy.contains('button', /^Create project$/i).click();
     });
     cy.get('[data-e2e="create-project-name-input"]').type(displayName);
+
+    // The projects list only auto-refreshes through the real-time watch
+    // (create → waitForProjectReady → invalidateQueries). That watch is inert
+    // under the e2e ambient-API stubs, so the new card never appears on its own.
+    // Wait for the create API to succeed, then reload to force a fresh list GET —
+    // which returns the project even while it is still reconciling — so we can
+    // read its resource ID.
+    cy.intercept('POST', '**/control-plane/**/v1alpha1/projects').as('createProjectReq');
     cy.contains('button', 'Confirm').click();
+    cy.wait('@createProjectReq', { timeout: 30000 })
+      .its('response.statusCode')
+      .should('be.oneOf', [200, 201]);
+    cy.reload();
 
     return cy
       .contains('[data-e2e="project-card"]', displayName, { timeout: 90000 })
