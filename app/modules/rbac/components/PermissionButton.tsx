@@ -35,23 +35,23 @@ export function PermissionButton({
     scope,
     projectId,
   });
-  const blocked = !hasPermission;
 
-  const reason = isLoading
-    ? 'Verifying permissions…'
-    : (deniedReason ?? `You don't have permission to ${verb} ${resource}`);
-
-  // Always wrap in Tooltip so the React tree stays stable across the
-  // permission-loading → permission-resolved transition. Returning a bare
-  // <Button> on the allowed branch and <Tooltip><Button/></Tooltip> on the
-  // blocked branch remounts the Button DOM node when the query resolves,
-  // which detaches it from any external reference (Cypress clicks, focus
-  // restoration, refs in parent components).
-  return (
-    <Tooltip message={reason} hidden={!blocked}>
-      <Button {...buttonProps} disabled={disabled || blocked}>
-        {children}
-      </Button>
-    </Tooltip>
+  const button = (
+    <Button {...buttonProps} disabled={disabled || !hasPermission}>
+      {children}
+    </Button>
   );
+
+  // Render the bare Button while the check is in flight AND once it resolves to
+  // allowed, toggling only `disabled`. The allowed transition therefore never
+  // remounts the node — that remount is what detached in-flight clicks (the e2e
+  // "page updated while executing" flake addressed in #1273) — and the permitted
+  // case keeps its natural layout (no Tooltip wrapper, so `w-full sm:w-auto`
+  // create buttons stay full-width on mobile and pages avoid Radix Tooltip
+  // overhead on every gated button). Only a definitively denied action gets
+  // wrapped in the explanatory Tooltip; it stays disabled, so nothing clicks it.
+  if (isLoading || hasPermission) return button;
+
+  const reason = deniedReason ?? `You don't have permission to ${verb} ${resource}`;
+  return <Tooltip message={reason}>{button}</Tooltip>;
 }
