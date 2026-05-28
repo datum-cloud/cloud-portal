@@ -8,6 +8,7 @@ import {
   ASSISTANT_RESOURCE_GROUP,
   ASSISTANT_RESOURCE_KIND,
 } from '@/modules/usage/meters';
+import { toCloudEvent } from '@/modules/usage/to-cloud-event';
 import { isUlid, ulid } from '@/modules/usage/ulid';
 
 describe('ulid', () => {
@@ -127,5 +128,77 @@ describe('buildAssistantUsageEvents', () => {
       tokens: { inputTokens: 100 },
     });
     expect(events.every((e) => e.projectRef.name === '')).to.equal(true);
+  });
+});
+
+describe('toCloudEvent', () => {
+  const baseInput = {
+    projectName: 'proj-abc',
+    conversationId: 'chat-123',
+    model: 'claude-sonnet-4-6',
+    now: Date.parse('2026-04-27T17:00:00.000Z'),
+  } as const;
+  const source = 'https://cloud.staging.env.datum.net/api/assistant';
+
+  it('produces a structurally valid CloudEvents v1.0 envelope', () => {
+    const [evt] = buildAssistantUsageEvents({
+      ...baseInput,
+      tokens: { inputTokens: 1200 },
+    }).filter((e) => e.meterName === ASSISTANT_METERS.inputTokens);
+    const ce = toCloudEvent(evt!, { source });
+
+    expect(isUlid(ce.id)).to.equal(true);
+    expect(ce.specversion).to.equal('1.0');
+    expect(ce.type).to.equal(ASSISTANT_METERS.inputTokens);
+    expect(ce.source).to.equal(source);
+    expect(ce.subject).to.equal('projects/proj-abc');
+    expect(ce.datacontenttype).to.equal('application/json');
+    expect(ce.time).to.equal('2026-04-27T17:00:00.000Z');
+    expect(ce.data.value).to.equal('1200');
+    expect(ce.data.dimensions).to.deep.equal({ model: 'claude-sonnet-4-6' });
+    expect(ce.data.resource).to.deep.equal({
+      group: ASSISTANT_RESOURCE_GROUP,
+      kind: ASSISTANT_RESOURCE_KIND,
+      namespace: 'default',
+      name: 'chat-123',
+    });
+  });
+
+  it('includes resource.uid when the source event carries one', () => {
+    const [evt] = buildAssistantUsageEvents({
+      ...baseInput,
+      conversationUid: 'a8f3a1b2-uid',
+      tokens: { inputTokens: 10 },
+    });
+    const ce = toCloudEvent(evt!, { source });
+    expect(ce.data.resource?.uid).to.equal('a8f3a1b2-uid');
+  });
+
+  it('omits dimensions when empty rather than emitting `{}`', () => {
+    // Manual UsageEvent with no dimensions — the builder always sets
+    // model, but downstream callers may not. Empty dimensions confuse
+    // gateway log analysis, so we drop the key.
+    const ce = toCloudEvent(
+      {
+        eventID: ulid(baseInput.now),
+        meterName: ASSISTANT_METERS.messages,
+        timestamp: '2026-04-27T17:00:00.000Z',
+        projectRef: { name: 'p' },
+        value: '1',
+        dimensions: {},
+        resource: {
+          ref: {
+            projectRef: { name: 'p' },
+            group: ASSISTANT_RESOURCE_GROUP,
+            kind: ASSISTANT_RESOURCE_KIND,
+            namespace: 'default',
+            name: 'c',
+          },
+          labels: {},
+        },
+      },
+      { source }
+    );
+    expect(ce.data.dimensions).to.equal(undefined);
   });
 });

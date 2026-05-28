@@ -135,11 +135,12 @@ const serverSchema = z.object({
   // ─────────────────────────────────────────────────────────
   // Optional: Usage Pipeline (Milo billing → Amberflo)
   //
-  // When USAGE_GATEWAY_URL is unset, usage emission is a no-op. Once the
-  // platform's per-project Ingestion Gateway lands, point this at it.
-  // Authentication will be mTLS, wired in a follow-up.
+  // When USAGE_GATEWAY_URL is unset, usage emission is a no-op.
+  // USAGE_GATEWAY_API_KEY, when set, is forwarded as the `x-api-key`
+  // header on each batch — the billing-ingestion-proxy requires it.
   // ─────────────────────────────────────────────────────────
   USAGE_GATEWAY_URL: urlSchemaOptional(),
+  USAGE_GATEWAY_API_KEY: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Amberflo usage query (read path for usage chart)
@@ -222,6 +223,7 @@ export const env: Env = {
     anthropicModel: data.ANTHROPIC_MODEL,
     // Usage Pipeline
     usageGatewayUrl: data.USAGE_GATEWAY_URL,
+    usageGatewayApiKey: data.USAGE_GATEWAY_API_KEY,
     // Amberflo read
     amberfloApiKey: data.AMBERFLO_API_KEY,
     amberfloBaseUrl: data.AMBERFLO_BASE_URL,

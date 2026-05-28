@@ -79,6 +79,10 @@ export interface ServerEnv {
   // platform's per-project Ingestion Gateway exists, point this at it.
   // See https://github.com/datum-cloud/billing/blob/docs/usage-pipeline/docs/enhancements/usage-pipeline.md
   usageGatewayUrl?: string;
+  // Forwarded as `x-api-key` on each batch when set. The
+  // billing-ingestion-proxy in front of the gateway enforces this
+  // header; leave undefined in environments that don't need auth.
+  usageGatewayApiKey?: string;
 
   // Optional: Amberflo usage query (read path for the usage chart)
   // amberfloApiKey: secret key used server-side to call POST /usage/sparse
