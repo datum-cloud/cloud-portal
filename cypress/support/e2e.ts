@@ -352,7 +352,14 @@ Cypress.Commands.add(
         // before the check settles detaches the node mid-click ("page updated while
         // executing"). Wait for it to become enabled, then re-query and click so the
         // click targets the post-swap, stable node.
-        cy.get('[data-e2e="create-project-button"]').should('be.visible').and('not.be.disabled');
+        //
+        // The 4s Cypress default is not enough headroom for the projects:create
+        // access-review in CI — since #1275 widened RBAC fan-out, the check
+        // routinely takes 5–10s on shard 3. Use an explicit 30s timeout to
+        // ride out the slowdown without masking real failures.
+        cy.get('[data-e2e="create-project-button"]', { timeout: 30000 })
+          .should('be.visible')
+          .and('not.be.disabled');
         cy.get('[data-e2e="create-project-button"]').click();
         return;
       }
@@ -378,8 +385,16 @@ Cypress.Commands.add(
       .should('be.oneOf', [200, 201]);
     cy.reload();
 
+    // The reload above issues a fresh list GET, but the project may still
+    // be reconciling on the API side. Cypress retries the `contains`
+    // assertion until the timeout, polling the same page state — so we
+    // need enough headroom for the API to return the new project on a
+    // subsequent retried request. 90s was tight on shard 3 after #1275
+    // widened RBAC fan-out; 180s rides out the slow case without hiding
+    // a genuine "project never created" bug (an outright failure surfaces
+    // earlier at cy.wait('@createProjectReq')).
     return cy
-      .contains('[data-e2e="project-card"]', displayName, { timeout: 90000 })
+      .contains('[data-e2e="project-card"]', displayName, { timeout: 180000 })
       .find('[data-e2e="project-card-id-copy"]')
       .invoke('text')
       .then((projectId: string) => {
