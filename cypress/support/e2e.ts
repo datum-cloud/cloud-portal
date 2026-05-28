@@ -47,6 +47,40 @@ function stubAmbientApis(): void {
 
   // Marker.io feedback widget — third-party, not under test.
   cy.intercept(/api\.marker\.io/, { statusCode: 204, body: '' });
+
+  // RBAC access-review BFF (#1269). Every authenticated page fires one or
+  // both of these on mount; when they resolve, components re-render to
+  // reflect computed permission state. In the regression suite that lands
+  // mid-`cy.click()` on action buttons in `before all` hooks (most often
+  // `create-organization-button` and `create-project-button`), detaching
+  // the element and producing the "page updated while this command was
+  // executing" error.
+  //
+  // We default-allow for the regression user. Specs that legitimately test
+  // permission denial can override these intercepts locally — later
+  // `cy.intercept` calls for the same route win.
+  cy.intercept('POST', '/api/permissions/check', {
+    statusCode: 200,
+    body: { success: true, data: { allowed: true, denied: false } },
+  });
+  cy.intercept('POST', '/api/permissions/bulk-check', (req) => {
+    const checks = (req.body && Array.isArray(req.body.checks) ? req.body.checks : []) as Array<
+      Record<string, unknown>
+    >;
+    req.reply({
+      statusCode: 200,
+      body: {
+        success: true,
+        data: {
+          results: checks.map((c) => ({
+            allowed: true,
+            denied: false,
+            request: c,
+          })),
+        },
+      },
+    });
+  });
 }
 
 beforeEach(() => {
