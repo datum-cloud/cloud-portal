@@ -2,11 +2,14 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
 import {
   DnsZoneFormDialog,
   type DnsZoneFormDialogRef,
 } from '@/features/edge/dns-zone/dns-zone-form-dialog';
+import { usePermissionCheck, PermissionButton } from '@/modules/rbac';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { IExtendedControlPlaneStatus } from '@/resources/base';
 import {
   createDnsZoneService,
@@ -22,7 +25,6 @@ import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -43,6 +45,8 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('DNS');
 });
 
+type DnsZonesLoaderData = { restricted: true } | { restricted: false; zones: DnsZone[] };
+
 export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
@@ -50,11 +54,25 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
     throw new BadRequestError('Project ID is required');
   }
 
+  // Access gate first — skip the list call if the user can't view DNS zones.
+  const canList = await gateRouteAccess(projectId, {
+    resource: 'dnszones',
+    verb: 'list',
+    group: 'dns.networking.miloapis.com',
+    namespace: 'default',
+    scope: 'project',
+    projectId,
+  });
+
+  if (!canList) {
+    return data({ restricted: true as const } satisfies DnsZonesLoaderData);
+  }
+
   // Services now use global axios client with AsyncLocalStorage
   const dnsZoneService = createDnsZoneService();
   const zones = await dnsZoneService.list(projectId);
 
-  return data({ zones });
+  return data({ restricted: false as const, zones } satisfies DnsZonesLoaderData);
 });
 
 interface DnsZoneWithComputed extends DnsZone {
@@ -67,8 +85,51 @@ interface DnsZoneWithComputed extends DnsZone {
 }
 
 export default function DnsZonesPage() {
-  const { zones: initialZones } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (loaderData.restricted) {
+    return (
+      <RestrictedState title="Access restricted" message="You don't have permission to view DNS." />
+    );
+  }
+
+  return <DnsZonesPageInner initialZones={loaderData.zones} />;
+}
+
+function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
   const { projectId } = useParams();
+
+  const { permissions } = usePermissionCheck([
+    {
+      resource: 'dnszones',
+      verb: 'create',
+      group: 'dns.networking.miloapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'dnszones',
+      verb: 'delete',
+      group: 'dns.networking.miloapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'domains',
+      verb: 'patch',
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+  ]);
+  const { canCreate, canDelete, canPatchDomain } = useMemo(
+    () => ({
+      canCreate: permissions['dnszones:create']?.allowed ?? false,
+      canDelete: permissions['dnszones:delete']?.allowed ?? false,
+      canPatchDomain: permissions['domains:patch']?.allowed ?? false,
+    }),
+    [permissions]
+  );
 
   // Subscribe to watch for real-time updates
   useDnsZonesWatch(projectId ?? '');
@@ -303,17 +364,18 @@ export default function DnsZonesPage() {
         },
         {
           label: 'Refresh nameservers',
-          hidden: (row) => !row.status?.domainRef?.name,
+          hidden: (row) => !canPatchDomain || !row.status?.domainRef?.name,
           onClick: (row) => refreshDomain(row),
         },
         {
           label: 'Delete',
           variant: 'destructive',
+          hidden: () => !canDelete,
           onClick: (row) => deleteDnsZone(row),
         },
       ]),
     ],
-    [projectId, navigate, refreshDomain, deleteDnsZone]
+    [projectId, navigate, refreshDomain, deleteDnsZone, canPatchDomain, canDelete]
   );
 
   return (
@@ -334,19 +396,27 @@ export default function DnsZonesPage() {
           )
         }
         empty={{
-          title: "let's add a DNS to get you started",
-          actions: [
-            {
-              type: 'button',
-              label: 'Add zone',
-              onClick: () => dialogRef.current?.show(),
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-            },
-          ],
+          title: canCreate ? "let's add a DNS to get you started" : 'No DNS yet',
+          actions: canCreate
+            ? [
+                {
+                  type: 'button',
+                  label: 'Add zone',
+                  onClick: () => dialogRef.current?.show(),
+                  icon: <Icon icon={PlusIcon} className="size-3" />,
+                },
+              ]
+            : [],
         }}
         actions={[
-          <Button
+          <PermissionButton
             key="add-zone"
+            resource="dnszones"
+            verb="create"
+            group="dns.networking.miloapis.com"
+            namespace="default"
+            scope="project"
+            deniedReason="You don't have permission to add a DNS zone"
             type="primary"
             theme="solid"
             size="small"
@@ -355,7 +425,7 @@ export default function DnsZonesPage() {
             onClick={() => dialogRef.current?.show()}>
             <Icon icon={PlusIcon} className="size-4" />
             Add zone
-          </Button>,
+          </PermissionButton>,
         ]}
       />
     </>

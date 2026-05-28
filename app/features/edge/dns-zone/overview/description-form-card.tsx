@@ -10,13 +10,16 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 
 export const DescriptionFormCard = ({
   projectId,
   defaultValue,
+  canEdit = true,
 }: {
   projectId: string;
   defaultValue: DnsZone;
+  canEdit?: boolean;
 }) => {
   const updateDnsZoneMutation = useUpdateDnsZone(projectId, defaultValue?.name ?? '', {
     onSuccess: () => {
@@ -62,7 +65,12 @@ export const DescriptionFormCard = ({
               </Form.Field>
 
               <Form.Field name="description">
-                <Form.Input type="text" placeholder="e.g. Our main marketing site" autoFocus />
+                <Form.Input
+                  type="text"
+                  placeholder="e.g. Our main marketing site"
+                  autoFocus
+                  disabled={!canEdit}
+                />
               </Form.Field>
             </CardContent>
             <CardFooter className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
@@ -70,7 +78,7 @@ export const DescriptionFormCard = ({
                 htmlType="button"
                 type="quaternary"
                 theme="outline"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !canEdit}
                 size="xs"
                 className="w-full sm:w-auto"
                 onClick={() => {
@@ -78,9 +86,17 @@ export const DescriptionFormCard = ({
                 }}>
                 Cancel
               </Button>
-              <Form.Submit size="xs" className="w-full sm:w-auto" loadingText="Saving">
-                Save
-              </Form.Submit>
+              {canEdit ? (
+                <Form.Submit size="xs" className="w-full sm:w-auto" loadingText="Saving">
+                  Save
+                </Form.Submit>
+              ) : (
+                <Tooltip message="You don't have permission to edit this DNS zone" side="top">
+                  <Form.Submit size="xs" className="w-full sm:w-auto" loadingText="Saving" disabled>
+                    Save
+                  </Form.Submit>
+                </Tooltip>
+              )}
             </CardFooter>
           </>
         )}
