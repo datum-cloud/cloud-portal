@@ -3,6 +3,7 @@ import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
 import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useMemo } from 'react';
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 
@@ -73,6 +74,16 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
     return (
       <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
         <SpinnerIcon size="sm" />
+      </div>
+    );
+  }
+
+  if (error?.statusCode === 403 || error?.statusCode === 401) {
+    return (
+      <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
+        <Tooltip message="You don't have permission to view metrics">
+          <span className="text-muted-foreground text-xs">&mdash;</span>
+        </Tooltip>
       </div>
     );
   }

@@ -1,5 +1,10 @@
 import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
-import { createHttpProxyService, httpProxyKeys } from './http-proxy.service';
+import {
+  createHttpProxyService,
+  httpProxyKeys,
+  type TrafficProtectionMaps,
+  type TrafficProtectionView,
+} from './http-proxy.service';
 import {
   useQuery,
   useMutation,
@@ -52,6 +57,40 @@ export function useHttpProxy(
   });
 }
 
+/**
+ * WAF (TrafficProtectionPolicy) modes for a project, keyed by proxy name.
+ * Decoupled from the proxy list and gated by `enabled` so callers without
+ * `trafficprotectionpolicies` view permission never trigger the request.
+ */
+export function useTrafficProtectionPolicies(
+  projectId: string,
+  options?: Omit<UseQueryOptions<TrafficProtectionMaps>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: httpProxyKeys.wafList(projectId),
+    queryFn: () => createHttpProxyService().listTrafficProtectionPolicies(projectId),
+    enabled: !!projectId,
+    ...options,
+  });
+}
+
+/**
+ * WAF (TrafficProtectionPolicy) view for a single proxy. Gated by `enabled` so
+ * callers without view permission never trigger the request.
+ */
+export function useTrafficProtectionPolicy(
+  projectId: string,
+  name: string,
+  options?: Omit<UseQueryOptions<TrafficProtectionView | null>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: httpProxyKeys.wafDetail(projectId, name),
+    queryFn: () => createHttpProxyService().getTrafficProtectionPolicy(projectId, name),
+    enabled: !!projectId && !!name,
+    ...options,
+  });
+}
+
 export function useCreateHttpProxy(
   projectId: string,
   options?: UseMutationOptions<HttpProxy, Error, CreateHttpProxyInput>
@@ -66,6 +105,7 @@ export function useCreateHttpProxy(
       const [newHttpProxy] = args;
       queryClient.setQueryData(httpProxyKeys.detail(projectId, newHttpProxy.name), newHttpProxy);
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -79,7 +119,11 @@ export function useUpdateHttpProxy(
     HttpProxy,
     Error,
     UpdateHttpProxyInput,
-    { previous: HttpProxy | undefined }
+    {
+      previous: HttpProxy | undefined;
+      previousWaf?: TrafficProtectionView | null;
+      touchesWaf?: boolean;
+    }
   >
 ) {
   const queryClient = useQueryClient();
@@ -105,14 +149,6 @@ export function useUpdateHttpProxy(
           ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
           ...(input.tlsHostname !== undefined && { tlsHostname: input.tlsHostname }),
           ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
-          ...(input.removeTrafficProtection && {
-            trafficProtectionMode: undefined,
-            paranoiaLevels: undefined,
-          }),
-          ...(input.trafficProtectionMode !== undefined && {
-            trafficProtectionMode: input.trafficProtectionMode,
-          }),
-          ...(input.paranoiaLevels !== undefined && { paranoiaLevels: input.paranoiaLevels }),
           ...(input.enableHttpRedirect !== undefined && {
             enableHttpRedirect: input.enableHttpRedirect,
           }),
@@ -123,17 +159,49 @@ export function useUpdateHttpProxy(
           }),
         };
       });
-      return { previous };
+
+      // WAF lives in its own (permission-gated) cache now — update it separately.
+      let previousWaf: TrafficProtectionView | null | undefined;
+      const touchesWaf =
+        input.removeTrafficProtection ||
+        input.trafficProtectionMode !== undefined ||
+        input.paranoiaLevels !== undefined;
+      if (touchesWaf) {
+        await queryClient.cancelQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
+        previousWaf = queryClient.getQueryData<TrafficProtectionView | null>(
+          httpProxyKeys.wafDetail(projectId, name)
+        );
+        queryClient.setQueryData<TrafficProtectionView | null>(
+          httpProxyKeys.wafDetail(projectId, name),
+          (old) => {
+            if (input.removeTrafficProtection)
+              return { mode: undefined, paranoiaLevels: undefined };
+            return {
+              mode: input.trafficProtectionMode ?? old?.mode,
+              paranoiaLevels: input.paranoiaLevels ?? old?.paranoiaLevels,
+            };
+          }
+        );
+      }
+      return { previous, previousWaf, touchesWaf };
     },
     onError: (err, _input, context, mutationContext) => {
       if (context?.previous != null) {
         queryClient.setQueryData(httpProxyKeys.detail(projectId, name), context.previous);
+      }
+      if (context?.touchesWaf) {
+        queryClient.setQueryData(
+          httpProxyKeys.wafDetail(projectId, name),
+          context.previousWaf ?? null
+        );
       }
       options?.onError?.(err, _input, context, mutationContext);
     },
     onSuccess: async (...args) => {
       await queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
 
       options?.onSuccess?.(...args);
     },
@@ -154,6 +222,8 @@ export function useDeleteHttpProxy(
       await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       // Invalidate list so it refetches without the deleted item
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+      queryClient.removeQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
 
       options?.onSuccess?.(...args);
     },

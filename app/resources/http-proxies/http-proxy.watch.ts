@@ -31,10 +31,6 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
             item.name === newItem.name
               ? {
                   ...newItem,
-                  ...(existingItem.trafficProtectionMode !== undefined && {
-                    trafficProtectionMode: existingItem.trafficProtectionMode,
-                    paranoiaLevels: existingItem.paranoiaLevels,
-                  }),
                   ...(existingItem.enableHttpRedirect !== undefined && {
                     enableHttpRedirect: existingItem.enableHttpRedirect,
                   }),
@@ -78,16 +74,13 @@ export function useHttpProxyWatch(
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
     enabled: options?.enabled ?? true,
     updateSingleCache: (oldData, newItem) => {
-      // Preserve fields that watch events may omit or send partially (WAF from separate policy,
-      // enableHttpRedirect derived from spec.rules which may be missing in partial watch payloads)
+      // Preserve fields that watch events may omit or send partially
+      // (enableHttpRedirect derived from spec.rules, basic-auth from a separate policy).
+      // WAF is no longer carried on the proxy object — it has its own query/cache.
       if (!oldData) return newItem;
 
       return {
         ...newItem,
-        ...(oldData.trafficProtectionMode !== undefined && {
-          trafficProtectionMode: oldData.trafficProtectionMode,
-          paranoiaLevels: oldData.paranoiaLevels,
-        }),
         ...(oldData.enableHttpRedirect !== undefined && {
           enableHttpRedirect: oldData.enableHttpRedirect,
         }),
