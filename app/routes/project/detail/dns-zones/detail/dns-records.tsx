@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import {
   DnsRecordAiEdgeCell,
   DnsRecordTable,
@@ -17,6 +18,7 @@ import {
 } from '@/features/edge/dns-records/utils';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { usePermissionCheck, PermissionButton } from '@/modules/rbac';
 import {
   IFlattenedDnsRecord,
   dnsRecordKeys,
@@ -35,10 +37,10 @@ import {
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { BadRequestError } from '@/utils/errors';
 import { getRecordHostname } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import {
   useDataTablePagination,
   useDataTableSearch,
@@ -78,7 +80,13 @@ function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
   };
 
   return (
-    <Button
+    <PermissionButton
+      resource="dnsrecordsets"
+      verb="create"
+      group="dns.networking.miloapis.com"
+      namespace="default"
+      scope="project"
+      deniedReason="You don't have permission to add a DNS record"
       htmlType="button"
       type="primary"
       theme="solid"
@@ -87,34 +95,88 @@ function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
       onClick={handleClick}>
       <Icon icon={PlusIcon} className="size-4" />
       Add record
-    </Button>
+    </PermissionButton>
   );
 }
 
 export default function DnsRecordsPage() {
-  const { dnsZone, dnsRecordSets: initialDnsRecordSets } = useRouteLoaderData(
-    'dns-zone-detail'
-  ) as {
+  const { dnsZone } = useRouteLoaderData('dns-zone-detail') as {
     dnsZone: DnsZone;
-    dnsRecordSets: IFlattenedDnsRecord[];
   };
   const { projectId, dnsZoneId } = useParams();
+  if (!projectId || !dnsZoneId) {
+    throw new BadRequestError('Project ID and DNS Zone ID are required');
+  }
+
+  // DNS records are a separate, permission-gated resource — a zone viewer may
+  // lack dnsrecordsets access. Gate the query/watch behind the SSAR so a
+  // missing permission never fires the request. The httpproxies·list check
+  // gates the AI Edge cell enrichment so a viewer without proxy access doesn't
+  // 403 on the optional `findProxyForRecord` lookup.
+  const { permissions, isLoading: permLoading } = usePermissionCheck([
+    {
+      resource: 'dnsrecordsets',
+      verb: 'list',
+      group: 'dns.networking.miloapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'dnsrecordsets',
+      verb: 'create',
+      group: 'dns.networking.miloapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'dnsrecordsets',
+      verb: 'patch',
+      group: 'dns.networking.miloapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'dnsrecordsets',
+      verb: 'delete',
+      group: 'dns.networking.miloapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'httpproxies',
+      verb: 'list',
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+  ]);
+  const { canListRecords, canCreateRecord, canPatchRecord, canDeleteRecord, canListProxies } =
+    useMemo(
+      () => ({
+        canListRecords: permissions['dnsrecordsets:list']?.allowed ?? false,
+        canCreateRecord: permissions['dnsrecordsets:create']?.allowed ?? false,
+        canPatchRecord: permissions['dnsrecordsets:patch']?.allowed ?? false,
+        canDeleteRecord: permissions['dnsrecordsets:delete']?.allowed ?? false,
+        canListProxies: permissions['httpproxies:list']?.allowed ?? false,
+      }),
+      [permissions]
+    );
 
   // Subscribe to watch for real-time updates
-  useDnsRecordsWatch(projectId ?? '', dnsZoneId ?? '');
+  useDnsRecordsWatch(projectId, dnsZoneId, { enabled: canListRecords });
 
-  // Read from React Query cache (seeded synchronously from SSR loader data)
-  const { data: queryData } = useDnsRecords(projectId ?? '', dnsZoneId, undefined, {
-    initialData: initialDnsRecordSets,
-    initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
+  const { data: queryData = [] } = useDnsRecords(projectId, dnsZoneId, undefined, {
     staleTime: QUERY_STALE_TIME,
+    enabled: canListRecords,
   });
 
-  const { data: proxies = [] } = useHttpProxies(projectId ?? '');
+  // AI Edge enrichment is optional — only fetch when the user can list proxies
+  // (a denied viewer still sees the records table without the linked-proxy cell).
+  const { data: proxies = [] } = useHttpProxies(projectId, {
+    enabled: canListProxies,
+  });
 
-  // Use React Query data, fallback to SSR data
-  const dnsRecords = queryData ?? initialDnsRecordSets;
+  const dnsRecords = queryData;
 
   const zoneDomain = dnsZone?.domainName ?? '';
   const enrichedRecords = useMemo((): IFlattenedDnsRecord[] => {
@@ -156,11 +218,23 @@ export default function DnsRecordsPage() {
   };
 
   const handleOpenEdit = (record: IFlattenedDnsRecord) => {
+    if (!canPatchRecord) {
+      toast.error("You don't have permission to edit DNS records");
+      return;
+    }
     setInlinePosition('row');
     // Must match DnsRecordTable's `getRowId` so only the clicked row
     // (not every row sharing a recordSetName) anchors the inline panel.
     setInlineRowId(getDnsRecordRowId(record));
     setInlineOpen(true);
+  };
+
+  const handleOpenEditMobile = (record: IFlattenedDnsRecord) => {
+    if (!canPatchRecord) {
+      toast.error("You don't have permission to edit DNS records");
+      return;
+    }
+    dnsRecordModalFormRef.current?.show('edit', record);
   };
 
   const handleInlineClose = () => {
@@ -372,11 +446,20 @@ export default function DnsRecordsPage() {
       label: 'Delete',
       variant: 'destructive',
       onClick: (record) => handleDelete(record),
-      hidden: (record) => record.type === 'SOA',
+      hidden: (record) => !canDeleteRecord || record.type === 'SOA',
       disabled: (record) => isRowLocked(record),
       tooltip: (record) => record.lockReason ?? '',
     },
   ];
+
+  if (!permLoading && !canListRecords) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view DNS records."
+      />
+    );
+  }
 
   // Desktop layout is the SSR-safe fallback (inline panel mode)
   // Mobile layout (modal mode) resolves on the client after breakpoint check
@@ -413,15 +496,17 @@ export default function DnsRecordsPage() {
         tableTitle={{
           actions: (
             <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
-              <DnsRecordImportAction
-                origin={dnsZone?.domainName}
-                existingRecords={dnsRecords}
-                projectId={projectId!}
-                dnsZoneId={dnsZoneId!}
-                onSuccess={() => {
-                  // Watch will automatically update the list with real-time changes
-                }}
-              />
+              {canCreateRecord && (
+                <DnsRecordImportAction
+                  origin={dnsZone?.domainName}
+                  existingRecords={dnsRecords}
+                  projectId={projectId!}
+                  dnsZoneId={dnsZoneId!}
+                  onSuccess={() => {
+                    // Watch will automatically update the list with real-time changes
+                  }}
+                />
+              )}
               <AddDnsRecordButton onClick={handleOpenCreate} />
             </div>
           ),
@@ -472,16 +557,24 @@ export default function DnsRecordsPage() {
             tableTitle={{
               actions: (
                 <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
-                  <DnsRecordImportAction
-                    origin={dnsZone?.domainName}
-                    existingRecords={dnsRecords}
-                    projectId={projectId!}
-                    dnsZoneId={dnsZoneId!}
-                    onSuccess={() => {
-                      // Watch will automatically update the list with real-time changes
-                    }}
-                  />
-                  <Button
+                  {canCreateRecord && (
+                    <DnsRecordImportAction
+                      origin={dnsZone?.domainName}
+                      existingRecords={dnsRecords}
+                      projectId={projectId!}
+                      dnsZoneId={dnsZoneId!}
+                      onSuccess={() => {
+                        // Watch will automatically update the list with real-time changes
+                      }}
+                    />
+                  )}
+                  <PermissionButton
+                    resource="dnsrecordsets"
+                    verb="create"
+                    group="dns.networking.miloapis.com"
+                    namespace="default"
+                    scope="project"
+                    deniedReason="You don't have permission to add a DNS record"
                     htmlType="button"
                     type="primary"
                     theme="solid"
@@ -490,7 +583,7 @@ export default function DnsRecordsPage() {
                     onClick={() => dnsRecordModalFormRef.current?.show('create')}>
                     <Icon icon={PlusIcon} className="size-4" />
                     Add record
-                  </Button>
+                  </PermissionButton>
                 </div>
               ),
             }}
@@ -499,9 +592,7 @@ export default function DnsRecordsPage() {
             inlineRowId={inlineRowId}
             onInlineClose={handleInlineClose}
             onOpenCreate={handleOpenCreate}
-            onOpenEdit={(record) => {
-              dnsRecordModalFormRef.current?.show('edit', record);
-            }}
+            onOpenEdit={handleOpenEditMobile}
             extraRowActions={extraRowActions}
           />
         </>

@@ -1,10 +1,12 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { Table } from '@/components/table';
 import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
 import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
+import { usePermissionCheck } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/connectors';
 import { type HttpProxy, useHttpProxies, useHttpProxiesWatch } from '@/resources/http-proxies';
@@ -68,18 +70,44 @@ export default function ConnectorsPage() {
 
   const isDownloadVisible = !downloadDismissed && dismissFetcher.state === 'idle';
 
-  useConnectorsWatch(projectId);
+  const { permissions, isLoading: permLoading } = usePermissionCheck([
+    {
+      resource: 'connectors',
+      verb: 'list',
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'httpproxies',
+      verb: 'list',
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+  ]);
+  const { canList, canListProxies } = useMemo(
+    () => ({
+      canList: permissions['connectors:list']?.allowed ?? false,
+      canListProxies: permissions['httpproxies:list']?.allowed ?? false,
+    }),
+    [permissions]
+  );
 
-  useHttpProxiesWatch(projectId);
+  useConnectorsWatch(projectId, { enabled: canList });
+
+  useHttpProxiesWatch(projectId, { enabled: canListProxies });
 
   const { data: connectorsData } = useConnectors(projectId, {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
+    enabled: canList,
   });
 
   const { data: proxies } = useHttpProxies(projectId, {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
+    enabled: canListProxies,
   });
 
   const tableData = useMemo((): ConnectorWithProxies[] => {
@@ -282,6 +310,15 @@ export default function ConnectorsPage() {
     ],
     [projectId]
   );
+
+  if (!permLoading && !canList) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view connectors."
+      />
+    );
+  }
 
   return (
     <Table.Client
