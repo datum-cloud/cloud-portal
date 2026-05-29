@@ -560,9 +560,7 @@ function DomainsPageInner({
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
         search="Search"
         actions={[
-          ...(canCreate
-            ? [<BulkAddDomainsAction key="bulk-add" projectId={projectId!} />]
-            : []),
+          ...(canCreate ? [<BulkAddDomainsAction key="bulk-add" projectId={projectId!} />] : []),
           <PermissionButton
             key="create"
             resource="domains"
