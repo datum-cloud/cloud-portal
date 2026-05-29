@@ -1,6 +1,9 @@
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { DomainHeaderActions } from '@/features/edge/domain/domain-header-actions';
 import { SubLayout } from '@/layouts';
+import { logger } from '@/modules/logger';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { createDnsZoneService, type DnsZone } from '@/resources/dns-zones';
 import { createDomainService, type Domain, useDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
@@ -17,13 +20,20 @@ import {
   useParams,
 } from 'react-router';
 
+type LayoutLoaderData =
+  | { restricted: true }
+  | { restricted: false; domain: Domain; dnsZone: DnsZone | null };
+
 export const handle = {
-  breadcrumb: ({ domain }: { domain: Domain }) => <span>{domain?.domainName}</span>,
+  breadcrumb: (loaderData: LayoutLoaderData | undefined) => {
+    const name = loaderData && !loaderData.restricted ? loaderData.domain?.domainName : undefined;
+    return <span>{name ?? 'Domain'}</span>;
+  },
 };
 
 export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const { domain } = loaderData as { domain: Domain };
-  return metaObject(domain?.name || 'Domain');
+  const name = loaderData && !loaderData.restricted ? loaderData.domain?.name : undefined;
+  return metaObject(name || 'Domain');
 });
 
 export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
@@ -31,6 +41,20 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
 
   if (!projectId || !domainId) {
     throw new BadRequestError('Project ID and domain ID are required');
+  }
+
+  // Access gate first — skip the domain fetch if the user can't view it.
+  const canView = await gateRouteAccess(projectId, {
+    resource: 'domains',
+    verb: 'get',
+    group: 'networking.datumapis.com',
+    namespace: 'default',
+    scope: 'project',
+    projectId,
+  });
+
+  if (!canView) {
+    return data({ restricted: true as const } satisfies LayoutLoaderData);
   }
 
   // Services now use global axios client with AsyncLocalStorage
@@ -41,19 +65,50 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
     throw new NotFoundError('Domain', domainId);
   }
 
-  const dnsZoneService = createDnsZoneService();
-
+  // DNS zone is a separate resource (`dns.networking.miloapis.com/dnszones`); a
+  // viewer may have domains access without dnszones access. Tolerate failure so
+  // the domain detail still renders (Manage DNS Zone degrades gracefully).
   let dnsZone: DnsZone | null = null;
   if (domain?.name) {
-    const dnsZoneList = await dnsZoneService.listByDomainRef(projectId, domain.name, 1);
-    dnsZone = dnsZoneList?.[0] ?? null;
+    const dnsZoneService = createDnsZoneService();
+    try {
+      const dnsZoneList = await dnsZoneService.listByDomainRef(projectId, domain.name, 1);
+      dnsZone = dnsZoneList?.[0] ?? null;
+    } catch (error) {
+      logger.warn('DomainDetailLayout: dnsZone fetch failed (degrading gracefully)', {
+        error: error instanceof Error ? error.message : String(error),
+        projectId,
+        domainName: domain.name,
+      });
+      dnsZone = null;
+    }
   }
 
-  return data({ domain, dnsZone });
+  return data({ restricted: false as const, domain, dnsZone } satisfies LayoutLoaderData);
 });
 
 export default function DomainDetailLayout() {
-  const { domain, dnsZone } = useLoaderData<typeof loader>();
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (loaderData.restricted) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view this domain."
+      />
+    );
+  }
+
+  return <DomainDetailLayoutInner domain={loaderData.domain} dnsZone={loaderData.dnsZone} />;
+}
+
+function DomainDetailLayoutInner({
+  domain,
+  dnsZone,
+}: {
+  domain: Domain;
+  dnsZone: DnsZone | null;
+}) {
   const { projectId, domainId } = useParams();
 
   // Seed cache synchronously with SSR data so child routes read it without skeleton flash

@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { PermissionButton } from '@/modules/rbac';
 import { type DnsZone } from '@/resources/dns-zones';
 import {
   type Domain,
@@ -120,7 +121,13 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
 
   return (
     <div className="flex w-full items-center gap-2 sm:w-auto">
-      <Button
+      <PermissionButton
+        resource="domains"
+        verb="patch"
+        group="networking.datumapis.com"
+        namespace="default"
+        scope="project"
+        deniedReason="You don't have permission to refresh this domain"
         type="secondary"
         theme="outline"
         size="small"
@@ -129,7 +136,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
         aria-label="Refresh domain">
         <Icon icon={RefreshCcwIcon} size={14} />
         <span className="hidden sm:inline">Refresh</span>
-      </Button>
+      </PermissionButton>
       <Button
         type="secondary"
         theme="outline"
@@ -139,7 +146,13 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
         <Icon icon={GlobeIcon} size={14} />
         Manage DNS Zone
       </Button>
-      <Button
+      <PermissionButton
+        resource="domains"
+        verb="delete"
+        group="networking.datumapis.com"
+        namespace="default"
+        scope="project"
+        deniedReason="You don't have permission to delete this domain"
         type="danger"
         theme="outline"
         size="small"
@@ -148,7 +161,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
         aria-label="Delete domain">
         <Icon icon={TrashIcon} size={14} />
         <span className="hidden sm:inline">Delete</span>
-      </Button>
+      </PermissionButton>
     </div>
   );
 }

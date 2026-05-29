@@ -1,10 +1,13 @@
 import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feature-card';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { usePermission } from '@/modules/rbac';
 import { useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
 
@@ -19,6 +22,12 @@ export default function DomainSettingsPage() {
   const navigate = useNavigate();
 
   const { confirm } = useConfirmationDialog();
+
+  const { hasPermission: canDelete, isLoading: deleteLoading } = usePermission(
+    'domains',
+    'delete',
+    { group: 'networking.datumapis.com', namespace: 'default', scope: 'project' }
+  );
 
   const deleteDomainMutation = useDeleteDomain(projectId ?? '', {
     onSuccess: () => {
@@ -70,7 +79,15 @@ export default function DomainSettingsPage() {
           loading={deleteDomainMutation.isPending}
           onDelete={deleteDomain}
           data-e2e="delete-domain-button"
-        />
+          actionHidden={deleteLoading || !canDelete}>
+          {deleteLoading ? (
+            <LoaderOverlay />
+          ) : (
+            !canDelete && (
+              <RestrictedOverlay message="You don't have permission to delete this domain" />
+            )
+          )}
+        </DangerCard>
       </Col>
     </Row>
   );

@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
 import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
 import {
@@ -9,6 +10,8 @@ import {
 } from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
+import { usePermissionCheck, PermissionButton } from '@/modules/rbac';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { useApp } from '@/providers/app.provider';
 import {
   createDnsZoneService,
@@ -32,7 +35,6 @@ import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -68,6 +70,10 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Domains');
 });
 
+type DomainsLoaderData =
+  | { restricted: true }
+  | { restricted: false; domains: Domain[]; dnsZones: DnsZone[] };
+
 export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
@@ -75,19 +81,79 @@ export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) =>
     throw new BadRequestError('Project ID is required');
   }
 
+  // Access gate first — skip the list call if the user can't view domains.
+  const canList = await gateRouteAccess(projectId, {
+    resource: 'domains',
+    verb: 'list',
+    group: 'networking.datumapis.com',
+    namespace: 'default',
+    scope: 'project',
+    projectId,
+  });
+
+  if (!canList) {
+    return data({ restricted: true as const } satisfies DomainsLoaderData);
+  }
+
   const [domains, dnsZones] = await Promise.all([
     createDomainService().list(projectId),
     createDnsZoneService().list(projectId),
   ]);
 
-  return data({ domains, dnsZones });
+  return data({ restricted: false as const, domains, dnsZones } satisfies DomainsLoaderData);
 });
 
 export default function DomainsPage() {
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (loaderData.restricted) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view domains."
+      />
+    );
+  }
+
+  return (
+    <DomainsPageInner initialDomains={loaderData.domains} initialDnsZones={loaderData.dnsZones} />
+  );
+}
+
+function DomainsPageInner({
+  initialDomains,
+  initialDnsZones,
+}: {
+  initialDomains: Domain[];
+  initialDnsZones: DnsZone[];
+}) {
   const { projectId } = useParams();
-  const { domains: initialDomains, dnsZones: initialDnsZones } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const { permissions } = usePermissionCheck([
+    {
+      resource: 'domains',
+      verb: 'create',
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+    {
+      resource: 'domains',
+      verb: 'delete',
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+    },
+  ]);
+  const { canCreate, canDelete } = useMemo(
+    () => ({
+      canCreate: permissions['domains:create']?.allowed ?? false,
+      canDelete: permissions['domains:delete']?.allowed ?? false,
+    }),
+    [permissions]
+  );
 
   // Cancel in-flight queries on unmount to prevent orphaned requests
   useEffect(() => {
@@ -391,6 +457,7 @@ export default function DomainsPage() {
         {
           label: 'Delete',
           variant: 'destructive',
+          hidden: () => !canDelete,
           onClick: (row) => handleDeleteDomain(row),
         },
       ]),
@@ -401,6 +468,7 @@ export default function DomainsPage() {
       handleRefreshDomain,
       handleManageDnsZone,
       handleDeleteDomain,
+      canDelete,
     ]
   );
 
@@ -493,8 +561,14 @@ export default function DomainsPage() {
         search="Search"
         actions={[
           <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
-          <Button
+          <PermissionButton
             key="create"
+            resource="domains"
+            verb="create"
+            group="networking.datumapis.com"
+            namespace="default"
+            scope="project"
+            deniedReason="You don't have permission to add a domain"
             type="primary"
             theme="solid"
             size="small"
@@ -503,36 +577,42 @@ export default function DomainsPage() {
             onClick={() => domainFormRef.current?.show()}>
             <Icon icon={PlusIcon} className="size-4" />
             Add domain
-          </Button>,
+          </PermissionButton>,
         ]}
-        multiActions={[
-          {
-            label: 'Delete Selected',
-            icon: <Icon icon={TrashIcon} className="size-4" />,
-            variant: 'destructive',
-            onClick: (
-              selectedRows: FormattedDomain[],
-              { clearSelection }: { clearSelection: () => void }
-            ) => handleDeleteDomains(selectedRows, clearSelection),
-          },
-        ]}
+        multiActions={
+          canDelete
+            ? [
+                {
+                  label: 'Delete Selected',
+                  icon: <Icon icon={TrashIcon} className="size-4" />,
+                  variant: 'destructive',
+                  onClick: (
+                    selectedRows: FormattedDomain[],
+                    { clearSelection }: { clearSelection: () => void }
+                  ) => handleDeleteDomains(selectedRows, clearSelection),
+                },
+              ]
+            : []
+        }
         empty={{
-          title: "let's add a domain to get you started",
-          actions: [
-            {
-              label: 'Add domain',
-              type: 'button',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              onClick: () => domainFormRef.current?.show(),
-            },
-            {
-              label: 'Bulk add domains',
-              type: 'button',
-              variant: 'outline',
-              icon: <Icon icon={ListChecksIcon} className="size-3" />,
-              onClick: () => setBulkAddPopoverOpen(true),
-            },
-          ],
+          title: canCreate ? "let's add a domain to get you started" : 'No domains yet',
+          actions: canCreate
+            ? [
+                {
+                  label: 'Add domain',
+                  type: 'button',
+                  icon: <Icon icon={PlusIcon} className="size-3" />,
+                  onClick: () => domainFormRef.current?.show(),
+                },
+                {
+                  label: 'Bulk add domains',
+                  type: 'button',
+                  variant: 'outline',
+                  icon: <Icon icon={ListChecksIcon} className="size-3" />,
+                  onClick: () => setBulkAddPopoverOpen(true),
+                },
+              ]
+            : [],
         }}
       />
 
