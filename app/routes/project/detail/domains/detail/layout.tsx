@@ -20,7 +20,7 @@ import {
   useParams,
 } from 'react-router';
 
-type LayoutLoaderData =
+export type LayoutLoaderData =
   | { restricted: true }
   | { restricted: false; domain: Domain; dnsZone: DnsZone | null };
 
@@ -102,13 +102,7 @@ export default function DomainDetailLayout() {
   return <DomainDetailLayoutInner domain={loaderData.domain} dnsZone={loaderData.dnsZone} />;
 }
 
-function DomainDetailLayoutInner({
-  domain,
-  dnsZone,
-}: {
-  domain: Domain;
-  dnsZone: DnsZone | null;
-}) {
+function DomainDetailLayoutInner({ domain, dnsZone }: { domain: Domain; dnsZone: DnsZone | null }) {
   const { projectId, domainId } = useParams();
 
   // Seed cache synchronously with SSR data so child routes read it without skeleton flash

@@ -1,9 +1,10 @@
+import { type LayoutLoaderData } from './layout';
 import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feature-card';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { usePermission } from '@/modules/rbac';
-import { useDeleteDomain } from '@/resources/domains';
+import { type Domain, useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
@@ -16,8 +17,16 @@ export const handle = {
 };
 
 export default function DomainSettingsPage() {
-  const { domain } = useRouteLoaderData('domain-detail');
+  const loaderData = useRouteLoaderData('domain-detail') as LayoutLoaderData | undefined;
 
+  // Parent layout already renders <RestrictedState> in the restricted branch;
+  // gate here as well so hooks below run against a guaranteed Domain.
+  if (!loaderData || loaderData.restricted) return null;
+
+  return <DomainSettingsInner domain={loaderData.domain} />;
+}
+
+function DomainSettingsInner({ domain }: { domain: Domain }) {
   const { projectId } = useParams();
   const navigate = useNavigate();
 
@@ -56,7 +65,7 @@ export default function DomainSettingsPage() {
       variant: 'destructive',
       showConfirmInput: false,
       onSubmit: async () => {
-        deleteDomainMutation.mutate(domain?.name ?? '');
+        deleteDomainMutation.mutate(domain.name ?? '');
       },
     });
   };
@@ -74,7 +83,7 @@ export default function DomainSettingsPage() {
         <h3 className="mb-4 text-base font-medium">Delete Domain</h3>
         <DangerCard
           title="Warning: This Action is Irreversible"
-          description={`This action cannot be undone. Once deleted, the ${domain?.domainName} domain and all associated data will be permanently removed from Datum. `}
+          description={`This action cannot be undone. Once deleted, the ${domain.domainName} domain and all associated data will be permanently removed from Datum. `}
           deleteText="Delete domain"
           loading={deleteDomainMutation.isPending}
           onDelete={deleteDomain}

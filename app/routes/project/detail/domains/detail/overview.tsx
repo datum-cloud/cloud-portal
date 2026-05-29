@@ -1,9 +1,11 @@
+import { type LayoutLoaderData } from './layout';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { NotesSection } from '@/features/notes';
 import { ControlPlaneStatus } from '@/resources/base';
-import { useDomain, useDomainWatch } from '@/resources/domains';
+import { type DnsZone } from '@/resources/dns-zones';
+import { type Domain, useDomain, useDomainWatch } from '@/resources/domains';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
@@ -36,18 +38,27 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function DomainOverviewPage() {
-  const { domain, dnsZone } = useRouteLoaderData('domain-detail');
+  const loaderData = useRouteLoaderData('domain-detail') as LayoutLoaderData | undefined;
+
+  // Parent layout already renders <RestrictedState> in the restricted branch;
+  // gate here as well so hooks below run against a guaranteed Domain.
+  if (!loaderData || loaderData.restricted) return null;
+
+  return <DomainOverviewInner domain={loaderData.domain} dnsZone={loaderData.dnsZone} />;
+}
+
+function DomainOverviewInner({ domain, dnsZone }: { domain: Domain; dnsZone: DnsZone | null }) {
   const { projectId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Get live domain data from React Query
-  const { data: liveDomain } = useDomain(projectId ?? '', domain?.name ?? '', {
-    enabled: !!domain?.name,
+  const { data: liveDomain } = useDomain(projectId ?? '', domain.name ?? '', {
+    enabled: !!domain.name,
     initialData: domain,
   });
   // Subscribe to real-time domain updates (for nameserver status)
-  useDomainWatch(projectId ?? '', liveDomain?.name ?? domain?.name ?? '', {
-    enabled: !!(liveDomain?.name ?? domain?.name),
+  useDomainWatch(projectId ?? '', liveDomain?.name ?? domain.name ?? '', {
+    enabled: !!(liveDomain?.name ?? domain.name),
   });
 
   // Prefer live data from React Query, fall back to SSR loader data
@@ -91,7 +102,11 @@ export default function DomainOverviewPage() {
   return (
     <Row gutter={[24, 32]}>
       <Col span={24}>
-        <DomainGeneralCard domain={effectiveDomain} dnsZone={dnsZone} projectId={projectId} />
+        <DomainGeneralCard
+          domain={effectiveDomain}
+          dnsZone={dnsZone ?? undefined}
+          projectId={projectId}
+        />
       </Col>
       {isPending && (
         <>
