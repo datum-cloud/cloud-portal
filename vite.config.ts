@@ -42,6 +42,45 @@ function patchHonoBunAdapter(): Plugin {
   };
 }
 
+// Replace server-only modules transitively imported by `defineResourceRoute`
+// with browser-safe no-ops when bundling for Cypress component tests. The
+// real modules either pull in `prom-client` (crashes on `process.env.NODE_DEBUG`
+// in the browser) or call `process.exit` at module load. Component specs that
+// import `defineResourceRoute` never actually invoke the loader — they replace
+// it at the memory-router level — so the stubs only need to keep module load
+// from crashing. Production builds are unaffected.
+function stubServerModulesForCypress(): Plugin {
+  const stubs: Record<string, string> = {
+    [resolve(__dirname, './app/modules/rbac/server/check-permission.ts')]: `
+      export async function canInLoader() { return true; }
+      export async function gateRouteAccess() { return true; }
+    `,
+    [resolve(__dirname, './app/utils/env/env.server.ts')]: `
+      export const env = {
+        public: {},
+        server: {},
+      };
+      export const isProduction = false;
+      export const isDevelopment = false;
+      export const isTest = true;
+    `,
+    // The `@/utils/cookies` barrel re-exports a dozen `.server.ts` files,
+    // most of which create real cookie storage at module-init time and crash
+    // in the browser. Stub the barrel itself with just the symbols
+    // `defineResourceRoute` actually uses (`redirectWithToast`).
+    [resolve(__dirname, './app/utils/cookies/index.ts')]: `
+      export async function redirectWithToast() { return new Response(null); }
+    `,
+  };
+  return {
+    name: 'stub-server-modules-for-cypress',
+    enforce: 'pre',
+    load(id) {
+      return stubs[id] ?? null;
+    },
+  };
+}
+
 // Workaround for issue with running react router in a production build
 //
 // See: https://github.com/remix-run/react-router/issues/12568#issuecomment-2629986004
@@ -51,6 +90,11 @@ export default defineConfig((config) => {
   const aliases: { [key: string]: string } = {
     '@': resolve(__dirname, './app'),
   };
+
+  // The `stubServerModulesForCypress` plugin (registered below when CYPRESS
+  // is set) rewrites the server-only modules transitively imported by
+  // `defineResourceRoute` so component specs don't drag prom-client,
+  // env.server, or cookie-store init code into the browser bundle.
 
   return {
     resolve: {
@@ -83,6 +127,7 @@ export default defineConfig((config) => {
     },
     plugins: [
       patchHonoBunAdapter(),
+      ...(process.env.CYPRESS ? [stubServerModulesForCypress()] : []),
       tailwindcss(),
       reactRouterHonoServer({ runtime: 'bun' }),
       process.env.CYPRESS ? react() : reactRouter(),

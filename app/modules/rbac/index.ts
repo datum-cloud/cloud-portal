@@ -31,3 +31,27 @@ export {
   type CheckPermissionInput,
   type BulkCheckResult,
 } from './client';
+
+// New canonical RBAC convention (sub-project #1)
+// `defineResourceRoute` is NOT re-exported here because it transitively
+// imports server-only modules (gateRouteAccess → metrics → prom-client).
+// Route files that need it must deep-import:
+//   import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+// This is consistent with how route files already mix server + client code
+// at their top level (loader runs server-side, Page renders in both).
+// Types from the DSL (DefineListRouteInput, DefineDetailRouteInput,
+// CompanionDeclaration, RedirectDescriptor) ARE re-exported below because
+// types are erased at compile time and carry no runtime cost.
+export { useResourcePermissions, flagNameFor, buildChecks } from './use-resource-permissions';
+export { useGuardedRouteData, assertNotRestricted } from './use-guarded-route-data';
+export { GuardedPage, type GuardedPageProps } from './components/GuardedPage';
+export type {
+  DslLoaderData,
+  DefineListRouteInput,
+  DefineDetailRouteInput,
+  CompanionDeclaration,
+  RedirectDescriptor,
+  ResourcePermissionVerbOptions,
+  ResourcePermissionSubResource,
+  UseResourcePermissionsInput,
+} from './types';

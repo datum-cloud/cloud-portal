@@ -2,6 +2,9 @@
  * RBAC Type Definitions
  * Core types for the Role-Based Access Control module
  */
+import type { QueryKey } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
+import type { LoaderFunctionArgs } from 'react-router';
 import { z } from 'zod';
 
 /**
@@ -95,4 +98,110 @@ export interface IPermissionResult {
   allowed: boolean;
   denied: boolean;
   reason?: string;
+}
+
+// ─── DSL & hook types (sub-project #1 — RBAC enterprise consistency) ──────
+
+/** Strict envelope returned by every DSL loader. */
+export type DslLoaderData<TData, TCompanions> =
+  | { restricted: true }
+  | { restricted: false; data: TData; companions: TCompanions };
+
+/** Per-verb React Query options forwarded to the underlying SSAR call. */
+export interface ResourcePermissionVerbOptions {
+  staleTime?: number;
+  refetchOnMount?: boolean | 'always';
+  enabled?: boolean;
+}
+
+/** Sub-resource shape for `useResourcePermissions`. */
+export interface ResourcePermissionSubResource {
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  alias: string;
+  verbs: PermissionVerb[];
+  options?: ResourcePermissionVerbOptions;
+}
+
+/** Input to `useResourcePermissions`. */
+export interface UseResourcePermissionsInput {
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  verbs: PermissionVerb[];
+  subResources?: ResourcePermissionSubResource[];
+  options?: ResourcePermissionVerbOptions;
+}
+
+/** Mapping rule for sub-resource flag names. */
+export const SUB_RESOURCE_VERB_PREFIX: Record<string, string> = {
+  list: 'View',
+  get: 'View',
+  create: 'Create',
+  patch: 'Edit',
+  update: 'Edit',
+  delete: 'Delete',
+};
+
+/** Companion fetch declaration in `defineResourceRoute`. */
+export interface CompanionDeclaration<TData, TCompanionData> {
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  verb: PermissionVerb;
+  onError: 'tolerate' | 'propagate';
+  fetch: (ctx: { data: TData; projectId: string }) => Promise<TCompanionData | null>;
+}
+
+/** Redirect descriptor for `redirectIfDeleting`. */
+export interface RedirectDescriptor {
+  to: string;
+  params?: Record<string, string | undefined>;
+  toast: { title: string; description: string; type?: 'message' | 'success' | 'error' };
+}
+
+/** Argument types for the DSL list variant. */
+export interface DefineListRouteInput<TData> {
+  type: 'list';
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  fetch: (ctx: { projectId: string; args: LoaderFunctionArgs }) => Promise<TData>;
+  restrictedTitle?: string;
+  restrictedMessage: string;
+  metaTitle?: string;
+  seedCache?: (ctx: { data: TData; projectId: string }) => Array<[QueryKey, unknown]>;
+}
+
+/** Argument types for the DSL detail variant. */
+export interface DefineDetailRouteInput<TData, TCompanions extends Record<string, unknown>> {
+  type: 'detail';
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  paramName: string;
+  notFoundLabel: string;
+  fetch: (ctx: {
+    projectId: string;
+    id: string;
+    args: LoaderFunctionArgs;
+  }) => Promise<TData | null>;
+  companions?: { [K in keyof TCompanions]: CompanionDeclaration<TData, TCompanions[K]> };
+  redirectIfDeleting?: (ctx: { data: TData; projectId: string }) => RedirectDescriptor | null;
+  breadcrumb?: (ctx: { data: TData | undefined; companions: TCompanions | undefined }) => ReactNode;
+  metaTitle?: string | ((ctx: { data: TData | undefined }) => string);
+  restrictedTitle?: string;
+  restrictedMessage: string;
+  seedCache?: (ctx: {
+    data: TData;
+    companions: TCompanions;
+    projectId: string;
+    id: string;
+  }) => Array<[QueryKey, unknown]>;
 }
