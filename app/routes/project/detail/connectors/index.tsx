@@ -63,7 +63,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     scope: 'project',
     fetch: async ({ projectId, args: loaderArgs }) => {
       const { isClosed: downloadDismissed } = await getAlertState(loaderArgs.request, ALERT_KEY);
-      const connectors = await createConnectorService().list(projectId);
+      const connectors = await createConnectorService().list(projectId!);
       return { connectors, downloadDismissed };
     },
   });

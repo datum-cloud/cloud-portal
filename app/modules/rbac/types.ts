@@ -257,22 +257,41 @@ export interface RunListLoaderInput<TData> {
   resource: string;
   group?: string;
   namespace?: string;
-  scope?: PermissionCheckScope;
-  fetch: (ctx: { projectId: string; args: LoaderFunctionArgs }) => Promise<TData>;
+  scope?: 'project' | 'org' | 'user';
+  fetch: (ctx: { projectId?: string; orgId?: string; args: LoaderFunctionArgs }) => Promise<TData>;
 }
 
 export interface RunDetailLoaderInput<TData, TCompanions extends Record<string, unknown>> {
   resource: string;
   group?: string;
   namespace?: string;
-  scope?: PermissionCheckScope;
+  scope?: 'project' | 'org' | 'user';
   paramName: string;
   notFoundLabel: string;
   fetch: (ctx: {
-    projectId: string;
+    projectId?: string;
+    orgId?: string;
     id: string;
     args: LoaderFunctionArgs;
   }) => Promise<TData | null>;
   companions?: { [K in keyof TCompanions]: CompanionDeclaration<TData, TCompanions[K]> };
-  redirectIfDeleting?: (ctx: { data: TData; projectId: string }) => RedirectDescriptor | null;
+  redirectIfDeleting?: (ctx: {
+    data: TData;
+    projectId?: string;
+    orgId?: string;
+  }) => RedirectDescriptor | null;
+  /**
+   * Optional callback to attach response headers (e.g. cookies) to the
+   * detail-loader's success response. Runs after `fetch` succeeds and after
+   * `redirectIfDeleting` passes (i.e. only on the "render the page" path).
+   * Returns either a Headers object or undefined for no extra headers.
+   * Used by org-detail layout to set org/project session cookies on
+   * successful org view.
+   */
+  setHeaders?: (ctx: {
+    data: TData;
+    projectId?: string;
+    orgId?: string;
+    args: LoaderFunctionArgs;
+  }) => Promise<Headers | undefined>;
 }

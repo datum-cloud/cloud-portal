@@ -51,7 +51,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     resource: 'httpproxies',
     group: 'networking.datumapis.com',
     scope: 'project',
-    fetch: ({ projectId }) => createHttpProxyService().list(projectId),
+    fetch: ({ projectId }) => createHttpProxyService().list(projectId!),
   });
 export const meta = route.meta;
 

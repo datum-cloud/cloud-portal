@@ -171,6 +171,73 @@ describe('runListLoader', () => {
     expect(caught).toBeInstanceOf(Error);
     expect(caught?.message).toBe('fetch-explosion');
   });
+
+  test('org-scope: reads orgId from params, passes as 1st arg to gate', async () => {
+    gateRouteAccessSpy.mockImplementation(async () => true);
+    const fetchSpy = mock(async () => [{ name: 'project-a' }]);
+
+    const response = await runListLoader(makeArgs({ orgId: 'org-1' }), {
+      resource: 'projects',
+      group: 'resourcemanager.miloapis.com',
+      scope: 'org',
+      fetch: fetchSpy,
+    });
+
+    expect(response.data).toEqual({
+      restricted: false,
+      data: [{ name: 'project-a' }],
+      companions: {},
+    });
+    expect(gateRouteAccessSpy).toHaveBeenCalledWith('org-1', {
+      resource: 'projects',
+      verb: 'list',
+      group: 'resourcemanager.miloapis.com',
+      namespace: undefined,
+      scope: 'org',
+      projectId: undefined,
+    });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const fetchCtx = (fetchSpy.mock.calls[0] as unknown as [Record<string, unknown>])[0];
+    expect(fetchCtx.orgId).toBe('org-1');
+    expect(fetchCtx.projectId).toBeUndefined();
+  });
+
+  test('org-scope: throws BadRequestError when orgId is missing', async () => {
+    gateRouteAccessSpy.mockImplementation(async () => true);
+
+    let caught: Error | null = null;
+    try {
+      await runListLoader(makeArgs({}), {
+        resource: 'projects',
+        group: 'resourcemanager.miloapis.com',
+        scope: 'org',
+        fetch: async () => [],
+      });
+    } catch (e) {
+      caught = e as Error;
+    }
+    expect(caught?.message).toContain('Organization ID');
+  });
+
+  test('user-scope: passes empty string as 1st arg to gate', async () => {
+    gateRouteAccessSpy.mockImplementation(async () => true);
+    const fetchSpy = mock(async () => [{ name: 'org-1' }]);
+
+    const response = await runListLoader(makeArgs({}), {
+      resource: 'organizations',
+      scope: 'user',
+      fetch: fetchSpy,
+    });
+
+    expect(response.data).toMatchObject({ restricted: false });
+    expect(gateRouteAccessSpy).toHaveBeenCalledWith(
+      '',
+      expect.objectContaining({
+        resource: 'organizations',
+        scope: 'user',
+      })
+    );
+  });
 });
 
 describe('runDetailLoader', () => {
@@ -293,6 +360,78 @@ describe('runDetailLoader', () => {
     }
     expect(caught).toBeInstanceOf(Error);
     expect(caught?.message).toContain('Project ID');
+  });
+
+  test('org-scope detail: reads orgId + id from params, gates with orgId', async () => {
+    gateRouteAccessSpy.mockImplementation(async () => true);
+    const fetchSpy = mock(async () => ({ name: 'group-a' }));
+
+    const response = await runDetailLoader(makeArgs({ orgId: 'org-1', groupId: 'g1' }), {
+      resource: 'groups',
+      group: 'iam.miloapis.com',
+      scope: 'org',
+      paramName: 'groupId',
+      notFoundLabel: 'Group',
+      fetch: fetchSpy,
+    });
+
+    expect(asAny(response).data).toMatchObject({
+      restricted: false,
+      data: { name: 'group-a' },
+    });
+    expect(gateRouteAccessSpy).toHaveBeenCalledWith(
+      'org-1',
+      expect.objectContaining({
+        resource: 'groups',
+        verb: 'get',
+        scope: 'org',
+      })
+    );
+    const fetchCtx = (fetchSpy.mock.calls[0] as unknown as [Record<string, unknown>])[0];
+    expect(fetchCtx.orgId).toBe('org-1');
+    expect(fetchCtx.id).toBe('g1');
+  });
+
+  test('user-scope detail: passes paramName id via check.name, empty 1st arg', async () => {
+    gateRouteAccessSpy.mockImplementation(async () => true);
+    const fetchSpy = mock(async () => ({ name: 'org-1' }));
+
+    await runDetailLoader(makeArgs({ orgId: 'org-1' }), {
+      resource: 'organizations',
+      scope: 'user',
+      paramName: 'orgId',
+      notFoundLabel: 'Organization',
+      fetch: fetchSpy,
+    });
+
+    expect(gateRouteAccessSpy).toHaveBeenCalledWith(
+      '',
+      expect.objectContaining({
+        resource: 'organizations',
+        verb: 'get',
+        scope: 'user',
+        name: 'org-1',
+      })
+    );
+  });
+
+  test('user-scope detail: throws NotFoundError when fetch returns null', async () => {
+    gateRouteAccessSpy.mockImplementation(async () => true);
+
+    let caught: Error | null = null;
+    try {
+      await runDetailLoader(makeArgs({ orgId: 'org-1' }), {
+        resource: 'organizations',
+        scope: 'user',
+        paramName: 'orgId',
+        notFoundLabel: 'Organization',
+        fetch: async () => null,
+      });
+    } catch (e) {
+      caught = e as Error;
+    }
+    expect(caught?.message).toContain('Organization');
+    expect(caught?.message).toContain('org-1');
   });
 });
 

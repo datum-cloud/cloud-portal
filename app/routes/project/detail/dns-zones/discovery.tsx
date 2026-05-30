@@ -22,7 +22,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     scope: 'project',
     paramName: 'dnsZoneId',
     notFoundLabel: 'DNS',
-    fetch: ({ projectId, id }) => createDnsZoneService().get(projectId, id),
+    fetch: ({ projectId, id }) => createDnsZoneService().get(projectId!, id),
   });
 export const handle = route.handle;
 export const meta = route.meta;

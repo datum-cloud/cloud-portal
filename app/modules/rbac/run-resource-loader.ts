@@ -33,36 +33,78 @@ import { data, type LoaderFunctionArgs } from 'react-router';
  * bundle.
  */
 
+type ScopeContext = {
+  projectId?: string;
+  orgId?: string;
+  /** First positional arg passed to gateRouteAccess. */
+  gateScopeId: string;
+};
+
+/**
+ * Resolve URL params into the per-scope identifier(s) and the positional
+ * `gateScopeId` consumed by `gateRouteAccess`. See
+ * `RbacService.resolveBaseURL` (app/modules/rbac/server/rbac.service.ts) for
+ * how each scope interprets the first arg:
+ * - 'project': arg is ignored, base URL derives from `check.projectId`.
+ * - 'org': arg is the real org identifier used in the base URL.
+ * - 'user': arg is ignored, base URL is root-scoped.
+ */
+function resolveScopeContext(
+  scope: 'project' | 'org' | 'user' | undefined,
+  args: LoaderFunctionArgs
+): ScopeContext {
+  const s = scope ?? 'project';
+  if (s === 'project') {
+    const projectId = args.params.projectId;
+    if (!projectId) {
+      throw new BadRequestError('Project ID is required');
+    }
+    // For scope='project', gateRouteAccess's first arg is ignored by
+    // RbacService.resolveBaseURL — it reads check.projectId instead. We pass
+    // projectId here for consistency with the existing pattern.
+    return { projectId, gateScopeId: projectId };
+  }
+  if (s === 'org') {
+    const orgId = args.params.orgId;
+    if (!orgId) {
+      throw new BadRequestError('Organization ID is required');
+    }
+    // For scope='org', RbacService.resolveBaseURL uses the first arg as the
+    // organization identifier.
+    return { orgId, gateScopeId: orgId };
+  }
+  // scope='user': no URL-derived scope identifier. resolveBaseURL ignores
+  // the first arg for user-scope checks (root-scoped base URL).
+  return { gateScopeId: '' };
+}
+
 export async function runListLoader<TData>(
   args: LoaderFunctionArgs,
   cfg: RunListLoaderInput<TData>
 ) {
-  const projectId = args.params.projectId;
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
+  const ctx = resolveScopeContext(cfg.scope, args);
 
-  // gateRouteAccess takes organizationId as its first positional arg. For
-  // project-scoped checks we pass projectId there as a no-op — the actual
-  // base URL is resolved from check.projectId in RbacService.resolveBaseURL
-  // (app/modules/rbac/server/rbac.service.ts:52-65, the `case 'project':`
-  // branch). This pattern matches the existing project convention used in
-  // every project-scoped route loader; do not change it without auditing
-  // resolveBaseURL.
-  const allowed = await gateRouteAccess(projectId, {
+  // gateRouteAccess's first positional arg is interpreted per cfg.scope —
+  // see resolveScopeContext + RbacService.resolveBaseURL (project no-op,
+  // org real id, user empty string).
+  const allowed = await gateRouteAccess(ctx.gateScopeId, {
     resource: cfg.resource,
     verb: 'list',
     group: cfg.group ?? '',
     namespace: cfg.namespace,
-    scope: cfg.scope,
-    projectId,
+    scope: cfg.scope ?? 'project',
+    projectId: ctx.projectId,
   });
 
   if (!allowed) {
     return data({ restricted: true } satisfies DslLoaderData<TData, Record<string, never>>);
   }
 
-  const result = await cfg.fetch({ projectId, args });
+  const result = await cfg.fetch({
+    projectId: ctx.projectId,
+    orgId: ctx.orgId,
+    args,
+  });
   return data({
     restricted: false,
     data: result,
@@ -74,30 +116,35 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
   args: LoaderFunctionArgs,
   cfg: RunDetailLoaderInput<TData, TCompanions>
 ) {
-  const projectId = args.params.projectId;
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
+  const ctx = resolveScopeContext(cfg.scope, args);
+
   const id = args.params[cfg.paramName];
   if (!id) {
     throw new BadRequestError(`${cfg.paramName} is required`);
   }
 
-  // Same project-scoped no-op pattern as runListLoader — see resolveBaseURL note above.
-  const allowed = await gateRouteAccess(projectId, {
+  const allowed = await gateRouteAccess(ctx.gateScopeId, {
     resource: cfg.resource,
     verb: 'get',
     group: cfg.group ?? '',
     namespace: cfg.namespace,
-    scope: cfg.scope,
-    projectId,
+    scope: cfg.scope ?? 'project',
+    projectId: ctx.projectId,
+    // For scope='user' detail routes (e.g. organizations:get), the URL :paramName
+    // is the resource name, not a scope identifier. Pass it via check.name.
+    name: cfg.scope === 'user' ? id : undefined,
   });
 
   if (!allowed) {
     return data({ restricted: true } satisfies DslLoaderData<TData, TCompanions>);
   }
 
-  const fetched = await cfg.fetch({ projectId, id, args });
+  const fetched = await cfg.fetch({
+    projectId: ctx.projectId,
+    orgId: ctx.orgId,
+    id,
+    args,
+  });
   if (!fetched) {
     throw new NotFoundError(cfg.notFoundLabel, id);
   }
@@ -108,7 +155,8 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
   if (cfg.redirectIfDeleting) {
     const descriptor = cfg.redirectIfDeleting({
       data: fetched,
-      projectId,
+      projectId: ctx.projectId,
+      orgId: ctx.orgId,
     });
     if (descriptor) {
       return redirectWithToast(descriptor.to, {
@@ -146,15 +194,13 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
   // onError mode. Current callers use at most one companion (DNS zone →
   // domain), so sequential is fine for sub-projects #2-5.
   for (const [key, decl] of companionEntries) {
-    // Same project-scoped no-op pattern as the primary gate above —
-    // see RbacService.resolveBaseURL.
-    const companionAllowed = await gateRouteAccess(projectId, {
+    const companionAllowed = await gateRouteAccess(ctx.gateScopeId, {
       resource: decl.resource,
       verb: decl.verb,
       group: decl.group ?? '',
       namespace: decl.namespace,
       scope: decl.scope,
-      projectId,
+      projectId: ctx.projectId,
     });
 
     if (!companionAllowed) {
@@ -168,7 +214,11 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
     }
 
     try {
-      const result = await decl.fetch({ data: fetched, projectId });
+      // Companions in Phase 2 are same-scope as the parent route. The
+      // companion fetch ctx still types `projectId: string` — fall back to
+      // empty string for non-project scopes (companion declarations on
+      // org-/user-scope routes are not used today).
+      const result = await decl.fetch({ data: fetched, projectId: ctx.projectId ?? '' });
       (companions as Record<string, unknown>)[key] = result;
     } catch (err) {
       if (decl.onError === 'tolerate') {
@@ -184,12 +234,26 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
     }
   }
 
+  // Build response init — start with status, layer in optional headers from cfg.setHeaders.
+  let responseInit: ResponseInit = { status: 200 };
+  if (cfg.setHeaders) {
+    const headers = await cfg.setHeaders({
+      data: fetched,
+      projectId: ctx.projectId,
+      orgId: ctx.orgId,
+      args,
+    });
+    if (headers) {
+      responseInit = { status: 200, headers };
+    }
+  }
+
   return data(
     {
       restricted: false,
       data: fetched,
       companions,
     } satisfies DslLoaderData<TData, TCompanions>,
-    { status: 200 }
+    responseInit
   );
 }

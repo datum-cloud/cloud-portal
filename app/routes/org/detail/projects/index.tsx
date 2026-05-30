@@ -4,14 +4,18 @@ import { DateTime } from '@/components/date-time';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { PermissionButton, usePermission } from '@/modules/rbac';
-import { Organization } from '@/resources/organizations';
+import { PermissionButton, useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { type Organization } from '@/resources/organizations';
 import {
+  createProjectService,
   projectFormSchema,
+  projectKeys,
   useCreateProject,
   useProjects,
   type Project,
-  projectKeys,
+  type ProjectList,
 } from '@/resources/projects';
 import { waitForProjectReady } from '@/resources/projects/project.watch';
 import { buildOrganizationNamespace } from '@/utils/common';
@@ -27,29 +31,48 @@ import { useQueryClient } from '@tanstack/react-query';
 import { FolderRoot, PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import {
-  ActionFunctionArgs,
+  type ActionFunctionArgs,
   data,
-  LoaderFunctionArgs,
+  type LoaderFunctionArgs,
   useFetcher,
-  useLoaderData,
   useNavigate,
   useParams,
   useRevalidator,
-  useRouteLoaderData,
   useSearchParams,
 } from 'react-router';
 import z from 'zod';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
-    request,
-    'projects_understanding'
-  );
-  return data({ alertClosed }, { headers: alertHeaders });
+const ALERT_KEY = 'projects_understanding';
+
+type LoaderData = {
+  projects: ProjectList;
+  alertClosed: boolean;
 };
 
+const route = defineResourceRoute<LoaderData>({
+  type: 'list',
+  resource: 'projects',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view projects in this organization.",
+  metaTitle: 'Projects',
+});
+
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<LoaderData>(args, {
+    resource: 'projects',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'org',
+    namespace: buildOrganizationNamespace(args.params.orgId!),
+    fetch: async ({ orgId, args: loaderArgs }) => {
+      const { isClosed: alertClosed } = await getAlertState(loaderArgs.request, ALERT_KEY);
+      const projects = await createProjectService().list(orgId!);
+      return { projects, alertClosed };
+    },
+  });
+export const meta = route.meta;
+
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { headers } = await setAlertClosed(request, 'projects_understanding');
+  const { headers } = await setAlertClosed(request, ALERT_KEY);
   return data({ success: true }, { headers });
 };
 
@@ -68,18 +91,30 @@ function ProjectResourceName({ field }: { field: NormalizedFieldState }) {
   );
 }
 
-export default function OrgProjectsPage() {
-  const { orgId } = useParams();
-  const { alertClosed } = useLoaderData<typeof loader>();
-  const organization = useRouteLoaderData<Organization>('org-detail');
+export default route.Page(({ data: loaderData }) => <OrgProjectsInner loaderData={loaderData} />);
+
+function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
+  const { orgId } = useParams<{ orgId: string }>();
+  const { data: organization } = useGuardedRouteData<Organization, Record<string, never>>(
+    'org-detail'
+  );
 
   if (!orgId) {
     throw new Error('Organization ID is required');
   }
 
-  const { data: queryData, isLoading: projectsLoading } = useProjects(orgId, undefined, {
-    staleTime: QUERY_STALE_TIME,
-  });
+  const { projects: initialProjects, alertClosed } = loaderData;
+
+  const { data: queryData = initialProjects, isLoading: projectsLoading } = useProjects(
+    orgId,
+    undefined,
+    {
+      staleTime: QUERY_STALE_TIME,
+      initialData: initialProjects,
+      initialDataUpdatedAt: Date.now(),
+      refetchOnMount: false,
+    }
+  );
   const projects = queryData?.items ?? [];
 
   const navigate = useNavigate();
@@ -94,9 +129,12 @@ export default function OrgProjectsPage() {
 
   const { mutateAsync: createProject } = useCreateProject();
 
-  const { hasPermission: canCreateProject } = usePermission('projects', 'create', {
+  const { canCreate: canCreateProject } = useResourcePermissions({
+    resource: 'projects',
     group: 'resourcemanager.miloapis.com',
+    scope: 'org',
     namespace: buildOrganizationNamespace(orgId),
+    verbs: ['create'],
   });
 
   const [searchParams, setSearchParams] = useSearchParams();
@@ -233,6 +271,7 @@ export default function OrgProjectsPage() {
                   resource="projects"
                   verb="create"
                   group="resourcemanager.miloapis.com"
+                  scope="org"
                   namespace={buildOrganizationNamespace(orgId)}
                   deniedReason="You don't have permission to create projects in this organization"
                   htmlType="button"

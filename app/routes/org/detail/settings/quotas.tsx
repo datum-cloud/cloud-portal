@@ -1,51 +1,36 @@
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { QuotasTable } from '@/features/quotas/quotas-table';
-import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import { useGuardedRouteData } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
-import { LoaderFunctionArgs, useLoaderData, useRouteLoaderData } from 'react-router';
+import { type LoaderFunctionArgs } from 'react-router';
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { orgId } = params;
-
-  if (!orgId) {
-    throw new BadRequestError('Organization ID is required');
-  }
-
-  const canView = await gateRouteAccess(orgId, {
-    resource: 'allowancebuckets',
-    verb: 'list',
-    group: 'quota.miloapis.com',
-    namespace: buildOrganizationNamespace(orgId),
-  });
-
-  if (!canView) {
-    return { restricted: true as const, allowanceBuckets: [] as AllowanceBucket[] };
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const allowanceBuckets = await createAllowanceBucketService().list('organization', orgId);
-  return { restricted: false as const, allowanceBuckets };
+const route = defineResourceRoute<AllowanceBucket[]>({
+  type: 'list',
+  resource: 'allowancebuckets',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view quotas.",
+  metaTitle: 'Quotas',
 });
+
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<AllowanceBucket[]>(args, {
+    resource: 'allowancebuckets',
+    group: 'quota.miloapis.com',
+    scope: 'org',
+    namespace: buildOrganizationNamespace(args.params.orgId!),
+    fetch: ({ orgId }) => createAllowanceBucketService().list('organization', orgId!),
+  });
+export const meta = route.meta;
 
 export const handle = {
   breadcrumb: () => <span>Quotas</span>,
 };
 
-export default function OrgSettingsUsagePage() {
-  const org = useRouteLoaderData<Organization>('org-detail');
-  const { restricted, allowanceBuckets } = useLoaderData<typeof loader>();
+export default route.Page(({ data: allowanceBuckets }) => {
+  const { data: org } = useGuardedRouteData<Organization, Record<string, never>>('org-detail');
 
-  if (restricted) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to view quotas."
-      />
-    );
-  }
-
-  return <QuotasTable data={allowanceBuckets} resourceType="organization" resource={org!} />;
-}
+  return <QuotasTable data={allowanceBuckets} resourceType="organization" resource={org} />;
+});

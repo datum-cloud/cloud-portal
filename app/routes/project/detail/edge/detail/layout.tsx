@@ -28,7 +28,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     scope: 'project',
     paramName: 'proxyId',
     notFoundLabel: 'AI Edge',
-    fetch: ({ projectId, id }) => createHttpProxyService().get(projectId, id),
+    fetch: ({ projectId, id }) => createHttpProxyService().get(projectId!, id),
   });
 export const handle = route.handle;
 export const meta = route.meta;

@@ -38,7 +38,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     scope: 'project',
     paramName: 'dnsZoneId',
     notFoundLabel: 'DNS',
-    fetch: ({ projectId, id }) => createDnsZoneService().get(projectId, id),
+    fetch: ({ projectId, id }) => createDnsZoneService().get(projectId!, id),
     redirectIfDeleting: ({ data, projectId }) =>
       data.deletionTimestamp
         ? {

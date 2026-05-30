@@ -46,7 +46,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     resource: 'dnszones',
     group: 'dns.networking.miloapis.com',
     scope: 'project',
-    fetch: ({ projectId }) => createDnsZoneService().list(projectId),
+    fetch: ({ projectId }) => createDnsZoneService().list(projectId!),
   });
 export const meta = route.meta;
 

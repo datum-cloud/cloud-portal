@@ -1,12 +1,19 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
-import { PermissionButton, usePermissionCheck } from '@/modules/rbac';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { useApp } from '@/providers/app.provider';
 import { useCancelInvitation, useResendInvitation, useInvitations } from '@/resources/invitations';
-import { useRemoveMember, useLeaveOrganization, useMembers } from '@/resources/members';
+import {
+  createMemberService,
+  useRemoveMember,
+  useLeaveOrganization,
+  useMembers,
+  type Member,
+} from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -18,7 +25,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
 
 // Generic interface for combined team data
 interface ITeamMember {
@@ -37,59 +44,67 @@ interface ITeamMember {
   avatarUrl?: string;
 }
 
-export default function OrgTeamPage() {
-  const { orgId } = useParams();
+const route = defineResourceRoute<Member[]>({
+  type: 'list',
+  resource: 'organizationmemberships',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view team members.",
+  metaTitle: 'Team',
+});
+
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<Member[]>(args, {
+    resource: 'organizationmemberships',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'org',
+    namespace: buildOrganizationNamespace(args.params.orgId!),
+    fetch: ({ orgId }) => createMemberService().list(orgId!),
+  });
+export const meta = route.meta;
+
+export default route.Page(({ data: initialMembers }) => (
+  <TeamInner initialMembers={initialMembers} />
+));
+
+function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
+  const { orgId = '' } = useParams<{ orgId: string }>();
   const { user } = useApp();
   const navigate = useNavigate();
 
-  if (!orgId) {
-    throw new Error('Organization ID is required');
-  }
+  // Members + cross-resource userinvitations in ONE batched check.
+  // Sub-resource alias 'invitation' + verbs ['create', 'delete'] →
+  // produces canCreateInvitation, canDeleteInvitation.
+  const {
+    canDelete: canRemoveMember,
+    canCreateInvitation,
+    canDeleteInvitation,
+  } = useResourcePermissions({
+    resource: 'organizationmemberships',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'org',
+    verbs: ['delete'],
+    subResources: [
+      {
+        resource: 'userinvitations',
+        group: 'iam.miloapis.com',
+        scope: 'org',
+        alias: 'invitation',
+        verbs: ['create', 'delete'],
+      },
+    ],
+  });
 
-  const orgNamespace = buildOrganizationNamespace(orgId);
+  // Resending requires both create (to issue a new invite) and delete (to revoke the old one).
+  const canResend = canCreateInvitation && canDeleteInvitation;
 
-  // Bulk-evaluate all team permissions in a single request.
-  const { permissions: teamPermissions, isLoading: isPermissionsLoading } = usePermissionCheck([
-    {
-      resource: 'organizationmemberships',
-      verb: 'list',
-      group: 'resourcemanager.miloapis.com',
-      namespace: orgNamespace,
-    },
-    {
-      resource: 'organizationmemberships',
-      verb: 'delete',
-      group: 'resourcemanager.miloapis.com',
-      namespace: orgNamespace,
-    },
-    {
-      resource: 'userinvitations',
-      verb: 'create',
-      group: 'iam.miloapis.com',
-      namespace: orgNamespace,
-    },
-    {
-      resource: 'userinvitations',
-      verb: 'delete',
-      group: 'iam.miloapis.com',
-      namespace: orgNamespace,
-    },
-  ]);
-
-  const canListMembers = teamPermissions['organizationmemberships:list']?.allowed ?? false;
-  const hasRemoveMemberPermission =
-    teamPermissions['organizationmemberships:delete']?.allowed ?? false;
-  const canInvite = teamPermissions['userinvitations:create']?.allowed ?? false;
-  const canCancelInvite = teamPermissions['userinvitations:delete']?.allowed ?? false;
-  const canResend = canInvite && canCancelInvite;
-
-  const { data: members = [] } = useMembers(orgId, {
+  const { data: members = initialMembers } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
-    enabled: !!orgId && canListMembers,
+    initialData: initialMembers,
+    initialDataUpdatedAt: Date.now(),
+    refetchOnMount: false,
   });
   const { data: invitations = [] } = useInvitations(orgId, {
     staleTime: QUERY_STALE_TIME,
-    enabled: !!orgId && canListMembers,
   });
 
   // Transform members to team members format
@@ -354,7 +369,7 @@ export default function OrgTeamPage() {
           display: 'inline',
           variant: 'destructive' as const,
           icon: <Icon icon={TrashIcon} className="size-4" />,
-          hidden: row.type !== 'invitation' || !canCancelInvite,
+          hidden: row.type !== 'invitation' || !canDeleteInvitation,
           onClick: (r) => cancelInvitation(r),
           'data-e2e': 'cancel-invitation-button',
         },
@@ -365,7 +380,7 @@ export default function OrgTeamPage() {
           display: 'inline',
           variant: 'destructive' as const,
           icon: <Icon icon={TrashIcon} className="size-4" />,
-          hidden: row.type !== 'member' || row.email === user?.email || !hasRemoveMemberPermission,
+          hidden: row.type !== 'member' || row.email === user?.email || !canRemoveMember,
           onClick: (r) => removeMember(r),
         },
         // Leave team (for current user only)
@@ -384,28 +399,15 @@ export default function OrgTeamPage() {
     ];
   }, [
     user?.email,
-    hasRemoveMemberPermission,
+    canRemoveMember,
     canResend,
-    canCancelInvite,
+    canDeleteInvitation,
     isLastOwner,
-    orgId,
-    navigate,
     resendInvitation,
     cancelInvitation,
     removeMember,
     leaveTeam,
   ]);
-
-  // Once the list permission resolves and the user cannot list members,
-  // show a restricted state instead of the table.
-  if (!isPermissionsLoading && !canListMembers) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to view team members."
-      />
-    );
-  }
 
   return (
     <Table.Client
@@ -422,8 +424,8 @@ export default function OrgTeamPage() {
         );
       }}
       empty={{
-        title: canInvite ? 'invite your first team member' : 'No team members yet',
-        actions: canInvite
+        title: canCreateInvitation ? 'invite your first team member' : 'No team members yet',
+        actions: canCreateInvitation
           ? [
               {
                 type: 'button',
@@ -440,7 +442,7 @@ export default function OrgTeamPage() {
           resource="userinvitations"
           verb="create"
           group="iam.miloapis.com"
-          namespace={orgNamespace}
+          scope="org"
           deniedReason="You don't have permission to invite members"
           className="w-full sm:w-auto"
           data-e2e="invite-member-button"
