@@ -23,6 +23,10 @@ mock.module('@/utils/cookies', () => ({
 }));
 
 // Import AFTER the mock is registered so the SUT picks up the mocked module.
+// The DSL is now split: `define-resource-route` is client-safe (Page/meta/handle)
+// and `run-resource-loader` is the server-only loader runtime. Tests target the
+// server-only runtime directly since loader behavior is what we want to assert.
+const { runListLoader, runDetailLoader } = await import('./run-resource-loader');
 const { defineResourceRoute } = await import('./define-resource-route');
 
 beforeEach(() => {
@@ -56,21 +60,17 @@ function asAny(response: unknown): AnyLoaderResponse {
   return response as AnyLoaderResponse;
 }
 
-describe('defineResourceRoute > list', () => {
+describe('runListLoader', () => {
   test('returns {restricted: true} when gate denies', async () => {
     gateRouteAccessSpy.mockImplementation(async () => false);
     const fetchSpy = mock(async () => [{ name: 'one' }]);
 
-    const route = defineResourceRoute({
-      type: 'list',
+    const response = await runListLoader(makeArgs({ projectId: 'p1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
       fetch: fetchSpy,
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1' }));
 
     expect(response.data).toEqual({ restricted: true });
     expect(fetchSpy).not.toHaveBeenCalled();
@@ -80,16 +80,12 @@ describe('defineResourceRoute > list', () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
     const fetchSpy = mock(async () => [{ name: 'zone-a' }]);
 
-    const route = defineResourceRoute({
-      type: 'list',
+    const response = await runListLoader(makeArgs({ projectId: 'p1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
       fetch: fetchSpy,
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1' }));
 
     expect(response.data).toEqual({
       restricted: false,
@@ -100,18 +96,14 @@ describe('defineResourceRoute > list', () => {
   });
 
   test('throws BadRequestError when projectId is missing', async () => {
-    const route = defineResourceRoute({
-      type: 'list',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      fetch: async () => [],
-      restrictedMessage: 'no',
-    });
-
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({}));
+      await runListLoader(makeArgs({}), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        fetch: async () => [],
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -121,17 +113,14 @@ describe('defineResourceRoute > list', () => {
 
   test('forwards the correct args to gateRouteAccess', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const route = defineResourceRoute({
-      type: 'list',
+
+    await runListLoader(makeArgs({ projectId: 'p1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       namespace: 'default',
       scope: 'project',
       fetch: async () => [],
-      restrictedMessage: 'no',
     });
-
-    await route.loader(makeArgs({ projectId: 'p1' }));
 
     expect(gateRouteAccessSpy).toHaveBeenCalledTimes(1);
     expect(gateRouteAccessSpy).toHaveBeenCalledWith('p1', {
@@ -145,12 +134,12 @@ describe('defineResourceRoute > list', () => {
   });
 
   test('meta defaults to cfg.resource when metaTitle is omitted', async () => {
+    // `defineResourceRoute` is the page-side factory; it takes the page input
+    // (no fetch/group/scope) and produces `meta`/`Page`. This test asserts the
+    // meta function falls back to `resource` when `metaTitle` is omitted.
     const route = defineResourceRoute({
       type: 'list',
       resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      fetch: async () => [],
       restrictedMessage: 'no',
     });
 
@@ -165,20 +154,17 @@ describe('defineResourceRoute > list', () => {
 
   test('cfg.fetch throws propagate out of the loader', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const route = defineResourceRoute({
-      type: 'list',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      fetch: async () => {
-        throw new Error('fetch-explosion');
-      },
-      restrictedMessage: 'no',
-    });
 
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({ projectId: 'p1' }));
+      await runListLoader(makeArgs({ projectId: 'p1' }), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        fetch: async () => {
+          throw new Error('fetch-explosion');
+        },
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -187,23 +173,19 @@ describe('defineResourceRoute > list', () => {
   });
 });
 
-describe('defineResourceRoute > detail', () => {
+describe('runDetailLoader', () => {
   test('returns {restricted: true} when gate denies', async () => {
     gateRouteAccessSpy.mockImplementation(async () => false);
     const fetchSpy = mock(async () => ({ name: 'zone-a' }));
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
       paramName: 'dnsZoneId',
       notFoundLabel: 'DNS',
       fetch: fetchSpy,
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     expect(asAny(response).data).toEqual({ restricted: true });
     expect(fetchSpy).not.toHaveBeenCalled();
   });
@@ -212,18 +194,14 @@ describe('defineResourceRoute > detail', () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
     const fetchSpy = mock(async () => ({ name: 'zone-a' }));
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
       paramName: 'dnsZoneId',
       notFoundLabel: 'DNS',
       fetch: fetchSpy,
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     expect(asAny(response).data).toEqual({
       restricted: false,
       data: { name: 'zone-a' },
@@ -236,20 +214,16 @@ describe('defineResourceRoute > detail', () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
     const fetchSpy = mock(async () => null);
 
-    const route = defineResourceRoute({
-      type: 'detail',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      paramName: 'dnsZoneId',
-      notFoundLabel: 'DNS',
-      fetch: fetchSpy,
-      restrictedMessage: 'no',
-    });
-
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
+      await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        paramName: 'dnsZoneId',
+        notFoundLabel: 'DNS',
+        fetch: fetchSpy,
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -260,20 +234,17 @@ describe('defineResourceRoute > detail', () => {
 
   test('throws BadRequestError when paramName param is missing', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const route = defineResourceRoute({
-      type: 'detail',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      paramName: 'dnsZoneId',
-      notFoundLabel: 'DNS',
-      fetch: async () => ({ name: 'z' }),
-      restrictedMessage: 'no',
-    });
 
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({ projectId: 'p1' }));
+      await runDetailLoader(makeArgs({ projectId: 'p1' }), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        paramName: 'dnsZoneId',
+        notFoundLabel: 'DNS',
+        fetch: async () => ({ name: 'z' }),
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -283,8 +254,8 @@ describe('defineResourceRoute > detail', () => {
 
   test('forwards the correct args to gateRouteAccess (detail uses verb:get)', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
-    const route = defineResourceRoute({
-      type: 'detail',
+
+    await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       namespace: 'default',
@@ -292,10 +263,7 @@ describe('defineResourceRoute > detail', () => {
       paramName: 'dnsZoneId',
       notFoundLabel: 'DNS',
       fetch: async () => ({ name: 'zone-a' }),
-      restrictedMessage: 'no',
     });
-
-    await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
 
     expect(gateRouteAccessSpy).toHaveBeenCalledTimes(1);
     expect(gateRouteAccessSpy).toHaveBeenCalledWith('p1', {
@@ -309,20 +277,17 @@ describe('defineResourceRoute > detail', () => {
   });
 
   test('throws BadRequestError when projectId is missing (detail variant)', async () => {
-    const route = defineResourceRoute({
-      type: 'detail',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      paramName: 'dnsZoneId',
-      notFoundLabel: 'DNS',
-      fetch: async () => ({ name: 'zone-a' }),
-      restrictedMessage: 'no',
-    });
-
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({ dnsZoneId: 'z1' })); // intentionally no projectId
+      // intentionally no projectId
+      await runDetailLoader(makeArgs({ dnsZoneId: 'z1' }), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        paramName: 'dnsZoneId',
+        notFoundLabel: 'DNS',
+        fetch: async () => ({ name: 'zone-a' }),
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -331,12 +296,11 @@ describe('defineResourceRoute > detail', () => {
   });
 });
 
-describe('defineResourceRoute > detail > companions', () => {
+describe('runDetailLoader > companions', () => {
   test('companion fetch succeeds → returned alongside primary data', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
@@ -355,10 +319,7 @@ describe('defineResourceRoute > detail > companions', () => {
           }),
         },
       },
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     expect(asAny(response).data).toMatchObject({
       restricted: false,
       data: { name: 'zone-a' },
@@ -379,8 +340,7 @@ describe('defineResourceRoute > detail > companions', () => {
     const fetchPrimary = mock(async () => ({ name: 'zone-a' }));
     const fetchCompanion = mock(async () => ({ name: 'd1' }));
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
@@ -397,10 +357,7 @@ describe('defineResourceRoute > detail > companions', () => {
           fetch: fetchCompanion,
         },
       },
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     expect(asAny(response).data).toMatchObject({
       restricted: false,
       data: { name: 'zone-a' },
@@ -412,8 +369,7 @@ describe('defineResourceRoute > detail > companions', () => {
   test('companion fetch throws + tolerate → companion = null', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
@@ -432,42 +388,35 @@ describe('defineResourceRoute > detail > companions', () => {
           },
         },
       },
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     expect(asAny(response).data).toMatchObject({ companions: { domain: null } });
   });
 
   test('companion fetch throws + propagate → re-throws', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 
-    const route = defineResourceRoute({
-      type: 'detail',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      paramName: 'dnsZoneId',
-      notFoundLabel: 'DNS',
-      fetch: async () => ({ name: 'zone-a' }),
-      companions: {
-        domain: {
-          resource: 'domains',
-          group: 'networking.datumapis.com',
-          scope: 'project',
-          verb: 'get',
-          onError: 'propagate',
-          fetch: async () => {
-            throw new Error('boom');
-          },
-        },
-      },
-      restrictedMessage: 'no',
-    });
-
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
+      await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        paramName: 'dnsZoneId',
+        notFoundLabel: 'DNS',
+        fetch: async () => ({ name: 'zone-a' }),
+        companions: {
+          domain: {
+            resource: 'domains',
+            group: 'networking.datumapis.com',
+            scope: 'project',
+            verb: 'get',
+            onError: 'propagate',
+            fetch: async () => {
+              throw new Error('boom');
+            },
+          },
+        },
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -481,30 +430,26 @@ describe('defineResourceRoute > detail > companions', () => {
       return false;
     }) as unknown as () => Promise<boolean>);
 
-    const route = defineResourceRoute({
-      type: 'detail',
-      resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
-      paramName: 'dnsZoneId',
-      notFoundLabel: 'DNS',
-      fetch: async () => ({ name: 'zone-a' }),
-      companions: {
-        domain: {
-          resource: 'domains',
-          group: 'networking.datumapis.com',
-          scope: 'project',
-          verb: 'get',
-          onError: 'propagate',
-          fetch: async () => ({ name: 'd1' }),
-        },
-      },
-      restrictedMessage: 'no',
-    });
-
     let caught: Error | null = null;
     try {
-      await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
+      await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        paramName: 'dnsZoneId',
+        notFoundLabel: 'DNS',
+        fetch: async () => ({ name: 'zone-a' }),
+        companions: {
+          domain: {
+            resource: 'domains',
+            group: 'networking.datumapis.com',
+            scope: 'project',
+            verb: 'get',
+            onError: 'propagate',
+            fetch: async () => ({ name: 'd1' }),
+          },
+        },
+      });
     } catch (e) {
       caught = e as Error;
     }
@@ -516,14 +461,13 @@ describe('defineResourceRoute > detail > companions', () => {
   });
 });
 
-describe('defineResourceRoute > detail > redirectIfDeleting', () => {
+describe('runDetailLoader > redirectIfDeleting', () => {
   test('returns redirect when descriptor truthy', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 
     const fetchCompanion = mock(async () => ({ name: 'd1' }));
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
@@ -551,10 +495,7 @@ describe('defineResourceRoute > detail > redirectIfDeleting', () => {
           fetch: fetchCompanion,
         },
       },
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     // redirectWithToast returns a 302 response.
     expect(asAny(response).status).toBe(302);
     expect(asAny(response).headers?.get('Location')).toBe('/project/p1/dns-zones');
@@ -565,8 +506,7 @@ describe('defineResourceRoute > detail > redirectIfDeleting', () => {
   test('does not redirect when descriptor is null', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 
-    const route = defineResourceRoute({
-      type: 'detail',
+    const response = await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
       resource: 'dnszones',
       group: 'dns.networking.miloapis.com',
       scope: 'project',
@@ -574,10 +514,7 @@ describe('defineResourceRoute > detail > redirectIfDeleting', () => {
       notFoundLabel: 'DNS',
       fetch: async () => ({ name: 'zone-a' }),
       redirectIfDeleting: () => null,
-      restrictedMessage: 'no',
     });
-
-    const response = await route.loader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }));
     expect(asAny(response).data).toMatchObject({ restricted: false });
     // The non-redirect branch returns React Router's DataWithResponseInit, not a Response
     expect(response instanceof Response).toBe(false);

@@ -1,4 +1,5 @@
 import { isEligibleForProtect } from './utils';
+import { PermissionButton } from '@/modules/rbac';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -61,7 +62,11 @@ export function DnsRecordAiEdgeCell({
   if (showProtect) {
     const isIpOrigin = record.type === 'A' || record.type === 'AAAA';
     const protectButton = (
-      <Button
+      <PermissionButton
+        resource="httpproxies"
+        verb="create"
+        group="networking.datumapis.com"
+        scope="project"
         type="secondary"
         theme="outline"
         size="xs"
@@ -69,9 +74,10 @@ export function DnsRecordAiEdgeCell({
         disabled={isProtecting}
         onClick={handleProtect}
         icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
-        iconPosition="left">
+        iconPosition="left"
+        deniedReason="You don't have permission to create AI Edge">
         Protect with AI Edge
-      </Button>
+      </PermissionButton>
     );
     if (isIpOrigin) {
       return (
@@ -87,7 +93,11 @@ export function DnsRecordAiEdgeCell({
 
   if (showRemove) {
     return (
-      <Button
+      <PermissionButton
+        resource="httpproxies"
+        verb="patch"
+        group="networking.datumapis.com"
+        scope="project"
         type="secondary"
         theme="outline"
         size="xs"
@@ -95,9 +105,10 @@ export function DnsRecordAiEdgeCell({
         disabled={isRemoving}
         onClick={handleRemove}
         icon={<Icon icon={ShieldOffIcon} className="size-3.5 shrink-0" />}
-        iconPosition="left">
+        iconPosition="left"
+        deniedReason="You don't have permission to edit AI Edge">
         Remove AI Edge
-      </Button>
+      </PermissionButton>
     );
   }
 

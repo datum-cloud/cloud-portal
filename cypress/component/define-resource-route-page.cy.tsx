@@ -8,16 +8,14 @@ import { createMemoryRouter, RouterProvider } from 'react-router';
 
 describe('defineResourceRoute.Page', () => {
   it('seeds the query cache when allowed', () => {
-    const route = defineResourceRoute({
+    const route = defineResourceRoute<{ name: string }>({
       type: 'detail',
       resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
       paramName: 'dnsZoneId',
       notFoundLabel: 'DNS',
-      fetch: async () => ({ name: 'zone-a' }),
       restrictedMessage: "You don't have permission to view this DNS zone.",
-      seedCache: ({ data, projectId }) => [[['dns-zone', projectId, data.name], data]],
+      seedCache: ({ data, projectId }) =>
+        data ? [[['dns-zone', projectId, data.name], data]] : [],
     });
 
     const PageComponent = route.Page(({ data }) => <div data-cy="zone">{data.name}</div>);
@@ -53,14 +51,11 @@ describe('defineResourceRoute.Page', () => {
   });
 
   it('renders RestrictedState when loader returns restricted: true', () => {
-    const route = defineResourceRoute({
+    const route = defineResourceRoute<{ name: string }>({
       type: 'detail',
       resource: 'dnszones',
-      group: 'dns.networking.miloapis.com',
-      scope: 'project',
       paramName: 'dnsZoneId',
       notFoundLabel: 'DNS',
-      fetch: async () => ({ name: 'zone-a' }),
       restrictedMessage: "You don't have permission to view this DNS zone.",
     });
 

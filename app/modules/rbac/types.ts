@@ -205,3 +205,74 @@ export interface DefineDetailRouteInput<TData, TCompanions extends Record<string
     id: string;
   }) => Array<[QueryKey, unknown]>;
 }
+
+/**
+ * Page-side input for the canonical RBAC route convention.
+ *
+ * Contains ONLY client-safe metadata: render strings, cache-seeding,
+ * breadcrumb. NO `fetch`, NO `group`/`namespace`/`scope` (those drive the
+ * server-only loader gate; they belong in `RunListLoaderInput`).
+ *
+ * Why split: `defineResourceRoute(...)` is called on the client to wire
+ * `Page`/`meta`/`handle`. If we passed `fetch` here, its closure would
+ * capture server-only imports (e.g. cookie `.server.ts` helpers), and
+ * Vite would mark the whole chain as client-reachable, breaking the
+ * bundler. By keeping `fetch` out of the page input, the closure lives
+ * only inside the stripped `loader` export and tree-shakes cleanly.
+ */
+export interface DefineListPageInput {
+  type: 'list';
+  resource: string;
+  restrictedTitle?: string;
+  restrictedMessage: string;
+  metaTitle?: string;
+  seedCache?: (ctx: { data: unknown; projectId: string }) => Array<[QueryKey, unknown]>;
+}
+
+export interface DefineDetailPageInput<TData, TCompanions extends Record<string, unknown>> {
+  type: 'detail';
+  resource: string;
+  paramName: string;
+  notFoundLabel: string;
+  restrictedTitle?: string;
+  restrictedMessage: string;
+  metaTitle?: string | ((ctx: { data: TData | undefined }) => string);
+  breadcrumb?: (ctx: { data: TData | undefined; companions: TCompanions | undefined }) => ReactNode;
+  seedCache?: (ctx: {
+    data: TData;
+    companions: TCompanions;
+    projectId: string;
+    id: string;
+  }) => Array<[QueryKey, unknown]>;
+}
+
+/**
+ * Server-side input for `runListLoader` / `runDetailLoader`. Contains the
+ * gate inputs (`group`/`scope`/`namespace`) and the `fetch` closure.
+ * Lives in the same types file because it's small and shares the
+ * `CompanionDeclaration` / `RedirectDescriptor` types — but is consumed
+ * only by the server-only `run-resource-loader.ts`.
+ */
+export interface RunListLoaderInput<TData> {
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  fetch: (ctx: { projectId: string; args: LoaderFunctionArgs }) => Promise<TData>;
+}
+
+export interface RunDetailLoaderInput<TData, TCompanions extends Record<string, unknown>> {
+  resource: string;
+  group?: string;
+  namespace?: string;
+  scope?: PermissionCheckScope;
+  paramName: string;
+  notFoundLabel: string;
+  fetch: (ctx: {
+    projectId: string;
+    id: string;
+    args: LoaderFunctionArgs;
+  }) => Promise<TData | null>;
+  companions?: { [K in keyof TCompanions]: CompanionDeclaration<TData, TCompanions[K]> };
+  redirectIfDeleting?: (ctx: { data: TData; projectId: string }) => RedirectDescriptor | null;
+}
