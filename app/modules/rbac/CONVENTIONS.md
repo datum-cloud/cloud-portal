@@ -5,16 +5,16 @@ feature code. See `ARCHITECTURE.md` for the underlying model.
 
 ## Primitive map (strict 1:1)
 
-| UI pattern | Canonical primitive | Notes |
-|---|---|---|
-| Button trigger (header action, toolbar, danger zone, row action button) | `<PermissionButton>` | Existing component |
-| Non-button interactive (pencil icon, Switch, custom trigger) | `<PermissionGate mode="disable">` | Wraps child with `disabled=true` + tooltip |
-| Whole-card / whole-section hide | `<PermissionGate mode="hide">` | Renders fallback (default null) when denied |
-| Row action visibility | `createActionsColumn` item's `hidden: () => !canX` | Today's table convention; unchanged |
-| Conditional render with fallback | `<PermissionGate mode="fallback" fallback={...}>` | Renders fallback in denied state |
-| Restricted full page | `<RestrictedState>` (auto-emitted by `<GuardedPage>` / DSL) | Existing component |
-| Restricted section inside an allowed page | `<RestrictedOverlay>` | Existing component |
-| Restricted column cell (e.g. WAF column) | `Tooltip + em-dash badge` per AI Edge listing convention | Pattern, not a primitive |
+| UI pattern                                                              | Canonical primitive                                         | Notes                                       |
+| ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
+| Button trigger (header action, toolbar, danger zone, row action button) | `<PermissionButton>`                                        | Existing component                          |
+| Non-button interactive (pencil icon, Switch, custom trigger)            | `<PermissionGate mode="disable">`                           | Wraps child with `disabled=true` + tooltip  |
+| Whole-card / whole-section hide                                         | `<PermissionGate mode="hide">`                              | Renders fallback (default null) when denied |
+| Row action visibility                                                   | `createActionsColumn` item's `hidden: () => !canX`          | Today's table convention; unchanged         |
+| Conditional render with fallback                                        | `<PermissionGate mode="fallback" fallback={...}>`           | Renders fallback in denied state            |
+| Restricted full page                                                    | `<RestrictedState>` (auto-emitted by `<GuardedPage>` / DSL) | Existing component                          |
+| Restricted section inside an allowed page                               | `<RestrictedOverlay>`                                       | Existing component                          |
+| Restricted column cell (e.g. WAF column)                                | `Tooltip + em-dash badge` per AI Edge listing convention    | Pattern, not a primitive                    |
 
 ## Banned patterns
 
@@ -22,14 +22,20 @@ feature code. See `ARCHITECTURE.md` for the underlying model.
 
 ```tsx
 // BANNED
-{canCreate && <Button />}
-{canDelete ? <DeleteButton /> : null}
-{!canEdit ? <Locked /> : <Editor />}
+{
+  canCreate && <Button />;
+}
+{
+  canDelete ? <DeleteButton /> : null;
+}
+{
+  !canEdit ? <Locked /> : <Editor />;
+}
 
 // REQUIRED
 <PermissionGate verb="create" resource="..." mode="hide">
   <Button />
-</PermissionGate>
+</PermissionGate>;
 ```
 
 Enforcement: PR review.
@@ -39,14 +45,18 @@ Enforcement: PR review.
 ```tsx
 // BANNED (this exact shape lives in config-card.tsx today)
 function renderEditButton(allowed, deniedReason, onClick) {
-  const btn = <button disabled={!allowed} onClick={onClick}>...</button>;
+  const btn = (
+    <button disabled={!allowed} onClick={onClick}>
+      ...
+    </button>
+  );
   return allowed ? btn : <Tooltip message={deniedReason}>{btn}</Tooltip>;
 }
 
 // REQUIRED
 <PermissionGate verb="patch" resource="httpproxies" mode="disable" deniedReason="...">
   <button onClick={onClick}>...</button>
-</PermissionGate>
+</PermissionGate>;
 ```
 
 ### Post-hoc handler-level toast guards
@@ -192,12 +202,13 @@ const { canList, canViewWaf, canEditWaf } = useResourcePermissions({
 ```
 
 Flag-name rules:
+
 - Primary verb `verb` → `can<Capitalize(verb)>` (e.g. `canList`, `canCreate`).
 - Sub-resource verb-to-prefix map: `list/get → View`, `create → Create`,
   `patch/update → Edit`, `delete → Delete`. Other verbs use the capitalized
   verb name.
 - Sub-resource alias capitalized first letter only. So `alias: 'waf', verbs:
-  ['list']` → `canViewWaf`.
+['list']` → `canViewWaf`.
 
 > **Sub-resource `options` limitation:** per-sub-resource React Query options
 > (`staleTime`, `refetchOnMount`, `enabled`) on `ResourcePermissionSubResource.options`
@@ -214,7 +225,7 @@ Flag-name rules:
 2. In `app/routes/<scope>/<resource>/index.tsx`, build the list route using
    `defineResourceRoute({ type: 'list', ... })`.
 3. If there's a detail route, build it using `defineResourceRoute({ type:
-   'detail', ... })` in `<resource>/detail/layout.tsx`.
+'detail', ... })` in `<resource>/detail/layout.tsx`.
 4. For tab-style child routes, use `useGuardedRouteData('<route-id>')` to read
    loader data with typed restricted-handling.
 5. Inside each page, call `useResourcePermissions(...)` once at the top to
@@ -238,7 +249,11 @@ and sits outside the `dns-zone-detail` layout.
 // routes/project/detail/dns-zones/discovery.tsx
 export default function DnsZoneDiscoveryPage() {
   const { projectId, dnsZoneId } = useParams();
-  return <div><DnsZoneDiscoveryPreview projectId={projectId ?? ''} dnsZoneId={dnsZoneId ?? ''} /></div>;
+  return (
+    <div>
+      <DnsZoneDiscoveryPreview projectId={projectId ?? ''} dnsZoneId={dnsZoneId ?? ''} />
+    </div>
+  );
 }
 ```
 

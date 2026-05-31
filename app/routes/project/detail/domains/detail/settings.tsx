@@ -1,22 +1,35 @@
 import { ComingSoonFeatureCard } from '@/components/coming-soon/coming-soon-feature-card';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
-import { useDeleteDomain } from '@/resources/domains';
+import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
+import { type DnsZone } from '@/resources/dns-zones';
+import { type Domain, useDeleteDomain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
 };
 
 export default function DomainSettingsPage() {
-  const { domain } = useRouteLoaderData('domain-detail');
+  const { data: domain } = useGuardedRouteData<Domain, { dnsZone: DnsZone | null }>(
+    'domain-detail'
+  );
 
   const { projectId } = useParams();
   const navigate = useNavigate();
+
+  const { canDelete, isLoading: permissionsLoading } = useResourcePermissions({
+    resource: 'domains',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: ['delete'],
+  });
 
   const { confirm } = useConfirmationDialog();
 
@@ -70,7 +83,15 @@ export default function DomainSettingsPage() {
           loading={deleteDomainMutation.isPending}
           onDelete={deleteDomain}
           data-e2e="delete-domain-button"
-        />
+          actionHidden={permissionsLoading || !canDelete}>
+          {permissionsLoading ? (
+            <LoaderOverlay />
+          ) : (
+            !canDelete && (
+              <RestrictedOverlay message="You don't have permission to delete this domain" />
+            )
+          )}
+        </DangerCard>
       </Col>
     </Row>
   );

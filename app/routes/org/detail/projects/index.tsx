@@ -143,8 +143,12 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
   // Sync dialog state from URL search params (for external links)
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
-      setOpenDialog(true);
-      // Clean up the URL after opening
+      if (canCreateProject) {
+        setOpenDialog(true);
+      }
+      // Clean up the URL after handling (whether opened or denied) so a
+      // refresh doesn't retry and so gaining permission later won't unexpectedly
+      // re-trigger the dialog.
       setSearchParams(
         (prev) => {
           prev.delete('action');
@@ -153,7 +157,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
         { replace: true }
       );
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, canCreateProject]);
 
   useEffect(() => {
     if (alertSubmittedRef.current && alertFetcher.data?.success && alertFetcher.state === 'idle') {

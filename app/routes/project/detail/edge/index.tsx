@@ -119,12 +119,14 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
 
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
-      proxyFormRef.current?.show();
+      if (canCreate) {
+        proxyFormRef.current?.show();
+      }
       const nextParams = new URLSearchParams(searchParams);
       nextParams.delete('action');
       setSearchParams(nextParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, canCreate]);
 
   const { confirmDelete } = useDeleteProxy(projectId, {
     onError: (error) => {

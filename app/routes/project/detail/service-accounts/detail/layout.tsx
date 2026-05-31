@@ -1,52 +1,48 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { ServiceAccountHeaderActions } from '@/features/service-account/service-account-header-actions';
 import { SubLayout } from '@/layouts';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import {
   createServiceAccountService,
+  serviceAccountKeys,
   useServiceAccount,
   useServiceAccountWatch,
   type ServiceAccount,
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  LoaderFunctionArgs,
-  MetaFunction,
-  Outlet,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, Outlet, useNavigate, useParams } from 'react-router';
 
-export const handle = {
-  breadcrumb: (data: ServiceAccount) => <span>{data?.displayName ?? data?.name}</span>,
-};
-
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const account = loaderData as ServiceAccount;
-  return metaObject(account?.displayName ?? account?.name ?? 'Service Account');
+const route = defineResourceRoute<ServiceAccount>({
+  type: 'detail',
+  resource: 'serviceaccounts',
+  paramName: 'serviceAccountId',
+  notFoundLabel: 'Service Account',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view this service account.",
+  breadcrumb: ({ data }) => <span>{data?.displayName ?? data?.name ?? 'Service Account'}</span>,
+  metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Service Account',
+  seedCache: ({ data, projectId, id }) => {
+    const d = data as ServiceAccount;
+    return [[serviceAccountKeys.detail(projectId, id), d]] as never;
+  },
 });
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId, serviceAccountId } = params;
+export const loader = (args: LoaderFunctionArgs) =>
+  runDetailLoader<ServiceAccount, Record<string, never>>(args, {
+    resource: 'serviceaccounts',
+    group: 'iam.miloapis.com',
+    scope: 'project',
+    paramName: 'serviceAccountId',
+    notFoundLabel: 'Service Account',
+    fetch: ({ projectId, id }) => createServiceAccountService().get(projectId!, id),
+  });
 
-  if (!projectId || !serviceAccountId) {
-    throw new BadRequestError('Project ID and service account ID are required');
-  }
-
-  const service = createServiceAccountService();
-  const account = await service.get(projectId, serviceAccountId);
-
-  if (!account) {
-    throw new NotFoundError('Service Account', serviceAccountId);
-  }
-
-  return account;
-});
+export const handle = route.handle;
+export const meta = route.meta;
 
 export type ServiceAccountDetailContext = {
   account: ServiceAccount;
@@ -54,8 +50,7 @@ export type ServiceAccountDetailContext = {
   setIsDeleting: (value: boolean) => void;
 };
 
-export default function ServiceAccountDetailLayout() {
-  const loaderAccount = useLoaderData<typeof loader>();
+export default route.Page(({ data: loaderAccount }) => {
   const { projectId, serviceAccountId } = useParams();
   const navigate = useNavigate();
 
@@ -91,7 +86,7 @@ export default function ServiceAccountDetailLayout() {
   }, [liveAccount, isDeleting, navigate, projectId]);
 
   const navItems: SubNavigationTab[] = useMemo(() => {
-    const id = serviceAccountId ?? account.name;
+    const id = serviceAccountId ?? account?.name ?? '';
     return [
       {
         label: 'Overview',
@@ -129,13 +124,7 @@ export default function ServiceAccountDetailLayout() {
         }),
       },
     ];
-  }, [projectId, serviceAccountId, account.name]);
-
-  const outletContext: ServiceAccountDetailContext = {
-    account,
-    isDeleting,
-    setIsDeleting,
-  };
+  }, [projectId, serviceAccountId, account?.name]);
 
   return (
     <SubLayout
@@ -150,7 +139,9 @@ export default function ServiceAccountDetailLayout() {
         )
       }
       navItems={navItems}>
-      <Outlet context={outletContext} />
+      <Outlet
+        context={{ account, isDeleting, setIsDeleting } satisfies ServiceAccountDetailContext}
+      />
     </SubLayout>
   );
-}
+});

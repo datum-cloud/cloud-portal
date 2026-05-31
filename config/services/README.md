@@ -26,7 +26,7 @@ Both ship in `phase: Published`.
 The canonical producer-facing document for billing is the
 `services.miloapis.com/v1alpha1.ServiceConfiguration` — see
 [`billing/docs/emitting-usage.md`](https://github.com/datum-cloud/billing/blob/main/docs/emitting-usage.md).
-A producer authors *one* document; the services-operator fans it out
+A producer authors _one_ document; the services-operator fans it out
 into `billing.miloapis.com/MeterDefinition` and `MonitoredResourceType`
 objects stamped `app.kubernetes.io/managed-by: services-operator`.
 Producers are explicitly told not to author those downstream CRDs
@@ -60,11 +60,11 @@ Removing or renaming either is breaking — version the name (e.g.
 The `serviceName`, metric names, and Conversation Kind appear in three
 places that must move together:
 
-| Surface                            | File                                                          |
-| ---------------------------------- | ------------------------------------------------------------- |
-| Catalog (declarative)              | `services_v1alpha1_serviceconfiguration_assistant.yaml` (this dir) |
-| Wire-side constants                | `app/modules/usage/meters.ts`                                 |
-| Envelope coverage                  | `cypress/component/usage-emitter.cy.ts`                       |
+| Surface               | File                                                               |
+| --------------------- | ------------------------------------------------------------------ |
+| Catalog (declarative) | `services_v1alpha1_serviceconfiguration_assistant.yaml` (this dir) |
+| Wire-side constants   | `app/modules/usage/meters.ts`                                      |
+| Envelope coverage     | `cypress/component/usage-emitter.cy.ts`                            |
 
 Any change to a metric `name` or to the `Conversation` Kind here MUST
 be made in those two files in the same PR.

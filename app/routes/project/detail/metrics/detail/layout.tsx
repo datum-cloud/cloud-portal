@@ -1,61 +1,47 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import {
   createExportPolicyService,
+  exportPolicyKeys,
   type ExportPolicy,
-  useExportPolicy,
 } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import {
-  LoaderFunctionArgs,
-  MetaFunction,
-  Outlet,
-  data,
-  useLoaderData,
-  useParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
-export const handle = {
-  breadcrumb: (exportPolicy: ExportPolicy) => <span>{exportPolicy?.name ?? 'Export Policy'}</span>,
-};
-
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const exportPolicy = loaderData as ExportPolicy;
-  return metaObject(exportPolicy?.name || 'ExportPolicy');
+const route = defineResourceRoute<ExportPolicy>({
+  type: 'detail',
+  resource: 'exportpolicies',
+  paramName: 'exportPolicyId',
+  notFoundLabel: 'Export Policy',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view this export policy.",
+  breadcrumb: ({ data }) => <span>{data?.name ?? 'Export Policy'}</span>,
+  metaTitle: ({ data }) => data?.name ?? 'ExportPolicy',
+  seedCache: ({ data, projectId, id }) => {
+    const d = data as ExportPolicy;
+    return [[exportPolicyKeys.detail(projectId, id), d]] as never;
+  },
 });
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId, exportPolicyId } = params;
-
-  if (!projectId || !exportPolicyId) {
-    throw new BadRequestError('Project ID and export policy ID are required');
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const exportPolicyService = createExportPolicyService();
-
-  const exportPolicy = await exportPolicyService.get(projectId, exportPolicyId);
-
-  if (!exportPolicy) {
-    throw new NotFoundError('Export Policy', exportPolicyId);
-  }
-
-  return data(exportPolicy);
-});
-
-export default function ExportPolicyDetailLayout() {
-  const { projectId, exportPolicyId } = useParams();
-  const exportPolicy = useLoaderData<typeof loader>();
-
-  // Seed cache synchronously with SSR data (eliminates skeleton flash on first render)
-  useExportPolicy(projectId ?? '', exportPolicyId ?? '', {
-    initialData: exportPolicy,
-    initialDataUpdatedAt: Date.now(),
+export const loader = (args: LoaderFunctionArgs) =>
+  runDetailLoader<ExportPolicy, Record<string, never>>(args, {
+    resource: 'exportpolicies',
+    group: 'telemetry.miloapis.com',
+    scope: 'project',
+    paramName: 'exportPolicyId',
+    notFoundLabel: 'Export Policy',
+    fetch: ({ projectId, id }) => createExportPolicyService().get(projectId!, id),
   });
+
+export const handle = route.handle;
+export const meta = route.meta;
+
+export default route.Page(({ data: exportPolicy }) => {
+  const { projectId, exportPolicyId } = useParams();
 
   const navItems: SubNavigationTab[] = useMemo(() => {
     const id = exportPolicyId ?? exportPolicy?.name ?? '';
@@ -89,4 +75,4 @@ export default function ExportPolicyDetailLayout() {
       <Outlet />
     </SubLayout>
   );
-}
+});

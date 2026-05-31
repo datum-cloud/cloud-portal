@@ -1,6 +1,8 @@
+import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -38,6 +40,14 @@ export const ProjectSwitcher = ({
   const { orgId } = useApp();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  const { canCreate: canCreateProject } = useResourcePermissions({
+    resource: 'projects',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'org',
+    namespace: buildOrganizationNamespace(orgId ?? ''),
+    verbs: ['create'],
+  });
 
   const { data, isLoading } = useProjects(orgId ?? '', undefined, {
     enabled: open && !!orgId,
@@ -122,19 +132,23 @@ export const ProjectSwitcher = ({
                 </CommandGroup>
               )}
 
-              <CommandSeparator />
-              <CommandItem asChild className="cursor-pointer">
-                <Link
-                  to={getPathWithParams(
-                    paths.org.detail.projects.root,
-                    { orgId },
-                    { action: 'create' }
-                  )}
-                  className="flex items-center gap-2 px-3 py-2">
-                  <Icon icon={FolderRoot} className="size-3.5" />
-                  <span className="text-xs">Create project</span>
-                </Link>
-              </CommandItem>
+              {canCreateProject && (
+                <>
+                  <CommandSeparator />
+                  <CommandItem asChild className="cursor-pointer">
+                    <Link
+                      to={getPathWithParams(
+                        paths.org.detail.projects.root,
+                        { orgId },
+                        { action: 'create' }
+                      )}
+                      className="flex items-center gap-2 px-3 py-2">
+                      <Icon icon={FolderRoot} className="size-3.5" />
+                      <span className="text-xs">Create project</span>
+                    </Link>
+                  </CommandItem>
+                </>
+              )}
             </CommandList>
           </Command>
         </PopoverContent>

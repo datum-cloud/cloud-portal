@@ -1,16 +1,20 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
-import { ProjectLayoutLoaderData } from '@/routes/project/detail/layout';
+import type { DslLoaderData } from '@/modules/rbac';
+import { type Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
 import { Outlet, useParams } from 'react-router';
 
+type ProjectDetailEnvelope = DslLoaderData<Project, Record<string, unknown>>;
+
 export const handle = {
   breadcrumb: () => <span>Metrics</span>,
-  path: (data: ProjectLayoutLoaderData) => {
+  path: (data?: ProjectDetailEnvelope) => {
+    const projectName = data && !data.restricted ? data.data?.name : undefined;
     return getPathWithParams(paths.project.detail.metrics.root, {
-      projectId: data?.project?.name ?? data?.projectId,
+      projectId: projectName,
     });
   },
 };

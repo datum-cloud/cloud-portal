@@ -1,49 +1,43 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
-import { createSecretService, useSecret, type Secret } from '@/resources/secrets';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
+import { createSecretService, secretKeys, type Secret } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import { LoaderFunctionArgs, MetaFunction, Outlet, useLoaderData, useParams } from 'react-router';
+import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
-export const handle = {
-  breadcrumb: (data: Secret) => <span>{data?.name}</span>,
-};
-
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const secret = loaderData as Secret;
-  return metaObject(secret?.name || 'Secret');
+const route = defineResourceRoute<Secret>({
+  type: 'detail',
+  resource: 'secrets',
+  paramName: 'secretId',
+  notFoundLabel: 'Secret',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view this secret.",
+  breadcrumb: ({ data }) => <span>{data?.name ?? 'Secret'}</span>,
+  metaTitle: ({ data }) => data?.name ?? 'Secret',
+  seedCache: ({ data, projectId, id }) => {
+    const d = data as Secret;
+    return [[secretKeys.detail(projectId, id), d]] as never;
+  },
 });
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId, secretId } = params;
-
-  if (!projectId || !secretId) {
-    throw new BadRequestError('Project ID and secret ID are required');
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const secretService = createSecretService();
-  const secret = await secretService.get(projectId, secretId);
-
-  if (!secret) {
-    throw new NotFoundError('Secret', secretId);
-  }
-
-  return secret;
-});
-
-export default function SecretDetailLayout() {
-  const secret = useLoaderData<typeof loader>();
-  const { projectId, secretId } = useParams();
-
-  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
-  useSecret(projectId ?? '', secretId ?? '', {
-    initialData: secret,
-    initialDataUpdatedAt: Date.now(),
+export const loader = (args: LoaderFunctionArgs) =>
+  runDetailLoader<Secret, Record<string, never>>(args, {
+    resource: 'secrets',
+    group: '',
+    scope: 'project',
+    paramName: 'secretId',
+    notFoundLabel: 'Secret',
+    fetch: ({ projectId, id }) => createSecretService().get(projectId!, id),
   });
+
+export const handle = route.handle;
+export const meta = route.meta;
+
+export default route.Page(({ data: secret }) => {
+  const { projectId, secretId } = useParams();
 
   const navItems: SubNavigationTab[] = useMemo(() => {
     const id = secretId ?? secret?.name ?? '';
@@ -66,8 +60,8 @@ export default function SecretDetailLayout() {
   }, [projectId, secretId, secret?.name]);
 
   return (
-    <SubLayout title={secret?.name} navItems={navItems}>
+    <SubLayout title={secret?.name ?? 'Secret'} navItems={navItems}>
       <Outlet />
     </SubLayout>
   );
-}
+});

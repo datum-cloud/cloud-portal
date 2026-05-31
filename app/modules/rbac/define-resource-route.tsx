@@ -1,6 +1,7 @@
 import { GuardedPage } from './components/GuardedPage';
 import type { DefineListPageInput, DefineDetailPageInput, DslLoaderData } from './types';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { useCallback } from 'react';
 import { useLoaderData, useParams, type MetaFunction } from 'react-router';
 
 /**
@@ -63,14 +64,22 @@ function defineListRoute<TData>(cfg: DefineListPageInput): DefineListRouteOutput
     return function GuardedRouteOutlet() {
       const loaderData = useLoaderData<DslLoaderData<TData, Record<string, never>>>();
       const { projectId = '' } = useParams<{ projectId: string }>();
+      // Identity-stable seedCache so GuardedPage's seed effect doesn't re-fire on
+      // every render of consumers under this Page (e.g. when a permission check
+      // resolves and downstream components re-render). An unstable seedCache
+      // identity caused redundant qc.setQueryData calls that interacted poorly
+      // with the watch-stream lifecycle (see fix(rbac) commit notes).
+      const seedCache = useCallback(
+        ({ data: d }: { data: TData; companions: Record<string, never> }) =>
+          cfg.seedCache!({ data: d, projectId }),
+        [projectId]
+      );
       return (
         <GuardedPage
           loaderData={loaderData}
           restrictedTitle={cfg.restrictedTitle}
           restrictedMessage={cfg.restrictedMessage}
-          seedCache={
-            cfg.seedCache ? ({ data: d }) => cfg.seedCache!({ data: d, projectId }) : undefined
-          }>
+          seedCache={cfg.seedCache ? seedCache : undefined}>
           {(d, companions) => render({ data: d, companions })}
         </GuardedPage>
       );
@@ -116,17 +125,19 @@ function defineDetailRoute<TData, TCompanions extends Record<string, unknown>>(
       const params = useParams<Record<string, string>>();
       const projectId = params.projectId ?? '';
       const id = params[cfg.paramName] ?? '';
+      // See identical note in defineListRoute: identity-stable seedCache prevents
+      // GuardedPage's seed effect from re-firing on every consumer re-render.
+      const seedCache = useCallback(
+        ({ data: d, companions: c }: { data: TData; companions: TCompanions }) =>
+          cfg.seedCache!({ data: d, companions: c, projectId, id }),
+        [projectId, id]
+      );
       return (
         <GuardedPage
           loaderData={loaderData}
           restrictedTitle={cfg.restrictedTitle}
           restrictedMessage={cfg.restrictedMessage}
-          seedCache={
-            cfg.seedCache
-              ? ({ data: d, companions: c }) =>
-                  cfg.seedCache!({ data: d, companions: c, projectId, id })
-              : undefined
-          }>
+          seedCache={cfg.seedCache ? seedCache : undefined}>
           {(d, companions) => render({ data: d, companions })}
         </GuardedPage>
       );

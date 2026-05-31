@@ -101,8 +101,10 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
   // Sync dialog state from URL search params (for external links like ?action=create&domainName=...)
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
-      const domainName = searchParams.get('domainName') ?? undefined;
-      dialogRef.current?.show(domainName);
+      if (canCreate) {
+        const domainName = searchParams.get('domainName') ?? undefined;
+        dialogRef.current?.show(domainName);
+      }
       setSearchParams(
         (prev) => {
           prev.delete('action');
@@ -112,7 +114,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         { replace: true }
       );
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, canCreate]);
 
   // Pre-compute status for all zones (called once per zones change)
   const zonesWithStatus = useMemo<DnsZoneWithComputed[]>(() => {

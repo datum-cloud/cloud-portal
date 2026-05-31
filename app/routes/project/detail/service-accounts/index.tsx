@@ -4,8 +4,12 @@ import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
 import { ServiceAccountFormDialog } from '@/features/service-account/form/service-account-form-dialog';
 import type { ServiceAccountFormDialogRef } from '@/features/service-account/form/service-account-form-dialog';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import {
   createServiceAccountService,
+  serviceAccountKeys,
   useDeleteServiceAccount,
   useServiceAccounts,
   useServiceAccountsWatch,
@@ -14,41 +18,42 @@ import {
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
-import {
-  Link,
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useLocation,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { LoaderFunctionArgs, useLocation, useNavigate, useParams } from 'react-router';
 
-export const meta: MetaFunction = mergeMeta(() => metaObject('Service Accounts'));
-
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-
-  const service = createServiceAccountService();
-  return service.list(projectId);
+const route = defineResourceRoute<ServiceAccount[]>({
+  type: 'list',
+  resource: 'serviceaccounts',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view service accounts.",
+  metaTitle: 'Service Accounts',
+  seedCache: ({ data, projectId }) => {
+    const d = data as ServiceAccount[];
+    return [[serviceAccountKeys.list(projectId), d]] as never;
+  },
 });
 
-export default function ServiceAccountsPage() {
-  const initialData = useLoaderData<typeof loader>();
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<ServiceAccount[]>(args, {
+    resource: 'serviceaccounts',
+    group: 'iam.miloapis.com',
+    scope: 'project',
+    fetch: ({ projectId }) => createServiceAccountService().list(projectId!),
+  });
+
+export const meta = route.meta;
+
+export default route.Page(({ data: initialData }) => (
+  <ServiceAccountsInner initialData={initialData} />
+));
+
+function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
@@ -74,6 +79,13 @@ export default function ServiceAccountsPage() {
   });
 
   const data = queryData ?? seededData;
+
+  const { canCreate, canUpdate, canDelete } = useResourcePermissions({
+    resource: 'serviceaccounts',
+    group: 'iam.miloapis.com',
+    scope: 'project',
+    verbs: ['create', 'update', 'delete'],
+  });
 
   const deleteMutation = useDeleteServiceAccount(projectId ?? '', {
     onSuccess: () => {
@@ -161,26 +173,28 @@ export default function ServiceAccountsPage() {
       createActionsColumn<ServiceAccount>([
         {
           label: 'Edit',
+          hidden: () => !canUpdate,
           onClick: (row) => formDialogRef.current?.show(row),
         },
         {
           label: 'Disable',
           onClick: (row) => toggleAccount(row),
-          hidden: (row: ServiceAccount) => row.status === 'Disabled',
+          hidden: (row: ServiceAccount) => !canUpdate || row.status === 'Disabled',
         },
         {
           label: 'Enable',
           onClick: (row) => toggleAccount(row),
-          hidden: (row: ServiceAccount) => row.status === 'Active',
+          hidden: (row: ServiceAccount) => !canUpdate || row.status === 'Active',
         },
         {
           label: 'Delete',
           variant: 'destructive',
+          hidden: () => !canDelete,
           onClick: (row) => deleteAccount(row),
         },
       ]),
     ],
-    [projectId, deleteAccount, toggleAccount]
+    [projectId, deleteAccount, toggleAccount, canUpdate, canDelete]
   );
 
   return (
@@ -199,17 +213,43 @@ export default function ServiceAccountsPage() {
           )
         }
         actions={[
-          <Link
+          <PermissionButton
             key="create"
-            to={getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })}
-            className="w-full sm:w-auto">
-            <Button type="primary" theme="solid" size="small" className="w-full">
-              <Icon icon={PlusIcon} className="size-4" />
-              Create a Service Account
-            </Button>
-          </Link>,
+            resource="serviceaccounts"
+            verb="create"
+            group="iam.miloapis.com"
+            scope="project"
+            deniedReason="You don't have permission to create a service account"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            onClick={() =>
+              navigate(getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId }))
+            }>
+            <Icon icon={PlusIcon} className="size-4" />
+            Create a Service Account
+          </PermissionButton>,
         ]}
-        empty="let's add a service account to get you started"
+        empty={{
+          // Title stays constant; action button hides when canCreate is false so
+          // restricted users aren't directed at a /new route they'll only see
+          // RestrictedState on.
+          title: "let's add a service account to get you started",
+          actions: canCreate
+            ? [
+                {
+                  type: 'button',
+                  label: 'Create a Service Account',
+                  icon: <Icon icon={PlusIcon} className="size-3" />,
+                  onClick: () =>
+                    navigate(
+                      getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })
+                    ),
+                },
+              ]
+            : [],
+        }}
       />
 
       {/* Edit-only dialog — create flow lives at /service-accounts/new */}

@@ -1,12 +1,15 @@
 import type { ServiceAccountDetailContext } from './layout';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DangerCard } from '@/components/danger-card/danger-card';
+import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { DisplayNameFormCard } from '@/features/service-account';
+import { useResourcePermissions } from '@/modules/rbac';
 import { useDeleteServiceAccount } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import type { MetaFunction } from 'react-router';
 import { useNavigate, useOutletContext, useParams } from 'react-router';
@@ -22,6 +25,17 @@ export default function ServiceAccountSettingsPage() {
   const { account, setIsDeleting } = useOutletContext<ServiceAccountDetailContext>();
   const { confirm } = useConfirmationDialog();
   const navigate = useNavigate();
+
+  const {
+    canPatch,
+    canDelete,
+    isLoading: permissionsLoading,
+  } = useResourcePermissions({
+    resource: 'serviceaccounts',
+    group: 'iam.miloapis.com',
+    scope: 'project',
+    verbs: ['patch', 'delete'],
+  });
 
   const deleteMutation = useDeleteServiceAccount(projectId ?? '', {
     onMutate: () => {
@@ -62,10 +76,12 @@ export default function ServiceAccountSettingsPage() {
 
   return (
     <Row type="flex" gutter={[24, 24]}>
-      <Col span={24}>
-        <h3 className="mb-4 text-base font-medium">Display Name</h3>
-        <DisplayNameFormCard projectId={projectId ?? ''} defaultValue={account} />
-      </Col>
+      {canPatch && (
+        <Col span={24}>
+          <h3 className="mb-4 text-base font-medium">Display Name</h3>
+          <DisplayNameFormCard projectId={projectId ?? ''} defaultValue={account} />
+        </Col>
+      )}
 
       <Col span={24}>
         <h3 className="mb-4 text-base font-medium">Delete Service Account</h3>
@@ -75,7 +91,15 @@ export default function ServiceAccountSettingsPage() {
           loading={deleteMutation.isPending}
           onDelete={handleDelete}
           data-e2e="delete-service-account-button"
-        />
+          actionHidden={permissionsLoading || !canDelete}>
+          {permissionsLoading ? (
+            <LoaderOverlay />
+          ) : (
+            !canDelete && (
+              <RestrictedOverlay message="You don't have permission to delete this service account" />
+            )
+          )}
+        </DangerCard>
       </Col>
     </Row>
   );

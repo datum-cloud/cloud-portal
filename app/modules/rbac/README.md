@@ -25,12 +25,12 @@ the app builds on this module.
 Every resource route operates at four canonical layers. Each layer has one
 responsibility and one primitive.
 
-| Layer | Responsibility | Primitive |
-|---|---|---|
-| 1. Loader gate (server) | Block denied requests before any data is fetched. | `gateRouteAccess` (wrapped by `defineResourceRoute`) |
-| 2. Data fetch/watch (client) | Skip fetches when the user lacks the verb. | `enabled: canX` on every `useX` / `useXWatch` |
-| 3. UI primitive (client) | Render in a permission-aware way. | `<PermissionButton>` / `<PermissionGate>` / `<RestrictedState>` / `<RestrictedOverlay>` |
-| 4. Cross-resource action (client) | Gate buttons against the resource they *mutate*, not the page's primary. | `<PermissionButton resource="..." />` with the mutation target's verb |
+| Layer                             | Responsibility                                                           | Primitive                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| 1. Loader gate (server)           | Block denied requests before any data is fetched.                        | `gateRouteAccess` (wrapped by `defineResourceRoute`)                                    |
+| 2. Data fetch/watch (client)      | Skip fetches when the user lacks the verb.                               | `enabled: canX` on every `useX` / `useXWatch`                                           |
+| 3. UI primitive (client)          | Render in a permission-aware way.                                        | `<PermissionButton>` / `<PermissionGate>` / `<RestrictedState>` / `<RestrictedOverlay>` |
+| 4. Cross-resource action (client) | Gate buttons against the resource they _mutate_, not the page's primary. | `<PermissionButton resource="..." />` with the mutation target's verb                   |
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full model, defense-in-depth
 rationale, error classes, loading-state rules, and the free-floating route
@@ -146,8 +146,7 @@ function DnsZoneRecords() {
         group="dns.networking.miloapis.com"
         scope="project"
         deniedReason="You don't have permission to add a DNS record"
-        onClick={openCreateForm}
-      >
+        onClick={openCreateForm}>
         Add record
       </PermissionButton>
 
@@ -158,8 +157,7 @@ function DnsZoneRecords() {
         group="dns.networking.miloapis.com"
         scope="project"
         mode="disable"
-        deniedReason="You don't have permission to edit DNS records"
-      >
+        deniedReason="You don't have permission to edit DNS records">
         <IconButton icon={PencilIcon} onClick={openEditForm} />
       </PermissionGate>
     </>
@@ -180,8 +178,7 @@ against B — not against A.
   verb="create"
   group="networking.datumapis.com"
   scope="project"
-  onClick={protectWithEdge}
->
+  onClick={protectWithEdge}>
   Protect with AI Edge
 </PermissionButton>
 ```
@@ -195,10 +192,9 @@ import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 
 export default function DnsRecordsPage() {
-  const { data: dnsZone, companions } = useGuardedRouteData<
-    DnsZone,
-    { domain: Domain | null }
-  >('dns-zone-detail');
+  const { data: dnsZone, companions } = useGuardedRouteData<DnsZone, { domain: Domain | null }>(
+    'dns-zone-detail'
+  );
 
   // dnsZone is typed; companions.domain may be null (tolerate semantics).
   return <DnsRecordsInner dnsZone={dnsZone} domain={companions.domain} />;
@@ -210,18 +206,18 @@ The hook throws if called on a restricted route, signaling a routing bug
 
 ## Public API at a glance
 
-| Export | Purpose | Import path |
-|---|---|---|
-| `defineResourceRoute(...)` | Route DSL — emits `{loader, handle, meta, Page}` | `@/modules/rbac/define-resource-route` (deep — server-importing) |
-| `useResourcePermissions({ verbs, subResources })` | Batched perm check with named flags | `@/modules/rbac` |
-| `useGuardedRouteData(routeId)` | Typed child-route loader-data reader | `@/modules/rbac` |
-| `<GuardedPage>` | Page wrapper: RestrictedState + cache seeding | `@/modules/rbac` |
-| `<PermissionButton>` | Gated button trigger | `@/modules/rbac` |
-| `<PermissionGate>` | Gated wrapper (`hide` / `disable` / `fallback`) | `@/modules/rbac` |
-| `<PermissionCheck>` | Bulk-check render prop | `@/modules/rbac` |
-| `<RestrictedState>` | Full-page deny | `@/components/restricted-state` |
-| `<RestrictedOverlay>` | Partial deny | `@/components/restricted-overlay` |
-| `gateRouteAccess()` | Server-only loader gate (wrapped by the DSL) | `@/modules/rbac/server/check-permission` |
+| Export                                            | Purpose                                          | Import path                                                      |
+| ------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| `defineResourceRoute(...)`                        | Route DSL — emits `{loader, handle, meta, Page}` | `@/modules/rbac/define-resource-route` (deep — server-importing) |
+| `useResourcePermissions({ verbs, subResources })` | Batched perm check with named flags              | `@/modules/rbac`                                                 |
+| `useGuardedRouteData(routeId)`                    | Typed child-route loader-data reader             | `@/modules/rbac`                                                 |
+| `<GuardedPage>`                                   | Page wrapper: RestrictedState + cache seeding    | `@/modules/rbac`                                                 |
+| `<PermissionButton>`                              | Gated button trigger                             | `@/modules/rbac`                                                 |
+| `<PermissionGate>`                                | Gated wrapper (`hide` / `disable` / `fallback`)  | `@/modules/rbac`                                                 |
+| `<PermissionCheck>`                               | Bulk-check render prop                           | `@/modules/rbac`                                                 |
+| `<RestrictedState>`                               | Full-page deny                                   | `@/components/restricted-state`                                  |
+| `<RestrictedOverlay>`                             | Partial deny                                     | `@/components/restricted-overlay`                                |
+| `gateRouteAccess()`                               | Server-only loader gate (wrapped by the DSL)     | `@/modules/rbac/server/check-permission`                         |
 
 ## Module layout
 

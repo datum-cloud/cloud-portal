@@ -1,5 +1,5 @@
+import { PermissionButton } from '@/modules/rbac';
 import { useUpdateServiceAccount, type ServiceAccount } from '@/resources/service-accounts';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { PowerIcon, PowerOffIcon } from 'lucide-react';
@@ -33,7 +33,12 @@ export function ServiceAccountHeaderActions({
   };
 
   return (
-    <Button
+    <PermissionButton
+      resource="serviceaccounts"
+      verb="patch"
+      group="iam.miloapis.com"
+      scope="project"
+      deniedReason={`You don't have permission to ${isActive ? 'disable' : 'enable'} this service account`}
       type="secondary"
       theme="outline"
       size="small"
@@ -41,6 +46,6 @@ export function ServiceAccountHeaderActions({
       onClick={handleToggle}>
       <Icon icon={isActive ? PowerOffIcon : PowerIcon} size={14} />
       {isActive ? 'Disable' : 'Enable'}
-    </Button>
+    </PermissionButton>
   );
 }

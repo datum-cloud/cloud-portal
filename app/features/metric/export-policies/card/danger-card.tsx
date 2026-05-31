@@ -7,8 +7,12 @@ import { useNavigate, useParams } from 'react-router';
 
 export const ExportPolicyDangerCard = ({
   exportPolicy,
+  actionHidden = false,
+  children,
 }: {
   exportPolicy: IExportPolicyControlResponse;
+  actionHidden?: boolean;
+  children?: React.ReactNode;
 }) => {
   const { projectId } = useParams();
   const navigate = useNavigate();
@@ -53,6 +57,8 @@ export const ExportPolicyDangerCard = ({
       deleteText="Delete policy"
       loading={deleteExportPolicyMutation.isPending}
       onDelete={deleteExportPolicy}
-    />
+      actionHidden={actionHidden}>
+      {children}
+    </DangerCard>
   );
 };

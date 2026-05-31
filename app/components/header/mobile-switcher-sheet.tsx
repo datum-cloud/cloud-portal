@@ -1,8 +1,10 @@
 import { OrganizationItem } from '@/components/select-organization/organization-item';
+import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useOrganizationsGql } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
+import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -138,6 +140,14 @@ function ProjectSwitcherSheet({
   const navigate = useNavigate();
   const { data, isLoading } = useProjects(orgId ?? '', undefined, { enabled: open && !!orgId });
 
+  const { canCreate: canCreateProject } = useResourcePermissions({
+    resource: 'projects',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'org',
+    namespace: buildOrganizationNamespace(orgId ?? ''),
+    verbs: ['create'],
+  });
+
   const projects = useMemo(() => {
     const items = data?.items ?? [];
     return [...items].sort((a, b) => {
@@ -164,12 +174,14 @@ function ProjectSwitcherSheet({
       title="Switch project"
       description="Select a project"
       footer={
-        <Link
-          to={getPathWithParams(paths.org.detail.projects.root, { orgId }, { action: 'create' })}
-          className="flex items-center gap-2 text-xs font-medium">
-          <Icon icon={FolderRoot} className="size-3.5" />
-          Create project
-        </Link>
+        canCreateProject ? (
+          <Link
+            to={getPathWithParams(paths.org.detail.projects.root, { orgId }, { action: 'create' })}
+            className="flex items-center gap-2 text-xs font-medium">
+            <Icon icon={FolderRoot} className="size-3.5" />
+            Create project
+          </Link>
+        ) : null
       }>
       <Command className="rounded-none border-none">
         <CommandInput

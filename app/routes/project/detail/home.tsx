@@ -7,6 +7,7 @@ import { DnsIllustration } from '@/features/project/illustrations/dns';
 import { DomainIllustration } from '@/features/project/illustrations/domain';
 import { MetricsIllustration } from '@/features/project/illustrations/metrics';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
 import { useDnsZones } from '@/resources/dns-zones';
@@ -31,6 +32,7 @@ type DashboardCardConfig = {
   key: string;
   isCompleted: boolean;
   isLoading: boolean;
+  canCreate: boolean;
   illustration: ReactNode;
   completedTitle: string;
   pendingTitle: string;
@@ -89,6 +91,42 @@ export default function ProjectHomePage() {
     { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
   );
 
+  const {
+    canCreate: canCreateAiEdge,
+    canCreateDomain,
+    canCreateDnsZone,
+    canCreateExportPolicy,
+  } = useResourcePermissions({
+    resource: 'httpproxies',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    namespace: 'default',
+    verbs: ['create'],
+    subResources: [
+      {
+        resource: 'domains',
+        group: 'networking.datumapis.com',
+        scope: 'project',
+        alias: 'domain',
+        verbs: ['create'],
+      },
+      {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        alias: 'dnsZone',
+        verbs: ['create'],
+      },
+      {
+        resource: 'exportpolicies',
+        group: 'telemetry.miloapis.com',
+        scope: 'project',
+        alias: 'exportPolicy',
+        verbs: ['create'],
+      },
+    ],
+  });
+
   const hasAiEdge = httpProxies.length > 0;
   const hasDomains = domains.length > 0;
   const hasDnsZones = dnsZones.length > 0;
@@ -113,9 +151,10 @@ export default function ProjectHomePage() {
       key: 'ai-edge',
       isCompleted: hasAiEdge,
       isLoading: httpProxiesLoading,
+      canCreate: canCreateAiEdge,
       illustration: <AIEdgeIllustration variant={hasAiEdge ? 'completed' : 'default'} />,
       completedTitle: 'AI Edge deployed',
-      pendingTitle: 'Deploy an AI Edge',
+      pendingTitle: canCreateAiEdge ? 'Deploy an AI Edge' : 'AI Edge',
       buttonLabel: 'Go to AI Edge',
       viewPath: getPathWithParams(paths.project.detail.proxy.root, { projectId: projectName }),
       createPath: getPathWithParams(
@@ -129,9 +168,10 @@ export default function ProjectHomePage() {
       key: 'domains',
       isCompleted: hasDomains,
       isLoading: domainsLoading,
+      canCreate: canCreateDomain,
       illustration: <DomainIllustration variant={hasDomains ? 'completed' : 'default'} />,
       completedTitle: 'Domains added',
-      pendingTitle: 'Add a Domain',
+      pendingTitle: canCreateDomain ? 'Add a Domain' : 'Domains',
       buttonLabel: 'Go to Domains',
       viewPath: getPathWithParams(paths.project.detail.domains.root, { projectId: projectName }),
       createPath: getPathWithParams(
@@ -145,9 +185,10 @@ export default function ProjectHomePage() {
       key: 'dns',
       isCompleted: hasDnsZones,
       isLoading: dnsZonesLoading,
+      canCreate: canCreateDnsZone,
       illustration: <DnsIllustration variant={hasDnsZones ? 'completed' : 'default'} />,
       completedTitle: 'DNS migrated',
-      pendingTitle: 'Migrate DNS to Datum',
+      pendingTitle: canCreateDnsZone ? 'Migrate DNS to Datum' : 'DNS',
       buttonLabel: 'Go to DNS',
       viewPath: getPathWithParams(paths.project.detail.dnsZones.root, { projectId: projectName }),
       createPath: getPathWithParams(
@@ -161,9 +202,10 @@ export default function ProjectHomePage() {
       key: 'metrics',
       isCompleted: hasMetrics,
       isLoading: exportPoliciesLoading,
+      canCreate: canCreateExportPolicy,
       illustration: <MetricsIllustration variant={hasMetrics ? 'completed' : 'default'} />,
       completedTitle: 'Metrics sent to Grafana',
-      pendingTitle: 'Send metrics to Grafana',
+      pendingTitle: canCreateExportPolicy ? 'Send metrics to Grafana' : 'Metrics',
       buttonLabel: 'Go to Metrics',
       viewPath: getPathWithParams(paths.project.detail.metrics.root, { projectId: projectName }),
       createPath: getPathWithParams(
@@ -176,7 +218,7 @@ export default function ProjectHomePage() {
   ];
 
   const handleCardClick = (card: DashboardCardConfig) => {
-    if (card.isCompleted) {
+    if (card.isCompleted || !card.canCreate) {
       navigate(card.viewPath);
     } else {
       trackAction(card.analyticsAction);

@@ -1,5 +1,4 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
-import { RbacProvider } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext } from '@/modules/sentry';
@@ -120,9 +119,7 @@ export default route.Page(({ data: initialOrg }) => {
 
   return (
     <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentOrg={org}>
-      <RbacProvider organizationId={org?.name}>
-        <Outlet />
-      </RbacProvider>
+      <Outlet />
     </DashboardLayout>
   );
 });

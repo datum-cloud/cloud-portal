@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { useResourcePermissions } from '@/modules/rbac';
 import { type DnsZone } from '@/resources/dns-zones';
 import {
   type Domain,
@@ -63,6 +64,22 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
     },
   });
 
+  const { canUpdate, canDelete, canViewDnsZones, canCreateDnsZones } = useResourcePermissions({
+    resource: 'domains',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: ['update', 'delete'],
+    subResources: [
+      {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        alias: 'dnsZones',
+        verbs: ['list', 'create'],
+      },
+    ],
+  });
+
   const handleRefreshDomain = () => {
     if (!effectiveDomain?.name) return;
     refreshDomainMutation.mutate(effectiveDomain.name);
@@ -120,35 +137,41 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
 
   return (
     <div className="flex w-full items-center gap-2 sm:w-auto">
-      <Button
-        type="secondary"
-        theme="outline"
-        size="small"
-        loading={refreshDomainMutation.isPending}
-        onClick={handleRefreshDomain}
-        aria-label="Refresh domain">
-        <Icon icon={RefreshCcwIcon} size={14} />
-        <span className="hidden sm:inline">Refresh</span>
-      </Button>
-      <Button
-        type="secondary"
-        theme="outline"
-        size="small"
-        className="flex-1 sm:flex-initial"
-        onClick={handleManageDnsZone}>
-        <Icon icon={GlobeIcon} size={14} />
-        Manage DNS Zone
-      </Button>
-      <Button
-        type="danger"
-        theme="outline"
-        size="small"
-        loading={deleteDomainMutation.isPending}
-        onClick={handleDeleteDomain}
-        aria-label="Delete domain">
-        <Icon icon={TrashIcon} size={14} />
-        <span className="hidden sm:inline">Delete</span>
-      </Button>
+      {canUpdate && (
+        <Button
+          type="secondary"
+          theme="outline"
+          size="small"
+          loading={refreshDomainMutation.isPending}
+          onClick={handleRefreshDomain}
+          aria-label="Refresh domain">
+          <Icon icon={RefreshCcwIcon} size={14} />
+          <span className="hidden sm:inline">Refresh</span>
+        </Button>
+      )}
+      {(dnsZone ? canViewDnsZones : canCreateDnsZones) && (
+        <Button
+          type="secondary"
+          theme="outline"
+          size="small"
+          className="flex-1 sm:flex-initial"
+          onClick={handleManageDnsZone}>
+          <Icon icon={GlobeIcon} size={14} />
+          Manage DNS Zone
+        </Button>
+      )}
+      {canDelete && (
+        <Button
+          type="danger"
+          theme="outline"
+          size="small"
+          loading={deleteDomainMutation.isPending}
+          onClick={handleDeleteDomain}
+          aria-label="Delete domain">
+          <Icon icon={TrashIcon} size={14} />
+          <span className="hidden sm:inline">Delete</span>
+        </Button>
+      )}
     </div>
   );
 }

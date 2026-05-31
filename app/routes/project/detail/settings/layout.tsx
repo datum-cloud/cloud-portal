@@ -1,18 +1,23 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
+import type { DslLoaderData } from '@/modules/rbac';
 import { useProjectContext } from '@/providers/project.provider';
-import { ProjectLayoutLoaderData } from '@/routes/project/detail/layout';
+import { type Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
 import { Outlet } from 'react-router';
 
+type ProjectDetailEnvelope = DslLoaderData<Project, Record<string, unknown>>;
+
 export const handle = {
   breadcrumb: () => <span>Project Settings</span>,
-  path: (data: ProjectLayoutLoaderData) =>
-    getPathWithParams(paths.project.detail.settings.general, {
-      projectId: data?.project?.name ?? data?.projectId,
-    }),
+  path: (data?: ProjectDetailEnvelope) => {
+    const projectName = data && !data.restricted ? data.data?.name : undefined;
+    return getPathWithParams(paths.project.detail.settings.general, {
+      projectId: projectName,
+    });
+  },
 };
 
 export default function ProjectSettingsLayout() {

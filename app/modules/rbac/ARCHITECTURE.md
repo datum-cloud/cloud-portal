@@ -31,7 +31,7 @@ operates at each layer. Each layer has one responsibility and one primitive.
   `PermissionGate mode="disable"`. Cards by `PermissionGate mode="hide"`.
 - **API rejection is the final backstop.** A mutation that slipped past the
   gate (mid-session revoke, race) surfaces via `mutation.onError →
-  toast.error`. Toast is never used as a gate.
+toast.error`. Toast is never used as a gate.
 
 ## Listing vs. detail server gating
 
@@ -57,26 +57,26 @@ Enforcement: PR review. E2E regressions per sub-project pin the runtime behavior
 
 ## Error classes
 
-| Class | Trigger | Loader behavior | UI result |
-|---|---|---|---|
-| Permission denied (primary) | `gateRouteAccess` returns false | `data({restricted: true})` | `<RestrictedState>` |
-| Permission denied (companion) | gate denies a companion | `tolerate` → null; `propagate` → throw | Degrades or boundary |
-| Not found | primary `fetch` returns null | `throw NotFoundError(label, id)` | `withLoaderErrors` → 404 |
-| Companion fetch failure | companion `fetch` throws | `tolerate` → log + null; `propagate` → throw | Page renders w/o companion |
-| Resource being deleted | `redirectIfDeleting({data})` returns truthy | `redirectWithToast(...)` | Browser navigates, toast |
+| Class                         | Trigger                                     | Loader behavior                              | UI result                  |
+| ----------------------------- | ------------------------------------------- | -------------------------------------------- | -------------------------- |
+| Permission denied (primary)   | `gateRouteAccess` returns false             | `data({restricted: true})`                   | `<RestrictedState>`        |
+| Permission denied (companion) | gate denies a companion                     | `tolerate` → null; `propagate` → throw       | Degrades or boundary       |
+| Not found                     | primary `fetch` returns null                | `throw NotFoundError(label, id)`             | `withLoaderErrors` → 404   |
+| Companion fetch failure       | companion `fetch` throws                    | `tolerate` → log + null; `propagate` → throw | Page renders w/o companion |
+| Resource being deleted        | `redirectIfDeleting({data})` returns truthy | `redirectWithToast(...)`                     | Browser navigates, toast   |
 
 All other errors propagate through `withLoaderErrors`.
 
 ## Loading-state rules
 
-| Place | Loading behavior | Reasoning |
-|---|---|---|
-| Page (loader) | n/a — synchronous from user's view | `gateRouteAccess` runs server-side, blocking |
-| `PermissionButton` | bare button rendered, toggling only `disabled` | Preserves in-flight clicks (#1273) |
-| `PermissionGate mode="disable"` | child `disabled` + tooltip "Verifying permissions…" | |
-| `PermissionGate mode="hide"` | renders fallback until check resolves | |
-| Inline perm-driven data (e.g. WAF column) | `<SpinnerIcon size="sm" />` — never show verdict | AI Edge `wafPending` pattern |
-| `<RestrictedOverlay>` for danger zones | `<LoaderOverlay />` while loading, then `<RestrictedOverlay>` on deny | AI Edge overview pattern |
+| Place                                     | Loading behavior                                                      | Reasoning                                    |
+| ----------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------- |
+| Page (loader)                             | n/a — synchronous from user's view                                    | `gateRouteAccess` runs server-side, blocking |
+| `PermissionButton`                        | bare button rendered, toggling only `disabled`                        | Preserves in-flight clicks (#1273)           |
+| `PermissionGate mode="disable"`           | child `disabled` + tooltip "Verifying permissions…"                   |                                              |
+| `PermissionGate mode="hide"`              | renders fallback until check resolves                                 |                                              |
+| Inline perm-driven data (e.g. WAF column) | `<SpinnerIcon size="sm" />` — never show verdict                      | AI Edge `wafPending` pattern                 |
+| `<RestrictedOverlay>` for danger zones    | `<LoaderOverlay />` while loading, then `<RestrictedOverlay>` on deny | AI Edge overview pattern                     |
 
 The "never show a verdict before resolution" rule is documented in
 `CONVENTIONS.md` and checked at PR review. Sub-resources with
