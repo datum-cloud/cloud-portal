@@ -320,7 +320,7 @@ Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainab
   cy.contains('button', 'Confirm').click();
 
   return cy
-    .url({ timeout: 30000 })
+    .url({ timeout: 30_000 })
     .should('match', /\/org\/[a-z0-9-]+\//)
     .then((url) => {
       const parsedOrgId = url.split('/org/')[1]?.split('/')[0]?.trim();
@@ -339,11 +339,11 @@ Cypress.Commands.add(
   'createProjectInOrg',
   (orgId: string, displayName: string): Cypress.Chainable<string> => {
     cy.visit(getPathWithParams(paths.org.detail.projects.root, { orgId }));
-    cy.url({ timeout: 30000 }).should(
+    cy.url({ timeout: 30_000 }).should(
       'include',
       paths.org.detail.projects.root.replace('[orgId]', orgId)
     );
-    cy.get('body', { timeout: 30000 }).then(($body) => {
+    cy.get('body', { timeout: 30_000 }).then(($body) => {
       const hasToolbarCreate = $body.find('[data-e2e="create-project-button"]').length > 0;
       if (hasToolbarCreate) {
         // create-project-button is a PermissionButton: while the projects:create
@@ -357,7 +357,7 @@ Cypress.Commands.add(
         // access-review in CI — since #1275 widened RBAC fan-out, the check
         // routinely takes 5–10s on shard 3. Use an explicit 30s timeout to
         // ride out the slowdown without masking real failures.
-        cy.get('[data-e2e="create-project-button"]', { timeout: 30000 })
+        cy.get('[data-e2e="create-project-button"]', { timeout: 30_000 })
           .should('be.visible')
           .and('not.be.disabled');
         cy.get('[data-e2e="create-project-button"]').click();
@@ -365,36 +365,36 @@ Cypress.Commands.add(
       }
 
       // Fresh org empty state uses a generic "Create project" button without data-e2e.
-      cy.contains('button', /^Create project$/i, { timeout: 30000 })
+      cy.contains('button', /^Create project$/i, { timeout: 30_000 })
         .should('be.visible')
         .and('not.be.disabled');
       cy.contains('button', /^Create project$/i).click();
     });
     cy.get('[data-e2e="create-project-name-input"]').type(displayName);
 
-    // The projects list only auto-refreshes through the real-time watch
-    // (create → waitForProjectReady → invalidateQueries). That watch is inert
-    // under the e2e ambient-API stubs, so the new card never appears on its own.
-    // Wait for the create API to succeed, then reload to force a fresh list GET —
-    // which returns the project even while it is still reconciling — so we can
-    // read its resource ID.
-    cy.intercept('POST', '**/control-plane/**/v1alpha1/projects').as('createProjectReq');
-    cy.contains('button', 'Confirm').click();
-    cy.wait('@createProjectReq', { timeout: 30000 })
-      .its('response.statusCode')
-      .should('be.oneOf', [200, 201]);
-    cy.reload();
+    // Two slow paths to tolerate on a freshly-created org:
+    //
+    // 1. The upstream control plane may 403 the create POST for a few seconds
+    //    after org creation while the org-owner policy binding propagates to
+    //    its authz cache. The PermissionButton's SSAR check (via the BFF) can
+    //    return allowed while the real POST is still denied. Retry once on 403.
+    //
+    // 2. After a successful create, the project may not appear in the LIST
+    //    response immediately (control-plane LIST eventual consistency) AND the
+    //    org/projects loader runs `gateRouteAccess('projects:list')` — on a new
+    //    org that SSAR may still return restricted for a few seconds. We poll
+    //    the SSR page HTML directly with `cy.request` (not `cy.reload` + DOM
+    //    polling — Cypress run #26713469437 showed that 18 sequential reloads
+    //    over 3 minutes all returned 200 but the page DOM stayed blank, so the
+    //    UI render race is not the bottleneck). Once the page HTML contains
+    //    the displayName, do a single `cy.visit` to render and extract the ID.
+    submitCreateAndExpectSuccess(displayName);
 
-    // The reload above issues a fresh list GET, but the project may still
-    // be reconciling on the API side. Cypress retries the `contains`
-    // assertion until the timeout, polling the same page state — so we
-    // need enough headroom for the API to return the new project on a
-    // subsequent retried request. 90s was tight on shard 3 after #1275
-    // widened RBAC fan-out; 180s rides out the slow case without hiding
-    // a genuine "project never created" bug (an outright failure surfaces
-    // earlier at cy.wait('@createProjectReq')).
+    const pageUrl = getPathWithParams(paths.org.detail.projects.root, { orgId });
+    pollPageHtmlForDisplayName(pageUrl, displayName, 180_000, 5_000);
+    cy.visit(pageUrl);
     return cy
-      .contains('[data-e2e="project-card"]', displayName, { timeout: 180000 })
+      .contains('[data-e2e="project-card"]', displayName, { timeout: 30_000 })
       .find('[data-e2e="project-card-id-copy"]')
       .invoke('text')
       .then((projectId: string) => {
@@ -407,6 +407,74 @@ Cypress.Commands.add(
       .then((trimmedId) => cy.wrap(trimmedId, { log: false }));
   }
 );
+
+/**
+ * Submit the create-project dialog and assert success. On a one-shot 403
+ * (RBAC propagation race), wait briefly, re-open the dialog, re-type the
+ * name, and resubmit once.
+ */
+function submitCreateAndExpectSuccess(displayName: string): void {
+  cy.intercept('POST', '**/control-plane/**/v1alpha1/projects').as('createProjectReq');
+  cy.contains('button', 'Confirm').click();
+  cy.wait('@createProjectReq', { timeout: 30_000 }).then((intercept) => {
+    const status = intercept.response?.statusCode;
+    if (status === 200 || status === 201) return;
+    if (status !== 403) {
+      throw new Error(`createProjectInOrg: POST failed with ${status}`);
+    }
+    cy.log('createProjectInOrg: POST got 403 — waiting 10s for RBAC propagation, then retrying');
+    cy.wait(10_000, { log: false });
+    cy.get('body').then(($body) => {
+      if ($body.find('[data-e2e="create-project-button"]').length > 0) {
+        cy.get('[data-e2e="create-project-button"]', { timeout: 30_000 })
+          .should('not.be.disabled')
+          .click();
+      } else {
+        cy.contains('button', /^Create project$/i, { timeout: 30_000 })
+          .should('not.be.disabled')
+          .click();
+      }
+    });
+    cy.get('[data-e2e="create-project-name-input"]').clear().type(displayName);
+    cy.intercept('POST', '**/control-plane/**/v1alpha1/projects').as('createProjectReqRetry');
+    cy.contains('button', 'Confirm').click();
+    cy.wait('@createProjectReqRetry', { timeout: 30_000 })
+      .its('response.statusCode')
+      .should('be.oneOf', [200, 201]);
+  });
+}
+
+/**
+ * Poll the SSR-rendered page HTML via `cy.request` until the response body
+ * contains the given display name, signaling that the upstream LIST has
+ * picked up the newly-created project. This sidesteps the UI render race
+ * (CardList / GuardedPage rendering) and tests the upstream list directly.
+ *
+ * The serialized React Router data is embedded in the page HTML response;
+ * a plain substring match against the response body is sufficient and
+ * resilient to minor markup churn.
+ */
+function pollPageHtmlForDisplayName(
+  pageUrl: string,
+  displayName: string,
+  budgetMs: number,
+  intervalMs: number
+): void {
+  cy.request({ url: pageUrl, failOnStatusCode: false, log: false }).then((response) => {
+    if (typeof response.body === 'string' && response.body.includes(displayName)) {
+      return;
+    }
+
+    if (budgetMs <= 0) {
+      throw new Error(
+        `Project '${displayName}' did not appear in the SSR HTML for ${pageUrl} within the poll budget`
+      );
+    }
+
+    cy.wait(intervalMs, { log: false });
+    pollPageHtmlForDisplayName(pageUrl, displayName, budgetMs - intervalMs, intervalMs);
+  });
+}
 
 /**
  * Best-effort project cleanup for regression suites.
@@ -559,6 +627,51 @@ declare global {
        * @example cy.ensureSharedResources().then(({ orgId, projectId }) => { ... })
        */
       ensureSharedResources(): Chainable<{ orgId: string; projectId: string }>;
+
+      /**
+       * Poll the org/projects SSR HTML via `cy.request` until the project's
+       * display name is no longer present. Handles the control-plane LIST
+       * eventual-consistency window after a project DELETE (the upstream LIST
+       * may continue returning the deleted project for a few seconds).
+       * @example cy.waitForProjectAbsentInOrg(orgId, testName)
+       */
+      waitForProjectAbsentInOrg(orgId: string, displayName: string): Chainable<void>;
     }
   }
+}
+
+Cypress.Commands.add('waitForProjectAbsentInOrg', (orgId: string, displayName: string) => {
+  const pageUrl = getPathWithParams(paths.org.detail.projects.root, { orgId });
+  pollPageHtmlUntilDisplayNameGone(pageUrl, displayName, 60_000, 3_000);
+});
+
+/**
+ * Inverse of `pollPageHtmlForDisplayName` — keeps polling the SSR HTML
+ * until the response body no longer contains the given display name.
+ * Used after DELETE to wait for upstream LIST eventual consistency.
+ */
+function pollPageHtmlUntilDisplayNameGone(
+  pageUrl: string,
+  displayName: string,
+  budgetMs: number,
+  intervalMs: number
+): void {
+  cy.request({ url: pageUrl, failOnStatusCode: false, log: false }).then((response) => {
+    // Only treat the project as gone when the body is a readable string AND
+    // does not contain the display name. A non-string body (parsed JSON,
+    // unexpected response shape) should fall through to retry — otherwise
+    // we'd report success on an unreadable response.
+    if (typeof response.body === 'string' && !response.body.includes(displayName)) {
+      return;
+    }
+
+    if (budgetMs <= 0) {
+      throw new Error(
+        `Project '${displayName}' still present in SSR HTML for ${pageUrl} after the poll budget`
+      );
+    }
+
+    cy.wait(intervalMs, { log: false });
+    pollPageHtmlUntilDisplayNameGone(pageUrl, displayName, budgetMs - intervalMs, intervalMs);
+  });
 }

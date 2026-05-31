@@ -184,8 +184,8 @@ jobs:
     needs: e2e-smoke
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    # if: ${{ !failure() && !cancelled() }}
+    # if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    if: ${{ !failure() && !cancelled() }}
     strategy:
       fail-fast: false
       matrix:
