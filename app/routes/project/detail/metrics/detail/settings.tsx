@@ -1,7 +1,17 @@
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { ExportPolicyUpdateForm } from '@/features/metric/export-policies/form/update-form';
-import { type ExportPolicy } from '@/resources/export-policies';
+import { useGuardedRouteData } from '@/modules/rbac';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import { type ExportPolicy, type IExportPolicyControlResponse } from '@/resources/export-policies';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { MetaFunction, useParams, useRouteLoaderData } from 'react-router';
+import {
+  data,
+  useLoaderData,
+  useParams,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
@@ -14,8 +24,44 @@ export const meta: MetaFunction = mergeMeta(({ matches }) => {
   return metaObject((exportPolicy as ExportPolicy)?.name || 'Export Policy');
 });
 
+export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
+  const { projectId, exportPolicyId } = args.params;
+  if (!projectId || !exportPolicyId) {
+    throw new BadRequestError('Project ID and export policy ID are required');
+  }
+
+  const allowed = await gateRouteAccess(projectId, {
+    resource: 'exportpolicies',
+    verb: 'patch',
+    group: 'telemetry.miloapis.com',
+    scope: 'project',
+  });
+
+  if (!allowed) {
+    return data({ restricted: true as const });
+  }
+
+  return data({ restricted: false as const });
+});
+
 export default function ExportPolicySettingsPage() {
-  const exportPolicy = useRouteLoaderData('export-policy-detail');
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (loaderData.restricted) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to edit this export policy."
+      />
+    );
+  }
+
+  return <SettingsForm />;
+}
+
+function SettingsForm() {
+  const { data } = useGuardedRouteData<ExportPolicy, Record<string, never>>('export-policy-detail');
+  const exportPolicy = data as unknown as IExportPolicyControlResponse;
 
   const { projectId } = useParams();
 

@@ -2,6 +2,7 @@ import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/con
 import { getRequestContext } from '@/modules/axios/request-context';
 import { FathomProvider } from '@/modules/fathom';
 import { HelpScoutBeacon } from '@/modules/helpscout';
+import { RbacProvider } from '@/modules/rbac';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
@@ -90,6 +91,25 @@ function FathomWrapper({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Surfaces the current org/project from AppProvider into RbacProvider so every
+ * authenticated component — including the dashboard header switchers — can call
+ * useResourcePermissions without a per-feature provider mount. Org-/project-level
+ * layouts no longer wrap their Outlet in RbacProvider; this single root mount
+ * covers them. orgId/project updates flow from each layout via setOrganization/
+ * setProject (see app.provider.tsx) on useEffect, so there's a brief window on
+ * the very first project load where orgId is still undefined — permission checks
+ * stay disabled until that resolves, which matches the prior gated behavior.
+ */
+function RbacAppWrapper({ children }: { children: ReactNode }) {
+  const { orgId, project } = useApp();
+  return (
+    <RbacProvider organizationId={orgId} projectId={project?.name}>
+      {children}
+    </RbacProvider>
+  );
+}
+
 export default function PrivateLayout() {
   const data: {
     user: User;
@@ -115,7 +135,9 @@ export default function PrivateLayout() {
         <FathomWrapper>
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <ConfirmationDialogProvider>
-              <Outlet />
+              <RbacAppWrapper>
+                <Outlet />
+              </RbacAppWrapper>
             </ConfirmationDialogProvider>
 
             {/* HelpScout is non-critical — mount asynchronously after the deferred

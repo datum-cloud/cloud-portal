@@ -14,7 +14,7 @@ import {
   type ProxyHostHeaderDialogRef,
 } from '@/features/edge/proxy/proxy-host-header-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
-import { usePermission } from '@/modules/rbac';
+import { PermissionGate } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
 import {
@@ -57,36 +57,10 @@ export const HttpProxyConfigCard = ({
 
   useConnectorWatch(projectId ?? '', proxy.connector?.name);
 
-  const { hasPermission: canEdit } = usePermission('httpproxies', 'patch', {
-    group: 'networking.datumapis.com',
-    namespace: 'default',
-    scope: 'project',
-  });
-  const { hasPermission: canEditWaf } = usePermission('trafficprotectionpolicies', 'patch', {
-    group: 'networking.datumapis.com',
-    namespace: 'default',
-    scope: 'project',
-  });
-
-  const renderEditButton = (allowed: boolean, deniedReason: string, onClick: () => void) => {
-    const button = (
-      <button
-        type="button"
-        className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-        disabled={!allowed}
-        onClick={onClick}>
-        <Icon icon={PencilIcon} size={12} />
-      </button>
-    );
-
-    if (allowed) return button;
-
-    return (
-      <Tooltip message={deniedReason} side="bottom">
-        {button}
-      </Tooltip>
-    );
-  };
+  // Permission gating is delegated to <PermissionGate> at each affordance —
+  // the gate's underlying usePermission call is cached per resource:verb
+  // pair, so the four pencil + one Switch sites coalesce into two SSARs
+  // (httpproxies:patch, trafficprotectionpolicies:patch).
 
   const listItems: ListItem[] = useMemo(() => {
     if (!proxy) return [];
@@ -97,10 +71,22 @@ export const HttpProxyConfigCard = ({
         content: (
           <div className="flex items-center gap-1.5">
             <span className="text-sm">{proxy.chosenName || proxy.name}</span>
-            {projectId &&
-              renderEditButton(canEdit, "You don't have permission to edit this AI Edge", () =>
-                displayNameDialogRef.current?.show(proxy)
-              )}
+            {projectId && (
+              <PermissionGate
+                resource="httpproxies"
+                verb="patch"
+                group="networking.datumapis.com"
+                scope="project"
+                mode="disable"
+                deniedReason="You don't have permission to edit this AI Edge">
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => displayNameDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              </PermissionGate>
+            )}
           </div>
         ),
       },
@@ -116,10 +102,22 @@ export const HttpProxyConfigCard = ({
                 &mdash;
               </span>
             )}
-            {projectId &&
-              renderEditButton(canEdit, "You don't have permission to edit this AI Edge", () =>
-                hostHeaderDialogRef.current?.show(proxy)
-              )}
+            {projectId && (
+              <PermissionGate
+                resource="httpproxies"
+                verb="patch"
+                group="networking.datumapis.com"
+                scope="project"
+                mode="disable"
+                deniedReason="You don't have permission to edit this AI Edge">
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => hostHeaderDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              </PermissionGate>
+            )}
           </div>
         ),
       },
@@ -157,20 +155,44 @@ export const HttpProxyConfigCard = ({
             <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
               {formatWafProtectionDisplay(proxy)}
             </Badge>
-            {projectId &&
-              renderEditButton(canEditWaf, "You don't have permission to edit WAF protection", () =>
-                wafDialogRef.current?.show(proxy)
-              )}
+            {projectId && (
+              <PermissionGate
+                resource="trafficprotectionpolicies"
+                verb="patch"
+                group="networking.datumapis.com"
+                scope="project"
+                mode="disable"
+                deniedReason="You don't have permission to edit WAF protection">
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => wafDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              </PermissionGate>
+            )}
           </div>
         ) : (
           <div className="flex items-center gap-1.5">
             <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
               Disabled
             </Badge>
-            {projectId &&
-              renderEditButton(canEditWaf, "You don't have permission to edit WAF protection", () =>
-                wafDialogRef.current?.show(proxy)
-              )}
+            {projectId && (
+              <PermissionGate
+                resource="trafficprotectionpolicies"
+                verb="patch"
+                group="networking.datumapis.com"
+                scope="project"
+                mode="disable"
+                deniedReason="You don't have permission to edit WAF protection">
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => wafDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              </PermissionGate>
+            )}
           </div>
         ),
       },
@@ -197,36 +219,44 @@ export const HttpProxyConfigCard = ({
           proxy.enableHttpRedirect === undefined ? (
             <Skeleton className="h-6 w-20 rounded-md" />
           ) : (
-            <Switch
-              key={`force-https-${proxy.enableHttpRedirect ?? false}`}
-              checked={proxy.enableHttpRedirect ?? false}
-              disabled={!!proxy.connector}
-              onCheckedChange={(checked) => {
-                if (!checked && proxy.basicAuthEnabled) {
-                  toast.warning('AI Edge', {
-                    description:
-                      'Basic Authentication is enabled. Disabling Force HTTPS will transmit credentials in plaintext.',
-                  });
-                }
-                updateMutation.mutate(
-                  {
-                    enableHttpRedirect: checked,
-                  },
-                  {
-                    onSuccess: () => {
-                      toast.success('AI Edge', {
-                        description: `Force HTTPS ${checked ? 'enabled' : 'disabled'}`,
-                      });
-                    },
-                    onError: (error) => {
-                      toast.error('AI Edge', {
-                        description: (error as Error).message || 'Failed to update Force HTTPS',
-                      });
-                    },
+            <PermissionGate
+              resource="httpproxies"
+              verb="patch"
+              group="networking.datumapis.com"
+              scope="project"
+              mode="disable"
+              deniedReason="You don't have permission to edit this AI Edge">
+              <Switch
+                key={`force-https-${proxy.enableHttpRedirect ?? false}`}
+                checked={proxy.enableHttpRedirect ?? false}
+                disabled={!!proxy.connector}
+                onCheckedChange={(checked) => {
+                  if (!checked && proxy.basicAuthEnabled) {
+                    toast.warning('AI Edge', {
+                      description:
+                        'Basic Authentication is enabled. Disabling Force HTTPS will transmit credentials in plaintext.',
+                    });
                   }
-                );
-              }}
-            />
+                  updateMutation.mutate(
+                    {
+                      enableHttpRedirect: checked,
+                    },
+                    {
+                      onSuccess: () => {
+                        toast.success('AI Edge', {
+                          description: `Force HTTPS ${checked ? 'enabled' : 'disabled'}`,
+                        });
+                      },
+                      onError: (error) => {
+                        toast.error('AI Edge', {
+                          description: (error as Error).message || 'Failed to update Force HTTPS',
+                        });
+                      },
+                    }
+                  );
+                }}
+              />
+            </PermissionGate>
           ),
       },
       {
@@ -256,15 +286,27 @@ export const HttpProxyConfigCard = ({
                     : 'Enabled'
                   : 'Disabled'}
               </Badge>
-              {projectId &&
-                renderEditButton(canEdit, "You don't have permission to edit this AI Edge", () =>
-                  basicAuthDialogRef.current?.show(proxy)
-                )}
+              {projectId && (
+                <PermissionGate
+                  resource="httpproxies"
+                  verb="patch"
+                  group="networking.datumapis.com"
+                  scope="project"
+                  mode="disable"
+                  deniedReason="You don't have permission to edit this AI Edge">
+                  <button
+                    type="button"
+                    className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                    onClick={() => basicAuthDialogRef.current?.show(proxy)}>
+                    <Icon icon={PencilIcon} size={12} />
+                  </button>
+                </PermissionGate>
+              )}
             </div>
           ),
       },
     ];
-  }, [proxy, projectId, updateMutation, canEdit, canEditWaf, canViewWaf, wafPending]);
+  }, [proxy, projectId, updateMutation, canViewWaf, wafPending]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy.connector) return null;

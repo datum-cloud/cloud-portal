@@ -5,7 +5,8 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/lib/feature-flags';
 import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
-import { RbacProvider } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
@@ -15,7 +16,7 @@ import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
 import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
-import { useOrganization, type Organization } from '@/resources/organizations';
+import { useOrganization } from '@/resources/organizations';
 import { createProjectService, useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
@@ -43,48 +44,69 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import {
-  ActionFunctionArgs,
-  LoaderFunctionArgs,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
   Outlet,
-  data,
+  type ShouldRevalidateFunction,
   useFetcher,
-  useLoaderData,
   useNavigate,
   useParams,
 } from 'react-router';
 
 /**
- * Loader returns projectId for breadcrumbs and resolves org-scoped feature flags
- * that drive nav rendering. Org name is fetched from the project so the loader
- * can be the single source of truth for layout-level gating.
+ * Companion data attached to the project-detail loader envelope. Both companions
+ * are tolerant of permission/fetch failures — denial leaves the flags at safe
+ * defaults so the rest of the layout can still render.
  */
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-  if (!projectId) {
-    return data({
-      projectId,
-      usageMeteringEnabled: false,
-      organizationId: undefined as string | undefined,
-    });
-  }
-
-  let usageMeteringEnabled = false;
-  let organizationId: string | undefined;
-
-  try {
-    const project = await createProjectService().get(projectId);
-    organizationId = project.organizationId;
-
-    usageMeteringEnabled = await isFeatureEnabled(
-      FeatureFlag.UsageMeteringDashboard,
-      organizationId
-    );
-  } catch {
-    // Closed-by-default — leave the flag off if we can't resolve it.
-  }
-
-  return data({ projectId, usageMeteringEnabled, organizationId });
+type ProjectLayoutCompanions = {
+  usageMeteringEnabled: boolean | null;
+  organizationId: string | null | undefined;
 };
+
+const route = defineResourceRoute<Project, ProjectLayoutCompanions>({
+  type: 'detail',
+  resource: 'projects',
+  paramName: 'projectId',
+  notFoundLabel: 'Project',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view this project.",
+  breadcrumb: ({ data }) => <span>{data?.displayName ?? data?.name ?? 'Project'}</span>,
+  metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Project',
+});
+
+export const loader = (args: LoaderFunctionArgs) =>
+  runDetailLoader<Project, ProjectLayoutCompanions>(args, {
+    resource: 'projects',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'user',
+    paramName: 'projectId',
+    notFoundLabel: 'Project',
+    fetch: ({ id }) => createProjectService().get(id),
+    companions: {
+      usageMeteringEnabled: {
+        resource: 'projects',
+        group: 'resourcemanager.miloapis.com',
+        verb: 'get',
+        scope: 'user',
+        onError: 'tolerate',
+        fetch: ({ data: project }) =>
+          project?.organizationId
+            ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, project.organizationId)
+            : Promise.resolve(false),
+      },
+      organizationId: {
+        resource: 'projects',
+        group: 'resourcemanager.miloapis.com',
+        verb: 'get',
+        scope: 'user',
+        onError: 'tolerate',
+        fetch: ({ data: project }) => Promise.resolve(project?.organizationId),
+      },
+    },
+  });
+
+export const handle = route.handle;
+export const meta = route.meta;
 
 /** Sets org and project session cookies when user enters a project. Used for "return to last project" on next visit. */
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -105,31 +127,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return new Response(null, { status: 204, headers });
 };
 
-/** @deprecated Use useProjectContext for project/org. Kept for breadcrumb handle.path compatibility. */
-export interface ProjectLayoutLoaderData {
-  project?: Project;
-  org?: Organization;
-  projectId?: string;
-}
-
 /** Skip re-running the loader when navigating within the same project (e.g. Home → AI Edge → Connectors). */
-export function shouldRevalidate({
+export const shouldRevalidate: ShouldRevalidateFunction = ({
   currentParams,
   nextParams,
   defaultShouldRevalidate,
-}: {
-  currentParams: Record<string, string | undefined>;
-  nextParams: Record<string, string | undefined>;
-  defaultShouldRevalidate: boolean;
-}) {
+}) => {
   if (currentParams.projectId === nextParams.projectId) return false;
   return defaultShouldRevalidate;
-}
+};
 
-export default function ProjectLayout() {
+export default route.Page(({ data: initialProject, companions }) => {
   const { projectId } = useParams();
   const breakpoint = useBreakpoint();
-  const { usageMeteringEnabled, organizationId: seededOrgId } = useLoaderData<typeof loader>();
+  const usageMeteringEnabled = companions.usageMeteringEnabled ?? false;
+  const seededOrgId = companions.organizationId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionFetcher = useFetcher({ key: 'session-cookies' });
@@ -145,14 +157,14 @@ export default function ProjectLayout() {
     enabled: !!projectId,
     staleTime: QUERY_STALE_TIME,
     refetchOnMount: false,
+    initialData: initialProject,
   });
 
-  // Fire in parallel with the project query: seed orgId from AppProvider (set
-  // when the user was on an org route) so useOrganization doesn't have to wait
-  // for useProject to resolve before it can start. Once the project resolves its
-  // organizationId, the query key refines; TanStack Query deduplicates the
-  // request if the id matches the appOrg already in cache.
-  const orgId = project?.organizationId ?? appOrg?.name ?? '';
+  // Fire in parallel with the project query: seed orgId from the loader's
+  // companion (project.organizationId) first, then fall back to AppProvider
+  // (set when the user was on an org route). This lets useOrganization start
+  // immediately without waiting for useProject to refine its query key.
+  const orgId = project?.organizationId ?? seededOrgId ?? appOrg?.name ?? '';
   const { data: org, isLoading: orgLoading } = useOrganization(orgId, {
     enabled: !!orgId,
     staleTime: QUERY_STALE_TIME,
@@ -388,10 +400,8 @@ export default function ProjectLayout() {
             {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
           </div>
         }>
-        <RbacProvider organizationId={seededOrgId ?? currentOrg?.name} projectId={projectId}>
-          <Outlet />
-        </RbacProvider>
+        <Outlet />
       </DashboardLayout>
     </ProjectProvider>
   );
-}
+});

@@ -7,6 +7,7 @@ import type { ActionItem } from '@/components/table';
 import { KeyRevealPanel } from '@/features/service-account/components/key-reveal-panel';
 import { ServiceAccountKeyFormDialog } from '@/features/service-account/form/service-account-key-form-dialog';
 import type { ServiceAccountKeyFormDialogRef } from '@/features/service-account/form/service-account-key-form-dialog';
+import { useResourcePermissions } from '@/modules/rbac';
 import {
   useServiceAccountKeys,
   useServiceAccountEmailPoller,
@@ -61,6 +62,13 @@ export default function ServiceAccountKeysPage() {
 
   const { account: serviceAccount } = useOutletContext<ServiceAccountDetailContext>();
 
+  const { canCreate, canDelete } = useResourcePermissions({
+    resource: 'serviceaccountkeys',
+    group: 'iam.miloapis.com',
+    scope: 'project',
+    verbs: ['create', 'delete'],
+  });
+
   const pollerResult = useServiceAccountEmailPoller(
     projectId ?? '',
     serviceAccountId ?? '',
@@ -111,10 +119,11 @@ export default function ServiceAccountKeysPage() {
       {
         label: 'Revoke',
         variant: 'destructive',
+        hidden: () => !canDelete,
         onClick: (row) => revokeKey(row),
       },
     ],
-    [revokeKey]
+    [canDelete, revokeKey]
   );
 
   const columns: ColumnDef<ServiceAccountKey>[] = useMemo(
@@ -211,19 +220,23 @@ export default function ServiceAccountKeysPage() {
           columns={columns}
           data={keys}
           search="Search"
-          actions={[
-            <Button
-              key="add-key"
-              type="primary"
-              theme="solid"
-              size="small"
-              disabled={isPolling || isProvisioningFailed}
-              title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
-              onClick={() => keyFormDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add Key
-            </Button>,
-          ]}
+          actions={
+            canCreate
+              ? [
+                  <Button
+                    key="add-key"
+                    type="primary"
+                    theme="solid"
+                    size="small"
+                    disabled={isPolling || isProvisioningFailed}
+                    title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
+                    onClick={() => keyFormDialogRef.current?.show()}>
+                    <Icon icon={PlusIcon} className="size-4" />
+                    Add Key
+                  </Button>,
+                ]
+              : []
+          }
         />
       </Col>
 

@@ -4,8 +4,12 @@ import { createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/secret-form-dialog';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import {
   createSecretService,
+  secretKeys,
   useDeleteSecret,
   useSecrets,
   useSecretsWatch,
@@ -13,32 +17,40 @@ import {
 } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
-import { LoaderFunctionArgs, useLoaderData, useNavigate, useParams } from 'react-router';
+import { LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const secretService = createSecretService();
-  const secrets = await secretService.list(projectId);
-  return secrets;
+const route = defineResourceRoute<Secret[]>({
+  type: 'list',
+  resource: 'secrets',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view secrets.",
+  metaTitle: 'Secrets',
+  seedCache: ({ data, projectId }) => {
+    const d = data as Secret[];
+    return [[secretKeys.list(projectId), d]] as never;
+  },
 });
 
-export default function SecretsPage() {
-  const initialData = useLoaderData<typeof loader>();
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<Secret[]>(args, {
+    resource: 'secrets',
+    group: '',
+    scope: 'project',
+    fetch: ({ projectId }) => createSecretService().list(projectId!),
+  });
+
+export const meta = route.meta;
+
+export default route.Page(({ data: initialData }) => <SecretsInner initialData={initialData} />);
+
+function SecretsInner({ initialData }: { initialData: Secret[] }) {
   const { confirm } = useConfirmationDialog();
   const secretFormDialogRef = useRef<SecretFormDialogRef>(null);
   const { projectId } = useParams();
@@ -57,6 +69,13 @@ export default function SecretsPage() {
 
   // Use React Query data, fallback to SSR data
   const data = queryData ?? initialData ?? [];
+
+  const { canCreate, canDelete } = useResourcePermissions({
+    resource: 'secrets',
+    group: '',
+    scope: 'project',
+    verbs: ['create', 'delete'],
+  });
 
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
     onError: (error) => {
@@ -133,10 +152,11 @@ export default function SecretsPage() {
       {
         label: 'Delete',
         variant: 'destructive',
+        hidden: () => !canDelete,
         onClick: (row) => deleteSecret(row),
       },
     ],
-    [deleteSecret]
+    [deleteSecret, canDelete]
   );
 
   const columnsWithActions = useMemo(
@@ -160,19 +180,28 @@ export default function SecretsPage() {
           );
         }}
         empty={{
+          // Title stays constant; action button hides when canCreate is false so
+          // restricted users aren't presented with a dialog they can't submit.
           title: "let's add a secret to get you started",
-          actions: [
-            {
-              type: 'button',
-              label: 'Add secret',
-              onClick: () => secretFormDialogRef.current?.show(),
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-            },
-          ],
+          actions: canCreate
+            ? [
+                {
+                  type: 'button',
+                  label: 'Add secret',
+                  onClick: () => secretFormDialogRef.current?.show(),
+                  icon: <Icon icon={PlusIcon} className="size-3" />,
+                },
+              ]
+            : [],
         }}
         actions={[
-          <Button
+          <PermissionButton
             key="add-secret"
+            resource="secrets"
+            verb="create"
+            group=""
+            scope="project"
+            deniedReason="You don't have permission to create a secret"
             type="primary"
             theme="solid"
             size="small"
@@ -181,7 +210,7 @@ export default function SecretsPage() {
             onClick={() => secretFormDialogRef.current?.show()}>
             <Icon icon={PlusIcon} className="size-4" />
             Add secret
-          </Button>,
+          </PermissionButton>,
         ]}
       />
       <SecretFormDialog ref={secretFormDialogRef} />

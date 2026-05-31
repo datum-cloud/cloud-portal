@@ -1,69 +1,65 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { DomainHeaderActions } from '@/features/edge/domain/domain-header-actions';
 import { SubLayout } from '@/layouts';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { createDnsZoneService, type DnsZone } from '@/resources/dns-zones';
-import { createDomainService, type Domain, useDomain } from '@/resources/domains';
+import { createDomainService, domainKeys, type Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import {
-  LoaderFunctionArgs,
-  data,
-  MetaFunction,
-  Outlet,
-  useLoaderData,
-  useParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
-export const handle = {
-  breadcrumb: ({ domain }: { domain: Domain }) => <span>{domain?.domainName}</span>,
-};
+type DomainDetailCompanions = { dnsZone: DnsZone | null };
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
-  const { domain } = loaderData as { domain: Domain };
-  return metaObject(domain?.name || 'Domain');
+const route = defineResourceRoute<Domain, DomainDetailCompanions>({
+  type: 'detail',
+  resource: 'domains',
+  paramName: 'domainId',
+  notFoundLabel: 'Domain',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view this domain.",
+  breadcrumb: ({ data }) => <span>{data?.domainName ?? 'Domain'}</span>,
+  metaTitle: ({ data }) => data?.name ?? 'Domain',
+  seedCache: ({ data, projectId, id }) => {
+    const d = data as Domain;
+    return [[domainKeys.detail(projectId, id), d]] as never;
+  },
 });
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId, domainId } = params;
-
-  if (!projectId || !domainId) {
-    throw new BadRequestError('Project ID and domain ID are required');
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const domainService = createDomainService();
-  const domain = await domainService.get(projectId, domainId);
-
-  if (!domain) {
-    throw new NotFoundError('Domain', domainId);
-  }
-
-  const dnsZoneService = createDnsZoneService();
-
-  let dnsZone: DnsZone | null = null;
-  if (domain?.name) {
-    const dnsZoneList = await dnsZoneService.listByDomainRef(projectId, domain.name, 1);
-    dnsZone = dnsZoneList?.[0] ?? null;
-  }
-
-  return data({ domain, dnsZone });
-});
-
-export default function DomainDetailLayout() {
-  const { domain, dnsZone } = useLoaderData<typeof loader>();
-  const { projectId, domainId } = useParams();
-
-  // Seed cache synchronously with SSR data so child routes read it without skeleton flash
-  useDomain(projectId ?? '', domainId ?? '', {
-    initialData: domain,
-    initialDataUpdatedAt: Date.now(),
+export const loader = (args: LoaderFunctionArgs) =>
+  runDetailLoader<Domain, DomainDetailCompanions>(args, {
+    resource: 'domains',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    paramName: 'domainId',
+    notFoundLabel: 'Domain',
+    fetch: ({ projectId, id }) => createDomainService().get(projectId!, id),
+    companions: {
+      dnsZone: {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        verb: 'list',
+        scope: 'project',
+        onError: 'tolerate',
+        fetch: async ({ data: domain, projectId }) => {
+          if (!domain?.name) return null;
+          const zones = await createDnsZoneService().listByDomainRef(projectId!, domain.name, 1);
+          return zones?.[0] ?? null;
+        },
+      },
+    },
   });
 
-  const navItems: SubNavigationTab[] = useMemo(() => {
-    return [
+export const handle = route.handle;
+export const meta = route.meta;
+
+export default route.Page(({ data: domain, companions }) => {
+  const { projectId = '' } = useParams<{ projectId: string }>();
+  const dnsZone = companions.dnsZone;
+
+  const navItems: SubNavigationTab[] = useMemo(
+    () => [
       {
         label: 'Overview',
         href: getPathWithParams(paths.project.detail.domains.detail.overview, {
@@ -85,19 +81,18 @@ export default function DomainDetailLayout() {
           domainId: domain?.name ?? '',
         }),
       },
-    ];
-  }, [projectId, domain]);
+    ],
+    [projectId, domain?.name]
+  );
 
   return (
     <SubLayout
       title={domain?.domainName}
       actions={
-        domain && (
-          <DomainHeaderActions projectId={projectId ?? ''} domain={domain} dnsZone={dnsZone} />
-        )
+        domain && <DomainHeaderActions projectId={projectId} domain={domain} dnsZone={dnsZone} />
       }
       navItems={navItems}>
       <Outlet />
     </SubLayout>
   );
-}
+});

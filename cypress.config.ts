@@ -5,6 +5,24 @@ import vitePreprocessor from 'cypress-vite';
 import 'dotenv/config';
 
 // Set environment variables for test mode before any app code loads
+//
+// process.env.CYPRESS is set unconditionally here, which causes
+// stubServerModulesForCypress in vite.config.ts to register for ALL
+// Cypress runs (component AND E2E). This is safe today because:
+//
+// 1. Component tests benefit from the stubs (they cannot bundle
+//    server-only deps like prom-client into the browser).
+// 2. E2E tests run in a real browser against the actual server, so they
+//    don't import app modules directly and never reach the stubs.
+//
+// If a future E2E spec needs to import defineResourceRoute or any other
+// app module that transitively touches a stubbed file, you MUST either:
+// - Introduce a second env var (e.g. CYPRESS_COMPONENT_TEST) set only
+//   from the `component.devServerConfig` block here, and have the Vite
+//   plugin check for it instead of CYPRESS; OR
+// - Refactor defineResourceRoute to dynamically import the server
+//   module from inside the loader body, eliminating the static import
+//   chain (preferred long-term path; cleanest).
 process.env.CYPRESS = 'true';
 process.env.NODE_ENV = 'test';
 

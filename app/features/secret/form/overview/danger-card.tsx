@@ -5,7 +5,15 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useNavigate, useParams } from 'react-router';
 
-export const SecretDangerCard = ({ secret }: { secret: ISecretControlResponse }) => {
+export const SecretDangerCard = ({
+  secret,
+  actionHidden = false,
+  children,
+}: {
+  secret: ISecretControlResponse;
+  actionHidden?: boolean;
+  children?: React.ReactNode;
+}) => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
@@ -47,6 +55,8 @@ export const SecretDangerCard = ({ secret }: { secret: ISecretControlResponse })
       loading={deleteSecretMutation.isPending}
       onDelete={deleteSecret}
       data-e2e="delete-secret-button"
-    />
+      actionHidden={actionHidden}>
+      {children}
+    </DangerCard>
   );
 };

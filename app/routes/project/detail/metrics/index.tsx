@@ -2,8 +2,12 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
 import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import {
   createExportPolicyService,
+  exportPolicyKeys,
   useDeleteExportPolicy,
   useExportPolicies,
   useExportPoliciesWatch,
@@ -11,49 +15,43 @@ import {
 } from '@/resources/export-policies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { dataWithToast } from '@/utils/cookies';
-import { AppError, BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo } from 'react';
-import {
-  Link,
-  LoaderFunctionArgs,
-  data,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
-  try {
-    const { projectId } = params;
+const route = defineResourceRoute<ExportPolicy[]>({
+  type: 'list',
+  resource: 'exportpolicies',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view export policies.",
+  metaTitle: 'Metrics',
+  seedCache: ({ data, projectId }) => {
+    const d = data as ExportPolicy[];
+    return [[exportPolicyKeys.list(projectId), d]] as never;
+  },
+});
 
-    if (!projectId) {
-      throw new BadRequestError('Project ID is required');
-    }
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<ExportPolicy[]>(args, {
+    resource: 'exportpolicies',
+    group: 'telemetry.miloapis.com',
+    scope: 'project',
+    fetch: ({ projectId }) => createExportPolicyService().list(projectId!),
+  });
 
-    // Services now use global axios client with AsyncLocalStorage
-    const exportPolicyService = createExportPolicyService();
-    const policies = await exportPolicyService.list(projectId);
-    return data(policies);
-  } catch (error) {
-    return dataWithToast([], {
-      title: 'Something went wrong',
-      description: (error as AppError).message,
-      type: 'error',
-    });
-  }
-};
+export const meta = route.meta;
 
-export default function ExportPoliciesPage() {
+export default route.Page(({ data: initialData }) => (
+  <ExportPoliciesInner initialData={initialData} />
+));
+
+function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
   const { projectId } = useParams();
-  const initialData = useLoaderData<typeof loader>();
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
@@ -71,6 +69,13 @@ export default function ExportPoliciesPage() {
   });
 
   const policies = queryData ?? initialData ?? [];
+
+  const { canCreate, canDelete } = useResourcePermissions({
+    resource: 'exportpolicies',
+    group: 'telemetry.miloapis.com',
+    scope: 'project',
+    verbs: ['create', 'delete'],
+  });
 
   const deleteExportPolicyMutation = useDeleteExportPolicy(projectId ?? '', {
     onError: (error) => {
@@ -160,11 +165,12 @@ export default function ExportPoliciesPage() {
         {
           label: 'Delete',
           variant: 'destructive',
+          hidden: () => !canDelete,
           onClick: (row) => deleteExportPolicy(row),
         },
       ]),
     ],
-    [projectId, navigate, deleteExportPolicy]
+    [projectId, navigate, deleteExportPolicy, canDelete]
   );
 
   return (
@@ -182,17 +188,41 @@ export default function ExportPoliciesPage() {
         );
       }}
       actions={[
-        <Link
+        <PermissionButton
           key="create-policy"
-          to={getPathWithParams(paths.project.detail.metrics.new, { projectId })}
-          className="w-full sm:w-auto">
-          <Button type="primary" theme="solid" size="small" className="w-full">
-            <Icon icon={PlusIcon} className="size-4" />
-            Create an export policy
-          </Button>
-        </Link>,
+          resource="exportpolicies"
+          verb="create"
+          group="telemetry.miloapis.com"
+          scope="project"
+          deniedReason="You don't have permission to create an export policy"
+          type="primary"
+          theme="solid"
+          size="small"
+          className="w-full sm:w-auto"
+          onClick={() =>
+            navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId }))
+          }>
+          <Icon icon={PlusIcon} className="size-4" />
+          Create an export policy
+        </PermissionButton>,
       ]}
-      empty="let's add an export policy to get you started"
+      empty={{
+        // Title stays constant; action button hides when canCreate is false so
+        // restricted users aren't directed at a /new route they'll only see
+        // RestrictedState on.
+        title: "let's add an export policy to get you started",
+        actions: canCreate
+          ? [
+              {
+                type: 'button',
+                label: 'Create an export policy',
+                icon: <Icon icon={PlusIcon} className="size-3" />,
+                onClick: () =>
+                  navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId })),
+              },
+            ]
+          : [],
+      }}
     />
   );
 }

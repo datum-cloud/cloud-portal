@@ -1,5 +1,4 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import {
   DnsRecordAiEdgeCell,
   DnsRecordTable,
@@ -18,7 +17,12 @@ import {
 } from '@/features/edge/dns-records/utils';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { usePermissionCheck, PermissionButton } from '@/modules/rbac';
+import {
+  PermissionButton,
+  PermissionGate,
+  useGuardedRouteData,
+  useResourcePermissions,
+} from '@/modules/rbac';
 import {
   IFlattenedDnsRecord,
   dnsRecordKeys,
@@ -27,6 +31,7 @@ import {
   useDnsRecordsWatch,
 } from '@/resources/dns-records';
 import type { DnsZone } from '@/resources/dns-zones';
+import type { Domain } from '@/resources/domains';
 import {
   type HttpProxy,
   type UpdateHttpProxyInput,
@@ -52,7 +57,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
@@ -84,7 +89,6 @@ function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
       resource="dnsrecordsets"
       verb="create"
       group="dns.networking.miloapis.com"
-      namespace="default"
       scope="project"
       deniedReason="You don't have permission to add a DNS record"
       htmlType="button"
@@ -100,10 +104,13 @@ function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function DnsRecordsPage() {
-  const { dnsZone } = useRouteLoaderData('dns-zone-detail') as {
-    dnsZone: DnsZone;
-  };
-  const { projectId, dnsZoneId } = useParams();
+  const { data: dnsZone } = useGuardedRouteData<DnsZone, { domain: Domain | null }>(
+    'dns-zone-detail'
+  );
+  const { projectId = '', dnsZoneId = '' } = useParams<{
+    projectId: string;
+    dnsZoneId: string;
+  }>();
   if (!projectId || !dnsZoneId) {
     throw new BadRequestError('Project ID and DNS Zone ID are required');
   }
@@ -113,54 +120,26 @@ export default function DnsRecordsPage() {
   // missing permission never fires the request. The httpproxies·list check
   // gates the AI Edge cell enrichment so a viewer without proxy access doesn't
   // 403 on the optional `findProxyForRecord` lookup.
-  const { permissions, isLoading: permLoading } = usePermissionCheck([
-    {
-      resource: 'dnsrecordsets',
-      verb: 'list',
-      group: 'dns.networking.miloapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'dnsrecordsets',
-      verb: 'create',
-      group: 'dns.networking.miloapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'dnsrecordsets',
-      verb: 'patch',
-      group: 'dns.networking.miloapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'dnsrecordsets',
-      verb: 'delete',
-      group: 'dns.networking.miloapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'httpproxies',
-      verb: 'list',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-  ]);
-  const { canListRecords, canCreateRecord, canPatchRecord, canDeleteRecord, canListProxies } =
-    useMemo(
-      () => ({
-        canListRecords: permissions['dnsrecordsets:list']?.allowed ?? false,
-        canCreateRecord: permissions['dnsrecordsets:create']?.allowed ?? false,
-        canPatchRecord: permissions['dnsrecordsets:patch']?.allowed ?? false,
-        canDeleteRecord: permissions['dnsrecordsets:delete']?.allowed ?? false,
-        canListProxies: permissions['httpproxies:list']?.allowed ?? false,
-      }),
-      [permissions]
-    );
+  const {
+    canList: canListRecords,
+    canPatch: canPatchRecord,
+    canDelete: canDeleteRecord,
+    canViewProxy,
+  } = useResourcePermissions({
+    resource: 'dnsrecordsets',
+    group: 'dns.networking.miloapis.com',
+    scope: 'project',
+    verbs: ['list', 'create', 'patch', 'delete'],
+    subResources: [
+      {
+        resource: 'httpproxies',
+        group: 'networking.datumapis.com',
+        scope: 'project',
+        alias: 'proxy',
+        verbs: ['list'],
+      },
+    ],
+  });
 
   // Subscribe to watch for real-time updates
   useDnsRecordsWatch(projectId, dnsZoneId, { enabled: canListRecords });
@@ -173,7 +152,7 @@ export default function DnsRecordsPage() {
   // AI Edge enrichment is optional — only fetch when the user can list proxies
   // (a denied viewer still sees the records table without the linked-proxy cell).
   const { data: proxies = [] } = useHttpProxies(projectId, {
-    enabled: canListProxies,
+    enabled: canViewProxy,
   });
 
   const dnsRecords = queryData;
@@ -218,10 +197,6 @@ export default function DnsRecordsPage() {
   };
 
   const handleOpenEdit = (record: IFlattenedDnsRecord) => {
-    if (!canPatchRecord) {
-      toast.error("You don't have permission to edit DNS records");
-      return;
-    }
     setInlinePosition('row');
     // Must match DnsRecordTable's `getRowId` so only the clicked row
     // (not every row sharing a recordSetName) anchors the inline panel.
@@ -230,10 +205,6 @@ export default function DnsRecordsPage() {
   };
 
   const handleOpenEditMobile = (record: IFlattenedDnsRecord) => {
-    if (!canPatchRecord) {
-      toast.error("You don't have permission to edit DNS records");
-      return;
-    }
     dnsRecordModalFormRef.current?.show('edit', record);
   };
 
@@ -247,16 +218,16 @@ export default function DnsRecordsPage() {
   const { trackAction } = useAnalytics();
 
   const { confirm } = useConfirmationDialog();
-  const deleteMutation = useDeleteDnsRecord(projectId!, dnsZoneId!, {
+  const deleteMutation = useDeleteDnsRecord(projectId, dnsZoneId, {
     onError: (error) => {
       toast.error(error.message || 'Failed to delete DNS record');
     },
   });
 
-  const createProxyMutation = useCreateHttpProxy(projectId!, {
+  const createProxyMutation = useCreateHttpProxy(projectId, {
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: dnsRecordKeys.list(projectId!, dnsZoneId),
+        queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
       });
       trackAction(AnalyticsAction.AddProxy);
       toast.success('AI Edge created', {
@@ -281,16 +252,16 @@ export default function DnsRecordsPage() {
       removalTitle?: string;
       removalDescription?: string;
     }) =>
-      createHttpProxyService().update(projectId!, name, input, {
+      createHttpProxyService().update(projectId, name, input, {
         currentProxy,
       }) as Promise<HttpProxy>,
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId!) });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
       queryClient.invalidateQueries({
-        queryKey: httpProxyKeys.detail(projectId!, variables.name),
+        queryKey: httpProxyKeys.detail(projectId, variables.name),
       });
       queryClient.invalidateQueries({
-        queryKey: dnsRecordKeys.list(projectId!, dnsZoneId),
+        queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
       });
       if (variables.removalTitle) {
         toast.success(variables.removalTitle, {
@@ -363,8 +334,8 @@ export default function DnsRecordsPage() {
 
     try {
       const proxies = await queryClient.fetchQuery({
-        queryKey: httpProxyKeys.list(projectId!),
-        queryFn: () => createHttpProxyService().list(projectId!),
+        queryKey: httpProxyKeys.list(projectId),
+        queryFn: () => createHttpProxyService().list(projectId),
       });
       const existingProxy = findProxyByEndpoint(proxies, endpoint);
 
@@ -422,8 +393,8 @@ export default function DnsRecordsPage() {
       onSubmit: async () => {
         callbacks?.onMutationStart?.();
         const proxy = await queryClient.fetchQuery({
-          queryKey: httpProxyKeys.detail(projectId!, proxyId),
-          queryFn: () => createHttpProxyService().get(projectId!, proxyId),
+          queryKey: httpProxyKeys.detail(projectId, proxyId),
+          queryFn: () => createHttpProxyService().get(projectId, proxyId),
         });
         const normalizedHostname = hostname.toLowerCase();
         const newHostnames = (proxy.hostnames ?? []).filter(
@@ -452,31 +423,22 @@ export default function DnsRecordsPage() {
     },
   ];
 
-  if (!permLoading && !canListRecords) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to view DNS records."
-      />
-    );
-  }
-
   // Desktop layout is the SSR-safe fallback (inline panel mode)
   // Mobile layout (modal mode) resolves on the client after breakpoint check
   const desktopLayout = (
     <>
       <DnsRecordModalForm
         ref={dnsRecordModalFormRef}
-        projectId={projectId!}
-        dnsZoneId={dnsZoneId!}
+        projectId={projectId}
+        dnsZoneId={dnsZoneId}
         onSuccess={handleOnSuccess}
       />
 
       <DnsRecordTable
         mode="full"
         data={enrichedRecords}
-        projectId={projectId!}
-        dnsZoneId={dnsZoneId!}
+        projectId={projectId}
+        dnsZoneId={dnsZoneId}
         renderAiEdgeCell={(record) => (
           <DnsRecordAiEdgeCell
             record={record}
@@ -486,7 +448,7 @@ export default function DnsRecordsPage() {
             onViewProxy={(proxyId) =>
               navigate(
                 getPathWithParams(paths.project.detail.proxy.detail.root, {
-                  projectId: projectId!,
+                  projectId,
                   proxyId,
                 })
               )
@@ -496,17 +458,22 @@ export default function DnsRecordsPage() {
         tableTitle={{
           actions: (
             <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
-              {canCreateRecord && (
+              <PermissionGate
+                resource="dnsrecordsets"
+                verb="create"
+                group="dns.networking.miloapis.com"
+                scope="project"
+                mode="hide">
                 <DnsRecordImportAction
                   origin={dnsZone?.domainName}
                   existingRecords={dnsRecords}
-                  projectId={projectId!}
-                  dnsZoneId={dnsZoneId!}
+                  projectId={projectId}
+                  dnsZoneId={dnsZoneId}
                   onSuccess={() => {
                     // Watch will automatically update the list with real-time changes
                   }}
                 />
-              )}
+              </PermissionGate>
               <AddDnsRecordButton onClick={handleOpenCreate} />
             </div>
           ),
@@ -517,6 +484,7 @@ export default function DnsRecordsPage() {
         onInlineClose={handleInlineClose}
         onOpenCreate={handleOpenCreate}
         onOpenEdit={handleOpenEdit}
+        canEdit={canPatchRecord}
         extraRowActions={extraRowActions}
       />
     </>
@@ -528,16 +496,16 @@ export default function DnsRecordsPage() {
         <>
           <DnsRecordModalForm
             ref={dnsRecordModalFormRef}
-            projectId={projectId!}
-            dnsZoneId={dnsZoneId!}
+            projectId={projectId}
+            dnsZoneId={dnsZoneId}
             onSuccess={handleOnSuccess}
           />
 
           <DnsRecordTable
             mode="full"
             data={enrichedRecords}
-            projectId={projectId!}
-            dnsZoneId={dnsZoneId!}
+            projectId={projectId}
+            dnsZoneId={dnsZoneId}
             renderAiEdgeCell={(record) => (
               <DnsRecordAiEdgeCell
                 record={record}
@@ -547,7 +515,7 @@ export default function DnsRecordsPage() {
                 onViewProxy={(proxyId) =>
                   navigate(
                     getPathWithParams(paths.project.detail.proxy.detail.root, {
-                      projectId: projectId!,
+                      projectId,
                       proxyId,
                     })
                   )
@@ -557,22 +525,26 @@ export default function DnsRecordsPage() {
             tableTitle={{
               actions: (
                 <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
-                  {canCreateRecord && (
+                  <PermissionGate
+                    resource="dnsrecordsets"
+                    verb="create"
+                    group="dns.networking.miloapis.com"
+                    scope="project"
+                    mode="hide">
                     <DnsRecordImportAction
                       origin={dnsZone?.domainName}
                       existingRecords={dnsRecords}
-                      projectId={projectId!}
-                      dnsZoneId={dnsZoneId!}
+                      projectId={projectId}
+                      dnsZoneId={dnsZoneId}
                       onSuccess={() => {
                         // Watch will automatically update the list with real-time changes
                       }}
                     />
-                  )}
+                  </PermissionGate>
                   <PermissionButton
                     resource="dnsrecordsets"
                     verb="create"
                     group="dns.networking.miloapis.com"
-                    namespace="default"
                     scope="project"
                     deniedReason="You don't have permission to add a DNS record"
                     htmlType="button"
@@ -593,6 +565,7 @@ export default function DnsRecordsPage() {
             onInlineClose={handleInlineClose}
             onOpenCreate={handleOpenCreate}
             onOpenEdit={handleOpenEditMobile}
+            canEdit={canPatchRecord}
             extraRowActions={extraRowActions}
           />
         </>

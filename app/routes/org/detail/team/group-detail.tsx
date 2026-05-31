@@ -10,125 +10,125 @@ import {
   resolveAllPermissions,
 } from '@/features/organization/team/roles';
 import { logger } from '@/modules/logger';
-import { canInLoader, gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import { useResourcePermissions } from '@/modules/rbac';
+import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
 import { useApp } from '@/providers/app.provider';
-import { createGroupService } from '@/resources/groups';
+import { createGroupService, type Group } from '@/resources/groups';
 import {
   createPolicyBindingService,
   useCreatePolicyBinding,
   useDeletePolicyBinding,
+  type PolicyBinding,
 } from '@/resources/policy-bindings';
-import { createProjectService } from '@/resources/projects';
-import { createRoleService } from '@/resources/roles';
+import { createProjectService, type Project } from '@/resources/projects';
+import { createRoleService, type Role } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { withLoaderErrors } from '@/utils/errors';
+import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useMemo } from 'react';
 import {
-  LoaderFunctionArgs,
   data,
+  type LoaderFunctionArgs,
+  type MetaFunction,
   useLoaderData,
   useParams,
-  type MetaFunction,
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Group Roles');
 });
 
-const _loader = async ({ params }: LoaderFunctionArgs) => {
-  const { orgId, groupId } = params as { orgId: string; groupId: string };
+export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
+  const orgId = args.params.orgId;
+  if (!orgId) throw new BadRequestError('Organization ID is required');
+  const groupId = args.params.groupId;
+  if (!groupId) throw new BadRequestError('Group ID is required');
 
-  // Access gate first — skip data fetching the user isn't permitted to see.
-  const canView = await gateRouteAccess(orgId, {
+  // Preserve the existing gate semantics: this route gates on the user's
+  // ability to *see* policy bindings, not on `groups:get`. Editing affordances
+  // are gated client-side via useResourcePermissions(policybindings:create/delete).
+  const allowed = await gateRouteAccess(orgId, {
     resource: 'policybindings',
     verb: 'list',
     group: 'iam.miloapis.com',
+    scope: 'org',
     namespace: buildOrganizationNamespace(orgId),
   });
-
-  if (!canView) {
+  if (!allowed) {
     return data({ restricted: true as const });
   }
 
-  const groupResult = await createGroupService()
+  const group = await createGroupService()
     .get(orgId, groupId)
     .catch(() => null);
-
-  if (!groupResult) {
-    throw data({ message: 'Group not found' }, { status: 404 });
+  if (!group) {
+    throw new NotFoundError('Group', groupId);
   }
 
-  const [roles, policyBindings, projectsList, canCreatePolicyBinding, canDeletePolicyBinding] =
-    await Promise.all([
-      createRoleService().list('datum-cloud'),
-      createPolicyBindingService()
-        .list(orgId)
-        .catch(
-          () => [] as Awaited<ReturnType<ReturnType<typeof createPolicyBindingService>['list']>>
-        ),
-      createProjectService()
-        .list(orgId)
-        .catch(() => ({
-          items: [] as Awaited<
-            ReturnType<ReturnType<typeof createProjectService>['list']>
-          >['items'],
-        })),
-      canInLoader(orgId, {
-        resource: 'policybindings',
-        verb: 'create',
-        group: 'iam.miloapis.com',
-        namespace: buildOrganizationNamespace(orgId),
-      }),
-      canInLoader(orgId, {
-        resource: 'policybindings',
-        verb: 'delete',
-        group: 'iam.miloapis.com',
-        namespace: buildOrganizationNamespace(orgId),
-      }),
-    ]);
-
-  // Editing roles requires BOTH adding (create) and removing (delete) policy bindings.
-  const canManageRoles = canCreatePolicyBinding && canDeletePolicyBinding;
+  const [roles, policyBindings, projectsList] = await Promise.all([
+    createRoleService().list('datum-cloud'),
+    createPolicyBindingService()
+      .list(orgId)
+      .catch(() => [] as PolicyBinding[]),
+    createProjectService()
+      .list(orgId)
+      .catch(() => ({ items: [] as Project[] })),
+  ]);
 
   return data({
     restricted: false as const,
-    group: groupResult,
-    roles,
-    policyBindings,
-    projects: projectsList.items,
-    canManageRoles,
+    data: { group, roles, policyBindings, projects: projectsList.items },
+    companions: {},
   });
-};
-
-export const loader = withLoaderErrors(_loader);
+});
 
 export default function GroupDetailPage() {
-  const loaderData = useLoaderData<typeof _loader>();
+  const loaderData = useLoaderData<typeof loader>();
 
   if (loaderData.restricted) {
-    return <RestrictedState message="You don't have permission to view this group." />;
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view this group."
+      />
+    );
   }
 
-  return <GroupDetailEditor {...loaderData} />;
+  const { group, roles, policyBindings, projects } = loaderData.data;
+  return (
+    <GroupDetailEditor
+      group={group}
+      roles={roles}
+      policyBindings={policyBindings}
+      projects={projects}
+    />
+  );
 }
-
-type GroupDetailEditorProps = Extract<
-  Awaited<ReturnType<typeof _loader>>['data'],
-  { restricted: false }
->;
 
 function GroupDetailEditor({
   group,
   roles,
   policyBindings,
   projects,
-  canManageRoles,
-}: GroupDetailEditorProps) {
+}: {
+  group: Group;
+  roles: Role[];
+  policyBindings: PolicyBinding[];
+  projects: Project[];
+}) {
   const { orgId } = useParams() as { orgId: string };
   const { organization } = useApp();
   const orgDisplayName = organization?.displayName ?? orgId;
+
+  // Editing roles requires BOTH adding (create) and removing (delete) policy bindings.
+  const { canCreate: canCreateBinding, canDelete: canDeleteBinding } = useResourcePermissions({
+    resource: 'policybindings',
+    group: 'iam.miloapis.com',
+    scope: 'org',
+    verbs: ['create', 'delete'],
+  });
+  const canManageRoles = canCreateBinding && canDeleteBinding;
 
   const initialAssignments = useMemo<UserRoleAssignment[]>(() => {
     const assignments: UserRoleAssignment[] = [];

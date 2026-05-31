@@ -5,6 +5,7 @@ import { NameserverChips } from '@/components/nameserver-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { useResourcePermissions } from '@/modules/rbac';
 import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
@@ -26,6 +27,13 @@ export const DomainGeneralCard = ({
   projectId?: string;
 }) => {
   const { trackAction } = useAnalytics();
+
+  const { canCreate: canCreateDnsZone } = useResourcePermissions({
+    resource: 'dnszones',
+    group: 'dns.networking.miloapis.com',
+    scope: 'project',
+    verbs: ['create'],
+  });
 
   const listItems: ListItem[] = useMemo(() => {
     if (!domain) return [];
@@ -95,7 +103,7 @@ export const DomainGeneralCard = ({
             })}>
             {domain.domainName}
           </LinkButton>
-        ) : (
+        ) : canCreateDnsZone ? (
           <LinkButton
             as={Link}
             type="primary"
@@ -115,10 +123,12 @@ export const DomainGeneralCard = ({
             )}>
             Transfer to Datum
           </LinkButton>
+        ) : (
+          '-'
         ),
       },
     ];
-  }, [domain, dnsZone, trackAction, projectId]);
+  }, [domain, dnsZone, trackAction, projectId, canCreateDnsZone]);
 
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">

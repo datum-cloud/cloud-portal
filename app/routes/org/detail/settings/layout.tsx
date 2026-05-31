@@ -1,10 +1,11 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
 import { SubLayout } from '@/layouts';
+import { useGuardedRouteData } from '@/modules/rbac';
 import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import { Outlet, useRouteLoaderData } from 'react-router';
+import { Outlet } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Organization Settings</span>,
@@ -13,10 +14,10 @@ export const handle = {
 };
 
 export default function OrgSettingsLayout() {
-  const org = useRouteLoaderData<Organization>('org-detail');
+  const { data: org } = useGuardedRouteData<Organization, Record<string, never>>('org-detail');
 
   const navItems: SubNavigationTab[] = useMemo(() => {
-    const orgId = org?.name;
+    const orgId = org.name;
     return [
       {
         label: 'General',

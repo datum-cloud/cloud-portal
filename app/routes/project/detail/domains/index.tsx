@@ -9,6 +9,9 @@ import {
 } from '@/features/edge/domain/domain-form-dialog';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { DomainStatus } from '@/features/edge/domain/status';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { useApp } from '@/providers/app.provider';
 import {
   createDnsZoneService,
@@ -28,11 +31,8 @@ import {
 } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -41,15 +41,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
 import { GlobeIcon, ListChecksIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  data,
-  LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router';
+import { LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
 type FormattedDomain = {
   name: string;
@@ -64,28 +56,53 @@ type FormattedDomain = {
   dnsZone?: DnsZone;
 };
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Domains');
+type DomainsListData = { domains: Domain[]; dnsZones: DnsZone[] };
+
+const route = defineResourceRoute<DomainsListData>({
+  type: 'list',
+  resource: 'domains',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view domains.",
+  metaTitle: 'Domains',
+  seedCache: ({ data, projectId }) => {
+    const d = data as DomainsListData;
+    return [
+      [domainKeys.list(projectId), d.domains],
+      [dnsZoneKeys.list(projectId), d.dnsZones],
+    ] as never;
+  },
 });
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<DomainsListData>(args, {
+    resource: 'domains',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    fetch: async ({ projectId }) => {
+      const [domains, dnsZones] = await Promise.all([
+        createDomainService().list(projectId!),
+        createDnsZoneService()
+          .list(projectId!)
+          .catch(() => [] as DnsZone[]),
+      ]);
+      return { domains, dnsZones };
+    },
+  });
 
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
+export const meta = route.meta;
 
-  const [domains, dnsZones] = await Promise.all([
-    createDomainService().list(projectId),
-    createDnsZoneService().list(projectId),
-  ]);
+export default route.Page(({ data: { domains: initialDomains, dnsZones: initialDnsZones } }) => (
+  <DomainsInner initialDomains={initialDomains} initialDnsZones={initialDnsZones} />
+));
 
-  return data({ domains, dnsZones });
-});
-
-export default function DomainsPage() {
+function DomainsInner({
+  initialDomains,
+  initialDnsZones,
+}: {
+  initialDomains: Domain[];
+  initialDnsZones: DnsZone[];
+}) {
   const { projectId } = useParams();
-  const { domains: initialDomains, dnsZones: initialDnsZones } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -100,6 +117,22 @@ export default function DomainsPage() {
   // Subscribe to watch for real-time updates
   useDomainsWatch(projectId ?? '');
   useDnsZonesWatch(projectId ?? '');
+
+  const { canCreate, canUpdate, canDelete, canViewDnsZones } = useResourcePermissions({
+    resource: 'domains',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: ['create', 'update', 'delete'],
+    subResources: [
+      {
+        resource: 'dnszones',
+        group: 'dns.networking.miloapis.com',
+        scope: 'project',
+        alias: 'dnsZones',
+        verbs: ['list'],
+      },
+    ],
+  });
 
   // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: domainsData } = useDomains(projectId ?? '', {
@@ -155,12 +188,14 @@ export default function DomainsPage() {
   // Open create dialog from URL search params (e.g. ?action=create)
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
-      domainFormRef.current?.show();
+      if (canCreate) {
+        domainFormRef.current?.show();
+      }
       const nextParams = new URLSearchParams(searchParams);
       nextParams.delete('action');
       setSearchParams(nextParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, canCreate]);
 
   const deleteDomainMutation = useDeleteDomain(projectId ?? '');
 
@@ -382,15 +417,18 @@ export default function DomainsPage() {
       createActionsColumn<FormattedDomain>([
         {
           label: 'Refresh',
+          hidden: () => !canUpdate,
           onClick: (row) => handleRefreshDomain(row),
         },
         {
           label: 'Manage DNS Zone',
+          hidden: () => !canViewDnsZones,
           onClick: (row) => handleManageDnsZone(row),
         },
         {
           label: 'Delete',
           variant: 'destructive',
+          hidden: () => !canDelete,
           onClick: (row) => handleDeleteDomain(row),
         },
       ]),
@@ -401,6 +439,9 @@ export default function DomainsPage() {
       handleRefreshDomain,
       handleManageDnsZone,
       handleDeleteDomain,
+      canUpdate,
+      canViewDnsZones,
+      canDelete,
     ]
   );
 
@@ -492,9 +533,14 @@ export default function DomainsPage() {
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
         search="Search"
         actions={[
-          <BulkAddDomainsAction key="bulk-add" projectId={projectId!} />,
-          <Button
+          canCreate ? <BulkAddDomainsAction key="bulk-add" projectId={projectId!} /> : null,
+          <PermissionButton
             key="create"
+            resource="domains"
+            verb="create"
+            group="networking.datumapis.com"
+            scope="project"
+            deniedReason="You don't have permission to add a domain"
             type="primary"
             theme="solid"
             size="small"
@@ -503,36 +549,44 @@ export default function DomainsPage() {
             onClick={() => domainFormRef.current?.show()}>
             <Icon icon={PlusIcon} className="size-4" />
             Add domain
-          </Button>,
-        ]}
-        multiActions={[
-          {
-            label: 'Delete Selected',
-            icon: <Icon icon={TrashIcon} className="size-4" />,
-            variant: 'destructive',
-            onClick: (
-              selectedRows: FormattedDomain[],
-              { clearSelection }: { clearSelection: () => void }
-            ) => handleDeleteDomains(selectedRows, clearSelection),
-          },
-        ]}
+          </PermissionButton>,
+        ].filter(Boolean)}
+        multiActions={
+          canDelete
+            ? [
+                {
+                  label: 'Delete Selected',
+                  icon: <Icon icon={TrashIcon} className="size-4" />,
+                  variant: 'destructive',
+                  onClick: (
+                    selectedRows: FormattedDomain[],
+                    { clearSelection }: { clearSelection: () => void }
+                  ) => handleDeleteDomains(selectedRows, clearSelection),
+                },
+              ]
+            : []
+        }
         empty={{
+          // Title stays constant; action buttons hide when canCreate is false so
+          // restricted users aren't presented with a dialog they can't submit.
           title: "let's add a domain to get you started",
-          actions: [
-            {
-              label: 'Add domain',
-              type: 'button',
-              icon: <Icon icon={PlusIcon} className="size-3" />,
-              onClick: () => domainFormRef.current?.show(),
-            },
-            {
-              label: 'Bulk add domains',
-              type: 'button',
-              variant: 'outline',
-              icon: <Icon icon={ListChecksIcon} className="size-3" />,
-              onClick: () => setBulkAddPopoverOpen(true),
-            },
-          ],
+          actions: canCreate
+            ? [
+                {
+                  label: 'Add domain',
+                  type: 'button',
+                  icon: <Icon icon={PlusIcon} className="size-3" />,
+                  onClick: () => domainFormRef.current?.show(),
+                },
+                {
+                  label: 'Bulk add domains',
+                  type: 'button',
+                  variant: 'outline',
+                  icon: <Icon icon={ListChecksIcon} className="size-3" />,
+                  onClick: () => setBulkAddPopoverOpen(true),
+                },
+              ]
+            : [],
         }}
       />
 

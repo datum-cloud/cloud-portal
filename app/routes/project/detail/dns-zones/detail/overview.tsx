@@ -3,9 +3,10 @@ import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/re
 import { TaskNameserverCard } from '@/features/edge/dns-zone/overview/task-nameserver-card';
 import { TaskRecordCard } from '@/features/edge/dns-zone/overview/task-record-card';
 import { NameserverCard } from '@/features/edge/nameservers';
+import { useGuardedRouteData } from '@/modules/rbac';
 import type { FlattenedDnsRecord } from '@/resources/dns-records';
 import type { DnsZone } from '@/resources/dns-zones';
-import { useDomain, useDomainWatch } from '@/resources/domains';
+import { useDomain, useDomainWatch, type Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getDnsSetupStatus, getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -14,14 +15,15 @@ import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { Link, useParams, useRouteLoaderData } from 'react-router';
+import { Link, useParams } from 'react-router';
 
 export default function DnsZoneOverviewPage() {
-  const { dnsZone, dnsRecordSets } =
-    useRouteLoaderData<{
-      dnsZone: DnsZone;
-      dnsRecordSets: FlattenedDnsRecord[];
-    }>('dns-zone-detail') ?? {};
+  const { data: dnsZone } = useGuardedRouteData<DnsZone, { domain: Domain | null }>(
+    'dns-zone-detail'
+  );
+  // Pre-existing dead branch: the parent loader never returned dnsRecordSets,
+  // so this has always been []. Preserved as-is; deletion tracked separately.
+  const dnsRecordSets: FlattenedDnsRecord[] = [];
 
   const { projectId } = useParams();
 
@@ -39,7 +41,7 @@ export default function DnsZoneOverviewPage() {
   const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
 
   const dnsSetupStatus = useMemo(
-    () => getDnsSetupStatus(dnsRecordSets ?? [], dnsZone?.domainName),
+    () => getDnsSetupStatus(dnsRecordSets, dnsZone?.domainName),
     [dnsRecordSets, dnsZone?.domainName]
   );
 

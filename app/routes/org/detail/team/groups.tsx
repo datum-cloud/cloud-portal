@@ -1,17 +1,17 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
 import { GroupFormDialog, type GroupFormDialogRef } from '@/features/organization/team/groups';
-import { PermissionButton, usePermissionCheck } from '@/modules/rbac';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { useGroupMemberships } from '@/resources/group-memberships';
-import { useGroups, useDeleteGroup } from '@/resources/groups';
+import { createGroupService, useGroups, useDeleteGroup, type Group } from '@/resources/groups';
 import { useMembers, type Member } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -19,11 +19,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useRef } from 'react';
-import { useNavigate, useParams, type MetaFunction } from 'react-router';
-
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Groups');
-});
+import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
 
 interface GroupRow {
   name: string;
@@ -39,37 +35,52 @@ function buildMemberSummary(members: { name: string }[], totalCount: number): st
   return `${firstNames.join(', ')}, and ${remaining} more`;
 }
 
-export default function GroupsPage() {
-  const { orgId } = useParams();
+const route = defineResourceRoute<Group[]>({
+  type: 'list',
+  resource: 'groups',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view groups.",
+  metaTitle: 'Groups',
+});
+
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<Group[]>(args, {
+    resource: 'groups',
+    group: 'iam.miloapis.com',
+    scope: 'org',
+    namespace: buildOrganizationNamespace(args.params.orgId!),
+    fetch: ({ orgId }) => createGroupService().list(orgId!),
+  });
+export const meta = route.meta;
+
+export default route.Page(({ data: initialGroups }) => (
+  <GroupsInner initialGroups={initialGroups} />
+));
+
+function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
+  const { orgId = '' } = useParams<{ orgId: string }>();
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
   const groupFormDialogRef = useRef<GroupFormDialogRef>(null);
 
-  if (!orgId) {
-    throw new Error('Organization ID is required');
-  }
+  const { canCreate, canDelete } = useResourcePermissions({
+    resource: 'groups',
+    group: 'iam.miloapis.com',
+    scope: 'org',
+    verbs: ['create', 'delete'],
+  });
 
-  const namespace = buildOrganizationNamespace(orgId);
-  const { permissions, isLoading: listPermLoading } = usePermissionCheck([
-    { resource: 'groups', verb: 'list', group: 'iam.miloapis.com', namespace },
-    { resource: 'groups', verb: 'create', group: 'iam.miloapis.com', namespace },
-    { resource: 'groups', verb: 'delete', group: 'iam.miloapis.com', namespace },
-  ]);
-  const canListGroups = permissions['groups:list']?.allowed ?? false;
-  const hasCreateGroupPermission = permissions['groups:create']?.allowed ?? false;
-  const hasDeleteGroupPermission = permissions['groups:delete']?.allowed ?? false;
-
-  const { data: groups = [] } = useGroups(orgId, {
+  const { data: groups = initialGroups } = useGroups(orgId, {
     staleTime: QUERY_STALE_TIME,
-    enabled: canListGroups,
+    initialData: initialGroups,
+    initialDataUpdatedAt: Date.now(),
+    refetchOnMount: false,
   });
   const { data: memberships = [] } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
-    enabled: canListGroups,
   });
   const { data: members = [] } = useMembers(orgId, {
     staleTime: QUERY_STALE_TIME,
-    enabled: canListGroups,
   });
 
   const { mutateAsync: deleteGroupAsync } = useDeleteGroup(orgId, {
@@ -163,22 +174,13 @@ export default function GroupsPage() {
           label: 'Delete group',
           variant: 'destructive',
           icon: <Icon icon={TrashIcon} className="size-4" />,
-          hidden: (row) => !hasDeleteGroupPermission || row.memberCount > 0,
+          hidden: (row) => !canDelete || row.memberCount > 0,
           onClick: (row) => deleteGroup(row),
         },
       ]),
     ],
-    [hasDeleteGroupPermission, deleteGroup, navigate, orgId]
+    [canDelete, deleteGroup, navigate, orgId]
   );
-
-  if (!listPermLoading && !canListGroups) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to view groups."
-      />
-    );
-  }
 
   return (
     <>
@@ -192,8 +194,8 @@ export default function GroupsPage() {
           )
         }
         empty={{
-          title: hasCreateGroupPermission ? 'create your first group' : 'No groups yet',
-          actions: hasCreateGroupPermission
+          title: canCreate ? 'create your first group' : 'No groups yet',
+          actions: canCreate
             ? [
                 {
                   type: 'button',
@@ -210,7 +212,7 @@ export default function GroupsPage() {
             resource="groups"
             verb="create"
             group="iam.miloapis.com"
-            namespace={buildOrganizationNamespace(orgId)}
+            scope="org"
             deniedReason="You don't have permission to create groups"
             onClick={() => groupFormDialogRef.current?.show()}
             className="w-full sm:w-auto">

@@ -1,21 +1,25 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { Table } from '@/components/table';
 import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
 import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
-import { usePermissionCheck } from '@/modules/rbac';
+import { useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { ControlPlaneStatus } from '@/resources/base';
-import { type Connector, useConnectors, useConnectorsWatch } from '@/resources/connectors';
+import {
+  type Connector,
+  createConnectorService,
+  useConnectors,
+  useConnectorsWatch,
+} from '@/resources/connectors';
 import { type HttpProxy, useHttpProxies, useHttpProxiesWatch } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
-import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
@@ -26,10 +30,8 @@ import {
   ActionFunctionArgs,
   data,
   Link,
-  LoaderFunctionArgs,
-  MetaFunction,
+  type LoaderFunctionArgs,
   useFetcher,
-  useLoaderData,
   useParams,
 } from 'react-router';
 
@@ -37,81 +39,79 @@ export type ConnectorWithProxies = Connector & { proxies: HttpProxy[] };
 
 const ALERT_KEY = 'connector_download';
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Connectors');
-});
-
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { isClosed: downloadDismissed, headers } = await getAlertState(request, ALERT_KEY);
-  return data({ downloadDismissed }, { headers });
-};
-
-export const action = async ({ request }: ActionFunctionArgs) => {
-  const { headers } = await setAlertClosed(request, ALERT_KEY);
-  return data({ success: true }, { headers });
+type LoaderData = {
+  connectors: Connector[];
+  downloadDismissed: boolean;
 };
 
 function getConnectorStatus(connector: Connector) {
   return transformControlPlaneStatus(connector.status);
 }
 
-export default function ConnectorsPage() {
-  const { projectId } = useParams();
-  const { downloadDismissed } = useLoaderData<typeof loader>();
+const route = defineResourceRoute<LoaderData>({
+  type: 'list',
+  resource: 'connectors',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view connectors.",
+  metaTitle: 'Connectors',
+});
+
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<LoaderData>(args, {
+    resource: 'connectors',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    fetch: async ({ projectId, args: loaderArgs }) => {
+      const { isClosed: downloadDismissed } = await getAlertState(loaderArgs.request, ALERT_KEY);
+      const connectors = await createConnectorService().list(projectId!);
+      return { connectors, downloadDismissed };
+    },
+  });
+export const meta = route.meta;
+
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { headers } = await setAlertClosed(request, ALERT_KEY);
+  return data({ success: true }, { headers });
+};
+
+export default route.Page(({ data: loaderData }) => {
+  const { projectId = '' } = useParams<{ projectId: string }>();
+  const { connectors: initialConnectors, downloadDismissed } = loaderData;
   const dismissFetcher = useFetcher({ key: 'connector-download-dismiss' });
 
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-
-  const handleDismissDownload = () => {
-    dismissFetcher.submit({}, { method: 'POST' });
-  };
-
-  const isDownloadVisible = !downloadDismissed && dismissFetcher.state === 'idle';
-
-  const { permissions, isLoading: permLoading } = usePermissionCheck([
-    {
-      resource: 'connectors',
-      verb: 'list',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'httpproxies',
-      verb: 'list',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-  ]);
-  const { canList, canListProxies } = useMemo(
-    () => ({
-      canList: permissions['connectors:list']?.allowed ?? false,
-      canListProxies: permissions['httpproxies:list']?.allowed ?? false,
-    }),
-    [permissions]
-  );
-
-  useConnectorsWatch(projectId, { enabled: canList });
-
-  useHttpProxiesWatch(projectId, { enabled: canListProxies });
-
-  const { data: connectorsData } = useConnectors(projectId, {
-    refetchOnMount: false,
-    staleTime: QUERY_STALE_TIME,
-    enabled: canList,
+  const { canViewProxies } = useResourcePermissions({
+    resource: 'connectors',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: [],
+    subResources: [
+      {
+        resource: 'httpproxies',
+        group: 'networking.datumapis.com',
+        scope: 'project',
+        alias: 'proxies',
+        verbs: ['list'],
+      },
+    ],
   });
 
-  const { data: proxies } = useHttpProxies(projectId, {
+  // connectors:list is gated server-side by the loader; if this page renders, watch is allowed.
+  useConnectorsWatch(projectId);
+  useHttpProxiesWatch(projectId, { enabled: canViewProxies });
+
+  const { data: connectorsData = initialConnectors } = useConnectors(projectId, {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
-    enabled: canListProxies,
+    initialData: initialConnectors,
+  });
+
+  const { data: proxies = [] } = useHttpProxies(projectId, {
+    refetchOnMount: false,
+    staleTime: QUERY_STALE_TIME,
+    enabled: canViewProxies,
   });
 
   const tableData = useMemo((): ConnectorWithProxies[] => {
-    if (!connectorsData) return [];
     const byConnector = new Map<string, HttpProxy[]>();
     for (const proxy of proxies ?? []) {
       const name = proxy.connector?.name;
@@ -123,6 +123,9 @@ export default function ConnectorsPage() {
     }
     return connectorsData.map((c) => ({ ...c, proxies: byConnector.get(c.name) ?? [] }));
   }, [connectorsData, proxies]);
+
+  const handleDismissDownload = () => dismissFetcher.submit({}, { method: 'POST' });
+  const isDownloadVisible = !downloadDismissed && dismissFetcher.state === 'idle';
 
   const columns: ColumnDef<ConnectorWithProxies>[] = useMemo(
     () => [
@@ -158,7 +161,7 @@ export default function ConnectorsPage() {
         meta: { tooltip: 'Request rate over the last hour (all AI Edges using this connector)' },
         cell: ({ row }) => (
           <ConnectorSparkline
-            projectId={projectId ?? ''}
+            projectId={projectId}
             proxyNames={row.original.proxies.map((p) => p.name)}
             connectorId={row.original.name}
           />
@@ -311,15 +314,6 @@ export default function ConnectorsPage() {
     [projectId]
   );
 
-  if (!permLoading && !canList) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to view connectors."
-      />
-    );
-  }
-
   return (
     <Table.Client
       columns={columns}
@@ -332,4 +326,4 @@ export default function ConnectorsPage() {
       }
     />
   );
-}
+});

@@ -22,8 +22,15 @@ const SSE_MAX_RETRIES = 10;
  * Delay before actually removing a subscriber after unsubscribe is called.
  * Handles React Strict Mode's mount → unmount → mount cycle: the first
  * unmount schedules a delayed cleanup, and the immediate re-mount cancels it.
+ *
+ * Why 500ms (not the original 100ms): downstream effects can re-run after a
+ * permission check resolves and triggers a re-render — if that re-run happens
+ * to land after the 100ms window, the watch channel is torn down server-side
+ * and the SSE stream emits `unsubscribed`. 500ms is generous enough to ride
+ * out a typical permission-bulk roundtrip without introducing user-visible
+ * delay on intentional unsubscribes (component unmounts during navigation).
  */
-const CLEANUP_DELAY_MS = 100;
+const CLEANUP_DELAY_MS = 500;
 
 interface ChannelSubscription {
   subscribers: Set<WatchSubscriber<unknown>>;

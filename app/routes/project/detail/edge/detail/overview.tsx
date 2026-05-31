@@ -9,7 +9,7 @@ import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-car
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { MetricsProvider } from '@/modules/metrics';
-import { usePermission } from '@/modules/rbac';
+import { useGuardedRouteData, useResourcePermissions, usePermission } from '@/modules/rbac';
 import {
   type HttpProxy,
   useHttpProxy,
@@ -27,29 +27,31 @@ import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ChartSplineIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 export default function HttpProxyOverviewPage() {
-  const loaderData = useRouteLoaderData('proxy-detail') as HttpProxy | undefined;
-  const { projectId, proxyId } = useParams();
+  const { data: proxy } = useGuardedRouteData<HttpProxy, Record<string, never>>('proxy-detail');
+  const { projectId = '', proxyId = '' } = useParams<{ projectId: string; proxyId: string }>();
   const navigate = useNavigate();
 
-  const { data: httpProxy } = useHttpProxy(projectId ?? '', proxyId ?? '', {
-    initialData: loaderData,
+  const { data: httpProxy } = useHttpProxy(projectId, proxyId, {
+    initialData: proxy,
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
-  useHttpProxyWatch(projectId ?? '', proxyId ?? '');
+  useHttpProxyWatch(projectId, proxyId);
 
-  const { hasPermission: canDelete, isLoading: deleteLoading } = usePermission(
-    'httpproxies',
-    'delete',
-    { group: 'networking.datumapis.com', namespace: 'default', scope: 'project' }
-  );
+  const { canDelete, isLoading: deleteLoading } = useResourcePermissions({
+    resource: 'httpproxies',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: ['delete'],
+  });
 
   // WAF view permission is re-validated on every mount (staleTime 0) so the gate
-  // never renders from a stale cached result.
+  // never renders from a stale cached result. Documented escape hatch from
+  // useResourcePermissions — see app/modules/rbac/use-resource-permissions.ts.
   const {
     hasPermission: canViewWaf,
     isLoading: wafPermLoading,
@@ -69,7 +71,7 @@ export default function HttpProxyOverviewPage() {
     isError: wafError,
     isLoading: wafDataLoading,
     isFetching: wafDataFetching,
-  } = useTrafficProtectionPolicy(projectId ?? '', proxyId ?? '', {
+  } = useTrafficProtectionPolicy(projectId, proxyId, {
     staleTime: 0,
     refetchOnMount: 'always',
     enabled: canViewWaf,
@@ -81,7 +83,7 @@ export default function HttpProxyOverviewPage() {
   const wafPending =
     wafPermLoading || wafPermFetching || (canViewWaf && (wafDataLoading || wafDataFetching));
 
-  const baseProxy = httpProxy ?? loaderData;
+  const baseProxy = httpProxy ?? proxy;
   const effectiveProxy = useMemo<HttpProxy | undefined>(
     () =>
       baseProxy
@@ -90,7 +92,7 @@ export default function HttpProxyOverviewPage() {
     [baseProxy, waf]
   );
 
-  const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId ?? '', {
+  const { confirmDelete, isPending: isDeleting } = useDeleteProxy(projectId, {
     onSuccess: () => {
       navigate(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     },
@@ -122,7 +124,7 @@ export default function HttpProxyOverviewPage() {
           <HttpProxyOriginsCard proxy={effectiveProxy} projectId={projectId} />
         </Col>
         <Col span={24}>
-          <ActivePopsCard projectId={projectId ?? ''} proxyId={effectiveProxy.name ?? ''} />
+          <ActivePopsCard projectId={projectId} proxyId={effectiveProxy.name ?? ''} />
         </Col>
 
         <Col span={24}>
@@ -132,13 +134,13 @@ export default function HttpProxyOverviewPage() {
                 <Icon icon={ChartSplineIcon} size={20} className="text-secondary stroke-2" />
                 <span className="text-base font-semibold">Metrics</span>
               </div>
-              <HttpProxyEdgeRequests projectId={projectId ?? ''} proxyId={proxyId ?? ''} />
+              <HttpProxyEdgeRequests projectId={projectId} proxyId={proxyId} />
               {effectiveProxy.trafficProtectionMode &&
                 effectiveProxy.trafficProtectionMode !== 'Disabled' && (
                   <>
                     <HttpProxyWafEvents
-                      projectId={projectId ?? ''}
-                      proxyId={proxyId ?? ''}
+                      projectId={projectId}
+                      proxyId={proxyId}
                       trafficProtectionMode={effectiveProxy.trafficProtectionMode}
                     />
                   </>

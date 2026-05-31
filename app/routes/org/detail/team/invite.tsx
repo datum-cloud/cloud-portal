@@ -16,8 +16,8 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useCallback } from 'react';
 import {
   data,
-  LoaderFunctionArgs,
-  MetaFunction,
+  type LoaderFunctionArgs,
+  type MetaFunction,
   useLoaderData,
   useNavigate,
   useParams,
@@ -31,24 +31,25 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Invite Member');
 });
 
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { orgId } = params;
+export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
+  const orgId = args.params.orgId;
   if (!orgId) {
     throw new BadRequestError('Organization ID is required');
   }
 
-  const canInvite = await gateRouteAccess(orgId, {
+  const allowed = await gateRouteAccess(orgId, {
     resource: 'userinvitations',
     verb: 'create',
     group: 'iam.miloapis.com',
     namespace: buildOrganizationNamespace(orgId),
+    scope: 'org',
   });
 
-  if (!canInvite) {
+  if (!allowed) {
     return data({ restricted: true as const });
   }
 
-  return data({ restricted: false as const });
+  return data({ restricted: false as const, data: null, companions: {} });
 });
 
 interface InvitationResult {
@@ -59,8 +60,22 @@ interface InvitationResult {
 }
 
 export default function OrgTeamInvitePage() {
+  const loaderData = useLoaderData<typeof loader>();
+
+  if (loaderData.restricted) {
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to invite members."
+      />
+    );
+  }
+
+  return <InviteForm />;
+}
+
+function InviteForm() {
   const { orgId } = useParams();
-  const { restricted } = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const { trackAction } = useAnalytics();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -173,15 +188,6 @@ export default function OrgTeamInvitePage() {
     },
     [orgId, createInvitation, navigate, trackAction]
   );
-
-  if (restricted) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to invite members."
-      />
-    );
-  }
 
   return (
     <div className="mx-auto w-full max-w-3xl py-8">

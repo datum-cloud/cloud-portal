@@ -1,21 +1,18 @@
+import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
 import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { NotesSection } from '@/features/notes';
+import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
-import { useDomain, useDomainWatch } from '@/resources/domains';
+import { type DnsZone } from '@/resources/dns-zones';
+import { type Domain, useDomain, useDomainWatch } from '@/resources/domains';
 import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMemo, useRef, useEffect } from 'react';
-import {
-  LoaderFunctionArgs,
-  data,
-  useParams,
-  useRouteLoaderData,
-  useSearchParams,
-} from 'react-router';
+import { LoaderFunctionArgs, data, useParams, useSearchParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Overview</span>,
@@ -36,9 +33,20 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function DomainOverviewPage() {
-  const { domain, dnsZone } = useRouteLoaderData('domain-detail');
+  const { data: domain, companions } = useGuardedRouteData<Domain, { dnsZone: DnsZone | null }>(
+    'domain-detail'
+  );
+  const dnsZone = companions.dnsZone;
   const { projectId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const { canList: canViewNotes } = useResourcePermissions({
+    resource: 'notes',
+    group: 'notes.miloapis.com',
+    namespace: 'default',
+    scope: 'project',
+    verbs: ['list'],
+  });
 
   // Get live domain data from React Query
   const { data: liveDomain } = useDomain(projectId ?? '', domain?.name ?? '', {
@@ -91,7 +99,11 @@ export default function DomainOverviewPage() {
   return (
     <Row gutter={[24, 32]}>
       <Col span={24}>
-        <DomainGeneralCard domain={effectiveDomain} dnsZone={dnsZone} projectId={projectId} />
+        <DomainGeneralCard
+          domain={effectiveDomain}
+          dnsZone={dnsZone ?? undefined}
+          projectId={projectId}
+        />
       </Col>
       {isPending && (
         <>
@@ -104,14 +116,19 @@ export default function DomainOverviewPage() {
         </>
       )}
       <Col span={24}>
-        <NotesSection
-          projectId={projectId ?? ''}
-          subjectRef={{
-            apiGroup: 'networking.datumapis.com',
-            kind: 'Domain',
-            name: effectiveDomain?.name ?? '',
-          }}
-        />
+        <div className="relative">
+          <NotesSection
+            projectId={projectId ?? ''}
+            subjectRef={{
+              apiGroup: 'networking.datumapis.com',
+              kind: 'Domain',
+              name: effectiveDomain?.name ?? '',
+            }}
+          />
+          {!canViewNotes && (
+            <RestrictedOverlay message="You don't have permission to view notes for this domain" />
+          )}
+        </div>
       </Col>
     </Row>
   );

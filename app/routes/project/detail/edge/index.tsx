@@ -1,7 +1,6 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
@@ -9,10 +8,14 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
-import { usePermissionCheck, usePermission, PermissionButton } from '@/modules/rbac';
+import { useResourcePermissions, usePermission, PermissionButton } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
+  createHttpProxyService,
+  httpProxyKeys,
   useHttpProxies,
   useHttpProxiesWatch,
   useTrafficProtectionPolicies,
@@ -22,9 +25,7 @@ import {
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
@@ -33,54 +34,47 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
-import { MetaFunction, useNavigate, useParams, useSearchParams } from 'react-router';
+import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('AI Edge');
+const route = defineResourceRoute<HttpProxy[]>({
+  type: 'list',
+  resource: 'httpproxies',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view AI Edge.",
+  metaTitle: 'AI Edge',
+  seedCache: ({ data, projectId }) =>
+    [[httpProxyKeys.list(projectId), data as HttpProxy[]]] as never,
 });
 
-export default function HttpProxyPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const { projectId } = useParams();
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-  const navigate = useNavigate();
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<HttpProxy[]>(args, {
+    resource: 'httpproxies',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    fetch: ({ projectId }) => createHttpProxyService().list(projectId!),
+  });
+export const meta = route.meta;
 
-  const { permissions, isLoading: permLoading } = usePermissionCheck([
-    {
-      resource: 'httpproxies',
-      verb: 'list',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'httpproxies',
-      verb: 'create',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'httpproxies',
-      verb: 'delete',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-  ]);
-  const { canList, canCreate, canDelete } = useMemo(
-    () => ({
-      canList: permissions['httpproxies:list']?.allowed ?? false,
-      canCreate: permissions['httpproxies:create']?.allowed ?? false,
-      canDelete: permissions['httpproxies:delete']?.allowed ?? false,
-    }),
-    [permissions]
-  );
+export default route.Page(({ data: initialProxies }) => (
+  <HttpProxyInner initialProxies={initialProxies} />
+));
+
+function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
+  const { projectId = '' } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const { canCreate, canDelete } = useResourcePermissions({
+    resource: 'httpproxies',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: ['create', 'delete'],
+  });
 
   // WAF view permission is checked on its own and re-validated on every mount
   // (staleTime 0) so the gate never renders a verdict from a stale cached result.
+  // Documented escape hatch from useResourcePermissions — see
+  // app/modules/rbac/use-resource-permissions.ts for the per-call freshness note.
   const {
     hasPermission: canViewWaf,
     isLoading: wafPermLoading,
@@ -89,17 +83,16 @@ export default function HttpProxyPage() {
     group: 'networking.datumapis.com',
     namespace: 'default',
     scope: 'project',
-    enabled: canList,
     staleTime: 0,
     refetchOnMount: 'always',
   });
 
-  useHttpProxiesWatch(projectId, { enabled: canList });
+  useHttpProxiesWatch(projectId);
 
-  const { data, isPending } = useHttpProxies(projectId, {
+  const { data = initialProxies, isPending } = useHttpProxies(projectId, {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
-    enabled: canList,
+    initialData: initialProxies,
   });
 
   // WAF modes are fetched separately, only when viewable, and re-validated on
@@ -112,7 +105,7 @@ export default function HttpProxyPage() {
   } = useTrafficProtectionPolicies(projectId, {
     staleTime: 0,
     refetchOnMount: 'always',
-    enabled: canList && canViewWaf,
+    enabled: canViewWaf,
     retry: false,
   });
   // While the permission check or the WAF fetch is in flight (including mount
@@ -126,12 +119,14 @@ export default function HttpProxyPage() {
 
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
-      proxyFormRef.current?.show();
+      if (canCreate) {
+        proxyFormRef.current?.show();
+      }
       const nextParams = new URLSearchParams(searchParams);
       nextParams.delete('action');
       setSearchParams(nextParams, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, canCreate]);
 
   const { confirmDelete } = useDeleteProxy(projectId, {
     onError: (error) => {
@@ -206,7 +201,7 @@ export default function HttpProxyPage() {
         enableSorting: false,
         meta: { tooltip: 'Traffic activity over the last hour to this edge' },
         cell: ({ row }) => {
-          return <ProxySparkline projectId={projectId ?? ''} proxyId={row.original.name} />;
+          return <ProxySparkline projectId={projectId} proxyId={row.original.name} />;
         },
       },
       {
@@ -325,15 +320,6 @@ export default function HttpProxyPage() {
     [projectId, navigate, confirmDelete, canDelete, canViewWaf, wafPending, wafReady, wafMaps]
   );
 
-  if (!permLoading && !canList) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to view AI Edge."
-      />
-    );
-  }
-
   return (
     <>
       <Table.Client
@@ -385,7 +371,7 @@ export default function HttpProxyPage() {
         ]}
       />
 
-      <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId!} />
+      <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId} />
     </>
   );
 }

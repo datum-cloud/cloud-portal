@@ -21,7 +21,13 @@ import { PencilIcon, PlusIcon, Trash2 } from 'lucide-react';
 import { useRef } from 'react';
 import { useParams } from 'react-router';
 
-export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
+export const EditSecretKeys = ({
+  secret,
+  readOnly = false,
+}: {
+  secret?: Secret;
+  readOnly?: boolean;
+}) => {
   const { confirm } = useConfirmationDialog();
   const { projectId, secretId } = useParams();
 
@@ -71,14 +77,16 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
         <CardHeader className="mb-2 px-0 sm:px-6">
           <CardTitle className="flex items-center justify-between gap-2">
             <span className="text-lg font-medium">Key-value pairs</span>
-            <Button
-              icon={<Icon icon={PlusIcon} size={12} />}
-              type="secondary"
-              theme="outline"
-              size="xs"
-              onClick={() => variablesFormDialogRef.current?.show()}>
-              Add
-            </Button>
+            {!readOnly && (
+              <Button
+                icon={<Icon icon={PlusIcon} size={12} />}
+                type="secondary"
+                theme="outline"
+                size="xs"
+                onClick={() => variablesFormDialogRef.current?.show()}>
+                Add
+              </Button>
+            )}
           </CardTitle>
         </CardHeader>
 
@@ -100,24 +108,26 @@ export const EditSecretKeys = ({ secret }: { secret?: Secret }) => {
                     className="bg-table-cell hover:bg-table-cell-hover relative transition-colors">
                     <TableCell className="px-4 py-2.5">{variable}</TableCell>
                     <TableCell className="w-[100px] px-4 py-2.5">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          type="quaternary"
-                          theme="borderless"
-                          size="icon"
-                          onClick={() => editKeyValueDialogRef.current?.show(variable)}
-                          className="size-6 border">
-                          <Icon icon={PencilIcon} className="size-3.5" />
-                        </Button>
-                        <Button
-                          type="quaternary"
-                          theme="borderless"
-                          size="icon"
-                          onClick={() => deleteSecret(variable)}
-                          className="size-6 border">
-                          <Icon icon={Trash2} className="size-3.5" />
-                        </Button>
-                      </div>
+                      {!readOnly && (
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            type="quaternary"
+                            theme="borderless"
+                            size="icon"
+                            onClick={() => editKeyValueDialogRef.current?.show(variable)}
+                            className="size-6 border">
+                            <Icon icon={PencilIcon} className="size-3.5" />
+                          </Button>
+                          <Button
+                            type="quaternary"
+                            theme="borderless"
+                            size="icon"
+                            onClick={() => deleteSecret(variable)}
+                            className="size-6 border">
+                            <Icon icon={Trash2} className="size-3.5" />
+                          </Button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

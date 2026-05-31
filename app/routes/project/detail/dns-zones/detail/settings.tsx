@@ -3,35 +3,34 @@ import { DangerCard } from '@/components/danger-card/danger-card';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { ComingSoonCard } from '@/features/edge/dns-zone/overview/coming-soon-card';
 import { DescriptionFormCard } from '@/features/edge/dns-zone/overview/description-form-card';
-import { usePermission } from '@/modules/rbac';
-import { useDeleteDnsZone } from '@/resources/dns-zones';
+import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
+import { useDeleteDnsZone, type DnsZone } from '@/resources/dns-zones';
+import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
-import { useNavigate, useParams, useRouteLoaderData } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Settings</span>,
 };
 
 export default function DnsZoneSettingsPage() {
-  const { projectId } = useParams();
-  const { dnsZone } = useRouteLoaderData('dns-zone-detail');
+  const { projectId = '' } = useParams<{ projectId: string }>();
+  const { data: dnsZone } = useGuardedRouteData<DnsZone, { domain: Domain | null }>(
+    'dns-zone-detail'
+  );
   const navigate = useNavigate();
 
-  const { hasPermission: canEdit } = usePermission('dnszones', 'patch', {
+  const { canDelete, isLoading: deleteLoading } = useResourcePermissions({
+    resource: 'dnszones',
     group: 'dns.networking.miloapis.com',
-    namespace: 'default',
     scope: 'project',
+    verbs: ['delete'],
   });
-  const { hasPermission: canDelete, isLoading: deleteLoading } = usePermission(
-    'dnszones',
-    'delete',
-    { group: 'dns.networking.miloapis.com', namespace: 'default', scope: 'project' }
-  );
 
-  const deleteMutation = useDeleteDnsZone(projectId ?? '', {
+  const deleteMutation = useDeleteDnsZone(projectId, {
     onSuccess: () => {
       navigate(
         getPathWithParams(paths.project.detail.dnsZones.root, {
@@ -69,11 +68,7 @@ export default function DnsZoneSettingsPage() {
       <Row gutter={[0, 24]}>
         <Col span={24}>
           <h3 className="mb-4 text-base font-medium">Zone Description</h3>
-          <DescriptionFormCard
-            projectId={projectId ?? ''}
-            defaultValue={dnsZone}
-            canEdit={canEdit}
-          />
+          <DescriptionFormCard projectId={projectId} defaultValue={dnsZone} />
         </Col>
 
         <Col span={24}>

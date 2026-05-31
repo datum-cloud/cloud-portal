@@ -1,229 +1,265 @@
-# RBAC Module
+# `@/modules/rbac`
 
-Role-Based Access Control for the Cloud Portal. Each permission is resolved with a
-**per-check Kubernetes `SelfSubjectAccessReview`**, evaluated **server-side** by the
-BFF and routed to the correct control-plane base for the check's scope. There is no
-client-side rule evaluation and no full rule-set seeding — every gate, hook, and
-component asks the BFF whether the current user may perform one specific action.
+Role-Based Access Control toolkit for cloud-portal. Every resource route in
+the app builds on this module.
 
-## Table of Contents
+## What this module gives you
 
-- [Architecture](#architecture)
-- [Public API](#public-api)
-  - [Hooks](#hooks)
-  - [Components](#components)
-  - [Server](#server)
-- [Failure Policy](#failure-policy)
-- [Observability](#observability)
-- [Testing](#testing)
-- [Important: client vs. server imports](#important-client-vs-server-imports)
+- A **route DSL** (`defineResourceRoute`) that wraps server-side permission
+  gating, primary fetch, optional companion fetches, redirect-on-deletion,
+  and React Query cache seeding into a single declarative config.
+- A **batched permission hook** (`useResourcePermissions`) that returns
+  named flag properties (`canList`, `canCreate`, `canViewWaf`, …) from a
+  single SSAR.
+- **UI primitives** (`<PermissionButton>`, `<PermissionGate>`,
+  `<RestrictedState>`, `<RestrictedOverlay>`) that replace inline
+  `{canX && …}` conditional rendering and post-hoc `if (!canX) toast.error(…)`
+  guards.
+- A **typed loader-data reader** (`useGuardedRouteData`) for child routes
+  whose ancestor used the DSL.
+- A **page wrapper** (`<GuardedPage>`) for routes that need restricted-state
+  rendering + cache seeding without the full DSL.
 
----
+## Architecture in one diagram
 
-## Architecture
+Every resource route operates at four canonical layers. Each layer has one
+responsibility and one primitive.
 
-```
-Browser                                  BFF (Hono)                Control plane
-───────                                  ──────────                ─────────────
-usePermission / PermissionGate / …
-   │  one check per (resource, verb, …)
-   ▼
-checkPermissionAPI ──────────► POST /api/permissions/check ─┐
-checkPermissionsBulkAPI ─────► POST /api/permissions/bulk-check
-                                          │                 │
-                                          ▼                 ▼
-                              RbacService.checkPermission(s)
-                                          │  SelfSubjectAccessReview
-                                          ▼
-                              scope-aware base routing:
-                                org     → org control-plane + org namespace
-                                user    → user/root control-plane (root resources)
-                                project → project control-plane
-                                          │
-                                          ▼
-                                 { allowed, denied, reason }
-```
+| Layer                             | Responsibility                                                           | Primitive                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| 1. Loader gate (server)           | Block denied requests before any data is fetched.                        | `gateRouteAccess` (wrapped by `defineResourceRoute`)                                    |
+| 2. Data fetch/watch (client)      | Skip fetches when the user lacks the verb.                               | `enabled: canX` on every `useX` / `useXWatch`                                           |
+| 3. UI primitive (client)          | Render in a permission-aware way.                                        | `<PermissionButton>` / `<PermissionGate>` / `<RestrictedState>` / `<RestrictedOverlay>` |
+| 4. Cross-resource action (client) | Gate buttons against the resource they _mutate_, not the page's primary. | `<PermissionButton resource="..." />` with the mutation target's verb                   |
 
-Key points:
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full model, defense-in-depth
+rationale, error classes, loading-state rules, and the free-floating route
+rule.
 
-- **Per-check `SelfSubjectAccessReview`** — every permission check is its own
-  server-side review against the live control plane. Nothing is evaluated in the
-  browser.
-- **Scope-aware base routing** (`RbacService.resolveBaseURL`): the check's `scope`
-  picks the control-plane base the review is posted to.
-  - `scope: 'org'` (**default**) → the organization control-plane, using the
-    org namespace.
-  - `scope: 'user'` → the user/root control-plane. Use this for **root resources**
-    such as `organizations`.
-  - `scope: 'project'` → the project control-plane (requires `projectId`).
-- **Async** — checks are network calls. Hooks expose `isLoading`; gates and buttons
-  render a brief verifying state until the answer arrives.
-- **Fails closed** — any error (network, parse, control-plane) resolves to
-  `allowed: false`. We never offer an action we cannot substantiate.
-- **Bulk batching** — `usePermissionCheck` / `<PermissionCheck>` send all of their
-  checks in one `POST /bulk-check` to avoid client-side N+1 requests.
+## How to use
 
----
-
-## Public API
-
-### Hooks
-
-All hooks are **async** (backed by TanStack Query). They read `organizationId` and
-`projectId` from `RbacProvider` context; options can override scope/projectId.
-
-| Hook | Description |
-| --- | --- |
-| `usePermission(resource, verb, opts)` | Single per-check review via the BFF. Returns `{ hasPermission, isLoading, isError, error, refetch }`. Fails closed. |
-| `useHasPermission` | Back-compat alias of `usePermission` (identical signature). |
-| `usePermissions()` | Provider context: `{ organizationId?, projectId? }`. |
-| `usePermissionCheck(checks)` | Bulk check in one request. Returns `{ permissions, isLoading, isError }` where `permissions` is keyed by `` `${resource}:${verb}` `` → `{ allowed, isLoading }`. |
-| `useAccessReview(resource, verb, opts)` | Single precise review for high-stakes, named-resource checks. Returns `{ allowed, isLoading, isError, error, refetch }`. Fails closed. |
-
-`opts` for `usePermission` / `useAccessReview`:
-`{ group?, namespace?, name?, scope?, projectId?, enabled? }` (scope defaults to
-`'org'`). Per-check inputs to `usePermissionCheck` / `<PermissionCheck>` accept
-`{ resource, verb, group?, namespace?, name?, scope? }`.
+### Build a list route
 
 ```tsx
-import { usePermission } from '@/modules/rbac';
-import { buildOrganizationNamespace } from '@/utils/common';
+// app/routes/project/detail/dns-zones/index.tsx
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { createDnsZoneService } from '@/resources/dns-zones';
 
-function DeleteButton({ orgId, name }: { orgId: string; name: string }) {
-  // Namespaced resource: pass the resource's namespace.
-  const { hasPermission, isLoading } = usePermission('secrets', 'delete', {
-    namespace: buildOrganizationNamespace(orgId),
-    name,
-  });
-  if (isLoading || !hasPermission) return null;
-  return <button onClick={onDelete}>Delete</button>;
-}
-
-function CreateOrgButton() {
-  // Root resource: use scope 'user'.
-  const { hasPermission } = usePermission('organizations', 'create', { scope: 'user' });
-  return hasPermission ? <button>New organization</button> : null;
-}
-```
-
-### Components
-
-| Component | Description |
-| --- | --- |
-| `<PermissionGate mode="hide \| disable \| fallback">` | Gates `children` on a single check. Default `mode="hide"`. `disable` renders the child disabled inside a tooltip (`deniedReason` overrides the text); `fallback`/`hide` render `fallback` (default `null`) when denied. Accepts `resource`/`verb`/`group`/`name`/`namespace`/`scope`/`projectId`. |
-| `<PermissionButton>` | A datum-ui `Button` that disables itself (with a tooltip) when denied. Accepts all `Button` props plus `resource`/`verb`/`group`/`name`/`namespace`/`scope`/`projectId`/`deniedReason`. |
-| `<PermissionCheck checks operator="AND \| OR">` | Renders `children` when the combined bulk checks pass, else `fallback`. |
-| `withPermission(Component, gateConfig)` | HOC wrapping a component in a `PermissionGate`. |
-| `RestrictedOverlay` | Overlay UI for restricted surfaces, in `app/components/restricted-overlay`. |
-
-```tsx
-import { PermissionGate, PermissionButton } from '@/modules/rbac';
-
-<PermissionGate
-  resource="secrets"
-  verb="delete"
-  namespace={buildOrganizationNamespace(orgId)}
-  mode="disable"
-  deniedReason="Ask an admin">
-  <DeleteButton />
-</PermissionGate>;
-
-<PermissionButton resource="organizations" verb="create" scope="user" variant="primary">
-  New organization
-</PermissionButton>;
-```
-
-### Server
-
-Server-only entrypoints — **import directly from the deep server path**, never the
-client barrel:
-
-| Symbol | Import from | Description |
-| --- | --- | --- |
-| `RbacService` | `@/modules/rbac/server/rbac.service` | `checkPermission(orgId, check)` and `checkPermissions(orgId, checks)`. |
-| `canInLoader(orgId, check)` | `@/modules/rbac/server/check-permission` | Fail-closed boolean permission check for SSR loaders. Wraps `RbacService.checkPermission`; returns `false` on any error. |
-
-SSR loaders gate access with `canInLoader` and render `<RestrictedState>` inline
-when the check fails — there is **no redirect or thrown 403**. The loader returns a
-`restricted` flag (discriminated union) and the route component renders either the
-restricted state or the gated content. The same flag pattern also drives editor
-affordances (e.g. a `canManageRoles` flag from a second `canInLoader` check).
-
-```tsx
-import { canInLoader } from '@/modules/rbac/server/check-permission';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
-import { buildOrganizationNamespace } from '@/utils/common';
-import { withLoaderErrors } from '@/utils/errors';
-import { data, useLoaderData } from 'react-router';
-
-export const loader = withLoaderErrors(async ({ params }) => {
-  const { orgId } = params;
-
-  // Permission check first — skip fetching data the user can't see.
-  const canView = await canInLoader(orgId!, {
-    resource: 'allowancebuckets',
-    verb: 'list',
-    group: 'quota.miloapis.com',
-    namespace: buildOrganizationNamespace(orgId!),
-  });
-  if (!canView) return data({ restricted: true as const });
-
-  const items = await loadData(orgId!);
-  return data({ restricted: false as const, items });
+const route = defineResourceRoute({
+  type: 'list',
+  resource: 'dnszones',
+  group: 'dns.networking.miloapis.com',
+  scope: 'project',
+  fetch: ({ projectId }) => createDnsZoneService().list(projectId),
+  restrictedMessage: "You don't have permission to view DNS.",
+  metaTitle: 'DNS',
 });
 
-export default function Page() {
-  const loaderData = useLoaderData<typeof loader>();
-  if (loaderData.restricted) {
-    return <RestrictedState message="You don't have permission to view this." />;
-  }
-  return <Content items={loaderData.items} />;
+export const { loader, meta } = route;
+export default route.Page(({ data }) => <DnsZonesInner zones={data} />);
+```
+
+The DSL emits `loader`, `meta`, and `Page` for the list variant. The loader
+gates by `verb: 'list'` and returns either `{ restricted: true }` (rendered
+as `<RestrictedState>`) or `{ restricted: false, data, companions: {} }`.
+
+### Build a detail route with companions and redirect-on-deletion
+
+```tsx
+// app/routes/project/detail/dns-zones/detail/layout.tsx
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
+import { createDomainService, domainKeys } from '@/resources/domains';
+import { paths } from '@/utils/config/paths.config';
+
+const route = defineResourceRoute({
+  type: 'detail',
+  resource: 'dnszones',
+  group: 'dns.networking.miloapis.com',
+  scope: 'project',
+  paramName: 'dnsZoneId',
+  notFoundLabel: 'DNS',
+  fetch: ({ projectId, id }) => createDnsZoneService().get(projectId, id),
+  redirectIfDeleting: ({ data, projectId }) =>
+    data.deletionTimestamp
+      ? {
+          to: `/project/${projectId}/dns-zones`,
+          toast: {
+            title: 'DNS is being deleted',
+            description: 'This DNS is currently being deleted and is no longer accessible',
+            type: 'message',
+          },
+        }
+      : null,
+  companions: {
+    // A viewer with dnszones access may not have domains access — tolerate
+    // the companion gate denial so the page still renders.
+    domain: {
+      resource: 'domains',
+      group: 'networking.datumapis.com',
+      verb: 'get',
+      scope: 'project',
+      onError: 'tolerate',
+      fetch: ({ data, projectId }) =>
+        data.status?.domainRef?.name
+          ? createDomainService().get(projectId, data.status.domainRef.name)
+          : null,
+    },
+  },
+  breadcrumb: ({ data }) => data?.domainName ?? 'DNS',
+  metaTitle: ({ data }) => data?.domainName ?? 'DNS',
+  restrictedMessage: "You don't have permission to view this DNS zone.",
+  seedCache: ({ data, companions, projectId, id }) => [
+    [dnsZoneKeys.detail(projectId, id), data],
+    [domainKeys.detail(projectId, companions.domain?.name ?? ''), companions.domain],
+  ],
+});
+
+export const { loader, handle, meta } = route;
+export default route.Page(({ data, companions }) => (
+  <DnsZoneDetailInner dnsZone={data} domain={companions.domain} />
+));
+```
+
+### Gate action buttons inside a page
+
+```tsx
+import { useResourcePermissions } from '@/modules/rbac';
+import { PermissionButton, PermissionGate } from '@/modules/rbac';
+
+function DnsZoneRecords() {
+  const { canList, canCreate, canPatch, canDelete } = useResourcePermissions({
+    resource: 'dnsrecordsets',
+    group: 'dns.networking.miloapis.com',
+    scope: 'project',
+    verbs: ['list', 'create', 'patch', 'delete'],
+  });
+
+  // Pass enabled: canList to every fetch/watch hook.
+  const { data } = useDnsRecords(projectId, dnsZoneId, undefined, { enabled: canList });
+
+  return (
+    <>
+      <PermissionButton
+        resource="dnsrecordsets"
+        verb="create"
+        group="dns.networking.miloapis.com"
+        scope="project"
+        deniedReason="You don't have permission to add a DNS record"
+        onClick={openCreateForm}>
+        Add record
+      </PermissionButton>
+
+      {/* Pencil icons and other non-button affordances use PermissionGate */}
+      <PermissionGate
+        resource="dnsrecordsets"
+        verb="patch"
+        group="dns.networking.miloapis.com"
+        scope="project"
+        mode="disable"
+        deniedReason="You don't have permission to edit DNS records">
+        <IconButton icon={PencilIcon} onClick={openEditForm} />
+      </PermissionGate>
+    </>
+  );
 }
 ```
 
-`canInLoader` accepts the same `check` shape as `RbacService.checkPermission`
-(`{ resource, verb, group?, namespace?, name?, scope?, projectId? }`, scope defaults
-to `'org'`).
+### Cross-resource actions
 
----
+When a button on resource A triggers a mutation on resource B, gate it
+against B — not against A.
 
-## Failure Policy
-
-Every check **fails closed**: any error in the BFF or control plane resolves to
-`allowed: false` (and `denied: true`). Hooks surface the error via `isError`/`error`,
-and bulk checks fail closed per item without aborting the rest of the batch.
-
----
-
-## Observability
-
-Prometheus metrics are exposed on `/metrics`:
-
-- `rbac_permission_denied_total{resource,verb}` — denials at enforcement points.
-
-The metrics module is side-effect-imported in `app/server/entry.ts` so the counter is
-registered at startup.
-
----
-
-## Testing
-
-```bash
-bun test app/modules/rbac
-bun test app/resources/access-review
+```tsx
+// Inside a DNS records page, "Protect with AI Edge" creates an HTTP proxy.
+// Gate by httpproxies:create, not dnsrecordsets:patch.
+<PermissionButton
+  resource="httpproxies"
+  verb="create"
+  group="networking.datumapis.com"
+  scope="project"
+  onClick={protectWithEdge}>
+  Protect with AI Edge
+</PermissionButton>
 ```
 
-Covered: `RbacService.checkPermission`/`checkPermissions` (including scope-aware
-base routing and fail-closed behavior) and the access-review adapter/service.
+### Read typed loader data in child routes
 
----
+```tsx
+// app/routes/project/detail/dns-zones/detail/dns-records.tsx
+import { useGuardedRouteData } from '@/modules/rbac';
+import type { DnsZone } from '@/resources/dns-zones';
+import type { Domain } from '@/resources/domains';
 
-## Important: client vs. server imports
+export default function DnsRecordsPage() {
+  const { data: dnsZone, companions } = useGuardedRouteData<DnsZone, { domain: Domain | null }>(
+    'dns-zone-detail'
+  );
 
-The client barrel `@/modules/rbac` is **browser-safe** and intentionally does **not**
-re-export server-only modules. Importing `RbacService` or `canInLoader` from the barrel
-would drag server-only dependencies (`prom-client`, the control-plane SDK, axios) into
-the browser bundle.
+  // dnsZone is typed; companions.domain may be null (tolerate semantics).
+  return <DnsRecordsInner dnsZone={dnsZone} domain={companions.domain} />;
+}
+```
 
-Always import those from `@/modules/rbac/server/*`. Hooks, components, types, and the
-client helpers `checkPermissionAPI`/`checkPermissionsBulkAPI` are safe from the barrel.
+The hook throws if called on a restricted route, signaling a routing bug
+(the parent should have short-circuited).
+
+## Public API at a glance
+
+| Export                                            | Purpose                                          | Import path                                                      |
+| ------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------- |
+| `defineResourceRoute(...)`                        | Route DSL — emits `{loader, handle, meta, Page}` | `@/modules/rbac/define-resource-route` (deep — server-importing) |
+| `useResourcePermissions({ verbs, subResources })` | Batched perm check with named flags              | `@/modules/rbac`                                                 |
+| `useGuardedRouteData(routeId)`                    | Typed child-route loader-data reader             | `@/modules/rbac`                                                 |
+| `<GuardedPage>`                                   | Page wrapper: RestrictedState + cache seeding    | `@/modules/rbac`                                                 |
+| `<PermissionButton>`                              | Gated button trigger                             | `@/modules/rbac`                                                 |
+| `<PermissionGate>`                                | Gated wrapper (`hide` / `disable` / `fallback`)  | `@/modules/rbac`                                                 |
+| `<PermissionCheck>`                               | Bulk-check render prop                           | `@/modules/rbac`                                                 |
+| `<RestrictedState>`                               | Full-page deny                                   | `@/components/restricted-state`                                  |
+| `<RestrictedOverlay>`                             | Partial deny                                     | `@/components/restricted-overlay`                                |
+| `gateRouteAccess()`                               | Server-only loader gate (wrapped by the DSL)     | `@/modules/rbac/server/check-permission`                         |
+
+## Module layout
+
+```
+app/modules/rbac/
+├── README.md                 ← this file
+├── ARCHITECTURE.md           ← stable model: layers, error classes, loading rules
+├── CONVENTIONS.md            ← prescriptive rules + adding/migrating recipes
+├── define-resource-route.tsx ← the DSL (server-importing — deep import only)
+├── use-resource-permissions.ts
+├── use-guarded-route-data.ts
+├── types.ts                  ← DSL + hook types (DslLoaderData, etc.)
+├── index.ts                  ← client-safe barrel
+├── client/                   ← BFF API client
+├── components/               ← PermissionButton, PermissionGate, PermissionCheck, GuardedPage, withPermission
+├── context/                  ← RbacContext + RbacProvider
+├── hooks/                    ← usePermission, usePermissions, usePermissionCheck, useAccessReview, useHasPermission, useCheckQuery
+├── observability/            ← metrics
+└── server/                   ← gateRouteAccess, RbacService (DO NOT import from client)
+```
+
+> ⚠️ The `index.ts` barrel is the **client-safe entry point**. Server-only
+> code (`./server/*`) and `defineResourceRoute` (which transitively imports
+> server modules via `gateRouteAccess` → `metrics` → `prom-client`) must be
+> imported directly to avoid pulling server-only deps into the browser
+> bundle. Route files that need `defineResourceRoute` must use the deep
+> import path shown above.
+
+## Tests
+
+- Pure-logic unit tests: `bun run test:rbac` (Bun's test runner against
+  `app/modules/rbac/**/*.test.ts`).
+- React component tests: `bun run test:unit:prod` or `bun run test:unit:debug`
+  (Cypress component testing — see `cypress/component/guarded-page.cy.tsx`,
+  `cypress/component/use-resource-permissions.cy.tsx`,
+  `cypress/component/use-guarded-route-data.cy.tsx`,
+  `cypress/component/define-resource-route-page.cy.tsx`).
+
+## Convention enforcement
+
+The conventions in [CONVENTIONS.md](./CONVENTIONS.md) are enforced through
+PR review and the existing E2E test suite per resource. Reviewers should
+flag inline `{canX ? ... : null}` rendering and post-hoc
+`if (!canX) toast.error(...)` guards — both have canonical replacements
+(`<PermissionGate>` and `<PermissionButton>` respectively).

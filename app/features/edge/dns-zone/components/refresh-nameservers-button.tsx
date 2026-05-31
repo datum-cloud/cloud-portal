@@ -1,3 +1,4 @@
+import { PermissionGate } from '@/modules/rbac';
 import { useRefreshDomainRegistration } from '@/resources/domains';
 import { Button, ButtonProps } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -121,18 +122,26 @@ export const RefreshNameserversButton = ({
           </span>
         </div>
       )}
-      <Button
-        type={type}
-        theme={theme}
-        size={size}
-        icon={icon}
-        onClick={handleRefresh}
-        disabled={disabled || refreshMutation.isPending || isOnCooldown}
-        loading={refreshMutation.isPending}
-        className={cn('font-semibold', buttonProps.className)}
-        {...buttonProps}>
-        {label}
-      </Button>
+      <PermissionGate
+        resource="domains"
+        verb="patch"
+        group="networking.datumapis.com"
+        scope="project"
+        mode="disable"
+        deniedReason="You don't have permission to refresh nameservers">
+        <Button
+          type={type}
+          theme={theme}
+          size={size}
+          icon={icon}
+          onClick={handleRefresh}
+          disabled={disabled || refreshMutation.isPending || isOnCooldown}
+          loading={refreshMutation.isPending}
+          className={cn('font-semibold', buttonProps.className)}
+          {...buttonProps}>
+          {label}
+        </Button>
+      </PermissionGate>
     </div>
   );
 };

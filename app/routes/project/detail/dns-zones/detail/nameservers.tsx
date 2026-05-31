@@ -2,32 +2,36 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { NoteCard } from '@/components/note-card/note-card';
 import { RefreshNameserversButton } from '@/features/edge/dns-zone/components/refresh-nameservers-button';
 import { NameserverTable } from '@/features/edge/nameservers';
-import { useDomain, useDomainWatch } from '@/resources/domains';
+import { useGuardedRouteData } from '@/modules/rbac';
+import type { DnsZone } from '@/resources/dns-zones';
+import { useDomain, useDomainWatch, type Domain } from '@/resources/domains';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { useParams, useRouteLoaderData } from 'react-router';
+import { useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Nameservers</span>,
 };
 
 export default function DnsZoneNameserversPage() {
-  const { dnsZone } = useRouteLoaderData('dns-zone-detail');
+  const { data: dnsZone } = useGuardedRouteData<DnsZone, { domain: Domain | null }>(
+    'dns-zone-detail'
+  );
 
-  const { projectId } = useParams();
+  const { projectId = '' } = useParams<{ projectId: string }>();
   const domainName = dnsZone?.status?.domainRef?.name ?? '';
   const hasDomain = !!domainName;
 
   // Get live domain data from React Query
-  const { data: domain } = useDomain(projectId ?? '', domainName, {
+  const { data: domain } = useDomain(projectId, domainName, {
     enabled: hasDomain,
   });
 
   // Subscribe to real-time domain updates (for nameserver status)
-  useDomainWatch(projectId ?? '', domainName, { enabled: hasDomain });
+  useDomainWatch(projectId, domainName, { enabled: hasDomain });
 
   const dnsHost = useMemo(() => {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;
@@ -51,7 +55,7 @@ export default function DnsZoneNameserversPage() {
                 theme="outline"
                 lastRefreshAttempt={domain?.desiredRegistrationRefreshAttempt}
                 domainName={domain?.name ?? ''}
-                projectId={projectId ?? ''}
+                projectId={projectId}
                 label="Refresh nameservers"
                 icon={<Icon icon={RefreshCcwIcon} size={12} />}
               />

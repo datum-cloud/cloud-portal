@@ -69,6 +69,12 @@ interface DnsRecordTableFullProps extends DnsRecordTableBaseProps {
   onOpenCreate: () => void;
   /** Called when the parent should open the edit inline form for a row */
   onOpenEdit: (record: IFlattenedDnsRecord) => void;
+  /**
+   * Whether the current user can edit DNS records. When `false`, the built-in
+   * Edit row action is disabled with a permission tooltip instead of firing
+   * `onOpenEdit`. Defaults to `true` (caller is responsible for SSAR gating).
+   */
+  canEdit?: boolean;
   /** Optional additional row actions appended after the built-in Edit action */
   extraRowActions?: ActionItem<IFlattenedDnsRecord>[];
 }
@@ -352,6 +358,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     inlineRowId,
     onInlineClose,
     onOpenEdit,
+    canEdit = true,
     extraRowActions = [],
   } = props as DnsRecordTableFullProps;
 
@@ -359,6 +366,8 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     {
       label: 'Edit',
       onClick: (record) => onOpenEdit(record),
+      disabled: () => !canEdit,
+      tooltip: () => (!canEdit ? "You don't have permission to edit DNS records" : ''),
     },
     ...extraRowActions,
   ];

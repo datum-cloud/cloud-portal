@@ -22,21 +22,21 @@ import {
 import { createProjectService } from '@/resources/projects';
 import { createRoleService } from '@/resources/roles';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { withLoaderErrors } from '@/utils/errors';
+import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useMemo } from 'react';
 import {
-  LoaderFunctionArgs,
   data,
+  type LoaderFunctionArgs,
+  type MetaFunction,
   useLoaderData,
   useParams,
-  type MetaFunction,
 } from 'react-router';
 
 export const handle = {
-  breadcrumb: (loaderData: { member?: Member }) => (
-    <span>{loaderData?.member?.user?.email ?? 'Roles'}</span>
+  breadcrumb: (loaderData: { data?: { member?: Member } }) => (
+    <span>{loaderData?.data?.member?.user?.email ?? 'Roles'}</span>
   ),
 };
 
@@ -44,18 +44,26 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Member Roles');
 });
 
-const _loader = async ({ params }: LoaderFunctionArgs) => {
-  const { orgId, memberId } = params as { orgId: string; memberId: string };
+export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
+  const orgId = args.params.orgId;
+  const memberId = args.params.memberId;
+  if (!orgId) {
+    throw new BadRequestError('Organization ID is required');
+  }
+  if (!memberId) {
+    throw new BadRequestError('Member ID is required');
+  }
 
   // Access gate first — skip data fetching the user isn't permitted to see.
-  const canView = await gateRouteAccess(orgId, {
+  const allowed = await gateRouteAccess(orgId, {
     resource: 'organizationmemberships',
     verb: 'list',
     group: 'resourcemanager.miloapis.com',
     namespace: buildOrganizationNamespace(orgId),
+    scope: 'org',
   });
 
-  if (!canView) {
+  if (!allowed) {
     return data({ restricted: true as const });
   }
 
@@ -77,6 +85,7 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
       verb: 'patch',
       group: 'resourcemanager.miloapis.com',
       namespace: buildOrganizationNamespace(orgId),
+      scope: 'org',
     }),
   ]);
 
@@ -87,30 +96,36 @@ const _loader = async ({ params }: LoaderFunctionArgs) => {
 
   return data({
     restricted: false as const,
-    member,
-    roles,
-    policyBindings,
-    projects: projectsList.items,
-    canManageRoles,
+    data: {
+      member,
+      roles,
+      policyBindings,
+      projects: projectsList.items,
+      canManageRoles,
+    },
+    companions: {},
   });
-};
-
-export const loader = withLoaderErrors(_loader);
+});
 
 export default function MemberRoles() {
-  const loaderData = useLoaderData<typeof _loader>();
+  const loaderData = useLoaderData<typeof loader>();
 
   if (loaderData.restricted) {
-    return <RestrictedState message="You don't have permission to view member roles." />;
+    return (
+      <RestrictedState
+        title="Access restricted"
+        message="You don't have permission to view member roles."
+      />
+    );
   }
 
-  return <MemberRolesEditor {...loaderData} />;
+  return <MemberRolesEditor {...loaderData.data} />;
 }
 
 type MemberRolesEditorProps = Extract<
-  Awaited<ReturnType<typeof _loader>>['data'],
+  Awaited<ReturnType<typeof loader>>['data'],
   { restricted: false }
->;
+>['data'];
 
 function MemberRolesEditor({
   member,

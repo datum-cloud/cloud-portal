@@ -2,28 +2,27 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { createActionsColumn, Table } from '@/components/table';
 import {
   DnsZoneFormDialog,
   type DnsZoneFormDialogRef,
 } from '@/features/edge/dns-zone/dns-zone-form-dialog';
-import { usePermissionCheck, PermissionButton } from '@/modules/rbac';
-import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { IExtendedControlPlaneStatus } from '@/resources/base';
 import {
+  type DnsZone,
   createDnsZoneService,
+  dnsZoneKeys,
   useDeleteDnsZone,
   useDnsZones,
   useDnsZonesWatch,
-  type DnsZone,
 } from '@/resources/dns-zones';
 import { useRefreshDomainRegistration } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -31,49 +30,25 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import type { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import {
-  LoaderFunctionArgs,
-  MetaFunction,
-  data,
-  useLoaderData,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('DNS');
+const route = defineResourceRoute<DnsZone[]>({
+  type: 'list',
+  resource: 'dnszones',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to view DNS.",
+  metaTitle: 'DNS',
+  seedCache: ({ data, projectId }) => [[dnsZoneKeys.list(projectId), data as DnsZone[]]] as never,
 });
 
-type DnsZonesLoaderData = { restricted: true } | { restricted: false; zones: DnsZone[] };
-
-export const loader = withLoaderErrors(async ({ params }: LoaderFunctionArgs) => {
-  const { projectId } = params;
-
-  if (!projectId) {
-    throw new BadRequestError('Project ID is required');
-  }
-
-  // Access gate first — skip the list call if the user can't view DNS zones.
-  const canList = await gateRouteAccess(projectId, {
+export const loader = (args: LoaderFunctionArgs) =>
+  runListLoader<DnsZone[]>(args, {
     resource: 'dnszones',
-    verb: 'list',
     group: 'dns.networking.miloapis.com',
-    namespace: 'default',
     scope: 'project',
-    projectId,
+    fetch: ({ projectId }) => createDnsZoneService().list(projectId!),
   });
-
-  if (!canList) {
-    return data({ restricted: true as const } satisfies DnsZonesLoaderData);
-  }
-
-  // Services now use global axios client with AsyncLocalStorage
-  const dnsZoneService = createDnsZoneService();
-  const zones = await dnsZoneService.list(projectId);
-
-  return data({ restricted: false as const, zones } satisfies DnsZonesLoaderData);
-});
+export const meta = route.meta;
 
 interface DnsZoneWithComputed extends DnsZone {
   _computed: {
@@ -84,68 +59,39 @@ interface DnsZoneWithComputed extends DnsZone {
   };
 }
 
-export default function DnsZonesPage() {
-  const loaderData = useLoaderData<typeof loader>();
+export default route.Page(({ data: initialZones }) => (
+  <DnsZonesInner initialZones={initialZones} />
+));
 
-  if (loaderData.restricted) {
-    return (
-      <RestrictedState title="Access restricted" message="You don't have permission to view DNS." />
-    );
-  }
+function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
+  const { projectId = '' } = useParams<{ projectId: string }>();
 
-  return <DnsZonesPageInner initialZones={loaderData.zones} />;
-}
-
-function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
-  const { projectId } = useParams();
-
-  const { permissions } = usePermissionCheck([
-    {
-      resource: 'dnszones',
-      verb: 'create',
-      group: 'dns.networking.miloapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'dnszones',
-      verb: 'delete',
-      group: 'dns.networking.miloapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-    {
-      resource: 'domains',
-      verb: 'patch',
-      group: 'networking.datumapis.com',
-      namespace: 'default',
-      scope: 'project',
-    },
-  ]);
-  const { canCreate, canDelete, canPatchDomain } = useMemo(
-    () => ({
-      canCreate: permissions['dnszones:create']?.allowed ?? false,
-      canDelete: permissions['dnszones:delete']?.allowed ?? false,
-      canPatchDomain: permissions['domains:patch']?.allowed ?? false,
-    }),
-    [permissions]
-  );
-
-  // Subscribe to watch for real-time updates
-  useDnsZonesWatch(projectId ?? '');
-
-  // Read from React Query cache (seeded synchronously from SSR loader data)
-  const { data: zonesData = [] } = useDnsZones(projectId ?? '', undefined, {
-    initialData: initialZones,
-    initialDataUpdatedAt: Date.now(),
-    // Don't refetch on mount - initialData already seeded the cache
-    refetchOnMount: false,
-    // Consider data fresh for 5 minutes (watch keeps it updated)
-    staleTime: QUERY_STALE_TIME,
+  const { canCreate, canDelete, canEditDomain } = useResourcePermissions({
+    resource: 'dnszones',
+    group: 'dns.networking.miloapis.com',
+    scope: 'project',
+    verbs: ['create', 'delete'],
+    subResources: [
+      {
+        resource: 'domains',
+        group: 'networking.datumapis.com',
+        scope: 'project',
+        alias: 'domain',
+        verbs: ['patch'],
+      },
+    ],
   });
 
-  // Use React Query data, fallback to SSR data
-  const zones = zonesData ?? initialZones;
+  // Subscribe to watch for real-time updates
+  useDnsZonesWatch(projectId);
+
+  // Read from React Query cache (seeded synchronously from SSR loader data)
+  const { data: zonesData = initialZones } = useDnsZones(projectId, undefined, {
+    initialData: initialZones,
+    initialDataUpdatedAt: Date.now(),
+    refetchOnMount: false,
+    staleTime: QUERY_STALE_TIME,
+  });
 
   const navigate = useNavigate();
   const { confirm } = useConfirmationDialog();
@@ -155,8 +101,10 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
   // Sync dialog state from URL search params (for external links like ?action=create&domainName=...)
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
-      const domainName = searchParams.get('domainName') ?? undefined;
-      dialogRef.current?.show(domainName);
+      if (canCreate) {
+        const domainName = searchParams.get('domainName') ?? undefined;
+        dialogRef.current?.show(domainName);
+      }
       setSearchParams(
         (prev) => {
           prev.delete('action');
@@ -166,11 +114,11 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
         { replace: true }
       );
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, canCreate]);
 
   // Pre-compute status for all zones (called once per zones change)
   const zonesWithStatus = useMemo<DnsZoneWithComputed[]>(() => {
-    return zones.map((zone) => {
+    return zonesData.map((zone) => {
       const status = transformControlPlaneStatus(zone.status, {
         includeConditionDetails: true,
       });
@@ -187,9 +135,9 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
         },
       };
     });
-  }, [zones]);
+  }, [zonesData]);
 
-  const deleteMutation = useDeleteDnsZone(projectId ?? '', {
+  const deleteMutation = useDeleteDnsZone(projectId, {
     onError: (error) => {
       toast.error('DNS', {
         description: error.message || 'Failed to delete DNS',
@@ -197,7 +145,7 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
     },
   });
 
-  const refreshMutation = useRefreshDomainRegistration(projectId ?? '', {
+  const refreshMutation = useRefreshDomainRegistration(projectId, {
     onSuccess: () => {
       toast.success('DNS', {
         description: 'The DNS has been refreshed successfully',
@@ -364,7 +312,7 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
         },
         {
           label: 'Refresh nameservers',
-          hidden: (row) => !canPatchDomain || !row.status?.domainRef?.name,
+          hidden: (row) => !canEditDomain || !row.status?.domainRef?.name,
           onClick: (row) => refreshDomain(row),
         },
         {
@@ -375,12 +323,12 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
         },
       ]),
     ],
-    [projectId, navigate, refreshDomain, deleteDnsZone, canPatchDomain, canDelete]
+    [projectId, navigate, refreshDomain, deleteDnsZone, canEditDomain, canDelete]
   );
 
   return (
     <>
-      <DnsZoneFormDialog ref={dialogRef} projectId={projectId ?? ''} />
+      <DnsZoneFormDialog ref={dialogRef} projectId={projectId} />
       <Table.Client
         columns={columns}
         data={zonesWithStatus}
@@ -414,7 +362,6 @@ function DnsZonesPageInner({ initialZones }: { initialZones: DnsZone[] }) {
             resource="dnszones"
             verb="create"
             group="dns.networking.miloapis.com"
-            namespace="default"
             scope="project"
             deniedReason="You don't have permission to add a DNS zone"
             type="primary"
