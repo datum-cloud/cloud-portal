@@ -277,11 +277,14 @@ describe('runDetailLoader', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 
-  test('throws NotFoundError when fetch returns null', async () => {
+  test('throws Response(404) when fetch returns null', async () => {
+    // `runDetailLoader` wraps thrown `AppError` (incl. `NotFoundError`) into a
+    // `Response` so React Router serves the route error boundary with the
+    // correct HTTP status. See `rethrowAsResponse` in run-resource-loader.ts.
     gateRouteAccessSpy.mockImplementation(async () => true);
     const fetchSpy = mock(async () => null);
 
-    let caught: Error | null = null;
+    let caught: unknown = null;
     try {
       await runDetailLoader(makeArgs({ projectId: 'p1', dnsZoneId: 'z1' }), {
         resource: 'dnszones',
@@ -292,11 +295,14 @@ describe('runDetailLoader', () => {
         fetch: fetchSpy,
       });
     } catch (e) {
-      caught = e as Error;
+      caught = e;
     }
-    expect(caught).toBeInstanceOf(Error);
-    expect(caught?.message).toContain('DNS');
-    expect(caught?.message).toContain('z1');
+    expect(caught).toBeInstanceOf(Response);
+    const response = caught as Response;
+    expect(response.status).toBe(404);
+    const body = (await response.json()) as { message: string };
+    expect(body.message).toContain('DNS');
+    expect(body.message).toContain('z1');
   });
 
   test('throws BadRequestError when paramName param is missing', async () => {
@@ -415,10 +421,12 @@ describe('runDetailLoader', () => {
     );
   });
 
-  test('user-scope detail: throws NotFoundError when fetch returns null', async () => {
+  test('user-scope detail: throws Response(404) when fetch returns null', async () => {
+    // See sibling test above — `runDetailLoader` wraps `NotFoundError` into a
+    // `Response` so the route error boundary receives the correct HTTP status.
     gateRouteAccessSpy.mockImplementation(async () => true);
 
-    let caught: Error | null = null;
+    let caught: unknown = null;
     try {
       await runDetailLoader(makeArgs({ orgId: 'org-1' }), {
         resource: 'organizations',
@@ -428,10 +436,14 @@ describe('runDetailLoader', () => {
         fetch: async () => null,
       });
     } catch (e) {
-      caught = e as Error;
+      caught = e;
     }
-    expect(caught?.message).toContain('Organization');
-    expect(caught?.message).toContain('org-1');
+    expect(caught).toBeInstanceOf(Response);
+    const response = caught as Response;
+    expect(response.status).toBe(404);
+    const body = (await response.json()) as { message: string };
+    expect(body.message).toContain('Organization');
+    expect(body.message).toContain('org-1');
   });
 });
 
