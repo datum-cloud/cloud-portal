@@ -96,7 +96,12 @@ describe('Projects — regression', () => {
     cy.get('[data-e2e="confirmation-dialog-input"]', { timeout: 10000 }).type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
     cy.url().should('include', paths.org.detail.projects.root.replace('[orgId]', orgId));
-    cy.get('body').should('not.contain.text', testName);
+    // Upstream LIST eventual consistency: the project may stay in the list
+    // response for a few seconds post-DELETE. Poll the SSR HTML until it's
+    // gone, then reload + assert against the rendered body.
+    cy.waitForProjectAbsentInOrg(orgId, testName);
+    cy.reload();
+    cy.get('body', { timeout: 10_000 }).should('not.contain.text', testName);
     // Clear last — signals after() that cleanup is done
     resourceId = '';
   });
