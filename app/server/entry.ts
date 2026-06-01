@@ -98,7 +98,6 @@ app.use(
         "'self'",
         ...(isDev ? ['ws:'] : []),
         env.public.apiUrl ?? '',
-        'https://*.marker.io',
         'https://*.sentry.io',
         'https://*.datum.net',
         'https://*.cloudfront.net',
@@ -108,7 +107,6 @@ app.use(
       fontSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.gstatic.com'],
       frameSrc: [
         "'self'",
-        'https://*.marker.io',
         'https://*.sentry.io',
         'https://*.datum.net',
         'https://*.cloudfront.net',
