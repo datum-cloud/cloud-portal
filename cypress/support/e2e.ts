@@ -6,8 +6,7 @@ import '@testing-library/cypress/add-commands';
  * Stub the "ambient" authenticated-page polling that fires on every visit so
  * the e2e suite doesn't trip the upstream IAM rate limiter for the test
  * account. None of the smoke specs exercise these endpoints — they're noise
- * from global header components (notification bell, watch SSE, org switcher,
- * marker.io feedback widget).
+ * from global header components (notification bell, watch SSE, org switcher).
  *
  * Without this, every `cy.visit` opens a fresh QueryClient + WatchManager
  * that hammers IAM, and in CI — where specs run back-to-back against the
@@ -44,9 +43,6 @@ function stubAmbientApis(): void {
   });
   cy.intercept('POST', '/api/watch/subscribe', { statusCode: 200, body: {} });
   cy.intercept('POST', '/api/watch/unsubscribe', { statusCode: 200, body: {} });
-
-  // Marker.io feedback widget — third-party, not under test.
-  cy.intercept(/api\.marker\.io/, { statusCode: 204, body: '' });
 
   // RBAC access-review BFF (#1269). Every authenticated page fires one or
   // both of these on mount; when they resolve, components re-render to

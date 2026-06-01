@@ -4,7 +4,6 @@ import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
-import MarkerIoEmbed from '@/modules/markerio';
 import { queryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
@@ -150,7 +149,6 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         {children}
 
         <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
-        <MarkerIoEmbed nonce={nonce} />
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
         <script
