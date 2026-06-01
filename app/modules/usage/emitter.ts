@@ -1,17 +1,25 @@
 // app/modules/usage/emitter.ts
 //
-// Thin HTTP client that POSTs CloudEvent batches to the durable Ingestion
-// Gateway. Until the gateway is reachable in the deployment env (i.e.
+// Thin HTTP client that POSTs CloudEvent batches to the in-cluster usage
+// collector (Vector). This is the blessed ingestion path: producer ->
+// Vector -> gateway -> NATS. Vector provides Tier-1 disk durability and
+// injects the gateway api-key when forwarding, so producers post plaintext
+// with no auth. Calling the ingestion gateway directly is explicitly
+// discouraged (see billing/docs/emitting-usage.md) because it loses that
+// durability guarantee.
+//
+// Until the collector is reachable in the deployment env (i.e.
 // USAGE_GATEWAY_URL is unset), `emitUsageEvents` is a no-op; this lets
 // the rest of the codebase wire emission unconditionally without
 // breaking dev/staging.
 //
-// Wire contract (billing/internal/gateway/handler/batch.go):
-//   POST <gateway>/v1/usage/events:batchIngest
-//   Body: JSON array of CloudEvents (max 100 per batch)
-//   Headers: x-api-key when USAGE_GATEWAY_API_KEY is set
-//   Response: 200 with {"accepted": N}, 207 with per-event rejections,
-//            400 on malformed body, 401 when api key is missing/invalid
+// Wire contract (Vector http_server source, path /cloudevents, json codec):
+//   POST <collector>/cloudevents
+//   Body: JSON array of CloudEvents (Vector splits the array into events;
+//         we cap at 100 per batch defensively)
+//   Headers: content-type: application/json. x-api-key is still sent when
+//            USAGE_GATEWAY_API_KEY is set, but the collector endpoint is
+//            unauthenticated in-cluster so it is normally unset.
 //
 // On any error we log and resolve — never throw — so usage emission can
 // never fail a user's chat request. Drops are surfaced via structured
@@ -23,9 +31,11 @@ import { logger } from '@/modules/logger';
 import { env } from '@/utils/env/env.server';
 
 const EMIT_TIMEOUT_MS = 5_000;
-const BATCH_PATH = '/v1/usage/events:batchIngest';
+// Vector's http_server source listens on this path; the downstream gateway
+// (which Vector forwards to) enforces the 100-event batch cap.
+const BATCH_PATH = '/cloudevents';
 
-// Gateway enforces 100 events per batch. We slice on the client so a
+// The gateway enforces 100 events per batch. We slice on the client so a
 // single oversize Record() call never trips the cap. A typical assistant
 // turn emits ≤5 events, so this is purely defensive.
 const MAX_BATCH_SIZE = 100;

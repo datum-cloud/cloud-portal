@@ -6,9 +6,10 @@
 //      ergonomic for `buildAssistantUsageEvents` to populate and stays
 //      easy to unit-test without committing to CloudEvents trivia.
 //
-//   2. `CloudEvent` — the *external* wire shape the billing Ingestion
-//      Gateway accepts at `POST /v1/usage/events:batchIngest`. Each
-//      entry must satisfy the structural rules in
+//   2. `CloudEvent` — the *external* wire shape posted to the in-cluster
+//      usage collector (Vector, `POST /cloudevents`), which forwards to
+//      the billing Ingestion Gateway. Each entry must satisfy the
+//      structural rules the gateway enforces in
 //      billing/internal/gateway/validate/validate.go (ULID id,
 //      specversion/type/source/subject present, subject =
 //      `projects/{name}`, datacontenttype = application/json,
