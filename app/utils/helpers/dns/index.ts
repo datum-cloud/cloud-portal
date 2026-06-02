@@ -80,6 +80,15 @@ export {
 // Error formatting helpers
 export { formatDnsConflictError, formatDnsError } from './error-formatting.helper';
 
+// DNS zone error state + remediation guidance
+export {
+  isDnsZoneErrored,
+  getDnsZoneErrorState,
+  getDnsZoneErrorGuidance,
+  type IDnsZoneErrorState,
+  type IDnsZoneErrorGuidance,
+} from './dns-zone-error.helper';
+
 // Record type configuration
 export {
   DNS_RECORD_TYPE_CONFIG,

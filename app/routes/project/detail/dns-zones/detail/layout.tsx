@@ -1,4 +1,5 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
+import { DnsZoneErrorBanner } from '@/features/edge/dns-zone/components/dns-zone-error-banner';
 import { SubLayout } from '@/layouts';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
@@ -105,6 +106,7 @@ export default route.Page(({ data: dnsZone }) => {
 
   return (
     <SubLayout title={dnsZone?.domainName} navItems={navItems}>
+      <DnsZoneErrorBanner zone={dnsZone} className="mb-6" />
       <Outlet />
     </SubLayout>
   );
