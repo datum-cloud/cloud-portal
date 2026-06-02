@@ -107,9 +107,19 @@ jobs:
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - run: bun test
+      # Coverage is reported (text in the log + lcov artifact) but not gated yet.
+      # Bun only instruments files imported by tests, so the % reflects the
+      # unit-tested surface, not the whole repo.
+      - run: bun run test:coverage
         env:
           NODE_ENV: test
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bun-coverage-${{ github.run_id }}
+          path: coverage/lcov.info
+          retention-days: 7
+          if-no-files-found: warn
 
   unit-tests:
     name: Unit Tests

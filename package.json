@@ -24,7 +24,8 @@
     "test:unit:prod": "cypress run --component --config-file cypress.config.ts --quiet",
     "test:unit:debug": "cypress open --component",
     "test:lib": "bun test app/lib",
-    "test:rbac": "bun test app/modules/rbac"
+    "test:rbac": "bun test app/modules/rbac",
+    "test:coverage": "bun test --coverage"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.71",

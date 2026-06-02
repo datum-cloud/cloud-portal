@@ -22,6 +22,9 @@ temp-openapi-spec.json
 # GraphQL generation temp files
 temp-filtered-schema.graphql
 
+# Coverage reports
+/coverage
+
 # Cypress files
 cypress/screenshots
 cypress/videos
