@@ -8,10 +8,21 @@ mock.module('@/modules/sentry', () => ({
   addBreadcrumb,
 }));
 
-// Mock @/modules/logger
+// Mock @/modules/logger. `mock.module` is process-global in Bun and persists
+// for the rest of the run, so keep the mocked logger faithful to the real
+// surface (don't ship a partial `{ info }` that breaks other files' `error`
+// calls when this mock leaks into them).
 const loggerInfo = mock(() => {});
 mock.module('@/modules/logger', () => ({
-  logger: { info: loggerInfo },
+  logger: {
+    debug: mock(() => {}),
+    info: loggerInfo,
+    warn: mock(() => {}),
+    error: mock(() => {}),
+    request: mock(() => {}),
+    api: mock(() => {}),
+    service: mock(() => {}),
+  },
 }));
 
 describe('emitSearchEvent', () => {
