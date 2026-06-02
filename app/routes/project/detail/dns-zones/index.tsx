@@ -23,6 +23,7 @@ import { useRefreshDomainRegistration } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getDnsZoneErrorGuidance, isDnsZoneErrored } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -54,6 +55,8 @@ interface DnsZoneWithComputed extends DnsZone {
   _computed: {
     status: IExtendedControlPlaneStatus;
     hasError: boolean;
+    /** Friendly guidance description (shared with the detail banner) shown in the error tooltip. */
+    errorDescription?: string;
     hasNameservers: boolean;
     isLoading: boolean;
   };
@@ -122,7 +125,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
       const status = transformControlPlaneStatus(zone.status, {
         includeConditionDetails: true,
       });
-      const hasError = status.isProgrammed === false && !!status.programmedReason;
+      const hasError = isDnsZoneErrored(status);
       const hasNameservers = !!zone.status?.domainRef?.status?.nameservers;
 
       return {
@@ -130,6 +133,9 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         _computed: {
           status,
           hasError,
+          errorDescription: hasError
+            ? getDnsZoneErrorGuidance(status.programmedReason, status.message).description
+            : undefined,
           hasNameservers,
           isLoading: !hasNameservers && !hasError,
         },
@@ -197,7 +203,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         header: 'Zone Name',
         accessorKey: 'domainName',
         cell: ({ row }) => {
-          const { status } = row.original._computed;
+          const { status, errorDescription } = row.original._computed;
 
           return (
             <div className="flex items-center gap-2" data-e2e="dns-zone-card">
@@ -208,7 +214,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
                 className="rounded-lg px-2 py-0.5"
                 isProgrammed={status.isProgrammed}
                 programmedReason={status.programmedReason}
-                statusMessage={status.message}
+                statusMessage={errorDescription ?? status.message}
                 errorReasons={null}
               />
             </div>
