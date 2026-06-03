@@ -1,6 +1,7 @@
 import { logger } from '@/modules/logger';
 import { createAccessReviewService, type SupportedVerb } from '@/resources/access-review';
 import { getOrgScopedBase, getProjectScopedBase, getUserScopedBase } from '@/resources/base/utils';
+import { buildOrganizationNamespace, buildProjectNamespace } from '@/utils/common';
 
 /**
  * Scope determines which control-plane base the SelfSubjectAccessReview is
@@ -64,6 +65,37 @@ export class RbacService {
     }
   }
 
+  /**
+   * Resolve the namespace a SelfSubjectAccessReview should target, derived from
+   * the check's scope (the "area" being requested). Omitting the namespace makes
+   * the authorizer evaluate against the empty namespace, which fails closed for
+   * any namespaced resource whose RoleBinding lives elsewhere — the always-false
+   * bug this method exists to prevent.
+   *
+   * An explicit `check.namespace` always wins so callers can target a specific
+   * namespace (cross-namespace checks). `''` is a deliberate value (cluster-scoped
+   * resources), so we branch on `undefined`, not falsiness.
+   *
+   * Scope → namespace:
+   * - project → 'default'                          (project control-plane resources)
+   * - org     → `organization-{organizationId}`    (org RoleBindings live here)
+   * - user    → '' (cluster-scoped root resources, e.g. `organizations`)
+   */
+  private resolveNamespace(organizationId: string, check: PermissionCheckInput): string {
+    if (check.namespace !== undefined) {
+      return check.namespace;
+    }
+    switch (check.scope ?? 'org') {
+      case 'project':
+        return buildProjectNamespace();
+      case 'user':
+        return '';
+      case 'org':
+      default:
+        return buildOrganizationNamespace(organizationId);
+    }
+  }
+
   async checkPermission(
     organizationId: string,
     check: PermissionCheckInput
@@ -73,7 +105,7 @@ export class RbacService {
       const result = await accessReview.create(
         organizationId,
         {
-          namespace: check.namespace || '',
+          namespace: this.resolveNamespace(organizationId, check),
           verb: check.verb,
           group: check.group || '',
           resource: check.resource,
@@ -112,7 +144,7 @@ export class RbacService {
         const result = await accessReview.create(
           organizationId,
           {
-            namespace: check.namespace || '',
+            namespace: this.resolveNamespace(organizationId, check),
             verb: check.verb,
             group: check.group || '',
             resource: check.resource,
@@ -134,7 +166,9 @@ export class RbacService {
         resource: check.resource,
         verb: check.verb,
         group: check.group || '',
-        namespace: check.namespace,
+        // Echo the namespace actually sent to the authorizer (resolved from scope),
+        // not the caller's raw (often undefined) value, so diagnostics are truthful.
+        namespace: this.resolveNamespace(organizationId, check),
         name: check.name,
       };
       if (outcome.status === 'fulfilled') {
