@@ -4,6 +4,7 @@ import { NameserverChips } from '@/components/nameserver-chips';
 import { createActionsColumn, Table } from '@/components/table';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
+import { useDomainExport } from '@/features/edge/domain/export';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -29,13 +30,14 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { DownloadIcon, GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useEffect, useState } from 'react';
 import { LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
@@ -179,6 +181,7 @@ function DomainsInner({
   const { enqueue, showSummary } = useTaskQueue();
   const { project, organization } = useApp();
   const [addOpen, setAddOpen] = useState(false);
+  const { handleExport } = useDomainExport();
 
   // Open create dialog from URL search params (e.g. ?action=create)
   useEffect(() => {
@@ -528,6 +531,20 @@ function DomainsInner({
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
         search="Search"
         actions={[
+          domains.length > 0 ? (
+            <Button
+              key="export"
+              htmlType="button"
+              type="secondary"
+              theme="outline"
+              size="small"
+              className="border-secondary/20 hover:border-secondary w-full sm:w-auto"
+              data-e2e="export-domains-button"
+              onClick={() => handleExport(domains)}>
+              <Icon icon={DownloadIcon} className="size-4" />
+              Export CSV
+            </Button>
+          ) : null,
           canCreate ? (
             <PermissionButton
               key="add"

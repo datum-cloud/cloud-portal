@@ -48,3 +48,6 @@ export {
 
 // Watch hook exports
 export * from './domain.watch';
+
+// Nameserver helper exports
+export { getDnsHostProviders } from './nameserver.helper';
