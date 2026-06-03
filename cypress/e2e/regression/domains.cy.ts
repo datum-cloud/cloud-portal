@@ -5,12 +5,12 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Selector Reference — Domains
  *
  * List page
- * [data-e2e="create-domain-button"]      "Add domain" button (header)
+ * [data-e2e="create-domain-button"]      "Add domains" button (header)
  * [data-e2e="domain-card"]               Domain row cell
  * [data-e2e="domain-name"]               Domain name text
  *
- * Create dialog
- * [data-e2e="create-domain-name-input"]  Domain name input
+ * Add dialog (unified single + bulk)
+ * [data-e2e="add-domains-input"]         Domains textarea (one or many)
  *
  * Settings page
  * [data-e2e="delete-domain-button"]      Delete domain button
@@ -49,8 +49,11 @@ describe('Domains — regression', () => {
           .click({ force: true });
       }
     });
-    cy.get('[data-e2e="create-domain-name-input"]').type(domainName);
-    cy.get('[role="dialog"]').contains('button', 'Add domain').click();
+    cy.get('[data-e2e="add-domains-input"]').type(domainName);
+    // Unified dialog: submit label reflects the parsed count, e.g. "Add domain (1)".
+    cy.get('[role="dialog"]')
+      .contains('button', /add domain/i)
+      .click();
 
     // After creation the app navigates to the overview page — extract domain ID from URL
     cy.url()
