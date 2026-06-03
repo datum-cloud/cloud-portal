@@ -147,17 +147,22 @@ export default defineConfig((config) => {
       target: 'esnext', // Compiles to modern JavaScript features for latest browsers
       sourcemap: sentryConfig.isSourcemapEnabled ? 'hidden' : false,
       rollupOptions: {
-        output: {
-          manualChunks: {
-            // Splits heavy vendor packages into stable chunks so feature
-            // changes don't invalidate the entire JS payload for repeat visits.
-            'vendor-react': ['react', 'react-dom', 'react-router'],
-            'vendor-datum-ui': ['@datum-cloud/datum-ui'],
-            'vendor-recharts': ['recharts'],
-            'vendor-icons': ['lucide-react'],
-            'vendor-streamdown': ['streamdown'], // pulls mermaid, elk, shiki — ~5MB
-          } satisfies ManualChunksOption,
-        },
+        // cypress-vite bundles each spec with `inlineDynamicImports`, which
+        // rollup 4.61+ rejects alongside `manualChunks`. Only apply manual
+        // chunking for the real app build, never for Cypress spec bundling.
+        output: process.env.CYPRESS
+          ? {}
+          : {
+              manualChunks: {
+                // Splits heavy vendor packages into stable chunks so feature
+                // changes don't invalidate the entire JS payload for repeat visits.
+                'vendor-react': ['react', 'react-dom', 'react-router'],
+                'vendor-datum-ui': ['@datum-cloud/datum-ui'],
+                'vendor-recharts': ['recharts'],
+                'vendor-icons': ['lucide-react'],
+                'vendor-streamdown': ['streamdown'], // pulls mermaid, elk, shiki — ~5MB
+              } satisfies ManualChunksOption,
+            },
       },
     },
   };
