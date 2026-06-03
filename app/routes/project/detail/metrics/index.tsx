@@ -207,21 +207,23 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
         </PermissionButton>,
       ]}
       empty={{
-        // Title stays constant; action button hides when canCreate is false so
-        // restricted users aren't directed at a /new route they'll only see
-        // RestrictedState on.
+        // Title stays constant; the action is shown disabled with an RBAC
+        // tooltip when canCreate is false so restricted users see why they
+        // can't create rather than a bare empty state.
         title: "let's add an export policy to get you started",
-        actions: canCreate
-          ? [
-              {
-                type: 'button',
-                label: 'Create an export policy',
-                icon: <Icon icon={PlusIcon} className="size-3" />,
-                onClick: () =>
-                  navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId })),
-              },
-            ]
-          : [],
+        actions: [
+          {
+            type: 'button',
+            label: 'Create an export policy',
+            icon: <Icon icon={PlusIcon} className="size-3" />,
+            onClick: () =>
+              navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId })),
+            disabled: !canCreate,
+            tooltip: !canCreate
+              ? "You don't have permission to create an export policy"
+              : undefined,
+          },
+        ],
       }}
     />
   );

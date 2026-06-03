@@ -350,17 +350,17 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
           )
         }
         empty={{
-          title: canCreate ? "let's add a DNS to get you started" : 'No DNS yet',
-          actions: canCreate
-            ? [
-                {
-                  type: 'button',
-                  label: 'Add zone',
-                  onClick: () => dialogRef.current?.show(),
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                },
-              ]
-            : [],
+          title: "let's add a DNS to get you started",
+          actions: [
+            {
+              type: 'button',
+              label: 'Add zone',
+              onClick: () => dialogRef.current?.show(),
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              disabled: !canCreate,
+              tooltip: !canCreate ? "You don't have permission to add a DNS zone" : undefined,
+            },
+          ],
         }}
         actions={[
           <PermissionButton

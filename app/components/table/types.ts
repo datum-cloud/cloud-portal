@@ -42,6 +42,13 @@ export type EmptyContentConfig = {
     icon?: ReactNode;
     /** Visual variant. `'outline'` renders a bordered secondary button. */
     variant?: 'default' | 'destructive' | 'outline';
+    /** Disable the action (e.g. RBAC: user lacks the create permission). */
+    disabled?: boolean;
+    /** Skip rendering the action entirely. */
+    hidden?: boolean;
+    /** Hint shown on hover/focus; visible even while `disabled` (RBAC reason). */
+    tooltip?: ReactNode;
+    tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
   }>;
 };
 
