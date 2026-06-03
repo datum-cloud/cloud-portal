@@ -1,5 +1,12 @@
 import { GuardedPage } from './components/GuardedPage';
-import type { DefineListPageInput, DefineDetailPageInput, DslLoaderData } from './types';
+import type {
+  DefineListPageInput,
+  DefineDetailPageInput,
+  DefineGatePageInput,
+  DslLoaderData,
+  GateLoaderData,
+} from './types';
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { useCallback } from 'react';
 import { useLoaderData, useParams, type MetaFunction } from 'react-router';
@@ -37,6 +44,13 @@ interface DefineDetailRouteOutput<TData, TCompanions extends Record<string, unkn
   ) => () => React.ReactElement;
 }
 
+interface DefineGateRouteOutput {
+  meta: MetaFunction;
+  // Gate routes fetch no resource, so the render prop takes no args. The
+  // wrapper emits <RestrictedState> when the loader verdict is restricted.
+  Page: (render: () => React.ReactNode) => () => React.ReactElement;
+}
+
 export function defineResourceRoute<TData>(
   input: DefineListPageInput
 ): DefineListRouteOutput<TData>;
@@ -46,13 +60,19 @@ export function defineResourceRoute<
   TCompanions extends Record<string, unknown> = Record<string, never>,
 >(input: DefineDetailPageInput<TData, TCompanions>): DefineDetailRouteOutput<TData, TCompanions>;
 
+export function defineResourceRoute(input: DefineGatePageInput): DefineGateRouteOutput;
+
 export function defineResourceRoute(input: unknown): unknown {
   const cfg = input as
     | DefineListPageInput
-    | DefineDetailPageInput<unknown, Record<string, unknown>>;
+    | DefineDetailPageInput<unknown, Record<string, unknown>>
+    | DefineGatePageInput;
 
   if (cfg.type === 'list') {
     return defineListRoute(cfg);
+  }
+  if (cfg.type === 'gate') {
+    return defineGateRoute(cfg);
   }
   return defineDetailRoute(cfg);
 }
@@ -83,6 +103,22 @@ function defineListRoute<TData>(cfg: DefineListPageInput): DefineListRouteOutput
           {(d, companions) => render({ data: d, companions })}
         </GuardedPage>
       );
+    };
+  };
+
+  return { meta, Page };
+}
+
+function defineGateRoute(cfg: DefineGatePageInput): DefineGateRouteOutput {
+  const meta: MetaFunction = mergeMeta(() => metaObject(cfg.metaTitle ?? cfg.restrictedTitle));
+
+  const Page: DefineGateRouteOutput['Page'] = (render) => {
+    return function GuardedGateOutlet() {
+      const loaderData = useLoaderData<GateLoaderData>();
+      if (loaderData.restricted) {
+        return <RestrictedState title={cfg.restrictedTitle} message={cfg.restrictedMessage} />;
+      }
+      return <>{render()}</>;
     };
   };
 
