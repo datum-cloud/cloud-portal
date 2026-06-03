@@ -1,53 +1,28 @@
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { ExportPolicyComingSoonCard } from '@/features/metric/export-policies/card/coming-soon-card';
 import { ExportPolicyGrafanaCard } from '@/features/metric/export-policies/card/grafana-card';
-import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { useEffect, useRef } from 'react';
-import {
-  data,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-  useLoaderData,
-  useParams,
-  useSearchParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, useParams, useSearchParams } from 'react-router';
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Create an Export Policy');
+const route = defineResourceRoute({
+  type: 'gate',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to create export policies.",
+  metaTitle: 'Create an Export Policy',
 });
 
-export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
-  const projectId = args.params.projectId;
-  if (!projectId) throw new BadRequestError('Project ID is required');
-
-  const allowed = await gateRouteAccess(projectId, {
+export const loader = (args: LoaderFunctionArgs) =>
+  runRouteGate(args, {
     resource: 'exportpolicies',
     verb: 'create',
     group: 'telemetry.miloapis.com',
     scope: 'project',
   });
+export const meta = route.meta;
 
-  if (!allowed) return data({ restricted: true as const });
-  return data({ restricted: false as const });
-});
-
-export default function ExportPoliciesNewPage() {
-  const loaderData = useLoaderData<typeof loader>();
-
-  if (loaderData.restricted) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to create export policies."
-      />
-    );
-  }
-
-  return <NewForm />;
-}
+export default route.Page(() => <NewForm />);
 
 function NewForm() {
   const { projectId } = useParams();
