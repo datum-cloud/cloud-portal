@@ -73,6 +73,51 @@ describe('RbacService.checkPermission', () => {
   });
 });
 
+describe('RbacService namespace resolution', () => {
+  /** Pull the namespace from the SSAR payload (2nd positional arg to create). */
+  function sentNamespace(create: { mock: { calls: unknown[][] } }): string {
+    return (create.mock.calls[0] as [string, { namespace: string }, unknown])[1].namespace;
+  }
+
+  test('org-scoped check (default scope) targets the organization namespace', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    await svc.checkPermission('acme', { resource: 'members', verb: 'list', scope: 'org' });
+    expect(sentNamespace(fakeAccessReview.create)).toBe('organization-acme');
+  });
+
+  test('project-scoped check targets the default namespace', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    await svc.checkPermission('acme', {
+      resource: 'dnszones',
+      verb: 'list',
+      scope: 'project',
+      projectId: 'proj-1',
+    });
+    expect(sentNamespace(fakeAccessReview.create)).toBe('default');
+  });
+
+  test('user-scoped check targets the empty (cluster-scoped) namespace', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    await svc.checkPermission('acme', { resource: 'organizations', verb: 'list', scope: 'user' });
+    expect(sentNamespace(fakeAccessReview.create)).toBe('');
+  });
+
+  test('explicit namespace overrides scope derivation', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    await svc.checkPermission('acme', {
+      resource: 'members',
+      verb: 'list',
+      scope: 'org',
+      namespace: 'custom-ns',
+    });
+    expect(sentNamespace(fakeAccessReview.create)).toBe('custom-ns');
+  });
+});
+
 describe('RbacService.checkPermissions (bulk)', () => {
   test('returns per-check results with originating request', async () => {
     const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
@@ -90,7 +135,8 @@ describe('RbacService.checkPermissions (bulk)', () => {
         resource: 'secrets',
         verb: 'get',
         group: '',
-        namespace: undefined,
+        // No scope → defaults to 'org' → resolved org namespace.
+        namespace: 'organization-acme',
         name: undefined,
       },
     });
@@ -119,7 +165,8 @@ describe('RbacService.checkPermissions (bulk)', () => {
         resource: 'secrets',
         verb: 'delete',
         group: '',
-        namespace: undefined,
+        // No scope → defaults to 'org' → resolved org namespace.
+        namespace: 'organization-acme',
         name: undefined,
       },
     });
