@@ -1,3 +1,4 @@
+import { mapLegacyIconPosition, mapLegacyVariant } from '../empty-content-action';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -32,6 +33,13 @@ export type CardListAction = {
   iconPosition?: 'start' | 'end';
   variant?: 'default' | 'destructive' | 'outline';
   buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
+  /** Disable the action (e.g. RBAC: user lacks the create permission). */
+  disabled?: boolean;
+  /** Skip rendering the action entirely. */
+  hidden?: boolean;
+  /** Hint shown on hover/focus; visible even while `disabled` (RBAC reason). */
+  tooltip?: ReactNode;
+  tooltipSide?: 'top' | 'right' | 'bottom' | 'left';
 };
 
 export type CardListEmptyConfig = {
@@ -386,13 +394,20 @@ function CardListItems<TData>({
               emptyConfig.action
                 ? [
                     {
-                      // EmptyContentAction does not have buttonProps — omit it
-                      type: 'button' as const,
+                      // datum-ui 1.0.0 `as`-discriminated action. CardList empty
+                      // actions are always buttons; legacy `variant` maps to
+                      // Button `type`/`theme`, `iconPosition` start/end → left/right.
+                      // RBAC props (disabled/hidden/tooltip) pass straight through.
+                      as: 'button' as const,
                       label: emptyConfig.action.label,
                       onClick: emptyConfig.action.onClick,
-                      variant: emptyConfig.action.variant ?? 'default',
+                      ...mapLegacyVariant(emptyConfig.action.variant),
                       icon: emptyConfig.action.icon,
-                      iconPosition: emptyConfig.action.iconPosition,
+                      iconPosition: mapLegacyIconPosition(emptyConfig.action.iconPosition),
+                      disabled: emptyConfig.action.disabled,
+                      hidden: emptyConfig.action.hidden,
+                      tooltip: emptyConfig.action.tooltip,
+                      tooltipSide: emptyConfig.action.tooltipSide,
                     },
                   ]
                 : undefined

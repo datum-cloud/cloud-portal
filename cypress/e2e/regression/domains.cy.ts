@@ -48,13 +48,22 @@ describe('Domains — regression', () => {
   it('should create a domain and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.domains.root, { projectId }));
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/domains`);
-    cy.get('body', { timeout: 10000 }).then(($body) => {
+    // On an empty list the Table hides the toolbar actions (incl. the header
+    // create button) and surfaces only the empty-state CTA. Click whichever
+    // create affordance is present and wait for it to be ENABLED first — the
+    // create-permission check renders the action disabled (with a tooltip)
+    // until it resolves, and clicking it while disabled opens no dialog.
+    cy.get('body', { timeout: 15000 }).then(($body) => {
       if ($body.find('[data-e2e="create-domain-button"]').length > 0) {
-        cy.get('[data-e2e="create-domain-button"]').should('be.visible').click({ force: true });
-      } else {
-        cy.contains('button', /add domain/i, { timeout: 10000 })
+        cy.get('[data-e2e="create-domain-button"]', { timeout: 15000 })
           .should('be.visible')
-          .click({ force: true });
+          .and('not.be.disabled')
+          .click();
+      } else {
+        cy.contains('button', /add domains/i, { timeout: 15000 })
+          .should('be.visible')
+          .and('not.be.disabled')
+          .click();
       }
     });
     cy.get('[data-e2e="add-domains-input"]').type(domainName);

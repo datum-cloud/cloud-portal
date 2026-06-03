@@ -232,23 +232,25 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
           </PermissionButton>,
         ]}
         empty={{
-          // Title stays constant; action button hides when canCreate is false so
-          // restricted users aren't directed at a /new route they'll only see
-          // RestrictedState on.
+          // Title stays constant; the action is shown disabled with an RBAC
+          // tooltip when canCreate is false so restricted users see why they
+          // can't create rather than a bare empty state.
           title: "let's add a service account to get you started",
-          actions: canCreate
-            ? [
-                {
-                  type: 'button',
-                  label: 'Create a Service Account',
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                  onClick: () =>
-                    navigate(
-                      getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })
-                    ),
-                },
-              ]
-            : [],
+          actions: [
+            {
+              type: 'button',
+              label: 'Create a Service Account',
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              onClick: () =>
+                navigate(
+                  getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })
+                ),
+              disabled: !canCreate,
+              tooltip: !canCreate
+                ? "You don't have permission to create a service account"
+                : undefined,
+            },
+          ],
         }}
       />
 

@@ -580,19 +580,20 @@ function DomainsInner({
             : []
         }
         empty={{
-          // Title stays constant; action buttons hide when canCreate is false so
-          // restricted users aren't presented with a dialog they can't submit.
+          // Title stays constant; the action is shown disabled with an RBAC
+          // tooltip when canCreate is false so restricted users see why they
+          // can't add a domain rather than a bare empty state.
           title: "let's add a domain to get you started",
-          actions: canCreate
-            ? [
-                {
-                  label: 'Add domains',
-                  type: 'button',
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                  onClick: () => setAddOpen(true),
-                },
-              ]
-            : [],
+          actions: [
+            {
+              label: 'Add domains',
+              type: 'button',
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              onClick: () => setAddOpen(true),
+              disabled: !canCreate,
+              tooltip: !canCreate ? "You don't have permission to add a domain" : undefined,
+            },
+          ],
         }}
       />
 

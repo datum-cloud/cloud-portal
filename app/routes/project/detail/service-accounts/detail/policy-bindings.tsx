@@ -153,16 +153,18 @@ function BindingsPanel({ orgId }: { orgId: string }) {
           bindings={bindings}
           empty={{
             title: 'No roles found',
-            actions: canCreate
-              ? [
-                  {
-                    label: 'Grant role on this project',
-                    type: 'button',
-                    onClick: () => dialogRef.current?.show(),
-                    icon: <ShieldIcon className="size-4" />,
-                  },
-                ]
-              : [],
+            actions: [
+              {
+                label: 'Grant role on this project',
+                type: 'button',
+                onClick: () => dialogRef.current?.show(),
+                icon: <ShieldIcon className="size-4" />,
+                disabled: !canCreate,
+                tooltip: !canCreate
+                  ? "You don't have permission to grant roles on this project"
+                  : undefined,
+              },
+            ],
           }}
           tableTitle={{
             actions: canCreate ? (
