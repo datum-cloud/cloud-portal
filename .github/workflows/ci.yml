@@ -93,6 +93,34 @@ jobs:
           key: build-${{ github.sha }}
 
   # ─── Tests ──────────────────────────────────────────────────
+  bun-tests:
+    name: Bun Unit Tests
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with: { bun-version: 1.3.14 } # renovate: datasource=docker depName=oven/bun
+      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+      # Coverage is reported (text in the log + lcov artifact) but not gated yet.
+      # Bun only instruments files imported by tests, so the % reflects the
+      # unit-tested surface, not the whole repo.
+      - run: bun run test:coverage
+        env:
+          NODE_ENV: test
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bun-coverage-${{ github.run_id }}
+          path: coverage/lcov.info
+          retention-days: 7
+          if-no-files-found: warn
+
   unit-tests:
     name: Unit Tests
     needs: build
@@ -255,7 +283,7 @@ jobs:
   # ─── Status Gate ────────────────────────────────────────────
   status-check:
     name: Final Status Check
-    needs: [install, lint, typecheck, build, unit-tests, e2e-smoke, e2e-regression]
+    needs: [install, lint, typecheck, build, bun-tests, unit-tests, e2e-smoke, e2e-regression]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -310,7 +338,7 @@ jobs:
   # ─── PR Comment ─────────────────────────────────────────────
   pr-comment:
     name: PR Test Summary
-    needs: [unit-tests, e2e-smoke]
+    needs: [bun-tests, unit-tests, e2e-smoke]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     permissions:
@@ -334,7 +362,7 @@ jobs:
             });
 
             const testJobs = jobs.jobs.filter(j =>
-              j.name === 'Unit Tests' || j.name.startsWith('E2E')
+              j.name === 'Bun Unit Tests' || j.name === 'Unit Tests' || j.name.startsWith('E2E')
             );
 
             const statusEmoji = (conclusion) => {
@@ -374,5 +402,4 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: pr-summary.md
-          comment-tag: ci-summary
           edit-mode: replace

@@ -1,0 +1,11 @@
+[test]
+# Coverage is opt-in via `--coverage` (see `bun run test:coverage`); these
+# settings only take effect when that flag is passed, so plain `bun test`
+# stays fast for local/CI runs.
+#
+# NOTE: Bun only instruments files that tests import, so the reported
+# percentage reflects covered files, not the whole repo. Treat it as a
+# ratchet for the unit-tested surface, not as repo-wide coverage.
+coverageReporter = ["text", "lcov"]
+coverageDir = "coverage"
+coverageSkipTestFiles = true

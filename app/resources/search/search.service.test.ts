@@ -9,8 +9,13 @@ mock.module('@/modules/control-plane/search', () => ({
   createSearchMiloapisComV1Alpha1ResourceSearchQuery: (...args: unknown[]) => createSpy(...args),
 }));
 
+// NOTE: `mock.module` in Bun is process-global and persists for the rest of
+// the run, so it can leak into other test files. Keep these mocks faithful to
+// the real modules' shape/output (e.g. the real scoped-base URL format and the
+// full logger surface) so execution order can never matter.
 mock.module('@/resources/base/utils', () => ({
-  getProjectScopedBase: (id: string) => `/api/proxy/projects/${id}/control-plane`,
+  getProjectScopedBase: (id: string) =>
+    `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${id}/control-plane`,
 }));
 
 mock.module('@/utils/errors/error-mapper', () => ({
@@ -18,7 +23,15 @@ mock.module('@/utils/errors/error-mapper', () => ({
 }));
 
 mock.module('@/modules/logger', () => ({
-  logger: { service: mock(() => {}), error: mock(() => {}) },
+  logger: {
+    debug: mock(() => {}),
+    info: mock(() => {}),
+    warn: mock(() => {}),
+    error: mock(() => {}),
+    request: mock(() => {}),
+    api: mock(() => {}),
+    service: mock(() => {}),
+  },
 }));
 
 beforeEach(() => {
@@ -48,7 +61,9 @@ describe('searchService', () => {
     const svc = createSearchService();
     await svc.searchInProject('alpha', { query: 'acme', targetResources: PROJECT_KINDS });
     const call = createSpy.mock.calls[0][0];
-    expect(call.baseURL).toBe('/api/proxy/projects/alpha/control-plane');
+    expect(call.baseURL).toBe(
+      '/apis/resourcemanager.miloapis.com/v1alpha1/projects/alpha/control-plane'
+    );
   });
 
   it('passes apiVersion, kind, metadata in body', async () => {
