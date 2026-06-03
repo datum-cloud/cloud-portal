@@ -42,13 +42,15 @@ describe('AI Edge — regression', () => {
   it('should create an AI Edge and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/edge`);
-    cy.get('body', { timeout: 10000 }).then(($body) => {
-      if ($body.find('[data-e2e="create-ai-edge-button"]').length > 0) {
-        cy.get('[data-e2e="create-ai-edge-button"]').should('be.visible').click();
-      } else {
-        cy.contains('button', /^new$/i, { timeout: 10000 }).should('be.visible').click();
-      }
-    });
+    // Target the header create button by data-e2e and wait for it to be
+    // enabled. It only renders once the create-permission check resolves, so
+    // a `$body.find` snapshot races. The empty state also renders a "New" CTA
+    // (disabled while the permission check is in flight), so a text-based
+    // selector is ambiguous and can click that re-rendering/disabled button.
+    cy.get('[data-e2e="create-ai-edge-button"]', { timeout: 15000 })
+      .should('be.visible')
+      .and('not.be.disabled')
+      .click();
 
     cy.get('[data-e2e="create-ai-edge-name-input"]').type(edgeName);
     cy.get('input[placeholder*="api.example.com"]').type('api.example.com');

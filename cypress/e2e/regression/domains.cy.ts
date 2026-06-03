@@ -48,15 +48,16 @@ describe('Domains — regression', () => {
   it('should create a domain and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.domains.root, { projectId }));
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/domains`);
-    cy.get('body', { timeout: 10000 }).then(($body) => {
-      if ($body.find('[data-e2e="create-domain-button"]').length > 0) {
-        cy.get('[data-e2e="create-domain-button"]').should('be.visible').click({ force: true });
-      } else {
-        cy.contains('button', /add domain/i, { timeout: 10000 })
-          .should('be.visible')
-          .click({ force: true });
-      }
-    });
+    // Target the header create button by data-e2e and wait for it to be
+    // enabled. It only renders once the create-permission check resolves, so
+    // a `$body.find` snapshot races. The empty state also renders an
+    // "Add domains" CTA (disabled while the permission check is in flight), so
+    // a text-based selector is ambiguous and can force-click that disabled
+    // button — opening no dialog.
+    cy.get('[data-e2e="create-domain-button"]', { timeout: 15000 })
+      .should('be.visible')
+      .and('not.be.disabled')
+      .click();
     cy.get('[data-e2e="add-domains-input"]').type(domainName);
     // Unified dialog: submit label reflects the parsed count, e.g. "Add domain (1)".
     cy.get('[role="dialog"]')
