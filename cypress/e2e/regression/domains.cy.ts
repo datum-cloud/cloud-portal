@@ -6,11 +6,19 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  *
  * List page
  * [data-e2e="create-domain-button"]      "Add domains" button (header)
+ * [data-e2e="export-domains-button"]     "Export CSV" button (only when >= 1 domain)
  * [data-e2e="domain-card"]               Domain row cell
  * [data-e2e="domain-name"]               Domain name text
  *
  * Add dialog (unified single + bulk)
  * [data-e2e="add-domains-input"]         Domains textarea (one or many)
+ *
+ * Export flow
+ * "Export CSV" enqueues a task-queue job that builds the CSV with dummy
+ * progress (~1.5–2s); on completion the task card shows a "Download CSV"
+ * action (datum-ui, matched by text) which calls downloadFile() — a Blob +
+ * <a download> click. CSV content (headers, escaping, row mapping) is covered
+ * by the component specs; here we only verify the UI → task → download wiring.
  *
  * Settings page
  * [data-e2e="delete-domain-button"]      Delete domain button
@@ -67,6 +75,42 @@ describe('Domains — regression', () => {
   it('should show the domain on the list page', () => {
     cy.visit(getPathWithParams(paths.project.detail.domains.root, { projectId }));
     cy.contains('[data-e2e="domain-name"]', domainName, { timeout: 10000 }).should('be.visible');
+  });
+
+  it('should export the domains to a CSV file', () => {
+    let capturedBlob: Blob | null = null;
+
+    cy.visit(getPathWithParams(paths.project.detail.domains.root, { projectId }));
+
+    // Spy on the download Blob. downloadFile() calls URL.createObjectURL(blob);
+    // stubbing it lets us read exactly what the user would download without
+    // touching the filesystem. Must be set up after visit (fresh window).
+    cy.window().then((win) => {
+      cy.stub(win.URL, 'createObjectURL').callsFake((blob: Blob) => {
+        capturedBlob = blob;
+        return 'blob:stubbed-export';
+      });
+    });
+
+    cy.get('[data-e2e="export-domains-button"]', { timeout: 10000 }).should('be.visible').click();
+
+    // Task card surfaces the completion action once the CSV is built.
+    cy.contains('button', /download csv/i, { timeout: 15000 })
+      .should('be.visible')
+      .click();
+
+    cy.then(() => {
+      expect(capturedBlob, 'a CSV Blob was created for download').to.not.be.null;
+      expect(capturedBlob!.type).to.contain('text/csv');
+      return capturedBlob!.text();
+    }).then((csv) => {
+      // Header row matches the snake_case contract asserted in the unit specs.
+      expect(csv).to.contain(
+        'domain,registrar,dns_host,expiration_date,verification_status,resource_name'
+      );
+      // The domain created above is present in the export.
+      expect(csv).to.contain(domainName);
+    });
   });
 
   it('should delete the domain', () => {
