@@ -107,6 +107,13 @@ export type DslLoaderData<TData, TCompanions> =
   | { restricted: true }
   | { restricted: false; data: TData; companions: TCompanions };
 
+/**
+ * Envelope returned by `runRouteGate` — the gate-only DSL variant for routes
+ * that gate access but fetch no resource (create/"new" pages, action pages,
+ * non-`get` settings sub-routes). No `data`/`companions`, just the verdict.
+ */
+export type GateLoaderData = { restricted: boolean };
+
 /** Per-verb React Query options forwarded to the underlying SSAR call. */
 export interface ResourcePermissionVerbOptions {
   staleTime?: number;
@@ -247,6 +254,19 @@ export interface DefineDetailPageInput<TData, TCompanions extends Record<string,
 }
 
 /**
+ * Page-side input for the gate-only DSL variant (`type: 'gate'`). Client-safe
+ * metadata only — the gate verb/group/scope drive the server-only loader and
+ * live in `RunRouteGateInput`. Used for create/"new" and non-`get` settings
+ * routes that gate access but fetch no resource.
+ */
+export interface DefineGatePageInput {
+  type: 'gate';
+  restrictedTitle?: string;
+  restrictedMessage: string;
+  metaTitle?: string;
+}
+
+/**
  * Server-side input for `runListLoader` / `runDetailLoader`. Contains the
  * gate inputs (`group`/`scope`/`namespace`) and the `fetch` closure.
  * Lives in the same types file because it's small and shares the
@@ -259,6 +279,23 @@ export interface RunListLoaderInput<TData> {
   namespace?: string;
   scope?: 'project' | 'org' | 'user';
   fetch: (ctx: { projectId?: string; orgId?: string; args: LoaderFunctionArgs }) => Promise<TData>;
+}
+
+/**
+ * Server-side input for `runRouteGate` — the gate-only loader. No `fetch`;
+ * `verb` is explicit (unlike `runListLoader`/`runDetailLoader` which hardcode
+ * `list`/`get`) so create/patch/etc. routes can gate the verb they perform.
+ * Scope handling (incl. `projectId` resolution) is shared with the other
+ * loaders via `resolveScopeContext`, so callers can't forget `projectId`.
+ */
+export interface RunRouteGateInput {
+  resource: string;
+  verb: PermissionVerb;
+  group?: string;
+  namespace?: string;
+  scope?: 'project' | 'org' | 'user';
+  /** For scope='user' gates where a URL param is the resource name, not a scope id. */
+  name?: string;
 }
 
 export interface RunDetailLoaderInput<TData, TCompanions extends Record<string, unknown>> {
