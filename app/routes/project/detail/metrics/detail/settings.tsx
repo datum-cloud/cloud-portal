@@ -35,6 +35,10 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
     verb: 'patch',
     group: 'telemetry.miloapis.com',
     scope: 'project',
+    // Required for project-scoped checks: RbacService.resolveBaseURL reads
+    // check.projectId (the first positional arg is ignored for scope:'project').
+    // Omitting it throws "projectId is required…" → the check fails closed.
+    projectId,
   });
 
   if (!allowed) {
