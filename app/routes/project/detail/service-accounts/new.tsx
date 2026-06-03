@@ -1,60 +1,36 @@
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { CiCdCard } from '@/features/service-account/card/ci-cd-card';
 import { ServiceCard } from '@/features/service-account/card/service-card';
 import { CreateServiceAccountWizard } from '@/features/service-account/wizard/create-service-account-wizard';
-import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import {
   useCaseSchema,
   type CreateServiceAccountKeyResponse,
   type UseCase,
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { useEffect, useRef, useState } from 'react';
-import {
-  data,
-  type LoaderFunctionArgs,
-  MetaFunction,
-  useLoaderData,
-  useNavigate,
-  useParams,
-  useSearchParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
-export const meta: MetaFunction = mergeMeta(() => metaObject('Create a Service Account'));
+const route = defineResourceRoute({
+  type: 'gate',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to create service accounts.",
+  metaTitle: 'Create a Service Account',
+});
 
-export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
-  const projectId = args.params.projectId;
-  if (!projectId) throw new BadRequestError('Project ID is required');
-
-  const allowed = await gateRouteAccess(projectId, {
+export const loader = (args: LoaderFunctionArgs) =>
+  runRouteGate(args, {
     resource: 'serviceaccounts',
     verb: 'create',
     group: 'iam.miloapis.com',
     scope: 'project',
   });
+export const meta = route.meta;
 
-  if (!allowed) return data({ restricted: true as const });
-  return data({ restricted: false as const });
-});
-
-export default function ServiceAccountsNewPage() {
-  const loaderData = useLoaderData<typeof loader>();
-
-  if (loaderData.restricted) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to create service accounts."
-      />
-    );
-  }
-
-  return <NewPageInner />;
-}
+export default route.Page(() => <NewPageInner />);
 
 function NewPageInner() {
   const { projectId } = useParams();

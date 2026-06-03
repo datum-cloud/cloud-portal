@@ -42,11 +42,22 @@ describe('AI Edge — regression', () => {
   it('should create an AI Edge and appear in the list', () => {
     cy.visit(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/edge`);
-    cy.get('body', { timeout: 10000 }).then(($body) => {
+    // On an empty list the Table hides the toolbar actions (incl. the header
+    // create button) and surfaces only the empty-state CTA. Click whichever
+    // create affordance is present and wait for it to be ENABLED first — the
+    // create-permission check renders the action disabled (with a tooltip)
+    // until it resolves, and clicking it while disabled opens no dialog.
+    cy.get('body', { timeout: 15000 }).then(($body) => {
       if ($body.find('[data-e2e="create-ai-edge-button"]').length > 0) {
-        cy.get('[data-e2e="create-ai-edge-button"]').should('be.visible').click();
+        cy.get('[data-e2e="create-ai-edge-button"]', { timeout: 15000 })
+          .should('be.visible')
+          .and('not.be.disabled')
+          .click();
       } else {
-        cy.contains('button', /^new$/i, { timeout: 10000 }).should('be.visible').click();
+        cy.contains('button', /^new$/i, { timeout: 15000 })
+          .should('be.visible')
+          .and('not.be.disabled')
+          .click();
       }
     });
 

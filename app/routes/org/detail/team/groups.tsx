@@ -194,17 +194,17 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
           )
         }
         empty={{
-          title: canCreate ? 'create your first group' : 'No groups yet',
-          actions: canCreate
-            ? [
-                {
-                  type: 'button',
-                  label: 'Create Group',
-                  onClick: () => groupFormDialogRef.current?.show(),
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                },
-              ]
-            : undefined,
+          title: 'create your first group',
+          actions: [
+            {
+              type: 'button',
+              label: 'Create Group',
+              onClick: () => groupFormDialogRef.current?.show(),
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              disabled: !canCreate,
+              tooltip: !canCreate ? "You don't have permission to create groups" : undefined,
+            },
+          ],
         }}
         actions={[
           <PermissionButton

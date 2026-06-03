@@ -180,19 +180,20 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
           );
         }}
         empty={{
-          // Title stays constant; action button hides when canCreate is false so
-          // restricted users aren't presented with a dialog they can't submit.
+          // Title stays constant; the action is shown disabled with an RBAC
+          // tooltip when canCreate is false so restricted users see why they
+          // can't add a secret rather than a bare empty state.
           title: "let's add a secret to get you started",
-          actions: canCreate
-            ? [
-                {
-                  type: 'button',
-                  label: 'Add secret',
-                  onClick: () => secretFormDialogRef.current?.show(),
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                },
-              ]
-            : [],
+          actions: [
+            {
+              type: 'button',
+              label: 'Add secret',
+              onClick: () => secretFormDialogRef.current?.show(),
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              disabled: !canCreate,
+              tooltip: !canCreate ? "You don't have permission to create a secret" : undefined,
+            },
+          ],
         }}
         actions={[
           <PermissionButton

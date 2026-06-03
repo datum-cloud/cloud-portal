@@ -1,3 +1,4 @@
+import { mapLegacyVariant } from '../../empty-content-action';
 import type { EmptyContentConfig } from '../types';
 import {
   useDataTableFilters,
@@ -21,16 +22,28 @@ export function resolveEmpty(empty?: string | EmptyContentConfig): ReactNode {
   if (typeof empty === 'string') {
     return <EmptyContent title={empty} className="w-full" />;
   }
-  // Map wrapper's EmptyContentConfig.actions (uses `href`) to
-  // datum-ui's EmptyContentAction (uses `to`).
-  const actions = empty.actions?.map((a) => ({
-    label: a.label,
-    type: a.type,
-    onClick: a.onClick,
-    to: a.href,
-    icon: a.icon,
-    variant: a.variant,
-  }));
+  // Map wrapper's EmptyContentConfig.actions to datum-ui 1.0.0's
+  // `as`-discriminated EmptyContentAction: wrapper `type` (action kind) →
+  // `as`, `href` → `to`, legacy `variant` → Button `type`/`theme`. RBAC
+  // presentation props (`disabled`/`hidden`/`tooltip`/`tooltipSide`) pass
+  // straight through.
+  const actions = empty.actions?.map((a) => {
+    const { type, theme } = mapLegacyVariant(a.variant);
+    const base = {
+      label: a.label,
+      icon: a.icon,
+      type,
+      theme,
+      disabled: a.disabled,
+      hidden: a.hidden,
+      tooltip: a.tooltip,
+      tooltipSide: a.tooltipSide,
+    };
+    if (a.type === 'link' || a.type === 'external-link') {
+      return { ...base, as: a.type, to: a.href ?? '' } as const;
+    }
+    return { ...base, as: 'button' as const, onClick: a.onClick };
+  });
   return (
     <EmptyContent
       title={empty.title}
@@ -60,7 +73,7 @@ export function resolveError(errorContent?: ReactNode | ErrorRenderer): ErrorRen
       <EmptyContent
         title="Failed to load"
         subtitle={err.message}
-        actions={[{ label: 'Retry', type: 'button', onClick: refetch }]}
+        actions={[{ as: 'button', label: 'Retry', onClick: refetch }]}
         className="w-full"
       />
     );

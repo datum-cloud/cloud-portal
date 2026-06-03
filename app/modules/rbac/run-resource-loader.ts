@@ -3,7 +3,9 @@ import type {
   CompanionDeclaration,
   RunListLoaderInput,
   RunDetailLoaderInput,
+  RunRouteGateInput,
   DslLoaderData,
+  GateLoaderData,
 } from './types';
 import { logger } from '@/modules/logger';
 import { redirectWithToast } from '@/utils/cookies';
@@ -137,6 +139,41 @@ export async function runListLoader<TData>(
       data: result,
       companions: {},
     } satisfies DslLoaderData<TData, Record<string, never>>);
+  } catch (error) {
+    rethrowAsResponse(error);
+  }
+}
+
+/**
+ * Gate-only loader for routes that gate access but fetch no resource —
+ * create/"new" pages, action pages, and non-`get` settings sub-routes.
+ *
+ * Mirrors `runListLoader`'s gate, minus the fetch/seed: it reuses
+ * `resolveScopeContext` (so `projectId` is always set for project scope —
+ * the footgun that bit the inline `gateRouteAccess` callers) and the shared
+ * `rethrowAsResponse` AppError→Response mapping. Returns the `GateLoaderData`
+ * envelope; pair with `defineResourceRoute({ type: 'gate' })` on the page.
+ */
+export async function runRouteGate(args: LoaderFunctionArgs, cfg: RunRouteGateInput) {
+  try {
+    const ctx = resolveScopeContext(cfg.scope, args);
+
+    // gateRouteAccess's first positional arg is interpreted per cfg.scope —
+    // see resolveScopeContext + RbacService.resolveBaseURL (project no-op,
+    // org real id, user empty string).
+    const allowed = await gateRouteAccess(ctx.gateScopeId, {
+      resource: cfg.resource,
+      verb: cfg.verb,
+      group: cfg.group ?? '',
+      namespace: cfg.namespace,
+      scope: cfg.scope ?? 'project',
+      projectId: ctx.projectId,
+      // For scope='user' gates the URL :param is the resource name, not a
+      // scope identifier — pass it via check.name (mirrors runDetailLoader).
+      name: cfg.name,
+    });
+
+    return data({ restricted: !allowed } satisfies GateLoaderData);
   } catch (error) {
     rethrowAsResponse(error);
   }

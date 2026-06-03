@@ -91,6 +91,19 @@ export function buildOrganizationNamespace(organizationId: string): string {
 }
 
 /**
+ * Namespace for project-scoped control-plane resources.
+ *
+ * Today every project resource lives in the shared `default` namespace, so this
+ * takes no argument. It's a function (not a bare constant) to mirror
+ * {@link buildOrganizationNamespace} and to leave a seam: if projects ever move
+ * to a per-project namespace (e.g. `project-${projectId}`), only this body
+ * changes — call sites already route through it.
+ */
+export function buildProjectNamespace(): string {
+  return 'default';
+}
+
+/**
  * Trigger a file download in the browser
  * @param content - File content as string
  * @param filename - Name of the file to download

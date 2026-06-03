@@ -424,17 +424,19 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
         );
       }}
       empty={{
-        title: canCreateInvitation ? 'invite your first team member' : 'No team members yet',
-        actions: canCreateInvitation
-          ? [
-              {
-                type: 'button',
-                label: 'Invite Member',
-                onClick: () => navigate(getPathWithParams(paths.org.detail.team.invite, { orgId })),
-                icon: <Icon icon={UserPlusIcon} className="size-3" />,
-              },
-            ]
-          : undefined,
+        title: 'invite your first team member',
+        actions: [
+          {
+            type: 'button',
+            label: 'Invite Member',
+            onClick: () => navigate(getPathWithParams(paths.org.detail.team.invite, { orgId })),
+            icon: <Icon icon={UserPlusIcon} className="size-3" />,
+            disabled: !canCreateInvitation,
+            tooltip: !canCreateInvitation
+              ? "You don't have permission to invite members"
+              : undefined,
+          },
+        ],
       }}
       actions={[
         <PermissionButton

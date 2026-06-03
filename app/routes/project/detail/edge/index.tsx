@@ -338,17 +338,17 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         description="Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services."
         search="Search"
         empty={{
-          title: canCreate ? "let's add an AI Edge to get you started" : 'No AI Edge yet',
-          actions: canCreate
-            ? [
-                {
-                  type: 'button',
-                  label: 'New',
-                  onClick: () => proxyFormRef.current?.show(),
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                },
-              ]
-            : [],
+          title: "let's add an AI Edge to get you started",
+          actions: [
+            {
+              type: 'button',
+              label: 'New',
+              onClick: () => proxyFormRef.current?.show(),
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              disabled: !canCreate,
+              tooltip: !canCreate ? "You don't have permission to create an AI Edge" : undefined,
+            },
+          ],
         }}
         actions={[
           <PermissionButton

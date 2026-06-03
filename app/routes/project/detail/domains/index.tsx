@@ -2,12 +2,9 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { createActionsColumn, Table } from '@/components/table';
-import { BulkAddDomainsAction } from '@/features/edge/domain/bulk-add';
-import {
-  DomainFormDialog,
-  type DomainFormDialogRef,
-} from '@/features/edge/domain/domain-form-dialog';
+import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
+import { useDomainExport } from '@/features/edge/domain/export';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -33,14 +30,15 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
 import { ColumnDef } from '@tanstack/react-table';
-import { GlobeIcon, ListChecksIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import { useMemo, useCallback, useEffect, useRef, useState } from 'react';
+import { DownloadIcon, GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import { LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
 
 type FormattedDomain = {
@@ -182,14 +180,14 @@ function DomainsInner({
   const { confirm } = useConfirmationDialog();
   const { enqueue, showSummary } = useTaskQueue();
   const { project, organization } = useApp();
-  const domainFormRef = useRef<DomainFormDialogRef>(null);
-  const [bulkAddPopoverOpen, setBulkAddPopoverOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const { handleExport } = useDomainExport();
 
   // Open create dialog from URL search params (e.g. ?action=create)
   useEffect(() => {
     if (searchParams.get('action') === 'create') {
       if (canCreate) {
-        domainFormRef.current?.show();
+        setAddOpen(true);
       }
       const nextParams = new URLSearchParams(searchParams);
       nextParams.delete('action');
@@ -533,23 +531,38 @@ function DomainsInner({
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."
         search="Search"
         actions={[
-          canCreate ? <BulkAddDomainsAction key="bulk-add" projectId={projectId!} /> : null,
-          <PermissionButton
-            key="create"
-            resource="domains"
-            verb="create"
-            group="networking.datumapis.com"
-            scope="project"
-            deniedReason="You don't have permission to add a domain"
-            type="primary"
-            theme="solid"
-            size="small"
-            className="w-full sm:w-auto"
-            data-e2e="create-domain-button"
-            onClick={() => domainFormRef.current?.show()}>
-            <Icon icon={PlusIcon} className="size-4" />
-            Add domain
-          </PermissionButton>,
+          domains.length > 0 ? (
+            <Button
+              key="export"
+              htmlType="button"
+              type="secondary"
+              theme="outline"
+              size="small"
+              className="border-secondary/20 hover:border-secondary w-full sm:w-auto"
+              data-e2e="export-domains-button"
+              onClick={() => handleExport(domains)}>
+              <Icon icon={DownloadIcon} className="size-4" />
+              Export CSV
+            </Button>
+          ) : null,
+          canCreate ? (
+            <PermissionButton
+              key="add"
+              resource="domains"
+              verb="create"
+              group="networking.datumapis.com"
+              scope="project"
+              deniedReason="You don't have permission to add a domain"
+              type="primary"
+              theme="solid"
+              size="small"
+              className="w-full sm:w-auto"
+              data-e2e="create-domain-button"
+              onClick={() => setAddOpen(true)}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Add domains
+            </PermissionButton>
+          ) : null,
         ].filter(Boolean)}
         multiActions={
           canDelete
@@ -567,47 +580,35 @@ function DomainsInner({
             : []
         }
         empty={{
-          // Title stays constant; action buttons hide when canCreate is false so
-          // restricted users aren't presented with a dialog they can't submit.
+          // Title stays constant; the action is shown disabled with an RBAC
+          // tooltip when canCreate is false so restricted users see why they
+          // can't add a domain rather than a bare empty state.
           title: "let's add a domain to get you started",
-          actions: canCreate
-            ? [
-                {
-                  label: 'Add domain',
-                  type: 'button',
-                  icon: <Icon icon={PlusIcon} className="size-3" />,
-                  onClick: () => domainFormRef.current?.show(),
-                },
-                {
-                  label: 'Bulk add domains',
-                  type: 'button',
-                  variant: 'outline',
-                  icon: <Icon icon={ListChecksIcon} className="size-3" />,
-                  onClick: () => setBulkAddPopoverOpen(true),
-                },
-              ]
-            : [],
+          actions: [
+            {
+              label: 'Add domains',
+              type: 'button',
+              icon: <Icon icon={PlusIcon} className="size-3" />,
+              onClick: () => setAddOpen(true),
+              disabled: !canCreate,
+              tooltip: !canCreate ? "You don't have permission to add a domain" : undefined,
+            },
+          ],
         }}
       />
 
-      <DomainFormDialog
-        ref={domainFormRef}
+      <AddDomainsDialog
         projectId={projectId!}
-        onSuccess={(domain) => {
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onSuccess={(domain) =>
           navigate(
             getPathWithParams(paths.project.detail.domains.detail.overview, {
               projectId,
               domainId: domain.name,
             })
-          );
-        }}
-      />
-
-      {/* Controlled BulkAddDomainsAction for empty content button - renders as Dialog */}
-      <BulkAddDomainsAction
-        projectId={projectId!}
-        popoverOpen={bulkAddPopoverOpen}
-        onPopoverOpenChange={setBulkAddPopoverOpen}
+          )
+        }
       />
     </>
   );
