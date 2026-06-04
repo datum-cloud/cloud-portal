@@ -16,4 +16,4 @@ spec:
     meter family declared by this service.
   owner:
     producerProjectRef:
-      name: cloud-portal
+      name: datum-cloud
