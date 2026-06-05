@@ -105,7 +105,10 @@ describe('buildAssistantUsageEvents', () => {
     expect(evt.timestamp).to.equal('2026-04-27T17:00:00.000Z');
     expect(evt.projectRef).to.deep.equal({ name: 'proj-abc' });
     expect(evt.value).to.equal('10');
-    expect(evt.dimensions).to.deep.equal({ model: 'claude-sonnet-4-6' });
+    // `model` is a resource label, not a meter dimension: the assistant
+    // MeterDefinitions declare no dimensions, so the central validator
+    // quarantines any event that carries one.
+    expect(evt.dimensions).to.deep.equal({});
     expect(evt.resource).to.deep.equal({
       ref: {
         projectRef: { name: 'proj-abc' },
@@ -155,7 +158,9 @@ describe('toCloudEvent', () => {
     expect(ce.datacontenttype).to.equal('application/json');
     expect(ce.time).to.equal('2026-04-27T17:00:00.000Z');
     expect(ce.data.value).to.equal('1200');
-    expect(ce.data.dimensions).to.deep.equal({ model: 'claude-sonnet-4-6' });
+    // Builder emits empty dimensions (model is a resource label), so the
+    // envelope drops the key entirely rather than sending `{}`.
+    expect(ce.data.dimensions).to.equal(undefined);
     expect(ce.data.resource).to.deep.equal({
       group: ASSISTANT_RESOURCE_GROUP,
       kind: ASSISTANT_RESOURCE_KIND,
@@ -175,8 +180,7 @@ describe('toCloudEvent', () => {
   });
 
   it('omits dimensions when empty rather than emitting `{}`', () => {
-    // Manual UsageEvent with no dimensions — the builder always sets
-    // model, but downstream callers may not. Empty dimensions confuse
+    // Manual UsageEvent with no dimensions. Empty dimensions confuse
     // gateway log analysis, so we drop the key.
     const ce = toCloudEvent(
       {

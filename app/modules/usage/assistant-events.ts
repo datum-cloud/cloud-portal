@@ -51,7 +51,12 @@ export function buildAssistantUsageEvents(input: BuildAssistantUsageInput): Usag
   const timestamp = new Date(now).toISOString();
   const projectRef = { name: projectName };
 
-  const dimensions: Record<string, string> = { model };
+  // No meter dimensions: the assistant MeterDefinitions declare none, and
+  // the central validator quarantines any event whose data.dimensions key
+  // isn't a declared subset (billing/internal/controller/consumer/validate.go).
+  // `model` is carried as a resource label instead — it's declared on the
+  // assistant.miloapis.com/Conversation MonitoredResourceType.
+  const dimensions: Record<string, string> = {};
 
   const labels: Record<string, string> = { model };
 
