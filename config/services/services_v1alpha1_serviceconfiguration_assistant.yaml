@@ -41,6 +41,11 @@ spec:
         here.
       kind: Delta
       unit: "{token}"
+      # Per-model unit economics: each model has a different cost, so the
+      # rating engine prices on this dimension. The producer emits `model`
+      # in data.dimensions; the central validator requires it declared here.
+      dimensions:
+        - model
     - name: assistant.miloapis.com/conversation/output-tokens
       displayName: Assistant Output Tokens
       description: |
@@ -50,6 +55,8 @@ spec:
         model.
       kind: Delta
       unit: "{token}"
+      dimensions:
+        - model
     - name: assistant.miloapis.com/conversation/cache-read-tokens
       displayName: Assistant Cache-Read Tokens
       description: |
@@ -59,6 +66,8 @@ spec:
         metered as a distinct dimension.
       kind: Delta
       unit: "{token}"
+      dimensions:
+        - model
     - name: assistant.miloapis.com/conversation/cache-write-tokens
       displayName: Assistant Cache-Write Tokens
       description: |
@@ -69,6 +78,8 @@ spec:
         are metered as a distinct dimension.
       kind: Delta
       unit: "{token}"
+      dimensions:
+        - model
     - name: assistant.miloapis.com/conversation/messages
       displayName: Assistant Messages
       description: |
@@ -78,6 +89,8 @@ spec:
         when token data is unavailable.
       kind: Delta
       unit: "{message}"
+      dimensions:
+        - model
   billing:
     consumerDestinations:
       - monitoredResourceType: assistant.miloapis.com/Conversation
