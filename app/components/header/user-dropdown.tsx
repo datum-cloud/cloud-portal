@@ -1,6 +1,7 @@
 import { DarkModeIcon } from '@/components/icon/dark-mode';
 import { LightModeIcon } from '@/components/icon/light-mode';
 import { SystemModeIcon } from '@/components/icon/system-mode';
+import { FeatureFlag, useFeatureFlag } from '@/modules/feature-flags';
 import { useApp } from '@/providers/app.provider';
 import { ThemeValue, useUpdateUserPreferences } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
@@ -19,7 +20,7 @@ import {
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { CheckIcon, LogOut, UserCogIcon } from 'lucide-react';
+import { CheckIcon, CreditCard, LogOut, UserCogIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -33,6 +34,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
   const { user, userPreferences, setUser } = useApp();
+  const billingEnabled = useFeatureFlag(FeatureFlag.Billing);
   const userId = user?.sub ?? 'me';
 
   const [currentTheme, setCurrentTheme] = useState<ThemeValue>(resolvedTheme as ThemeValue);
@@ -116,6 +118,17 @@ export const UserDropdown = ({ className }: { className?: string }) => {
               <span className="text-foreground text-xs">Account Settings</span>
             </div>
           </DropdownMenuItem>
+          {billingEnabled && (
+            <DropdownMenuItem
+              data-e2e="user-menu-billing"
+              className="cursor-pointer rounded-lg px-3 py-2 font-normal"
+              onClick={() => navigate(paths.account.billing.root)}>
+              <div className="flex items-center gap-2">
+                <Icon icon={CreditCard} size={14} />
+                <span className="text-foreground text-xs">Billing Accounts</span>
+              </div>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             asChild
             variant="destructive"

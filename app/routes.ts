@@ -30,6 +30,12 @@ export default [
         index('routes/account/organizations/index.tsx'),
       ]),
 
+      // Account Billing — user-level billing accounts (cross-org aggregate)
+      route('billing', 'routes/account/billing/layout.tsx', [
+        index('routes/account/billing/index.tsx'),
+        route(':billingAccountId', 'routes/account/billing/detail.tsx'),
+      ]),
+
       // Account General
       layout('routes/account/settings/layout.tsx', [
         route('general', 'routes/account/settings/general.tsx'),
@@ -53,6 +59,19 @@ export default [
         route('projects', 'routes/org/detail/projects/layout.tsx', [
           index('routes/org/detail/projects/index.tsx'),
         ]),
+
+        // Billing of an organization — thin "which billing account funds this
+        // org's projects" switcher. Full account management lives at the
+        // user level (`/account/billing/*`).
+        route('billing', 'routes/org/detail/billing/layout.tsx', [
+          index('routes/org/detail/billing/index.tsx'),
+        ]),
+
+        // Usage — org-wide metering dashboard. Sums per-meter usage across
+        // every billing account in the org's namespace. Gated by the same
+        // `UsageMeteringDashboard` flag as the per-project view so both
+        // pages flip on together.
+        route('usage', 'routes/org/detail/usage/index.tsx'),
 
         // Team of an organization
         route('team', 'routes/org/detail/team/layout.tsx', [
@@ -91,6 +110,7 @@ export default [
           route('general', 'routes/project/detail/settings/general.tsx'),
           route('notifications', 'routes/project/detail/settings/notifications.tsx'),
           route('quotas', 'routes/project/detail/settings/quotas.tsx'),
+          route('billing', 'routes/project/detail/settings/billing.tsx'),
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
 

@@ -1,3 +1,4 @@
+import type { FeatureFlagMap } from '@/modules/feature-flags';
 import { clearSentryUser, setSentryUser } from '@/modules/sentry';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -12,6 +13,14 @@ interface AppContextType {
   organization: Organization | undefined;
   project: Project | undefined;
   orgId: string | undefined;
+  /**
+   * Server-resolved boolean feature flags scoped to "any of the user's
+   * orgs has it on." Populated by the private-layout loader for every
+   * flag listed in `ROOT_FEATURE_FLAGS`. Components read via the
+   * `useFeatureFlag(flag)` hook rather than touching this map directly
+   * so the consumer surface stays narrow.
+   */
+  featureFlags: FeatureFlagMap;
   setUser: (user: User) => void;
   setOrganization: (organization: Organization | undefined) => void;
   setProject: (project: Project | undefined) => void;
@@ -23,6 +32,7 @@ const AppContext = createContext<AppContextType>({
   organization: undefined,
   project: undefined,
   orgId: undefined,
+  featureFlags: {},
   setUser: () => {},
   setOrganization: () => {},
   setProject: () => {},
@@ -32,9 +42,15 @@ interface AppProviderProps {
   children: ReactNode;
   initialUser?: User;
   initialOrganization?: Organization;
+  initialFeatureFlags?: FeatureFlagMap;
 }
 
-export function AppProvider({ children, initialUser, initialOrganization }: AppProviderProps) {
+export function AppProvider({
+  children,
+  initialUser,
+  initialOrganization,
+  initialFeatureFlags = {},
+}: AppProviderProps) {
   const [user, setUser] = useState<User>(initialUser!);
   const [organization, setOrganization] = useState<Organization | undefined>(initialOrganization!);
   const [project, setProject] = useState<Project | undefined>();
@@ -80,6 +96,7 @@ export function AppProvider({ children, initialUser, initialOrganization }: AppP
         organization,
         project,
         orgId: currentOrgId,
+        featureFlags: initialFeatureFlags,
         setUser,
         setOrganization,
         setProject,

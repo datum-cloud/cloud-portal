@@ -23,6 +23,18 @@ export const paths = {
     organizations: {
       root: '/account/organizations',
     },
+    // User-level billing accounts. Aggregates accounts across every org the
+    // signed-in user is a member of, so management actions (addresses,
+    // invoices, credits, payment methods, recipients) live here instead of
+    // under each org. The org-level `/org/[orgId]/billing` page is now a
+    // thin "which account funds this org's projects" switcher and deep-links
+    // into these pages for actual management.
+    billing: {
+      root: '/account/billing',
+      detail: {
+        root: '/account/billing/[billingAccountId]',
+      },
+    },
     // Account Settings
     settings: {
       general: '/account/general',
@@ -47,6 +59,18 @@ export const paths = {
       projects: {
         root: '/org/[orgId]/projects',
       },
+      // Org-level billing is now a thin per-org switcher — actual account
+      // management lives under `paths.account.billing` (user-level). The
+      // `[billingAccountId]` segment is kept only for a backwards-compat
+      // redirect for old bookmarks; new code should link to
+      // `paths.account.billing.detail.root` instead.
+      billing: {
+        root: '/org/[orgId]/billing',
+      },
+      // Org-wide metering dashboard. Aggregates usage across every billing
+      // account in the org's namespace; gated by the same
+      // `UsageMeteringDashboard` flag as the per-project view.
+      usage: '/org/[orgId]/usage',
       policyBindings: {
         root: '/org/[orgId]/policy-bindings',
         new: '/org/[orgId]/policy-bindings/new',
@@ -125,6 +149,7 @@ export const paths = {
         general: '/project/[projectId]/general',
         notifications: '/project/[projectId]/notifications',
         quotas: '/project/[projectId]/quotas',
+        billing: '/project/[projectId]/billing',
         activity: '/project/[projectId]/activity',
       },
       serviceAccounts: {

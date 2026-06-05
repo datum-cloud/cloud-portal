@@ -34,3 +34,28 @@ export function toStringArray(value: unknown): string[] {
   }
   return [];
 }
+
+/**
+ * Object-array twin of {@link toStringArray}: coerce a form field value to
+ * a `T[]` of objects, un-stringifying JSON-array payloads (e.g. `"[]"` or
+ * `'[{"type":"gb_vat","value":"GB123"}]'`) produced by Conform's adapter.
+ *
+ * Unlike `toStringArray` it does not single-element-wrap plain strings —
+ * a bare string is never a valid serialized object array, so anything
+ * that isn't already an array or a parseable JSON array becomes `[]`.
+ * Keeps downstream `.map()` / `.filter()` calls safe while the user is
+ * mid-typing.
+ */
+export function toObjectArray<T>(value: unknown): T[] {
+  if (Array.isArray(value)) return value as T[];
+  if (typeof value === 'string' && value.startsWith('[') && value.endsWith(']')) {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed as T[];
+    } catch {
+      // Invalid JSON means we have nothing useful to show until the
+      // user fixes it — fall through to the empty array.
+    }
+  }
+  return [];
+}

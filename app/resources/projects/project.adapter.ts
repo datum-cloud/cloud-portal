@@ -14,13 +14,17 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { filterLabels } from '@/utils/helpers/object.helper';
 
 export function toProject(raw: ComMiloapisResourcemanagerV1Alpha1Project): Project {
+  const annotations = raw.metadata?.annotations;
   const transformed = {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
     namespace: raw.metadata?.namespace ?? '',
     displayName:
-      raw.metadata?.annotations?.['kubernetes.io/description'] ?? raw.metadata?.name ?? '',
-    description: raw.metadata?.annotations?.['kubernetes.io/description'],
+      annotations?.['kubernetes.io/display-name'] ??
+      annotations?.['kubernetes.io/description'] ??
+      raw.metadata?.name ??
+      '',
+    description: annotations?.['kubernetes.io/description'],
     resourceVersion: raw.metadata?.resourceVersion ?? '',
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
     updatedAt: raw.metadata?.creationTimestamp,

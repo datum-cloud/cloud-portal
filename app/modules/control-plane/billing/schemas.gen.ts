@@ -30,18 +30,79 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
       required: ['currencyCode'],
       properties: {
         contactInfo: {
-          description: 'ContactInfo defines the billing contact for notifications.',
+          description:
+            'ContactInfo describes the billing contact and the postal\naddress invoices are issued to.',
           type: 'object',
           required: ['email'],
           properties: {
+            address: {
+              description:
+                'Address is the postal billing address. Appears on invoices and\nis surfaced to the configured provider controller (e.g. for\ntax determination, AVS).',
+              type: 'object',
+              required: ['country'],
+              properties: {
+                city: {
+                  description: 'City is the locality.',
+                  type: 'string',
+                  maxLength: 128,
+                },
+                country: {
+                  description:
+                    'Country is the ISO 3166-1 alpha-2 country code (e.g. "GB",\n"US"). Required because tax determination and currency\nrestrictions depend on it.',
+                  type: 'string',
+                  pattern: '^[A-Z]{2}$',
+                },
+                line1: {
+                  description:
+                    'Line1 is the first line of the street address (typically\n"number + street").',
+                  type: 'string',
+                  maxLength: 256,
+                },
+                line2: {
+                  description:
+                    'Line2 is the second line of the street address (typically\napartment / suite / building).',
+                  type: 'string',
+                  maxLength: 256,
+                },
+                postalCode: {
+                  description: 'PostalCode is the post / zip code.',
+                  type: 'string',
+                  maxLength: 32,
+                },
+                region: {
+                  description: 'Region is the state, province, or county (free-form).',
+                  type: 'string',
+                  maxLength: 128,
+                },
+              },
+            },
+            businessName: {
+              description:
+                'BusinessName is the legal entity that pays. Optional; populate\nit for B2B accounts so invoices print the company name as the\ntop header line and the provider Customer record carries the\ncompany name rather than the individual contact.\n\nWhen set, the provider controller maps this onto its\nCustomer.name field (e.g. Stripe Customer.name). When unset,\nName is used instead.',
+              type: 'string',
+              maxLength: 256,
+            },
             email: {
-              description: 'Email is the email address for billing notifications.',
+              description:
+                'Email is the primary billing contact email. Receives billing\nnotifications and, when InvoiceEmail is unset, also receives\ninvoices and receipts.',
               type: 'string',
               minLength: 1,
             },
+            invoiceEmails: {
+              description:
+                "InvoiceEmails is the list of recipients that invoices and\nreceipts are sent to. The first entry is the primary recipient;\nsubsequent entries are CC'd. When the list is empty, Email is\nused as a single primary recipient.\n\nProvider support for multiple recipients varies: Stripe\nCustomer.email is single-valued, so the stripe-provider maps\nthe first entry onto it and CC's the rest via its own\ninvoice-sent webhook (when configured). Consumers should treat\nthe entire list as authoritative; the provider handles fan-out.\n\nDuplicate entries are rejected. Maximum 10 entries.",
+              type: 'array',
+              maxItems: 10,
+              items: {
+                type: 'string',
+              },
+              'x-kubernetes-list-type': 'set',
+            },
             name: {
-              description: 'Name is the display name of the billing contact.',
+              description:
+                'Name is the display name of the individual billing contact —\nthe human the platform talks to. Surfaces as the "ATTN:" line\non invoices when BusinessName is also set.',
               type: 'string',
+              maxLength: 256,
             },
           },
         },
@@ -50,6 +111,19 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
             'CurrencyCode is the ISO 4217 currency code for this billing account.\nThis field is immutable once the account transitions past Provisioning phase.',
           type: 'string',
           pattern: '^[A-Z]{3}$',
+        },
+        defaultPaymentMethodRef: {
+          description:
+            'DefaultPaymentMethodRef references the PaymentMethod to use by\ndefault for charge processing. The referenced PaymentMethod must\nreside in the same namespace and be in the Active phase.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the PaymentMethod.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
         },
         paymentTerms: {
           description: 'PaymentTerms defines the invoicing schedule for this billing account.',
@@ -77,6 +151,33 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
               minimum: 1,
             },
           },
+        },
+        taxIds: {
+          description:
+            'TaxIDs are the tax registrations attached to this account. An\naccount can carry multiple entries (e.g. an organisation\nregistered for both GB VAT and EU VAT).',
+          type: 'array',
+          items: {
+            description:
+              'TaxID is a single tax registration.\n\nType values follow a vendor-neutral snake-case\n`<jurisdiction>_<scheme>` convention — e.g. "gb_vat", "eu_vat",\n"us_ein", "au_abn", "ca_gst_hst", "ch_vat", "in_gst", "sg_gst".\nThe pattern check enforces the shape rather than the exact set of\nvalues, so new schemes can be added without API changes.\nTranslation to any provider-specific identifier (if needed) is the\nresponsibility of the provider controller, not this schema.',
+            type: 'object',
+            required: ['type', 'value'],
+            properties: {
+              type: {
+                description: 'Type identifies the tax registration scheme (e.g. "gb_vat").',
+                type: 'string',
+                maxLength: 32,
+                pattern: '^[a-z]{2}_[a-z][a-z_]*$',
+              },
+              value: {
+                description: 'Value is the registration number / identifier\n(e.g. "GB123456789").',
+                type: 'string',
+                maxLength: 64,
+                minLength: 1,
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
         },
       },
     },
@@ -165,7 +266,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountBindingSchema = {
@@ -327,7 +427,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountBindingSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountBindingListSchema = {
@@ -370,7 +469,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountBindingListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
@@ -413,7 +511,1057 @@ export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_MeterDefinitionSchema = {
+  description:
+    'MeterDefinition is the Schema for the meterdefinitions API. It is a\ndeclarative, platform-advertised catalog entry for a single billable\ndimension -- what is measured, in what unit, how it is aggregated.\nIt does not ingest events, calculate money, or store customer data.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'MeterDefinitionSpec defines the desired state of a MeterDefinition.\n\nThe spec is organized into three cohesive blocks: identity (who/what\nthis is), measurement (how the signal is captured and aggregated),\nand billing (how it crosses into commerce). Core fields (meterName,\nmeasurement.aggregation, measurement.unit) are immutable once created;\na breaking change ships as a new MeterDefinition with a versioned meterName.\n\nspec.phase is the provider-declared lifecycle intent: Draft ->\nPublished -> Deprecated -> Retired. The controller mirrors that\nintent via conditions; it does not transition the phase itself.\n\nOwnership is expressed via labels (e.g. app.kubernetes.io/managed-by)\nrather than a spec.owner field.',
+      type: 'object',
+      required: [
+        'billing',
+        'displayName',
+        'measurement',
+        'meterName',
+        'monitoredResourceTypes',
+        'phase',
+      ],
+      properties: {
+        billing: {
+          description:
+            'Billing describes how the meter crosses into commerce. Carries no\nrates, currencies, or tiers -- those live in the pricing engine.',
+          type: 'object',
+          properties: {
+            consumedUnit: {
+              description:
+                'ConsumedUnit is the UCUM unit in which usage is measured (e.g.\n"s"). Typically matches measurement.unit; may diverge when the\nemitted telemetry is pre-converted. Equality with measurement.unit is\nnot enforced.',
+              type: 'string',
+              maxLength: 64,
+              minLength: 1,
+            },
+            pricingUnit: {
+              description:
+                'PricingUnit is the UCUM unit pricing quotes against (e.g. "h").\nMay differ from ConsumedUnit; the pricing engine handles the\nconversion.',
+              type: 'string',
+              maxLength: 64,
+              minLength: 1,
+            },
+          },
+        },
+        description: {
+          description:
+            "Description is a plain-English explanation of what the meter\nmeasures. Editable over the meter's lifetime.",
+          type: 'string',
+          maxLength: 1024,
+        },
+        displayName: {
+          description:
+            'DisplayName is a human-readable name surfaced in portals and on\ninvoices alongside the canonical meterName.',
+          type: 'string',
+          maxLength: 128,
+          minLength: 1,
+        },
+        measurement: {
+          description: 'Measurement describes how the signal is captured and aggregated.',
+          type: 'object',
+          required: ['aggregation', 'unit'],
+          properties: {
+            aggregation: {
+              description:
+                'Aggregation is the function applied to samples over a billing\nperiod. Single source of truth for how usage rolls up. Immutable.',
+              type: 'string',
+              enum: ['Sum', 'Max', 'Min', 'Count', 'UniqueCount', 'Latest', 'Average'],
+              'x-kubernetes-validations': [
+                {
+                  rule: 'self == oldSelf',
+                  message: 'measurement.aggregation is immutable',
+                },
+              ],
+            },
+            dimensions: {
+              description:
+                'Dimensions is an ordered list of attribute keys that downstream\nsystems may group by (e.g. "region", "tier", "resource.type").\nAdding a dimension is additive; removing one is a breaking change\nand must ship as a new meter.',
+              type: 'array',
+              maxItems: 32,
+              items: {
+                type: 'string',
+              },
+              'x-kubernetes-list-type': 'atomic',
+            },
+            unit: {
+              description:
+                'Unit is a UCUM (https://ucum.org/ucum) string describing what the\nmeter measures (e.g. "s", "By", "{request}", "GBy.h"). Immutable.',
+              type: 'string',
+              maxLength: 64,
+              minLength: 1,
+              'x-kubernetes-validations': [
+                {
+                  rule: 'self == oldSelf',
+                  message: 'measurement.unit is immutable',
+                },
+              ],
+            },
+          },
+        },
+        meterName: {
+          description:
+            'MeterName is the canonical, user-facing identifier for this\nmeter. It is the cross-system join key used by invoices, rate\ncards, marketplace listings, and FOCUS exports. Typically a\nreverse-DNS path (e.g.\n"compute.miloapis.com/instance/cpu-seconds"). Immutable.',
+          type: 'string',
+          maxLength: 253,
+          minLength: 1,
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'meterName is immutable',
+            },
+          ],
+        },
+        monitoredResourceTypes: {
+          description:
+            "MonitoredResourceTypes names the billing.miloapis.com/MonitoredResourceType\ninstances whose usage events are counted by this meter. Follows\nGoogle's MetricDescriptor.monitored_resource_types pattern: each\nentry identifies a resource type that emits samples this meter\naggregates.",
+          type: 'array',
+          minItems: 1,
+          items: {
+            type: 'string',
+          },
+        },
+        phase: {
+          description:
+            'Phase is the provider-declared lifecycle state of this meter.\nAllowed transitions are forward-only:\nDraft -> Published -> Deprecated -> Retired.',
+          type: 'string',
+          default: 'Draft',
+          allOf: [
+            {
+              enum: ['Draft', 'Published', 'Deprecated', 'Retired'],
+            },
+            {
+              enum: ['Draft', 'Published', 'Deprecated', 'Retired'],
+            },
+          ],
+        },
+      },
+    },
+    status: {
+      description: 'MeterDefinitionStatus defines the observed state of a MeterDefinition.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the resource's state.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the controller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        publishedAt: {
+          description:
+            'PublishedAt is the time at which the controller first observed the\nresource in the Published phase.',
+          type: 'string',
+          format: 'date-time',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'MeterDefinition',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_MeterDefinitionListSchema = {
+  description: 'MeterDefinitionList is a list of MeterDefinition',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of meterdefinitions. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.MeterDefinition',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'MeterDefinitionList',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeSchema = {
+  description:
+    "MonitoredResourceType is the Schema for the monitoredresourcetypes\nAPI. It is the platform's declaration of which Kubernetes Kinds can\nappear on a bill or a dashboard, and what descriptive labels their\nusage events are allowed to carry.",
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'MonitoredResourceTypeSpec defines the desired state of a\nMonitoredResourceType.\n\nA MonitoredResourceType declares which Kubernetes Kinds are billable\nor otherwise monitored by the platform, and the closed set of\ndescriptive labels that usage events against that Kind may carry.\n\nCore fields (resourceTypeName, gvk.group, gvk.kind) are immutable once\ncreated; a breaking change ships as a new MonitoredResourceType with a\nnew canonical name.\n\nspec.phase is the provider-declared lifecycle intent: Draft ->\nPublished -> Deprecated -> Retired. The controller mirrors that\nintent via conditions; it does not transition the phase itself.\n\nOwnership is expressed via labels rather than a spec.owner field.',
+      type: 'object',
+      required: ['displayName', 'gvk', 'phase', 'resourceTypeName'],
+      properties: {
+        description: {
+          description:
+            "Description is a plain-English explanation of what the resource\ntype represents. Editable over the type's lifetime.",
+          type: 'string',
+          maxLength: 1024,
+        },
+        displayName: {
+          description:
+            "DisplayName is a human-readable name surfaced in portals and\ndashboards alongside the canonical resourceTypeName. Editable\nover the type's lifetime.",
+          type: 'string',
+          maxLength: 128,
+          minLength: 1,
+        },
+        gvk: {
+          description:
+            'GVK pins the resource type to a Kubernetes Kind. Version is\ndeliberately omitted: billability is a property of the Kind, not\nof a specific API version.',
+          type: 'object',
+          required: ['group', 'kind'],
+          properties: {
+            group: {
+              description:
+                'Group is the Kubernetes API group of the Kind (e.g.\n"compute.miloapis.com"). Immutable.',
+              type: 'string',
+              maxLength: 253,
+              minLength: 1,
+              'x-kubernetes-validations': [
+                {
+                  rule: 'self == oldSelf',
+                  message: 'gvk.group is immutable',
+                },
+              ],
+            },
+            kind: {
+              description: 'Kind is the Kubernetes Kind (e.g. "Instance"). Immutable.',
+              type: 'string',
+              maxLength: 63,
+              minLength: 1,
+              'x-kubernetes-validations': [
+                {
+                  rule: 'self == oldSelf',
+                  message: 'gvk.kind is immutable',
+                },
+              ],
+            },
+          },
+        },
+        labels: {
+          description:
+            'Labels is the closed set of descriptive labels that usage events\nagainst this resource type are permitted to carry. Events whose\nlabels are not in this set are rejected at the edge. Adding a new\noptional label is additive; adding a required label or removing\nany declared label is a breaking change.',
+          type: 'array',
+          maxItems: 64,
+          items: {
+            description:
+              'MonitoredResourceLabel declares a single descriptive label that usage\nevents against the resource type may carry. Labels form a closed set:\nevents bearing any label not declared here are rejected before they\nreach the audit log.',
+            type: 'object',
+            required: ['name'],
+            properties: {
+              allowedValues: {
+                description:
+                  'AllowedValues, when non-empty, constrains the label to a fixed\nvocabulary. Events carrying a value outside this set are rejected.',
+                type: 'array',
+                maxItems: 64,
+                items: {
+                  type: 'string',
+                },
+                'x-kubernetes-list-type': 'atomic',
+              },
+              description: {
+                description:
+                  "Description is a plain-English explanation of what the label\nconveys. Editable over the resource type's lifetime.",
+                type: 'string',
+                maxLength: 512,
+              },
+              name: {
+                description:
+                  'Name is the label key as it will appear on usage events (e.g.\n"region", "zone", "tier"). It is the map key for this list.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+              },
+              required: {
+                description:
+                  'Required indicates whether every usage event against this\nresource type must carry this label. Defaults to false\n(optional).',
+                type: 'boolean',
+                default: false,
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['name'],
+          'x-kubernetes-list-type': 'map',
+        },
+        phase: {
+          description:
+            'Phase is the provider-declared lifecycle state of this\nmonitored resource type. Allowed transitions are forward-only:\nDraft -> Published -> Deprecated -> Retired.',
+          type: 'string',
+          default: 'Draft',
+          allOf: [
+            {
+              enum: ['Draft', 'Published', 'Deprecated', 'Retired'],
+            },
+            {
+              enum: ['Draft', 'Published', 'Deprecated', 'Retired'],
+            },
+          ],
+        },
+        resourceTypeName: {
+          description:
+            'ResourceTypeName is the canonical, user-facing identifier for\nthis monitored resource type. It typically combines the owning\nservice\'s reverse-DNS name with the Kubernetes Kind (e.g.\n"compute.miloapis.com/Instance") and is the stable identifier\nused by portal drill-downs, FinOps exports, and billing events.\nImmutable.',
+          type: 'string',
+          maxLength: 253,
+          minLength: 1,
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'resourceTypeName is immutable',
+            },
+          ],
+        },
+      },
+    },
+    status: {
+      description:
+        'MonitoredResourceTypeStatus defines the observed state of a\nMonitoredResourceType.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the resource's state.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the controller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        publishedAt: {
+          description:
+            'PublishedAt is the time at which the controller first observed the\nresource in the Published phase.',
+          type: 'string',
+          format: 'date-time',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'MonitoredResourceType',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeListSchema = {
+  description: 'MonitoredResourceTypeList is a list of MonitoredResourceType',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of monitoredresourcetypes. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.MonitoredResourceType',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'MonitoredResourceTypeList',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_PaymentMethodSchema = {
+  description:
+    'PaymentMethod is the Schema for the paymentmethods API.\n\nPaymentMethod associates a payment instrument with a BillingAccount.\nConsumers create it carrying only a BillingAccount reference and a\ndisplay name; the billing service defaulting webhook injects the\nPaymentMethodClass that selects the provider. The provider controller\n(e.g. stripe-provider) drives the setup flow via a provider-owned CRD\nand projects normalized outcome data onto status once the instrument is\nconfirmed.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'PaymentMethodSpec defines the desired state of a PaymentMethod.',
+      type: 'object',
+      required: ['billingAccountRef', 'displayName'],
+      properties: {
+        billingAccountRef: {
+          description:
+            'BillingAccountRef references the BillingAccount this payment method\nbelongs to. The BillingAccount must reside in the same namespace.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingAccount.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+        },
+        displayName: {
+          description:
+            'DisplayName is a human-readable label shown in the portal and on\ninvoices (e.g. "Corporate Visa").',
+          type: 'string',
+          maxLength: 128,
+          minLength: 1,
+        },
+        paymentMethodClassRef: {
+          description:
+            'PaymentMethodClassRef selects the PaymentMethodClass — and through\nit the provider controller — that owns the setup flow for this\npayment method. Left unset by consumers and injected by the\ndefaulting webhook from the cluster default class. Immutable once\nset; changing it would orphan provider-side state.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the PaymentMethodClass.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'paymentMethodClassRef is immutable once set',
+            },
+          ],
+        },
+      },
+    },
+    status: {
+      description: 'PaymentMethodStatus defines the observed state of a PaymentMethod.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\npayment method's state. See PaymentMethodConditionInstrumentReady.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        details: {
+          description:
+            'Details is the normalized, provider-agnostic description of the\nconfirmed instrument. Populated by the owning provider controller\nonce the phase reaches Active.',
+          type: 'object',
+          required: ['type'],
+          properties: {
+            card: {
+              description: 'Card is populated when Type is `card`.',
+              type: 'object',
+              required: ['brand', 'country', 'expiryMonth', 'expiryYear', 'last4'],
+              properties: {
+                avsResult: {
+                  description:
+                    'AVSResult is the Address Verification System result code returned\nby the issuer (e.g. "pass", "fail", "unchecked").',
+                  type: 'string',
+                },
+                billingAddress: {
+                  description:
+                    "BillingAddress is the cardholder address captured by the\nprovider's collection UI at confirmation. May differ from the\nBillingAccount's address — both signals are useful to downstream\nconsumers (the portal for display, fraud for mismatch\ndetection).",
+                  type: 'object',
+                  properties: {
+                    city: {
+                      description: 'City is the locality.',
+                      type: 'string',
+                    },
+                    country: {
+                      description:
+                        'Country is the ISO 3166-1 alpha-2 country code of the\ncardholder address.',
+                      type: 'string',
+                      pattern: '^[A-Z]{2}$',
+                    },
+                    line1: {
+                      description: 'Line1 is the first line of the street address.',
+                      type: 'string',
+                    },
+                    line2: {
+                      description: 'Line2 is the second line of the street address.',
+                      type: 'string',
+                    },
+                    postalCode: {
+                      description: 'PostalCode is the post / zip code.',
+                      type: 'string',
+                    },
+                    region: {
+                      description: 'Region is the state, province, or county.',
+                      type: 'string',
+                    },
+                  },
+                },
+                brand: {
+                  description:
+                    'Brand is the card network (e.g. "visa", "mastercard", "amex").\nUniversally returned by every major card processor and load-\nbearing for display + routing logic.',
+                  type: 'string',
+                  minLength: 1,
+                },
+                country: {
+                  description:
+                    'Country is the ISO 3166-1 alpha-2 country code of the issuer.\nLoad-bearing for tax determination and one of the strongest\nfraud signals. Returned by every major card processor we expect\nto integrate with; a provider that cannot supply it must\nsynthesize "XX" (ISO unassigned).',
+                  type: 'string',
+                  pattern: '^[A-Z]{2}$',
+                },
+                cvcResult: {
+                  description:
+                    'CVCResult is the card verification value check result returned by\nthe issuer (e.g. "pass", "fail", "unchecked").',
+                  type: 'string',
+                },
+                expiryMonth: {
+                  description:
+                    'ExpiryMonth is the card expiration month (1-12). Cards have\nexpiry by definition; required so we can drive "your card\nexpires soon" notifications.',
+                  type: 'integer',
+                  format: 'int32',
+                  maximum: 12,
+                  minimum: 1,
+                },
+                expiryYear: {
+                  description: 'ExpiryYear is the card expiration year (four digits).',
+                  type: 'integer',
+                  format: 'int32',
+                  maximum: 2100,
+                  minimum: 2000,
+                },
+                issuerIdentificationNumber: {
+                  description:
+                    'IssuerIdentificationNumber is the BIN (first 6-8 digits) of the\ncard. Issuer-returned, not provider-specific; useful for\ndownstream fraud scoring. Optional because some providers gate\nBIN data behind enterprise tiers.',
+                  type: 'string',
+                },
+                last4: {
+                  description:
+                    'Last4 is the last four digits of the card number. Universally\nreturned and load-bearing for display, deduplication, and\ncustomer support.',
+                  type: 'string',
+                  pattern: '^[0-9]{4}$',
+                },
+              },
+            },
+            type: {
+              description: 'Type identifies the instrument category.',
+              type: 'string',
+              enum: ['card', 'usBankAccount'],
+            },
+            usBankAccount: {
+              description: 'USBankAccount is populated when Type is `usBankAccount`.',
+              type: 'object',
+              properties: {
+                accountType: {
+                  description: 'AccountType is the type of account (e.g. "checking", "savings").',
+                  type: 'string',
+                },
+                bankName: {
+                  description: 'BankName is the name of the bank holding the account.',
+                  type: 'string',
+                },
+                last4: {
+                  description: 'Last4 is the last four digits of the account number.',
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
+        failureMessage: {
+          description: 'FailureMessage is a human-readable description of the failure.',
+          type: 'string',
+        },
+        failureReason: {
+          description:
+            'FailureReason is a short, machine-parseable code for the failure\n(e.g. "card_declined", "setup_intent_expired"). Set when phase is\nFailed.',
+          type: 'string',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\nreconciling controller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        phase: {
+          description: 'Phase represents the current lifecycle phase.',
+          type: 'string',
+          enum: ['Pending', 'AwaitingConfirmation', 'Active', 'Failed'],
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'PaymentMethod',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_PaymentMethodClassSchema = {
+  description:
+    'PaymentMethodClass is the Schema for the paymentmethodclasses API.\n\nPaymentMethodClass is a cluster-scoped resource configured by platform\noperators. It names the payment provider controller responsible for\nreconciling PaymentMethods of this class, and references provider-owned\nconfiguration via spec.parametersRef. Consumers do not interact with\nPaymentMethodClass directly — the billing service defaulting webhook\ninjects the cluster default class onto PaymentMethods at creation time.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'PaymentMethodClassSpec defines the desired state of a PaymentMethodClass.',
+      type: 'object',
+      required: ['parametersRef', 'provider'],
+      properties: {
+        parametersRef: {
+          description:
+            'ParametersRef points at a provider-owned resource carrying any\nprovider-specific SDK configuration (e.g. a Stripe publishable\nkey). PaymentMethodClass intentionally carries no provider-specific\nfields — adding a new provider must not require a billing-service\nschema change. This mirrors the Kubernetes Gateway API\n`parametersRef` pattern.',
+          type: 'object',
+          required: ['group', 'kind', 'name'],
+          properties: {
+            group: {
+              description:
+                'Group is the API group of the provider-specific configuration\nresource (e.g. "stripe.billing.miloapis.com").',
+              type: 'string',
+              minLength: 1,
+            },
+            kind: {
+              description:
+                'Kind is the Kind of the provider-specific configuration resource\n(e.g. "StripeProviderConfig").',
+              type: 'string',
+              minLength: 1,
+            },
+            name: {
+              description: 'Name is the name of the provider-specific configuration resource.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+        },
+        provider: {
+          description:
+            'Provider is the name of the provider controller responsible for\nreconciling PaymentMethods of this class. The controller watches\nPaymentMethods whose spec.paymentMethodClassRef points at a class\nwhose spec.provider matches its own identity. Examples: "stripe",\n"braintree".',
+          type: 'string',
+          minLength: 1,
+        },
+      },
+    },
+    status: {
+      description: 'PaymentMethodClassStatus defines the observed state of a PaymentMethodClass.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\nclass's state.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\ncontroller.',
+          type: 'integer',
+          format: 'int64',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'PaymentMethodClass',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_PaymentMethodClassListSchema = {
+  description: 'PaymentMethodClassList is a list of PaymentMethodClass',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of paymentmethodclasses. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.PaymentMethodClass',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'PaymentMethodClassList',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_PaymentMethodListSchema = {
+  description: 'PaymentMethodList is a list of PaymentMethod',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of paymentmethods. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.PaymentMethod',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'PaymentMethodList',
+      version: 'v1alpha1',
+    },
+  ],
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
@@ -650,11 +1798,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'networking.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
-    },
-    {
-      group: 'networking.k8s.io',
-      kind: 'DeleteOptions',
       version: 'v1beta1',
     },
     {
@@ -696,6 +1839,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'rbac.authorization.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1',
     },
     {
       group: 'resource.k8s.io',
@@ -706,6 +1854,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'resource.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta2',
     },
     {
       group: 'scheduling.k8s.io',
@@ -740,7 +1893,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'storagemigration.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1beta1',
     },
   ],
 } as const;
@@ -1044,7 +2197,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails',
         },
       ],
-      'x-kubernetes-list-type': 'atomic',
     },
     kind: {
       description:
