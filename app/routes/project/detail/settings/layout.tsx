@@ -6,9 +6,14 @@ import { type Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useMemo } from 'react';
-import { Outlet } from 'react-router';
+import { Outlet, useRouteLoaderData } from 'react-router';
 
-type ProjectDetailEnvelope = DslLoaderData<Project, Record<string, unknown>>;
+type ProjectDetailEnvelope = DslLoaderData<
+  Project,
+  {
+    billingEnabled?: boolean | null;
+  }
+>;
 
 export const handle = {
   breadcrumb: () => <span>Project Settings</span>,
@@ -22,6 +27,9 @@ export const handle = {
 
 export default function ProjectSettingsLayout() {
   const { project } = useProjectContext();
+  const parent = useRouteLoaderData('project-detail') as ProjectDetailEnvelope | undefined;
+  const billingEnabled =
+    parent && parent.restricted === false ? (parent.companions.billingEnabled ?? false) : false;
 
   const navItems: SubNavigationTab[] = useMemo(() => {
     const projectId = project?.name;
@@ -38,12 +46,20 @@ export default function ProjectSettingsLayout() {
         label: 'Quotas',
         href: getPathWithParams(paths.project.detail.settings.quotas, { projectId }),
       },
+      ...(billingEnabled
+        ? [
+            {
+              label: 'Billing',
+              href: getPathWithParams(paths.project.detail.settings.billing, { projectId }),
+            },
+          ]
+        : []),
       {
         label: 'Activity',
         href: getPathWithParams(paths.project.detail.settings.activity, { projectId }),
       },
     ];
-  }, [project]);
+  }, [project, billingEnabled]);
 
   return (
     <SubLayout title="Project Settings" navItems={navItems}>

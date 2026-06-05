@@ -1,10 +1,13 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { FathomProvider } from '@/modules/fathom';
+import { ROOT_FEATURE_FLAGS, type FeatureFlagMap } from '@/modules/feature-flags';
+import { evaluateFlagsForOrgs } from '@/modules/feature-flags/evaluate.server';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { RbacProvider } from '@/modules/rbac';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
+import { createOrganizationService } from '@/resources/organizations';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -50,6 +53,22 @@ export const loader = withMiddleware(
       const cachedUser = getRequestContext()?.cachedUser;
       const user = cachedUser ?? (await createUserService().get(session?.sub ?? ''));
 
+      // Resolve every flag listed in ROOT_FEATURE_FLAGS once here so the
+      // AppProvider can hand them to any global component via
+      // useFeatureFlag(). The semantic is "enabled for this user" =
+      // any of the user's orgs has the flag on. Failures are tolerated
+      // and treated as off; per-route layout loaders are still the
+      // load-bearing gate for the actual pages.
+      const featureFlags: FeatureFlagMap = await (async () => {
+        try {
+          const orgs = await createOrganizationService().list();
+          const orgIds = orgs.items.map((o) => o.name);
+          return await evaluateFlagsForOrgs(ROOT_FEATURE_FLAGS, orgIds);
+        } catch {
+          return {};
+        }
+      })();
+
       // Compute HelpScout HMAC asynchronously — returns a promise that streams to
       // the client instead of blocking the layout shell render. HelpScout is a
       // non-critical support-chat widget; it can mount after first paint.
@@ -64,6 +83,7 @@ export const loader = withMiddleware(
 
       return data({
         user,
+        featureFlags,
         helpscoutSignature: helpscoutSignaturePromise,
         helpscoutBeaconId: serverEnv.public.helpscoutBeaconId ?? null,
       });
@@ -113,6 +133,7 @@ function RbacAppWrapper({ children }: { children: ReactNode }) {
 export default function PrivateLayout() {
   const data: {
     user: User;
+    featureFlags: FeatureFlagMap;
     helpscoutSignature: Promise<string | null>;
     helpscoutBeaconId: string | null;
   } = useLoaderData<typeof loader>();
@@ -131,7 +152,7 @@ export default function PrivateLayout() {
 
   return (
     <WatchProvider>
-      <AppProvider initialUser={data?.user}>
+      <AppProvider initialUser={data?.user} initialFeatureFlags={data?.featureFlags}>
         <FathomWrapper>
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <ConfirmationDialogProvider>

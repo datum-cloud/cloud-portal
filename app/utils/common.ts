@@ -86,8 +86,22 @@ export function removeUndefined<T extends Record<string, any>>(obj: T): Partial<
   return result;
 }
 
+const ORGANIZATION_NAMESPACE_PREFIX = 'organization-';
+
 export function buildOrganizationNamespace(organizationId: string): string {
-  return `organization-${organizationId}`;
+  return `${ORGANIZATION_NAMESPACE_PREFIX}${organizationId}`;
+}
+
+/**
+ * Reverse of {@link buildOrganizationNamespace}: pull the `organizationId`
+ * back out of an `organization-<id>` namespace. Returns `undefined` for
+ * any other shape — defensive, since callers (e.g. billing loaders) fall
+ * back to "Unknown" rather than crashing on an unexpected namespace.
+ */
+export function orgIdFromNamespace(namespace: string | undefined): string | undefined {
+  return namespace?.startsWith(ORGANIZATION_NAMESPACE_PREFIX)
+    ? namespace.slice(ORGANIZATION_NAMESPACE_PREFIX.length)
+    : undefined;
 }
 
 /**

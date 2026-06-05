@@ -19,7 +19,7 @@ There is no implicit prefix. Use the same string the registration uses.
 ## Setup (loader-side)
 
 ```ts
-import { MiloFeatureFlagProvider } from '@/lib/feature-flags';
+import { MiloFeatureFlagProvider } from '@/modules/feature-flags';
 import { createAllowanceBucketService } from '@/resources/allowance-buckets';
 import { OpenFeature } from '@openfeature/server-sdk';
 
@@ -58,5 +58,5 @@ gating is the responsibility of each call site.
 ## Tests
 
 ```sh
-bun run test:lib
+bun run test:feature-flags
 ```

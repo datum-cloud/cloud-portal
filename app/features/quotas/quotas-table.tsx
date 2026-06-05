@@ -2,6 +2,7 @@ import { Table } from '@/components/table';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
+import type { ResourceRegistrationType } from '@/resources/resource-registrations';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -11,13 +12,27 @@ import { useMemo } from 'react';
 
 export const QuotasTable = ({
   data,
+  registrationTypes,
   resourceType,
   resource,
 }: {
   data: AllowanceBucket[];
+  /**
+   * Map of `resourceType` → `ResourceRegistration.spec.type`. Buckets
+   * whose resourceType maps to `Feature` are hidden — visibility flags
+   * have no countable usage and the X/Y bar always reads "0 / N".
+   * Optional + defaults to empty so legacy callers (and the
+   * degraded-fetch path) keep every row.
+   */
+  registrationTypes?: Record<string, ResourceRegistrationType>;
   resourceType: 'organization' | 'project';
   resource: Organization | Project;
 }) => {
+  const types = registrationTypes ?? {};
+  const rows = useMemo(
+    () => data.filter((b) => types[b.resourceType] !== 'Feature'),
+    [data, types]
+  );
   const calculateUsage = (usage: { allocated: bigint; limit: bigint }) => {
     const used =
       typeof usage.allocated === 'bigint' ? Number(usage.allocated) : (usage.allocated ?? 0);
@@ -134,5 +149,5 @@ export const QuotasTable = ({
     ];
   }, [data, resourceType]);
 
-  return <Table.Client columns={columns} data={data} empty="No quotas found" />;
+  return <Table.Client columns={columns} data={rows} empty="No quotas found" />;
 };

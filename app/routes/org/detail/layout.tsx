@@ -1,18 +1,29 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
+import { FeatureFlag } from '@/modules/feature-flags';
+import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
+import { createInvitationService, invitationKeys } from '@/resources/invitations';
+import { createMemberService, memberKeys } from '@/resources/members';
 import { type Organization, createOrganizationService } from '@/resources/organizations';
+import { createProjectService, projectKeys } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { clearProjectSession, setOrgSession } from '@/utils/cookies';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
-import { FolderRoot, SettingsIcon, UsersIcon } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { BarChart3Icon, FolderRoot, SettingsIcon, UsersIcon, WalletIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
 import { type LoaderFunctionArgs, Outlet, type ShouldRevalidateFunction } from 'react-router';
 
-const route = defineResourceRoute<Organization>({
+type OrgLayoutCompanions = {
+  billingEnabled: boolean | null;
+  usageMeteringEnabled: boolean | null;
+};
+
+const route = defineResourceRoute<Organization, OrgLayoutCompanions>({
   type: 'detail',
   resource: 'organizations',
   paramName: 'orgId',
@@ -24,13 +35,35 @@ const route = defineResourceRoute<Organization>({
 });
 
 export const loader = (args: LoaderFunctionArgs) =>
-  runDetailLoader<Organization, Record<string, never>>(args, {
+  runDetailLoader<Organization, OrgLayoutCompanions>(args, {
     resource: 'organizations',
     group: 'resourcemanager.miloapis.com',
     scope: 'user',
     paramName: 'orgId',
     notFoundLabel: 'Organization',
     fetch: ({ id }) => createOrganizationService().get(id),
+    companions: {
+      billingEnabled: {
+        resource: 'organizations',
+        group: 'resourcemanager.miloapis.com',
+        verb: 'get',
+        scope: 'user',
+        onError: 'tolerate',
+        fetch: ({ data: org }) =>
+          org?.name ? isFeatureEnabled(FeatureFlag.Billing, org.name) : Promise.resolve(false),
+      },
+      usageMeteringEnabled: {
+        resource: 'organizations',
+        group: 'resourcemanager.miloapis.com',
+        verb: 'get',
+        scope: 'user',
+        onError: 'tolerate',
+        fetch: ({ data: org }) =>
+          org?.name
+            ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, org.name)
+            : Promise.resolve(false),
+      },
+    },
     setHeaders: async ({ data: org, args: loaderArgs }) => {
       // Preserve the existing cookie side-effects: pin the current org and
       // clear any stale project pick. Only runs on the success path.
@@ -61,8 +94,11 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
   return defaultShouldRevalidate;
 };
 
-export default route.Page(({ data: initialOrg }) => {
+export default route.Page(({ data: initialOrg, companions }) => {
+  const billingEnabled = companions.billingEnabled ?? false;
+  const usageMeteringEnabled = companions.usageMeteringEnabled ?? false;
   const { organization, setOrganization, setProject } = useApp();
+  const queryClient = useQueryClient();
 
   // Use app state (updated by mutations), fallback to SSR data
   const org = organization?.name === initialOrg.name ? organization : initialOrg;
@@ -85,6 +121,13 @@ export default route.Page(({ data: initialOrg }) => {
         href: getPathWithParams(paths.org.detail.projects.root, { orgId }),
         type: 'link',
         icon: FolderRoot,
+        onPrefetch: () => {
+          if (!orgId) return;
+          void queryClient.prefetchQuery({
+            queryKey: projectKeys.list(orgId),
+            queryFn: () => createProjectService().list(orgId),
+          });
+        },
       },
       {
         title: 'Team',
@@ -92,7 +135,38 @@ export default route.Page(({ data: initialOrg }) => {
         type: 'link',
         hidden: org?.type === 'Personal',
         icon: UsersIcon,
+        onPrefetch: () => {
+          if (!orgId) return;
+          void queryClient.prefetchQuery({
+            queryKey: memberKeys.list(orgId),
+            queryFn: () => createMemberService().list(orgId),
+          });
+          void queryClient.prefetchQuery({
+            queryKey: invitationKeys.list(orgId),
+            queryFn: () => createInvitationService().list(orgId),
+          });
+        },
       },
+      ...(usageMeteringEnabled
+        ? [
+            {
+              title: 'Usage',
+              href: getPathWithParams(paths.org.detail.usage, { orgId }),
+              type: 'link' as const,
+              icon: BarChart3Icon,
+            },
+          ]
+        : []),
+      ...(billingEnabled
+        ? [
+            {
+              title: 'Billing',
+              href: getPathWithParams(paths.org.detail.billing.root, { orgId }),
+              type: 'link' as const,
+              icon: WalletIcon,
+            },
+          ]
+        : []),
       {
         title: 'Organization Settings',
         href: settingsPreferences,
@@ -108,7 +182,7 @@ export default route.Page(({ data: initialOrg }) => {
         ],
       },
     ];
-  }, [org]);
+  }, [org, queryClient, billingEnabled, usageMeteringEnabled]);
 
   // Sync SSR org to app state on initial load or org change
   useEffect(() => {

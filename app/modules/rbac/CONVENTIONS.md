@@ -75,6 +75,31 @@ mutation.onError: (e) => toast.error(e.message || 'Failed to update')
 
 Enforcement: PR review.
 
+## Documented exceptions
+
+### Shared cards that own their own affordance
+
+`<PermissionButton>` / `<PermissionGate>` gate an affordance the page
+renders. A few shared cards instead *own* the affordance internally and
+expose a permission boolean as their public API. Threading the boolean
+into these is the canonical, codebase-wide pattern — not the banned
+"ad-hoc permission rendering" — because the page has no button/trigger of
+its own to wrap:
+
+- **`<DangerCard actionHidden={loading || !canDelete}>`** + sibling
+  `<RestrictedOverlay>` — the card renders its own delete `<Button>`, so
+  the page can't wrap it. Used identically in `organization/settings`,
+  `project/settings`, and `dns-zones/detail/settings`.
+- **Single-field form cards** (e.g. billing `DisplayNameFormCard`,
+  `BillingAddressFieldsCard`) take `canEdit` — it disables the form
+  *inputs* (and the submit, with a denied tooltip), which a button-only
+  `<PermissionButton>` can't express.
+
+Gate the underlying permission once with `usePermission` /
+`useResourcePermissions` and pass the boolean to these cards. Continue to
+use the canonical primitives everywhere the page renders its own button or
+trigger.
+
 ## `defineResourceRoute` reference
 
 Two variants, one entrypoint. See implementation in

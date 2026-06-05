@@ -1,4 +1,4 @@
-import { isKnownSystemEvent } from '../../app/modules/sentry/filters';
+import { shouldDropSentryEvent } from '../../app/modules/sentry/filters';
 import { env } from '../../app/utils/env/env.server';
 import { BaseProvider } from './base';
 import { trace } from '@opentelemetry/api';
@@ -165,9 +165,10 @@ export class SentryProvider extends BaseProvider {
         return null;
       }
 
-      // Suppress events from known system actors — they fire frequently
-      // and make it harder to see actual user errors in Sentry.
-      if (isKnownSystemEvent(event)) {
+      // Drop events that aren't actionable: known system actors and
+      // bot-driven React Router 405s. Keeps Sentry focused on real
+      // user-facing errors.
+      if (shouldDropSentryEvent(event)) {
         return null;
       }
 

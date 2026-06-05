@@ -103,8 +103,16 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
         'https://*.usefathom.com', // Fathom
+        'https://api.stripe.com',
+        'https://maps.googleapis.com', // AddressElement autocomplete
       ],
-      fontSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.gstatic.com'],
+      fontSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://*.jsdelivr.net',
+        'https://*.gstatic.com',
+        'https://*.helpscout.net',
+      ],
       frameSrc: [
         "'self'",
         'https://*.sentry.io',
@@ -112,6 +120,8 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
         'https://*.usefathom.com', // Fathom
+        'https://js.stripe.com',
+        'https://hooks.stripe.com',
       ],
       imgSrc: [
         "'self'",
@@ -123,6 +133,7 @@ app.use(
         'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
         'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
         'https://*.usefathom.com', // Fathom
+        'https://*.stripe.com',
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
       scriptSrc: [
@@ -136,6 +147,7 @@ app.use(
         "'self'",
         'https://js.sentry-cdn.com',
         'https://browser.sentry-cdn.com',
+        'https://js.stripe.com',
         NONCE,
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],

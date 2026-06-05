@@ -1,14 +1,11 @@
-import { FeatureFlag } from '@/lib/feature-flags';
-import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
-import {
-  listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding,
-  readBillingMiloapisComV1Alpha1NamespacedBillingAccount,
-} from '@/modules/control-plane/billing';
 import { client } from '@/modules/control-plane/shared/client.gen';
-import { getOrgScopedBase } from '@/resources/base/utils';
+import { FeatureFlag } from '@/modules/feature-flags';
+import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
+import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createProjectService } from '@/resources/projects';
 import { env } from '@/utils/env/env.server';
-import { BadRequestError } from '@/utils/errors';
+import { AuthenticationError, AuthorizationError, BadRequestError } from '@/utils/errors';
 import {
   Card,
   CardContent,
@@ -71,9 +68,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   }
 
   // Resolve BillingAccount uid (= Amberflo customerId) for this project.
-  const projectService = createProjectService();
-  const project = await projectService.get(projectId);
-  const orgNamespace = `organization-${project.organizationId}`;
+  const project = await createProjectService().get(projectId);
 
   // Gate the page on the org-level feature flag — deep-link should 404 when off.
   const enabled = await isFeatureEnabled(
@@ -84,22 +79,21 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw data('Usage metering is not enabled for this organization', { status: 404 });
   }
 
-  let bindingsResp;
+  // Bindings + account lookup go through the resource layer so the
+  // service-level error mapping (`mapApiError` → AuthorizationError /
+  // AuthenticationError) drives the graceful "insufficient-permissions"
+  // state instead of re-implementing the status-code check inline.
+  let bindings;
   try {
-    bindingsResp = await listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding({
-      baseURL: getOrgScopedBase(project.organizationId),
-      path: { namespace: orgNamespace },
-    });
-  } catch (err: unknown) {
-    const status = (err as { response?: { status?: number } })?.response?.status;
-    if (status === 403 || status === 401) {
+    bindings = await createBillingAccountBindingService().list(project.organizationId);
+  } catch (err) {
+    if (err instanceof AuthorizationError || err instanceof AuthenticationError) {
       return data({ status: 'insufficient-permissions' as const, meters: [] });
     }
     throw err;
   }
 
-  const binding = bindingsResp.data?.items?.find((b) => b.spec?.projectRef?.name === projectId);
-
+  const binding = bindings.find((b) => b.spec?.projectRef?.name === projectId);
   if (!binding) {
     return data({ status: 'no-billing-account' as const, meters: [] });
   }
@@ -109,21 +103,17 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     return data({ status: 'no-billing-account' as const, meters: [] });
   }
 
-  let accountResp;
+  let account;
   try {
-    accountResp = await readBillingMiloapisComV1Alpha1NamespacedBillingAccount({
-      baseURL: getOrgScopedBase(project.organizationId),
-      path: { namespace: orgNamespace, name: billingAccountName },
-    });
-  } catch (err: unknown) {
-    const status = (err as { response?: { status?: number } })?.response?.status;
-    if (status === 403 || status === 401) {
+    account = await createBillingAccountService().get(project.organizationId, billingAccountName);
+  } catch (err) {
+    if (err instanceof AuthorizationError || err instanceof AuthenticationError) {
       return data({ status: 'insufficient-permissions' as const, meters: [] });
     }
     throw err;
   }
 
-  const customerId = accountResp.data?.metadata?.uid;
+  const customerId = account.metadata?.uid;
   if (!customerId) {
     return data({ status: 'no-billing-account' as const, meters: [] });
   }
