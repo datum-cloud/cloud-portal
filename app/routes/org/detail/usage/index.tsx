@@ -1,9 +1,6 @@
-import { client } from '@/modules/control-plane/shared/client.gen';
+import { fetchOrgUsage, sumMeterValues, type MeterSeries } from '@/modules/billing';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { createBillingAccountService } from '@/resources/billing-accounts';
-import { env } from '@/utils/env/env.server';
-import { AuthenticationError, AuthorizationError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -52,35 +49,6 @@ export const handle = {
  * 404 instead of rendering an empty page on disabled orgs.
  */
 
-interface MeterSeries {
-  meterApiName: string;
-  label: string;
-  values: { timestamp: number; value: number }[];
-}
-
-interface MeterDefinition {
-  meterName: string;
-  displayName: string;
-}
-
-async function listMeterDefinitions(): Promise<MeterDefinition[]> {
-  try {
-    const axios = client.getConfig().axios;
-    if (!axios) return [];
-    const baseUrl = axios.defaults?.baseURL ?? '';
-    const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
-    const items: { spec?: { meterName?: string; displayName?: string } }[] = resp.data?.items ?? [];
-    return items
-      .map((item) => ({
-        meterName: item.spec?.meterName ?? '',
-        displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
-      }))
-      .filter((m) => m.meterName);
-  } catch {
-    return [];
-  }
-}
-
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId } = params;
 
@@ -88,102 +56,13 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw data('Organization is required', { status: 400 });
   }
 
-  const apiKey = env.server.amberfloApiKey;
-  if (!apiKey) {
-    return data({ status: 'unconfigured' as const, meters: [] });
-  }
-
-  // Closed-by-default flag gate. The org layout hides the nav item on
-  // flag-off orgs but a deep link should still 404 rather than render
-  // an empty dashboard. Same flag as the per-project usage page.
   const enabled = await isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, orgId);
   if (!enabled) {
     throw data('Usage metering is not enabled for this organization', { status: 404 });
   }
 
-  // The billing-account service translates 401/403 into typed errors
-  // via `mapApiError`, so we just match those instances rather than
-  // re-implementing the HTTP-status check here.
-  let accounts;
-  try {
-    accounts = await createBillingAccountService().list(orgId);
-  } catch (err) {
-    if (err instanceof AuthorizationError || err instanceof AuthenticationError) {
-      return data({ status: 'insufficient-permissions' as const, meters: [] });
-    }
-    throw err;
-  }
-
-  // Each account's `metadata.uid` is the Amberflo `customerId` — same
-  // mapping the project page relies on. Drop accounts that haven't been
-  // provisioned a uid yet (theoretically transient during creation).
-  const customerIds = accounts
-    .map((account) => account.metadata?.uid)
-    .filter((uid): uid is string => Boolean(uid));
-
-  if (customerIds.length === 0) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  const baseUrl = env.server.amberfloBaseUrl;
-  const nowSec = Math.floor(Date.now() / 1000);
-  const startSec = nowSec - 30 * 24 * 3600;
-
-  const meterDefs = await listMeterDefinitions();
-
-  // Fan the sparse-usage query out per meter. Amberflo aggregates
-  // across the `customerId` filter array server-side, so we get one
-  // series back per meter regardless of how many accounts the org
-  // has. Failures are isolated per meter — a single bad meter
-  // shouldn't blank out the whole dashboard.
-  const meters = await Promise.all(
-    meterDefs.map(async ({ meterName, displayName }): Promise<MeterSeries> => {
-      try {
-        const resp = await fetch(`${baseUrl}/usage/sparse`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-          },
-          body: JSON.stringify({
-            meterApiName: meterName,
-            timeRange: { startTimeInSeconds: startSec, endTimeInSeconds: nowSec },
-            filter: { customerId: customerIds },
-            groupBy: ['customerId'],
-          }),
-        });
-
-        if (!resp.ok) {
-          return { meterApiName: meterName, label: displayName, values: [] };
-        }
-
-        const json = (await resp.json()) as {
-          clientMeters?: { values?: { secondsSinceEpochUtc: number; value: number }[] }[];
-        };
-
-        // Multiple `clientMeters` entries come back when more than one
-        // customer reported usage in the window. Stack them into a
-        // single timestamp → summed-value series so the chart and the
-        // summary total reflect the whole org.
-        const totalsByTs = new Map<number, number>();
-        for (const cm of json.clientMeters ?? []) {
-          for (const v of cm.values ?? []) {
-            const ts = v.secondsSinceEpochUtc * 1000;
-            totalsByTs.set(ts, (totalsByTs.get(ts) ?? 0) + v.value);
-          }
-        }
-        const values = Array.from(totalsByTs.entries())
-          .map(([timestamp, value]) => ({ timestamp, value }))
-          .sort((a, b) => a.timestamp - b.timestamp);
-
-        return { meterApiName: meterName, label: displayName, values };
-      } catch {
-        return { meterApiName: meterName, label: displayName, values: [] };
-      }
-    })
-  );
-
-  return data({ status: 'ok' as const, meters });
+  const result = await fetchOrgUsage(orgId);
+  return data(result);
 };
 
 /**
@@ -211,11 +90,6 @@ const Section = ({
     </section>
   );
 };
-
-/** Sum every sample in a series — the headline number for each meter card and the summary row. */
-function sumValues(values: { value: number }[]): number {
-  return values.reduce((acc, v) => acc + v.value, 0);
-}
 
 /**
  * Heuristic formatter. Without `MeterDefinition.spec.unit` (not yet on
@@ -289,7 +163,7 @@ function UsageSummaryTable({ meters }: { meters: MeterSeries[] }) {
                   </div>
                 </td>
                 <td className="text-muted-foreground px-4 py-3 text-sm tabular-nums">
-                  {formatMeterValue(meter.meterApiName, sumValues(meter.values))}
+                  {formatMeterValue(meter.meterApiName, sumMeterValues(meter.values))}
                 </td>
               </tr>
             ))}
@@ -308,7 +182,7 @@ function UsageSummaryTable({ meters }: { meters: MeterSeries[] }) {
  * "no data yet" apart from "rendered but value is 0".
  */
 function MeterCard({ meter }: { meter: MeterSeries }) {
-  const total = sumValues(meter.values);
+  const total = sumMeterValues(meter.values);
   return (
     <Card className="shadow-none">
       <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0">

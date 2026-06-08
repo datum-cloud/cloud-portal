@@ -51,8 +51,8 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueries } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Building, PlusIcon, Trash2Icon } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { type MetaFunction, useLoaderData, useNavigate } from 'react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { type MetaFunction, useLoaderData, useNavigate, useSearchParams } from 'react-router';
 
 const PERMISSION_STALE_TIME = 5 * 60 * 1000;
 
@@ -160,6 +160,7 @@ export default function AccountBillingAccountsPage() {
     multiBillingByOrg: initialMultiBillingByOrg,
   } = useLoaderData<typeof loader>();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // The orgIds list is what every cross-org query keys off — keep
   // it stable across renders so React Query doesn't churn the cache
@@ -634,6 +635,24 @@ export default function AccountBillingAccountsPage() {
   //     button + drop in a Tooltip explaining why
   // Matches the rationale in `PermissionButton.tsx` from #1275.
   const definitivelyDenied = !isLoadingPermissions && !anyCanCreate && orgIds.length > 0;
+
+  // Open create dialog from URL search params (e.g. ?action=create from Patch links)
+  useEffect(() => {
+    if (searchParams.get('action') !== 'create') return;
+    if (isLoadingPermissions) return;
+
+    if (anyCanCreate) {
+      setOpenCreateDialog(true);
+    }
+    setSearchParams(
+      (prev) => {
+        prev.delete('action');
+        return prev;
+      },
+      { replace: true }
+    );
+  }, [searchParams, setSearchParams, anyCanCreate, isLoadingPermissions]);
+
   const createButton = (
     <Button
       key="create"
