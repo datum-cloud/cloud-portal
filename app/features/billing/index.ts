@@ -1,3 +1,4 @@
+export * from './can-create-billing-account';
 export * from './cards';
 export * from './components/card-brand-icon';
 export * from './constants';

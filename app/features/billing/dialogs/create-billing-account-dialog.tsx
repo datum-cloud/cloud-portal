@@ -13,6 +13,10 @@ export interface OrgOption {
   name: string;
   /** Human label rendered in the dropdown. */
   displayName: string;
+  /** When true the picker greys the row out so the user can't select it. */
+  disabled?: boolean;
+  /** Short hint appended to the label for disabled rows. */
+  disabledReason?: string;
 }
 
 /**
@@ -246,8 +250,10 @@ export const CreateBillingAccountDialog = ({
             required>
             <Form.Select placeholder="Select an organization">
               {organizations.map((org) => (
-                <Form.SelectItem key={org.name} value={org.name}>
-                  {org.displayName}
+                <Form.SelectItem key={org.name} value={org.name} disabled={org.disabled}>
+                  {org.disabled && org.disabledReason
+                    ? `${org.displayName} — ${org.disabledReason}`
+                    : org.displayName}
                 </Form.SelectItem>
               ))}
             </Form.Select>
