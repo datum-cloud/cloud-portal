@@ -1,4 +1,6 @@
-import { fetchOrgUsage, sumMeterValues, type MeterSeries } from '@/modules/billing';
+import { sumMeterValues } from '@/modules/billing/usage-summary';
+import { fetchOrgUsage } from '@/modules/billing/usage.server';
+import type { MeterSeries } from '@/modules/billing/usage.types';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';

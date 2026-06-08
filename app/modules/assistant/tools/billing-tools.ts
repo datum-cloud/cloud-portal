@@ -13,7 +13,8 @@ import {
   isDefaultPaymentMethod,
   normalizeCardBrand,
 } from '@/features/billing/types';
-import { fetchOrgUsage, fetchProjectUsage, summarizeMetersForAssistant } from '@/modules/billing';
+import { summarizeMetersForAssistant } from '@/modules/billing/usage-summary';
+import { fetchOrgUsage, fetchProjectUsage } from '@/modules/billing/usage.server';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';

@@ -1,4 +1,5 @@
-import { fetchProjectUsage, type MeterSeries } from '@/modules/billing';
+import { fetchProjectUsage } from '@/modules/billing/usage.server';
+import type { MeterSeries } from '@/modules/billing/usage.types';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createProjectService } from '@/resources/projects';

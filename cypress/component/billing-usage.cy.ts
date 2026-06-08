@@ -1,8 +1,5 @@
-import {
-  sumMeterValues,
-  summarizeMetersForAssistant,
-  type MeterSeries,
-} from '@/modules/billing/usage';
+import { sumMeterValues, summarizeMetersForAssistant } from '@/modules/billing/usage-summary';
+import type { MeterSeries } from '@/modules/billing/usage.types';
 
 describe('sumMeterValues', () => {
   it('sums sample values', () => {
