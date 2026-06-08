@@ -80,6 +80,24 @@ describe('buildSystemPrompt', () => {
     expect(dynamic.content).to.include('/project/proj-123/edge?action=create');
     expect(dynamic.content).to.include('/project/proj-123/secrets');
     expect(dynamic.content).to.include('/project/proj-123/connectors');
+    expect(dynamic.content).to.include('/project/proj-123/usage');
+    expect(dynamic.content).to.include('/project/proj-123/billing');
+  });
+
+  it('includes billing and usage URLs when orgName is provided', () => {
+    const [, dynamic] = buildSystemPrompt('proj-123', 'org-456');
+    expect(dynamic.content).to.include('/account/billing');
+    expect(dynamic.content).to.include('/account/billing?action=create');
+    expect(dynamic.content).to.include('/org/org-456/usage');
+    expect(dynamic.content).to.include('/org/org-456/billing');
+  });
+
+  it('static prompt mentions billing and usage tools', () => {
+    const [staticMsg] = buildSystemPrompt();
+    expect(staticMsg.content).to.include('listBillingAccounts');
+    expect(staticMsg.content).to.include('listPaymentMethods');
+    expect(staticMsg.content).to.include('getProjectUsage');
+    expect(staticMsg.content).to.include('getOrgUsage');
   });
 
   it('omits create URLs when projectName is undefined', () => {

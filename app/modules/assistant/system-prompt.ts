@@ -40,6 +40,20 @@ const STATIC_SYSTEM_PROMPT = [
   'Key Prometheus metrics: envoy_vhost_vcluster_upstream_rq (traffic), coraza_envoy_filter_request_events_total (WAF rule events with labels: coraza_outcome, coraza_rule_id, coraza_rule_severity, coraza_rule_action, trafficprotectionpolicy_mode, http_method, http_status_code, label_topology_kubernetes_io_region, gateway_name).',
   '',
 
+  // --- Billing, payment methods, and usage ---
+  'You have read-only tools for billing accounts, payment methods, and metered usage.',
+  'Billing vs quotas vs metrics vs usage:',
+  '- `listQuotas` = resource allowance buckets (how many domains, connectors, etc. the project may create)',
+  '- `getProjectMetrics` / `queryPrometheus` = live traffic and WAF telemetry from Prometheus',
+  '- `getProjectUsage` / `getOrgUsage` = billed meter consumption from the usage metering pipeline (tokens, transfer, etc.)',
+  'Call `listBillingAccounts` or `getBillingAccount` when the user asks about billing accounts, funding, or which account pays for projects.',
+  'Call `getProjectBillingBinding` when the user asks which billing account funds the current project.',
+  'Call `listPaymentMethods` when the user asks about cards or payment methods on file. Never attempt to add or remove cards — link to the billing account page instead.',
+  'Call `getProjectUsage` for project consumption questions; call `getOrgUsage` for organization-wide usage.',
+  'Summarize usage as totals over the period plus a brief recent trend. Offer the usage dashboard link for charts.',
+  'Billing tools are read-only. To create a billing account or add a payment method, offer a markdown link to the relevant page.',
+  '',
+
   // --- Presenting resources ---
   'When presenting resources to the user:',
   '- Show human-readable display names where available; use the resource `name` (ID) only when technically relevant (e.g. CLI commands)',
@@ -99,7 +113,20 @@ export function buildSystemPrompt(
       `- Connectors: /project/${projectName}/connectors`,
       `- Export Policies: /project/${projectName}/export-policies/new`,
       `- Activity Logs: /project/${projectName}/activity`,
-      `- Quotas: /project/${projectName}/quotas`
+      `- Quotas: /project/${projectName}/quotas`,
+      `- Project usage dashboard: /project/${projectName}/usage`,
+      `- Project billing binding: /project/${projectName}/billing`
+    );
+  }
+
+  if (orgName) {
+    dynamicLines.push(
+      '',
+      'Billing and usage URLs for this organization:',
+      '- All billing accounts: /account/billing',
+      '- Create billing account: /account/billing?action=create',
+      `- Org usage dashboard: /org/${orgName}/usage`,
+      `- Org billing switcher: /org/${orgName}/billing`
     );
   }
 
