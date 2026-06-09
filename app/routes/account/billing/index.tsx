@@ -5,6 +5,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { Table } from '@/components/table';
 import type { RowAction } from '@/components/table/types';
+import { canOrgCreateBillingAccount } from '@/features/billing/can-create-billing-account';
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
 import {
   CreateBillingAccountDialog,
@@ -19,6 +20,8 @@ import {
   type BillingAccountBinding,
   type PaymentMethod,
 } from '@/features/billing/types';
+import { FeatureFlag } from '@/modules/feature-flags';
+import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { checkPermissionAPI } from '@/modules/rbac/client/rbac-api';
 import { useApp } from '@/providers/app.provider';
 import {
@@ -48,8 +51,8 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueries } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Building, PlusIcon, Trash2Icon } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
-import { type MetaFunction, useLoaderData, useNavigate } from 'react-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { type MetaFunction, useLoaderData, useNavigate, useSearchParams } from 'react-router';
 
 const PERMISSION_STALE_TIME = 5 * 60 * 1000;
 
@@ -112,7 +115,26 @@ export const loader = async () => {
     })
   );
 
-  return { accounts, bindings, paymentMethods, organizations, orgIds, projectsByOrg };
+  const multiBillingByOrg = Object.fromEntries(
+    await Promise.all(
+      orgIds.map(async (orgId) => {
+        const enabled = await isFeatureEnabled(FeatureFlag.MultiBillingAccounts, orgId).catch(
+          () => false
+        );
+        return [orgId, enabled] as const;
+      })
+    )
+  );
+
+  return {
+    accounts,
+    bindings,
+    paymentMethods,
+    organizations,
+    orgIds,
+    projectsByOrg,
+    multiBillingByOrg,
+  };
 };
 
 interface AccountRow {
@@ -135,8 +157,10 @@ export default function AccountBillingAccountsPage() {
     organizations: initialOrganizations,
     orgIds: initialOrgIds,
     projectsByOrg,
+    multiBillingByOrg: initialMultiBillingByOrg,
   } = useLoaderData<typeof loader>();
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // The orgIds list is what every cross-org query keys off — keep
   // it stable across renders so React Query doesn't churn the cache
@@ -196,31 +220,7 @@ export default function AccountBillingAccountsPage() {
     ]),
   });
 
-  // The cross-org dialog stays unfiltered per design — the user can
-  // pick any org they're a member of and the API enforces the actual
-  // RBAC at create time — so we don't bother building a `create`
-  // Map. We only need the OR of all create-checks (toolbar enabled?)
-  // and a per-org `delete` Map (row action hidden?).
-  const { canDeletePerOrg, anyCanCreate, isLoadingPermissions } = useMemo(() => {
-    const del = new Map<string, boolean>();
-    let any = false;
-    let loading = false;
-    for (let i = 0; i < orgIds.length; i++) {
-      const id = orgIds[i];
-      const createQuery = permissionQueries[i * 2];
-      const deleteQuery = permissionQueries[i * 2 + 1];
-      const c = createQuery?.data;
-      const d = deleteQuery?.data;
-      if (!!c && c.allowed && !c.denied) any = true;
-      del.set(id, !!d && d.allowed && !d.denied);
-      if (createQuery?.isLoading || deleteQuery?.isLoading) loading = true;
-    }
-    return {
-      canDeletePerOrg: del,
-      anyCanCreate: any,
-      isLoadingPermissions: loading,
-    };
-  }, [orgIds, permissionQueries]);
+  const multiBillingByOrg = useMemo(() => initialMultiBillingByOrg, [initialMultiBillingByOrg]);
 
   // Seed each cache from the loader and let stale-time refetches
   // pick up changes on navigation. There's no cross-org watch — the
@@ -256,6 +256,46 @@ export default function AccountBillingAccountsPage() {
   const allBindings = bindingsQuery.data ?? initialBindings;
   const allPayments = paymentMethodsQuery.data ?? initialPaymentMethods;
   const organizations = organizationsQuery.data ?? initialOrganizations;
+
+  const accountsPerOrg = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const account of accounts) {
+      const oid = orgIdFromNamespace(account.metadata?.namespace);
+      if (!oid) continue;
+      counts.set(oid, (counts.get(oid) ?? 0) + 1);
+    }
+    return counts;
+  }, [accounts]);
+
+  const { canDeletePerOrg, canCreatePerOrg, anyCanCreate, isLoadingPermissions } = useMemo(() => {
+    const del = new Map<string, boolean>();
+    const create = new Map<string, boolean>();
+    let any = false;
+    let loading = false;
+    for (let i = 0; i < orgIds.length; i++) {
+      const id = orgIds[i];
+      const createQuery = permissionQueries[i * 2];
+      const deleteQuery = permissionQueries[i * 2 + 1];
+      const c = createQuery?.data;
+      const d = deleteQuery?.data;
+      const canCreatePermission = !!c && c.allowed && !c.denied;
+      const eligible = canOrgCreateBillingAccount({
+        canCreatePermission,
+        existingAccountCount: accountsPerOrg.get(id) ?? 0,
+        multiBillingAccountsEnabled: multiBillingByOrg[id] ?? false,
+      }).allowed;
+      create.set(id, eligible);
+      if (eligible) any = true;
+      del.set(id, !!d && d.allowed && !d.denied);
+      if (createQuery?.isLoading || deleteQuery?.isLoading) loading = true;
+    }
+    return {
+      canDeletePerOrg: del,
+      canCreatePerOrg: create,
+      anyCanCreate: any,
+      isLoadingPermissions: loading,
+    };
+  }, [orgIds, permissionQueries, accountsPerOrg, multiBillingByOrg]);
 
   // Resolve `${orgId}/${projectName}` → display name from the
   // loader-seeded per-org project lists. Keyed by org so project names
@@ -330,11 +370,24 @@ export default function AccountBillingAccountsPage() {
 
   const orgOptions: OrgOption[] = useMemo(
     () =>
-      organizations.items.map((o) => ({
-        name: o.name,
-        displayName: o.displayName ?? o.name,
-      })),
-    [organizations.items]
+      organizations.items.map((o) => {
+        const createQueryIndex = orgIds.indexOf(o.name) * 2;
+        const createQuery = createQueryIndex >= 0 ? permissionQueries[createQueryIndex] : undefined;
+        const canCreatePermission =
+          !!createQuery?.data && createQuery.data.allowed && !createQuery.data.denied;
+        const eligibility = canOrgCreateBillingAccount({
+          canCreatePermission,
+          existingAccountCount: accountsPerOrg.get(o.name) ?? 0,
+          multiBillingAccountsEnabled: multiBillingByOrg[o.name] ?? false,
+        });
+        return {
+          name: o.name,
+          displayName: o.displayName ?? o.name,
+          disabled: !eligibility.allowed,
+          disabledReason: eligibility.reason,
+        };
+      }),
+    [organizations.items, orgIds, permissionQueries, accountsPerOrg, multiBillingByOrg]
   );
 
   // Seed the create dialog's contact-name field from the signed-in
@@ -346,21 +399,6 @@ export default function AccountBillingAccountsPage() {
     () => [user?.givenName, user?.familyName].filter(Boolean).join(' ').trim(),
     [user?.givenName, user?.familyName]
   );
-
-  // Per-org floor lookup for the delete guard. Built from the same
-  // visible accounts list — orgs the user can't see don't count here,
-  // which matches the user's intuition (you can only delete things
-  // you can see, and the rule is "don't let me delete the last one I
-  // can see in this org").
-  const accountsPerOrg = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const account of accounts) {
-      const oid = orgIdFromNamespace(account.metadata?.namespace);
-      if (!oid) continue;
-      counts.set(oid, (counts.get(oid) ?? 0) + 1);
-    }
-    return counts;
-  }, [accounts]);
 
   const { confirm } = useConfirmationDialog();
   const deleteMutation = useDeleteBillingAccount({
@@ -461,6 +499,24 @@ export default function AccountBillingAccountsPage() {
     const owningOrg = values.organizationName;
     if (!owningOrg) {
       toast.error('Pick an organization to create this account under.');
+      return;
+    }
+    if (canCreatePerOrg.get(owningOrg) !== true) {
+      const org = organizations.items.find((o) => o.name === owningOrg);
+      const createQueryIndex = orgIds.indexOf(owningOrg) * 2;
+      const createQuery = createQueryIndex >= 0 ? permissionQueries[createQueryIndex] : undefined;
+      const canCreatePermission =
+        !!createQuery?.data && createQuery.data.allowed && !createQuery.data.denied;
+      const { reason } = canOrgCreateBillingAccount({
+        canCreatePermission,
+        existingAccountCount: accountsPerOrg.get(owningOrg) ?? 0,
+        multiBillingAccountsEnabled: multiBillingByOrg[owningOrg] ?? false,
+      });
+      toast.error('Cannot create billing account', {
+        description:
+          reason ??
+          `You cannot add a billing account to ${org?.displayName ?? owningOrg} right now.`,
+      });
       return;
     }
     await createMutation.mutateAsync({
@@ -579,6 +635,24 @@ export default function AccountBillingAccountsPage() {
   //     button + drop in a Tooltip explaining why
   // Matches the rationale in `PermissionButton.tsx` from #1275.
   const definitivelyDenied = !isLoadingPermissions && !anyCanCreate && orgIds.length > 0;
+
+  // Open create dialog from URL search params (e.g. ?action=create from Patch links)
+  useEffect(() => {
+    if (searchParams.get('action') !== 'create') return;
+    if (isLoadingPermissions) return;
+
+    if (anyCanCreate) {
+      setOpenCreateDialog(true);
+    }
+    setSearchParams(
+      (prev) => {
+        prev.delete('action');
+        return prev;
+      },
+      { replace: true }
+    );
+  }, [searchParams, setSearchParams, anyCanCreate, isLoadingPermissions]);
+
   const createButton = (
     <Button
       key="create"
@@ -596,7 +670,7 @@ export default function AccountBillingAccountsPage() {
   const createAction = definitivelyDenied ? (
     <Tooltip
       key="create"
-      message="You don't have permission to create billing accounts in any of your organizations">
+      message="You can't create billing accounts in any of your organizations right now">
       {createButton}
     </Tooltip>
   ) : (

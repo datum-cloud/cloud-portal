@@ -1,11 +1,9 @@
-import { client } from '@/modules/control-plane/shared/client.gen';
+import { fetchProjectUsage } from '@/modules/billing/usage.server';
+import type { MeterSeries } from '@/modules/billing/usage.types';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
-import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createProjectService } from '@/resources/projects';
-import { env } from '@/utils/env/env.server';
-import { AuthenticationError, AuthorizationError, BadRequestError } from '@/utils/errors';
+import { BadRequestError } from '@/utils/errors';
 import {
   Card,
   CardContent,
@@ -26,35 +24,6 @@ import {
   YAxis,
 } from 'recharts';
 
-interface MeterSeries {
-  meterApiName: string;
-  label: string;
-  values: { timestamp: number; value: number }[];
-}
-
-interface MeterDefinition {
-  meterName: string;
-  displayName: string;
-}
-
-async function listMeterDefinitions(): Promise<MeterDefinition[]> {
-  try {
-    const axios = client.getConfig().axios;
-    if (!axios) return [];
-    const baseUrl = axios.defaults?.baseURL ?? '';
-    const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
-    const items: { spec?: { meterName?: string; displayName?: string } }[] = resp.data?.items ?? [];
-    return items
-      .map((item) => ({
-        meterName: item.spec?.meterName ?? '',
-        displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
-      }))
-      .filter((m) => m.meterName);
-  } catch {
-    return [];
-  }
-}
-
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
@@ -62,15 +31,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw new BadRequestError('Project ID is required');
   }
 
-  const apiKey = env.server.amberfloApiKey;
-  if (!apiKey) {
-    return data({ status: 'unconfigured' as const, meters: [] });
-  }
-
-  // Resolve BillingAccount uid (= Amberflo customerId) for this project.
   const project = await createProjectService().get(projectId);
-
-  // Gate the page on the org-level feature flag — deep-link should 404 when off.
   const enabled = await isFeatureEnabled(
     FeatureFlag.UsageMeteringDashboard,
     project.organizationId
@@ -79,88 +40,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw data('Usage metering is not enabled for this organization', { status: 404 });
   }
 
-  // Bindings + account lookup go through the resource layer so the
-  // service-level error mapping (`mapApiError` → AuthorizationError /
-  // AuthenticationError) drives the graceful "insufficient-permissions"
-  // state instead of re-implementing the status-code check inline.
-  let bindings;
-  try {
-    bindings = await createBillingAccountBindingService().list(project.organizationId);
-  } catch (err) {
-    if (err instanceof AuthorizationError || err instanceof AuthenticationError) {
-      return data({ status: 'insufficient-permissions' as const, meters: [] });
-    }
-    throw err;
-  }
-
-  const binding = bindings.find((b) => b.spec?.projectRef?.name === projectId);
-  if (!binding) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  const billingAccountName = binding.spec?.billingAccountRef?.name;
-  if (!billingAccountName) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  let account;
-  try {
-    account = await createBillingAccountService().get(project.organizationId, billingAccountName);
-  } catch (err) {
-    if (err instanceof AuthorizationError || err instanceof AuthenticationError) {
-      return data({ status: 'insufficient-permissions' as const, meters: [] });
-    }
-    throw err;
-  }
-
-  const customerId = account.metadata?.uid;
-  if (!customerId) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  const baseUrl = env.server.amberfloBaseUrl;
-  const nowSec = Math.floor(Date.now() / 1000);
-  const startSec = nowSec - 30 * 24 * 3600;
-
-  const meterDefs = await listMeterDefinitions();
-
-  const meters = await Promise.all(
-    meterDefs.map(async ({ meterName, displayName }): Promise<MeterSeries> => {
-      try {
-        const resp = await fetch(`${baseUrl}/usage/sparse`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-          },
-          body: JSON.stringify({
-            meterApiName: meterName,
-            timeRange: { startTimeInSeconds: startSec, endTimeInSeconds: nowSec },
-            filter: { customerId: [customerId] },
-            groupBy: ['customerId'],
-          }),
-        });
-
-        if (!resp.ok) {
-          return { meterApiName: meterName, label: displayName, values: [] };
-        }
-
-        const json = (await resp.json()) as {
-          clientMeters?: { values?: { secondsSinceEpochUtc: number; value: number }[] }[];
-        };
-        const raw = json.clientMeters?.[0]?.values ?? [];
-        return {
-          meterApiName: meterName,
-          label: displayName,
-          values: raw.map((v) => ({ timestamp: v.secondsSinceEpochUtc * 1000, value: v.value })),
-        };
-      } catch {
-        return { meterApiName: meterName, label: displayName, values: [] };
-      }
-    })
-  );
-
-  return data({ status: 'ok' as const, meters });
+  const result = await fetchProjectUsage(projectId);
+  return data(result);
 };
 
 function MeterChart({ meter }: { meter: MeterSeries }) {
