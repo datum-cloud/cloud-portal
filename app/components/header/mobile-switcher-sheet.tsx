@@ -4,7 +4,6 @@ import { useApp } from '@/providers/app.provider';
 import { type Organization, useOrganizationsGql } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
-import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
@@ -144,7 +143,6 @@ function ProjectSwitcherSheet({
     resource: 'projects',
     group: 'resourcemanager.miloapis.com',
     scope: 'org',
-    namespace: buildOrganizationNamespace(orgId ?? ''),
     verbs: ['create'],
   });
 

@@ -133,7 +133,6 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
     resource: 'projects',
     group: 'resourcemanager.miloapis.com',
     scope: 'org',
-    namespace: buildOrganizationNamespace(orgId),
     verbs: ['create'],
   });
 

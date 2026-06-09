@@ -1,77 +1,47 @@
-import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { InvitationForm } from '@/features/organization/team/invitation-form';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
-import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
+import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import {
   useCreateInvitation,
   type CreateInvitationInput,
   type InvitationFormSchema,
 } from '@/resources/invitations';
-import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
-import { BadRequestError, withLoaderErrors } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useState, useCallback } from 'react';
-import {
-  data,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from 'react-router';
+import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
+
+const route = defineResourceRoute({
+  type: 'gate',
+  restrictedTitle: 'Access restricted',
+  restrictedMessage: "You don't have permission to invite members.",
+  metaTitle: 'Invite Member',
+});
+
+// Org-scoped gate: `userinvitations:create`. Namespace is derived from scope
+// server-side (organization-{orgId}), so it is not passed here.
+export const loader = (args: LoaderFunctionArgs) =>
+  runRouteGate(args, {
+    resource: 'userinvitations',
+    verb: 'create',
+    group: 'iam.miloapis.com',
+    scope: 'org',
+  });
+export const meta = route.meta;
 
 export const handle = {
   breadcrumb: () => <span>Invite Member</span>,
 };
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Invite Member');
-});
-
-export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
-  const orgId = args.params.orgId;
-  if (!orgId) {
-    throw new BadRequestError('Organization ID is required');
-  }
-
-  const allowed = await gateRouteAccess(orgId, {
-    resource: 'userinvitations',
-    verb: 'create',
-    group: 'iam.miloapis.com',
-    namespace: buildOrganizationNamespace(orgId),
-    scope: 'org',
-  });
-
-  if (!allowed) {
-    return data({ restricted: true as const });
-  }
-
-  return data({ restricted: false as const, data: null, companions: {} });
-});
+export default route.Page(() => <InviteForm />);
 
 interface InvitationResult {
   email: string;
   success: boolean;
   data?: any;
   error?: string;
-}
-
-export default function OrgTeamInvitePage() {
-  const loaderData = useLoaderData<typeof loader>();
-
-  if (loaderData.restricted) {
-    return (
-      <RestrictedState
-        title="Access restricted"
-        message="You don't have permission to invite members."
-      />
-    );
-  }
-
-  return <InviteForm />;
 }
 
 function InviteForm() {
