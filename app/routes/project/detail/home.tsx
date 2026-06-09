@@ -100,7 +100,6 @@ export default function ProjectHomePage() {
     resource: 'httpproxies',
     group: 'networking.datumapis.com',
     scope: 'project',
-    namespace: 'default',
     verbs: ['create'],
     subResources: [
       {

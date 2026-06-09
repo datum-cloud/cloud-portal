@@ -64,6 +64,46 @@ export function buildChecks(input: UseResourcePermissionsInput): PermissionCheck
 }
 
 /**
+ * Root resources whose RBAC is granted per *named instance* (a RoleBinding on
+ * the specific object), not per collection/namespace. A collection-level check
+ * for these — which is all `useResourcePermissions` can express, since it has
+ * no `name` field — asks "can I <verb> ANY <resource>" and fails closed for a
+ * user who only holds the instance-scoped grant. Project owners hit exactly
+ * this on `projects:delete`. Use `useAccessReview(resource, verb, { name })`.
+ */
+export const INSTANCE_GRANTED_RESOURCES = new Set<string>(['projects', 'organizations']);
+
+/**
+ * Verbs that act on a specific instance. `list`/`create` are collection-level
+ * and remain valid through this hook; `get`/`patch`/`update`/`delete` target a
+ * named object and therefore need `name` for instance-granted resources.
+ */
+export const INSTANCE_LEVEL_VERBS = new Set<string>(['get', 'patch', 'update', 'delete']);
+
+/**
+ * Detect the project-delete class of misuse: an instance-granted resource
+ * checked with an instance-level verb through the (name-less) batched hook.
+ * Returns a warning message, or null when the usage is fine. Exported for unit
+ * tests; called dev-only inside {@link useResourcePermissions}.
+ */
+export function detectInstanceGrantMisuse(input: UseResourcePermissionsInput): string | null {
+  if (!INSTANCE_GRANTED_RESOURCES.has(input.resource)) {
+    return null;
+  }
+  const offending = input.verbs.filter((v) => INSTANCE_LEVEL_VERBS.has(v));
+  if (offending.length === 0) {
+    return null;
+  }
+  return (
+    `[useResourcePermissions] '${input.resource}' is granted per named instance, but ` +
+    `verb(s) [${offending.join(', ')}] are checked collection-level (no 'name'). This ` +
+    `fails closed for instance-scoped grants (e.g. a project owner). Use ` +
+    `useAccessReview('${input.resource}', '${offending[0]}', { name, scope }) instead — ` +
+    `see app/modules/rbac/CONVENTIONS.md.`
+  );
+}
+
+/**
  * Batched permission check that returns named flag properties.
  *
  * `verbs: ['list', 'create']` returns `{ canList, canCreate, isLoading }`.
@@ -101,6 +141,11 @@ export function useResourcePermissions<TInput extends UseResourcePermissionsInpu
           `[useResourcePermissions] Sub-resource '${sr.alias}' supplied 'options' (${Object.keys(sr.options).join(', ')}) which are not honored. Use a separate usePermission() call for per-check freshness — see app/modules/rbac/CONVENTIONS.md.`
         );
       }
+    }
+
+    const instanceGrantWarning = detectInstanceGrantMisuse(input);
+    if (instanceGrantWarning) {
+      console.warn(instanceGrantWarning);
     }
   }
 
