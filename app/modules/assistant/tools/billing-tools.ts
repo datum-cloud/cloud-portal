@@ -370,7 +370,7 @@ export function createBillingTools() {
         'Get metered resource consumption for a project over a time window. Use for billing usage questions — not the same as Prometheus traffic metrics or resource quotas.',
       inputSchema: usageDaysParam,
       execute: async ({ projectId, days }: { projectId: string; days?: number }) => {
-        const result = await fetchProjectUsage(projectId, days);
+        const result = await fetchProjectUsage(projectId, { days });
 
         if (result.status !== 'ok') {
           return {
@@ -403,7 +403,7 @@ export function createBillingTools() {
         'Get org-wide metered resource consumption aggregated across all billing accounts. Use when the user asks about organization-level usage or spend.',
       inputSchema: orgUsageDaysParam,
       execute: async ({ orgId, days }: { orgId: string; days?: number }) => {
-        const result = await fetchOrgUsage(orgId, days);
+        const result = await fetchOrgUsage(orgId, { days });
 
         if (result.status !== 'ok') {
           return {

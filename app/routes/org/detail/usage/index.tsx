@@ -1,11 +1,21 @@
 import { MeterCard } from './components/meter-card';
 import { UsageSummaryTable } from './components/usage-summary-table';
 import { UsageToolbar } from './components/usage-toolbar';
-import { USAGE_GROUPS, USAGE_SUMMARY_ROWS } from './usage.mock';
+import type { UsageBillingCycleOption, UsageProjectOption } from './usage.types';
 import { toUsageView } from './usage.view';
-import { fetchOrgUsage } from '@/modules/billing/usage.server';
+import {
+  buildBillingCycleWindows,
+  selectBillingCycleWindow,
+} from '@/modules/billing/billing-cycle';
+import {
+  fetchOrgUsage,
+  fetchProjectUsage,
+  resolveBillingAccountForUsageScope,
+} from '@/modules/billing/usage.server';
+import type { UsageFetchResult } from '@/modules/billing/usage.types';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { createProjectService } from '@/resources/projects';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -25,6 +35,14 @@ export const handle = {
   breadcrumb: () => <span>Usage</span>,
 };
 
+export interface OrgUsageLoaderData {
+  usage: UsageFetchResult;
+  projects: UsageProjectOption[];
+  selectedProject: string;
+  billingCycles: UsageBillingCycleOption[];
+  selectedBillingCycle: 'current' | 'previous';
+}
+
 /**
  * Org-wide usage dashboard.
  *
@@ -34,11 +52,9 @@ export const handle = {
  * stay accurate. When live usage exists it is rendered directly — meters
  * are grouped by owning service, units come from the MeterDefinition
  * catalog, quota rings from matching AllowanceBuckets, and breakdown tabs
- * from each meter's declared dimensions. The static `usage.mock.ts`
- * dataset is only used as a fallback when the org has no usage yet, so the
- * redesigned dashboard still has something to show.
+ * from each meter's declared dimensions.
  */
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const { orgId } = params;
 
   if (!orgId) {
@@ -50,8 +66,49 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw data('Usage metering is not enabled for this organization', { status: 404 });
   }
 
-  const result = await fetchOrgUsage(orgId);
-  return data(result);
+  const url = new URL(request.url);
+  const projectParam = url.searchParams.get('project') ?? 'all';
+  const cycleParam = url.searchParams.get('cycle');
+
+  const projectsList = await createProjectService()
+    .list(orgId)
+    .catch(() => ({ items: [], hasMore: false, nextCursor: null }));
+  const projects: UsageProjectOption[] = projectsList.items.map((project) => ({
+    name: project.name,
+    displayName: project.displayName,
+  }));
+
+  const selectedProject =
+    projectParam === 'all' || projects.some((project) => project.name === projectParam)
+      ? projectParam
+      : 'all';
+
+  const scopedBillingAccount = await resolveBillingAccountForUsageScope(
+    orgId,
+    selectedProject
+  ).catch(() => null);
+
+  const cycleWindows = buildBillingCycleWindows(scopedBillingAccount?.spec?.paymentTerms);
+  const selectedCycleWindow = selectBillingCycleWindow(cycleWindows, cycleParam);
+  const selectedBillingCycle = selectedCycleWindow.value;
+  const billingCycles: UsageBillingCycleOption[] = cycleWindows.map((window) => ({
+    value: window.value,
+    label: window.label,
+  }));
+  const range = { startSec: selectedCycleWindow.startSec, endSec: selectedCycleWindow.endSec };
+
+  const usage =
+    selectedProject === 'all'
+      ? await fetchOrgUsage(orgId, { range })
+      : await fetchProjectUsage(selectedProject, { range });
+
+  return data({
+    usage,
+    projects,
+    selectedProject,
+    billingCycles,
+    selectedBillingCycle,
+  } satisfies OrgUsageLoaderData);
 };
 
 /**
@@ -92,7 +149,13 @@ function EmptyState({ title, body }: { title: string; body: React.ReactNode }) {
 }
 
 export default function OrgUsagePage() {
-  const result = useLoaderData<typeof loader>();
+  const {
+    usage: result,
+    projects,
+    selectedProject,
+    billingCycles,
+    selectedBillingCycle,
+  } = useLoaderData<typeof loader>();
   const { orgId } = useParams();
 
   if (result.status === 'unconfigured') {
@@ -125,30 +188,68 @@ export default function OrgUsagePage() {
     );
   }
 
+  const selectedProjectLabel =
+    selectedProject === 'all'
+      ? null
+      : (projects.find((project) => project.name === selectedProject)?.displayName ??
+        selectedProject);
+
   if (result.status === 'no-billing-account') {
     return (
       <div className="flex w-full flex-col gap-6">
         <PageTitle title="Usage" titleClassName="text-3xl" />
+        <UsageToolbar
+          projects={projects}
+          selectedProject={selectedProject}
+          billingCycles={billingCycles}
+          selectedBillingCycle={selectedBillingCycle}
+        />
         <EmptyState
-          title="No billing accounts yet"
-          body={`Create a billing account for "${orgId ?? 'this organization'}" to start tracking usage. Account-level management lives under your user-level Billing Accounts area.`}
+          title="No billing account linked"
+          body={
+            selectedProjectLabel
+              ? `"${selectedProjectLabel}" does not have a billing account binding. Assign one from the organization's Billing page to start tracking usage.`
+              : `Create a billing account for "${orgId ?? 'this organization'}" to start tracking usage. Account-level management lives under your user-level Billing Accounts area.`
+          }
         />
       </div>
     );
   }
 
-  // Render live usage when the org has any; otherwise fall back to the
-  // mock dataset so the redesigned dashboard still has something to show.
-  const view = toUsageView(result) ?? {
-    groups: USAGE_GROUPS,
-    summaryRows: USAGE_SUMMARY_ROWS,
-  };
+  const view = toUsageView(result);
+
+  if (!view) {
+    return (
+      <div className="flex w-full flex-col gap-6">
+        <PageTitle title="Usage" titleClassName="text-3xl" />
+        <UsageToolbar
+          projects={projects}
+          selectedProject={selectedProject}
+          billingCycles={billingCycles}
+          selectedBillingCycle={selectedBillingCycle}
+        />
+        <EmptyState
+          title="No usage to display"
+          body={
+            selectedProjectLabel
+              ? `Usage data will appear here once "${selectedProjectLabel}" starts consuming resources.`
+              : 'Usage data will appear here once this organization starts consuming resources.'
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex w-full flex-col gap-6">
       <div className="flex flex-col gap-4">
         <PageTitle title="Usage" titleClassName="text-3xl" />
-        <UsageToolbar />
+        <UsageToolbar
+          projects={projects}
+          selectedProject={selectedProject}
+          billingCycles={billingCycles}
+          selectedBillingCycle={selectedBillingCycle}
+        />
       </div>
 
       <div className="border-border border-t">

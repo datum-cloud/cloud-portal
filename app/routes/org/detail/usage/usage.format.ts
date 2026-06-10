@@ -1,4 +1,4 @@
-import type { MeterUnit } from './usage.mock';
+import type { MeterUnit } from './usage.types';
 
 /**
  * Map a UCUM unit string from `MeterDefinition.spec.measurement.unit`

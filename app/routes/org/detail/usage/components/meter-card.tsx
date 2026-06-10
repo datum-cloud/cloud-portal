@@ -1,5 +1,5 @@
 import { formatByUnit, formatUsagePair } from '../usage.format';
-import type { MeterPoint, MockMeter } from '../usage.mock';
+import type { MeterPoint, UsageMeter } from '../usage.types';
 import { humanizeDimension } from '../usage.view';
 import { QuotaRing } from './quota-ring';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -21,7 +21,7 @@ import {
 } from 'recharts';
 
 interface MeterCardProps {
-  meter: MockMeter;
+  meter: UsageMeter;
 }
 
 // Distinct fills for stacked breakdown series. The first reuses the brand
@@ -78,6 +78,7 @@ export function MeterCard({ meter }: MeterCardProps) {
   );
   const stack = activeBreakdown ? buildStackData(activeBreakdown.series) : null;
   const chartData = stack ? stack.data : meter.series;
+  const hasBreakdownTabs = (meter.breakdowns?.length ?? 0) > 0;
 
   return (
     <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
@@ -96,23 +97,31 @@ export function MeterCard({ meter }: MeterCardProps) {
         </div>
       </CardHeader>
 
-      <div className="flex flex-col gap-3 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 bg-transparent">
-          <TabsList className="scrollbar-hide h-auto max-w-full justify-start gap-4 overflow-x-auto rounded-none bg-transparent p-0">
-            {meter.tabs.map((tab) => (
-              <TabsTrigger
-                key={tab}
-                value={tab}
-                className={cn(
-                  'relative shrink-0 rounded-none border-b-2 border-transparent bg-transparent px-0 pb-2 text-xs font-normal shadow-none',
-                  'focus-visible:ring-0 focus-visible:outline-hidden',
-                  'data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-medium data-[state=active]:shadow-none'
-                )}>
-                {tab}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      <div
+        className={cn(
+          'flex px-4 pt-4 sm:px-8',
+          hasBreakdownTabs
+            ? 'flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'
+            : 'items-center justify-end'
+        )}>
+        {hasBreakdownTabs ? (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 bg-transparent">
+            <TabsList className="scrollbar-hide h-auto max-w-full justify-start gap-4 overflow-x-auto rounded-none bg-transparent p-0">
+              {meter.tabs.map((tab) => (
+                <TabsTrigger
+                  key={tab}
+                  value={tab}
+                  className={cn(
+                    'relative shrink-0 rounded-none border-b-2 border-transparent bg-transparent px-0 pb-2 text-xs font-normal shadow-none',
+                    'focus-visible:ring-0 focus-visible:outline-hidden',
+                    'data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-medium data-[state=active]:shadow-none'
+                  )}>
+                  {tab}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        ) : null}
         <div className="flex shrink-0 items-center gap-2">
           {meter.updatedLabel ? (
             <span className="text-muted-foreground text-xs">{meter.updatedLabel}</span>

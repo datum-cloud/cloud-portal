@@ -1,13 +1,10 @@
 /**
  * Adapter from the live `UsageFetchResult` (Amberflo series enriched with
  * MeterDefinition metadata + AllowanceBucket quotas) into the view shapes
- * the dashboard components already consume (`MockGroup` / `MockMeter` /
- * `UsageSummaryRow`). Keeping the mapping here lets the presentational
- * components stay agnostic about where their data comes from, so the mock
- * dataset remains a drop-in fallback when the org has no live usage yet.
+ * the dashboard components consume.
  */
 import { ucumToMeterUnit } from './usage.format';
-import type { MockGroup, MockMeter, UsageSummaryRow } from './usage.mock';
+import type { UsageGroupSection, UsageMeter, UsageSummaryRow } from './usage.types';
 import type { MeterSeries, UsageFetchResult } from '@/modules/billing/usage.types';
 import { formatDistanceToNowStrict } from 'date-fns';
 
@@ -32,12 +29,10 @@ function updatedLabel(values: { timestamp: number }[]): string {
   return `Updated ${formatDistanceToNowStrict(new Date(latest))} ago`;
 }
 
-function toMockMeter(meter: MeterSeries): MockMeter {
+function toUsageMeter(meter: MeterSeries): UsageMeter {
   const unit = ucumToMeterUnit(meter.unit);
   const used = meter.used ?? sumSeries(meter.values);
   const limit = meter.limit ?? 0;
-  // Only surface a breakdown tab when the dimension actually returned data;
-  // a declared-but-empty dimension would just re-render the aggregate.
   const breakdowns = (meter.breakdowns ?? []).filter((b) => b.series.length > 0);
   const tabs = ['Total', ...breakdowns.map((b) => humanizeDimension(b.dimension))];
 
@@ -45,7 +40,6 @@ function toMockMeter(meter: MeterSeries): MockMeter {
     apiName: meter.meterApiName,
     label: meter.label,
     description: meter.description ?? '',
-    learnMoreHref: '',
     unit,
     used,
     limit,
@@ -57,26 +51,22 @@ function toMockMeter(meter: MeterSeries): MockMeter {
 }
 
 export interface UsageView {
-  groups: MockGroup[];
+  groups: UsageGroupSection[];
   summaryRows: UsageSummaryRow[];
 }
 
-/**
- * Build the dashboard view from live data, or return `null` when there's
- * nothing real to show (no groups, or every meter is empty) so the caller
- * can fall back to the mock dataset.
- */
+/** Build the dashboard view from live loader data. */
 export function toUsageView(result: UsageFetchResult): UsageView | null {
   if (!result.groups?.length) return null;
 
   const meterByName = new Map(result.meters.map((m) => [m.meterApiName, m]));
 
-  const groups: MockGroup[] = result.groups
+  const groups: UsageGroupSection[] = result.groups
     .map((group) => {
       const meters = group.meterApiNames
         .map((name) => meterByName.get(name))
         .filter((m): m is MeterSeries => Boolean(m))
-        .map(toMockMeter);
+        .map(toUsageMeter);
       return {
         id: group.id,
         title: group.title,
@@ -86,10 +76,7 @@ export function toUsageView(result: UsageFetchResult): UsageView | null {
     })
     .filter((group) => group.meters.length > 0);
 
-  const hasAnyData = groups.some((group) =>
-    group.meters.some((meter) => meter.series.length > 0 || meter.used > 0)
-  );
-  if (!hasAnyData) return null;
+  if (groups.length === 0) return null;
 
   const summaryRows: UsageSummaryRow[] = groups.flatMap((group) =>
     group.meters.map((meter) => ({

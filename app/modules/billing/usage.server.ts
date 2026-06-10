@@ -6,6 +6,7 @@ import type {
   UsageFetchResult,
   UsageGroup,
 } from './usage.types';
+import type { BillingAccount } from '@/features/billing/types';
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
@@ -17,6 +18,60 @@ import { env } from '@/utils/env/env.server';
 import { AuthenticationError, AuthorizationError } from '@/utils/errors';
 
 const DEFAULT_DAYS = 30;
+
+export interface UsageTimeRange {
+  startSec: number;
+  endSec: number;
+}
+
+function resolveQueryTimeRange(
+  days = DEFAULT_DAYS,
+  range?: UsageTimeRange
+): { startSec: number; endSec: number; days: number } {
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (range) {
+    const spanDays = Math.max(1, Math.ceil((range.endSec - range.startSec) / 86400));
+    return { startSec: range.startSec, endSec: range.endSec, days: spanDays };
+  }
+  return { startSec: nowSec - days * 24 * 3600, endSec: nowSec, days };
+}
+
+/**
+ * Billing account whose `paymentTerms` drive the cycle picker. Project
+ * scope uses the bound account; org scope uses the first Ready account
+ * (falling back to the first account when none are Ready yet).
+ */
+export async function resolveBillingAccountForUsageScope(
+  orgId: string,
+  projectId: string | 'all'
+): Promise<BillingAccount | null> {
+  if (projectId !== 'all') {
+    let bindings;
+    try {
+      bindings = await createBillingAccountBindingService().list(orgId);
+    } catch {
+      return null;
+    }
+    const binding = bindings.find(
+      (b) =>
+        b.spec?.projectRef?.name === projectId && (!b.status?.phase || b.status.phase === 'Active')
+    );
+    const accountName = binding?.spec?.billingAccountRef?.name;
+    if (!accountName) return null;
+    try {
+      return await createBillingAccountService().get(orgId, accountName);
+    } catch {
+      return null;
+    }
+  }
+
+  try {
+    const accounts = await createBillingAccountService().list(orgId);
+    return accounts.find((account) => account.status?.phase === 'Ready') ?? accounts[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // Cap the number of dimensions we fan breakdown queries out for, per
 // meter. Each dimension is an extra Amberflo round-trip, so we bound the
@@ -159,9 +214,11 @@ async function fetchMeterBreakdown(
 export async function fetchUsageForCustomerIds({
   customerIds,
   days = DEFAULT_DAYS,
+  range,
 }: {
   customerIds: string[];
   days?: number;
+  range?: UsageTimeRange;
 }): Promise<MeterSeries[]> {
   const apiKey = env.server.amberfloApiKey;
   if (!apiKey || customerIds.length === 0) {
@@ -169,8 +226,7 @@ export async function fetchUsageForCustomerIds({
   }
 
   const baseUrl = env.server.amberfloBaseUrl ?? 'https://app.amberflo.io';
-  const nowSec = Math.floor(Date.now() / 1000);
-  const startSec = nowSec - days * 24 * 3600;
+  const { startSec, endSec: nowSec } = resolveQueryTimeRange(days, range);
 
   const meterDefs = await listMeterDefinitions();
 
@@ -284,10 +340,13 @@ function isAuthError(err: unknown): boolean {
 
 export async function fetchProjectUsage(
   projectId: string,
-  days = DEFAULT_DAYS
+  options: { days?: number; range?: UsageTimeRange } = {}
 ): Promise<UsageFetchResult> {
+  const { days = DEFAULT_DAYS, range } = options;
+  const { days: resolvedDays } = resolveQueryTimeRange(days, range);
+
   if (!env.server.amberfloApiKey) {
-    return { status: 'unconfigured', meters: [], days };
+    return { status: 'unconfigured', meters: [], days: resolvedDays };
   }
 
   const project = await createProjectService().get(projectId);
@@ -299,7 +358,7 @@ export async function fetchProjectUsage(
     return {
       status: 'feature-disabled',
       meters: [],
-      days,
+      days: resolvedDays,
       message: 'Usage metering is not enabled for this organization.',
     };
   }
@@ -309,7 +368,7 @@ export async function fetchProjectUsage(
     bindings = await createBillingAccountBindingService().list(project.organizationId);
   } catch (err) {
     if (isAuthError(err)) {
-      return { status: 'insufficient-permissions', meters: [], days };
+      return { status: 'insufficient-permissions', meters: [], days: resolvedDays };
     }
     throw err;
   }
@@ -319,7 +378,7 @@ export async function fetchProjectUsage(
       b.spec?.projectRef?.name === projectId && (!b.status?.phase || b.status.phase === 'Active')
   );
   if (!binding?.spec?.billingAccountRef?.name) {
-    return { status: 'no-billing-account', meters: [], days };
+    return { status: 'no-billing-account', meters: [], days: resolvedDays };
   }
 
   let account;
@@ -330,27 +389,33 @@ export async function fetchProjectUsage(
     );
   } catch (err) {
     if (isAuthError(err)) {
-      return { status: 'insufficient-permissions', meters: [], days };
+      return { status: 'insufficient-permissions', meters: [], days: resolvedDays };
     }
     throw err;
   }
 
   const customerId = account.metadata?.uid;
   if (!customerId) {
-    return { status: 'no-billing-account', meters: [], days };
+    return { status: 'no-billing-account', meters: [], days: resolvedDays };
   }
 
-  const meters = await fetchUsageForCustomerIds({ customerIds: [customerId], days });
+  const meters = await fetchUsageForCustomerIds({ customerIds: [customerId], days, range });
   const buckets = await createAllowanceBucketService()
     .list('project', projectId)
     .catch(() => [] as AllowanceBucket[]);
   const enriched = attachQuotaLimits(meters, buckets);
-  return { status: 'ok', meters: enriched, groups: buildUsageGroups(enriched), days };
+  return { status: 'ok', meters: enriched, groups: buildUsageGroups(enriched), days: resolvedDays };
 }
 
-export async function fetchOrgUsage(orgId: string, days = DEFAULT_DAYS): Promise<UsageFetchResult> {
+export async function fetchOrgUsage(
+  orgId: string,
+  options: { days?: number; range?: UsageTimeRange } = {}
+): Promise<UsageFetchResult> {
+  const { days = DEFAULT_DAYS, range } = options;
+  const { days: resolvedDays } = resolveQueryTimeRange(days, range);
+
   if (!env.server.amberfloApiKey) {
-    return { status: 'unconfigured', meters: [], days };
+    return { status: 'unconfigured', meters: [], days: resolvedDays };
   }
 
   const enabled = await isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, orgId);
@@ -358,7 +423,7 @@ export async function fetchOrgUsage(orgId: string, days = DEFAULT_DAYS): Promise
     return {
       status: 'feature-disabled',
       meters: [],
-      days,
+      days: resolvedDays,
       message: 'Usage metering is not enabled for this organization.',
     };
   }
@@ -368,7 +433,7 @@ export async function fetchOrgUsage(orgId: string, days = DEFAULT_DAYS): Promise
     accounts = await createBillingAccountService().list(orgId);
   } catch (err) {
     if (isAuthError(err)) {
-      return { status: 'insufficient-permissions', meters: [], days };
+      return { status: 'insufficient-permissions', meters: [], days: resolvedDays };
     }
     throw err;
   }
@@ -378,13 +443,13 @@ export async function fetchOrgUsage(orgId: string, days = DEFAULT_DAYS): Promise
     .filter((uid): uid is string => Boolean(uid));
 
   if (customerIds.length === 0) {
-    return { status: 'no-billing-account', meters: [], days };
+    return { status: 'no-billing-account', meters: [], days: resolvedDays };
   }
 
-  const meters = await fetchUsageForCustomerIds({ customerIds, days });
+  const meters = await fetchUsageForCustomerIds({ customerIds, days, range });
   const buckets = await createAllowanceBucketService()
     .list('organization', orgId)
     .catch(() => [] as AllowanceBucket[]);
   const enriched = attachQuotaLimits(meters, buckets);
-  return { status: 'ok', meters: enriched, groups: buildUsageGroups(enriched), days };
+  return { status: 'ok', meters: enriched, groups: buildUsageGroups(enriched), days: resolvedDays };
 }

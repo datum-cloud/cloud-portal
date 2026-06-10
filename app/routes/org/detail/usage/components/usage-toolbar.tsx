@@ -1,4 +1,4 @@
-import { BILLING_CYCLE_OPTIONS, PROJECT_FILTER_OPTIONS } from '../usage.mock';
+import type { UsageBillingCycleOption, UsageProjectOption } from '../usage.types';
 import {
   Select,
   SelectContent,
@@ -6,40 +6,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
-import { useState } from 'react';
+import { useSearchParams } from 'react-router';
+
+interface UsageToolbarProps {
+  projects: UsageProjectOption[];
+  selectedProject: string;
+  billingCycles: UsageBillingCycleOption[];
+  selectedBillingCycle: 'current' | 'previous';
+}
 
 /**
- * Filter row beneath the page title: a billing-cycle picker and a
- * project scope picker, with the current plan note pinned to the right.
- * The selects are presentational for the mock — they hold local state
- * but don't refetch anything yet.
+ * Filter row beneath the page title. Both pickers drive URL search params
+ * so the loader refetches scoped usage for the chosen project and billing
+ * cycle window.
  */
-export function UsageToolbar() {
-  const [billingCycle, setBillingCycle] = useState(BILLING_CYCLE_OPTIONS[0].value);
-  const [projectFilter, setProjectFilter] = useState(PROJECT_FILTER_OPTIONS[0].value);
+export function UsageToolbar({
+  projects,
+  selectedProject,
+  billingCycles,
+  selectedBillingCycle,
+}: UsageToolbarProps) {
+  const [, setSearchParams] = useSearchParams();
+
+  const updateSearchParams = (updates: Record<string, string | null>) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        for (const [key, value] of Object.entries(updates)) {
+          if (value === null) {
+            next.delete(key);
+          } else {
+            next.set(key, value);
+          }
+        }
+        return next;
+      },
+      { preventScrollReset: true }
+    );
+  };
+
+  const handleProjectChange = (value: string) => {
+    updateSearchParams({ project: value === 'all' ? null : value });
+  };
+
+  const handleBillingCycleChange = (value: string) => {
+    updateSearchParams({ cycle: value === 'current' ? null : value });
+  };
 
   return (
     <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-      <Select value={billingCycle} onValueChange={setBillingCycle}>
+      <Select value={selectedBillingCycle} onValueChange={handleBillingCycleChange}>
         <SelectTrigger className="h-9 w-full text-sm sm:w-[350px]">
           <SelectValue placeholder="Select billing cycle" />
         </SelectTrigger>
         <SelectContent>
-          {BILLING_CYCLE_OPTIONS.map((option) => (
+          {billingCycles.map((option) => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      <Select value={projectFilter} onValueChange={setProjectFilter}>
+      <Select value={selectedProject} onValueChange={handleProjectChange}>
         <SelectTrigger className="h-9 w-full text-sm sm:w-[150px]">
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
         <SelectContent>
-          {PROJECT_FILTER_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {option.label}
+          <SelectItem value="all">All projects</SelectItem>
+          {projects.map((project) => (
+            <SelectItem key={project.name} value={project.name}>
+              {project.displayName}
             </SelectItem>
           ))}
         </SelectContent>

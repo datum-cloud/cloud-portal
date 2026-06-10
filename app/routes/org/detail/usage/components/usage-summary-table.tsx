@@ -1,5 +1,5 @@
 import { formatUsagePair } from '../usage.format';
-import type { UsageSummaryRow } from '../usage.mock';
+import type { UsageSummaryRow } from '../usage.types';
 import { QuotaRing } from './quota-ring';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
