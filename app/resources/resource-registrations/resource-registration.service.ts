@@ -5,7 +5,6 @@ import {
   type ComMiloapisQuotaV1Alpha1ResourceRegistrationList,
 } from '@/modules/control-plane/quota';
 import { logger } from '@/modules/logger';
-import { getOrgScopedBase, getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 export const resourceRegistrationKeys = {
@@ -24,20 +23,23 @@ const SERVICE_NAME = 'ResourceRegistrationService';
  * Entity / Allocation / Feature — Feature buckets render differently
  * from countable resources (no "X/Y used" bar).
  *
- * The scope arg picks which milo apiserver baseURL to talk to so the
- * caller doesn't have to remember which side owns these registrations.
+ * `ResourceRegistration` is cluster-scoped with a `Platform` parent-context, so
+ * it is served only at the platform API root — never inside an org/project
+ * control-plane (those expose Org/Project-context resources only, so a scoped
+ * query returns an empty list). A single unscoped list therefore returns every
+ * registration; the caller joins them to the scoped `AllowanceBucket`s by
+ * `resourceType`.
  */
 export function createResourceRegistrationService() {
-  const getScopedBase = (scope: 'organization' | 'project', id: string) =>
-    scope === 'organization' ? getOrgScopedBase(id) : getProjectScopedBase(id);
-
   return {
     async list(scope: 'organization' | 'project', id: string): Promise<ResourceRegistration[]> {
       const startTime = Date.now();
       try {
-        const response = await listQuotaMiloapisComV1Alpha1ResourceRegistration({
-          baseURL: getScopedBase(scope, id),
-        });
+        // List at the default (platform-root) base — see the note above. Any
+        // authenticated user may read these (authenticated-user-resource-
+        // registration-read PolicyBinding). `scope`/`id` are retained only for
+        // the React Query cache key and logging.
+        const response = await listQuotaMiloapisComV1Alpha1ResourceRegistration({});
         const data = response.data as ComMiloapisQuotaV1Alpha1ResourceRegistrationList;
         const items = data.items?.map(toResourceRegistration) ?? [];
         logger.service(SERVICE_NAME, 'list', {
