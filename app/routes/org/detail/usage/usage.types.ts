@@ -34,6 +34,10 @@ export interface UsageSummaryRow {
   unit: MeterUnit;
   used: number;
   limit: number;
+  /** Human-readable service group, e.g. `Compute`, `AI Assistant`. */
+  group: string;
+  /** Owning service domain from the meter catalog, e.g. `assistant.miloapis.com`. */
+  groupId: string;
 }
 
 export interface UsageProjectOption {

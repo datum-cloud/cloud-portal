@@ -5,6 +5,7 @@
  */
 import { ucumToMeterUnit } from './usage.format';
 import type { UsageGroupSection, UsageMeter, UsageSummaryRow } from './usage.types';
+import { OTHER_GROUP, resolveServiceDisplayName } from '@/features/quotas/service-catalog';
 import type { MeterSeries, UsageFetchResult } from '@/modules/billing/usage.types';
 import { formatDistanceToNowStrict } from 'date-fns';
 
@@ -79,13 +80,18 @@ export function toUsageView(result: UsageFetchResult): UsageView | null {
   if (groups.length === 0) return null;
 
   const summaryRows: UsageSummaryRow[] = groups.flatMap((group) =>
-    group.meters.map((meter) => ({
-      apiName: meter.apiName,
-      label: meter.label,
-      unit: meter.unit,
-      used: meter.used,
-      limit: meter.limit,
-    }))
+    group.meters.map((meter) => {
+      const resolvedGroup = resolveServiceDisplayName(group.id, meter.apiName);
+      return {
+        apiName: meter.apiName,
+        label: meter.label,
+        unit: meter.unit,
+        used: meter.used,
+        limit: meter.limit,
+        groupId: group.id,
+        group: resolvedGroup === OTHER_GROUP ? group.title : resolvedGroup,
+      };
+    })
   );
 
   return { groups, summaryRows };
