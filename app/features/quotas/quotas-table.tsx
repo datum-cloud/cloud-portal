@@ -1,5 +1,5 @@
 import { groupQuotas, type QuotaRow } from './quotas-grouping';
-import { resolveServiceDisplayName } from './service-catalog';
+import { resolveResourceDisplayName, resolveServiceDisplayName } from './service-catalog';
 import { sortableHeader, TableSearch } from '@/components/table';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
@@ -78,7 +78,7 @@ export const QuotasTable = ({
         const { percentage } = calculateUsage(b.status ?? { allocated: 0n, limit: 0n });
         return {
           resourceType: b.resourceType,
-          displayName: reg?.displayName ?? b.resourceType,
+          displayName: resolveResourceDisplayName(reg?.displayName, b.resourceType),
           group: resolveServiceDisplayName(reg?.service, b.resourceType),
           percentage,
           description: reg?.description,

@@ -18,6 +18,11 @@ export function toResourceRegistration(
     type: raw.spec.type,
     displayName: annotations['kubernetes.io/display-name'],
     description: annotations['kubernetes.io/description'] ?? raw.spec.description,
-    service: labels['services.miloapis.com/owner'],
+    // Two registration-authoring patterns stamp different owner-label keys:
+    // hand-written registrations use `services.miloapis.com/owner`, while the
+    // milo service-catalog quota fan-out stamps `services.miloapis.com/service`.
+    // Read both so fan-out services (e.g. compute) group correctly.
+    service:
+      labels['services.miloapis.com/owner'] ?? labels['services.miloapis.com/service'],
   };
 }
