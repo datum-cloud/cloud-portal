@@ -17,6 +17,22 @@ const SERVICE_DISPLAY_NAMES: Record<string, string> = {
   'dns.networking.miloapis.com': 'DNS',
   'networking.datumapis.com': 'Networking',
   'resourcemanager.miloapis.com': 'Organization & Projects',
+  'compute.datumapis.com': 'Compute',
+};
+
+/**
+ * INTERIM resourceType → row display name, for registrations the server emits
+ * without a `kubernetes.io/display-name` annotation. The milo service-catalog
+ * quota fan-out (compute, and future fan-out services) stamps no display
+ * annotations — its `QuotaLimitSpec` has no displayName/description field — so
+ * rows would otherwise read as raw `compute.datumapis.com/instances`. Remove
+ * entries as the fan-out learns to emit display metadata.
+ */
+const RESOURCE_DISPLAY_NAMES: Record<string, string> = {
+  'compute.datumapis.com/instances': 'Instances',
+  'compute.datumapis.com/vcpus': 'vCPUs',
+  'compute.datumapis.com/memory': 'Memory',
+  'compute.datumapis.com/workloads': 'Workloads',
 };
 
 /**
@@ -51,4 +67,16 @@ export function resolveServiceDisplayName(owner: string | undefined, resourceTyp
     return OTHER_GROUP;
   }
   return SERVICE_DISPLAY_NAMES[serviceName] ?? OTHER_GROUP;
+}
+
+/**
+ * Resolve a quota row's display name. Prefers the server-authored
+ * `kubernetes.io/display-name` annotation, then the interim resourceType map,
+ * then the raw resourceType key as a last resort.
+ */
+export function resolveResourceDisplayName(
+  serverDisplayName: string | undefined,
+  resourceType: string
+): string {
+  return serverDisplayName ?? RESOURCE_DISPLAY_NAMES[resourceType] ?? resourceType;
 }
