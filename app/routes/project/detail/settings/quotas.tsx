@@ -3,7 +3,7 @@ import { useProjectContext } from '@/providers/project.provider';
 import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
 import {
   createResourceRegistrationService,
-  type ResourceRegistrationType,
+  type ResourceRegistration,
 } from '@/resources/resource-registrations';
 import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router';
@@ -14,7 +14,7 @@ export const handle = {
 
 interface ProjectQuotasLoaderData {
   buckets: AllowanceBucket[];
-  registrationTypes: Record<string, ResourceRegistrationType>;
+  registrations: Record<string, ResourceRegistration>; // keyed by resourceType
 }
 
 export const loader = withLoaderErrors(
@@ -25,23 +25,23 @@ export const loader = withLoaderErrors(
       throw new BadRequestError('Project ID is required');
     }
 
-    const [buckets, registrations] = await Promise.all([
+    const [buckets, registrationList] = await Promise.all([
       createAllowanceBucketService().list('project', projectId),
       createResourceRegistrationService()
         .list('project', projectId)
         .catch(() => []),
     ]);
-    const registrationTypes: Record<string, ResourceRegistrationType> = {};
-    for (const r of registrations) {
-      registrationTypes[r.resourceType] = r.type;
+    const registrations: Record<string, ResourceRegistration> = {};
+    for (const r of registrationList) {
+      registrations[r.resourceType] = r;
     }
-    return { buckets, registrationTypes };
+    return { buckets, registrations };
   }
 );
 
 export default function ProjectQuotasPage() {
   const { project } = useProjectContext();
-  const { buckets, registrationTypes } = useLoaderData<typeof loader>() as ProjectQuotasLoaderData;
+  const { buckets, registrations } = useLoaderData<typeof loader>() as ProjectQuotasLoaderData;
 
   if (!project) {
     return null;
@@ -50,7 +50,7 @@ export default function ProjectQuotasPage() {
   return (
     <QuotasTable
       data={buckets}
-      registrationTypes={registrationTypes}
+      registrations={registrations}
       resourceType="project"
       resource={project}
     />
