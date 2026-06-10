@@ -2,36 +2,99 @@
 import type { Client, Options as Options2, TDataShape } from '../shared/client';
 import { client } from '../shared/client.gen';
 import type {
+  CreateBillingMiloapisComV1Alpha1MeterDefinitionData,
+  CreateBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+  CreateBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+  CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeData,
+  CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+  CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingErrors,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingResponses,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingAccountData,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingAccountErrors,
   CreateBillingMiloapisComV1Alpha1NamespacedBillingAccountResponses,
+  CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
+  CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+  CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+  CreateBillingMiloapisComV1Alpha1PaymentMethodClassData,
+  CreateBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+  CreateBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionData,
+  DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeData,
+  DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeResponses,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountBindingData,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountBindingErrors,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountBindingResponses,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountData,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountErrors,
   DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodData,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodResponses,
+  DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassData,
+  DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassErrors,
+  DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassResponses,
+  DeleteBillingMiloapisComV1Alpha1MeterDefinitionData,
+  DeleteBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+  DeleteBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+  DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeData,
+  DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+  DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingErrors,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingResponses,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountData,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountErrors,
   DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountResponses,
+  DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
+  DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+  DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+  DeleteBillingMiloapisComV1Alpha1PaymentMethodClassData,
+  DeleteBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+  DeleteBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
   ListBillingMiloapisComV1Alpha1BillingAccountBindingForAllNamespacesData,
   ListBillingMiloapisComV1Alpha1BillingAccountBindingForAllNamespacesErrors,
   ListBillingMiloapisComV1Alpha1BillingAccountBindingForAllNamespacesResponses,
   ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesData,
   ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesErrors,
   ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesResponses,
+  ListBillingMiloapisComV1Alpha1MeterDefinitionData,
+  ListBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+  ListBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+  ListBillingMiloapisComV1Alpha1MonitoredResourceTypeData,
+  ListBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+  ListBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
   ListBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData,
   ListBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingErrors,
   ListBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingResponses,
   ListBillingMiloapisComV1Alpha1NamespacedBillingAccountData,
   ListBillingMiloapisComV1Alpha1NamespacedBillingAccountErrors,
   ListBillingMiloapisComV1Alpha1NamespacedBillingAccountResponses,
+  ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
+  ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+  ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+  ListBillingMiloapisComV1Alpha1PaymentMethodClassData,
+  ListBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+  ListBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+  ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesData,
+  ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesErrors,
+  ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesResponses,
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionData,
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusData,
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors,
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses,
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeData,
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData,
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors,
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingErrors,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingResponses,
@@ -44,6 +107,30 @@ import type {
   PatchBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusData,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusErrors,
   PatchBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData,
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors,
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses,
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassData,
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusData,
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors,
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses,
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionData,
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusData,
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors,
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses,
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeData,
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData,
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors,
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingErrors,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingResponses,
@@ -56,6 +143,30 @@ import type {
   ReadBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusData,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusErrors,
   ReadBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData,
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors,
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses,
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassData,
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusData,
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors,
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionData,
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusData,
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors,
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeData,
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData,
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors,
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingErrors,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingResponses,
@@ -68,6 +179,18 @@ import type {
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusData,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusErrors,
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodData,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors,
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses,
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassData,
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusData,
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors,
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses,
 } from './types.gen';
 
 export type Options<
@@ -118,6 +241,372 @@ export const listBillingMiloapisComV1Alpha1BillingAccountForAllNamespaces = <
     ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesErrors,
     ThrowOnError
   >({ url: '/apis/billing.miloapis.com/v1alpha1/billingaccounts', ...options });
+
+/**
+ * delete collection of MeterDefinition
+ */
+export const deleteBillingMiloapisComV1Alpha1CollectionMeterDefinition = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionData, ThrowOnError>
+) =>
+  (options?.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionResponses,
+    DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions', ...options });
+
+/**
+ * list objects of kind MeterDefinition
+ */
+export const listBillingMiloapisComV1Alpha1MeterDefinition = <ThrowOnError extends boolean = false>(
+  options?: Options<ListBillingMiloapisComV1Alpha1MeterDefinitionData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+    ListBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions', ...options });
+
+/**
+ * create a MeterDefinition
+ */
+export const createBillingMiloapisComV1Alpha1MeterDefinition = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateBillingMiloapisComV1Alpha1MeterDefinitionData, ThrowOnError>
+) =>
+  (options.client ?? client).post<
+    CreateBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+    CreateBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete a MeterDefinition
+ */
+export const deleteBillingMiloapisComV1Alpha1MeterDefinition = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteBillingMiloapisComV1Alpha1MeterDefinitionData, ThrowOnError>
+) =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+    DeleteBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified MeterDefinition
+ */
+export const readBillingMiloapisComV1Alpha1MeterDefinition = <ThrowOnError extends boolean = false>(
+  options: Options<ReadBillingMiloapisComV1Alpha1MeterDefinitionData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+    ReadBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}', ...options });
+
+/**
+ * partially update the specified MeterDefinition
+ */
+export const patchBillingMiloapisComV1Alpha1MeterDefinition = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1MeterDefinitionData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+    PatchBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified MeterDefinition
+ */
+export const replaceBillingMiloapisComV1Alpha1MeterDefinition = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1MeterDefinitionData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1MeterDefinitionResponses,
+    ReplaceBillingMiloapisComV1Alpha1MeterDefinitionErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified MeterDefinition
+ */
+export const readBillingMiloapisComV1Alpha1MeterDefinitionStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses,
+    ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}/status', ...options });
+
+/**
+ * partially update status of the specified MeterDefinition
+ */
+export const patchBillingMiloapisComV1Alpha1MeterDefinitionStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses,
+    PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified MeterDefinition
+ */
+export const replaceBillingMiloapisComV1Alpha1MeterDefinitionStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses,
+    ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete collection of MonitoredResourceType
+ */
+export const deleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<
+    DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeData,
+    ThrowOnError
+  >
+) =>
+  (options?.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeResponses,
+    DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes', ...options });
+
+/**
+ * list objects of kind MonitoredResourceType
+ */
+export const listBillingMiloapisComV1Alpha1MonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<ListBillingMiloapisComV1Alpha1MonitoredResourceTypeData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+    ListBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes', ...options });
+
+/**
+ * create a MonitoredResourceType
+ */
+export const createBillingMiloapisComV1Alpha1MonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeData, ThrowOnError>
+) =>
+  (options.client ?? client).post<
+    CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+    CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete a MonitoredResourceType
+ */
+export const deleteBillingMiloapisComV1Alpha1MonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeData, ThrowOnError>
+) =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+    DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified MonitoredResourceType
+ */
+export const readBillingMiloapisComV1Alpha1MonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+    ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}', ...options });
+
+/**
+ * partially update the specified MonitoredResourceType
+ */
+export const patchBillingMiloapisComV1Alpha1MonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+    PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified MonitoredResourceType
+ */
+export const replaceBillingMiloapisComV1Alpha1MonitoredResourceType = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses,
+    ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified MonitoredResourceType
+ */
+export const readBillingMiloapisComV1Alpha1MonitoredResourceTypeStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses,
+    ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}/status',
+    ...options,
+  });
+
+/**
+ * partially update status of the specified MonitoredResourceType
+ */
+export const patchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses,
+    PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified MonitoredResourceType
+ */
+export const replaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses,
+    ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
 
 /**
  * delete collection of BillingAccountBinding
@@ -533,3 +1022,396 @@ export const replaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatus = <
       ...options.headers,
     },
   });
+
+/**
+ * delete collection of PaymentMethod
+ */
+export const deleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodData,
+    ThrowOnError
+  >
+) =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodResponses,
+    DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods',
+    ...options,
+  });
+
+/**
+ * list objects of kind PaymentMethod
+ */
+export const listBillingMiloapisComV1Alpha1NamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+    ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods',
+    ...options,
+  });
+
+/**
+ * create a PaymentMethod
+ */
+export const createBillingMiloapisComV1Alpha1NamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodData, ThrowOnError>
+) =>
+  (options.client ?? client).post<
+    CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+    CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete a PaymentMethod
+ */
+export const deleteBillingMiloapisComV1Alpha1NamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodData, ThrowOnError>
+) =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+    DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified PaymentMethod
+ */
+export const readBillingMiloapisComV1Alpha1NamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+    ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}',
+    ...options,
+  });
+
+/**
+ * partially update the specified PaymentMethod
+ */
+export const patchBillingMiloapisComV1Alpha1NamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+    PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified PaymentMethod
+ */
+export const replaceBillingMiloapisComV1Alpha1NamespacedPaymentMethod = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses,
+    ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified PaymentMethod
+ */
+export const readBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses,
+    ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}/status',
+    ...options,
+  });
+
+/**
+ * partially update status of the specified PaymentMethod
+ */
+export const patchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses,
+    PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified PaymentMethod
+ */
+export const replaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses,
+    ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete collection of PaymentMethodClass
+ */
+export const deleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassData, ThrowOnError>
+) =>
+  (options?.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassResponses,
+    DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses', ...options });
+
+/**
+ * list objects of kind PaymentMethodClass
+ */
+export const listBillingMiloapisComV1Alpha1PaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<ListBillingMiloapisComV1Alpha1PaymentMethodClassData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+    ListBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses', ...options });
+
+/**
+ * create a PaymentMethodClass
+ */
+export const createBillingMiloapisComV1Alpha1PaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<CreateBillingMiloapisComV1Alpha1PaymentMethodClassData, ThrowOnError>
+) =>
+  (options.client ?? client).post<
+    CreateBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+    CreateBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * delete a PaymentMethodClass
+ */
+export const deleteBillingMiloapisComV1Alpha1PaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<DeleteBillingMiloapisComV1Alpha1PaymentMethodClassData, ThrowOnError>
+) =>
+  (options.client ?? client).delete<
+    DeleteBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+    DeleteBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read the specified PaymentMethodClass
+ */
+export const readBillingMiloapisComV1Alpha1PaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1PaymentMethodClassData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+    ReadBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}', ...options });
+
+/**
+ * partially update the specified PaymentMethodClass
+ */
+export const patchBillingMiloapisComV1Alpha1PaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1PaymentMethodClassData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+    PatchBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace the specified PaymentMethodClass
+ */
+export const replaceBillingMiloapisComV1Alpha1PaymentMethodClass = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassResponses,
+    ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * read status of the specified PaymentMethodClass
+ */
+export const readBillingMiloapisComV1Alpha1PaymentMethodClassStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).get<
+    ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses,
+    ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}/status', ...options });
+
+/**
+ * partially update status of the specified PaymentMethodClass
+ */
+export const patchBillingMiloapisComV1Alpha1PaymentMethodClassStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).patch<
+    PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses,
+    PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json-patch+json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * replace status of the specified PaymentMethodClass
+ */
+export const replaceBillingMiloapisComV1Alpha1PaymentMethodClassStatus = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusData, ThrowOnError>
+) =>
+  (options.client ?? client).put<
+    ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses,
+    ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors,
+    ThrowOnError
+  >({
+    url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}/status',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+/**
+ * list objects of kind PaymentMethod
+ */
+export const listBillingMiloapisComV1Alpha1PaymentMethodForAllNamespaces = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesData, ThrowOnError>
+) =>
+  (options?.client ?? client).get<
+    ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesResponses,
+    ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesErrors,
+    ThrowOnError
+  >({ url: '/apis/billing.miloapis.com/v1alpha1/paymentmethods', ...options });

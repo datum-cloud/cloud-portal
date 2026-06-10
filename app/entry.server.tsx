@@ -6,7 +6,7 @@ import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';
 import { renderToPipeableStream } from 'react-dom/server';
 import type { AppLoadContext, EntryContext, HandleErrorFunction } from 'react-router';
-import { ServerRouter } from 'react-router';
+import { ServerRouter, isRouteErrorResponse } from 'react-router';
 
 const ABORT_DELAY = 5_000;
 
@@ -73,10 +73,18 @@ export default Sentry.wrapSentryHandleRequest(handleRequest);
 // Skip expected user-facing statuses (401/403/404) and aborted requests — these are
 // not bugs. Other 4xx codes (400/409/429/...) reaching this handler usually indicate
 // a code path that forgot to catch an error inline, so we still want them captured.
+//
+// React Router's own `ErrorResponse`s (thrown by the router for things like a
+// POST to a route without an `action`, or a path that matches no routes) are
+// also dropped when 4xx — they're already converted to a proper HTTP response
+// by `handleResourceRequest`/`errorResponseToJson` and are dominated by bot
+// and scanner traffic (e.g. `POST //`, `PUT /wp-login.php`) in production.
 export const handleError: HandleErrorFunction = (error, { request }) => {
   if (request.signal.aborted) return;
 
   if (error instanceof AppError && isUserFacingErrorStatus(error.status)) return;
+
+  if (isRouteErrorResponse(error) && error.status >= 400 && error.status < 500) return;
 
   Sentry.captureException(error);
 };

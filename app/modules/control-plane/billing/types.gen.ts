@@ -27,15 +27,81 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
    */
   spec?: {
     /**
-     * ContactInfo defines the billing contact for notifications.
+     * ContactInfo describes the billing contact and the postal
+     * address invoices are issued to.
      */
     contactInfo?: {
       /**
-       * Email is the email address for billing notifications.
+       * Address is the postal billing address. Appears on invoices and
+       * is surfaced to the configured provider controller (e.g. for
+       * tax determination, AVS).
+       */
+      address?: {
+        /**
+         * City is the locality.
+         */
+        city?: string;
+        /**
+         * Country is the ISO 3166-1 alpha-2 country code (e.g. "GB",
+         * "US"). Required because tax determination and currency
+         * restrictions depend on it.
+         */
+        country: string;
+        /**
+         * Line1 is the first line of the street address (typically
+         * "number + street").
+         */
+        line1?: string;
+        /**
+         * Line2 is the second line of the street address (typically
+         * apartment / suite / building).
+         */
+        line2?: string;
+        /**
+         * PostalCode is the post / zip code.
+         */
+        postalCode?: string;
+        /**
+         * Region is the state, province, or county (free-form).
+         */
+        region?: string;
+      };
+      /**
+       * BusinessName is the legal entity that pays. Optional; populate
+       * it for B2B accounts so invoices print the company name as the
+       * top header line and the provider Customer record carries the
+       * company name rather than the individual contact.
+       *
+       * When set, the provider controller maps this onto its
+       * Customer.name field (e.g. Stripe Customer.name). When unset,
+       * Name is used instead.
+       */
+      businessName?: string;
+      /**
+       * Email is the primary billing contact email. Receives billing
+       * notifications and, when InvoiceEmail is unset, also receives
+       * invoices and receipts.
        */
       email: string;
       /**
-       * Name is the display name of the billing contact.
+       * InvoiceEmails is the list of recipients that invoices and
+       * receipts are sent to. The first entry is the primary recipient;
+       * subsequent entries are CC'd. When the list is empty, Email is
+       * used as a single primary recipient.
+       *
+       * Provider support for multiple recipients varies: Stripe
+       * Customer.email is single-valued, so the stripe-provider maps
+       * the first entry onto it and CC's the rest via its own
+       * invoice-sent webhook (when configured). Consumers should treat
+       * the entire list as authoritative; the provider handles fan-out.
+       *
+       * Duplicate entries are rejected. Maximum 10 entries.
+       */
+      invoiceEmails?: Array<string>;
+      /**
+       * Name is the display name of the individual billing contact —
+       * the human the platform talks to. Surfaces as the "ATTN:" line
+       * on invoices when BusinessName is also set.
        */
       name?: string;
     };
@@ -44,6 +110,17 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
      * This field is immutable once the account transitions past Provisioning phase.
      */
     currencyCode: string;
+    /**
+     * DefaultPaymentMethodRef references the PaymentMethod to use by
+     * default for charge processing. The referenced PaymentMethod must
+     * reside in the same namespace and be in the Active phase.
+     */
+    defaultPaymentMethodRef?: {
+      /**
+       * Name is the name of the PaymentMethod.
+       */
+      name: string;
+    };
     /**
      * PaymentTerms defines the invoicing schedule for this billing account.
      */
@@ -61,6 +138,22 @@ export type ComMiloapisBillingV1Alpha1BillingAccount = {
        */
       netDays?: number;
     };
+    /**
+     * TaxIDs are the tax registrations attached to this account. An
+     * account can carry multiple entries (e.g. an organisation
+     * registered for both GB VAT and EU VAT).
+     */
+    taxIds?: Array<{
+      /**
+       * Type identifies the tax registration scheme (e.g. "gb_vat").
+       */
+      type: string;
+      /**
+       * Value is the registration number / identifier
+       * (e.g. "GB123456789").
+       */
+      value: string;
+    }>;
   };
   /**
    * BillingAccountStatus defines the observed state of a BillingAccount.
@@ -262,6 +355,769 @@ export type ComMiloapisBillingV1Alpha1BillingAccountList = {
    * List of billingaccounts. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
   items: Array<ComMiloapisBillingV1Alpha1BillingAccount>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * MeterDefinition is the Schema for the meterdefinitions API. It is a
+ * declarative, platform-advertised catalog entry for a single billable
+ * dimension -- what is measured, in what unit, how it is aggregated.
+ * It does not ingest events, calculate money, or store customer data.
+ */
+export type ComMiloapisBillingV1Alpha1MeterDefinition = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * MeterDefinitionSpec defines the desired state of a MeterDefinition.
+   *
+   * The spec is organized into three cohesive blocks: identity (who/what
+   * this is), measurement (how the signal is captured and aggregated),
+   * and billing (how it crosses into commerce). Core fields (meterName,
+   * measurement.aggregation, measurement.unit) are immutable once created;
+   * a breaking change ships as a new MeterDefinition with a versioned meterName.
+   *
+   * spec.phase is the provider-declared lifecycle intent: Draft ->
+   * Published -> Deprecated -> Retired. The controller mirrors that
+   * intent via conditions; it does not transition the phase itself.
+   *
+   * Ownership is expressed via labels (e.g. app.kubernetes.io/managed-by)
+   * rather than a spec.owner field.
+   */
+  spec?: {
+    /**
+     * Billing describes how the meter crosses into commerce. Carries no
+     * rates, currencies, or tiers -- those live in the pricing engine.
+     */
+    billing: {
+      /**
+       * ConsumedUnit is the UCUM unit in which usage is measured (e.g.
+       * "s"). Typically matches measurement.unit; may diverge when the
+       * emitted telemetry is pre-converted. Equality with measurement.unit is
+       * not enforced.
+       */
+      consumedUnit?: string;
+      /**
+       * PricingUnit is the UCUM unit pricing quotes against (e.g. "h").
+       * May differ from ConsumedUnit; the pricing engine handles the
+       * conversion.
+       */
+      pricingUnit?: string;
+    };
+    /**
+     * Description is a plain-English explanation of what the meter
+     * measures. Editable over the meter's lifetime.
+     */
+    description?: string;
+    /**
+     * DisplayName is a human-readable name surfaced in portals and on
+     * invoices alongside the canonical meterName.
+     */
+    displayName: string;
+    /**
+     * Measurement describes how the signal is captured and aggregated.
+     */
+    measurement: {
+      /**
+       * Aggregation is the function applied to samples over a billing
+       * period. Single source of truth for how usage rolls up. Immutable.
+       */
+      aggregation: 'Sum' | 'Max' | 'Min' | 'Count' | 'UniqueCount' | 'Latest' | 'Average';
+      /**
+       * Dimensions is an ordered list of attribute keys that downstream
+       * systems may group by (e.g. "region", "tier", "resource.type").
+       * Adding a dimension is additive; removing one is a breaking change
+       * and must ship as a new meter.
+       */
+      dimensions?: Array<string>;
+      /**
+       * Unit is a UCUM (https://ucum.org/ucum) string describing what the
+       * meter measures (e.g. "s", "By", "{request}", "GBy.h"). Immutable.
+       */
+      unit: string;
+    };
+    /**
+     * MeterName is the canonical, user-facing identifier for this
+     * meter. It is the cross-system join key used by invoices, rate
+     * cards, marketplace listings, and FOCUS exports. Typically a
+     * reverse-DNS path (e.g.
+     * "compute.miloapis.com/instance/cpu-seconds"). Immutable.
+     */
+    meterName: string;
+    /**
+     * MonitoredResourceTypes names the billing.miloapis.com/MonitoredResourceType
+     * instances whose usage events are counted by this meter. Follows
+     * Google's MetricDescriptor.monitored_resource_types pattern: each
+     * entry identifies a resource type that emits samples this meter
+     * aggregates.
+     */
+    monitoredResourceTypes: Array<string>;
+    /**
+     * Phase is the provider-declared lifecycle state of this meter.
+     * Allowed transitions are forward-only:
+     * Draft -> Published -> Deprecated -> Retired.
+     */
+    phase: ('Draft' | 'Published' | 'Deprecated' | 'Retired') &
+      ('Draft' | 'Published' | 'Deprecated' | 'Retired');
+  };
+  /**
+   * MeterDefinitionStatus defines the observed state of a MeterDefinition.
+   */
+  status?: {
+    /**
+     * Conditions represent the latest available observations of the resource's state.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * ObservedGeneration is the most recent generation observed by the controller.
+     */
+    observedGeneration?: number;
+    /**
+     * PublishedAt is the time at which the controller first observed the
+     * resource in the Published phase.
+     */
+    publishedAt?: string;
+  };
+};
+
+/**
+ * MeterDefinitionList is a list of MeterDefinition
+ */
+export type ComMiloapisBillingV1Alpha1MeterDefinitionList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of meterdefinitions. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComMiloapisBillingV1Alpha1MeterDefinition>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * MonitoredResourceType is the Schema for the monitoredresourcetypes
+ * API. It is the platform's declaration of which Kubernetes Kinds can
+ * appear on a bill or a dashboard, and what descriptive labels their
+ * usage events are allowed to carry.
+ */
+export type ComMiloapisBillingV1Alpha1MonitoredResourceType = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * MonitoredResourceTypeSpec defines the desired state of a
+   * MonitoredResourceType.
+   *
+   * A MonitoredResourceType declares which Kubernetes Kinds are billable
+   * or otherwise monitored by the platform, and the closed set of
+   * descriptive labels that usage events against that Kind may carry.
+   *
+   * Core fields (resourceTypeName, gvk.group, gvk.kind) are immutable once
+   * created; a breaking change ships as a new MonitoredResourceType with a
+   * new canonical name.
+   *
+   * spec.phase is the provider-declared lifecycle intent: Draft ->
+   * Published -> Deprecated -> Retired. The controller mirrors that
+   * intent via conditions; it does not transition the phase itself.
+   *
+   * Ownership is expressed via labels rather than a spec.owner field.
+   */
+  spec?: {
+    /**
+     * Description is a plain-English explanation of what the resource
+     * type represents. Editable over the type's lifetime.
+     */
+    description?: string;
+    /**
+     * DisplayName is a human-readable name surfaced in portals and
+     * dashboards alongside the canonical resourceTypeName. Editable
+     * over the type's lifetime.
+     */
+    displayName: string;
+    /**
+     * GVK pins the resource type to a Kubernetes Kind. Version is
+     * deliberately omitted: billability is a property of the Kind, not
+     * of a specific API version.
+     */
+    gvk: {
+      /**
+       * Group is the Kubernetes API group of the Kind (e.g.
+       * "compute.miloapis.com"). Immutable.
+       */
+      group: string;
+      /**
+       * Kind is the Kubernetes Kind (e.g. "Instance"). Immutable.
+       */
+      kind: string;
+    };
+    /**
+     * Labels is the closed set of descriptive labels that usage events
+     * against this resource type are permitted to carry. Events whose
+     * labels are not in this set are rejected at the edge. Adding a new
+     * optional label is additive; adding a required label or removing
+     * any declared label is a breaking change.
+     */
+    labels?: Array<{
+      /**
+       * AllowedValues, when non-empty, constrains the label to a fixed
+       * vocabulary. Events carrying a value outside this set are rejected.
+       */
+      allowedValues?: Array<string>;
+      /**
+       * Description is a plain-English explanation of what the label
+       * conveys. Editable over the resource type's lifetime.
+       */
+      description?: string;
+      /**
+       * Name is the label key as it will appear on usage events (e.g.
+       * "region", "zone", "tier"). It is the map key for this list.
+       */
+      name: string;
+      /**
+       * Required indicates whether every usage event against this
+       * resource type must carry this label. Defaults to false
+       * (optional).
+       */
+      required?: boolean;
+    }>;
+    /**
+     * Phase is the provider-declared lifecycle state of this
+     * monitored resource type. Allowed transitions are forward-only:
+     * Draft -> Published -> Deprecated -> Retired.
+     */
+    phase: ('Draft' | 'Published' | 'Deprecated' | 'Retired') &
+      ('Draft' | 'Published' | 'Deprecated' | 'Retired');
+    /**
+     * ResourceTypeName is the canonical, user-facing identifier for
+     * this monitored resource type. It typically combines the owning
+     * service's reverse-DNS name with the Kubernetes Kind (e.g.
+     * "compute.miloapis.com/Instance") and is the stable identifier
+     * used by portal drill-downs, FinOps exports, and billing events.
+     * Immutable.
+     */
+    resourceTypeName: string;
+  };
+  /**
+   * MonitoredResourceTypeStatus defines the observed state of a
+   * MonitoredResourceType.
+   */
+  status?: {
+    /**
+     * Conditions represent the latest available observations of the resource's state.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * ObservedGeneration is the most recent generation observed by the controller.
+     */
+    observedGeneration?: number;
+    /**
+     * PublishedAt is the time at which the controller first observed the
+     * resource in the Published phase.
+     */
+    publishedAt?: string;
+  };
+};
+
+/**
+ * MonitoredResourceTypeList is a list of MonitoredResourceType
+ */
+export type ComMiloapisBillingV1Alpha1MonitoredResourceTypeList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of monitoredresourcetypes. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComMiloapisBillingV1Alpha1MonitoredResourceType>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * PaymentMethod is the Schema for the paymentmethods API.
+ *
+ * PaymentMethod associates a payment instrument with a BillingAccount.
+ * Consumers create it carrying only a BillingAccount reference and a
+ * display name; the billing service defaulting webhook injects the
+ * PaymentMethodClass that selects the provider. The provider controller
+ * (e.g. stripe-provider) drives the setup flow via a provider-owned CRD
+ * and projects normalized outcome data onto status once the instrument is
+ * confirmed.
+ */
+export type ComMiloapisBillingV1Alpha1PaymentMethod = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * PaymentMethodSpec defines the desired state of a PaymentMethod.
+   */
+  spec?: {
+    /**
+     * BillingAccountRef references the BillingAccount this payment method
+     * belongs to. The BillingAccount must reside in the same namespace.
+     */
+    billingAccountRef: {
+      /**
+       * Name is the name of the BillingAccount.
+       */
+      name: string;
+    };
+    /**
+     * DisplayName is a human-readable label shown in the portal and on
+     * invoices (e.g. "Corporate Visa").
+     */
+    displayName: string;
+    /**
+     * PaymentMethodClassRef selects the PaymentMethodClass — and through
+     * it the provider controller — that owns the setup flow for this
+     * payment method. Left unset by consumers and injected by the
+     * defaulting webhook from the cluster default class. Immutable once
+     * set; changing it would orphan provider-side state.
+     */
+    paymentMethodClassRef?: {
+      /**
+       * Name is the name of the PaymentMethodClass.
+       */
+      name: string;
+    };
+  };
+  /**
+   * PaymentMethodStatus defines the observed state of a PaymentMethod.
+   */
+  status?: {
+    /**
+     * Conditions represent the latest available observations of the
+     * payment method's state. See PaymentMethodConditionInstrumentReady.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * Details is the normalized, provider-agnostic description of the
+     * confirmed instrument. Populated by the owning provider controller
+     * once the phase reaches Active.
+     */
+    details?: {
+      /**
+       * Card is populated when Type is `card`.
+       */
+      card?: {
+        /**
+         * AVSResult is the Address Verification System result code returned
+         * by the issuer (e.g. "pass", "fail", "unchecked").
+         */
+        avsResult?: string;
+        /**
+         * BillingAddress is the cardholder address captured by the
+         * provider's collection UI at confirmation. May differ from the
+         * BillingAccount's address — both signals are useful to downstream
+         * consumers (the portal for display, fraud for mismatch
+         * detection).
+         */
+        billingAddress?: {
+          /**
+           * City is the locality.
+           */
+          city?: string;
+          /**
+           * Country is the ISO 3166-1 alpha-2 country code of the
+           * cardholder address.
+           */
+          country?: string;
+          /**
+           * Line1 is the first line of the street address.
+           */
+          line1?: string;
+          /**
+           * Line2 is the second line of the street address.
+           */
+          line2?: string;
+          /**
+           * PostalCode is the post / zip code.
+           */
+          postalCode?: string;
+          /**
+           * Region is the state, province, or county.
+           */
+          region?: string;
+        };
+        /**
+         * Brand is the card network (e.g. "visa", "mastercard", "amex").
+         * Universally returned by every major card processor and load-
+         * bearing for display + routing logic.
+         */
+        brand: string;
+        /**
+         * Country is the ISO 3166-1 alpha-2 country code of the issuer.
+         * Load-bearing for tax determination and one of the strongest
+         * fraud signals. Returned by every major card processor we expect
+         * to integrate with; a provider that cannot supply it must
+         * synthesize "XX" (ISO unassigned).
+         */
+        country: string;
+        /**
+         * CVCResult is the card verification value check result returned by
+         * the issuer (e.g. "pass", "fail", "unchecked").
+         */
+        cvcResult?: string;
+        /**
+         * ExpiryMonth is the card expiration month (1-12). Cards have
+         * expiry by definition; required so we can drive "your card
+         * expires soon" notifications.
+         */
+        expiryMonth: number;
+        /**
+         * ExpiryYear is the card expiration year (four digits).
+         */
+        expiryYear: number;
+        /**
+         * IssuerIdentificationNumber is the BIN (first 6-8 digits) of the
+         * card. Issuer-returned, not provider-specific; useful for
+         * downstream fraud scoring. Optional because some providers gate
+         * BIN data behind enterprise tiers.
+         */
+        issuerIdentificationNumber?: string;
+        /**
+         * Last4 is the last four digits of the card number. Universally
+         * returned and load-bearing for display, deduplication, and
+         * customer support.
+         */
+        last4: string;
+      };
+      /**
+       * Type identifies the instrument category.
+       */
+      type: 'card' | 'usBankAccount';
+      /**
+       * USBankAccount is populated when Type is `usBankAccount`.
+       */
+      usBankAccount?: {
+        /**
+         * AccountType is the type of account (e.g. "checking", "savings").
+         */
+        accountType?: string;
+        /**
+         * BankName is the name of the bank holding the account.
+         */
+        bankName?: string;
+        /**
+         * Last4 is the last four digits of the account number.
+         */
+        last4?: string;
+      };
+    };
+    /**
+     * FailureMessage is a human-readable description of the failure.
+     */
+    failureMessage?: string;
+    /**
+     * FailureReason is a short, machine-parseable code for the failure
+     * (e.g. "card_declined", "setup_intent_expired"). Set when phase is
+     * Failed.
+     */
+    failureReason?: string;
+    /**
+     * ObservedGeneration is the most recent generation observed by the
+     * reconciling controller.
+     */
+    observedGeneration?: number;
+    /**
+     * Phase represents the current lifecycle phase.
+     */
+    phase?: 'Pending' | 'AwaitingConfirmation' | 'Active' | 'Failed';
+  };
+};
+
+/**
+ * PaymentMethodClass is the Schema for the paymentmethodclasses API.
+ *
+ * PaymentMethodClass is a cluster-scoped resource configured by platform
+ * operators. It names the payment provider controller responsible for
+ * reconciling PaymentMethods of this class, and references provider-owned
+ * configuration via spec.parametersRef. Consumers do not interact with
+ * PaymentMethodClass directly — the billing service defaulting webhook
+ * injects the cluster default class onto PaymentMethods at creation time.
+ */
+export type ComMiloapisBillingV1Alpha1PaymentMethodClass = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * PaymentMethodClassSpec defines the desired state of a PaymentMethodClass.
+   */
+  spec?: {
+    /**
+     * ParametersRef points at a provider-owned resource carrying any
+     * provider-specific SDK configuration (e.g. a Stripe publishable
+     * key). PaymentMethodClass intentionally carries no provider-specific
+     * fields — adding a new provider must not require a billing-service
+     * schema change. This mirrors the Kubernetes Gateway API
+     * `parametersRef` pattern.
+     */
+    parametersRef: {
+      /**
+       * Group is the API group of the provider-specific configuration
+       * resource (e.g. "stripe.billing.miloapis.com").
+       */
+      group: string;
+      /**
+       * Kind is the Kind of the provider-specific configuration resource
+       * (e.g. "StripeProviderConfig").
+       */
+      kind: string;
+      /**
+       * Name is the name of the provider-specific configuration resource.
+       */
+      name: string;
+    };
+    /**
+     * Provider is the name of the provider controller responsible for
+     * reconciling PaymentMethods of this class. The controller watches
+     * PaymentMethods whose spec.paymentMethodClassRef points at a class
+     * whose spec.provider matches its own identity. Examples: "stripe",
+     * "braintree".
+     */
+    provider: string;
+  };
+  /**
+   * PaymentMethodClassStatus defines the observed state of a PaymentMethodClass.
+   */
+  status?: {
+    /**
+     * Conditions represent the latest available observations of the
+     * class's state.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * ObservedGeneration is the most recent generation observed by the
+     * controller.
+     */
+    observedGeneration?: number;
+  };
+};
+
+/**
+ * PaymentMethodClassList is a list of PaymentMethodClass
+ */
+export type ComMiloapisBillingV1Alpha1PaymentMethodClassList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of paymentmethodclasses. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComMiloapisBillingV1Alpha1PaymentMethodClass>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * PaymentMethodList is a list of PaymentMethod
+ */
+export type ComMiloapisBillingV1Alpha1PaymentMethodList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of paymentmethods. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComMiloapisBillingV1Alpha1PaymentMethod>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
@@ -784,6 +1640,1136 @@ export type ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesResponse
 
 export type ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesResponse =
   ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesResponses[keyof ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionResponse =
+  DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionResponses[keyof DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionResponses];
+
+export type ListBillingMiloapisComV1Alpha1MeterDefinitionData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions';
+};
+
+export type ListBillingMiloapisComV1Alpha1MeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListBillingMiloapisComV1Alpha1MeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinitionList;
+};
+
+export type ListBillingMiloapisComV1Alpha1MeterDefinitionResponse =
+  ListBillingMiloapisComV1Alpha1MeterDefinitionResponses[keyof ListBillingMiloapisComV1Alpha1MeterDefinitionResponses];
+
+export type CreateBillingMiloapisComV1Alpha1MeterDefinitionData = {
+  body: ComMiloapisBillingV1Alpha1MeterDefinition;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions';
+};
+
+export type CreateBillingMiloapisComV1Alpha1MeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateBillingMiloapisComV1Alpha1MeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1MeterDefinition;
+  /**
+   * Accepted
+   */
+  202: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type CreateBillingMiloapisComV1Alpha1MeterDefinitionResponse =
+  CreateBillingMiloapisComV1Alpha1MeterDefinitionResponses[keyof CreateBillingMiloapisComV1Alpha1MeterDefinitionResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1MeterDefinitionData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1MeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1MeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1MeterDefinitionResponse =
+  DeleteBillingMiloapisComV1Alpha1MeterDefinitionResponses[keyof DeleteBillingMiloapisComV1Alpha1MeterDefinitionResponses];
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionData = {
+  body?: never;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}';
+};
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionResponse =
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionResponses[keyof ReadBillingMiloapisComV1Alpha1MeterDefinitionResponses];
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}';
+};
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionResponse =
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionResponses[keyof PatchBillingMiloapisComV1Alpha1MeterDefinitionResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionData = {
+  body: ComMiloapisBillingV1Alpha1MeterDefinition;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionResponse =
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionResponses[keyof ReplaceBillingMiloapisComV1Alpha1MeterDefinitionResponses];
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}/status';
+};
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusResponse =
+  ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses[keyof ReadBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses];
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}/status';
+};
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusResponse =
+  PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses[keyof PatchBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusData = {
+  body: ComMiloapisBillingV1Alpha1MeterDefinition;
+  path: {
+    /**
+     * name of the MeterDefinition
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/meterdefinitions/{name}/status';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MeterDefinition;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1MeterDefinition;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusResponse =
+  ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses[keyof ReplaceBillingMiloapisComV1Alpha1MeterDefinitionStatusResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeResponse =
+  DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeResponses[keyof DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeResponses];
+
+export type ListBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes';
+};
+
+export type ListBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceTypeList;
+};
+
+export type ListBillingMiloapisComV1Alpha1MonitoredResourceTypeResponse =
+  ListBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses[keyof ListBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses];
+
+export type CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
+  body: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes';
+};
+
+export type CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  /**
+   * Accepted
+   */
+  202: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeResponse =
+  CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses[keyof CreateBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeResponse =
+  DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses[keyof DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses];
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
+  body?: never;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}';
+};
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeResponse =
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses[keyof ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses];
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}';
+};
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeResponse =
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses[keyof PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
+  body: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeResponse =
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses[keyof ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeResponses];
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}/status';
+};
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponse =
+  ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses[keyof ReadBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses];
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}/status';
+};
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponse =
+  PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses[keyof PatchBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusData = {
+  body: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  path: {
+    /**
+     * name of the MonitoredResourceType
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/monitoredresourcetypes/{name}/status';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1MonitoredResourceType;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponse =
+  ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses[keyof ReplaceBillingMiloapisComV1Alpha1MonitoredResourceTypeStatusResponses];
 
 export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountBindingData = {
   body?: never;
@@ -2000,3 +3986,1265 @@ export type ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusRespo
 
 export type ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusResponse =
   ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusResponses[keyof ReplaceBillingMiloapisComV1Alpha1NamespacedBillingAccountStatusResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodResponse =
+  DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodResponses[keyof DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodResponses];
+
+export type ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods';
+};
+
+export type ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodList;
+};
+
+export type ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponse =
+  ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses[keyof ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses];
+
+export type CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
+  body: ComMiloapisBillingV1Alpha1PaymentMethod;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods';
+};
+
+export type CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1PaymentMethod;
+  /**
+   * Accepted
+   */
+  202: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponse =
+  CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses[keyof CreateBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponse =
+  DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses[keyof DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses];
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
+  body?: never;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}';
+};
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponse =
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses[keyof ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses];
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}';
+};
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponse =
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses[keyof PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
+  body: ComMiloapisBillingV1Alpha1PaymentMethod;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponse =
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses[keyof ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodResponses];
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}/status';
+};
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponse =
+  ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses[keyof ReadBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses];
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}/status';
+};
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponse =
+  PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses[keyof PatchBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusData = {
+  body: ComMiloapisBillingV1Alpha1PaymentMethod;
+  path: {
+    /**
+     * name of the PaymentMethod
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/namespaces/{namespace}/paymentmethods/{name}/status';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethod;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1PaymentMethod;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponse =
+  ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses[keyof ReplaceBillingMiloapisComV1Alpha1NamespacedPaymentMethodStatusResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassResponse =
+  DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassResponses[keyof DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassResponses];
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodClassData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses';
+};
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClassList;
+};
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodClassResponse =
+  ListBillingMiloapisComV1Alpha1PaymentMethodClassResponses[keyof ListBillingMiloapisComV1Alpha1PaymentMethodClassResponses];
+
+export type CreateBillingMiloapisComV1Alpha1PaymentMethodClassData = {
+  body: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses';
+};
+
+export type CreateBillingMiloapisComV1Alpha1PaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateBillingMiloapisComV1Alpha1PaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  /**
+   * Accepted
+   */
+  202: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type CreateBillingMiloapisComV1Alpha1PaymentMethodClassResponse =
+  CreateBillingMiloapisComV1Alpha1PaymentMethodClassResponses[keyof CreateBillingMiloapisComV1Alpha1PaymentMethodClassResponses];
+
+export type DeleteBillingMiloapisComV1Alpha1PaymentMethodClassData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}';
+};
+
+export type DeleteBillingMiloapisComV1Alpha1PaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1PaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteBillingMiloapisComV1Alpha1PaymentMethodClassResponse =
+  DeleteBillingMiloapisComV1Alpha1PaymentMethodClassResponses[keyof DeleteBillingMiloapisComV1Alpha1PaymentMethodClassResponses];
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassData = {
+  body?: never;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}';
+};
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassResponse =
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassResponses[keyof ReadBillingMiloapisComV1Alpha1PaymentMethodClassResponses];
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}';
+};
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassResponse =
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassResponses[keyof PatchBillingMiloapisComV1Alpha1PaymentMethodClassResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassData = {
+  body: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassResponse =
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassResponses[keyof ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassResponses];
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}/status';
+};
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponse =
+  ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses[keyof ReadBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses];
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}/status';
+};
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponse =
+  PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses[keyof PatchBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses];
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusData = {
+  body: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  path: {
+    /**
+     * name of the PaymentMethodClass
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethodclasses/{name}/status';
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+  /**
+   * Created
+   */
+  201: ComMiloapisBillingV1Alpha1PaymentMethodClass;
+};
+
+export type ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponse =
+  ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses[keyof ReplaceBillingMiloapisComV1Alpha1PaymentMethodClassStatusResponses];
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/billing.miloapis.com/v1alpha1/paymentmethods';
+};
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesResponses = {
+  /**
+   * OK
+   */
+  200: ComMiloapisBillingV1Alpha1PaymentMethodList;
+};
+
+export type ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesResponse =
+  ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesResponses[keyof ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesResponses];

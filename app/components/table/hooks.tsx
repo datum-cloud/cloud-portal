@@ -9,7 +9,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import type { Column, ColumnDef } from '@tanstack/react-table';
+import type { Column, ColumnDef, HeaderContext } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 
@@ -291,6 +291,20 @@ function SortableHeader<TData>({ column, title, tooltip }: SortableHeaderProps<T
       </div>
     </div>
   );
+}
+
+/**
+ * Reusable sortable column-header factory. Renders the same chevron
+ * `SortableHeader` that `Table.Client` applies via `useResolvedColumns`, but
+ * as a column-def `header` you can hand to tables that don't run that pipeline
+ * (e.g. datum-ui's `GroupedTable`). Pass `header: sortableHeader<Row>('Title')`.
+ * The column must be sortable (an accessor + `enableSorting` not false) for the
+ * chevrons to activate.
+ */
+export function sortableHeader<TData>(title: string, options?: { tooltip?: ReactNode }) {
+  return function SortableColumnHeader({ column }: HeaderContext<TData, unknown>) {
+    return <SortableHeader column={column} title={title} tooltip={options?.tooltip} />;
+  };
 }
 
 /**

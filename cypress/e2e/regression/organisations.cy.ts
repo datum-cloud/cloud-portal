@@ -88,7 +88,17 @@ describe('Organisations — regression', () => {
     cy.get('[data-e2e="confirmation-dialog-input"]', { timeout: 10000 }).type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
     cy.url().should('include', paths.account.organizations.root);
-    cy.get('[data-e2e="organization-card-standard"]').should('not.contain.text', testName);
+    // Assert the deleted org is gone via cy.contains(...).should('not.exist')
+    // rather than cy.get(selector).should('not.contain.text', ...). When this
+    // suite's org was the account's only Standard org, deleting it leaves zero
+    // `organization-card-standard` elements (the list falls back to its empty
+    // state), and cy.get() would hang waiting for an element that never
+    // reappears — failing the test. cy.contains(...).should('not.exist') passes
+    // whether zero cards remain or other Standard orgs are still listed, and the
+    // generous timeout absorbs the post-delete list invalidation/refetch.
+    cy.contains('[data-e2e="organization-card-standard"]', testName, {
+      timeout: 15000,
+    }).should('not.exist');
     // Clear last — signals after() that cleanup is done
     resourceId = '';
   });

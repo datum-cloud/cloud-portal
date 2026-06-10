@@ -45,6 +45,11 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
   const groupId = args.params.groupId;
   if (!groupId) throw new BadRequestError('Group ID is required');
 
+  // rbac-audit: bespoke — gate + multi-resource fetch (group, policy-bindings,
+  // projects, roles). Not a pure gate; stays on direct gateRouteAccess rather
+  // than the defineResourceRoute({ type: 'gate' }) DSL. Next audit: the manual
+  // `namespace` is redundant (scope-derived since #1288) and can be dropped.
+  //
   // Preserve the existing gate semantics: this route gates on the user's
   // ability to *see* policy bindings, not on `groups:get`. Editing affordances
   // are gated client-side via useResourcePermissions(policybindings:create/delete).

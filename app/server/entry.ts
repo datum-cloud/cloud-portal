@@ -9,6 +9,7 @@ import type { Variables } from './types';
 // This allows generated OpenAPI functions to work on server-side
 // Token and requestId will be auto-injected via AsyncLocalStorage
 import '@/modules/control-plane/setup.server';
+import { ensureFeatureFlagProvider } from '@/modules/feature-flags/setup.server';
 import { Logger } from '@/modules/logger';
 // Side-effect import: registers RBAC prom-client metrics into the global registry
 // at module-load time so they appear on the /metrics endpoint.
@@ -40,6 +41,11 @@ process.once('SIGINT', beginShutdown);
 sessionManager.registerRefreshHook(({ userId, accessToken }) => {
   watchHub.updateTokensByUserId(userId, accessToken);
 });
+
+// Register the OpenFeature provider at startup. Called explicitly (rather than
+// relying on a bare side-effect import) so `"sideEffects": false` tree-shaking
+// can't drop the registration from the production server bundle.
+ensureFeatureFlagProvider();
 
 // Initialize observability (OTEL + Sentry + error handlers)
 initializeObservability().catch((error: unknown) => {
@@ -103,8 +109,16 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
         'https://*.usefathom.com', // Fathom
+        'https://api.stripe.com',
+        'https://maps.googleapis.com', // AddressElement autocomplete
       ],
-      fontSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.gstatic.com'],
+      fontSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://*.jsdelivr.net',
+        'https://*.gstatic.com',
+        'https://*.helpscout.net',
+      ],
       frameSrc: [
         "'self'",
         'https://*.sentry.io',
@@ -112,6 +126,8 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
         'https://*.usefathom.com', // Fathom
+        'https://js.stripe.com',
+        'https://hooks.stripe.com',
       ],
       imgSrc: [
         "'self'",
@@ -123,6 +139,7 @@ app.use(
         'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
         'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
         'https://*.usefathom.com', // Fathom
+        'https://*.stripe.com',
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
       scriptSrc: [
@@ -136,6 +153,7 @@ app.use(
         "'self'",
         'https://js.sentry-cdn.com',
         'https://browser.sentry-cdn.com',
+        'https://js.stripe.com',
         NONCE,
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],

@@ -2,7 +2,6 @@ import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
-import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -45,7 +44,6 @@ export const ProjectSwitcher = ({
     resource: 'projects',
     group: 'resourcemanager.miloapis.com',
     scope: 'org',
-    namespace: buildOrganizationNamespace(orgId ?? ''),
     verbs: ['create'],
   });
 

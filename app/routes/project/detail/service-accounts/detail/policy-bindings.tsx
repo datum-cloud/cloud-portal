@@ -54,6 +54,12 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
     return data({ restricted: true as const });
   }
 
+  // rbac-audit: bespoke — fetches the project to derive orgId, then gates
+  // `policybindings:list`. Not a pure gate; stays on direct gateRouteAccess.
+  // Next audit: (1) verify scope:'org' is correct for a service account's
+  // policy bindings inside a *project* route — same scope nuance as the
+  // project-delete fix; (2) the manual `namespace` is redundant (scope-derived
+  // since #1288) and can be dropped.
   const allowed = await gateRouteAccess(orgId, {
     resource: 'policybindings',
     verb: 'list',

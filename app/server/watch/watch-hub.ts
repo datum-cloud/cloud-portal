@@ -233,7 +233,16 @@ class WatchHub {
     const separator = upstream.url.includes('?') ? '&' : '?';
     // Always include resourceVersion — K8s watch API (especially behind the
     // resourcemanager control-plane proxy) requires it to initialise the stream.
-    const watchUrl = `${upstream.url}${separator}resourceVersion=${upstream.resourceVersion}`;
+    // watch=true makes K8s stream events instead of returning a single LIST.
+    // allowWatchBookmarks lets the apiserver push periodic resourceVersion
+    // bookmarks so we can resume after a reconnect without a 410 storm.
+    // timeoutSeconds caps how long one upstream connection lives before we
+    // recycle it with the latest resourceVersion.
+    const watchUrl =
+      `${upstream.url}${separator}watch=true` +
+      `&allowWatchBookmarks=true` +
+      `&timeoutSeconds=300` +
+      `&resourceVersion=${upstream.resourceVersion}`;
 
     try {
       const response = await fetch(watchUrl, {
@@ -245,7 +254,10 @@ class WatchHub {
       });
 
       if (!response.ok || !response.body) {
-        throw new Error(`Upstream watch failed: ${response.status}`);
+        const bodyText = response.body ? await response.text().catch(() => '') : '';
+        throw new Error(
+          `Upstream watch failed: ${response.status} key=${upstream.key} body=${bodyText.slice(0, 500)}`
+        );
       }
 
       upstream.isConnecting = false;
@@ -465,8 +477,20 @@ class WatchHub {
       if (!userId) throw new Error('[WatchHub] userId required for userScoped watch');
       path = `/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane/${req.resourceType}`;
     } else if (req.orgId) {
-      // Organization-scoped
-      path = `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${req.resourceType}`;
+      // Organization-scoped. When a namespace is also provided the
+      // resource is namespaced inside the org's control plane (billing
+      // accounts, payment methods, bindings) — the namespace segment
+      // has to be spliced into the apis/<group>/<version>/<resource>
+      // path. Without a namespace we're watching a cluster-scoped
+      // resource inside the org (e.g. Project).
+      if (req.namespace) {
+        const parts = req.resourceType.split('/');
+        const resourceName = parts.pop();
+        const apiPath = parts.join('/');
+        path = `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${apiPath}/namespaces/${req.namespace}/${resourceName}`;
+      } else {
+        path = `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${req.resourceType}`;
+      }
     } else if (req.projectId) {
       // Project-scoped (mirrors old WatchManager.buildUrl logic)
       const parts = req.resourceType.split('/');

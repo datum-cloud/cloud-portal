@@ -54,6 +54,12 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
     throw new BadRequestError('Member ID is required');
   }
 
+  // rbac-audit: bespoke — gates `organizationmemberships:list`, then fetches
+  // multiple resources (members, policy-bindings, projects, roles). Not a pure
+  // gate, so it intentionally stays on direct gateRouteAccess instead of the
+  // defineResourceRoute({ type: 'gate' }) DSL. Next audit: the manual `namespace`
+  // is redundant (derived from scope server-side since #1288) and can be dropped.
+  //
   // Access gate first — skip data fetching the user isn't permitted to see.
   const allowed = await gateRouteAccess(orgId, {
     resource: 'organizationmemberships',

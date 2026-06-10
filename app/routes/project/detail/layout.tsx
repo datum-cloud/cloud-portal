@@ -3,8 +3,8 @@ import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
-import { FeatureFlag } from '@/lib/feature-flags';
-import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
+import { FeatureFlag } from '@/modules/feature-flags';
+import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
@@ -60,6 +60,7 @@ import {
  */
 type ProjectLayoutCompanions = {
   usageMeteringEnabled: boolean | null;
+  billingEnabled: boolean | null;
   organizationId: string | null | undefined;
 };
 
@@ -92,6 +93,17 @@ export const loader = (args: LoaderFunctionArgs) =>
         fetch: ({ data: project }) =>
           project?.organizationId
             ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, project.organizationId)
+            : Promise.resolve(false),
+      },
+      billingEnabled: {
+        resource: 'projects',
+        group: 'resourcemanager.miloapis.com',
+        verb: 'get',
+        scope: 'user',
+        onError: 'tolerate',
+        fetch: ({ data: project }) =>
+          project?.organizationId
+            ? isFeatureEnabled(FeatureFlag.Billing, project.organizationId)
             : Promise.resolve(false),
       },
       organizationId: {

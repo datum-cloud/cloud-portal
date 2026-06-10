@@ -43,7 +43,6 @@ export default function DomainOverviewPage() {
   const { canList: canViewNotes } = useResourcePermissions({
     resource: 'notes',
     group: 'notes.miloapis.com',
-    namespace: 'default',
     scope: 'project',
     verbs: ['list'],
   });

@@ -6,7 +6,14 @@ export interface WatchWaitOptions {
   orgId?: string;
   projectId?: string;
   namespace?: string;
-  name: string;
+  /**
+   * Resource name for a single-object watch. Leave undefined to watch the
+   * whole collection and filter inside `onEvent` — useful when the
+   * resource you're waiting on is created by a controller and you don't
+   * know its name in advance (e.g. waiting for a child `StripePaymentMethod`
+   * to come up under a parent `PaymentMethod`).
+   */
+  name?: string;
   onEvent: (
     event: WatchEvent
   ) => 'resolve' | 'reject' | 'continue' | { resolve: unknown } | { reject: Error };

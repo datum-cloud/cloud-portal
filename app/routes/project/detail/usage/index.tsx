@@ -1,13 +1,8 @@
-import { FeatureFlag } from '@/lib/feature-flags';
-import { isFeatureEnabled } from '@/lib/feature-flags/evaluate.server';
-import {
-  listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding,
-  readBillingMiloapisComV1Alpha1NamespacedBillingAccount,
-} from '@/modules/control-plane/billing';
-import { client } from '@/modules/control-plane/shared/client.gen';
-import { getOrgScopedBase } from '@/resources/base/utils';
+import { fetchProjectUsage } from '@/modules/billing/usage.server';
+import type { MeterSeries } from '@/modules/billing/usage.types';
+import { FeatureFlag } from '@/modules/feature-flags';
+import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createProjectService } from '@/resources/projects';
-import { env } from '@/utils/env/env.server';
 import { BadRequestError } from '@/utils/errors';
 import {
   Card,
@@ -29,35 +24,6 @@ import {
   YAxis,
 } from 'recharts';
 
-interface MeterSeries {
-  meterApiName: string;
-  label: string;
-  values: { timestamp: number; value: number }[];
-}
-
-interface MeterDefinition {
-  meterName: string;
-  displayName: string;
-}
-
-async function listMeterDefinitions(): Promise<MeterDefinition[]> {
-  try {
-    const axios = client.getConfig().axios;
-    if (!axios) return [];
-    const baseUrl = axios.defaults?.baseURL ?? '';
-    const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
-    const items: { spec?: { meterName?: string; displayName?: string } }[] = resp.data?.items ?? [];
-    return items
-      .map((item) => ({
-        meterName: item.spec?.meterName ?? '',
-        displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
-      }))
-      .filter((m) => m.meterName);
-  } catch {
-    return [];
-  }
-}
-
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
@@ -65,17 +31,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw new BadRequestError('Project ID is required');
   }
 
-  const apiKey = env.server.amberfloApiKey;
-  if (!apiKey) {
-    return data({ status: 'unconfigured' as const, meters: [] });
-  }
-
-  // Resolve BillingAccount uid (= Amberflo customerId) for this project.
-  const projectService = createProjectService();
-  const project = await projectService.get(projectId);
-  const orgNamespace = `organization-${project.organizationId}`;
-
-  // Gate the page on the org-level feature flag — deep-link should 404 when off.
+  const project = await createProjectService().get(projectId);
   const enabled = await isFeatureEnabled(
     FeatureFlag.UsageMeteringDashboard,
     project.organizationId
@@ -84,93 +40,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     throw data('Usage metering is not enabled for this organization', { status: 404 });
   }
 
-  let bindingsResp;
-  try {
-    bindingsResp = await listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding({
-      baseURL: getOrgScopedBase(project.organizationId),
-      path: { namespace: orgNamespace },
-    });
-  } catch (err: unknown) {
-    const status = (err as { response?: { status?: number } })?.response?.status;
-    if (status === 403 || status === 401) {
-      return data({ status: 'insufficient-permissions' as const, meters: [] });
-    }
-    throw err;
-  }
-
-  const binding = bindingsResp.data?.items?.find((b) => b.spec?.projectRef?.name === projectId);
-
-  if (!binding) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  const billingAccountName = binding.spec?.billingAccountRef?.name;
-  if (!billingAccountName) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  let accountResp;
-  try {
-    accountResp = await readBillingMiloapisComV1Alpha1NamespacedBillingAccount({
-      baseURL: getOrgScopedBase(project.organizationId),
-      path: { namespace: orgNamespace, name: billingAccountName },
-    });
-  } catch (err: unknown) {
-    const status = (err as { response?: { status?: number } })?.response?.status;
-    if (status === 403 || status === 401) {
-      return data({ status: 'insufficient-permissions' as const, meters: [] });
-    }
-    throw err;
-  }
-
-  const customerId = accountResp.data?.metadata?.uid;
-  if (!customerId) {
-    return data({ status: 'no-billing-account' as const, meters: [] });
-  }
-
-  const baseUrl = env.server.amberfloBaseUrl;
-  const nowSec = Math.floor(Date.now() / 1000);
-  const startSec = nowSec - 30 * 24 * 3600;
-
-  const meterDefs = await listMeterDefinitions();
-
-  const meters = await Promise.all(
-    meterDefs.map(async ({ meterName, displayName }): Promise<MeterSeries> => {
-      try {
-        const resp = await fetch(`${baseUrl}/usage/sparse`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-          },
-          body: JSON.stringify({
-            meterApiName: meterName,
-            timeRange: { startTimeInSeconds: startSec, endTimeInSeconds: nowSec },
-            filter: { customerId: [customerId] },
-            groupBy: ['customerId'],
-          }),
-        });
-
-        if (!resp.ok) {
-          return { meterApiName: meterName, label: displayName, values: [] };
-        }
-
-        const json = (await resp.json()) as {
-          clientMeters?: { values?: { secondsSinceEpochUtc: number; value: number }[] }[];
-        };
-        const raw = json.clientMeters?.[0]?.values ?? [];
-        return {
-          meterApiName: meterName,
-          label: displayName,
-          values: raw.map((v) => ({ timestamp: v.secondsSinceEpochUtc * 1000, value: v.value })),
-        };
-      } catch {
-        return { meterApiName: meterName, label: displayName, values: [] };
-      }
-    })
-  );
-
-  return data({ status: 'ok' as const, meters });
+  const result = await fetchProjectUsage(projectId);
+  return data(result);
 };
 
 function MeterChart({ meter }: { meter: MeterSeries }) {
