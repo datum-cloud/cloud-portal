@@ -1,6 +1,9 @@
 // Components
 export { Table } from './table';
 export { createActionsColumn, columnHeader } from './columns';
+export { sortableHeader } from './hooks';
+export { TableSearch } from './components/search-input';
+export type { TableSearchProps } from './components/search-input';
 export type { ActionsColumnOptions, ColumnHeaderOptions } from './columns';
 export { TagFilter, tagFilterParser } from './filters/tag-filter';
 export { TimeRangeFilter } from './filters/time-range-filter';
