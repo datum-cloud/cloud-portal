@@ -95,6 +95,27 @@
   box-shadow: none;
 }
 
+/* Quotas GroupedTable — mirror the DataTable's dt-row/dt-cell look. GroupedTable
+   renders base `table-row`/`table-cell` slots (not `dt-*`), and per-element
+   className props don't reliably win the cn() cascade, so we scope it via CSS
+   like the dt-* rules above. The column-header row + cells mirror
+   `dt-header-row`/`dt-header-cell`; body rows mirror `dt-row`/`dt-cell`. */
+.quotas-grouped-table [data-slot='table-header'] [data-slot='table-row'] {
+  @apply hover:bg-transparent;
+}
+.quotas-grouped-table [data-slot='table-head'] {
+  @apply bg-background text-foreground h-[42px] border-r px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5;
+}
+.quotas-grouped-table [data-slot='table-body'] [data-slot='table-row'] {
+  @apply bg-table-cell relative transition-colors;
+}
+.quotas-grouped-table [data-slot='table-body'] [data-slot='table-cell'] {
+  @apply px-4 py-3 align-middle text-xs;
+}
+.quotas-grouped-table [data-slot='table-body'] [data-slot='table-cell']:first-child {
+  @apply whitespace-normal;
+}
+
 /* Inline content row (rendered by datum-ui's `<DataTable.InlineContent>`).
    The `<td>` falls through to TableCell's default `data-slot="table-cell"`
    — NOT `dt-cell` — so we target it via `> td` directly.

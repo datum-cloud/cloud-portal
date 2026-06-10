@@ -6,7 +6,7 @@ import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/
 import type { Organization } from '@/resources/organizations';
 import {
   createResourceRegistrationService,
-  type ResourceRegistrationType,
+  type ResourceRegistration,
 } from '@/resources/resource-registrations';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { type LoaderFunctionArgs } from 'react-router';
@@ -14,12 +14,13 @@ import { type LoaderFunctionArgs } from 'react-router';
 interface QuotasLoaderData {
   buckets: AllowanceBucket[];
   /**
-   * Map of `resourceType` → registration `type` so the table can
-   * distinguish Feature-flag buckets (no consumption metric) from
-   * countable Entity/Allocation buckets. Serialised as a record-of-
-   * strings on the wire; we rebuild the Map client-side.
+   * Map of `resourceType` → full `ResourceRegistration` so the table can
+   * distinguish Feature-flag buckets (no consumption metric) from countable
+   * Entity/Allocation buckets, and resolve each quota's display name,
+   * description, and owning service for grouping. Serialised as a record on
+   * the wire; rebuilt client-side.
    */
-  registrationTypes: Record<string, ResourceRegistrationType>;
+  registrations: Record<string, ResourceRegistration>;
 }
 
 const route = defineResourceRoute<QuotasLoaderData>({
@@ -43,17 +44,17 @@ export const loader = (args: LoaderFunctionArgs) =>
       // to the previous behaviour (every row rendered as countable),
       // which is the right fallback when the registrations endpoint
       // is unhealthy.
-      const [buckets, registrations] = await Promise.all([
+      const [buckets, registrationList] = await Promise.all([
         createAllowanceBucketService().list('organization', orgId!),
         createResourceRegistrationService()
           .list('organization', orgId!)
           .catch(() => []),
       ]);
-      const registrationTypes: Record<string, ResourceRegistrationType> = {};
-      for (const r of registrations) {
-        registrationTypes[r.resourceType] = r.type;
+      const registrations: Record<string, ResourceRegistration> = {};
+      for (const r of registrationList) {
+        registrations[r.resourceType] = r;
       }
-      return { buckets, registrationTypes };
+      return { buckets, registrations };
     },
   });
 export const meta = route.meta;
@@ -68,7 +69,7 @@ export default route.Page(({ data }) => {
   return (
     <QuotasTable
       data={data.buckets}
-      registrationTypes={data.registrationTypes}
+      registrations={data.registrations}
       resourceType="organization"
       resource={org}
     />

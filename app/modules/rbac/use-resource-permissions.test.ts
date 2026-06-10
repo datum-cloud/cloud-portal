@@ -1,5 +1,5 @@
 /// <reference types="bun-types/test" />
-import { buildChecks, flagNameFor } from './use-resource-permissions';
+import { buildChecks, detectInstanceGrantMisuse, flagNameFor } from './use-resource-permissions';
 import { describe, expect, test } from 'bun:test';
 
 describe('flagNameFor', () => {
@@ -80,5 +80,46 @@ describe('buildChecks', () => {
     });
 
     expect(checks[0]).toMatchObject({ namespace: 'default', scope: 'project' });
+  });
+});
+
+describe('detectInstanceGrantMisuse', () => {
+  test('flags instance-level verbs on instance-granted resources', () => {
+    const warning = detectInstanceGrantMisuse({
+      resource: 'projects',
+      group: 'resourcemanager.miloapis.com',
+      scope: 'user',
+      verbs: ['delete'],
+    });
+    expect(warning).toContain("'projects'");
+    expect(warning).toContain('delete');
+    expect(warning).toContain('useAccessReview');
+  });
+
+  test('flags patch/update/get too, and lists every offending verb', () => {
+    const warning = detectInstanceGrantMisuse({
+      resource: 'organizations',
+      scope: 'user',
+      verbs: ['get', 'patch', 'update', 'delete'],
+    });
+    expect(warning).toContain('get, patch, update, delete');
+  });
+
+  test('allows collection-level verbs (list/create) on instance-granted resources', () => {
+    expect(
+      detectInstanceGrantMisuse({ resource: 'projects', scope: 'org', verbs: ['create'] })
+    ).toBeNull();
+    expect(
+      detectInstanceGrantMisuse({ resource: 'projects', scope: 'org', verbs: ['list', 'create'] })
+    ).toBeNull();
+  });
+
+  test('ignores collection-granted resources entirely', () => {
+    expect(
+      detectInstanceGrantMisuse({ resource: 'dnszones', scope: 'project', verbs: ['delete'] })
+    ).toBeNull();
+    expect(
+      detectInstanceGrantMisuse({ resource: 'secrets', scope: 'project', verbs: ['update'] })
+    ).toBeNull();
   });
 });

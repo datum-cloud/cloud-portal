@@ -23,6 +23,10 @@ export const resourceRegistrationSchema = z.object({
   name: z.string(),
   resourceType: z.string(),
   type: resourceRegistrationTypeSchema,
+  displayName: z.string().optional(),
+  description: z.string().optional(),
+  /** services.miloapis.com/owner — owning service's canonical name (slug). */
+  service: z.string().optional(),
 });
 
 export type ResourceRegistration = z.infer<typeof resourceRegistrationSchema>;
