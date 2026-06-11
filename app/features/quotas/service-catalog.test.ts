@@ -28,6 +28,12 @@ describe('resolveServiceDisplayName', () => {
     ).toBe('Compute');
   });
 
+  it('groups billing fan-out registrations under Billing via the owner label', () => {
+    expect(
+      resolveServiceDisplayName('billing.miloapis.com', 'billing.miloapis.com/billingaccount/count')
+    ).toBe('Billing');
+  });
+
   it('returns the Other group when nothing matches', () => {
     expect(resolveServiceDisplayName(undefined, 'unknown.example.com/widgets')).toBe(OTHER_GROUP);
   });
@@ -42,6 +48,9 @@ describe('resolveResourceDisplayName', () => {
 
   it('falls back to the interim resourceType map when the annotation is missing', () => {
     expect(resolveResourceDisplayName(undefined, 'compute.datumapis.com/vcpus')).toBe('vCPUs');
+    expect(resolveResourceDisplayName(undefined, 'billing.miloapis.com/billingaccount/count')).toBe(
+      'Billing Accounts'
+    );
   });
 
   it('returns the raw resourceType when nothing matches', () => {
