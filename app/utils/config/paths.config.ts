@@ -142,6 +142,24 @@ export const paths = {
           root: '/project/[projectId]/connectors/[connectorId]',
         },
       },
+      compute: {
+        workloads: {
+          root: '/project/[projectId]/compute/workloads',
+          new: '/project/[projectId]/compute/workloads/new',
+          detail: {
+            root: '/project/[projectId]/compute/workloads/[workloadName]',
+            activity: '/project/[projectId]/compute/workloads/[workloadName]/activity',
+            metrics: '/project/[projectId]/compute/workloads/[workloadName]/metrics',
+            settings: '/project/[projectId]/compute/workloads/[workloadName]/settings',
+            instances: {
+              detail:
+                '/project/[projectId]/compute/workloads/[workloadName]/instances/[instanceName]',
+              settings:
+                '/project/[projectId]/compute/workloads/[workloadName]/instances/[instanceName]/settings',
+            },
+          },
+        },
+      },
       activity: '/project/[projectId]/activity',
       quotas: '/project/[projectId]/quotas',
       usage: '/project/[projectId]/usage',
