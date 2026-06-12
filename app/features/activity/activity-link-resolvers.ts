@@ -17,6 +17,11 @@ interface ResourceRouteConfig {
  */
 const RESOURCE_ROUTES: Record<string, ResourceRouteConfig> = {
   // Project-scoped resources with full detail pages
+  Workload: { pathSegment: 'compute/workloads' },
+  // Instance has no standalone detail page — its route is nested under a
+  // workload (/compute/workloads/:workloadName/instances/:instanceName) and
+  // the resolver receives only the leaf resource name, not the parent workload
+  // name. Links are intentionally suppressed; activity items render as text.
   DNSZone: { pathSegment: 'dns-zones', defaultTab: '/dns-records' },
   Domain: { pathSegment: 'domains', defaultTab: '/overview' },
   HTTPProxy: { pathSegment: 'edge' },
