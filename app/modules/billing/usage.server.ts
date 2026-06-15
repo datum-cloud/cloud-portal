@@ -46,9 +46,11 @@ function aggregateMeterValues(
 export async function fetchUsageForCustomerIds({
   customerIds,
   days = DEFAULT_DAYS,
+  projectId,
 }: {
   customerIds: string[];
   days?: number;
+  projectId?: string;
 }): Promise<MeterSeries[]> {
   const apiKey = env.server.amberfloApiKey;
   if (!apiKey || customerIds.length === 0) {
@@ -72,7 +74,10 @@ export async function fetchUsageForCustomerIds({
           body: JSON.stringify({
             meterApiName: meterName,
             timeRange: { startTimeInSeconds: startSec, endTimeInSeconds: nowSec },
-            filter: { customerId: customerIds },
+            filter: {
+              customerId: customerIds,
+              ...(projectId ? { dimensions: { project_id: [projectId] } } : {}),
+            },
             groupBy: ['customerId'],
           }),
         });
@@ -163,7 +168,7 @@ export async function fetchProjectUsage(
     return { status: 'no-billing-account', meters: [], days };
   }
 
-  const meters = await fetchUsageForCustomerIds({ customerIds: [customerId], days });
+  const meters = await fetchUsageForCustomerIds({ customerIds: [customerId], days, projectId });
   return { status: 'ok', meters, days };
 }
 
