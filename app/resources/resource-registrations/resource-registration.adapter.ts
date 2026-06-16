@@ -22,7 +22,6 @@ export function toResourceRegistration(
     // hand-written registrations use `services.miloapis.com/owner`, while the
     // milo service-catalog quota fan-out stamps `services.miloapis.com/service`.
     // Read both so fan-out services (e.g. compute) group correctly.
-    service:
-      labels['services.miloapis.com/owner'] ?? labels['services.miloapis.com/service'],
+    service: labels['services.miloapis.com/owner'] ?? labels['services.miloapis.com/service'],
   };
 }

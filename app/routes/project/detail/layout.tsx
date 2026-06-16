@@ -31,7 +31,6 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  BarChart3Icon,
   BotIcon,
   CableIcon,
   ChartSplineIcon,
@@ -59,7 +58,6 @@ import {
  * defaults so the rest of the layout can still render.
  */
 type ProjectLayoutCompanions = {
-  usageMeteringEnabled: boolean | null;
   billingEnabled: boolean | null;
   organizationId: string | null | undefined;
 };
@@ -84,17 +82,6 @@ export const loader = (args: LoaderFunctionArgs) =>
     notFoundLabel: 'Project',
     fetch: ({ id }) => createProjectService().get(id),
     companions: {
-      usageMeteringEnabled: {
-        resource: 'projects',
-        group: 'resourcemanager.miloapis.com',
-        verb: 'get',
-        scope: 'user',
-        onError: 'tolerate',
-        fetch: ({ data: project }) =>
-          project?.organizationId
-            ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, project.organizationId)
-            : Promise.resolve(false),
-      },
       billingEnabled: {
         resource: 'projects',
         group: 'resourcemanager.miloapis.com',
@@ -152,7 +139,6 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 export default route.Page(({ data: initialProject, companions }) => {
   const { projectId } = useParams();
   const breakpoint = useBreakpoint();
-  const usageMeteringEnabled = companions.usageMeteringEnabled ?? false;
   const seededOrgId = companions.organizationId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -309,17 +295,6 @@ export default route.Page(({ data: initialProject, companions }) => {
           });
         },
       },
-      ...(usageMeteringEnabled
-        ? [
-            {
-              title: 'Usage',
-              href: getPathWithParams(paths.project.detail.usage, { projectId: pid }),
-              type: 'link' as const,
-              icon: BarChart3Icon,
-              disabled: !isReady,
-            },
-          ]
-        : []),
       {
         title: 'Secrets',
         href: getPathWithParams(paths.project.detail.secrets.root, { projectId: pid }),
@@ -357,7 +332,7 @@ export default route.Page(({ data: initialProject, companions }) => {
         tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
       },
     ];
-  }, [project, queryClient, usageMeteringEnabled]);
+  }, [project, queryClient]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;
