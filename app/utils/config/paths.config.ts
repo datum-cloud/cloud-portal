@@ -10,6 +10,7 @@ export const paths = {
   gettingStarted: '/getting-started',
   onboarding: {
     completeProfile: '/complete-profile',
+    setupBilling: '/setup-billing',
   },
   fraud: {
     verifying: '/verifying',

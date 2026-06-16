@@ -1,4 +1,5 @@
-import { buildStripeAppearance } from '@/modules/stripe/appearance';
+import { FieldLabel } from '@/components/field/field-label';
+import { buildStripeAppearance, getStripeFontFaces } from '@/modules/stripe/appearance';
 import { getStripe } from '@/modules/stripe/load';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
@@ -12,7 +13,7 @@ import {
   useStripe,
 } from '@stripe/react-stripe-js';
 import type { StripeElementsOptions } from '@stripe/stripe-js';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useMemo, useState, type Ref } from 'react';
 import { z } from 'zod';
 
 /**
@@ -77,7 +78,7 @@ export interface CreatePaymentMethodResult {
  */
 export interface BasePaymentMethodFormProps {
   /** Closes the dialog (e.g. clicking Cancel, or after a successful add). */
-  onClose: () => void;
+  onClose?: () => void;
   /**
    * Whether this card should be offered as the default. When `true` the
    * checkbox is locked on — useful for the first card on an account where
@@ -103,6 +104,12 @@ export interface BasePaymentMethodFormProps {
   onConfirmed?: () => void;
 }
 
+export interface StripePaymentMethodSubmitHandle {
+  /** Runs Stripe validation, create, and confirm. Returns true on success. */
+  submit: (values: AddPaymentMethodValues) => Promise<boolean>;
+  isReady: () => boolean;
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export interface StripePaymentMethodFormProps extends BasePaymentMethodFormProps {
@@ -113,6 +120,22 @@ export interface StripePaymentMethodFormProps extends BasePaymentMethodFormProps
    * rendering this component with an empty key.
    */
   publishableKey: string;
+  /** Dialog chrome (default) or inline card-only fields for onboarding pages. */
+  layout?: 'dialog' | 'embedded';
+  /** When embedded, omit AddressElement unless explicitly hidden. */
+  hideAddress?: boolean;
+  /** When embedded, parent collects displayName and passes it via submit ref. */
+  hideDisplayName?: boolean;
+  /** When embedded, parent renders the primary submit button. */
+  hideSubmit?: boolean;
+  /** Override the display-name field label (e.g. "Name on card"). */
+  displayNameLabel?: string;
+  /** Imperative submit for embedded layouts with an external button. */
+  submitRef?: Ref<StripePaymentMethodSubmitHandle>;
+  /** Notifies parent when Stripe readiness changes (embedded layouts). */
+  onReadyChange?: (ready: boolean) => void;
+  /** Notifies parent when submit-in-flight state changes. */
+  onSubmittingChange?: (submitting: boolean) => void;
 }
 
 /**
@@ -128,12 +151,17 @@ const PAYMENT_ELEMENT_OPTIONS = {
   // dialog. When only one payment method is enabled the tab strip itself
   // is hidden — we still get the spaced form layout below it.
   layout: { type: 'tabs' as const },
-  // We collect the full billing address from `AddressElement` below. Telling
-  // PaymentElement to never collect address fields keeps the UI from
-  // duplicating them. Address values are still attached to the resulting
-  // PaymentMethod automatically when both elements live under the same
-  // `<Elements>` provider and `stripe.confirmSetup({ elements })` runs.
-  fields: { billingDetails: { address: 'never' as const } },
+  // We collect billing address from `AddressElement` below. Telling
+  // PaymentElement to never collect those fields keeps the UI from
+  // duplicating them or showing mismatched Stripe labels.
+  fields: {
+    billingDetails: {
+      name: 'never' as const,
+      email: 'never' as const,
+      phone: 'never' as const,
+      address: 'never' as const,
+    },
+  },
 };
 
 const ADDRESS_ELEMENT_OPTIONS = {
@@ -155,6 +183,14 @@ const ADDRESS_ELEMENT_OPTIONS = {
 
 export const StripePaymentMethodForm = ({
   publishableKey,
+  layout = 'dialog',
+  hideAddress = false,
+  hideDisplayName = false,
+  hideSubmit = false,
+  displayNameLabel,
+  submitRef,
+  onReadyChange,
+  onSubmittingChange,
   forceDefault = false,
   onClose,
   onCreatePaymentMethod,
@@ -168,15 +204,16 @@ export const StripePaymentMethodForm = ({
   // from datum-ui's design tokens — colours, border radius, focus shadow,
   // font stack. Keyed by theme so the wrapper remounts on light/dark toggle
   // and the iframes pick up the new look.
-  const elementsOptions = useMemo<StripeElementsOptions>(
-    () => ({
+  const elementsOptions = useMemo<StripeElementsOptions>(() => {
+    const fonts = getStripeFontFaces();
+    return {
       mode: 'setup',
       currency: 'usd',
       paymentMethodTypes: ['card'],
       appearance: buildStripeAppearance(resolvedTheme === 'dark' ? 'dark' : 'light'),
-    }),
-    [resolvedTheme]
-  );
+      ...(fonts.length > 0 ? { fonts } : {}),
+    };
+  }, [resolvedTheme]);
 
   // `getStripe` only returns null when no key is provided. We require a key
   // via the prop, so this should never fall through to null in practice —
@@ -186,6 +223,14 @@ export const StripePaymentMethodForm = ({
   return (
     <Elements key={resolvedTheme} stripe={stripePromise} options={elementsOptions}>
       <StripePaymentMethodFormBody
+        layout={layout}
+        hideAddress={hideAddress}
+        hideDisplayName={hideDisplayName}
+        hideSubmit={hideSubmit}
+        displayNameLabel={displayNameLabel}
+        submitRef={submitRef}
+        onReadyChange={onReadyChange}
+        onSubmittingChange={onSubmittingChange}
         forceDefault={forceDefault}
         onClose={onClose}
         onCreatePaymentMethod={onCreatePaymentMethod}
@@ -195,12 +240,31 @@ export const StripePaymentMethodForm = ({
   );
 };
 
+interface StripePaymentMethodFormBodyProps extends BasePaymentMethodFormProps {
+  layout: 'dialog' | 'embedded';
+  hideAddress: boolean;
+  hideDisplayName: boolean;
+  hideSubmit: boolean;
+  displayNameLabel?: string;
+  submitRef?: Ref<StripePaymentMethodSubmitHandle>;
+  onReadyChange?: (ready: boolean) => void;
+  onSubmittingChange?: (submitting: boolean) => void;
+}
+
 const StripePaymentMethodFormBody = ({
+  layout,
+  hideAddress,
+  hideDisplayName,
+  hideSubmit,
+  displayNameLabel,
+  submitRef,
+  onReadyChange,
+  onSubmittingChange,
   forceDefault,
   onClose,
   onCreatePaymentMethod,
   onConfirmed,
-}: BasePaymentMethodFormProps) => {
+}: StripePaymentMethodFormBodyProps) => {
   const stripe = useStripe();
   const elements = useElements();
   const [submitting, setSubmitting] = useState(false);
@@ -211,68 +275,130 @@ const StripePaymentMethodFormBody = ({
   // both are ready.
   const isReady = !!stripe && !!elements;
 
-  const handleSubmit = async (values: AddPaymentMethodValues) => {
-    if (!stripe || !elements) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      // 1. Validate Stripe-owned fields. Field-level errors render inline
-      //    inside their Elements; we only surface the top-level message.
-      const { error: validationError } = await elements.submit();
-      if (validationError) {
-        setSubmitError(
-          validationError.message ?? 'Please check the card and billing address fields.'
-        );
-        return;
-      }
-
-      // 2. Create the PaymentMethod resource on our side. The
-      //    stripe-provider controller mints a SetupIntent and exposes its
-      //    `clientSecret` on `StripePaymentMethod.status.setupIntent`.
-      //
-      //    The callback contract allows either a `null` return or a thrown
-      //    error — both keep the dialog open. We catch here so thrown
-      //    errors land on the inline alert with their own message instead
-      //    of bubbling out as an unhandled rejection.
-      let result: CreatePaymentMethodResult | null | undefined;
+  const runSubmit = useCallback(
+    async (values: AddPaymentMethodValues): Promise<boolean> => {
+      if (!stripe || !elements) return false;
+      setSubmitting(true);
+      onSubmittingChange?.(true);
+      setSubmitError(null);
       try {
-        result = await onCreatePaymentMethod?.(values);
-      } catch (err) {
-        setSubmitError(
-          err instanceof Error
-            ? err.message
-            : "We couldn't create a payment method just now. Please try again in a moment."
-        );
-        return;
-      }
-      if (!result?.clientSecret) {
-        setSubmitError(
-          "We couldn't create a payment method just now. Please try again in a moment."
-        );
-        return;
-      }
+        // 1. Validate Stripe-owned fields. Field-level errors render inline
+        //    inside their Elements; we only surface the top-level message.
+        const { error: validationError } = await elements.submit();
+        if (validationError) {
+          setSubmitError(
+            validationError.message ?? 'Please check the card and billing address fields.'
+          );
+          return false;
+        }
 
-      // 3. Hand the clientSecret to Stripe. AddressElement values are
-      //    automatically attached to the PaymentMethod's `billing_details`
-      //    because both elements share this `<Elements>` provider.
-      //    `redirect: 'if_required'` keeps card-only flows in the dialog —
-      //    3-D Secure still shows as Stripe's modal overlay.
-      const { error: confirmError } = await stripe.confirmSetup({
-        elements,
-        clientSecret: result.clientSecret,
-        confirmParams: { return_url: window.location.href },
-        redirect: 'if_required',
-      });
-      if (confirmError) {
-        setSubmitError(confirmError.message ?? "We couldn't confirm those card details.");
-        return;
-      }
+        // 2. Create the PaymentMethod resource on our side.
+        let result: CreatePaymentMethodResult | null | undefined;
+        try {
+          result = await onCreatePaymentMethod?.(values);
+        } catch (err) {
+          setSubmitError(
+            err instanceof Error
+              ? err.message
+              : "We couldn't create a payment method just now. Please try again in a moment."
+          );
+          return false;
+        }
+        if (!result?.clientSecret) {
+          setSubmitError(
+            "We couldn't create a payment method just now. Please try again in a moment."
+          );
+          return false;
+        }
 
-      onConfirmed?.();
-    } finally {
-      setSubmitting(false);
+        // 3. Hand the clientSecret to Stripe.
+        const { error: confirmError } = await stripe.confirmSetup({
+          elements,
+          clientSecret: result.clientSecret,
+          confirmParams: { return_url: window.location.href },
+          redirect: 'if_required',
+        });
+        if (confirmError) {
+          setSubmitError(confirmError.message ?? "We couldn't confirm those card details.");
+          return false;
+        }
+
+        onConfirmed?.();
+        return true;
+      } finally {
+        setSubmitting(false);
+        onSubmittingChange?.(false);
+      }
+    },
+    [stripe, elements, onCreatePaymentMethod, onConfirmed, onSubmittingChange]
+  );
+
+  useImperativeHandle(
+    submitRef,
+    () => ({
+      submit: runSubmit,
+      isReady: () => isReady,
+    }),
+    [runSubmit, isReady]
+  );
+
+  useEffect(() => {
+    onReadyChange?.(isReady);
+  }, [isReady, onReadyChange]);
+
+  const handleSubmit = async (values: AddPaymentMethodValues) => {
+    const success = await runSubmit(values);
+    if (success && layout === 'dialog') {
+      onClose?.();
     }
   };
+
+  const cardSection = (
+    <section className="flex flex-col space-y-2">
+      {layout === 'dialog' && <FieldLabel label="Card details" />}
+      <PaymentElement options={PAYMENT_ELEMENT_OPTIONS} />
+    </section>
+  );
+
+  const addressSection = !hideAddress ? (
+    <section className="flex flex-col space-y-2">
+      <FieldLabel label="Billing address" />
+      <AddressElement options={ADDRESS_ELEMENT_OPTIONS} />
+    </section>
+  ) : null;
+
+  const setAsDefaultField =
+    !hideSubmit && !forceDefault ? (
+      <Form.Field name="setAsDefault">
+        <label className="flex items-start gap-3">
+          <Form.Checkbox disabled={forceDefault} className="mt-0.5" />
+          <div className="flex flex-col gap-0.5">
+            <span className="text-foreground text-sm font-medium">
+              Set as default payment method
+            </span>
+            <span className="text-muted-foreground text-xs">
+              This card will be charged for upcoming invoices.
+            </span>
+          </div>
+        </label>
+      </Form.Field>
+    ) : null;
+
+  const errorAlert = submitError ? (
+    <p className="text-destructive text-sm" role="alert">
+      {submitError}
+    </p>
+  ) : null;
+
+  if (layout === 'embedded') {
+    return (
+      <div className="flex flex-col gap-6">
+        {cardSection}
+        {addressSection}
+        {errorAlert}
+      </div>
+    );
+  }
 
   return (
     <Form.Root
@@ -289,66 +415,36 @@ const StripePaymentMethodFormBody = ({
       className="flex flex-col">
       <Dialog.Header className="mb-0 border-b" title="Add a payment method" onClose={onClose} />
       <Dialog.Body className="mb-0 flex flex-col gap-5 px-5">
-        <Form.Field
-          name="displayName"
-          label="Display name"
-          description="A label so you can tell this card apart from others on your account."
-          required>
-          <Form.Input placeholder="e.g. Primary card" autoFocus />
-        </Form.Field>
-
-        {/*
-          Section headings reuse datum-ui's `FieldLabel` typography so
-          they sit consistently with the `<Form.Field>` labels elsewhere
-          in the form (text-xs font-semibold @ 80% foreground). Keeps a
-          single visual rhythm for every label-style element in the
-          dialog.
-        */}
-        <section className="flex flex-col gap-3">
-          <h3 className="text-foreground/80 text-xs font-semibold">Card details</h3>
-          <PaymentElement options={PAYMENT_ELEMENT_OPTIONS} />
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <h3 className="text-foreground/80 text-xs font-semibold">Billing address</h3>
-          <AddressElement options={ADDRESS_ELEMENT_OPTIONS} />
-        </section>
-
-        <Form.Field name="setAsDefault">
-          <label className="flex items-start gap-3">
-            <Form.Checkbox disabled={forceDefault} className="mt-0.5" />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-foreground text-sm font-medium">
-                Set as default payment method
-              </span>
-              <span className="text-muted-foreground text-xs">
-                {forceDefault
-                  ? "This card will be used for upcoming charges because it's the first one on this account."
-                  : 'This card will be charged for upcoming invoices.'}
-              </span>
-            </div>
-          </label>
-        </Form.Field>
-
-        {submitError && (
-          <p className="text-destructive text-sm" role="alert">
-            {submitError}
-          </p>
+        {!hideDisplayName && (
+          <Form.Field
+            name="displayName"
+            label={displayNameLabel ?? 'Display name'}
+            description="A label so you can tell this card apart from others on your account."
+            required>
+            <Form.Input placeholder="e.g. Primary card" autoFocus />
+          </Form.Field>
         )}
+
+        {cardSection}
+        {addressSection}
+        {setAsDefaultField}
+        {errorAlert}
       </Dialog.Body>
-      <Dialog.Footer className="border-t">
-        <Button
-          htmlType="button"
-          type="quaternary"
-          theme="outline"
-          disabled={submitting}
-          onClick={onClose}>
-          Cancel
-        </Button>
-        <Form.Submit loadingText="Adding…" disabled={!isReady}>
-          Add payment method
-        </Form.Submit>
-      </Dialog.Footer>
+      {!hideSubmit && (
+        <Dialog.Footer className="border-t">
+          <Button
+            htmlType="button"
+            type="quaternary"
+            theme="outline"
+            disabled={submitting}
+            onClick={onClose}>
+            Cancel
+          </Button>
+          <Form.Submit loadingText="Adding…" disabled={!isReady}>
+            Add payment method
+          </Form.Submit>
+        </Dialog.Footer>
+      )}
     </Form.Root>
   );
 };

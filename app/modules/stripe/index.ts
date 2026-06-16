@@ -8,4 +8,5 @@ export {
   type BasePaymentMethodFormProps,
   type CreatePaymentMethodResult,
   type StripePaymentMethodFormProps,
+  type StripePaymentMethodSubmitHandle,
 } from './payment-method-form';
