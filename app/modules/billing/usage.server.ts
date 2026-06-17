@@ -16,11 +16,13 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
     if (!axios) return [];
     const baseUrl = axios.defaults?.baseURL ?? '';
     const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
-    const items: { spec?: { meterName?: string; displayName?: string } }[] = resp.data?.items ?? [];
+    const items: { spec?: { meterName?: string; displayName?: string; description?: string } }[] =
+      resp.data?.items ?? [];
     return items
       .map((item) => ({
         meterName: item.spec?.meterName ?? '',
         displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
+        description: item.spec?.description?.trim() || undefined,
       }))
       .filter((m) => m.meterName);
   } catch {
@@ -61,7 +63,7 @@ export async function fetchUsageForCustomerIds({
   const meterDefs = await listMeterDefinitions();
 
   return Promise.all(
-    meterDefs.map(async ({ meterName, displayName }): Promise<MeterSeries> => {
+    meterDefs.map(async ({ meterName, displayName, description }): Promise<MeterSeries> => {
       try {
         const resp = await fetch(`${baseUrl}/usage/sparse`, {
           method: 'POST',
@@ -78,7 +80,7 @@ export async function fetchUsageForCustomerIds({
         });
 
         if (!resp.ok) {
-          return { meterApiName: meterName, label: displayName, values: [] };
+          return { meterApiName: meterName, label: displayName, description, values: [] };
         }
 
         const json = (await resp.json()) as {
@@ -93,9 +95,9 @@ export async function fetchUsageForCustomerIds({
               }))
             : aggregateMeterValues(json.clientMeters);
 
-        return { meterApiName: meterName, label: displayName, values };
+        return { meterApiName: meterName, label: displayName, description, values };
       } catch {
-        return { meterApiName: meterName, label: displayName, values: [] };
+        return { meterApiName: meterName, label: displayName, description, values: [] };
       }
     })
   );

@@ -1,12 +1,14 @@
 export interface MeterSeries {
   meterApiName: string;
   label: string;
+  description?: string;
   values: { timestamp: number; value: number }[];
 }
 
 export interface MeterDefinition {
   meterName: string;
   displayName: string;
+  description?: string;
 }
 
 export type UsageFetchStatus =
