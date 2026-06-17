@@ -1,12 +1,11 @@
+import { toServiceEntitlement } from './service-entitlement.adapter';
+import type { ServiceEntitlement } from './service-entitlement.schema';
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
-import { toServiceEntitlement } from './service-entitlement.adapter';
-import type { ServiceEntitlement } from './service-entitlement.schema';
 
 const SERVICE_NAME = 'ServiceEntitlementService';
-const COMPUTE_SERVICE_NAME = 'compute.datumapis.com';
 
 export function createServiceEntitlementService() {
   return {
@@ -53,9 +52,7 @@ export function createServiceEntitlementService() {
             spec: { serviceRef: { name: serviceName } },
           },
         });
-        return toServiceEntitlement(
-          response.data as Parameters<typeof toServiceEntitlement>[0]
-        );
+        return toServiceEntitlement(response.data as Parameters<typeof toServiceEntitlement>[0]);
       } catch (error) {
         logger.error(`${SERVICE_NAME}.create failed`, error as Error);
         throw mapApiError(error);
