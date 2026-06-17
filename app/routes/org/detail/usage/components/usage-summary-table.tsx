@@ -111,6 +111,9 @@ export function UsageSummaryTable({ rows, collapsedCount = 5 }: UsageSummaryTabl
     setExpandedGroups(visibleGroupIds);
   }, [visibleGroupIds]);
 
+  const canExpand = rows.length > collapsedCount;
+  const lastGroupId = visibleGroups[visibleGroups.length - 1]?.group;
+
   if (rows.length === 0) {
     return (
       <Card className="shadow-none">
@@ -120,9 +123,6 @@ export function UsageSummaryTable({ rows, collapsedCount = 5 }: UsageSummaryTabl
       </Card>
     );
   }
-
-  const canExpand = rows.length > collapsedCount;
-  const lastGroupId = visibleGroups[visibleGroups.length - 1]?.group;
 
   return (
     <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
@@ -134,24 +134,42 @@ export function UsageSummaryTable({ rows, collapsedCount = 5 }: UsageSummaryTabl
           expanded={expandedGroups}
           onExpandedChange={setExpandedGroups}
           getRowId={(row) => row.apiName}
-          className="[&>div:last-child]:rounded-none [&>div:last-child]:border-0"
+          className="usage-summary-grouped-table [&>div:last-child]:rounded-none [&>div:last-child]:border-0"
           tableClassName="[&_th:not(:last-child)]:border-r [&_th]:border-border [&_td:first-child]:pl-4 [&_td:last-child]:pr-4 [&_th:first-child]:pl-4 [&_th:last-child]:pr-4 sm:[&_td:first-child]:pl-5 sm:[&_td:last-child]:pr-5 sm:[&_th:first-child]:pl-5 sm:[&_th:last-child]:pr-5"
           headerRowClassName="bg-background hover:bg-background border-b border-border"
           headerCellClassName="text-foreground text-xs font-medium"
-          bodyClassName="[&_tr:last-child]:border-b [&_tr]:border-border"
+          bodyClassName={cn(
+            '[&_tr:first-child]:border-t [&_tr]:border-border',
+            // When the expand footer is present it sits flush under the table;
+            // the last row's border-b is the sole divider (footer border-t stacks).
+            // Without a footer, drop the last row border-b — the Card border is
+            // the bottom edge.
+            canExpand ? '[&_tr:last-child]:border-b' : '[&_tr:last-child]:border-b-0'
+          )}
           groupHeaderClassName={(group) => {
             const isOpen = expandedGroups.includes(group.id);
             const isLastGroup = group.id === lastGroupId;
+            const groupIndex = visibleGroups.findIndex((g) => g.group === group.id);
+            const previousGroupId = visibleGroups[groupIndex - 1]?.group;
+            const previousGroupOpen = previousGroupId
+              ? expandedGroups.includes(previousGroupId)
+              : true;
+
             return cn(
               'bg-muted/40 text-foreground h-10 border-r-0 border-border px-4 text-xs font-medium sm:px-5',
-              'border-t',
-              isOpen || isLastGroup ? 'border-b' : 'border-b-0'
+              // Only draw a top edge when the previous section is collapsed and
+              // therefore has no trailing data-row border-b to separate groups.
+              groupIndex > 0 && !previousGroupOpen && 'border-t',
+              // Expanded groups delegate the header→first-row divider to the
+              // first data row's border-t so we don't stack with datum-ui's
+              // default trigger border-b.
+              isOpen ? 'border-b-0' : isLastGroup ? 'border-b' : 'border-b-0'
             );
           }}
         />
       </CardContent>
       {canExpand && (
-        <CardFooter className="bg-background flex items-center justify-center border-t p-0">
+        <CardFooter className="bg-background flex items-center justify-center p-0">
           <Button
             htmlType="button"
             type="quaternary"
