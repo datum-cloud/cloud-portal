@@ -27,7 +27,7 @@ export function humanizeDimension(dimension: string): string {
     .trim();
 }
 
-const PROJECT_BREAKDOWN_DIMENSION = 'project_id';
+const PROJECT_BREAKDOWN_DIMENSION = 'project_name';
 
 function projectDisplayName(
   projectName: string,

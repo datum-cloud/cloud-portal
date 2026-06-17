@@ -83,7 +83,7 @@ export async function resolveBillingAccountForUsageScope(
 const MAX_BREAKDOWN_DIMENSIONS = 3;
 
 /** Platform dimension injected by the billing pipeline (not on MeterDefinition). */
-const PROJECT_BREAKDOWN_DIMENSION = 'project_id';
+const PROJECT_BREAKDOWN_DIMENSION = 'project_name';
 
 export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
   try {
