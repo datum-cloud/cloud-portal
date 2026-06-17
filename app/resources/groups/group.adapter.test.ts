@@ -35,7 +35,10 @@ describe('toGroup', () => {
 
 describe('toGroupList', () => {
   it('maps each item and reports hasMore=true when a cursor is given', () => {
-    const items = [{ metadata: { uid: 'a', name: 'one' } }, { metadata: { uid: 'b', name: 'two' } }];
+    const items = [
+      { metadata: { uid: 'a', name: 'one' } },
+      { metadata: { uid: 'b', name: 'two' } },
+    ];
     const list = toGroupList(items as never, 'next-token');
 
     expect(list.items.map((g) => g.uid)).toEqual(['a', 'b']);
