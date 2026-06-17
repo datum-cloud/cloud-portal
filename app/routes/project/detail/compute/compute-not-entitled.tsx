@@ -26,7 +26,11 @@ const features = [
   },
 ];
 
-export function ComputeNotEntitled({ entitlementRequested = false }: { entitlementRequested?: boolean }) {
+export function ComputeNotEntitled({
+  entitlementRequested = false,
+}: {
+  entitlementRequested?: boolean;
+}) {
   const fetcher = useFetcher();
   const submitting = fetcher.state !== 'idle';
   const requested = entitlementRequested || fetcher.data !== undefined;

@@ -1,8 +1,8 @@
-import { ComputeNotEntitled } from '@/routes/project/detail/compute/compute-not-entitled';
 import {
   createServiceEntitlementService,
   type ServiceEntitlement,
 } from '@/resources/service-entitlements';
+import { ComputeNotEntitled } from '@/routes/project/detail/compute/compute-not-entitled';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useRef } from 'react';
 import {
@@ -20,8 +20,7 @@ type LoaderData = {
 
 export async function loader({ params }: LoaderFunctionArgs): Promise<LoaderData> {
   const projectId = params.projectId ?? '';
-  const entitlement =
-    await createServiceEntitlementService().getComputeEntitlement(projectId);
+  const entitlement = await createServiceEntitlementService().getComputeEntitlement(projectId);
   return { entitlement };
 }
 
