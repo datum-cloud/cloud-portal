@@ -206,7 +206,7 @@ async function queryUsage(args: SparseQueryArgs, groupBy: string[]): Promise<Spa
   const { meterApiName, customerIds, startSec, nowSec, apiKey, baseUrl, projectId } = args;
   const filter: Record<string, string[]> = { customerId: customerIds };
   if (projectId) {
-    filter.project_id = [projectId];
+    filter[PROJECT_BREAKDOWN_DIMENSION] = [projectId];
   }
   const resp = await fetch(`${baseUrl}/usage`, {
     method: 'POST',
