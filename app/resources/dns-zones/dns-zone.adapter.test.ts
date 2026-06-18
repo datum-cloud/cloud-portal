@@ -60,7 +60,10 @@ describe('toDnsZoneList', () => {
 
 describe('toCreateDnsZonePayload', () => {
   it('builds a DNSZone with the fixed class and description annotation', () => {
-    const payload = toCreateDnsZonePayload({ domainName: 'acme.example', description: 'prod zone' });
+    const payload = toCreateDnsZonePayload({
+      domainName: 'acme.example',
+      description: 'prod zone',
+    });
 
     expect(payload.kind).toBe('DNSZone');
     expect(payload.apiVersion).toBe('dns.networking.miloapis.com/v1alpha1');

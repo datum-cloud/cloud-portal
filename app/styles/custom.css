@@ -116,6 +116,16 @@
   @apply whitespace-normal;
 }
 
+/* Usage summary GroupedTable — datum-ui's trigger ships `border-b` before our
+   className merge, so expanded headers can stack with the first data row's
+   top edge. Scope the single-border rules here like the quotas table. */
+.usage-summary-grouped-table button[data-state='open'] {
+  @apply border-b-0;
+}
+.usage-summary-grouped-table [data-slot='table-body'] [data-slot='table-row']:first-child {
+  @apply border-border border-t;
+}
+
 /* Inline content row (rendered by datum-ui's `<DataTable.InlineContent>`).
    The `<td>` falls through to TableCell's default `data-slot="table-cell"`
    — NOT `dt-cell` — so we target it via `> td` directly.
