@@ -18,6 +18,7 @@ const SERVICE_DISPLAY_NAMES: Record<string, string> = {
   'networking.datumapis.com': 'Networking',
   'resourcemanager.miloapis.com': 'Organization & Projects',
   'compute.datumapis.com': 'Compute',
+  'billing.miloapis.com': 'Billing',
 };
 
 /**
@@ -33,6 +34,7 @@ const RESOURCE_DISPLAY_NAMES: Record<string, string> = {
   'compute.datumapis.com/vcpus': 'vCPUs',
   'compute.datumapis.com/memory': 'Memory',
   'compute.datumapis.com/workloads': 'Workloads',
+  'billing.miloapis.com/billingaccount/count': 'Billing Accounts',
 };
 
 /**
