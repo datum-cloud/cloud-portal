@@ -241,9 +241,6 @@ export default [
           ),
         ]),
 
-        // Usage
-        route('usage', 'routes/project/detail/usage/index.tsx'),
-
         // Secrets
         route('secrets', 'routes/project/detail/secrets/layout.tsx', [
           index('routes/project/detail/secrets/index.tsx'),

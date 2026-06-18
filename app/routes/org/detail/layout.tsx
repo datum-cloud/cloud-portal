@@ -1,15 +1,23 @@
 import { DashboardLayout } from '@/layouts/dashboard.layout';
+import { fetchOrgUsageDashboard, usageKeys } from '@/modules/billing/usage.queries';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
+import {
+  billingAccountBindingKeys,
+  createBillingAccountBindingService,
+} from '@/resources/billing-account-bindings';
+import { billingAccountKeys, createBillingAccountService } from '@/resources/billing-accounts';
+import { createGroupService, groupKeys } from '@/resources/groups';
 import { createInvitationService, invitationKeys } from '@/resources/invitations';
 import { createMemberService, memberKeys } from '@/resources/members';
 import { type Organization, createOrganizationService } from '@/resources/organizations';
 import { createProjectService, projectKeys } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { clearProjectSession, setOrgSession } from '@/utils/cookies';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
@@ -126,6 +134,7 @@ export default route.Page(({ data: initialOrg, companions }) => {
           void queryClient.prefetchQuery({
             queryKey: projectKeys.list(orgId),
             queryFn: () => createProjectService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
           });
         },
       },
@@ -140,10 +149,17 @@ export default route.Page(({ data: initialOrg, companions }) => {
           void queryClient.prefetchQuery({
             queryKey: memberKeys.list(orgId),
             queryFn: () => createMemberService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
           });
           void queryClient.prefetchQuery({
             queryKey: invitationKeys.list(orgId),
             queryFn: () => createInvitationService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
+          });
+          void queryClient.prefetchQuery({
+            queryKey: groupKeys.list(orgId),
+            queryFn: () => createGroupService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
           });
         },
       },
@@ -154,6 +170,20 @@ export default route.Page(({ data: initialOrg, companions }) => {
               href: getPathWithParams(paths.org.detail.usage, { orgId }),
               type: 'link' as const,
               icon: BarChart3Icon,
+              onPrefetch: () => {
+                if (!orgId) return;
+                void queryClient.prefetchQuery({
+                  queryKey: projectKeys.list(orgId),
+                  queryFn: () => createProjectService().list(orgId),
+                  staleTime: QUERY_STALE_TIME,
+                });
+                void queryClient.prefetchQuery({
+                  queryKey: usageKeys.dashboard(orgId, 'all', 'current'),
+                  queryFn: () =>
+                    fetchOrgUsageDashboard({ orgId, project: 'all', cycle: 'current' }),
+                  staleTime: QUERY_STALE_TIME,
+                });
+              },
             },
           ]
         : []),
@@ -164,6 +194,24 @@ export default route.Page(({ data: initialOrg, companions }) => {
               href: getPathWithParams(paths.org.detail.billing.root, { orgId }),
               type: 'link' as const,
               icon: WalletIcon,
+              onPrefetch: () => {
+                if (!orgId) return;
+                void queryClient.prefetchQuery({
+                  queryKey: billingAccountKeys.list(orgId),
+                  queryFn: () => createBillingAccountService().list(orgId),
+                  staleTime: QUERY_STALE_TIME,
+                });
+                void queryClient.prefetchQuery({
+                  queryKey: billingAccountBindingKeys.list(orgId),
+                  queryFn: () => createBillingAccountBindingService().list(orgId),
+                  staleTime: QUERY_STALE_TIME,
+                });
+                void queryClient.prefetchQuery({
+                  queryKey: projectKeys.list(orgId),
+                  queryFn: () => createProjectService().list(orgId),
+                  staleTime: QUERY_STALE_TIME,
+                });
+              },
             },
           ]
         : []),

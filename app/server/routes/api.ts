@@ -6,6 +6,7 @@ import { graphqlRoutes } from './graphql';
 import { permissionsRoutes } from './permissions';
 import { prometheusRoutes } from './prometheus';
 import { proxyRoutes } from './proxy';
+import { usageRoutes } from './usage';
 import { userRoutes } from './user';
 import { watchRoutes } from './watch';
 import { authGuardMiddleware } from '@/server/middleware/auth';
@@ -40,6 +41,7 @@ export function createApiApp() {
   api.route('/graphql', graphqlRoutes);
   api.route('/cloudvalid', cloudvalidRoutes);
   api.route('/prometheus', prometheusRoutes);
+  api.route('/usage', usageRoutes);
   api.route('/grafana', grafanaRoutes);
   api.route('/permissions', permissionsRoutes);
   api.route('/user', userRoutes);
