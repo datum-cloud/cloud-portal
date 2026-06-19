@@ -14,7 +14,7 @@ import {
   normalizeCardBrand,
 } from '@/features/billing/types';
 import { summarizeMetersForAssistant } from '@/modules/billing/usage-summary';
-import { fetchOrgUsage, fetchProjectUsage } from '@/modules/billing/usage.server';
+import { fetchOrgUsage } from '@/modules/billing/usage.server';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
@@ -370,7 +370,8 @@ export function createBillingTools() {
         'Get metered resource consumption for a project over a time window. Use for billing usage questions — not the same as Prometheus traffic metrics or resource quotas.',
       inputSchema: usageDaysParam,
       execute: async ({ projectId, days }: { projectId: string; days?: number }) => {
-        const result = await fetchProjectUsage(projectId, days);
+        const project = await createProjectService().get(projectId);
+        const result = await fetchOrgUsage(project.organizationId, { days, projectId });
 
         if (result.status !== 'ok') {
           return {
@@ -383,7 +384,9 @@ export function createBillingTools() {
                   ? 'You do not have permission to view usage data.'
                   : result.status === 'no-billing-account'
                     ? 'This project does not have a billing account linked.'
-                    : 'Usage data is unavailable.'),
+                    : result.status === 'feature-disabled'
+                      ? 'Usage metering is not enabled for this organization.'
+                      : 'Usage data is unavailable.'),
             meters: [],
           };
         }
@@ -393,7 +396,7 @@ export function createBillingTools() {
           projectId,
           days: result.days,
           meters: summarizeMetersForAssistant(result.meters),
-          usageDashboardUrl: `/project/${projectId}/usage`,
+          usageDashboardUrl: `/org/${project.organizationId}/usage?project=${projectId}`,
         };
       },
     }),
@@ -403,7 +406,7 @@ export function createBillingTools() {
         'Get org-wide metered resource consumption aggregated across all billing accounts. Use when the user asks about organization-level usage or spend.',
       inputSchema: orgUsageDaysParam,
       execute: async ({ orgId, days }: { orgId: string; days?: number }) => {
-        const result = await fetchOrgUsage(orgId, days);
+        const result = await fetchOrgUsage(orgId, { days });
 
         if (result.status !== 'ok') {
           return {

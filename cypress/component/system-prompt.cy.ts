@@ -80,7 +80,6 @@ describe('buildSystemPrompt', () => {
     expect(dynamic.content).to.include('/project/proj-123/edge?action=create');
     expect(dynamic.content).to.include('/project/proj-123/secrets');
     expect(dynamic.content).to.include('/project/proj-123/connectors');
-    expect(dynamic.content).to.include('/project/proj-123/usage');
     expect(dynamic.content).to.include('/project/proj-123/billing');
   });
 
@@ -88,7 +87,7 @@ describe('buildSystemPrompt', () => {
     const [, dynamic] = buildSystemPrompt('proj-123', 'org-456');
     expect(dynamic.content).to.include('/account/billing');
     expect(dynamic.content).to.include('/account/billing?action=create');
-    expect(dynamic.content).to.include('/org/org-456/usage');
+    expect(dynamic.content).to.include('/org/org-456/usage?project=proj-123');
     expect(dynamic.content).to.include('/org/org-456/billing');
   });
 

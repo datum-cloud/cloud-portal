@@ -49,7 +49,7 @@ const STATIC_SYSTEM_PROMPT = [
   'Call `listBillingAccounts` or `getBillingAccount` when the user asks about billing accounts, funding, or which account pays for projects.',
   'Call `getProjectBillingBinding` when the user asks which billing account funds the current project.',
   'Call `listPaymentMethods` when the user asks about cards or payment methods on file. Never attempt to add or remove cards — link to the billing account page instead.',
-  'Call `getProjectUsage` for project consumption questions; call `getOrgUsage` for organization-wide usage.',
+  'Call `getProjectUsage` for project-scoped consumption; call `getOrgUsage` for organization-wide usage. Link to the org usage dashboard (`/org/{orgId}/usage`), optionally with `?project=` for a project filter.',
   'Summarize usage as totals over the period plus a brief recent trend. Offer the usage dashboard link for charts.',
   'Billing tools are read-only. To create a billing account or add a payment method, offer a markdown link to the relevant page.',
   '',
@@ -114,7 +114,6 @@ export function buildSystemPrompt(
       `- Export Policies: /project/${projectName}/export-policies/new`,
       `- Activity Logs: /project/${projectName}/activity`,
       `- Quotas: /project/${projectName}/quotas`,
-      `- Project usage dashboard: /project/${projectName}/usage`,
       `- Project billing binding: /project/${projectName}/billing`
     );
   }
@@ -125,7 +124,9 @@ export function buildSystemPrompt(
       'Billing and usage URLs for this organization:',
       '- All billing accounts: /account/billing',
       '- Create billing account: /account/billing?action=create',
-      `- Org usage dashboard: /org/${orgName}/usage`,
+      projectName
+        ? `- Org usage dashboard: /org/${orgName}/usage?project=${projectName}`
+        : `- Org usage dashboard: /org/${orgName}/usage`,
       `- Org billing switcher: /org/${orgName}/billing`
     );
   }

@@ -18,7 +18,10 @@ describe('toDomain', () => {
         resourceVersion: '7',
         annotations: { 'kubernetes.io/description': 'primary domain' },
       }),
-      spec: { domainName: 'example.com', desiredRegistrationRefreshAttempt: '2024-05-01T00:00:00Z' },
+      spec: {
+        domainName: 'example.com',
+        desiredRegistrationRefreshAttempt: '2024-05-01T00:00:00Z',
+      },
       status: { phase: 'Active' },
     };
     const domain = toDomain(raw as never);
@@ -70,7 +73,10 @@ describe('toDomainList', () => {
 
 describe('toCreateDomainPayload', () => {
   it('uses the provided name verbatim', () => {
-    const payload = toCreateDomainPayload({ name: 'my-domain', domainName: 'example.com' } as never);
+    const payload = toCreateDomainPayload({
+      name: 'my-domain',
+      domainName: 'example.com',
+    } as never);
 
     expect(payload.kind).toBe('Domain');
     expect(payload.apiVersion).toBe('networking.datumapis.com/v1alpha');
