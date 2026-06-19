@@ -44,7 +44,7 @@ export function BaseMetric({
   emptyState,
   height,
 }: BaseMetricProps): React.ReactElement {
-  const containerStyle = height ? { minHeight: height } : {};
+  const containerStyle = height ? { height } : {};
 
   const DefaultEmptyState = (
     <p className="text-muted-foreground text-sm">No data recorded in this period.</p>

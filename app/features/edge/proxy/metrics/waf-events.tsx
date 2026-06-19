@@ -1,3 +1,4 @@
+import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import { DateTime } from '@/components/date-time';
 import {
   MetricChart,
@@ -143,10 +144,12 @@ export const HttpProxyWafEvents = ({
             `[${step}:1m]))`
           );
         }}
-        chartType="area"
+        chartType="bar"
         showLegend={false}
         colorOverrides={OUTCOME_COLORS}
         padToTimeRange
+        stackBars
+        syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
         onSeriesChange={setSeries}
         tooltipContent={({ active, payload, label, ...props }) => {

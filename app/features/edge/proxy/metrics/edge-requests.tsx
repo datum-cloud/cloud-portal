@@ -1,3 +1,4 @@
+import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import { DateTime } from '@/components/date-time';
 import {
   MetricChart,
@@ -76,6 +77,8 @@ export const HttpProxyEdgeRequests = ({
             chartType="area"
             showLegend={false}
             colorOverrides={RESPONSE_CODE_COLORS}
+            padToTimeRange
+            syncId={AI_EDGE_METRICS_SYNC_ID}
             height={200}
             onSeriesChange={setSeries}
             className="text-foreground shadow-none"
@@ -99,10 +102,12 @@ export const HttpProxyEdgeRequests = ({
                 groupBy: ['le'],
               })
             }
-            chartType="area"
+            chartType="line"
             showLegend={false}
             colorOverrides={{ Series: 'var(--primary)' }}
             valueFormat="milliseconds-auto"
+            padToTimeRange
+            syncId={AI_EDGE_METRICS_SYNC_ID}
             height={200}
             yAxisFormatter={(value) => formatValue(value, 'milliseconds-auto')}
             tooltipContent={({ active, payload, label, ...props }) => {

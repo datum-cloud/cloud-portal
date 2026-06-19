@@ -8,6 +8,7 @@ import type {
   QueryBuilderContext,
 } from '@/modules/metrics/types/metrics.type';
 import type { URLStateRegistry } from '@/modules/metrics/types/url.type';
+import { DEFAULT_TIME_RANGE } from '@/modules/metrics/constants';
 import { parseRange, serializeTimeRange } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import type { TimeRange } from '@/modules/prometheus';
@@ -65,7 +66,7 @@ export interface MetricsProviderProps {
 
 export function MetricsProvider({
   children,
-  defaultTimeRange = 'now-1h',
+  defaultTimeRange = DEFAULT_TIME_RANGE,
   defaultStep = '1m',
   defaultRefreshInterval = 'off',
   defaultFilters = {},
@@ -318,7 +319,7 @@ export function MetricsProvider({
         });
         return result;
       },
-      getTimeRange: (key: string) => parseRange(getUrlStateEnhanced(key) || 'now-1h'),
+      getTimeRange: (key: string) => parseRange(getUrlStateEnhanced(key) || DEFAULT_TIME_RANGE),
       getStep: (key: string) => getUrlStateEnhanced(key) || '1m',
     };
   }, [

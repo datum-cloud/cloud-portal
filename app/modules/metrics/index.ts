@@ -40,9 +40,11 @@ export {
 } from './utils/query-builders';
 export type { PrometheusLabelFilter, PrometheusQueryBuilderOptions } from './utils/query-builders';
 export {
+  buildTimeAxisTicks,
   buildUniformYTicks,
   formatChartTimeTick,
   getChartDataMax,
+  getLinearYAxisScale,
   getLinearYDomain,
   padDataToTimeRange,
   sanitizeGradientId,

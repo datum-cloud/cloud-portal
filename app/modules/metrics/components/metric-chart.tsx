@@ -9,12 +9,13 @@ import { usePrometheusChart } from '@/modules/metrics/hooks';
 import type { QueryBuilderFunction } from '@/modules/metrics/types/url.type';
 import type { CustomApiParams } from '@/modules/metrics/types/url.type';
 import {
-  buildUniformYTicks,
+  bucketDataToTimeRange,
+  buildTimeAxisTicks,
   formatChartTimeTick,
   getChartDataMax,
-  getLinearYDomain,
-  padDataToTimeRange,
+  getLinearYAxisScale,
   sanitizeGradientId,
+  type BucketAggregation,
 } from '@/modules/metrics/utils/chart-axis';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import {
@@ -81,6 +82,14 @@ export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> 
    */
   padToTimeRange?: boolean;
   /**
+   * Recharts syncId — when set, tooltip/cursor sync across charts sharing the same id.
+   */
+  syncId?: string;
+  /** Hide X-axis ticks while keeping the time domain (use on upper rows of synced groups). */
+  hideXAxis?: boolean;
+  /** Stack bar series at each timestamp (bar charts only). */
+  stackBars?: boolean;
+  /**
    * Children to render below the chart
    */
   children?: ReactNode;
@@ -111,6 +120,9 @@ export function MetricChart({
   tooltipContent,
   colorOverrides,
   padToTimeRange = false,
+  syncId,
+  hideXAxis = false,
+  stackBars = false,
   children,
 }: MetricChartProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
@@ -177,8 +189,16 @@ export function MetricChart({
     const endMs = finalTimeRange.end.getTime();
     const stepMs = parseDurationToMs(finalStep) ?? 60_000;
 
-    return padDataToTimeRange(transformed, startMs, endMs, stepMs, seriesKeys);
-  }, [data, finalTimeRange, finalStep, padToTimeRange]);
+    const aggregation: BucketAggregation = chartType === 'bar' ? 'sum' : 'avg';
+    return bucketDataToTimeRange(
+      transformed,
+      startMs,
+      endMs,
+      stepMs,
+      seriesKeys,
+      aggregation
+    );
+  }, [data, finalTimeRange, finalStep, padToTimeRange, chartType]);
 
   // Handle data change callbacks
   useEffect(() => {
@@ -221,12 +241,11 @@ export function MetricChart({
 
   const seriesKeys = useMemo(() => data?.series.map((s) => s.name) ?? [], [data?.series]);
 
-  const yAxisDomain = useMemo((): [number, number] => {
-    const max = getChartDataMax(chartData, seriesKeys);
-    return getLinearYDomain(max);
-  }, [chartData, seriesKeys]);
-
-  const yAxisTicks = useMemo(() => buildUniformYTicks(yAxisDomain), [yAxisDomain]);
+  const yAxisScale = useMemo(() => {
+    const max = getChartDataMax(chartData, seriesKeys, { stacked: stackBars });
+    const tickCount = stackBars ? 6 : 5;
+    return getLinearYAxisScale(max, tickCount);
+  }, [chartData, seriesKeys, stackBars]);
 
   const formatAxisValue = useCallback(
     (value: number) => {
@@ -271,7 +290,14 @@ export function MetricChart({
             <AreaSeries key={s.name} {...seriesProps} gradientId={sanitizeGradientId(s.name)} />
           );
         case 'bar':
-          return <BarSeries key={s.name} {...seriesProps} />;
+          return (
+            <BarSeries
+              key={s.name}
+              {...seriesProps}
+              stackId={stackBars ? 'stack' : undefined}
+              barSize={barSize}
+            />
+          );
         case 'line':
         default:
           return <LineSeries key={s.name} {...seriesProps} />;
@@ -291,6 +317,39 @@ export function MetricChart({
     }
   }, [chartType]);
 
+  const yAxisWidth = useMemo(() => {
+    if (syncId) return 52;
+    if (yAxisScale.ticks.length === 0) return 48;
+    const maxLabelLength = Math.max(
+      ...yAxisScale.ticks.map((tick) => formatAxisValue(tick).length)
+    );
+    return Math.min(56, Math.max(36, maxLabelLength * 7 + 8));
+  }, [syncId, yAxisScale.ticks, formatAxisValue]);
+
+  const xDomain = useMemo((): [number, number] | ['dataMin', 'dataMax'] => {
+    if (padToTimeRange) {
+      return [finalTimeRange.start.getTime(), finalTimeRange.end.getTime()];
+    }
+    return ['dataMin', 'dataMax'];
+  }, [padToTimeRange, finalTimeRange]);
+
+  const xAxisTicks = useMemo(() => {
+    if (!padToTimeRange) return undefined;
+    return buildTimeAxisTicks(
+      finalTimeRange.start.getTime(),
+      finalTimeRange.end.getTime(),
+      syncId ? 7 : 6
+    );
+  }, [padToTimeRange, finalTimeRange, syncId]);
+
+  const chartBottomMargin = showLegend ? 12 : 0;
+
+  const barSize = useMemo(() => {
+    if (chartType !== 'bar' || chartData.length === 0) return undefined;
+    const plotWidth = Math.max(280, (height ?? 200) * 2.4);
+    return Math.max(16, Math.floor((plotWidth / chartData.length) * 0.7));
+  }, [chartType, chartData.length, height]);
+
   return (
     <BaseMetric
       title={title}
@@ -301,10 +360,15 @@ export function MetricChart({
       className={className}
       isEmpty={chartData.length === 0}
       height={height}>
-      <ChartContainer config={chartConfig} className="h-full w-full pr-4" style={{ height }}>
+      <ChartContainer
+        config={chartConfig}
+        className="aspect-auto h-full w-full px-2"
+        style={{ height }}>
         <ChartComponent
+          syncId={syncId}
+          syncMethod={padToTimeRange && syncId ? 'index' : 'value'}
           data={chartData}
-          margin={{ top: 4, right: 8, left: 0, bottom: showLegend ? 20 : 0 }}>
+          margin={{ top: 4, right: 12, left: 4, bottom: chartBottomMargin }}>
           {chartType === 'area' && data && (
             <defs>
               {data.series.map((s) => {
@@ -324,32 +388,32 @@ export function MetricChart({
             dataKey="timestamp"
             type="number"
             scale="time"
-            domain={
-              padToTimeRange
-                ? [finalTimeRange.start.getTime(), finalTimeRange.end.getTime()]
-                : ['dataMin', 'dataMax']
-            }
+            domain={xDomain}
+            ticks={xAxisTicks}
+            hide={hideXAxis}
             tickFormatter={formatXAxisValue}
             tickLine={false}
             axisLine={false}
-            minTickGap={24}
-            padding={chartType === 'bar' ? { left: 20, right: 20 } : undefined}
+            minTickGap={xAxisTicks ? undefined : 24}
+            padding={chartType === 'bar' && !padToTimeRange ? { left: 8, right: 8 } : undefined}
             tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
           />
           <YAxis
-            domain={yAxisDomain}
-            ticks={yAxisTicks}
+            domain={yAxisScale.domain}
+            ticks={yAxisScale.ticks}
             allowDecimals={false}
             tickFormatter={formatAxisValue}
             tickLine={false}
             axisLine={false}
-            tickMargin={8}
-            width={56}
+            tickMargin={4}
+            width={yAxisWidth}
             tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
             {...yAxisOptions}
           />
           {showTooltip && (
             <ChartTooltip
+              isAnimationActive={false}
+              shared={chartType === 'bar'}
               cursor={{ stroke: 'var(--border)' }}
               content={
                 typeof tooltipContent === 'function' ? (
