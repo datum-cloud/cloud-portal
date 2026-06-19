@@ -190,14 +190,7 @@ export function MetricChart({
     const stepMs = parseDurationToMs(finalStep) ?? 60_000;
 
     const aggregation: BucketAggregation = chartType === 'bar' ? 'sum' : 'avg';
-    return bucketDataToTimeRange(
-      transformed,
-      startMs,
-      endMs,
-      stepMs,
-      seriesKeys,
-      aggregation
-    );
+    return bucketDataToTimeRange(transformed, startMs, endMs, stepMs, seriesKeys, aggregation);
   }, [data, finalTimeRange, finalStep, padToTimeRange, chartType]);
 
   // Handle data change callbacks

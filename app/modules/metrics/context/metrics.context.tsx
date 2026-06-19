@@ -2,13 +2,13 @@
  * Enhanced MetricsProvider with unified URL state management
  * All controls and filters use the same centralized URL registry pattern
  */
+import { DEFAULT_TIME_RANGE } from '@/modules/metrics/constants';
 import type {
   FilterState,
   FilterValue,
   QueryBuilderContext,
 } from '@/modules/metrics/types/metrics.type';
 import type { URLStateRegistry } from '@/modules/metrics/types/url.type';
-import { DEFAULT_TIME_RANGE } from '@/modules/metrics/constants';
 import { parseRange, serializeTimeRange } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import type { TimeRange } from '@/modules/prometheus';

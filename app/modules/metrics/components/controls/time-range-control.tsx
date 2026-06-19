@@ -1,4 +1,8 @@
-import { DEFAULT_TIME_RANGE, METRICS_CONTROL_HEIGHT_CLASS, PRESET_RANGES } from '@/modules/metrics/constants';
+import {
+  DEFAULT_TIME_RANGE,
+  METRICS_CONTROL_HEIGHT_CLASS,
+  PRESET_RANGES,
+} from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import {
   getPresetDateRange,
@@ -17,7 +21,14 @@ import { useCallback, useEffect, useMemo } from 'react';
 const METRICS_PRESETS: PresetConfig[] = PRESET_RANGES.map((p, i) => ({
   key: p.value,
   label: p.label,
-  shortcut: p.value === 'now-7d' ? 'w' : p.value === 'now-1h' ? 'h' : p.value === 'now-24h' ? 'd' : String(i + 1),
+  shortcut:
+    p.value === 'now-7d'
+      ? 'w'
+      : p.value === 'now-1h'
+        ? 'h'
+        : p.value === 'now-24h'
+          ? 'd'
+          : String(i + 1),
   getRange: (timezone: string) => getPresetDateRange(p.value, timezone),
 }));
 

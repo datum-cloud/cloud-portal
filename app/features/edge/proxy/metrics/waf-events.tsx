@@ -1,5 +1,5 @@
-import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import { DateTime } from '@/components/date-time';
+import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
   MetricChart,
   MetricChartTooltipContent,
