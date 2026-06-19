@@ -101,7 +101,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Redirect to the intended destination
     return redirect(destination, { headers });
-  } catch {
+  } catch (error) {
+    // Surface the real reason the OAuth callback failed instead of silently bouncing to
+    // login (which caused an invisible re-authorize loop → Zitadel ALREADY_DONE).
+    console.error('[Auth Callback] authenticate failed:', error);
     return redirect(paths.auth.logIn);
   }
 }
