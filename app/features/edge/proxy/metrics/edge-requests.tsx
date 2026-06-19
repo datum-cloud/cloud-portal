@@ -76,9 +76,7 @@ export const HttpProxyEdgeRequests = ({
             chartType="area"
             showLegend={false}
             colorOverrides={RESPONSE_CODE_COLORS}
-            height={140}
-            yAxisFormatter={(value) => String(Math.round(value))}
-            yAxisOptions={{ width: 55 }}
+            height={200}
             onSeriesChange={setSeries}
             className="text-foreground shadow-none"
           />
@@ -105,9 +103,8 @@ export const HttpProxyEdgeRequests = ({
             showLegend={false}
             colorOverrides={{ Series: 'var(--primary)' }}
             valueFormat="milliseconds-auto"
-            height={140}
+            height={200}
             yAxisFormatter={(value) => formatValue(value, 'milliseconds-auto')}
-            yAxisOptions={{ width: 55 }}
             tooltipContent={({ active, payload, label, ...props }) => {
               if (!active || !payload?.length) return null;
               const filteredPayload = payload.filter((p) => (p.value as number) > 0);

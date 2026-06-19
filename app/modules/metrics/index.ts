@@ -39,3 +39,11 @@ export {
   createRegionFilter,
 } from './utils/query-builders';
 export type { PrometheusLabelFilter, PrometheusQueryBuilderOptions } from './utils/query-builders';
+export {
+  buildUniformYTicks,
+  formatChartTimeTick,
+  getChartDataMax,
+  getLinearYDomain,
+  padDataToTimeRange,
+  sanitizeGradientId,
+} from './utils/chart-axis';

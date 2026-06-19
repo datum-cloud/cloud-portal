@@ -147,9 +147,7 @@ export const HttpProxyWafEvents = ({
         showLegend={false}
         colorOverrides={OUTCOME_COLORS}
         padToTimeRange
-        height={140}
-        yAxisFormatter={(value) => String(Math.round(value))}
-        yAxisOptions={{ width: 55 }}
+        height={200}
         onSeriesChange={setSeries}
         tooltipContent={({ active, payload, label, ...props }) => {
           if (!active || !payload?.length) return null;

@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { AlertCircle, Minus } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import React from 'react';
 
 // Deterministic heights so the skeleton doesn't shift on re-render
@@ -47,10 +47,7 @@ export function BaseMetric({
   const containerStyle = height ? { minHeight: height } : {};
 
   const DefaultEmptyState = (
-    <div className="text-center">
-      <Icon icon={Minus} className="mx-auto mb-2 h-8 w-8" />
-      <p>No data available</p>
-    </div>
+    <p className="text-muted-foreground text-sm">No data recorded in this period.</p>
   );
 
   const renderContent = () => {
