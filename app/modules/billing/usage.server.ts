@@ -107,7 +107,7 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
         meterApiName: item.metadata?.uid ?? '',
         meterName: item.spec?.meterName ?? '',
         displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
-        description: item.spec?.description,
+        description: item.spec?.description?.trim() || undefined,
         unit: item.spec?.measurement?.unit,
         aggregation: item.spec?.measurement?.aggregation,
         dimensions: item.spec?.measurement?.dimensions ?? [],
