@@ -1,4 +1,4 @@
-import { REFRESH_OPTIONS } from '@/modules/metrics/constants';
+import { METRICS_CONTROL_HEIGHT_CLASS, REFRESH_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCw } from 'lucide-react';
 import { useQueryState } from 'nuqs';
@@ -100,14 +101,18 @@ export const RefreshControl = ({
   };
 
   return (
-    <div className="border-input bg-background flex h-[36px] items-center overflow-hidden rounded-md border shadow-none">
+    <div
+      className={cn(
+        'border-input bg-background flex items-center overflow-hidden rounded-md border shadow-none',
+        METRICS_CONTROL_HEIGHT_CLASS
+      )}>
       {/* Manual Refresh Button */}
       <Tooltip message={getTooltipText()}>
         <Button
           type="quaternary"
           theme="borderless"
           size="small"
-          className="size-9 rounded-r-none border-r"
+          className="h-full w-9 shrink-0 rounded-r-none border-r px-0"
           onClick={handleManualRefresh}
           disabled={isManualRefreshing || isAutoRefreshing}>
           <Icon
