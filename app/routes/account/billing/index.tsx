@@ -35,7 +35,7 @@ import {
   useDeleteBillingAccount,
 } from '@/resources/billing-accounts';
 import { useOrganizations } from '@/resources/organizations';
-import { createOrganizationService } from '@/resources/organizations/organization.service';
+import { createOrganizationGqlService } from '@/resources/organizations/organization.gql-service';
 import { createPaymentMethodService, usePaymentMethodsForOrgs } from '@/resources/payment-methods';
 import { createProjectService } from '@/resources/projects/project.service';
 import { buildOrganizationNamespace, orgIdFromNamespace } from '@/utils/common';
@@ -81,7 +81,7 @@ export const handle = {
  * point regardless of which org the account ends up in.
  */
 export const loader = async () => {
-  const organizations = await createOrganizationService().list();
+  const organizations = await createOrganizationGqlService().list();
   const orgIds = organizations.items.map((o) => o.name);
   const [accounts, bindings, paymentMethods] = await Promise.all([
     createBillingAccountService().listForOrgs(orgIds),

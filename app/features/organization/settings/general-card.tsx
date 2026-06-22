@@ -1,7 +1,7 @@
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { useAccessReview } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
-import { type Organization, useUpdateOrganization } from '@/resources/organizations';
+import { type Organization, useUpdateOrganizationGql } from '@/resources/organizations';
 import { updateOrganizationSchema } from '@/resources/organizations';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
@@ -24,7 +24,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
     scope: 'user',
   });
 
-  const updateOrganization = useUpdateOrganization(organization?.name ?? '', {
+  const updateOrganization = useUpdateOrganizationGql(organization?.name ?? '', {
     onSuccess: (updatedOrg) => {
       // Update the app-wide organization state so header reflects changes
       setOrganization(updatedOrg);

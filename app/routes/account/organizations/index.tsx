@@ -6,7 +6,7 @@ import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   organizationFormSchema,
-  useCreateOrganization,
+  useCreateOrganizationGql,
   useOrganizationsGql,
   type Organization,
 } from '@/resources/organizations';
@@ -85,7 +85,7 @@ export default function AccountOrganizations() {
     }
   }, [alertFetcher.data, alertFetcher.state, revalidator]);
 
-  const createMutation = useCreateOrganization({
+  const createMutation = useCreateOrganizationGql({
     onSuccess: (newOrg) => {
       trackAction(AnalyticsAction.CreateOrg, { orgId: newOrg.name });
       refetchOrgs();

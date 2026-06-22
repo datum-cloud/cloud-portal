@@ -2,7 +2,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { useAccessReview } from '@/modules/rbac';
-import { type Organization, useDeleteOrganization } from '@/resources/organizations';
+import { type Organization, useDeleteOrganizationGql } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -17,7 +17,7 @@ export const OrganizationDangerCard = ({ organization }: { organization: Organiz
     { group: 'resourcemanager.miloapis.com', name: organization?.name, scope: 'user' }
   );
 
-  const deleteOrganization = useDeleteOrganization({
+  const deleteOrganization = useDeleteOrganizationGql({
     onSuccess: () => {
       navigate(paths.account.organizations.root);
     },

@@ -5,7 +5,6 @@ import type {
   CreateOrganizationInput,
   UpdateOrganizationInput,
 } from './organization.schema';
-import { organizationKeys } from './organization.service';
 import type {
   ComMiloapisResourcemanagerV1Alpha1Organization,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
@@ -22,6 +21,14 @@ import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
+
+export const organizationKeys = {
+  all: ['organizations'] as const,
+  lists: () => [...organizationKeys.all, 'list'] as const,
+  list: (params?: PaginationParams) => [...organizationKeys.lists(), params] as const,
+  details: () => [...organizationKeys.all, 'detail'] as const,
+  detail: (name: string) => [...organizationKeys.details(), name] as const,
+};
 
 const SERVICE_NAME = 'OrganizationGqlService';
 
@@ -177,6 +184,8 @@ export function createOrganizationGqlService() {
           createResourcemanagerMiloapisComV1alpha1Organization: [
             {
               input: {
+                apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+                kind: 'Organization',
                 metadata: {
                   name: input.name,
                   annotations: {
@@ -224,6 +233,8 @@ export function createOrganizationGqlService() {
             {
               name,
               input: {
+                apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+                kind: 'Organization',
                 metadata: {
                   annotations: {
                     ...(input.displayName && { 'kubernetes.io/display-name': input.displayName }),
@@ -283,8 +294,5 @@ export function createOrganizationGqlService() {
     },
   };
 }
-
-// Re-export query keys for shared cache
-export { organizationKeys };
 
 export type OrganizationGqlService = ReturnType<typeof createOrganizationGqlService>;

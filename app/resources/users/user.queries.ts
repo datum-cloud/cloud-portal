@@ -3,7 +3,6 @@ import type {
   UpdateUserPreferencesInput,
   UserSchema,
   UserIdentity,
-  UserActiveSession,
 } from './user.schema';
 import { createUserService, userKeys } from './user.service';
 import {
@@ -104,34 +103,3 @@ export function useUserIdentities(
   });
 }
 
-export function useUserActiveSessions(
-  userId: string,
-  options?: Omit<UseQueryOptions<UserActiveSession[]>, 'queryKey' | 'queryFn'>
-) {
-  return useQuery({
-    queryKey: userKeys.activeSessions(userId),
-    queryFn: () => createUserService().getUserActiveSessions(userId),
-    enabled: !!userId,
-    ...options,
-  });
-}
-
-export function useRevokeUserActiveSession(
-  userId: string,
-  options?: UseMutationOptions<void, Error, string>
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (sessionId: string) =>
-      createUserService().revokeUserActiveSession(userId, sessionId),
-    onSettled: () => {
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
-        queryKey: userKeys.activeSessions(userId),
-        type: 'active',
-      });
-    },
-    ...options,
-  });
-}

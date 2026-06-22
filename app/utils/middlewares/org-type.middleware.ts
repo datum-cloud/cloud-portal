@@ -1,5 +1,5 @@
 import { MiddlewareContext, NextFunction } from './middleware';
-import { createOrganizationService, type Organization } from '@/resources/organizations';
+import { createOrganizationGqlService, type Organization } from '@/resources/organizations';
 import { BadRequestError, NotFoundError } from '@/utils/errors';
 
 type OrganizationType = Organization['type'];
@@ -27,11 +27,7 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
       throw new BadRequestError('Organization ID not found in request');
     }
 
-    // Use the organization service to fetch org details
-    // Services now use global axios client with AsyncLocalStorage
-    const orgService = createOrganizationService();
-
-    const org = await orgService.get(orgId).catch(() => {
+    const org = await createOrganizationGqlService().get(orgId).catch(() => {
       throw new NotFoundError('Organization not found');
     });
 

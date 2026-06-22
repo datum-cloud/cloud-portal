@@ -1,7 +1,7 @@
 import { MinimalLayout } from '@/layouts';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { createOrganizationService } from '@/resources/organizations';
+import { createOrganizationGqlService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { type MetaFunction, Outlet, redirect } from 'react-router';
@@ -21,7 +21,7 @@ export const meta: MetaFunction = mergeMeta(() => metaObject('Billing Accounts')
  * a broken evaluator never silently exposes the section.
  */
 export const loader = async () => {
-  const organizations = await createOrganizationService().list();
+  const organizations = await createOrganizationGqlService().list();
   const orgIds = organizations.items.map((o) => o.name);
   if (orgIds.length === 0) {
     throw redirect(paths.account.root);
