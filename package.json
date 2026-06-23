@@ -77,7 +77,7 @@
     "dotenv": "^17.4.2",
     "es-toolkit": "^1.48.1",
     "fathom-client": "^3.7.2",
-    "graphql": "^16.14.2",
+    "graphql": "^17.0.0",
     "hono": "^4.12.26",
     "hono-rate-limiter": "^0.5.3",
     "i18n-iso-countries": "^7.14.0",
