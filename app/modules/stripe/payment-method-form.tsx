@@ -382,7 +382,14 @@ const StripePaymentMethodFormBody = ({
         onSubmittingChange?.(false);
       }
     },
-    [stripe, elements, onCreatePaymentMethod, onConfirmed, onSubmittingChange, billingDetailsPrefill]
+    [
+      stripe,
+      elements,
+      onCreatePaymentMethod,
+      onConfirmed,
+      onSubmittingChange,
+      billingDetailsPrefill,
+    ]
   );
 
   useImperativeHandle(
