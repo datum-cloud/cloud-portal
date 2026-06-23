@@ -1,12 +1,10 @@
-import {
-  BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION,
-  type BillingAccount,
-} from '@/features/billing/types';
+import { type BillingAccount } from '@/features/billing/types';
 import { SetupBillingForm } from '@/features/onboarding';
 import BlankLayout from '@/layouts/blank.layout';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
+import { createUserService } from '@/resources/users';
 import { orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -23,7 +21,7 @@ import {
 } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Setup your billing account');
+  return metaObject('Payment information verification');
 });
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -34,6 +32,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
+    const user = await createUserService().get(session.sub);
     const organizations = await createOrganizationService().list();
 
     const orgIds = organizations.items.map((o) => o.name);
@@ -58,19 +57,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .catch(() => []);
     const stripePublishableKey = stripeConfigs[0]?.spec?.publishableKey ?? undefined;
 
-    const defaultDisplayName =
-      account.metadata.annotations?.[BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION] ?? '';
-    const defaultBusinessName = account.spec?.contactInfo?.businessName ?? '';
+    const fullName = [user.givenName, user.familyName].filter(Boolean).join(' ').trim();
+    const billingContact = account.spec?.contactInfo;
 
     return {
       status: 'ready' as const,
       orgId,
       accountName: account.metadata.name,
       namespace,
-      account,
       stripePublishableKey,
-      defaultDisplayName,
-      defaultBusinessName,
+      contactPrefill: {
+        email: billingContact?.email ?? user.email ?? '',
+        name: billingContact?.name ?? fullName,
+      },
     };
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
@@ -108,10 +107,8 @@ export default function SetupBillingPage() {
           orgId={data.orgId}
           accountName={data.accountName}
           namespace={data.namespace}
-          account={data.account}
           stripePublishableKey={data.stripePublishableKey}
-          defaultDisplayName={data.defaultDisplayName}
-          defaultBusinessName={data.defaultBusinessName}
+          contactPrefill={data.contactPrefill}
         />
       ) : null}
     </BlankLayout>

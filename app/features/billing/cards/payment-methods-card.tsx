@@ -3,6 +3,7 @@ import {
   AddPaymentMethodDialog,
   type AddPaymentMethodValues,
   type CreatePaymentMethodResult,
+  type StripeBillingDetailsPrefill,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
 import {
   isDefaultPaymentMethod,
@@ -205,6 +206,7 @@ interface PaymentMethodsCardProps {
   onPaymentMethodConfirmed?: () => void;
   onSetAsDefault?: (method: PaymentMethod) => void;
   onRemove?: (method: PaymentMethod) => void;
+  billingDetailsPrefill?: StripeBillingDetailsPrefill;
 }
 
 export const PaymentMethodsCard = ({
@@ -215,6 +217,7 @@ export const PaymentMethodsCard = ({
   onPaymentMethodConfirmed,
   onSetAsDefault,
   onRemove,
+  billingDetailsPrefill,
 }: PaymentMethodsCardProps) => {
   const [open, setOpen] = useState(false);
   const hasMethods = paymentMethods.length > 0;
@@ -259,6 +262,7 @@ export const PaymentMethodsCard = ({
         onOpenChange={setOpen}
         stripePublishableKey={stripePublishableKey}
         forceDefault={!hasMethods}
+        billingDetailsPrefill={billingDetailsPrefill}
         onCreatePaymentMethod={onCreatePaymentMethod}
         onConfirmed={() => {
           onPaymentMethodConfirmed?.();

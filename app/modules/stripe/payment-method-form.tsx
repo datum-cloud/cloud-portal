@@ -71,6 +71,18 @@ export interface CreatePaymentMethodResult {
   clientSecret: string;
 }
 
+/** Billing fields omitted from PaymentElement (`fields.billingDetails.* = never`). */
+export interface StripeBillingDetailsPrefill {
+  email?: string;
+  name?: string;
+}
+
+/** Card details returned immediately after Stripe confirms a SetupIntent. */
+export interface StripePaymentMethodConfirmedDetails {
+  brand?: string | null;
+  last4?: string | null;
+}
+
 /**
  * The minimum prop surface any payment-method form needs. Used directly by
  * `StripePaymentMethodForm`; future providers should accept (a superset of)
@@ -101,7 +113,7 @@ export interface BasePaymentMethodFormProps {
    * should refetch the payment-method list — the resource transitions to
    * `phase=Active` asynchronously via the provider's webhook handler.
    */
-  onConfirmed?: () => void;
+  onConfirmed?: (details?: StripePaymentMethodConfirmedDetails) => void;
 }
 
 export interface StripePaymentMethodSubmitHandle {
@@ -136,6 +148,11 @@ export interface StripePaymentMethodFormProps extends BasePaymentMethodFormProps
   onReadyChange?: (ready: boolean) => void;
   /** Notifies parent when submit-in-flight state changes. */
   onSubmittingChange?: (submitting: boolean) => void;
+  /**
+   * Email/name are hidden on PaymentElement — Stripe requires them in
+   * `confirmSetup` when opted out via `fields.billingDetails`.
+   */
+  billingDetailsPrefill?: StripeBillingDetailsPrefill;
 }
 
 /**
@@ -191,6 +208,7 @@ export const StripePaymentMethodForm = ({
   submitRef,
   onReadyChange,
   onSubmittingChange,
+  billingDetailsPrefill,
   forceDefault = false,
   onClose,
   onCreatePaymentMethod,
@@ -231,6 +249,7 @@ export const StripePaymentMethodForm = ({
         submitRef={submitRef}
         onReadyChange={onReadyChange}
         onSubmittingChange={onSubmittingChange}
+        billingDetailsPrefill={billingDetailsPrefill}
         forceDefault={forceDefault}
         onClose={onClose}
         onCreatePaymentMethod={onCreatePaymentMethod}
@@ -249,6 +268,7 @@ interface StripePaymentMethodFormBodyProps extends BasePaymentMethodFormProps {
   submitRef?: Ref<StripePaymentMethodSubmitHandle>;
   onReadyChange?: (ready: boolean) => void;
   onSubmittingChange?: (submitting: boolean) => void;
+  billingDetailsPrefill?: StripeBillingDetailsPrefill;
 }
 
 const StripePaymentMethodFormBody = ({
@@ -260,6 +280,7 @@ const StripePaymentMethodFormBody = ({
   submitRef,
   onReadyChange,
   onSubmittingChange,
+  billingDetailsPrefill,
   forceDefault,
   onClose,
   onCreatePaymentMethod,
@@ -311,11 +332,30 @@ const StripePaymentMethodFormBody = ({
           return false;
         }
 
+        const billingEmail = billingDetailsPrefill?.email?.trim();
+        if (!billingEmail) {
+          setSubmitError(
+            'An email address is required before we can save this card. Add contact email on the account and try again.'
+          );
+          return false;
+        }
+
+        const billingName =
+          billingDetailsPrefill?.name?.trim() || values.displayName?.trim() || undefined;
+
         // 3. Hand the clientSecret to Stripe.
-        const { error: confirmError } = await stripe.confirmSetup({
+        const { error: confirmError, setupIntent } = await stripe.confirmSetup({
           elements,
           clientSecret: result.clientSecret,
-          confirmParams: { return_url: window.location.href },
+          confirmParams: {
+            return_url: window.location.href,
+            payment_method_data: {
+              billing_details: {
+                email: billingEmail,
+                ...(billingName ? { name: billingName } : {}),
+              },
+            },
+          },
           redirect: 'if_required',
         });
         if (confirmError) {
@@ -323,14 +363,26 @@ const StripePaymentMethodFormBody = ({
           return false;
         }
 
-        onConfirmed?.();
+        const confirmedPaymentMethod =
+          setupIntent?.payment_method &&
+          typeof setupIntent.payment_method === 'object' &&
+          'card' in setupIntent.payment_method
+            ? setupIntent.payment_method
+            : null;
+        const confirmedCard = confirmedPaymentMethod?.card;
+
+        onConfirmed?.(
+          confirmedCard?.last4
+            ? { brand: confirmedCard.brand, last4: confirmedCard.last4 }
+            : undefined
+        );
         return true;
       } finally {
         setSubmitting(false);
         onSubmittingChange?.(false);
       }
     },
-    [stripe, elements, onCreatePaymentMethod, onConfirmed, onSubmittingChange]
+    [stripe, elements, onCreatePaymentMethod, onConfirmed, onSubmittingChange, billingDetailsPrefill]
   );
 
   useImperativeHandle(

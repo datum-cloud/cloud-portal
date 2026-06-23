@@ -11,6 +11,7 @@ export const paths = {
   onboarding: {
     completeProfile: '/complete-profile',
     setupBilling: '/setup-billing',
+    provisioning: '/onboarding-provisioning',
   },
   fraud: {
     verifying: '/verifying',

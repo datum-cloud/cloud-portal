@@ -7,6 +7,8 @@ export {
   type AddPaymentMethodValues,
   type BasePaymentMethodFormProps,
   type CreatePaymentMethodResult,
+  type StripeBillingDetailsPrefill,
+  type StripePaymentMethodConfirmedDetails,
   type StripePaymentMethodFormProps,
   type StripePaymentMethodSubmitHandle,
 } from './payment-method-form';

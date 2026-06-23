@@ -10,22 +10,33 @@ export default function BlankLayout({
 }: {
   children: React.ReactNode;
   className?: string;
-  /** Stacked logo centered above content (default), or flat wordmark pinned top-left. */
+  /** Stacked logo centered above content (default), or flat wordmark (centered above content on small screens, top-left on md+). */
   logo?: 'stacked' | 'flat';
   showSceneImages?: boolean;
 }) {
   return (
     <div
       className={cn(
-        'bg-background relative flex min-h-screen w-full flex-col items-center p-3 sm:p-4 md:p-6 lg:p-12 xl:p-[90px]',
+        'bg-background relative flex min-h-svh w-full flex-col items-center p-3 sm:p-4 md:p-6 lg:p-12 xl:p-[90px]',
         className
       )}>
       {logo === 'flat' ? (
-        <LogoFlat className="absolute top-8 left-[41px] z-10 h-6 w-auto" aria-label="Datum" />
+        <>
+          <LogoFlat
+            className="absolute top-8 left-[41px] z-10 hidden h-6 w-auto md:block"
+            aria-label="Datum"
+          />
+          <div className="z-10 flex w-full flex-1 flex-col items-center justify-center">
+            <LogoFlat className="mb-8 h-6 w-auto shrink-0 md:hidden" aria-label="Datum" />
+            {children}
+          </div>
+        </>
       ) : (
-        <LogoStacked className="mb-12" />
+        <>
+          <LogoStacked className="mb-12" />
+          {children}
+        </>
       )}
-      {children}
 
       {showSceneImages && (
         <>

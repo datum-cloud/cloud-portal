@@ -243,6 +243,7 @@ export default [
   // Onboarding (outside private layout — BlankLayout + own loader auth)
   route('complete-profile', 'routes/onboarding/complete-profile.tsx'),
   route('setup-billing', 'routes/onboarding/setup-billing.tsx'),
+  route('onboarding-provisioning', 'routes/onboarding/provisioning.tsx'),
 
   // Fraud / gating routes — outside the private layout because the private layout loader fetches
   // the user and would throw NotFoundError for brand-new users not yet in Milo.
