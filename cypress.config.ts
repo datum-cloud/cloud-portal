@@ -53,9 +53,13 @@ export default defineConfig({
 
           return null;
         },
-        signSessionCookie(sessionData: { accessToken: string; expiredAt: string; sub: string }) {
-          // Import React Router's cookie utilities to sign the cookie properly
-          const { createCookie, createCookieSessionStorage } = require('react-router');
+        async signSessionCookie(sessionData: {
+          accessToken: string;
+          expiredAt: string;
+          sub: string;
+        }) {
+          // react-router 7.18+ ships ESM-only — require() is not available
+          const { createCookie, createCookieSessionStorage } = await import('react-router');
           const sessionSecret = process.env.SESSION_SECRET;
 
           const sessionCookie = createCookie('_session', {
@@ -63,7 +67,7 @@ export default defineConfig({
             sameSite: 'lax',
             httpOnly: true,
             maxAge: 60 * 60 * 13, // 13 hours
-            secrets: [sessionSecret],
+            secrets: sessionSecret ? [sessionSecret] : [],
             secure: process.env.NODE_ENV === 'development' ? false : true,
           });
 
@@ -74,11 +78,11 @@ export default defineConfig({
           // Create a session and commit it to get the signed cookie value
           return sessionStorage
             .getSession()
-            .then((session: ReturnType<typeof createCookieSessionStorage>['getSession']) => {
+            .then((session) => {
               session.set('_session', sessionData);
               return sessionStorage.commitSession(session);
             })
-            .then((cookieHeader: string) => {
+            .then((cookieHeader) => {
               // Extract just the cookie value from the Set-Cookie header
               // Format: "_session=value; Path=/; ..."
               const match = cookieHeader.match(/^_session=([^;]+)/);

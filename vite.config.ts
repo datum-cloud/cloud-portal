@@ -1,12 +1,17 @@
 import { sentryConfig } from './app/utils/config/sentry.config';
-import { reactRouter } from '@react-router/dev/vite';
+// @react-router/dev/vite calls require("react-router") at module-top-level.
+// Under Cypress, tsx intercepts that require() and transforms react-router's
+// .mjs chunks via esbuild — react-router 7.18's multi-chunk layout causes
+// nested synchronous esbuild Worker calls that trip a re-entrancy guard
+// ("Expected id 1 but got id 0"). Dynamic import below skips the load
+// entirely when running under Cypress.
 import { sentryReactRouter } from '@sentry/react-router';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { reactRouterHonoServer } from 'react-router-hono-server/dev';
 import type { ManualChunksOption } from 'rollup';
-import type { Plugin } from 'vite';
+import type { Plugin, PluginOption, UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -85,11 +90,24 @@ function stubServerModulesForCypress(): Plugin {
 //
 // See: https://github.com/remix-run/react-router/issues/12568#issuecomment-2629986004
 
-export default defineConfig((config) => {
+// Pre-resolve the reactRouter import at module evaluation time so the
+// defineConfig callback can remain synchronous (Vite's TS overloads don't
+// play well with async callbacks when the plugins array contains Promises).
+// When CYPRESS is set, this resolves immediately to null — the import is
+// never executed, avoiding the tsx/esbuild re-entrancy crash.
+const _reactRouterPromise = process.env.CYPRESS
+  ? Promise.resolve(null)
+  : import('@react-router/dev/vite');
+
+export default defineConfig(async (config): Promise<UserConfig> => {
+  const isCypress = !!process.env.CYPRESS;
   const isProduction = process.env.NODE_ENV === 'production';
   const aliases: { [key: string]: string } = {
     '@': resolve(__dirname, './app'),
   };
+
+  const reactRouterMod = await _reactRouterPromise;
+  const reactRouter = reactRouterMod?.reactRouter ?? null;
 
   // The `stubServerModulesForCypress` plugin (registered below when CYPRESS
   // is set) rewrites the server-only modules transitively imported by
@@ -127,10 +145,10 @@ export default defineConfig((config) => {
     },
     plugins: [
       patchHonoBunAdapter(),
-      ...(process.env.CYPRESS ? [stubServerModulesForCypress()] : []),
+      ...(isCypress ? [stubServerModulesForCypress()] : []),
       tailwindcss(),
       reactRouterHonoServer({ runtime: 'bun' }),
-      process.env.CYPRESS ? react() : reactRouter(),
+      isCypress ? react() : reactRouter!(),
       tsconfigPaths(),
       sentryReactRouter(
         {
@@ -140,7 +158,7 @@ export default defineConfig((config) => {
           release: { name: sentryConfig.release },
         },
         config
-      ),
+      ) as PluginOption,
     ],
     build: {
       chunkSizeWarningLimit: 1000, // Increase size limit to 1000kb
@@ -150,7 +168,7 @@ export default defineConfig((config) => {
         // cypress-vite bundles each spec with `inlineDynamicImports`, which
         // rollup 4.61+ rejects alongside `manualChunks`. Only apply manual
         // chunking for the real app build, never for Cypress spec bundling.
-        output: process.env.CYPRESS
+        output: isCypress
           ? {}
           : {
               manualChunks: {
