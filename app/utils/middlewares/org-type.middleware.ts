@@ -27,9 +27,11 @@ export function createOrgTypeMiddleware(allowedTypes: OrganizationType[]) {
       throw new BadRequestError('Organization ID not found in request');
     }
 
-    const org = await createOrganizationGqlService().get(orgId).catch(() => {
-      throw new NotFoundError('Organization not found');
-    });
+    const org = await createOrganizationGqlService()
+      .get(orgId)
+      .catch(() => {
+        throw new NotFoundError('Organization not found');
+      });
 
     // Check if organization type is allowed
     if (org.type && !allowedTypes.includes(org.type)) {
