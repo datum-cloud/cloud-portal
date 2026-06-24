@@ -4,178 +4,75 @@ import type {
   ThemeValue,
   RegistrationApprovalValue,
   LastLoginProviderValue,
-  UserSchema,
   UserIdentity,
-  UserActiveSession,
 } from './user.schema';
-import {
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
-} from '@/modules/control-plane/identity/types.gen';
-import { toBoolean } from '@/utils/helpers/text.helper';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 
-/** Milo User CRD: set when givenName and familyName are identical (e.g. single IdP display name). */
-export const USER_NAME_REVIEW_REQUIRED_ANNOTATION = 'iam.miloapis.com/name-review-required';
-
-// Raw API user type
-export interface ComMiloapisIamV1Alpha1User {
-  apiVersion: string;
-  kind: string;
-  metadata: {
-    creationTimestamp: Date;
-    generation: number;
-    name: string;
-    resourceVersion: string;
-    uid: string;
-    annotations: Record<string, string>;
-  };
-  spec: {
-    email: string;
-    familyName: string;
-    givenName: string;
-  };
-  status: {
-    registrationApproval: 'Approved' | 'Rejected' | 'Pending';
-    state: string;
-    avatarUrl?: string;
-    lastLoginProvider?: 'google' | 'github';
-  };
+export interface GatewayUser {
+  name: string;
+  uid: string | null;
+  resourceVersion: string | null;
+  email: string | null;
+  givenName: string | null;
+  familyName: string | null;
+  createdAt: string | null;
+  theme: string | null;
+  timezone: string | null;
+  newsletter: boolean | null;
+  onboardedAt: string | null;
+  registrationApproval: string | null;
+  state: string | null;
+  avatarUrl: string | null;
+  lastLoginProvider: string | null;
+  nameReviewRequired: boolean;
 }
 
-/**
- * Transform raw API User to domain User type
- */
-export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
-  const { metadata, spec, status } = raw;
+export interface GatewayUserIdentity {
+  name: string;
+  createdAt: string | null;
+  userUID: string | null;
+  providerID: string | null;
+  providerName: string | null;
+  username: string | null;
+}
 
+export function fromGatewayUser(raw: GatewayUser): User {
   const preferences: UserPreferences = {
-    theme: (metadata?.annotations?.['preferences/theme'] ?? 'system') as ThemeValue,
-    timezone: metadata?.annotations?.['preferences/timezone'] ?? getBrowserTimezone(),
-    newsletter: toBoolean(metadata?.annotations?.['preferences/newsletter']),
+    theme: (raw.theme ?? 'system') as ThemeValue,
+    timezone: raw.timezone ?? getBrowserTimezone(),
+    newsletter: raw.newsletter ?? false,
   };
 
   return {
-    sub: metadata?.name,
-    email: spec?.email,
-    familyName: spec?.familyName,
-    givenName: spec?.givenName,
-    createdAt: metadata?.creationTimestamp ?? new Date(),
-    uid: metadata?.uid ?? '',
-    resourceVersion: metadata?.resourceVersion ?? '',
-    fullName: `${spec?.givenName} ${spec?.familyName}`,
+    sub: raw.name,
+    email: raw.email ?? undefined,
+    familyName: raw.familyName ?? undefined,
+    givenName: raw.givenName ?? undefined,
+    createdAt: raw.createdAt ? new Date(raw.createdAt) : undefined,
+    uid: raw.uid ?? undefined,
+    resourceVersion: raw.resourceVersion ?? undefined,
+    fullName: raw.givenName && raw.familyName ? `${raw.givenName} ${raw.familyName}` : undefined,
     preferences,
-    onboardedAt: metadata?.annotations?.['onboarding/completedAt'],
+    onboardedAt: raw.onboardedAt ?? undefined,
     registrationApproval:
-      status && typeof status.registrationApproval !== 'undefined'
-        ? (status.registrationApproval as RegistrationApprovalValue)
+      raw.registrationApproval != null
+        ? (raw.registrationApproval as RegistrationApprovalValue)
         : undefined,
-    state: status?.state,
-    avatarUrl: status?.avatarUrl,
+    state: raw.state ?? undefined,
+    avatarUrl: raw.avatarUrl ?? undefined,
     lastLoginProvider:
-      status && typeof status.lastLoginProvider !== 'undefined'
-        ? (status.lastLoginProvider as LastLoginProviderValue)
-        : undefined,
-    nameReviewRequired: metadata?.annotations?.[USER_NAME_REVIEW_REQUIRED_ANNOTATION] === 'true',
+      raw.lastLoginProvider != null ? (raw.lastLoginProvider as LastLoginProviderValue) : undefined,
+    nameReviewRequired: raw.nameReviewRequired,
   };
 }
 
-/**
- * Transform UserSchema to API patch payload
- */
-export function toUpdateUserPayload(input: UserSchema): {
-  apiVersion: string;
-  kind: string;
-  spec: { familyName: string; givenName: string; email: string };
-} {
+export function fromGatewayUserIdentity(raw: GatewayUserIdentity): UserIdentity {
   return {
-    apiVersion: 'iam.miloapis.com/v1alpha1',
-    kind: 'User',
-    spec: {
-      familyName: input.lastName,
-      givenName: input.firstName,
-      email: input.email,
-    },
+    name: raw.name,
+    createdAt: raw.createdAt ?? undefined,
+    userUID: raw.userUID ?? undefined,
+    providerID: raw.providerID ?? undefined,
+    providerName: raw.providerName ?? undefined,
+    username: raw.username ?? undefined,
   };
-}
-
-/**
- * Transform UpdateUserPreferencesInput to API patch payload
- */
-export function toUpdateUserPreferencesPayload(input: {
-  theme?: string;
-  timezone?: string;
-  newsletter?: boolean;
-  onboardedAt?: string;
-}): { apiVersion: string; kind: string; metadata?: { annotations: Record<string, string> } } {
-  const annotations: Record<string, string> = {};
-
-  if (input.theme) {
-    annotations['preferences/theme'] = input.theme;
-  }
-  if (input.timezone) {
-    annotations['preferences/timezone'] = input.timezone;
-  }
-  if (typeof input.newsletter === 'boolean') {
-    annotations['preferences/newsletter'] = String(input.newsletter);
-  }
-  if (input.onboardedAt) {
-    annotations['onboarding/completedAt'] = input.onboardedAt;
-  }
-
-  const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
-
-  return {
-    apiVersion: 'iam.miloapis.com/v1alpha1',
-    kind: 'User',
-    ...(metadata ? { metadata } : {}),
-  };
-}
-
-/**
- * Transform UserIdentity to domain UserIdentity type
- */
-export function toUserIdentity(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity
-): UserIdentity {
-  const { metadata, status } = raw;
-
-  return {
-    name: metadata?.name ?? '',
-    createdAt: metadata?.creationTimestamp ?? '',
-    userUID: status?.userUID ?? '',
-    providerID: status?.providerID ?? '',
-    providerName: status?.providerName ?? '',
-    username: status?.username ?? '',
-  };
-}
-
-export function toUserIdentityList(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
-): UserIdentity[] {
-  return raw.items.map(toUserIdentity);
-}
-
-export function toUserActiveSession(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session
-): UserActiveSession {
-  const { metadata, status } = raw;
-  const statusAny = status as { lastUpdatedAt?: string } | undefined;
-  return {
-    name: metadata?.name ?? '',
-    createdAt: status?.createdAt ?? '',
-    lastUpdatedAt: statusAny?.lastUpdatedAt ?? null,
-    fingerprintID: status?.fingerprintID ?? null,
-    ip: status?.ip ?? null,
-    provider: status?.provider ?? '',
-    userUID: status?.userUID ?? '',
-  };
-}
-
-export function toUserActiveSessionList(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList
-): UserActiveSession[] {
-  return raw.items.filter((item) => !item.metadata?.deletionTimestamp).map(toUserActiveSession);
 }
