@@ -26,6 +26,26 @@
   z-index: 1;
 }
 
+/* Recharts slides tooltips via transform — disable that; fade content instead. */
+[data-slot='chart'] .recharts-tooltip-wrapper > div {
+  animation: chart-tooltip-fade-in 0.15s ease-out;
+}
+
+@keyframes chart-tooltip-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='chart'] .recharts-tooltip-wrapper > div {
+    animation: none;
+  }
+}
+
 @keyframes data-table-fade-in {
   from {
     opacity: 0;

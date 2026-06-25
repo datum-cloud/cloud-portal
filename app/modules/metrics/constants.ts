@@ -2,6 +2,12 @@
  * Time-related constants for the Metrics module
  */
 
+/** Shared height for metrics toolbar controls (36px / Tailwind h-9). */
+export const METRICS_CONTROL_HEIGHT_CLASS = 'h-9 min-h-9';
+
+/** Default time range when no URL state is present. */
+export const DEFAULT_TIME_RANGE = 'now-30m';
+
 export const REFRESH_OPTIONS = [
   { label: 'Off', value: 'off' },
   { label: '5s', value: '5s' },

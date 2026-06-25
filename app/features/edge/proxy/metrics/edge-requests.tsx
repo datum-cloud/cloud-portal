@@ -1,4 +1,5 @@
 import { DateTime } from '@/components/date-time';
+import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
   MetricChart,
   MetricChartTooltipContent,
@@ -76,9 +77,9 @@ export const HttpProxyEdgeRequests = ({
             chartType="area"
             showLegend={false}
             colorOverrides={RESPONSE_CODE_COLORS}
-            height={140}
-            yAxisFormatter={(value) => String(Math.round(value))}
-            yAxisOptions={{ width: 55 }}
+            padToTimeRange
+            syncId={AI_EDGE_METRICS_SYNC_ID}
+            height={200}
             onSeriesChange={setSeries}
             className="text-foreground shadow-none"
           />
@@ -101,13 +102,14 @@ export const HttpProxyEdgeRequests = ({
                 groupBy: ['le'],
               })
             }
-            chartType="area"
+            chartType="line"
             showLegend={false}
             colorOverrides={{ Series: 'var(--primary)' }}
             valueFormat="milliseconds-auto"
-            height={140}
+            padToTimeRange
+            syncId={AI_EDGE_METRICS_SYNC_ID}
+            height={200}
             yAxisFormatter={(value) => formatValue(value, 'milliseconds-auto')}
-            yAxisOptions={{ width: 55 }}
             tooltipContent={({ active, payload, label, ...props }) => {
               if (!active || !payload?.length) return null;
               const filteredPayload = payload.filter((p) => (p.value as number) > 0);

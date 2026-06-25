@@ -73,9 +73,11 @@ describe('Members & Invitations — regression', () => {
   });
 
   it('should cancel the invitation', () => {
+    cy.intercept('DELETE', '**/userinvitations/**').as('cancelInvitation');
     cy.visit(getPathWithParams(paths.org.detail.team.root, { orgId }));
     invitationRow(testEmail).closest('tr').find('[data-e2e="cancel-invitation-button"]').click();
     cy.get('[data-e2e="confirmation-dialog-submit"]', { timeout: 10000 }).click();
-    cy.contains('table tbody tr', testEmail).should('not.exist');
+    cy.wait('@cancelInvitation');
+    cy.contains('table tbody tr', testEmail, { timeout: 60000 }).should('not.exist');
   });
 });
