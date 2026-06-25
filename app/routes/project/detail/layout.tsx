@@ -20,6 +20,7 @@ import { useOrganization } from '@/resources/organizations';
 import { createProjectService, useProject, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
+import { createWorkloadService, workloadKeys } from '@/resources/workloads';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
@@ -38,6 +39,7 @@ import {
   GaugeIcon,
   HomeIcon,
   LayersIcon,
+  ServerIcon,
   SettingsIcon,
   SignpostIcon,
 } from 'lucide-react';
@@ -283,10 +285,24 @@ export default route.Page(({ data: initialProject, companions }) => {
         },
       },
       {
+        title: 'Workloads',
+        href: getPathWithParams(paths.project.detail.compute.workloads.root, { projectId: pid }),
+        type: 'link',
+        icon: ServerIcon,
+        disabled: !isReady,
+        onPrefetch: () => {
+          void queryClient.prefetchQuery({
+            queryKey: workloadKeys.list(pid),
+            queryFn: () => createWorkloadService().list(pid),
+          });
+        },
+      },
+      {
         title: 'Metrics',
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId: pid }),
         type: 'link',
         icon: ChartSplineIcon,
+        showSeparatorAbove: true,
         disabled: !isReady,
         onPrefetch: () => {
           void queryClient.prefetchQuery({
