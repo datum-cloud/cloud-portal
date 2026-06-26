@@ -30,29 +30,15 @@ export {
 
 // Service exports
 export {
-  createOrganizationService,
-  organizationKeys,
-  type OrganizationService,
-} from './organization.service';
-
-// Query hook exports
-export {
-  useOrganizations,
-  useOrganizationsInfinite,
-  useOrganization,
-  useCreateOrganization,
-  useUpdateOrganization,
-  useDeleteOrganization,
-} from './organization.queries';
-
-// GraphQL Service exports
-export {
   createOrganizationGqlService,
+  organizationKeys,
   type OrganizationGqlService,
 } from './organization.gql-service';
 
-// GraphQL Query hook exports
+// Query hook exports (all GQL-backed)
 export {
+  useOrganizations,
+  useOrganization,
   useOrganizationsGql,
   useCreateOrganizationGql,
   useUpdateOrganizationGql,

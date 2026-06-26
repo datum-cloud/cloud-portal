@@ -7,7 +7,7 @@ import { HelpScoutBeacon } from '@/modules/helpscout';
 import { RbacProvider } from '@/modules/rbac';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
-import { createOrganizationService } from '@/resources/organizations';
+import { createOrganizationGqlService } from '@/resources/organizations';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -61,7 +61,7 @@ export const loader = withMiddleware(
       // load-bearing gate for the actual pages.
       const featureFlags: FeatureFlagMap = await (async () => {
         try {
-          const orgs = await createOrganizationService().list();
+          const orgs = await createOrganizationGqlService().list();
           const orgIds = orgs.items.map((o) => o.name);
           return await evaluateFlagsForOrgs(ROOT_FEATURE_FLAGS, orgIds);
         } catch {

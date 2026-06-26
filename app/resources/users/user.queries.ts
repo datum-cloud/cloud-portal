@@ -1,11 +1,5 @@
-import type {
-  User,
-  UpdateUserPreferencesInput,
-  UserSchema,
-  UserIdentity,
-  UserActiveSession,
-} from './user.schema';
-import { createUserService, userKeys } from './user.service';
+import { createUserGqlService, userKeys } from './user.gql-service';
+import type { User, UpdateUserPreferencesInput, UserSchema, UserIdentity } from './user.schema';
 import {
   useQuery,
   useMutation,
@@ -20,18 +14,16 @@ export function useUser(
 ) {
   return useQuery({
     queryKey: userKeys.detail(userId),
-    queryFn: () => createUserService().get(userId),
+    queryFn: () => createUserGqlService().get(userId),
     enabled: !!userId,
     ...options,
   });
 }
 
 export function useCurrentUser(options?: Omit<UseQueryOptions<User>, 'queryKey' | 'queryFn'>) {
-  const userId = 'me';
-
   return useQuery({
-    queryKey: userKeys.detail(userId),
-    queryFn: () => createUserService().get(userId),
+    queryKey: userKeys.detail('me'),
+    queryFn: () => createUserGqlService().get('me'),
     ...options,
   });
 }
@@ -43,13 +35,11 @@ export function useUpdateUser(
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UserSchema) => createUserService().update(userId, input),
+    mutationFn: (input: UserSchema) => createUserGqlService().update(userId, input),
     ...options,
     onSuccess: (...args) => {
       const [data] = args;
-      // Update detail cache with server response (no Watch for this resource)
       queryClient.setQueryData(userKeys.detail(userId), data);
-
       options?.onSuccess?.(...args);
     },
   });
@@ -63,13 +53,11 @@ export function useUpdateUserPreferences(
 
   return useMutation({
     mutationFn: (input: UpdateUserPreferencesInput) =>
-      createUserService().updatePreferences(userId, input),
+      createUserGqlService().updatePreferences(userId, input),
     ...options,
     onSuccess: (...args) => {
       const [data] = args;
-      // Update detail cache with server response (no Watch for this resource)
       queryClient.setQueryData(userKeys.detail(userId), data);
-
       options?.onSuccess?.(...args);
     },
   });
@@ -79,14 +67,12 @@ export function useDeleteUser(options?: UseMutationOptions<User, Error, string>)
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (userId: string) => createUserService().delete(userId),
+    mutationFn: (userId: string) => createUserGqlService().delete(userId),
     ...options,
     onSuccess: async (...args) => {
       const [, userId] = args;
-      // Cancel in-flight queries + invalidate all (no Watch for this resource)
       await queryClient.cancelQueries({ queryKey: userKeys.detail(userId) });
       queryClient.invalidateQueries({ queryKey: userKeys.all });
-
       options?.onSuccess?.(...args);
     },
   });
@@ -98,40 +84,8 @@ export function useUserIdentities(
 ) {
   return useQuery({
     queryKey: userKeys.identities(userId),
-    queryFn: () => createUserService().getUserIdentity(userId),
+    queryFn: () => createUserGqlService().getUserIdentity(userId),
     enabled: !!userId,
-    ...options,
-  });
-}
-
-export function useUserActiveSessions(
-  userId: string,
-  options?: Omit<UseQueryOptions<UserActiveSession[]>, 'queryKey' | 'queryFn'>
-) {
-  return useQuery({
-    queryKey: userKeys.activeSessions(userId),
-    queryFn: () => createUserService().getUserActiveSessions(userId),
-    enabled: !!userId,
-    ...options,
-  });
-}
-
-export function useRevokeUserActiveSession(
-  userId: string,
-  options?: UseMutationOptions<void, Error, string>
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (sessionId: string) =>
-      createUserService().revokeUserActiveSession(userId, sessionId),
-    onSettled: () => {
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
-        queryKey: userKeys.activeSessions(userId),
-        type: 'active',
-      });
-    },
     ...options,
   });
 }

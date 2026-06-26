@@ -9,9 +9,47 @@ import type {
 import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
 import { generateQueryOp } from '@/modules/graphql/generated';
 import type { com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest } from '@/modules/graphql/generated';
-import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
+import type { PaginationParams } from '@/resources/base/base.schema';
+import {
+  useQuery as useTanstackQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+  type UseMutationOptions,
+} from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { useQuery } from 'urql';
+
+/**
+ * TanStack Query hook for the organization list backed by the GQL service.
+ * Matches the REST `useOrganizations` signature so callers need no changes.
+ */
+export function useOrganizations(
+  params?: PaginationParams,
+  options?: Omit<UseQueryOptions<OrganizationList>, 'queryKey' | 'queryFn'>
+) {
+  return useTanstackQuery({
+    queryKey: organizationKeys.list(params),
+    queryFn: () => createOrganizationGqlService().list(params),
+    ...options,
+  });
+}
+
+/**
+ * TanStack Query hook for a single organization backed by the GQL service.
+ * Matches the REST `useOrganization` signature so callers need no changes.
+ */
+export function useOrganization(
+  name: string,
+  options?: Omit<UseQueryOptions<Organization>, 'queryKey' | 'queryFn'>
+) {
+  return useTanstackQuery({
+    queryKey: organizationKeys.detail(name),
+    queryFn: () => createOrganizationGqlService().get(name),
+    enabled: !!name,
+    ...options,
+  });
+}
 
 // Module-level constant — computed once, not per render.
 const orgListOp = generateQueryOp({

@@ -16,7 +16,7 @@ export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organizati
   const transformed = {
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
-    namespace: raw.metadata?.namespace,
+    namespace: raw.metadata?.namespace ?? undefined,
     displayName:
       raw.metadata?.annotations?.['kubernetes.io/display-name'] ?? raw.metadata?.name ?? '',
     description: raw.metadata?.annotations?.['kubernetes.io/description'],
@@ -52,7 +52,7 @@ export function toOrganizationFromMembership(
   const transformed = {
     uid: metadata?.uid ?? '',
     name: spec?.organizationRef?.name ?? '',
-    namespace: metadata?.namespace,
+    namespace: metadata?.namespace ?? undefined,
     displayName: status?.organization?.displayName ?? spec?.organizationRef?.name ?? '',
     description: undefined,
     resourceVersion: metadata?.resourceVersion ?? '',

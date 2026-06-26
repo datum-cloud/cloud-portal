@@ -37,7 +37,7 @@ import {
   useDeleteBillingAccount,
   useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
-import { createOrganizationService } from '@/resources/organizations/organization.service';
+import { createOrganizationGqlService } from '@/resources/organizations/organization.gql-service';
 import {
   createPaymentMethodService,
   useCreatePaymentMethod,
@@ -107,7 +107,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     throw data('Billing account id is required', { status: 400 });
   }
 
-  const orgsResult = await createOrganizationService()
+  const orgsResult = await createOrganizationGqlService()
     .list()
     .catch(() => ({ items: [], nextCursor: null, hasMore: false }));
   const orgIds = orgsResult.items.map((o) => o.name);

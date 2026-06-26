@@ -14,7 +14,7 @@ import { billingAccountKeys, createBillingAccountService } from '@/resources/bil
 import { createGroupService, groupKeys } from '@/resources/groups';
 import { createInvitationService, invitationKeys } from '@/resources/invitations';
 import { createMemberService, memberKeys } from '@/resources/members';
-import { type Organization, createOrganizationService } from '@/resources/organizations';
+import { type Organization, createOrganizationGqlService } from '@/resources/organizations';
 import { createProjectService, projectKeys } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -49,7 +49,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     scope: 'user',
     paramName: 'orgId',
     notFoundLabel: 'Organization',
-    fetch: ({ id }) => createOrganizationService().get(id),
+    fetch: ({ id }) => createOrganizationGqlService().get(id),
     companions: {
       billingEnabled: {
         resource: 'organizations',
