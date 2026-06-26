@@ -34,7 +34,9 @@ describe('Authentication — smoke', () => {
     cy.visit(paths.account.organizations.root);
     cy.url().should('include', paths.account.organizations.root);
 
-    // Open user menu and click Log Out
+    // Open user menu and click Log Out. The Radix dropdown's close-on-window-blur
+    // behavior (added in @radix-ui/react-menu ≥2.1.17) is neutralized globally in
+    // cypress/support/e2e.ts so the menu stays open in headless runs.
     cy.get('[data-e2e="user-menu-trigger"]').click();
     cy.get('[data-e2e="user-menu-logout"]').click();
 

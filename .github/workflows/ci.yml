@@ -87,10 +87,11 @@ jobs:
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - run: bun run build
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
+          name: build-${{ github.sha }}
           path: build
-          key: build-${{ github.sha }}
+          retention-days: 1
 
   # ─── Tests ──────────────────────────────────────────────────
   bun-tests:
@@ -128,6 +129,9 @@ jobs:
     if: ${{ !failure() && !cancelled() }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with: { bun-version: 1.3.14 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -150,6 +154,9 @@ jobs:
     if: ${{ !failure() && !cancelled() }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with: { bun-version: 1.3.14 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -158,10 +165,10 @@ jobs:
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      - uses: actions/download-artifact@v4
         with:
+          name: build-${{ github.sha }}
           path: build
-          key: build-${{ github.sha }}
       - name: Setup Environment
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
@@ -220,6 +227,9 @@ jobs:
         shard: [0, 1, 2, 3]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with: { bun-version: 1.3.14 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
@@ -228,10 +238,10 @@ jobs:
             ${{ env.BUN_CACHE }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
+      - uses: actions/download-artifact@v4
         with:
+          name: build-${{ github.sha }}
           path: build
-          key: build-${{ github.sha }}
       - name: Setup Environment
         env:
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
