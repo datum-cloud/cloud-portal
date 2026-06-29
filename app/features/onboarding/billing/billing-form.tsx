@@ -1,7 +1,9 @@
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
+import { CARD_BRAND_LABELS } from '@/features/billing/constants';
 import { AddPaymentMethodDialog } from '@/features/billing/dialogs/add-payment-method-dialog';
 import { normalizeCardBrand, type CardBrand, type PaymentMethod } from '@/features/billing/types';
-import { BillingVerificationBenefits } from '@/features/onboarding/billing-verification-benefits';
+import { BillingVerificationBenefits } from '@/features/onboarding/components/billing-verification-benefits';
+import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { OrgContactInfoDialog } from '@/features/onboarding/dialogs/org-contact-info-dialog';
 import {
   buildOrgContactDefaults,
@@ -10,7 +12,7 @@ import {
   isOrgContactInfoComplete,
   orgDisplayNameFromContact,
   type OrgContactInfoValues,
-} from '@/features/onboarding/org-contact-info-schema';
+} from '@/features/onboarding/schemas/org-contact-info-schema';
 import type { AddPaymentMethodValues, StripePaymentMethodConfirmedDetails } from '@/modules/stripe';
 import { useCreatePaymentMethod, type CreatePaymentMethodInput } from '@/resources/payment-methods';
 import { usePaymentMethods, usePaymentMethodsWatch } from '@/resources/payment-methods';
@@ -24,17 +26,6 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 import { ClockIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-
-const brandLabels: Record<CardBrand, string> = {
-  visa: 'Visa',
-  mastercard: 'Mastercard',
-  amex: 'Amex',
-  discover: 'Discover',
-  diners: 'Diners Club',
-  jcb: 'JCB',
-  unionpay: 'UnionPay',
-  unknown: 'Card',
-};
 
 interface PaymentMethodSummary {
   brand: CardBrand;
@@ -53,7 +44,7 @@ const paymentMethodSummaryFromList = (
   const card = withCard.status.details.card;
   const brand = normalizeCardBrand(card.brand);
   const last4 = card.last4 ?? '••••';
-  const brandLabel = brandLabels[brand];
+  const brandLabel = CARD_BRAND_LABELS[brand];
 
   return {
     brand,
@@ -62,7 +53,7 @@ const paymentMethodSummaryFromList = (
   };
 };
 
-export interface SetupBillingFormProps {
+export interface BillingFormProps {
   orgId: string;
   accountName: string;
   namespace: string;
@@ -70,13 +61,13 @@ export interface SetupBillingFormProps {
   contactPrefill?: Partial<OrgContactInfoValues>;
 }
 
-export const SetupBillingForm = ({
+export const BillingForm = ({
   orgId,
   accountName,
   namespace,
   stripePublishableKey,
   contactPrefill,
-}: SetupBillingFormProps) => {
+}: BillingFormProps) => {
   const navigate = useNavigate();
   const [contactInfo, setContactInfo] = useState<OrgContactInfoValues | null>(() => {
     const defaults = buildOrgContactDefaults(contactPrefill);
@@ -95,7 +86,7 @@ export const SetupBillingForm = ({
     setPaymentSummary({
       brand: normalizedBrand,
       last4,
-      label: `${brandLabels[normalizedBrand]} ✸✸✸✸ ${last4}`,
+      label: `${CARD_BRAND_LABELS[normalizedBrand]} ✸✸✸✸ ${last4}`,
     });
   }, []);
 
@@ -173,71 +164,73 @@ export const SetupBillingForm = ({
 
   return (
     <div className="z-10 flex w-full max-w-[410px] flex-col items-center gap-5 md:max-w-[860px] md:flex-row md:items-stretch">
-      <Card className="bg-card text-foreground flex w-full flex-col rounded-xl border-none p-[44px] md:max-w-[410px] md:self-stretch">
-        <CardContent className="flex flex-col gap-8 p-0">
-          <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
-            Step 2 / 2
-          </p>
+      <OnboardingEntrance>
+        <Card className="bg-card text-foreground flex w-full flex-col rounded-xl border-none p-[44px] md:max-w-[410px] md:self-stretch">
+          <CardContent className="flex flex-col gap-8 p-0">
+            <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
+              Step 2 / 2
+            </p>
 
-          <h2 className="text-center text-2xl font-semibold">Payment Information Verification</h2>
+            <h2 className="text-center text-2xl font-semibold">Payment Information Verification</h2>
 
-          <div className="flex flex-col gap-8">
-            <VerificationField
-              label="Contact information"
-              isEmpty={!contactComplete}
-              onOpen={() => setContactDialogOpen(true)}>
-              {contactComplete && contactInfo ? (
-                <div className="flex min-w-0 flex-col gap-1 text-left">
-                  <p className="text-foreground truncate text-[13px] leading-[18px]">
-                    {formatOrgContactPrimaryLine(contactInfo)}
-                  </p>
-                  <p className="text-muted-foreground truncate text-xs leading-4 opacity-60">
-                    {formatOrgContactSecondaryLine(contactInfo)}
-                  </p>
-                </div>
-              ) : null}
-            </VerificationField>
-
-            {!stripePublishableKey ? (
-              <UnconfiguredStripeFallback />
-            ) : (
+            <div className="flex flex-col gap-8">
               <VerificationField
-                label="Payment method"
-                isEmpty={!paymentComplete}
-                onOpen={() => setPaymentDialogOpen(true)}>
-                {paymentComplete && paymentSummary ? (
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <CardBrandIcon brand={paymentSummary.brand} />
+                label="Contact information"
+                isEmpty={!contactComplete}
+                onOpen={() => setContactDialogOpen(true)}>
+                {contactComplete && contactInfo ? (
+                  <div className="flex min-w-0 flex-col gap-1 text-left">
                     <p className="text-foreground truncate text-[13px] leading-[18px]">
-                      {paymentSummary.label}
+                      {formatOrgContactPrimaryLine(contactInfo)}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs leading-4 opacity-60">
+                      {formatOrgContactSecondaryLine(contactInfo)}
                     </p>
                   </div>
                 ) : null}
               </VerificationField>
-            )}
 
-            <div className="flex flex-col gap-3">
-              <Button
-                htmlType="button"
-                type="primary"
-                className={cn(
-                  'w-full',
-                  !canStartFree &&
-                    'border border-[rgba(156,121,121,0.1)] bg-[#f2eaea] text-[rgba(156,121,121,0.4)] hover:bg-[#f2eaea]'
-                )}
-                disabled={!canStartFree}
-                onClick={handleStartFree}>
-                Start free
-              </Button>
+              {!stripePublishableKey ? (
+                <UnconfiguredStripeFallback />
+              ) : (
+                <VerificationField
+                  label="Payment method"
+                  isEmpty={!paymentComplete}
+                  onOpen={() => setPaymentDialogOpen(true)}>
+                  {paymentComplete && paymentSummary ? (
+                    <div className="flex min-w-0 items-center gap-2.5">
+                      <CardBrandIcon brand={paymentSummary.brand} />
+                      <p className="text-foreground truncate text-[13px] leading-[18px]">
+                        {paymentSummary.label}
+                      </p>
+                    </div>
+                  ) : null}
+                </VerificationField>
+              )}
 
-              <p className="text-foreground mt-4 text-xs opacity-80">
-                <span className="font-semibold">Note:</span> Your card will be authorized, but not
-                charged
-              </p>
+              <div className="flex flex-col gap-3">
+                <Button
+                  htmlType="button"
+                  type="primary"
+                  className={cn(
+                    'w-full',
+                    !canStartFree &&
+                      'border border-[rgba(156,121,121,0.1)] bg-[#f2eaea] text-[rgba(156,121,121,0.4)] hover:bg-[#f2eaea]'
+                  )}
+                  disabled={!canStartFree}
+                  onClick={handleStartFree}>
+                  Start free
+                </Button>
+
+                <p className="text-foreground mt-4 text-xs opacity-80">
+                  <span className="font-semibold">Note:</span> Your card will be authorized, but not
+                  charged
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </OnboardingEntrance>
 
       <BillingVerificationBenefits />
 

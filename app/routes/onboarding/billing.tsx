@@ -1,5 +1,5 @@
 import { type BillingAccount } from '@/features/billing/types';
-import { SetupBillingForm } from '@/features/onboarding';
+import { BillingPage } from '@/features/onboarding/billing/billing-page';
 import BlankLayout from '@/layouts/blank.layout';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
@@ -10,15 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import {
-  type LoaderFunctionArgs,
-  type MetaFunction,
-  redirect,
-  useLoaderData,
-  useNavigate,
-} from 'react-router';
+import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Payment information verification');
@@ -79,38 +71,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 };
 
-export default function SetupBillingPage() {
+export default function OnboardingBillingRoute() {
   const data = useLoaderData<typeof loader>();
-  const navigate = useNavigate();
 
   return (
     <BlankLayout logo="flat" showSceneImages={false} className="justify-center">
-      {data.status === 'empty' ? (
-        <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-[410px] sm:p-4 md:p-6 lg:p-8 xl:p-[44px]">
-          <CardContent className="flex flex-col gap-4 p-0 text-center">
-            <h2 className="text-xl font-medium">No billing account yet</h2>
-            <p className="text-muted-foreground text-sm">
-              We couldn&apos;t find a billing account to set up. Once one exists for your
-              organization, you&apos;ll be able to finish billing setup here.
-            </p>
-            <Button
-              htmlType="button"
-              type="primary"
-              className="w-full"
-              onClick={() => navigate(paths.account.organizations.root)}>
-              Go to organizations
-            </Button>
-          </CardContent>
-        </Card>
-      ) : data.status === 'ready' ? (
-        <SetupBillingForm
-          orgId={data.orgId}
-          accountName={data.accountName}
-          namespace={data.namespace}
-          stripePublishableKey={data.stripePublishableKey}
-          contactPrefill={data.contactPrefill}
-        />
-      ) : null}
+      <BillingPage data={data} />
     </BlankLayout>
   );
 }

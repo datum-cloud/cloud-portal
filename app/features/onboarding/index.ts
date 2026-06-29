@@ -1,5 +1,15 @@
-export { BillingVerificationBenefits } from './billing-verification-benefits';
+export { BillingForm, type BillingFormProps } from './billing/billing-form';
+export { BillingPage, type BillingPageData } from './billing/billing-page';
+export { BillingVerificationBenefits } from './components/billing-verification-benefits';
+export { HandwritingText, type HandwritingTextProps } from './components/handwriting-text';
+export {
+  HandwritingWithDecoration,
+  type HandwritingWithDecorationProps,
+} from './components/handwriting-with-decoration';
+export { OnboardingEntrance, OnboardingStagger } from './components/onboarding-entrance';
 export { OrgContactInfoDialog } from './dialogs/org-contact-info-dialog';
+export { ProfilePage, type ProfilePageProps } from './profile/profile-page';
+export { ProvisioningPage } from './provisioning/provisioning-page';
 export {
   buildOrgContactDefaults,
   formatOrgContactPrimaryLine,
@@ -8,6 +18,4 @@ export {
   orgContactInfoSchema,
   orgDisplayNameFromContact,
   type OrgContactInfoValues,
-} from './org-contact-info-schema';
-export { SetupBillingForm, type SetupBillingFormProps } from './setup-billing-form';
-export { SetupProvisioningPage, type SetupProvisioningPageProps } from './setup-provisioning-page';
+} from './schemas/org-contact-info-schema';

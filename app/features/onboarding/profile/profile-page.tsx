@@ -1,65 +1,24 @@
-import BlankLayout from '@/layouts/blank.layout';
-import {
-  createUserService,
-  userKeys,
-  userSchema,
-  useUpdateUser,
-  type User,
-} from '@/resources/users';
+import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
+import { userKeys, userSchema, useUpdateUser, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
-import { AuthorizationError, NotFoundError } from '@/utils/errors';
-import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  Link,
-  MetaFunction,
-  LoaderFunctionArgs,
-  redirect,
-  useLoaderData,
-  useNavigate,
-} from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
-function userAfterSuccessfulNameSave(updated: User): User {
-  return { ...updated, nameReviewRequired: false };
+export interface ProfilePageProps {
+  userId: string;
+  email: string;
+  givenName: string;
 }
 
-export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Complete your profile');
+const userAfterSuccessfulNameSave = (updated: User): User => ({
+  ...updated,
+  nameReviewRequired: false,
 });
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
-
-  try {
-    const user = await createUserService().get(session.sub);
-
-    if (!user.nameReviewRequired) {
-      return redirect(paths.account.organizations.root);
-    }
-
-    return {
-      userId: session.sub,
-      email: user.email ?? '',
-      givenName: user.givenName ?? '',
-    };
-  } catch (userError) {
-    if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
-      return redirect(paths.fraud.verifying);
-    }
-    return redirect(paths.auth.logOut);
-  }
-};
-
-export default function CompleteProfilePage() {
-  const { userId, email, givenName } = useLoaderData<typeof loader>();
+export const ProfilePage = ({ userId, email, givenName }: ProfilePageProps) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -77,7 +36,7 @@ export default function CompleteProfilePage() {
   });
 
   return (
-    <BlankLayout>
+    <OnboardingEntrance>
       <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-[400px] sm:p-4 md:p-6 lg:p-8 xl:p-[44px]">
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">What should we call you?</h2>
@@ -90,8 +49,8 @@ export default function CompleteProfilePage() {
           </div>
 
           <Form.Root
-            name="complete-profile"
-            id="complete-profile-form"
+            name="onboarding-profile"
+            id="onboarding-profile-form"
             schema={userSchema}
             mode="onBlur"
             defaultValues={{ email }}
@@ -129,6 +88,6 @@ export default function CompleteProfilePage() {
           </div>
         </CardContent>
       </Card>
-    </BlankLayout>
+    </OnboardingEntrance>
   );
-}
+};

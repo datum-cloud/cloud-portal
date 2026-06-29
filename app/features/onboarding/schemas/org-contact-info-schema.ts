@@ -8,9 +8,9 @@ export const orgContactInfoSchema = z.object({
     .max(256, 'Name is too long (256 characters max)'),
   businessName: z.string().max(256, 'Business name is too long (256 characters max)').optional(),
   country: z
-    .string({ error: 'Pick a country so we know where to bill' })
-    .min(1, 'Pick a country so we know where to bill')
-    .regex(/^[A-Z]{2}$/, 'Pick a country from the list'),
+    .string()
+    .refine((val) => val === '' || /^[A-Z]{2}$/.test(val), 'Pick a country from the list')
+    .optional(),
   line1: z.string().max(256, 'Address line 1 is too long (256 characters max)').optional(),
   line2: z.string().max(256, 'Address line 2 is too long (256 characters max)').optional(),
   city: z.string().max(128, 'City is too long (128 characters max)').optional(),
@@ -26,7 +26,7 @@ export const buildOrgContactDefaults = (
   email: defaults?.email ?? '',
   name: defaults?.name ?? '',
   businessName: defaults?.businessName ?? '',
-  country: defaults?.country ?? 'US',
+  country: defaults?.country ?? '',
   line1: defaults?.line1 ?? '',
   line2: defaults?.line2 ?? '',
   city: defaults?.city ?? '',
@@ -36,7 +36,7 @@ export const buildOrgContactDefaults = (
 
 export const isOrgContactInfoComplete = (
   values: OrgContactInfoValues | null | undefined
-): boolean => Boolean(values?.email?.trim() && values?.name?.trim() && values?.country?.trim());
+): boolean => Boolean(values?.email?.trim() && values?.name?.trim());
 
 export const formatOrgContactPrimaryLine = (values: OrgContactInfoValues): string => {
   const business = values.businessName?.trim();

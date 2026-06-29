@@ -9,9 +9,10 @@ export const paths = {
   home: '/',
   gettingStarted: '/getting-started',
   onboarding: {
-    completeProfile: '/complete-profile',
-    setupBilling: '/setup-billing',
-    provisioning: '/onboarding-provisioning',
+    root: '/onboarding',
+    profile: '/onboarding/profile',
+    billing: '/onboarding/billing',
+    provisioning: '/onboarding/provisioning',
   },
   fraud: {
     verifying: '/verifying',

@@ -3,7 +3,7 @@ import {
   buildOrgContactDefaults,
   orgContactInfoSchema,
   type OrgContactInfoValues,
-} from '@/features/onboarding/org-contact-info-schema';
+} from '@/features/onboarding/schemas/org-contact-info-schema';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Form } from '@datum-cloud/datum-ui/form';
@@ -72,7 +72,10 @@ export const OrgContactInfoDialog = ({
               <Form.Input placeholder="e.g. Acme Corp Ltd" autoComplete="organization" />
             </Form.Field>
 
-            <Form.Field name="country" label="Country or region" required>
+            <Form.Field
+              name="country"
+              label="Country or region"
+              description="Optional. Helps us determine billing region and tax rules.">
               <Form.Select placeholder="Select a country">
                 {priorityItems.map((country) => (
                   <Form.SelectItem key={country.value} value={country.value}>
