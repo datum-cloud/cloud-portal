@@ -1,6 +1,6 @@
 import { type BillingAccount } from '@/features/billing/types';
 import { BillingPage } from '@/features/onboarding/billing/billing-page';
-import BlankLayout from '@/layouts/blank.layout';
+import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
@@ -75,8 +75,8 @@ export default function OnboardingBillingRoute() {
   const data = useLoaderData<typeof loader>();
 
   return (
-    <BlankLayout logo="flat" showSceneImages={false} className="justify-center">
+    <OnboardingLayout width="wide">
       <BillingPage data={data} />
-    </BlankLayout>
+    </OnboardingLayout>
   );
 }

@@ -5,6 +5,7 @@ import { normalizeCardBrand, type CardBrand, type PaymentMethod } from '@/featur
 import { BillingVerificationBenefits } from '@/features/onboarding/components/billing-verification-benefits';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { OrgContactInfoDialog } from '@/features/onboarding/dialogs/org-contact-info-dialog';
+import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import {
   buildOrgContactDefaults,
   formatOrgContactPrimaryLine,
@@ -163,9 +164,9 @@ export const BillingForm = ({
   };
 
   return (
-    <div className="z-10 flex w-full max-w-[410px] flex-col items-center gap-5 md:max-w-[860px] md:flex-row md:items-stretch">
-      <OnboardingEntrance>
-        <Card className="bg-card text-foreground flex w-full flex-col rounded-xl border-none p-[44px] md:max-w-[410px] md:self-stretch">
+    <div className="z-10 flex w-full min-w-0 flex-col items-stretch gap-5 md:flex-row md:items-stretch">
+      <OnboardingEntrance className="w-full min-w-0 md:max-w-[410px]">
+        <Card className={cn(onboardingCardClassName, 'flex flex-col md:self-stretch')}>
           <CardContent className="flex flex-col gap-8 p-0">
             <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
               Step 2 / 2

@@ -1,3 +1,4 @@
+import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { ProvisioningPage } from '@/features/onboarding/provisioning/provisioning-page';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -27,5 +28,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function OnboardingProvisioningRoute() {
-  return <ProvisioningPage />;
+  return (
+    <OnboardingLayout
+      width="full"
+      splitBackground
+      sceneOnTop
+      contentClassName="px-0 pt-0 pb-0 md:px-0 md:pt-0 md:pb-0 min-h-svh">
+      <ProvisioningPage />
+    </OnboardingLayout>
+  );
 }

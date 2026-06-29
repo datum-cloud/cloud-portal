@@ -1,9 +1,11 @@
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
+import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import { userKeys, userSchema, useUpdateUser, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
 
@@ -37,7 +39,7 @@ export const ProfilePage = ({ userId, email, givenName }: ProfilePageProps) => {
 
   return (
     <OnboardingEntrance>
-      <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-[400px] sm:p-4 md:p-6 lg:p-8 xl:p-[44px]">
+      <Card className={cn(onboardingCardClassName, 'z-10')}>
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">What should we call you?</h2>
           <div className="text-foreground mb-6 flex flex-col gap-2 text-center text-[14px] leading-5 font-normal opacity-80">

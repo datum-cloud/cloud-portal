@@ -10,7 +10,6 @@ export default function BlankLayout({
 }: {
   children: React.ReactNode;
   className?: string;
-  /** Stacked logo centered above content (default), or flat wordmark (centered above content on small screens, top-left on md+). */
   logo?: 'stacked' | 'flat';
   showSceneImages?: boolean;
 }) {
@@ -40,12 +39,21 @@ export default function BlankLayout({
 
       {showSceneImages && (
         <>
-          <div className="absolute bottom-0 left-0 z-0 max-w-[300px] md:max-w-[416px]">
-            <img src="/images/scene-1.png" className="size-auto w-full object-cover" />
+          <div className="pointer-events-none absolute bottom-0 left-0 z-0 max-w-[300px] md:max-w-[416px]">
+            <img
+              src="/images/scene-1.png"
+              className="size-auto w-full object-cover"
+              alt=""
+              aria-hidden
+            />
           </div>
-
-          <div className="absolute right-0 bottom-0 z-0 max-w-[500px] md:max-w-[800px]">
-            <img src="/images/scene-2.png" className="size-auto w-full object-cover" />
+          <div className="pointer-events-none absolute right-0 bottom-0 z-0 max-w-[500px] md:max-w-[800px]">
+            <img
+              src="/images/scene-2.png"
+              className="size-auto w-full object-cover"
+              alt=""
+              aria-hidden
+            />
           </div>
         </>
       )}

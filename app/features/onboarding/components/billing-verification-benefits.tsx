@@ -34,8 +34,8 @@ export const BillingVerificationBenefits = () => {
 
   return (
     <OnboardingEntrance delay={1}>
-      <Card className="bg-card/50 text-foreground flex w-full flex-col rounded-xl border-none shadow-none md:min-h-full md:max-w-[410px] md:self-stretch">
-        <CardContent className="flex flex-1 flex-col p-[44px] md:min-h-full">
+      <Card className="bg-card/50 text-foreground flex w-full min-w-0 flex-col rounded-xl border-none shadow-none md:min-h-full md:max-w-[410px] md:self-stretch">
+        <CardContent className="flex flex-1 flex-col p-6 sm:p-8 md:min-h-full md:p-[44px]">
           <div className="my-auto flex flex-col gap-5">
             <div className="flex items-center">
               <HandwritingText

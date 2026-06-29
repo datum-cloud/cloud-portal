@@ -1,4 +1,3 @@
-import { LogoFlat } from '@/components/logo/logo-flat';
 import { HandwritingWithDecoration } from '@/features/onboarding/components/handwriting-with-decoration';
 import {
   OnboardingEntrance,
@@ -75,16 +74,9 @@ export const ProvisioningPage = () => {
   const progressPercent = (completedCount / steps.length) * 100;
 
   return (
-    <div className="bg-background relative flex min-h-screen w-full flex-col md:flex-row">
-      <LogoFlat
-        className="absolute top-8 left-[41px] z-10 hidden h-6 w-auto md:block"
-        aria-label="Datum"
-      />
-
-      <div className="bg-card flex w-full flex-col px-10 pt-8 pb-8 md:min-h-screen md:w-1/2">
-        <LogoFlat className="mb-8 h-6 w-auto shrink-0 md:hidden" aria-label="Datum" />
-
-        <div className="relative flex flex-1 flex-col items-center justify-center gap-10 py-10">
+    <div className="flex w-full min-w-0 flex-col md:min-h-svh md:flex-row">
+      <div className="bg-card flex w-full flex-col px-4 pt-20 pb-8 md:w-1/2 md:bg-transparent md:px-10 md:pt-24 md:pb-10">
+        <div className="relative flex flex-1 flex-col items-center justify-start gap-10 md:justify-center md:py-6">
           <OnboardingEntrance>
             <h2 className="text-foreground text-center text-2xl font-semibold">
               {allComplete ? 'Complete!' : 'Thank you!'}
@@ -233,10 +225,10 @@ export const ProvisioningPage = () => {
         </div>
       </div>
 
-      <div className="bg-muted/30 relative flex-1 overflow-hidden md:flex md:min-h-screen">
+      <div className="bg-muted/30 relative flex w-full flex-1 flex-col overflow-hidden md:w-1/2 md:bg-transparent">
         <OnboardingEntrance
           delay={1}
-          className="relative z-10 flex flex-1 flex-col items-center justify-center gap-8 px-10 py-12">
+          className="relative z-10 flex w-full min-w-0 flex-1 flex-col items-center justify-center gap-8 px-4 py-10 md:px-10 md:py-12">
           <div className="flex flex-col items-center gap-2 text-center">
             <p className="text-foreground text-2xl font-semibold">
               Folks <span className="text-primary">love</span> our CLI!
@@ -254,16 +246,9 @@ export const ProvisioningPage = () => {
           <img
             src="/images/onboarding/cli-terminal.png"
             alt="Datum Cloud CLI welcome screen"
-            className="h-auto w-full max-w-[400px]"
+            className="h-auto w-full max-w-[400px] min-w-0"
           />
         </OnboardingEntrance>
-
-        <img
-          src="/images/onboarding/provisioning-bottom-right-landscape.png"
-          alt=""
-          aria-hidden
-          className="pointer-events-none absolute right-0 bottom-0 z-0 w-full object-contain object-bottom-right"
-        />
       </div>
     </div>
   );

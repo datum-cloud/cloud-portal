@@ -1,5 +1,5 @@
+import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { ProfilePage } from '@/features/onboarding/profile/profile-page';
-import BlankLayout from '@/layouts/blank.layout';
 import { createUserService } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -21,9 +21,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const user = await createUserService().get(session.sub);
 
-    if (!user.nameReviewRequired) {
-      return redirect(paths.account.organizations.root);
-    }
+    // if (!user.nameReviewRequired) {
+    //   return redirect(paths.account.organizations.root);
+    // }
 
     return {
       userId: session.sub,
@@ -42,8 +42,8 @@ export default function OnboardingProfileRoute() {
   const { userId, email, givenName } = useLoaderData<typeof loader>();
 
   return (
-    <BlankLayout>
+    <OnboardingLayout>
       <ProfilePage userId={userId} email={email} givenName={givenName} />
-    </BlankLayout>
+    </OnboardingLayout>
   );
 }

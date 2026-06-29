@@ -6,6 +6,7 @@ export {
   HandwritingWithDecoration,
   type HandwritingWithDecorationProps,
 } from './components/handwriting-with-decoration';
+export { OnboardingLayout, type OnboardingLayoutProps } from './components/onboarding-layout';
 export { OnboardingEntrance, OnboardingStagger } from './components/onboarding-entrance';
 export { OrgContactInfoDialog } from './dialogs/org-contact-info-dialog';
 export { ProfilePage, type ProfilePageProps } from './profile/profile-page';
