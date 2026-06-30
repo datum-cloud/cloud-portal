@@ -1,5 +1,4 @@
 import { BillingForm } from '@/features/onboarding/billing/billing-form';
-import type { OrgContactInfoValues } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -13,7 +12,6 @@ export type BillingPageData =
       accountName: string;
       namespace: string;
       stripePublishableKey?: string;
-      contactPrefill?: Partial<OrgContactInfoValues>;
     };
 
 export const BillingPage = ({ data }: { data: BillingPageData }) => {
@@ -46,7 +44,6 @@ export const BillingPage = ({ data }: { data: BillingPageData }) => {
       accountName={data.accountName}
       namespace={data.namespace}
       stripePublishableKey={data.stripePublishableKey}
-      contactPrefill={data.contactPrefill}
     />
   );
 };

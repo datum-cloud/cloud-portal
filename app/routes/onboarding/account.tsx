@@ -1,6 +1,6 @@
+import { AccountPage } from '@/features/onboarding/account/account-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
-import { ProfilePage } from '@/features/onboarding/profile/profile-page';
 import { createOrganizationService } from '@/resources/organizations';
 import { createUserService } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
@@ -10,7 +10,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Complete your profile');
+  return metaObject('Account information');
 });
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -22,18 +22,25 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   try {
     const user = await createUserService().get(session.sub);
+
+    if (user.nameReviewRequired) {
+      return redirect(paths.onboarding.profile);
+    }
+
     const organizations = await createOrganizationService().list({ limit: 1 });
     const hasExistingOrgs = organizations.items.length > 0;
 
-    if (!user.nameReviewRequired && !isOnboardingDevBypassEnabled()) {
-      return redirect(hasExistingOrgs ? paths.home : paths.onboarding.account);
+    if (hasExistingOrgs && !isOnboardingDevBypassEnabled()) {
+      return redirect(paths.home);
     }
 
     return {
       userId: session.sub,
+      fullName: user.fullName?.trim() || user.email || 'Your account',
       email: user.email ?? '',
-      givenName: user.givenName ?? '',
-      hasExistingOrgs,
+      avatarUrl: user.avatarUrl,
+      lastLoginProvider: user.lastLoginProvider,
+      country: user.country ?? '',
     };
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
@@ -43,16 +50,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 };
 
-export default function OnboardingProfileRoute() {
-  const { userId, email, givenName, hasExistingOrgs } = useLoaderData<typeof loader>();
+export default function OnboardingAccountRoute() {
+  const { userId, fullName, email, avatarUrl, lastLoginProvider, country } =
+    useLoaderData<typeof loader>();
 
   return (
     <OnboardingLayout>
-      <ProfilePage
+      <AccountPage
         userId={userId}
+        fullName={fullName}
         email={email}
-        givenName={givenName}
-        hasExistingOrgs={hasExistingOrgs}
+        avatarUrl={avatarUrl}
+        lastLoginProvider={lastLoginProvider}
+        country={country}
       />
     </OnboardingLayout>
   );

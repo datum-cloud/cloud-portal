@@ -240,11 +240,14 @@ export default [
     route('callback', 'routes/auth/callback.tsx'),
   ]),
 
-  // Onboarding (outside private layout — BlankLayout + own loader auth)
+  // Onboarding (outside private layout — own loader auth + AppProvider for user menu)
   ...prefix('onboarding', [
-    route('profile', 'routes/onboarding/profile.tsx'),
-    route('billing', 'routes/onboarding/billing.tsx'),
-    route('provisioning', 'routes/onboarding/provisioning.tsx'),
+    layout('routes/onboarding/layout.tsx', [
+      route('profile', 'routes/onboarding/profile.tsx'),
+      route('account', 'routes/onboarding/account.tsx'),
+      route('billing', 'routes/onboarding/billing.tsx'),
+      route('provisioning', 'routes/onboarding/provisioning.tsx'),
+    ]),
   ]),
 
   // Fraud / gating routes — outside the private layout because the private layout loader fetches

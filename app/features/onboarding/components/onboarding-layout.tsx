@@ -1,8 +1,10 @@
 import {
   onboardingContentClassName,
+  onboardingHeaderClassName,
   onboardingLogoClassName,
   onboardingSceneRightClassName,
 } from '../onboarding-layout';
+import { UserDropdown } from '@/components/header/user-dropdown';
 import { LogoFlat } from '@/components/logo/logo-flat';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import type { ReactNode } from 'react';
@@ -53,7 +55,10 @@ export const OnboardingLayout = ({
         </div>
       </div>
     )}
-    <LogoFlat className={onboardingLogoClassName} aria-label="Datum" />
+    <header className={onboardingHeaderClassName}>
+      <LogoFlat className={onboardingLogoClassName} aria-label="Datum" />
+      <UserDropdown hideBillingAccount />
+    </header>
     <div className={cn(onboardingContentClassName, widthClassName[width], contentClassName)}>
       {children}
     </div>

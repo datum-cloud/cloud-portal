@@ -1,5 +1,6 @@
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
+import { useTransitionNavigate } from '@/hooks/useTransitionNavigate';
 import { userKeys, userSchema, useUpdateUser, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -7,12 +8,13 @@ import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router';
 
 export interface ProfilePageProps {
   userId: string;
   email: string;
   givenName: string;
+  /** User already belongs to an org — skip billing onboarding after name save. */
+  hasExistingOrgs?: boolean;
 }
 
 const userAfterSuccessfulNameSave = (updated: User): User => ({
@@ -20,15 +22,19 @@ const userAfterSuccessfulNameSave = (updated: User): User => ({
   nameReviewRequired: false,
 });
 
-export const ProfilePage = ({ userId, email, givenName }: ProfilePageProps) => {
-  const navigate = useNavigate();
+export const ProfilePage = ({
+  userId,
+  email,
+  givenName,
+  hasExistingOrgs = false,
+}: ProfilePageProps) => {
+  const { submitAndNavigate, isNavigating } = useTransitionNavigate();
   const queryClient = useQueryClient();
 
   const updateMutation = useUpdateUser(userId, {
     onSuccess: (updatedUser) => {
       const next = userAfterSuccessfulNameSave(updatedUser);
       queryClient.setQueryData(userKeys.detail(userId), next);
-      navigate(paths.account.organizations.root, { replace: true });
     },
     onError: (error) => {
       toast.error('Profile', {
@@ -56,14 +62,19 @@ export const ProfilePage = ({ userId, email, givenName }: ProfilePageProps) => {
             schema={userSchema}
             mode="onBlur"
             defaultValues={{ email }}
-            isSubmitting={updateMutation.isPending}
-            onSubmit={async (data) => {
-              await updateMutation.mutateAsync({
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-              });
-            }}
+            isSubmitting={isNavigating ? true : undefined}
+            onSubmit={(data) =>
+              submitAndNavigate(
+                () =>
+                  updateMutation.mutateAsync({
+                    firstName: data.firstName,
+                    lastName: data.lastName,
+                    email: data.email,
+                  }),
+                hasExistingOrgs ? paths.home : paths.onboarding.account,
+                { replace: true }
+              )
+            }
             className="flex flex-col gap-6">
             <div className="mb-0 flex w-full flex-col gap-4">
               <Form.Field name="firstName" label="First name" required className="w-full">
@@ -77,17 +88,14 @@ export const ProfilePage = ({ userId, email, givenName }: ProfilePageProps) => {
               <Form.Input readOnly tabIndex={-1} autoComplete="off" className="hidden" />
             </Form.Field>
 
-            <Form.Submit className="w-full" size="default" loadingText="Saving...">
+            <Form.Submit
+              className="w-full"
+              size="default"
+              loading={isNavigating}
+              loadingText="Saving...">
               Continue
             </Form.Submit>
           </Form.Root>
-          <div className="mt-4 text-center">
-            <Link
-              to={paths.auth.logOut}
-              className="dark:text-foreground dark:hover:text-foreground text-[14px] text-gray-600 underline hover:text-gray-900">
-              Log out
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </OnboardingEntrance>

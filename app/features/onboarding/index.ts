@@ -1,3 +1,4 @@
+export { AccountPage, type AccountPageProps } from './account/account-page';
 export { BillingForm, type BillingFormProps } from './billing/billing-form';
 export { BillingPage, type BillingPageData } from './billing/billing-page';
 export { BillingVerificationBenefits } from './components/billing-verification-benefits';
@@ -20,3 +21,7 @@ export {
   orgDisplayNameFromContact,
   type OrgContactInfoValues,
 } from './schemas/org-contact-info-schema';
+export {
+  onboardingAccountSchema,
+  type OnboardingAccountValues,
+} from './schemas/onboarding-account-schema';

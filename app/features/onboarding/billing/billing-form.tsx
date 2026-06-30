@@ -1,8 +1,7 @@
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
 import { CARD_BRAND_LABELS } from '@/features/billing/constants';
 import { AddPaymentMethodDialog } from '@/features/billing/dialogs/add-payment-method-dialog';
-import { normalizeCardBrand, type CardBrand, type PaymentMethod } from '@/features/billing/types';
-import { BillingVerificationBenefits } from '@/features/onboarding/components/billing-verification-benefits';
+import { normalizeCardBrand, type CardBrand } from '@/features/billing/types';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { OrgContactInfoDialog } from '@/features/onboarding/dialogs/org-contact-info-dialog';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
@@ -16,7 +15,6 @@ import {
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import type { AddPaymentMethodValues, StripePaymentMethodConfirmedDetails } from '@/modules/stripe';
 import { useCreatePaymentMethod, type CreatePaymentMethodInput } from '@/resources/payment-methods';
-import { usePaymentMethods, usePaymentMethodsWatch } from '@/resources/payment-methods';
 import { waitForStripePaymentMethodSetup } from '@/resources/stripe-payment-methods';
 import { paths } from '@/utils/config/paths.config';
 import { openSupportMessage } from '@/utils/open-support-message';
@@ -25,7 +23,7 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ClockIcon } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface PaymentMethodSummary {
@@ -34,32 +32,11 @@ interface PaymentMethodSummary {
   label: string;
 }
 
-const paymentMethodSummaryFromList = (
-  methods: PaymentMethod[] | undefined
-): PaymentMethodSummary | null => {
-  if (!methods?.length) return null;
-
-  const withCard = methods.find((method) => method.status?.details?.card?.last4);
-  if (!withCard?.status?.details?.card) return null;
-
-  const card = withCard.status.details.card;
-  const brand = normalizeCardBrand(card.brand);
-  const last4 = card.last4 ?? '••••';
-  const brandLabel = CARD_BRAND_LABELS[brand];
-
-  return {
-    brand,
-    last4,
-    label: `${brandLabel} ✸✸✸✸ ${last4}`,
-  };
-};
-
 export interface BillingFormProps {
   orgId: string;
   accountName: string;
   namespace: string;
   stripePublishableKey?: string;
-  contactPrefill?: Partial<OrgContactInfoValues>;
 }
 
 export const BillingForm = ({
@@ -67,20 +44,14 @@ export const BillingForm = ({
   accountName,
   namespace,
   stripePublishableKey,
-  contactPrefill,
 }: BillingFormProps) => {
   const navigate = useNavigate();
-  const [contactInfo, setContactInfo] = useState<OrgContactInfoValues | null>(() => {
-    const defaults = buildOrgContactDefaults(contactPrefill);
-    return isOrgContactInfoComplete(defaults) ? defaults : null;
-  });
+  const [contactInfo, setContactInfo] = useState<OrgContactInfoValues | null>(null);
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentSummary, setPaymentSummary] = useState<PaymentMethodSummary | null>(null);
 
   const createPaymentMethodMutation = useCreatePaymentMethod();
-  const { data: paymentMethods, refetch: refetchPaymentMethods } = usePaymentMethods(orgId);
-  usePaymentMethodsWatch(orgId);
 
   const applyPaymentSummary = useCallback((brand: string | null | undefined, last4: string) => {
     const normalizedBrand = normalizeCardBrand(brand);
@@ -91,22 +62,14 @@ export const BillingForm = ({
     });
   }, []);
 
-  useEffect(() => {
-    const summary = paymentMethodSummaryFromList(paymentMethods);
-    if (summary) {
-      setPaymentSummary(summary);
-    }
-  }, [paymentMethods]);
-
   const handlePaymentConfirmed = useCallback(
     (details?: StripePaymentMethodConfirmedDetails) => {
       setPaymentDialogOpen(false);
       if (details?.last4) {
         applyPaymentSummary(details.brand, details.last4);
       }
-      void refetchPaymentMethods();
     },
-    [applyPaymentSummary, refetchPaymentMethods]
+    [applyPaymentSummary]
   );
 
   const createPaymentMethod = useCallback(
@@ -142,8 +105,8 @@ export const BillingForm = ({
   const canStartFree = contactComplete && paymentComplete && stripePublishableKey;
 
   const contactDialogDefaults = useMemo(
-    () => contactInfo ?? buildOrgContactDefaults(contactPrefill),
-    [contactInfo, contactPrefill]
+    () => contactInfo ?? buildOrgContactDefaults(),
+    [contactInfo]
   );
 
   const billingDetailsPrefill = useMemo(() => {
@@ -164,19 +127,20 @@ export const BillingForm = ({
   };
 
   return (
-    <div className="z-10 flex w-full min-w-0 flex-col items-stretch gap-5 md:flex-row md:items-stretch">
-      <OnboardingEntrance className="w-full min-w-0 md:max-w-[410px]">
+    <div className="z-10 flex w-full min-w-0 flex-col items-stretch gap-5">
+      <OnboardingEntrance className="mx-auto w-full min-w-0 md:max-w-[410px]">
         <Card className={cn(onboardingCardClassName, 'flex flex-col md:self-stretch')}>
           <CardContent className="flex flex-col gap-8 p-0">
             <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
               Step 2 / 2
             </p>
 
-            <h2 className="text-center text-2xl font-semibold">Payment Information Verification</h2>
+            <h2 className="text-center text-2xl font-semibold">Payment Verification</h2>
 
             <div className="flex flex-col gap-8">
               <VerificationField
                 label="Contact information"
+                description="Add your company name and address"
                 isEmpty={!contactComplete}
                 onOpen={() => setContactDialogOpen(true)}>
                 {contactComplete && contactInfo ? (
@@ -213,11 +177,7 @@ export const BillingForm = ({
                 <Button
                   htmlType="button"
                   type="primary"
-                  className={cn(
-                    'w-full',
-                    !canStartFree &&
-                      'border border-[rgba(156,121,121,0.1)] bg-[#f2eaea] text-[rgba(156,121,121,0.4)] hover:bg-[#f2eaea]'
-                  )}
+                  className={cn('w-full')}
                   disabled={!canStartFree}
                   onClick={handleStartFree}>
                   Start free
@@ -233,7 +193,7 @@ export const BillingForm = ({
         </Card>
       </OnboardingEntrance>
 
-      <BillingVerificationBenefits />
+      {/* <BillingVerificationBenefits /> */}
 
       <OrgContactInfoDialog
         open={contactDialogOpen}
@@ -259,12 +219,20 @@ export const BillingForm = ({
 
 interface VerificationFieldProps {
   label: string;
+
+  description?: string;
   isEmpty: boolean;
   onOpen: () => void;
   children?: React.ReactNode;
 }
 
-const VerificationField = ({ label, isEmpty, onOpen, children }: VerificationFieldProps) => (
+const VerificationField = ({
+  label,
+  description,
+  isEmpty,
+  onOpen,
+  children,
+}: VerificationFieldProps) => (
   <div className="flex flex-col gap-2">
     <p className="text-foreground text-xs font-semibold opacity-80">{label}</p>
     {isEmpty ? (
@@ -281,6 +249,9 @@ const VerificationField = ({ label, isEmpty, onOpen, children }: VerificationFie
           Change
         </button>
       </div>
+    )}
+    {description && (
+      <p className="text-foreground text-1xs font-normal opacity-60">{description}</p>
     )}
   </div>
 );

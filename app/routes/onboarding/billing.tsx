@@ -4,7 +4,6 @@ import { OnboardingLayout } from '@/features/onboarding/components/onboarding-la
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
-import { createUserService } from '@/resources/users';
 import { orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -13,7 +12,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
-  return metaObject('Payment information verification');
+  return metaObject('Payment verification');
 });
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -24,7 +23,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
-    const user = await createUserService().get(session.sub);
     const organizations = await createOrganizationService().list();
 
     const orgIds = organizations.items.map((o) => o.name);
@@ -49,19 +47,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .catch(() => []);
     const stripePublishableKey = stripeConfigs[0]?.spec?.publishableKey ?? undefined;
 
-    const fullName = [user.givenName, user.familyName].filter(Boolean).join(' ').trim();
-    const billingContact = account.spec?.contactInfo;
-
     return {
       status: 'ready' as const,
       orgId,
       accountName: account.metadata.name,
       namespace,
       stripePublishableKey,
-      contactPrefill: {
-        email: billingContact?.email ?? user.email ?? '',
-        name: billingContact?.name ?? fullName,
-      },
     };
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {

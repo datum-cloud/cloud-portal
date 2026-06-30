@@ -1,7 +1,11 @@
 /** Shared layout tokens for onboarding routes (mobile-first). */
 
+/** Shared header bar — keeps logo and user menu vertically aligned on all breakpoints. */
+export const onboardingHeaderClassName =
+  'absolute inset-x-0 top-0 z-30 flex h-22 items-center justify-end px-6 md:justify-between md:px-[41px]';
+
 export const onboardingLogoClassName =
-  'absolute top-8 left-1/2 z-30 h-6 w-auto -translate-x-1/2 md:left-[41px] md:translate-x-0';
+  'absolute left-1/2 h-6 w-auto -translate-x-1/2 md:static md:translate-x-0';
 
 export const onboardingContentClassName =
   'relative z-10 mx-auto flex w-full min-w-0 max-w-[410px] flex-1 flex-col px-4 pt-20 pb-8 md:max-w-[860px] md:px-0 md:pt-24 md:pb-10';

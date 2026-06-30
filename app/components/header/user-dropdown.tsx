@@ -30,7 +30,13 @@ const THEME_OPTIONS = [
   { value: 'system', label: 'System', icon: SystemModeIcon },
 ] as const;
 
-export const UserDropdown = ({ className }: { className?: string }) => {
+export const UserDropdown = ({
+  className,
+  hideBillingAccount = false,
+}: {
+  className?: string;
+  hideBillingAccount?: boolean;
+}) => {
   const navigate = useNavigate();
   const { resolvedTheme, setTheme } = useTheme();
   const { user, userPreferences, setUser } = useApp();
@@ -118,7 +124,7 @@ export const UserDropdown = ({ className }: { className?: string }) => {
               <span className="text-foreground text-xs">Account Settings</span>
             </div>
           </DropdownMenuItem>
-          {billingEnabled && (
+          {billingEnabled && !hideBillingAccount && (
             <DropdownMenuItem
               data-e2e="user-menu-billing"
               className="cursor-pointer rounded-lg px-3 py-2 font-normal"

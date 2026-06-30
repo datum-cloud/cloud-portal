@@ -1,4 +1,5 @@
 import { type MiddlewareContext, type NextFunction } from './middleware';
+import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { createUserService } from '@/resources/users';
 import { RegistrationApproval } from '@/resources/users/user.schema';
@@ -14,7 +15,7 @@ import { redirect } from 'react-router';
  *
  * Algorithm:
  * 1. Read session; if no sub, call next() (let authMiddleware handle)
- * 2. Fetch user; if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
+ * 2. Fetch user (or reuse auth middleware cache); if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
  * 3. Cache user in reqCtx to avoid a second upstream call in the layout loader
  * 4. state === 'Inactive'                  → /account-suspended
  * 5. registrationApproval === 'Approved'   → if nameReviewRequired and not on onboarding profile → redirect there; else next()
@@ -39,9 +40,11 @@ export async function fraudStatusMiddleware(
       return next();
     }
 
-    let user;
+    let user = getRequestContext()?.cachedUser;
     try {
-      user = await createUserService().get(session.sub);
+      if (!user) {
+        user = await createUserService().get(session.sub);
+      }
     } catch (userError) {
       if (userError instanceof NotFoundError) {
         return redirect(paths.fraud.verifying);
@@ -72,7 +75,11 @@ export async function fraudStatusMiddleware(
 
     if (user.registrationApproval === RegistrationApproval.Approved) {
       const pathname = new URL(request.url).pathname;
-      if (user.nameReviewRequired && pathname !== paths.onboarding.profile) {
+      if (
+        user.nameReviewRequired &&
+        pathname !== paths.onboarding.profile &&
+        !isOnboardingDevBypassEnabled()
+      ) {
         return redirect(paths.onboarding.profile);
       }
       return next();

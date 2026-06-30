@@ -38,6 +38,8 @@ export const userResourceSchema = z.object({
   lastLoginProvider: z.enum(LAST_LOGIN_PROVIDER_VALUES).optional(),
   avatarUrl: z.string().optional(),
   nameReviewRequired: z.boolean().optional(),
+  /** ISO 3166-1 alpha-2 code from `metadata.annotations['profile/country']`. */
+  country: z.string().optional(),
 });
 
 export type User = z.infer<typeof userResourceSchema>;
@@ -54,6 +56,8 @@ export type UpdateUserPreferencesInput = {
   timezone?: string;
   newsletter?: boolean;
   onboardedAt?: string;
+  /** ISO 3166-1 alpha-2 code stored as `profile/country`. */
+  country?: string;
 };
 
 // Form validation schemas
