@@ -5,6 +5,7 @@ import {
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { logger } from '@/modules/logger';
+import { createAccessReviewService } from '@/resources/access-review';
 import { retryOnTransientAuthError } from '@/resources/base/utils';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations';
@@ -72,15 +73,23 @@ export function useSetupOnboardingBilling(
       const namespace = buildOrganizationNamespace(orgId);
 
       try {
-        // A freshly created org doesn't authorize its owner instantly — the
-        // grant has to propagate (Organization → owner OrganizationMembership →
-        // PolicyBinding → IAM/OpenFGA sync) before we can write in the org
-        // namespace. A write fired in the same breath as the org create can
-        // beat that pipeline and come back 403 even though the caller is the
-        // owner. Retry through that window instead of failing on the first
-        // race-induced 403; if the server actually persisted the account but
-        // still handed us a transient 403, the service's idempotent create
-        // resolves the follow-up 409 back into the existing account.
+        // Wait until SAR allows billingaccounts.create before the first POST.
+        // PolicyBinding usually reconciles in ~1s, but firing create too early
+        // seeds OpenFGA's 30s check-query cache with denials — the contact-info
+        // save spinner then sits on 403 retries for tens of seconds even though
+        // the grant is already Ready. Polling SAR is cheap and avoids poisoning
+        // that cache; keep a short create retry for the remaining race window.
+        await createAccessReviewService().waitForPermission(
+          orgId,
+          {
+            namespace,
+            verb: 'create',
+            group: 'billing.miloapis.com',
+            resource: 'billingaccounts',
+          },
+          { operation: 'onboarding.waitForBillingAccountCreate' }
+        );
+
         const account = await retryOnTransientAuthError(
           () =>
             createBillingAccountService().create({
@@ -93,19 +102,9 @@ export function useSetupOnboardingBilling(
             }),
           {
             operation: 'onboarding.createBillingAccount',
-            // The owner grant propagates through four async hops
-            // (Organization → owner OrganizationMembership → PolicyBinding →
-            // IAM/OpenFGA tuple sync). On a healthy platform this settles in a
-            // few seconds, but under controller backlog it can take much
-            // longer, and the default ~15s window gives up too early — the org
-            // then rolls back and the user sees a hard "cannot create
-            // billingaccounts" failure. Ride out a wider window here (~75s of
-            // cumulative backoff) so a slow-but-legitimate grant lands instead
-            // of failing; the idempotent create + safe rollback keep this
-            // retry side-effect free.
-            attempts: 10,
-            baseDelayMs: 1000,
-            maxDelayMs: 12000,
+            attempts: 4,
+            baseDelayMs: 500,
+            maxDelayMs: 2000,
           }
         );
 
