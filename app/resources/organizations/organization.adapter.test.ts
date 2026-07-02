@@ -1,4 +1,5 @@
 import {
+  isOrganizationOwnerGrantReady,
   toCreatePayload,
   toOrganization,
   toOrganizationFromMembership,
@@ -81,6 +82,38 @@ describe('toOrganization', () => {
       status: { conditions: [{ type: 'Other', status: 'True', reason: 'x' }] },
     };
     expect(toOrganization(raw as never).status).toBe('Pending');
+  });
+});
+
+describe('isOrganizationOwnerGrantReady', () => {
+  it('returns true when RolesApplied is True', () => {
+    expect(
+      isOrganizationOwnerGrantReady({
+        status: {
+          conditions: [{ type: 'RolesApplied', status: 'True', reason: 'AllRolesApplied' }],
+        },
+      } as never)
+    ).toBe(true);
+  });
+
+  it('returns true when every applied role is Applied', () => {
+    expect(
+      isOrganizationOwnerGrantReady({
+        status: {
+          appliedRoles: [{ status: 'Applied' }, { status: 'Applied' }],
+        },
+      } as never)
+    ).toBe(true);
+  });
+
+  it('returns false while roles are still pending', () => {
+    expect(
+      isOrganizationOwnerGrantReady({
+        status: {
+          appliedRoles: [{ status: 'Pending' }],
+        },
+      } as never)
+    ).toBe(false);
   });
 });
 

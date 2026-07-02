@@ -1,4 +1,5 @@
 import {
+  isOrganizationOwnerGrantReady,
   toOrganization,
   toOrganizationFromMembership,
   toCreatePayload,
@@ -16,6 +17,7 @@ import {
 } from './organization.schema';
 import {
   listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces,
+  type ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
   readResourcemanagerMiloapisComV1Alpha1Organization,
   createResourcemanagerMiloapisComV1Alpha1Organization,
   patchResourcemanagerMiloapisComV1Alpha1Organization,
@@ -25,7 +27,7 @@ import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getUserScopedBase } from '@/resources/base/utils';
-import { NotFoundError } from '@/utils/errors';
+import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -281,6 +283,65 @@ export function createOrganizationService() {
         logger.error(`${SERVICE_NAME}.update failed`, error as Error);
         throw mapApiError(error);
       }
+    },
+
+    /**
+     * Poll the user-scoped membership list until the owner's roles (and their
+     * PolicyBindings / OpenFGA tuples) have been applied for this org.
+     *
+     * Uses the membership API rather than SelfSubjectAccessReview so we do not
+     * hit OpenFGA while the grant is still propagating. Repeated SAR/create
+     * checks during that window seed OpenFGA's 30s check-query cache with
+     * denials and can block billing account creation for tens of seconds even
+     * after PolicyBinding is Ready.
+     */
+    async waitForOwnerGrantReady(
+      orgId: string,
+      opts: {
+        timeoutMs?: number;
+        intervalMs?: number;
+        /** Pause after RolesApplied before returning — avoids the first auth check racing OpenFGA replica sync. */
+        postReadyDelayMs?: number;
+      } = {}
+    ): Promise<void> {
+      const timeoutMs = opts.timeoutMs ?? 90_000;
+      const intervalMs = opts.intervalMs ?? 500;
+      const postReadyDelayMs = opts.postReadyDelayMs ?? 2_000;
+      const deadline = Date.now() + timeoutMs;
+      const startTime = Date.now();
+
+      while (Date.now() < deadline) {
+        const membership = await this.fetchMembershipForOrganization(orgId);
+        if (membership && isOrganizationOwnerGrantReady(membership)) {
+          if (postReadyDelayMs > 0) {
+            await new Promise((resolve) => setTimeout(resolve, postReadyDelayMs));
+          }
+          logger.service(SERVICE_NAME, 'waitForOwnerGrantReady', {
+            input: { orgId },
+            duration: Date.now() - startTime,
+          });
+          return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, intervalMs));
+      }
+
+      throw new AuthorizationError(
+        `Timed out waiting for owner grant to propagate on organization ${orgId}`
+      );
+    },
+
+    async fetchMembershipForOrganization(
+      orgId: string
+    ): Promise<ComMiloapisResourcemanagerV1Alpha1OrganizationMembership | undefined> {
+      const response =
+        await listResourcemanagerMiloapisComV1Alpha1OrganizationMembershipForAllNamespaces({
+          baseURL: getUserScopedBase(),
+          query: { limit: 1000 },
+        });
+
+      return response.data?.items?.find(
+        (membership) => membership.spec?.organizationRef?.name === orgId
+      );
     },
 
     async delete(name: string): Promise<void> {

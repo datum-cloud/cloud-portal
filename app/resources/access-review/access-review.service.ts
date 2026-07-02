@@ -76,13 +76,12 @@ export function createAccessReviewService() {
      * Poll until the current user is allowed to perform an action in an org
      * namespace, or until the timeout elapses.
      *
-     * Use this before the first write to a freshly provisioned org. Firing a
-     * create while the owner grant is still propagating returns 403 and, on our
-     * OpenFGA deployment, poisons the 30s check-query cache — so blind POST
-     * retries can sit denied for tens of seconds even after PolicyBinding is
-     * Ready. Waiting on SelfSubjectAccessReview avoids seeding that cache with
-     * early denials and lets the first create succeed as soon as the grant
-     * lands.
+     * Prefer waiting on OrganizationMembership `RolesApplied` (see
+     * OrganizationService.waitForOwnerGrantReady) before the first write to a
+     * freshly provisioned org. Polling denied SAR checks while the grant is
+     * still propagating refreshes OpenFGA's 30s check-query cache and can
+     * block the first create for tens of seconds even after PolicyBinding is
+     * Ready.
      */
     async waitForPermission(
       organizationId: string,

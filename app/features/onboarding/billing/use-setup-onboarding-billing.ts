@@ -5,7 +5,6 @@ import {
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { logger } from '@/modules/logger';
-import { createAccessReviewService } from '@/resources/access-review';
 import { retryOnTransientAuthError } from '@/resources/base/utils';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations';
@@ -73,22 +72,11 @@ export function useSetupOnboardingBilling(
       const namespace = buildOrganizationNamespace(orgId);
 
       try {
-        // Wait until SAR allows billingaccounts.create before the first POST.
-        // PolicyBinding usually reconciles in ~1s, but firing create too early
-        // seeds OpenFGA's 30s check-query cache with denials — the contact-info
-        // save spinner then sits on 403 retries for tens of seconds even though
-        // the grant is already Ready. Polling SAR is cheap and avoids poisoning
-        // that cache; keep a short create retry for the remaining race window.
-        await createAccessReviewService().waitForPermission(
-          orgId,
-          {
-            namespace,
-            verb: 'create',
-            group: 'billing.miloapis.com',
-            resource: 'billingaccounts',
-          },
-          { operation: 'onboarding.waitForBillingAccountCreate' }
-        );
+        // Wait for owner PolicyBindings via the membership status (user-scoped
+        // read — no OpenFGA checks). Do not poll SAR here: each denied check
+        // refreshes OpenFGA's 30s query cache and can block the first create for
+        // tens of seconds even after PolicyBinding is Ready.
+        await createOrganizationService().waitForOwnerGrantReady(orgId);
 
         const account = await retryOnTransientAuthError(
           () =>

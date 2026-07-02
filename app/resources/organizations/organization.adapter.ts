@@ -147,6 +147,24 @@ export function toUpdatePayload(input: UpdateOrganizationInput): JsonPatchOp[] {
   return patches;
 }
 
+/** True once the membership controller has applied all owner PolicyBindings. */
+export function isOrganizationOwnerGrantReady(
+  membership: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership
+): boolean {
+  const conditions = membership.status?.conditions as Condition[] | undefined;
+  const rolesApplied = conditions?.find((condition) => condition.type === 'RolesApplied');
+  if (rolesApplied?.status === 'True') {
+    return true;
+  }
+
+  const appliedRoles = membership.status?.appliedRoles ?? [];
+  if (appliedRoles.length === 0) {
+    return false;
+  }
+
+  return appliedRoles.every((role) => role.status === 'Applied');
+}
+
 function mapStatusFromConditions(conditions?: Condition[]): Organization['status'] {
   if (!conditions || conditions.length === 0) {
     return 'Pending';
