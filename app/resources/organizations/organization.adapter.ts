@@ -13,6 +13,17 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
 
+type Condition = {
+  type: string;
+  status: 'True' | 'False' | 'Unknown';
+  reason: string;
+};
+
+/** Legacy org types only — unified orgs omit type or send empty values. */
+function normalizeOrganizationType(type: unknown): Organization['type'] | undefined {
+  return type === 'Personal' || type === 'Standard' ? type : undefined;
+}
+
 export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organization): Organization {
   const transformed = {
     uid: raw.metadata?.uid ?? '',
@@ -24,7 +35,7 @@ export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organizati
     resourceVersion: raw.metadata?.resourceVersion ?? '',
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
     updatedAt: raw.metadata?.creationTimestamp,
-    type: raw.spec?.type,
+    type: normalizeOrganizationType(raw.spec?.type),
     status: mapStatusFromConditions(raw.status?.conditions),
     memberCount: undefined,
     projectCount: undefined,
@@ -59,7 +70,7 @@ export function toOrganizationFromMembership(
     resourceVersion: metadata?.resourceVersion ?? '',
     createdAt: metadata?.creationTimestamp ?? new Date(),
     updatedAt: metadata?.creationTimestamp,
-    type: status?.organization?.type,
+    type: normalizeOrganizationType(status?.organization?.type),
     status: mapStatusFromConditions(status?.conditions as Condition[]),
     memberCount: undefined,
     projectCount: undefined,
@@ -134,12 +145,6 @@ export function toUpdatePayload(input: UpdateOrganizationInput): JsonPatchOp[] {
 
   return patches;
 }
-
-type Condition = {
-  type: string;
-  status: 'True' | 'False' | 'Unknown';
-  reason: string;
-};
 
 function mapStatusFromConditions(conditions?: Condition[]): Organization['status'] {
   if (!conditions || conditions.length === 0) {

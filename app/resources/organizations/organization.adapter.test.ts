@@ -38,6 +38,15 @@ describe('toOrganization', () => {
     expect(org.type).toBeUndefined();
   });
 
+  it('drops empty or unknown organization types from unified orgs', () => {
+    const raw = {
+      metadata: rawMetadata({ name: 'unified' }),
+      spec: { type: '' },
+      status: { conditions: [{ type: 'Ready', status: 'True', reason: 'Ready' }] },
+    };
+    expect(toOrganization(raw as never).type).toBeUndefined();
+  });
+
   it('maps a Suspended reason to Suspended status', () => {
     const raw = {
       metadata: rawMetadata({ name: 'acme' }),
@@ -102,6 +111,15 @@ describe('toOrganizationFromMembership', () => {
     expect(org.name).toBe('acme');
     expect(org.displayName).toBe('Acme Inc');
     expect(org.type).toBe('Personal');
+  });
+
+  it('drops empty organization type from membership status', () => {
+    const raw = {
+      metadata: rawMetadata({ uid: 'mem-2' }),
+      spec: { organizationRef: { name: 'unified' } },
+      status: { organization: { displayName: 'Unified Org', type: '' } },
+    };
+    expect(toOrganizationFromMembership(raw as never).type).toBeUndefined();
   });
 });
 
