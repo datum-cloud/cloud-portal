@@ -34,7 +34,7 @@
     "@conform-to/react": "^1.19.4",
     "@conform-to/zod": "^1.19.4",
     "@datum-cloud/activity-ui": "^0.5.1",
-    "@datum-cloud/datum-ui": "^1.3.0",
+    "@datum-cloud/datum-ui": "^1.3.2",
     "@epic-web/client-hints": "^1.3.9",
     "@gqlts/runtime": "^3.4.2",
     "@hono/prometheus": "^1.0.3",
