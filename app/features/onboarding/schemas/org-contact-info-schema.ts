@@ -74,6 +74,28 @@ export type OrganizationContactInfoPayload = {
   };
 };
 
+/**
+ * Flattens a nested `Organization.spec.contactInfo` back into the flat form
+ * values the contact form edits. Inverse of `toOrganizationContactInfo` — used
+ * to seed the org-settings contact card from an existing org.
+ */
+export const orgContactInfoToFormValues = (
+  contactInfo:
+    | (Partial<OrganizationContactInfoPayload> & { address?: OrganizationContactInfoPayload['address'] })
+    | null
+    | undefined
+): Partial<OrgContactInfoValues> => ({
+  email: contactInfo?.email ?? '',
+  name: contactInfo?.name ?? '',
+  businessName: contactInfo?.businessName ?? '',
+  country: contactInfo?.address?.country ?? '',
+  line1: contactInfo?.address?.line1 ?? '',
+  line2: contactInfo?.address?.line2 ?? '',
+  city: contactInfo?.address?.city ?? '',
+  region: contactInfo?.address?.region ?? '',
+  postalCode: contactInfo?.address?.postalCode ?? '',
+});
+
 /** Maps onboarding contact form values to Organization.spec.contactInfo. */
 export const toOrganizationContactInfo = (
   values: OrgContactInfoValues

@@ -71,16 +71,16 @@ describe('toProjectList', () => {
 });
 
 describe('toCreatePayload', () => {
-  it('builds a Project owned by the given organization', () => {
+  it('builds a Project owned by the given organization with a generated name', () => {
     const payload = toCreatePayload({
-      name: 'web',
       organizationId: 'acme',
       description: 'desc',
     } as never);
 
     expect(payload.apiVersion).toBe('resourcemanager.miloapis.com/v1alpha1');
     expect(payload.kind).toBe('Project');
-    expect(payload.metadata?.name).toBe('web');
+    expect(payload.metadata?.generateName).toBe('project-');
+    expect(payload.metadata?.name).toBeUndefined();
     expect(payload.metadata?.annotations?.['kubernetes.io/description']).toBe('desc');
     expect(payload.spec?.ownerRef).toEqual({ kind: 'Organization', name: 'acme' });
   });

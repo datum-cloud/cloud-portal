@@ -18,7 +18,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -113,9 +112,6 @@ export default function AccountOrganizations() {
   const handleCreated = ({ orgId }: { orgId: string }) => {
     trackAction(AnalyticsAction.CreateOrg, { orgId });
     refetchOrgs();
-    toast.success('Organization', {
-      description: 'Your organization has been created.',
-    });
     navigate(getPathWithParams(paths.org.detail.root, { orgId }));
   };
 

@@ -13,7 +13,7 @@ import { logger } from '@/modules/logger';
 import { fanOutAcrossOrgs, getOrgScopedBase } from '@/resources/base/utils';
 import { slugifyBillingAccountName } from '@/resources/billing/_naming';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { NotFoundError } from '@/utils/errors';
+import { AppError, NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 /**
@@ -250,9 +250,9 @@ export function createBillingAccountService() {
      */
     async create(input: CreateBillingAccountInput): Promise<BillingAccount> {
       const startTime = Date.now();
+      const namespace = buildOrganizationNamespace(input.orgId);
+      const accountName = slugifyBillingAccountName(input.displayName);
       try {
-        const namespace = buildOrganizationNamespace(input.orgId);
-        const accountName = slugifyBillingAccountName(input.displayName);
         const [primaryEmail] = input.invoiceEmails;
         const contactInfo: {
           email: string;
@@ -300,8 +300,24 @@ export function createBillingAccountService() {
         });
         return created;
       } catch (error) {
-        logger.error(`${SERVICE_NAME}.create failed`, error as Error);
-        throw mapApiError(error);
+        const mapped = mapApiError(error);
+        // Idempotent create. The authorizer occasionally returns a
+        // transient 401/403 on the create path right after an org is
+        // provisioned (identity/propagation race) *after* the server has
+        // already persisted the BillingAccount. A caller-level retry then
+        // comes back 409 Conflict for the deterministic slug name. Treat
+        // that as success — fetch and return the account that's already
+        // there — rather than surfacing a conflict that would trip the
+        // onboarding org rollback and destroy a healthy org.
+        if (mapped instanceof AppError && mapped.status === 409) {
+          logger.warn(
+            `${SERVICE_NAME}.create hit 409 for ${accountName}; returning existing account`,
+            { orgId: input.orgId, accountName }
+          );
+          return await this.get(input.orgId, accountName);
+        }
+        logger.error(`${SERVICE_NAME}.create failed`, mapped);
+        throw mapped;
       }
     },
 

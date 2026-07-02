@@ -108,6 +108,19 @@ export const getBillingAccountDisplayName = (account: BillingAccount): string =>
 export const isBillingAccountReady = (account: BillingAccount): boolean =>
   account.status?.phase === 'Ready';
 
+/**
+ * Default org billing account for auto-binding new projects. Prefers a
+ * Ready account; falls back to the first listed account while one is
+ * still provisioning.
+ */
+export const selectDefaultOrgBillingAccount = (
+  accounts: BillingAccount[]
+): BillingAccount | undefined => accounts.find(isBillingAccountReady) ?? accounts[0];
+
+/** Convenience: resource name of {@link selectDefaultOrgBillingAccount}. */
+export const getDefaultOrgBillingAccountName = (accounts: BillingAccount[]): string | undefined =>
+  selectDefaultOrgBillingAccount(accounts)?.metadata?.name;
+
 /** Convenience: does this payment method back the account default? */
 export const isDefaultPaymentMethod = (
   method: PaymentMethod,

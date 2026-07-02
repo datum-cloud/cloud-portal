@@ -1,5 +1,6 @@
 import type {
   Organization,
+  OrganizationContactInfo,
   OrganizationList,
   CreateOrganizationInput,
   UpdateOrganizationInput,
@@ -79,6 +80,33 @@ export function useUpdateOrganization(
     onSuccess: (...args) => {
       const [data] = args;
       // Update detail cache + invalidate list (no Watch for this resource)
+      queryClient.setQueryData(organizationKeys.detail(name), data);
+      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+/** Variables for `useUpdateOrganizationContactInfo`. */
+export interface UpdateOrganizationContactInfoVariables {
+  contactInfo: OrganizationContactInfo;
+  /** Optional new display name; omit to leave the org's display name untouched. */
+  displayName?: string;
+}
+
+export function useUpdateOrganizationContactInfo(
+  name: string,
+  options?: UseMutationOptions<Organization, Error, UpdateOrganizationContactInfoVariables>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: UpdateOrganizationContactInfoVariables) =>
+      createOrganizationService().updateContactInfo(name, input),
+    ...options,
+    onSuccess: (...args) => {
+      const [data] = args;
       queryClient.setQueryData(organizationKeys.detail(name), data);
       queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
 

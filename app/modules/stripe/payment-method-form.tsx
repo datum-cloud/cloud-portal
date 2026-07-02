@@ -414,14 +414,14 @@ const StripePaymentMethodFormBody = ({
 
   const cardSection = (
     <section className="flex flex-col space-y-2">
-      {layout === 'dialog' && <FieldLabel label="Card details" />}
+      {layout === 'dialog' && <FieldLabel label="Card details" isRequired />}
       <PaymentElement options={PAYMENT_ELEMENT_OPTIONS} />
     </section>
   );
 
   const addressSection = !hideAddress ? (
     <section className="flex flex-col space-y-2">
-      <FieldLabel label="Billing address" />
+      <FieldLabel label="Billing address" isRequired />
       <AddressElement options={ADDRESS_ELEMENT_OPTIONS} />
     </section>
   ) : null;

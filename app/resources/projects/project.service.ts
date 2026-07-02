@@ -136,7 +136,7 @@ export function createProjectService() {
         const project = toProject(response.data);
 
         logger.service(SERVICE_NAME, 'create', {
-          input: { name: input.name },
+          input: { name: project.name },
           duration: Date.now() - startTime,
         });
 

@@ -202,7 +202,8 @@ export function createOrganizationService() {
     async updateContactInfo(
       name: string,
       input: {
-        displayName: string;
+        /** Optional — when omitted the display-name annotation is left untouched. */
+        displayName?: string;
         contactInfo: CreateOnboardingOrganizationInput['contactInfo'];
       },
       options?: ServiceOptions
@@ -214,11 +215,13 @@ export function createOrganizationService() {
           baseURL: getUserScopedBase(),
           path: { name },
           body: {
-            metadata: {
-              annotations: {
-                'kubernetes.io/display-name': input.displayName,
+            ...(input.displayName !== undefined && {
+              metadata: {
+                annotations: {
+                  'kubernetes.io/display-name': input.displayName,
+                },
               },
-            },
+            }),
             spec: {
               contactInfo: input.contactInfo,
             },

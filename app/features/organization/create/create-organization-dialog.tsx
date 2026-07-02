@@ -1,6 +1,9 @@
 import type { OrgContactInfoValues } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { OrgBillingSetupForm } from '@/features/organization/billing/org-billing-setup-form';
+import { logger } from '@/modules/logger';
+import { useDeleteOrganization } from '@/resources/organizations';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
+import { useRef } from 'react';
 
 export interface CreateOrganizationDialogProps {
   open: boolean;
@@ -17,10 +20,44 @@ export const CreateOrganizationDialog = ({
   stripePublishableKey,
   onCreated,
 }: CreateOrganizationDialogProps) => {
-  const onClose = () => onOpenChange(false);
+  // The org (+ billing account) is provisioned the moment contact info is
+  // saved — several steps before the final "Create organization" button. If
+  // the user closes the dialog in that window we'd leave an orphaned,
+  // half-finished org behind, so we track it and tear it down on abandon.
+  const provisionedOrgIdRef = useRef<string | null>(null);
+  const completedRef = useRef(false);
+
+  const deleteOrganization = useDeleteOrganization();
+
+  const resetLifecycle = () => {
+    provisionedOrgIdRef.current = null;
+    completedRef.current = false;
+  };
+
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      const orgId = provisionedOrgIdRef.current;
+      // Closed mid-flow after provisioning but before completing → discard the
+      // orphaned org. Fire-and-forget: the dialog is going away regardless.
+      if (orgId && !completedRef.current) {
+        deleteOrganization.mutate(orgId, {
+          onError: (error) => {
+            logger.error(
+              `Failed to clean up abandoned organization ${orgId} after dialog close`,
+              error as Error
+            );
+          },
+        });
+      }
+      resetLifecycle();
+    }
+    onOpenChange(next);
+  };
+
+  const onClose = () => handleOpenChange(false);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <Dialog.Content className="w-full sm:max-w-lg">
         <Dialog.Header
           className="mb-0 border-b"
@@ -34,8 +71,14 @@ export const CreateOrganizationDialog = ({
               key="create-organization"
               contactDefaults={contactDefaults}
               stripePublishableKey={stripePublishableKey}
+              showDisplayNameField
               submitLabel="Create organization"
+              onOrgProvisioned={(setup) => {
+                provisionedOrgIdRef.current = setup.orgId;
+              }}
               onComplete={(result) => {
+                // Completed successfully — keep the org and skip cleanup.
+                completedRef.current = true;
                 onCreated(result);
                 onClose();
               }}

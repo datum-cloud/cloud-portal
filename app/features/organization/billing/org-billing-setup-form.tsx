@@ -11,16 +11,27 @@ import {
   isOrgContactInfoComplete,
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
+import { logger } from '@/modules/logger';
 import type { AddPaymentMethodValues, StripePaymentMethodConfirmedDetails } from '@/modules/stripe';
-import { useCreatePaymentMethod, type CreatePaymentMethodInput } from '@/resources/payment-methods';
+import { useUpdateBillingAccount } from '@/resources/billing-accounts';
+import {
+  useCreatePaymentMethod,
+  waitForPaymentMethodActive,
+  waitForPaymentMethodCard,
+  type CreatePaymentMethodInput,
+} from '@/resources/payment-methods';
 import { waitForStripePaymentMethodSetup } from '@/resources/stripe-payment-methods';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ClockIcon } from 'lucide-react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+
+/** How long to wait for the provider to publish card brand/last4 after confirm. */
+const CARD_DETAILS_TIMEOUT_MS = 30_000;
 
 interface PaymentMethodSummary {
   brand: CardBrand;
@@ -39,7 +50,21 @@ export interface OrgBillingSetupFormProps {
   initialContactInfo?: OrgContactInfoValues;
   /** Org exists from a prior partial setup — billing account create will be retried. */
   partialOrgId?: string;
+  /**
+   * Show an explicit "Organization name" field at the top of the form. Used by
+   * the standalone create-org flow so the user can name the org directly;
+   * omitted in onboarding, where the name is derived from contact details.
+   */
+  showDisplayNameField?: boolean;
   submitLabel?: string;
+  /**
+   * Fired once a brand-new org (and its billing account) has been provisioned
+   * from within this form — i.e. the point after which abandoning the flow
+   * leaves an orphaned org behind. Only fires for a fresh create (not when
+   * resuming a `partialOrgId` or editing an `initialSetup`), so the caller can
+   * clean up a half-finished org if the user bails before `onComplete`.
+   */
+  onOrgProvisioned?: (setup: { orgId: string; accountName: string; namespace: string }) => void;
   onComplete?: (result: { orgId: string; contactInfo: OrgContactInfoValues }) => void;
 }
 
@@ -49,12 +74,15 @@ export const OrgBillingSetupForm = ({
   initialSetup,
   initialContactInfo,
   partialOrgId,
+  showDisplayNameField = false,
   submitLabel = 'Continue',
+  onOrgProvisioned,
   onComplete,
 }: OrgBillingSetupFormProps) => {
   const [contactInfo, setContactInfo] = useState<OrgContactInfoValues | null>(
     initialContactInfo ?? null
   );
+  const [displayName, setDisplayName] = useState('');
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [paymentSummary, setPaymentSummary] = useState<PaymentMethodSummary | null>(null);
@@ -73,10 +101,15 @@ export const OrgBillingSetupForm = ({
   });
 
   const createPaymentMethodMutation = useCreatePaymentMethod();
+  const setDefaultPaymentMethodMutation = useUpdateBillingAccount();
 
   const orgId = billingSetup?.orgId;
   const accountName = billingSetup?.accountName;
   const namespace = billingSetup?.namespace;
+
+  // Name of the `PaymentMethod` we just created, stashed so the confirm
+  // handler knows which resource to watch for card details.
+  const pendingPaymentMethodNameRef = useRef<string | null>(null);
 
   const applyPaymentSummary = useCallback((brand: string | null | undefined, last4: string) => {
     const normalizedBrand = normalizeCardBrand(brand);
@@ -90,11 +123,81 @@ export const OrgBillingSetupForm = ({
   const handlePaymentConfirmed = useCallback(
     (details?: StripePaymentMethodConfirmedDetails) => {
       setPaymentDialogOpen(false);
+
+      const paymentMethodName = pendingPaymentMethodNameRef.current;
+
+      // Fill the card chip. Fast path: on the rare occasion Stripe hands
+      // back an expanded payment method, use its brand/last4 immediately.
+      // Otherwise the confirm response only carried an unexpanded payment
+      // method id — the authoritative brand/last4 land on the
+      // `PaymentMethod.status.details.card` once the provider processes
+      // `payment_method.attached`, so watch for them and fill the chip in
+      // when they arrive.
       if (details?.last4) {
         applyPaymentSummary(details.brand, details.last4);
+      } else if (orgId && namespace && paymentMethodName) {
+        const { promise, cancel } = waitForPaymentMethodCard({
+          orgId,
+          namespace,
+          paymentMethodName,
+        });
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timeout = new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            cancel();
+            reject(new Error('Timed out waiting for card details'));
+          }, CARD_DETAILS_TIMEOUT_MS);
+        });
+        Promise.race([promise, timeout])
+          .then((card) => applyPaymentSummary(card.brand, card.last4))
+          .catch((error) => {
+            logger.warn('Could not resolve card details for the new payment method', {
+              error: error instanceof Error ? error.message : String(error),
+            });
+          })
+          .finally(() => {
+            if (timer) clearTimeout(timer);
+          });
+      }
+
+      // Make this card the account's default. The billing API only accepts
+      // a `defaultPaymentMethodRef` once the card has reached `Active`, so
+      // wait for that phase before patching. This is the first (and only)
+      // card on a freshly created account — the controller force-defaults
+      // the first card too, which makes this patch a harmless no-op if it
+      // beat us to it, and a guarantee if it didn't.
+      if (orgId && namespace && accountName && paymentMethodName) {
+        const { promise, cancel } = waitForPaymentMethodActive({
+          orgId,
+          namespace,
+          paymentMethodName,
+        });
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timeout = new Promise<never>((_, reject) => {
+          timer = setTimeout(() => {
+            cancel();
+            reject(new Error('Timed out waiting for card to activate'));
+          }, CARD_DETAILS_TIMEOUT_MS);
+        });
+        Promise.race([promise, timeout])
+          .then(() =>
+            setDefaultPaymentMethodMutation.mutateAsync({
+              orgId,
+              name: accountName,
+              defaultPaymentMethodName: paymentMethodName,
+            })
+          )
+          .catch((error) => {
+            logger.warn('Could not set the new card as the default payment method', {
+              error: error instanceof Error ? error.message : String(error),
+            });
+          })
+          .finally(() => {
+            if (timer) clearTimeout(timer);
+          });
       }
     },
-    [applyPaymentSummary]
+    [applyPaymentSummary, orgId, namespace, accountName, setDefaultPaymentMethodMutation]
   );
 
   const createPaymentMethod = useCallback(
@@ -110,6 +213,7 @@ export const OrgBillingSetupForm = ({
       };
 
       const { paymentMethodName } = await createPaymentMethodMutation.mutateAsync(input);
+      pendingPaymentMethodNameRef.current = paymentMethodName;
 
       const { promise, cancel } = waitForStripePaymentMethodSetup({
         orgId,
@@ -149,13 +253,21 @@ export const OrgBillingSetupForm = ({
   }, [contactInfo, contactDialogDefaults]);
 
   const handleContactSave = async (values: OrgContactInfoValues) => {
+    // Fresh create = no org exists yet from a prior save (`billingSetup`) and
+    // we're not resuming a partial one (`partialOrgId`). Only then does saving
+    // provision a new org that would be orphaned if the user bails.
+    const isFreshCreate = !billingSetup && !partialOrgId;
     const setup = await setupBillingMutation.mutateAsync({
       contactInfo: values,
+      displayNameOverride: showDisplayNameField ? displayName : undefined,
       existingOrgId: billingSetup ? undefined : partialOrgId,
       existingSetup: billingSetup ?? undefined,
     });
     setContactInfo(values);
     setBillingSetup(setup);
+    if (isFreshCreate) {
+      onOrgProvisioned?.(setup);
+    }
   };
 
   const handleSubmit = () => {
@@ -165,7 +277,33 @@ export const OrgBillingSetupForm = ({
 
   return (
     <>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-5">
+        {showDisplayNameField ? (
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="org-display-name"
+              className="text-foreground text-xs font-semibold opacity-80">
+              Organization name
+            </label>
+            <Input
+              id="org-display-name"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              placeholder="e.g. Acme Corp"
+              autoComplete="off"
+              disabled={billingReady}
+              maxLength={256}
+              data-e2e="create-organization-display-name"
+            />
+            {!billingReady ? (
+              <p className="text-foreground text-1xs font-normal opacity-60">
+                A friendly name for the organization. Defaults to your business or contact name if
+                left blank.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
         <VerificationField
           label="Contact information"
           description="Add your company name and address"

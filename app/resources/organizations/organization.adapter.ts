@@ -39,6 +39,7 @@ export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organizati
     status: mapStatusFromConditions(raw.status?.conditions),
     memberCount: undefined,
     projectCount: undefined,
+    contactInfo: raw.spec?.contactInfo,
   };
 
   return organizationSchema.parse(transformed);

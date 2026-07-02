@@ -13,7 +13,7 @@
  */
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
-import { AuthenticationError, AuthorizationError } from '@/utils/errors';
+import { AppError, AuthenticationError, AuthorizationError } from '@/utils/errors';
 
 /**
  * Constructs the appropriate base URL for the current environment.
@@ -98,4 +98,66 @@ export async function fanOutAcrossOrgs<T>(
     duration: Date.now() - startTime,
   });
   return items;
+}
+
+/** HTTP statuses that mean "you're not authorized yet", which right after an
+ * org create is usually a propagation race rather than a real denial. */
+const TRANSIENT_AUTH_STATUSES = new Set([401, 403]);
+
+export interface RetryOnTransientAuthErrorOptions {
+  /** Total number of attempts (including the first). Defaults to 6. */
+  attempts?: number;
+  /** Delay before the first retry; doubles each attempt. Defaults to 500ms. */
+  baseDelayMs?: number;
+  /** Ceiling for the per-attempt backoff delay. Defaults to 8000ms. */
+  maxDelayMs?: number;
+  /** Label used for the retry log line. */
+  operation?: string;
+}
+
+/**
+ * Retry an operation while it fails with a transient authorization/authentication
+ * error (HTTP 401/403).
+ *
+ * A newly created organization does not authorize its owner instantly: the grant
+ * has to travel through an async pipeline (Organization → owner
+ * OrganizationMembership → PolicyBinding → IAM/OpenFGA tuple sync) before the
+ * caller can act in the org namespace. A write fired in the same breath as the
+ * org create can beat that pipeline and come back 403 even though the caller is
+ * the owner. Rather than treat that race as a hard failure, back off and retry —
+ * the grant typically lands within a second or two, and retrying also rides out
+ * the intermittent authorizer identity resolution we see on the create path.
+ *
+ * Non-auth errors (validation, conflict, 5xx, ...) are re-thrown immediately.
+ */
+export async function retryOnTransientAuthError<T>(
+  fn: () => Promise<T>,
+  opts: RetryOnTransientAuthErrorOptions = {}
+): Promise<T> {
+  const attempts = opts.attempts ?? 6;
+  const baseDelayMs = opts.baseDelayMs ?? 500;
+  const maxDelayMs = opts.maxDelayMs ?? 8000;
+  const operation = opts.operation ?? 'retryOnTransientAuthError';
+
+  let lastError: unknown;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      const status = error instanceof AppError ? error.status : undefined;
+      const isLastAttempt = attempt === attempts - 1;
+      if (status === undefined || !TRANSIENT_AUTH_STATUSES.has(status) || isLastAttempt) {
+        throw error;
+      }
+      const delay = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs);
+      logger.warn(`${operation} got ${status}; retrying after ${delay}ms`, {
+        attempt: attempt + 1,
+        attempts,
+      });
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  // Unreachable: the loop either returns or throws on the last attempt.
+  throw lastError;
 }

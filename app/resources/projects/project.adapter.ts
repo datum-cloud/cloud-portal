@@ -62,7 +62,7 @@ export function toCreatePayload(
     apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
     kind: 'Project',
     metadata: {
-      name: input.name,
+      generateName: 'project-',
       annotations: {
         'kubernetes.io/description': input.description ?? '',
       },

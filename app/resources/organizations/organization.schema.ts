@@ -7,11 +7,33 @@ export type OrganizationType = z.infer<typeof organizationTypeSchema>;
 export const organizationStatusSchema = z.enum(['Active', 'Suspended', 'Pending', 'Deleting']);
 export type OrganizationStatus = z.infer<typeof organizationStatusSchema>;
 
+export const organizationContactInfoSchema = z.object({
+  email: z.email(),
+  name: z.string().min(1).max(256),
+  businessName: z.string().max(256).optional(),
+  address: z
+    .object({
+      country: z.string().length(2),
+      line1: z.string().max(256).optional(),
+      line2: z.string().max(256).optional(),
+      city: z.string().max(128).optional(),
+      region: z.string().max(128).optional(),
+      postalCode: z.string().max(32).optional(),
+    })
+    .optional(),
+});
+
+export type OrganizationContactInfo = z.infer<typeof organizationContactInfoSchema>;
+
 export const organizationSchema = resourceMetadataSchema.extend({
   type: organizationTypeSchema.optional(),
   status: organizationStatusSchema,
   memberCount: z.number().optional(),
   projectCount: z.number().optional(),
+  // `spec.contactInfo` on unified orgs. Read leniently: legacy orgs have none,
+  // and we never want a malformed contact block to break loading the org, so
+  // fall back to `undefined` instead of throwing on parse.
+  contactInfo: organizationContactInfoSchema.optional().catch(undefined),
 });
 
 export type Organization = z.infer<typeof organizationSchema>;
@@ -37,22 +59,6 @@ export const createOrganizationSchema = z.object({
 });
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
-
-const organizationContactInfoSchema = z.object({
-  email: z.email(),
-  name: z.string().min(1).max(256),
-  businessName: z.string().max(256).optional(),
-  address: z
-    .object({
-      country: z.string().length(2),
-      line1: z.string().max(256).optional(),
-      line2: z.string().max(256).optional(),
-      city: z.string().max(128).optional(),
-      region: z.string().max(128).optional(),
-      postalCode: z.string().max(32).optional(),
-    })
-    .optional(),
-});
 
 /** Unified org create for onboarding — server assigns an opaque name via generateName. */
 export const createOnboardingOrganizationSchema = z.object({
