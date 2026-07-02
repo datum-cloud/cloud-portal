@@ -1,4 +1,4 @@
-import { STEP_OPTIONS } from '@/modules/metrics/constants';
+import { METRICS_CONTROL_HEIGHT_CLASS, STEP_OPTIONS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
 
@@ -46,7 +47,11 @@ export const StepControl = ({ filterKey = 'step', defaultValue = '15m' }: StepCo
   }, [updateUrlStateEntry, filterKey, step]);
 
   return (
-    <div className="border-input bg-background flex h-[36px] items-center overflow-hidden rounded-md border shadow-none">
+    <div
+      className={cn(
+        'border-input bg-background flex items-center overflow-hidden rounded-md border shadow-none',
+        METRICS_CONTROL_HEIGHT_CLASS
+      )}>
       <Button
         type="quaternary"
         theme="borderless"

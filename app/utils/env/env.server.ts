@@ -53,6 +53,7 @@ const publicSchema = z.object({
   // ─────────────────────────────────────────────────────────
   AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
   AUTH_ZITADEL_PROJECT_ID: z.string().optional(),
+  AUTH_OIDC_POST_LOGOUT_REDIRECT_URI: urlSchemaOptional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -145,7 +146,7 @@ const serverSchema = z.object({
   // ─────────────────────────────────────────────────────────
   // Optional: Amberflo usage query (read path for usage chart)
   //
-  // AMBERFLO_API_KEY: secret key for POST /usage/sparse — never sent to browser.
+  // AMBERFLO_API_KEY: secret key for POST /usage — never sent to browser.
   // AMBERFLO_BASE_URL: defaults to https://app.amberflo.io.
   // Meter names are discovered automatically from platform MeterDefinition resources.
   // ─────────────────────────────────────────────────────────
@@ -194,6 +195,7 @@ export const env: Env = {
     graphqlUrl: data.GRAPHQL_URL,
     authOidcIssuer: data.AUTH_OIDC_ISSUER,
     authZitadelProjectId: data.AUTH_ZITADEL_PROJECT_ID,
+    authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
     sentryEnv: data.SENTRY_ENV,
     fathomId: data.FATHOM_ID,

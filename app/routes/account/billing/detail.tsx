@@ -9,7 +9,6 @@ import {
   BillingAddressForm,
   DisplayNameFormCard,
   EmailRecipientCard,
-  InvoicePreviewCard,
   PaymentMethodsCard,
   getBillingAccountDisplayName,
   type BillingAccount,
@@ -791,12 +790,9 @@ function AccountBillingAccountDetailPageInner() {
                 <h2 className="text-foreground text-base font-medium">Billing address & Tax IDs</h2>
                 <p className="text-muted-foreground text-sm leading-relaxed">
                   Changes will be reflected on every upcoming invoice; past invoices are not
-                  affected. Tax IDs are only required for registered businesses. The invoice preview
-                  updates as you type so you can see exactly how your details will appear on the
-                  next invoice.
+                  affected. Tax IDs are only required for registered businesses.
                 </p>
               </div>
-              <InvoicePreviewCard />
             </div>
             <div className="flex flex-col gap-4">
               <BillingAddressFieldsCard isSubmitting={addressMutation.isPending} />

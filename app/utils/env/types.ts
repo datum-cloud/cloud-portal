@@ -18,6 +18,9 @@ export interface PublicEnv {
   // Required: Authentication
   authOidcIssuer: string;
   authZitadelProjectId?: string;
+  // When set, sent as the OIDC end_session post_logout_redirect_uri. MUST be registered on the
+  // Zitadel client or Zitadel returns 400; leave unset to use Zitadel's default logout page.
+  authPostLogoutRedirectUri?: string;
 
   // Optional: Observability
   sentryDsn?: string;

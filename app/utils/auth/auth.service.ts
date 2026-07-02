@@ -15,8 +15,7 @@ import type {
 } from './auth.types';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { env } from '@/utils/env/env.server';
-import { categorizeRefreshError, RefreshError } from '@/utils/errors/auth';
-import { combineHeaders } from '@/utils/helpers/path.helper';
+import { categorizeRefreshError, RefreshError, RefreshErrorType } from '@/utils/errors/auth';
 import { jwtDecode } from 'jwt-decode';
 import { createCookieSessionStorage, createCookie } from 'react-router';
 
@@ -292,6 +291,34 @@ export class AuthService {
         } catch (error) {
           debugLog('Failed to restore session', { error: String(error) });
 
+          const refreshError = categorizeRefreshError(error);
+
+          // Multi-pod refresh race (cross-process): a parallel pod sharing the same
+          // _refresh_token (RT1) may have already rotated it at Zitadel, leaving our
+          // attempt with REFRESH_TOKEN_REVOKED / invalid_grant. This is NOT a genuine
+          // logout. Do NOT destroy the refresh cookie here — destroying it would null
+          // the session and push the user into the revoking logout path, which would
+          // also kill the winning pod's freshly-rotated RT2. Instead, leave the existing
+          // refresh cookie intact and return null without clearing it, so the browser's
+          // NEXT request — carrying the rotated cookie written by the winning pod —
+          // re-validates cleanly.
+          //
+          // Tradeoff / backstop: we never fabricate validity. We have no current access
+          // token to return here (Case 1 = no _session cookie), so the session is still
+          // null for THIS request; we only refrain from the destructive logout cascade.
+          // A genuinely-revoked token cannot loop forever: the refresh cookie carries its
+          // own maxAge (REFRESH_COOKIE_MAX_AGE) and any subsequent refresh attempt that
+          // keeps failing (e.g. truly expired/revoked, not a race) will fall through to
+          // REFRESH_TOKEN_EXPIRED handling, and downstream API 401s force re-eval.
+          if (refreshError.type === RefreshErrorType.REFRESH_TOKEN_REVOKED) {
+            console.warn(
+              '[AuthService] Session restore hit REFRESH_TOKEN_REVOKED — treating as a probable ' +
+                'cross-pod rotation race. Keeping refresh cookie for next-request re-validation.',
+              { error: String(error) }
+            );
+            return { session: null, headers: defaultHeaders, refreshed: false };
+          }
+
           console.warn(
             '[AuthService] Session restore failed — refresh token rejected. Clearing refresh cookie.',
             {
@@ -347,6 +374,33 @@ export class AuthService {
           // rotated the refresh token (REFRESH_TOKEN_REVOKED / invalid_grant), but our
           // access token is still valid — no reason to log the user out.
           if (!isExpired) {
+            return { session, headers: defaultHeaders, refreshed: false };
+          }
+
+          // Extended race tolerance: even when our access token has JUST ticked past expiry,
+          // a REFRESH_TOKEN_REVOKED here is almost always a cross-pod rotation race — a
+          // parallel pod sharing the same _refresh_token (RT1) already rotated it at Zitadel,
+          // so our reuse is rejected. Destroying the refresh cookie + returning null here is
+          // what drives the downstream redirect into the REVOKING logout(), which would also
+          // kill the winning pod's freshly-rotated RT2 and bounce the user to login.
+          //
+          // So on this SPECIFIC error we keep the existing (just-expired) session and DO NOT
+          // destroy the refresh cookie. The browser's next request carries the rotated cookie
+          // the winning pod wrote, which re-validates cleanly.
+          //
+          // Tradeoff / backstop — we do NOT fabricate validity beyond the access token:
+          // the access token's own `exp` is the bound. A genuinely-revoked (not raced) token
+          // means the access token is also expired and will keep failing; the very next
+          // downstream API call returns 401, forcing a fresh getValidSession evaluation, and
+          // the refresh cookie's maxAge caps how long this can recur. We tolerate the race for
+          // one hop without server-side-revoking tokens a parallel request may have just rotated.
+          if (refreshError.type === RefreshErrorType.REFRESH_TOKEN_REVOKED) {
+            console.warn(
+              '[AuthService] Refresh hit REFRESH_TOKEN_REVOKED on a just-expired access token — ' +
+                'treating as a probable cross-pod rotation race. Returning current session ' +
+                'without revoking; next request will re-validate with the rotated cookie.',
+              { minutesUntilExpiry }
+            );
             return { session, headers: defaultHeaders, refreshed: false };
           }
 
@@ -448,13 +502,20 @@ export class AuthService {
   }
 
   /**
-   * Performs logout - revokes tokens and destroys all auth cookies
+   * Performs logout - revokes tokens and returns the OIDC front-channel end_session URL.
+   *
+   * Cookie destruction is intentionally NOT done here — the route that calls this method
+   * is responsible for destroying local auth cookies (via destroyLocalSessions) after
+   * redirecting the browser through end_session so the Zitadel SSO cookie is cleared first.
    *
    * @param cookieHeader - Cookie header from request
    * @param idToken - ID token for OIDC end_session (optional)
-   * @returns Headers with Set-Cookie to destroy cookies
+   * @returns endSessionUrl — front-channel URL to 302 to (null if no idToken)
    */
-  static async logout(cookieHeader: string | null, idToken?: string): Promise<Headers> {
+  static async logout(
+    cookieHeader: string | null,
+    idToken?: string
+  ): Promise<{ endSessionUrl: string | null }> {
     const { session } = await this.getSession(cookieHeader);
     const { refreshToken } = await this.getRefreshToken(cookieHeader);
 
@@ -463,7 +524,7 @@ export class AuthService {
       await clearUserPermissionCache(session.sub);
     }
 
-    // 2. Revoke access token at Zitadel
+    // 2. Revoke access token (back-channel — works without browser cookies)
     if (session?.accessToken) {
       try {
         await zitadelStrategy.revokeToken(session.accessToken);
@@ -473,7 +534,7 @@ export class AuthService {
       }
     }
 
-    // 3. Revoke refresh token at Zitadel
+    // 3. Revoke refresh token
     if (refreshToken) {
       try {
         await zitadelStrategy.revokeToken(refreshToken);
@@ -483,27 +544,34 @@ export class AuthService {
       }
     }
 
-    // 4. Call OIDC end_session endpoint
-    if (idToken) {
-      try {
-        const body = new URLSearchParams();
-        body.append('id_token_hint', idToken);
-
-        await fetch(`${zitadelIssuer}/oidc/v1/end_session`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body,
-        });
-        debugLog('OIDC session ended');
-      } catch (error) {
-        debugLog('Failed to end OIDC session', { error: String(error) });
-      }
-    }
-
-    // 5. Destroy local cookies
-    const sessionHeaders = await this.destroySession(cookieHeader);
-    const refreshHeaders = await this.destroyRefreshToken(cookieHeader);
-
-    return combineHeaders(sessionHeaders, refreshHeaders);
+    // 4. Front-channel end_session: return the URL for the route to 302 to (the browser must
+    //    navigate so Zitadel can clear __Host-zitadel.useragent and end the SSO session).
+    return { endSessionUrl: buildEndSessionUrl(idToken) };
   }
+}
+
+/**
+ * Build the front-channel OIDC end_session redirect URL. Returns null with no idToken
+ * (caller falls back to local destroy). Defensive guard: client_id + post_logout_redirect_uri
+ * are attached ONLY when a post-logout URI is configured — sending an unregistered URI next to
+ * client_id makes Zitadel return 400. Omitting both yields Zitadel's safe default logout.
+ */
+export function buildEndSessionUrl(
+  idToken: string | undefined,
+  cfg: { issuer: string; clientId: string; postLogoutRedirectUri?: string } = {
+    issuer: zitadelIssuer,
+    clientId: env.server.authOidcClientId ?? '',
+    postLogoutRedirectUri: env.public.authPostLogoutRedirectUri,
+  }
+): string | null {
+  if (!idToken) return null;
+  const url = new URL(`${cfg.issuer}/oidc/v1/end_session`);
+  url.searchParams.set('id_token_hint', idToken);
+  // Attach both together only when truthy — an empty client_id beside the URI would itself
+  // trip Zitadel's 400. Omitting both is the safe default logout.
+  if (cfg.clientId && cfg.postLogoutRedirectUri) {
+    url.searchParams.set('client_id', cfg.clientId);
+    url.searchParams.set('post_logout_redirect_uri', cfg.postLogoutRedirectUri);
+  }
+  return url.toString();
 }

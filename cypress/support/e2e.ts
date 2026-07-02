@@ -3,6 +3,27 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import '@testing-library/cypress/add-commands';
 
 /**
+ * Neutralize Radix UI's "close on window blur" behavior in the test runner.
+ *
+ * `@radix-ui/react-menu` ≥2.1.17 (pulled in by `@datum-cloud/datum-ui` 1.3.0)
+ * registers `window.addEventListener('blur', () => close())` whenever a
+ * DropdownMenu / Select / Popover is open. In Cypress headless runs the
+ * application-under-test window routinely lacks OS focus, so the browser fires
+ * spurious `blur` events that close menus the instant they open — making it
+ * impossible to click an item inside (e.g. the user-menu "Log Out"). The
+ * user-visible symptom is `[data-e2e="user-menu-logout"]` "never found".
+ *
+ * We register a `blur` listener on the AUT window at page-load time — before
+ * React/Radix mount — and call `stopImmediatePropagation()`. Because `blur`
+ * targets `window` itself (AT_TARGET phase), listeners run in registration
+ * order, so ours runs before Radix's and prevents the close. This only affects
+ * the test environment; production close-on-blur behavior is untouched.
+ */
+Cypress.on('window:before:load', (win) => {
+  win.addEventListener('blur', (event) => event.stopImmediatePropagation(), { capture: true });
+});
+
+/**
  * Stub the "ambient" authenticated-page polling that fires on every visit so
  * the e2e suite doesn't trip the upstream IAM rate limiter for the test
  * account. None of the smoke specs exercise these endpoints — they're noise

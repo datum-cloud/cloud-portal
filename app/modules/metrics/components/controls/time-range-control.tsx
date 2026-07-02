@@ -1,4 +1,8 @@
-import { PRESET_RANGES } from '@/modules/metrics/constants';
+import {
+  DEFAULT_TIME_RANGE,
+  METRICS_CONTROL_HEIGHT_CLASS,
+  PRESET_RANGES,
+} from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import {
   getPresetDateRange,
@@ -9,6 +13,7 @@ import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { useApp } from '@/providers/app.provider';
 import type { PresetConfig, TimeRangeValue } from '@datum-cloud/datum-ui/date-picker';
 import { TimeRangePicker, getBrowserTimezone } from '@datum-cloud/datum-ui/date-picker';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo } from 'react';
 
@@ -16,7 +21,14 @@ import { useCallback, useEffect, useMemo } from 'react';
 const METRICS_PRESETS: PresetConfig[] = PRESET_RANGES.map((p, i) => ({
   key: p.value,
   label: p.label,
-  shortcut: p.value === 'now-7d' ? 'w' : p.value === 'now-24h' ? 'd' : String(i + 1),
+  shortcut:
+    p.value === 'now-7d'
+      ? 'w'
+      : p.value === 'now-1h'
+        ? 'h'
+        : p.value === 'now-24h'
+          ? 'd'
+          : String(i + 1),
   getRange: (timezone: string) => getPresetDateRange(p.value, timezone),
 }));
 
@@ -65,7 +77,7 @@ export interface TimeRangeControlProps {
   filterKey?: string;
   /**
    * Default time range value when no URL state exists.
-   * Defaults to 'now-24h'.
+   * Defaults to {@link DEFAULT_TIME_RANGE} (`now-30m`).
    */
   defaultValue?: string;
 }
@@ -76,7 +88,7 @@ export interface TimeRangeControlProps {
  */
 export const TimeRangeControl = ({
   filterKey = 'timeRange',
-  defaultValue = 'now-24h',
+  defaultValue = DEFAULT_TIME_RANGE,
 }: TimeRangeControlProps) => {
   const { registerUrlState, updateUrlStateEntry } = useMetrics();
   const { userPreferences } = useApp();
@@ -125,7 +137,7 @@ export const TimeRangeControl = ({
       disableFuture
       placeholder="Select time range"
       align="start"
-      className="w-full sm:w-auto"
+      className={cn('w-full sm:w-auto', METRICS_CONTROL_HEIGHT_CLASS, 'py-0 text-sm')}
     />
   );
 };

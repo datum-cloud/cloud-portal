@@ -34,10 +34,9 @@ export const handle = {
 export default route.Page(() => <GeneralForm />);
 
 function GeneralForm() {
-  const { data: project } = useGuardedRouteData<
-    Project,
-    { usageMeteringEnabled: boolean; organizationId?: string | null }
-  >('project-detail');
+  const { data: project } = useGuardedRouteData<Project, { organizationId?: string | null }>(
+    'project-detail'
+  );
 
   return (
     <div className="flex w-full flex-col gap-8">
