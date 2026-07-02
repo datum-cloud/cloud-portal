@@ -20,13 +20,15 @@ export const orgContactInfoSchema = z.object({
 
 export type OrgContactInfoValues = z.infer<typeof orgContactInfoSchema>;
 
+export const DEFAULT_ORG_CONTACT_COUNTRY = 'US';
+
 export const buildOrgContactDefaults = (
   defaults?: Partial<OrgContactInfoValues>
 ): OrgContactInfoValues => ({
   email: defaults?.email ?? '',
   name: defaults?.name ?? '',
   businessName: defaults?.businessName ?? '',
-  country: defaults?.country ?? '',
+  country: defaults?.country?.trim() || DEFAULT_ORG_CONTACT_COUNTRY,
   line1: defaults?.line1 ?? '',
   line2: defaults?.line2 ?? '',
   city: defaults?.city ?? '',
@@ -59,6 +61,16 @@ export const formatOrgContactSecondaryLine = (values: OrgContactInfoValues): str
 /** Org display name for provisioning step — business name preferred. */
 export const orgDisplayNameFromContact = (values: OrgContactInfoValues): string =>
   values.businessName?.trim() || values.name.trim();
+
+/**
+ * Display name for the first project created during onboarding.
+ *
+ * We use a neutral default rather than mirroring the org name so the org
+ * (billing/team container) and its first project stay visually distinct in
+ * the switcher. Users can rename either at any time.
+ */
+export const defaultOnboardingProjectDisplayName = (_values: OrgContactInfoValues): string =>
+  'Default project';
 
 export type OrganizationContactInfoPayload = {
   email: string;

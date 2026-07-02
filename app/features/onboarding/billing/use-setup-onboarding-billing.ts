@@ -62,6 +62,11 @@ export function useSetupOnboardingBilling(
           contactInfo: orgContact,
         });
         orgId = org.name;
+      } else {
+        await createOrganizationService().updateContactInfo(orgId, {
+          displayName,
+          contactInfo: orgContact,
+        });
       }
 
       const namespace = buildOrganizationNamespace(orgId);

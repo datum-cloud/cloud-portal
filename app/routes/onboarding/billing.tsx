@@ -1,12 +1,14 @@
 import { type BillingAccount } from '@/features/billing/types';
-import { BillingPage } from '@/features/onboarding/billing/billing-page';
+import { BillingPage, type BillingPageData } from '@/features/onboarding/billing/billing-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import {
   buildOrgContactDefaults,
+  orgContactInfoToFormValues,
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
+import { createPaymentMethodService } from '@/resources/payment-methods';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
 import { createUserService } from '@/resources/users';
 import { orgIdFromNamespace } from '@/utils/common';
@@ -39,6 +41,16 @@ function contactInfoFromBillingAccount(account: BillingAccount): OrgContactInfoV
   });
 }
 
+function contactInfoFromOrganization(
+  org: Awaited<ReturnType<ReturnType<typeof createOrganizationService>['get']>>
+): OrgContactInfoValues | undefined {
+  const values = orgContactInfoToFormValues(org.contactInfo);
+  if (!values.email?.trim() || !values.name?.trim()) {
+    return undefined;
+  }
+  return buildOrgContactDefaults(values);
+}
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await getSession(request);
 
@@ -59,38 +71,69 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       .catch(() => []);
     const stripePublishableKey = stripeConfigs[0]?.spec?.publishableKey ?? undefined;
 
+    const url = new URL(request.url);
+    const requestedOrgId = url.searchParams.get('orgId')?.trim() || undefined;
+
     const organizations = await createOrganizationService().list();
-    const org = organizations.items[0];
+    const org = requestedOrgId
+      ? (organizations.items.find((item) => item.name === requestedOrgId) ??
+        (await createOrganizationService()
+          .get(requestedOrgId)
+          .catch(() => null)))
+      : organizations.items[0];
 
     if (org) {
-      const accounts = await createBillingAccountService().list(org.name);
+      const orgId = org.name;
+      const fullOrg = org.contactInfo ? org : await createOrganizationService().get(orgId);
+      const orgContactInfo = contactInfoFromOrganization(fullOrg);
+
+      const accounts = await createBillingAccountService().list(orgId);
       const account: BillingAccount | undefined = accounts[0];
+      const paymentMethods = await createPaymentMethodService()
+        .list(orgId)
+        .catch(() => []);
+      const hasActivePayment =
+        account?.metadata?.name &&
+        paymentMethods.some(
+          (method) =>
+            method.spec?.billingAccountRef?.name === account.metadata?.name &&
+            method.status?.phase === 'Active'
+        );
+
+      const isLegacySetupResume = Boolean(requestedOrgId);
 
       if (account?.metadata?.name && account.metadata.namespace) {
-        const orgId = orgIdFromNamespace(account.metadata.namespace) ?? org.name;
+        const resolvedOrgId = orgIdFromNamespace(account.metadata.namespace) ?? orgId;
         return {
           contactDefaults,
           stripePublishableKey,
+          isLegacySetupResume,
+          orgDisplayName: fullOrg.displayName?.trim() || fullOrg.name,
           initialSetup: {
-            orgId,
+            orgId: resolvedOrgId,
             accountName: account.metadata.name,
             namespace: account.metadata.namespace,
           },
-          initialContactInfo: contactInfoFromBillingAccount(account),
-        };
+          initialContactInfo: orgContactInfo ?? contactInfoFromBillingAccount(account),
+          needsPaymentOnly: !hasActivePayment,
+        } satisfies BillingPageData;
       }
 
       return {
         contactDefaults,
         stripePublishableKey,
-        partialOrgId: org.name,
-      };
+        isLegacySetupResume,
+        orgDisplayName: fullOrg.displayName?.trim() || fullOrg.name,
+        partialOrgId: orgId,
+        initialContactInfo: orgContactInfo,
+      } satisfies BillingPageData;
     }
 
     return {
       contactDefaults,
       stripePublishableKey,
-    };
+      isLegacySetupResume: false,
+    } satisfies BillingPageData;
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);

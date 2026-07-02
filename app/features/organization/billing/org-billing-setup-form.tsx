@@ -65,7 +65,11 @@ export interface OrgBillingSetupFormProps {
    * clean up a half-finished org if the user bails before `onComplete`.
    */
   onOrgProvisioned?: (setup: { orgId: string; accountName: string; namespace: string }) => void;
-  onComplete?: (result: { orgId: string; contactInfo: OrgContactInfoValues }) => void;
+  onComplete?: (result: {
+    orgId: string;
+    accountName: string;
+    contactInfo: OrgContactInfoValues;
+  }) => void | Promise<void>;
 }
 
 export const OrgBillingSetupForm = ({
@@ -91,6 +95,7 @@ export const OrgBillingSetupForm = ({
     accountName: string;
     namespace: string;
   } | null>(initialSetup ?? null);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const setupBillingMutation = useSetupOnboardingBilling({
     onError: (error) => {
@@ -270,9 +275,27 @@ export const OrgBillingSetupForm = ({
     }
   };
 
-  const handleSubmit = () => {
-    if (!billingSetup?.orgId || !canSubmit || !contactInfo) return;
-    onComplete?.({ orgId: billingSetup.orgId, contactInfo });
+  const handleSubmit = async () => {
+    if (
+      !billingSetup?.orgId ||
+      !billingSetup.accountName ||
+      !canSubmit ||
+      !contactInfo ||
+      isCompleting
+    ) {
+      return;
+    }
+
+    setIsCompleting(true);
+    try {
+      await onComplete?.({
+        orgId: billingSetup.orgId,
+        accountName: billingSetup.accountName,
+        contactInfo,
+      });
+    } finally {
+      setIsCompleting(false);
+    }
   };
 
   return (
@@ -348,10 +371,11 @@ export const OrgBillingSetupForm = ({
             htmlType="button"
             type="primary"
             className="w-full"
-            disabled={!canSubmit}
+            disabled={!canSubmit || isCompleting}
+            loading={isCompleting}
             onClick={handleSubmit}
             data-e2e="create-organization-submit">
-            {submitLabel}
+            {isCompleting ? 'Starting...' : submitLabel}
           </Button>
 
           <p className="text-foreground text-xs opacity-80">

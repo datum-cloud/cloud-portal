@@ -10,15 +10,21 @@ import {
 } from '@/features/onboarding/onboarding-motion';
 import { paths } from '@/utils/config/paths.config';
 import { DATUMCTL_DOWNLOAD_URL } from '@/utils/config/query.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon, ExternalLinkIcon, LoaderCircleIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 
 const STEP_DURATION_MS = 2500;
+
+type ProvisioningLocationState = {
+  orgName?: string;
+  projectId?: string;
+};
 
 const provisioningColumnClassName =
   'relative flex w-full flex-1 flex-col items-center justify-start px-4 pt-20 pb-8 md:min-h-svh md:w-1/2 md:justify-center md:px-10 md:py-10';
@@ -50,6 +56,8 @@ const buildSteps = (): SetupStep[] => [
 
 export const ProvisioningPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const provisioningState = location.state as ProvisioningLocationState | null;
   const reducedMotion = useReducedMotion() ?? false;
   const [completedCount, setCompletedCount] = useState(0);
   const [motionReady, setMotionReady] = useState(false);
@@ -130,7 +138,19 @@ export const ProvisioningPage = () => {
                   'border border-[rgba(156,121,121,0.1)] bg-[#f2eaea] text-[rgba(156,121,121,0.4)] hover:bg-[#f2eaea]'
               )}
               disabled={!allComplete}
-              onClick={() => navigate(paths.account.organizations.root, { replace: true })}>
+              onClick={() => {
+                if (provisioningState?.projectId) {
+                  navigate(
+                    getPathWithParams(paths.project.detail.root, {
+                      projectId: provisioningState.projectId,
+                    }),
+                    { replace: true }
+                  );
+                  return;
+                }
+
+                navigate(paths.account.organizations.root, { replace: true });
+              }}>
               {!allComplete && (
                 <span
                   className="bg-primary/90 pointer-events-none absolute inset-y-0 left-0 z-0 transition-[width] duration-700 ease-out"
