@@ -116,9 +116,14 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
     resetDialog();
   };
 
-  const handleDrop = async (droppedFiles: File[]) => {
+  /** Returns true when parsing succeeded and the preview dialog was opened. */
+  const handleDrop = async (droppedFiles: File[]): Promise<boolean> => {
     const file = droppedFiles[0];
-    if (!file) return;
+    if (!file) {
+      setDropzoneState('error');
+      setErrorMessage('No file was accepted. Please choose a .zone, .db, or .txt file.');
+      return false;
+    }
 
     setFiles(droppedFiles);
     setDropzoneState('loading');
@@ -131,13 +136,13 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
       if (result.errors.length > 0) {
         setDropzoneState('error');
         setErrorMessage(result.errors.join(', '));
-        return;
+        return false;
       }
 
       if (result.records.length === 0) {
         setDropzoneState('error');
         setErrorMessage('No valid DNS records found in the file');
-        return;
+        return false;
       }
 
       // Filter records by supported types
@@ -168,7 +173,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
       if (supportedRecords.length === 0) {
         setDropzoneState('error');
         setErrorMessage('No supported DNS records found in the file');
-        return;
+        return false;
       }
 
       // Deduplicate records within the batch (handles trailing dot normalization)
@@ -261,10 +266,12 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
       resetDropzone();
       setDialogView('preview');
       setDialogOpen(true);
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to read file';
       setDropzoneState('error');
       setErrorMessage(message);
+      return false;
     }
   };
 

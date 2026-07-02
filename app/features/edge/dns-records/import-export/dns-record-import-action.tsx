@@ -81,8 +81,11 @@ export const DnsRecordImportAction = ({
   });
 
   const handleDropWithClose = async (droppedFiles: File[]) => {
-    await handleDrop(droppedFiles);
-    setPopoverOpen(false);
+    const dialogOpened = await handleDrop(droppedFiles);
+    // Keep the dropdown open on parse errors so the dropzone can show them
+    if (dialogOpened) {
+      setPopoverOpen(false);
+    }
   };
 
   const handleContactSupport = () => {
