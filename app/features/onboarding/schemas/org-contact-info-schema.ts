@@ -81,7 +81,9 @@ export type OrganizationContactInfoPayload = {
  */
 export const orgContactInfoToFormValues = (
   contactInfo:
-    | (Partial<OrganizationContactInfoPayload> & { address?: OrganizationContactInfoPayload['address'] })
+    | (Partial<OrganizationContactInfoPayload> & {
+        address?: OrganizationContactInfoPayload['address'];
+      })
     | null
     | undefined
 ): Partial<OrgContactInfoValues> => ({

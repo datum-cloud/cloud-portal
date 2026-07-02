@@ -63,14 +63,7 @@ export type PaymentMethodCardDetails = NonNullable<
  * card brands through `normalizeCardBrand` before rendering.
  */
 export type CardBrand =
-  | 'visa'
-  | 'mastercard'
-  | 'amex'
-  | 'discover'
-  | 'diners'
-  | 'jcb'
-  | 'unionpay'
-  | 'unknown';
+  'visa' | 'mastercard' | 'amex' | 'discover' | 'diners' | 'jcb' | 'unionpay' | 'unknown';
 
 /** Annotation key the API uses to carry the user-facing display name. */
 export const BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION = 'kubernetes.io/display-name';
