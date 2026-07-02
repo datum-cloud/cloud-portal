@@ -35,7 +35,7 @@ describe('toOrganization', () => {
     const org = toOrganization(raw as never);
     expect(org.status).toBe('Pending');
     expect(org.displayName).toBe('no-status');
-    expect(org.type).toBe('Standard');
+    expect(org.type).toBeUndefined();
   });
 
   it('maps a Suspended reason to Suspended status', () => {

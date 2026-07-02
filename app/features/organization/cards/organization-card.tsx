@@ -1,3 +1,4 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
 import type { Organization } from '@/resources/organizations';
@@ -192,13 +193,13 @@ export const OrganizationCard = ({
                 <motion.h3 className="truncate font-medium" layout>
                   {organization.displayName || organization.name}
                 </motion.h3>
-                {isPersonal && (
+                {organization.type && (
                   <motion.div
                     className="absolute top-4 right-4"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.1 }}>
-                    <Badge type="secondary">Personal</Badge>
+                    <BadgeStatus status={organization.type} />
                   </motion.div>
                 )}
               </div>
@@ -230,16 +231,16 @@ export const OrganizationCard = ({
         className="relative shrink-0 pb-3"
         variants={contentVariants}
         animate="selection">
-        {isPersonal && (
+        {organization.type && (
           <motion.div
             className="absolute top-4 right-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.1 }}>
-            <Badge type="secondary">Personal</Badge>
+            <BadgeStatus status={organization.type} />
           </motion.div>
         )}
-        <div className={cn('flex items-center space-x-3', isPersonal && 'pr-16')}>
+        <div className={cn('flex items-center space-x-3', organization.type && 'pr-16')}>
           <motion.div whileHover={{ rotate: 5 }} transition={{ duration: 0.2 }}>
             <ProfileIdentity
               avatarOnly
@@ -274,7 +275,9 @@ export const OrganizationCard = ({
           transition={{ delay: 0.2, duration: 0.3 }}>
           {isPersonal
             ? 'A persistent entity just for you. Perfect for experimentation and personal projects.'
-            : 'Ideal teams and production use cases with features like groups, RBAC, etc. Same free cost!'}
+            : organization.type === 'Standard'
+              ? 'Ideal teams and production use cases with features like groups, RBAC, etc. Same free cost!'
+              : 'Group projects with separate team and billing settings.'}
         </motion.p>
       </MotionCardContent>
     </MotionCard>

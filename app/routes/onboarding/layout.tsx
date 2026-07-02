@@ -23,6 +23,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const devBypass = isOnboardingDevBypassEnabled();
 
     if (!devBypass) {
+      const finishingOnboarding =
+        pathname === paths.onboarding.billing || pathname === paths.onboarding.provisioning;
+
       if (!hasExistingOrgs) {
         if (user.nameReviewRequired) {
           if (pathname !== paths.onboarding.profile) {
@@ -35,7 +38,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         if (pathname !== paths.onboarding.profile) {
           return redirect(paths.onboarding.profile);
         }
-      } else {
+      } else if (!finishingOnboarding) {
         return redirect(paths.home);
       }
     }

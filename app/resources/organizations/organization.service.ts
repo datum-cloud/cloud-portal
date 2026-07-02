@@ -2,13 +2,16 @@ import {
   toOrganization,
   toOrganizationFromMembership,
   toCreatePayload,
+  toOnboardingCreatePayload,
   toUpdatePayload,
 } from './organization.adapter';
 import {
   createOrganizationSchema,
+  createOnboardingOrganizationSchema,
   type Organization,
   type OrganizationList,
   type CreateOrganizationInput,
+  type CreateOnboardingOrganizationInput,
   type UpdateOrganizationInput,
 } from './organization.schema';
 import {
@@ -77,7 +80,7 @@ export function createOrganizationService() {
       // Note: org.status is already mapped to 'Active', 'Pending', etc. by the adapter
       const items = data.items
         .map(toOrganizationFromMembership)
-        .filter((org) => org.status === 'Active')
+        .filter((org) => org.status !== 'Deleting')
         .sort((a, b) => {
           // Personal organizations first
           if (a.type === 'Personal' && b.type !== 'Personal') return -1;
@@ -159,6 +162,89 @@ export function createOrganizationService() {
       }
     },
 
+    async createOnboarding(
+      input: CreateOnboardingOrganizationInput,
+      options?: ServiceOptions
+    ): Promise<Organization> {
+      const startTime = Date.now();
+
+      try {
+        const validated = parseOrThrow(createOnboardingOrganizationSchema, input, {
+          message: 'Invalid organization data',
+        });
+
+        const payload = toOnboardingCreatePayload(validated);
+
+        const response = await createResourcemanagerMiloapisComV1Alpha1Organization({
+          baseURL: getUserScopedBase(),
+          body: payload,
+          query: options?.dryRun ? { dryRun: 'All' } : undefined,
+        });
+
+        if (!response.data) {
+          throw new Error('Failed to create organization');
+        }
+
+        const org = toOrganization(response.data);
+
+        logger.service(SERVICE_NAME, 'createOnboarding', {
+          input: { displayName: input.displayName },
+          duration: Date.now() - startTime,
+        });
+
+        return org;
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.createOnboarding failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async updateContactInfo(
+      name: string,
+      input: {
+        displayName: string;
+        contactInfo: CreateOnboardingOrganizationInput['contactInfo'];
+      },
+      options?: ServiceOptions
+    ): Promise<Organization> {
+      const startTime = Date.now();
+
+      try {
+        const response = await patchResourcemanagerMiloapisComV1Alpha1Organization({
+          baseURL: getUserScopedBase(),
+          path: { name },
+          body: {
+            metadata: {
+              annotations: {
+                'kubernetes.io/display-name': input.displayName,
+              },
+            },
+            spec: {
+              contactInfo: input.contactInfo,
+            },
+          } as never,
+          query: options?.dryRun ? { dryRun: 'All' } : undefined,
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+
+        if (!response.data) {
+          throw new Error('Failed to update organization contact info');
+        }
+
+        const org = toOrganization(response.data);
+
+        logger.service(SERVICE_NAME, 'updateContactInfo', {
+          input: { name },
+          duration: Date.now() - startTime,
+        });
+
+        return org;
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.updateContactInfo failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
     async update(
       name: string,
       input: UpdateOrganizationInput,
@@ -199,6 +285,7 @@ export function createOrganizationService() {
 
       try {
         await deleteResourcemanagerMiloapisComV1Alpha1Organization({
+          baseURL: getUserScopedBase(),
           path: { name },
         });
 

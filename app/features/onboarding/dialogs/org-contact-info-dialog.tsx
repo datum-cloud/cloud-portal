@@ -14,7 +14,8 @@ interface OrgContactInfoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   defaultValues?: Partial<OrgContactInfoValues>;
-  onSave: (values: OrgContactInfoValues) => void;
+  onSave: (values: OrgContactInfoValues) => void | Promise<void>;
+  isSaving?: boolean;
 }
 
 export const OrgContactInfoDialog = ({
@@ -22,6 +23,7 @@ export const OrgContactInfoDialog = ({
   onOpenChange,
   defaultValues,
   onSave,
+  isSaving = false,
 }: OrgContactInfoDialogProps) => {
   const onClose = () => onOpenChange(false);
 
@@ -51,9 +53,13 @@ export const OrgContactInfoDialog = ({
           schema={orgContactInfoSchema}
           mode="onBlur"
           defaultValues={buildOrgContactDefaults(defaultValues)}
-          onSubmit={(values) => {
-            onSave(values);
-            onClose();
+          onSubmit={async (values) => {
+            try {
+              await onSave(values);
+              onClose();
+            } catch {
+              // Parent mutation surfaces the error toast; keep the dialog open.
+            }
           }}
           className="flex flex-col">
           <Dialog.Body className="mb-0 flex flex-col gap-4 px-5 py-4">
@@ -116,7 +122,9 @@ export const OrgContactInfoDialog = ({
             <Button htmlType="button" type="quaternary" theme="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Form.Submit loadingText="Saving">Save</Form.Submit>
+            <Form.Submit loading={isSaving} loadingText="Saving">
+              Save
+            </Form.Submit>
           </Dialog.Footer>
         </Form.Root>
       </Dialog.Content>

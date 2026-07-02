@@ -4,6 +4,7 @@ import {
   type Organization,
   type OrganizationList,
   type CreateOrganizationInput,
+  type CreateOnboardingOrganizationInput,
   type UpdateOrganizationInput,
 } from './organization.schema';
 import type {
@@ -23,7 +24,7 @@ export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organizati
     resourceVersion: raw.metadata?.resourceVersion ?? '',
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
     updatedAt: raw.metadata?.creationTimestamp,
-    type: raw.spec?.type ?? 'Standard',
+    type: raw.spec?.type,
     status: mapStatusFromConditions(raw.status?.conditions),
     memberCount: undefined,
     projectCount: undefined,
@@ -58,7 +59,7 @@ export function toOrganizationFromMembership(
     resourceVersion: metadata?.resourceVersion ?? '',
     createdAt: metadata?.creationTimestamp ?? new Date(),
     updatedAt: metadata?.creationTimestamp,
-    type: (status?.organization?.type as Organization['type']) ?? 'Standard',
+    type: status?.organization?.type,
     status: mapStatusFromConditions(status?.conditions as Condition[]),
     memberCount: undefined,
     projectCount: undefined,
@@ -84,6 +85,24 @@ export function toCreatePayload(
     },
     spec: {
       type: input.type,
+    },
+  };
+}
+
+export function toOnboardingCreatePayload(
+  input: CreateOnboardingOrganizationInput
+): ComMiloapisResourcemanagerV1Alpha1Organization {
+  return {
+    apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+    kind: 'Organization',
+    metadata: {
+      generateName: 'org-',
+      annotations: {
+        'kubernetes.io/display-name': input.displayName,
+      },
+    },
+    spec: {
+      contactInfo: input.contactInfo,
     },
   };
 }

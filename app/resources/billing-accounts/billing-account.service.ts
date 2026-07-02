@@ -42,6 +42,15 @@ export interface CreateBillingAccountInput {
   name: string;
   /** First entry doubles as `spec.contactInfo.email` server-side. */
   invoiceEmails: string[];
+  businessName?: string;
+  address?: {
+    country: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+  };
 }
 
 /**
@@ -245,6 +254,23 @@ export function createBillingAccountService() {
         const namespace = buildOrganizationNamespace(input.orgId);
         const accountName = slugifyBillingAccountName(input.displayName);
         const [primaryEmail] = input.invoiceEmails;
+        const contactInfo: {
+          email: string;
+          name: string;
+          invoiceEmails: string[];
+          businessName?: string;
+          address?: CreateBillingAccountInput['address'];
+        } = {
+          email: primaryEmail,
+          name: input.name,
+          invoiceEmails: input.invoiceEmails,
+        };
+        if (input.businessName) {
+          contactInfo.businessName = input.businessName;
+        }
+        if (input.address) {
+          contactInfo.address = input.address;
+        }
         const resp = await createBillingMiloapisComV1Alpha1NamespacedBillingAccount({
           baseURL: getOrgScopedBase(input.orgId),
           path: { namespace },
@@ -260,11 +286,7 @@ export function createBillingAccountService() {
             },
             spec: {
               currencyCode: 'USD',
-              contactInfo: {
-                email: primaryEmail,
-                name: input.name,
-                invoiceEmails: input.invoiceEmails,
-              },
+              contactInfo,
             },
           },
         });

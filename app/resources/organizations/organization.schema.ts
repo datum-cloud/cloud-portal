@@ -8,7 +8,7 @@ export const organizationStatusSchema = z.enum(['Active', 'Suspended', 'Pending'
 export type OrganizationStatus = z.infer<typeof organizationStatusSchema>;
 
 export const organizationSchema = resourceMetadataSchema.extend({
-  type: organizationTypeSchema,
+  type: organizationTypeSchema.optional(),
   status: organizationStatusSchema,
   memberCount: z.number().optional(),
   projectCount: z.number().optional(),
@@ -37,6 +37,33 @@ export const createOrganizationSchema = z.object({
 });
 
 export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
+
+const organizationContactInfoSchema = z.object({
+  email: z.email(),
+  name: z.string().min(1).max(256),
+  businessName: z.string().max(256).optional(),
+  address: z
+    .object({
+      country: z.string().length(2),
+      line1: z.string().max(256).optional(),
+      line2: z.string().max(256).optional(),
+      city: z.string().max(128).optional(),
+      region: z.string().max(128).optional(),
+      postalCode: z.string().max(32).optional(),
+    })
+    .optional(),
+});
+
+/** Unified org create for onboarding — server assigns an opaque name via generateName. */
+export const createOnboardingOrganizationSchema = z.object({
+  displayName: z
+    .string()
+    .min(1, 'Display name is required')
+    .max(100, 'Display name must be at most 100 characters'),
+  contactInfo: organizationContactInfoSchema,
+});
+
+export type CreateOnboardingOrganizationInput = z.infer<typeof createOnboardingOrganizationSchema>;
 
 export const updateOrganizationSchema = z.object({
   name: z.string().min(1).max(100).optional(),

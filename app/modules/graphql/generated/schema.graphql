@@ -1,12 +1,12 @@
 """
-A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
-"""
-scalar DateTime
-
-"""
 The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
 scalar JSON
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
+"""
+scalar DateTime
 
 """
 The `BigInt` scalar type represents non-fractional signed whole numeric values.
@@ -129,7 +129,17 @@ type Query {
     """
     resourceVersion: String
   ): com_miloapis_resourcemanager_v1alpha1_Organization
-  sessions: [ExtendedSession!]!
+
+  """
+  Returns sessions for the authenticated caller by default.
+  
+  When userID is provided and differs from the caller, the request is
+  forwarded to milo with a status.userUID field selector. milo authorizes
+  the cross-user lookup via SubjectAccessReview against
+  iam.miloapis.com/users/<userID> — callers without that permission get
+  an empty list (the underlying 403 is logged).
+  """
+  sessions(userID: ID): [ExtendedSession!]!
 }
 
 """

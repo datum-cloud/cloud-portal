@@ -59,3 +59,72 @@ export const formatOrgContactSecondaryLine = (values: OrgContactInfoValues): str
 /** Org display name for provisioning step — business name preferred. */
 export const orgDisplayNameFromContact = (values: OrgContactInfoValues): string =>
   values.businessName?.trim() || values.name.trim();
+
+export type OrganizationContactInfoPayload = {
+  email: string;
+  name: string;
+  businessName?: string;
+  address?: {
+    country: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+  };
+};
+
+/** Maps onboarding contact form values to Organization.spec.contactInfo. */
+export const toOrganizationContactInfo = (
+  values: OrgContactInfoValues
+): OrganizationContactInfoPayload => {
+  const contactInfo: OrganizationContactInfoPayload = {
+    email: values.email.trim(),
+    name: values.name.trim(),
+  };
+
+  const businessName = values.businessName?.trim();
+  if (businessName) {
+    contactInfo.businessName = businessName;
+  }
+
+  const country = values.country?.trim();
+  if (country) {
+    contactInfo.address = { country };
+    const line1 = values.line1?.trim();
+    const line2 = values.line2?.trim();
+    const city = values.city?.trim();
+    const region = values.region?.trim();
+    const postalCode = values.postalCode?.trim();
+    if (line1) contactInfo.address.line1 = line1;
+    if (line2) contactInfo.address.line2 = line2;
+    if (city) contactInfo.address.city = city;
+    if (region) contactInfo.address.region = region;
+    if (postalCode) contactInfo.address.postalCode = postalCode;
+  }
+
+  return contactInfo;
+};
+
+export type BillingAccountContactInfoPayload = {
+  email: string;
+  name: string;
+  invoiceEmails: string[];
+  businessName?: string;
+  address?: OrganizationContactInfoPayload['address'];
+};
+
+/** Maps onboarding contact form values to BillingAccount.spec.contactInfo. */
+export const toBillingAccountContactInfo = (
+  values: OrgContactInfoValues
+): BillingAccountContactInfoPayload => {
+  const email = values.email.trim();
+  const orgContact = toOrganizationContactInfo(values);
+  return {
+    email,
+    name: orgContact.name,
+    invoiceEmails: [email],
+    ...(orgContact.businessName && { businessName: orgContact.businessName }),
+    ...(orgContact.address && { address: orgContact.address }),
+  };
+};

@@ -355,7 +355,9 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   <li>
                     {isPersonalOrg
                       ? `Personal organizations can have up to ${projectLimit} projects.`
-                      : `Standard organizations can have up to ${projectLimit} projects. You can always reach out to request more.`}
+                      : organization?.type === 'Standard'
+                        ? `Standard organizations can have up to ${projectLimit} projects. You can always reach out to request more.`
+                        : `Organizations can have up to ${projectLimit} projects. You can always reach out to request more.`}
                   </li>
                 </ul>
               }
