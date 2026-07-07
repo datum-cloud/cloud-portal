@@ -4,12 +4,15 @@
  * Problem: Each regression spec creates its own org + project, leading to
  * resource sprawl and unreliable cleanup when tests fail mid-run.
  *
- * Solution: Lazily create one org + project per Cypress process (shard).
- * Multiple specs in the same shard share these resources. Cleanup runs
- * via `after:run` which fires even when tests fail.
+ * Solution:
+ * - Lazily create one org + project per Cypress process (shard) for shared specs.
+ * - Track every org/project created via `createStandardOrg` / `createProjectInOrg`.
+ * - Delete all tracked resources in `after:run` (fires even when tests fail).
  *
  * In CI with cypress-split, each shard is its own process — so each shard
  * gets its own org + project with no cross-shard conflicts.
+ *
+ * Requires `API_URL` and `ACCESS_TOKEN` in the environment (see `.env.example`).
  */
 
 export interface SharedResources {
@@ -20,10 +23,123 @@ export interface SharedResources {
 
 let cachedResources: SharedResources | null = null;
 
+/** Orgs/projects still present in the target environment after the run. */
+const trackedOrgs = new Set<string>();
+const trackedProjects = new Map<string, string>();
+
+function getApiCredentials(): { apiUrl: string; accessToken: string } | null {
+  const apiUrl = process.env.API_URL;
+  const accessToken = process.env.ACCESS_TOKEN;
+
+  if (!apiUrl || !accessToken) {
+    console.warn('[shared-resources] Cannot cleanup: API_URL or ACCESS_TOKEN not set');
+    return null;
+  }
+
+  return { apiUrl, accessToken };
+}
+
+async function deleteViaApi(url: string, label: string): Promise<boolean> {
+  const credentials = getApiCredentials();
+  if (!credentials) return false;
+
+  try {
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${credentials.accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (response.ok || response.status === 404) {
+      console.log(`[shared-resources] ${label} deleted (${response.status})`);
+      return true;
+    }
+
+    const body = await response.text().catch(() => '');
+    console.warn(`[shared-resources] Failed to delete ${label}: ${response.status} ${body}`);
+    return false;
+  } catch (error) {
+    console.warn(`[shared-resources] Error deleting ${label}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Delete an org via the control-plane API (Node-side, no browser needed).
+ */
+async function deleteOrgViaApi(orgId: string): Promise<void> {
+  if (!orgId) return;
+
+  const credentials = getApiCredentials();
+  if (!credentials) return;
+
+  const url = `${credentials.apiUrl}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${orgId}`;
+  console.log(`[shared-resources] Deleting org via API: ${orgId}`);
+  const deleted = await deleteViaApi(url, `org ${orgId}`);
+  if (deleted) {
+    releaseTestOrg(orgId);
+  }
+}
+
+/**
+ * Delete a project via the control-plane API. Org delete cascades to projects,
+ * but explicit project cleanup avoids leaving orphans when the org delete fails.
+ */
+async function deleteProjectViaApi(projectId: string): Promise<void> {
+  if (!projectId) return;
+
+  const credentials = getApiCredentials();
+  if (!credentials) return;
+
+  const url = `${credentials.apiUrl}/apis/resourcemanager.miloapis.com/v1alpha1/projects/${projectId}`;
+  console.log(`[shared-resources] Deleting project via API: ${projectId}`);
+  const deleted = await deleteViaApi(url, `project ${projectId}`);
+  if (deleted) {
+    releaseTestProject(projectId);
+  }
+}
+
+export function registerTestOrg(orgId: string): void {
+  if (!orgId) return;
+  trackedOrgs.add(orgId);
+}
+
+export function registerTestProject(projectId: string, orgId: string): void {
+  if (!projectId) return;
+  trackedProjects.set(projectId, orgId);
+}
+
+export function releaseTestOrg(orgId: string): void {
+  if (!orgId) return;
+  trackedOrgs.delete(orgId);
+}
+
+export function releaseTestProject(projectId: string): void {
+  if (!projectId) return;
+  trackedProjects.delete(projectId);
+}
+
+/**
+ * Delete all tracked projects, then orgs. Idempotent — 404s are treated as success.
+ */
+async function cleanupAllTestResources(): Promise<void> {
+  const projectIds = [...trackedProjects.keys()];
+  for (const projectId of projectIds) {
+    await deleteProjectViaApi(projectId);
+  }
+
+  const orgIds = [...trackedOrgs];
+  for (const orgId of orgIds) {
+    await deleteOrgViaApi(orgId);
+  }
+
+  clearSharedResources();
+}
+
 /**
  * Returns the cached shared resources (or null if not yet created).
- * Creation happens browser-side via cy.task('createSharedResources')
- * because it needs cy.login(), cy.createStandardOrg(), etc.
  */
 export function getSharedResources(): SharedResources | null {
   return cachedResources;
@@ -34,6 +150,8 @@ export function getSharedResources(): SharedResources | null {
  */
 export function setSharedResources(resources: SharedResources): SharedResources {
   cachedResources = resources;
+  registerTestOrg(resources.orgId);
+  registerTestProject(resources.projectId, resources.orgId);
   return cachedResources;
 }
 
@@ -43,42 +161,6 @@ export function setSharedResources(resources: SharedResources): SharedResources 
 export function clearSharedResources(): null {
   cachedResources = null;
   return null;
-}
-
-/**
- * Delete an org via the control-plane API (Node-side, no browser needed).
- * Used by after:run to clean up even when tests crash.
- */
-async function deleteOrgViaApi(orgId: string): Promise<void> {
-  const apiUrl = process.env.API_URL;
-  const accessToken = process.env.ACCESS_TOKEN;
-
-  if (!apiUrl || !accessToken) {
-    console.warn('[shared-resources] Cannot cleanup: API_URL or ACCESS_TOKEN not set');
-    return;
-  }
-
-  const url = `${apiUrl}/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${orgId}`;
-  console.log(`[shared-resources] Deleting shared org via API: ${orgId}`);
-
-  try {
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (response.ok || response.status === 404) {
-      console.log(`[shared-resources] Org ${orgId} deleted (${response.status})`);
-    } else {
-      const body = await response.text().catch(() => '');
-      console.warn(`[shared-resources] Failed to delete org ${orgId}: ${response.status} ${body}`);
-    }
-  } catch (error) {
-    console.warn(`[shared-resources] Error deleting org ${orgId}:`, error);
-  }
 }
 
 /**
@@ -96,17 +178,35 @@ export function registerSharedResourceTasks(on: Cypress.PluginEvents): void {
     clearSharedResources(): null {
       return clearSharedResources();
     },
+    registerTestOrg(orgId: string): null {
+      registerTestOrg(orgId);
+      return null;
+    },
+    registerTestProject(payload: { projectId: string; orgId: string }): null {
+      registerTestProject(payload.projectId, payload.orgId);
+      return null;
+    },
+    releaseTestOrg(orgId: string): null {
+      releaseTestOrg(orgId);
+      return null;
+    },
+    releaseTestProject(projectId: string): null {
+      releaseTestProject(projectId);
+      return null;
+    },
     deleteOrgViaApi(orgId: string): Promise<null> {
       return deleteOrgViaApi(orgId).then(() => null);
+    },
+    deleteProjectViaApi(projectId: string): Promise<null> {
+      return deleteProjectViaApi(projectId).then(() => null);
+    },
+    cleanupAllTestResources(): Promise<null> {
+      return cleanupAllTestResources().then(() => null);
     },
   });
 
   // Cleanup after ALL specs in this shard complete — fires in Node even if tests crash.
   on('after:run', async () => {
-    const resources = getSharedResources();
-    if (!resources) return;
-
-    await deleteOrgViaApi(resources.orgId);
-    clearSharedResources();
+    await cleanupAllTestResources();
   });
 }

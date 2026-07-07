@@ -55,16 +55,17 @@ FROM base
 ARG VERSION=dev
 ENV VERSION=${VERSION}
 
-# Copy only necessary files from build stage
-COPY --from=build /app /app
+# Create the non-root user first so ownership can be applied during COPY.
+# Doing the chown in the COPY layer avoids a second full-size layer that a
+# separate `chown -R /app` would create (it rewrites every file).
+RUN groupadd --gid 1001 datum && \
+    useradd --uid 1001 --gid 1001 --no-create-home datum
+
+# Copy the built app from the build stage, owned by the runtime user.
+COPY --from=build --chown=datum:datum /app /app
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE ${PORT}
-
-# Use non-root user for better security
-RUN groupadd --gid 1001 datum && \
-    useradd --uid 1001 --gid 1001 --no-create-home datum && \
-    chown -R datum:datum /app
 
 USER datum
 

@@ -13,7 +13,7 @@ import { logger } from '@/modules/logger';
 import { fanOutAcrossOrgs, getOrgScopedBase } from '@/resources/base/utils';
 import { slugifyBillingAccountName } from '@/resources/billing/_naming';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { NotFoundError } from '@/utils/errors';
+import { AppError, NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 /**
@@ -42,6 +42,20 @@ export interface CreateBillingAccountInput {
   name: string;
   /** First entry doubles as `spec.contactInfo.email` server-side. */
   invoiceEmails: string[];
+  businessName?: string;
+  address?: {
+    country: string;
+    line1?: string;
+    line2?: string;
+    city?: string;
+    region?: string;
+    postalCode?: string;
+  };
+  /**
+   * Pre-generated K8s resource name. When provided, all retries in a single
+   * logical create reuse this name so a 409 Conflict can be treated as success.
+   */
+  accountName?: string;
 }
 
 /**
@@ -223,6 +237,41 @@ export function createBillingAccountService() {
     },
 
     /**
+     * Best-effort recovery when create may have committed server-side but the
+     * client saw a transient error. Returns the intended account when present,
+     * or the sole account in a fresh org.
+     */
+    async recoverFromAmbiguousCreateFailure(
+      orgId: string,
+      accountName: string
+    ): Promise<BillingAccount | null> {
+      try {
+        return await this.get(orgId, accountName);
+      } catch {
+        // fall through
+      }
+
+      try {
+        const accounts = await this.list(orgId);
+        const byName = accounts.find((account) => account.metadata?.name === accountName);
+        if (byName) {
+          return byName;
+        }
+        if (accounts.length === 1) {
+          return accounts[0];
+        }
+      } catch (error) {
+        logger.warn(`${SERVICE_NAME}.recoverFromAmbiguousCreateFailure list failed`, {
+          orgId,
+          accountName,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+
+      return null;
+    },
+
+    /**
      * Create a billing account under the supplied org.
      *
      * The user-facing label (`displayName`) is the source for:
@@ -241,10 +290,27 @@ export function createBillingAccountService() {
      */
     async create(input: CreateBillingAccountInput): Promise<BillingAccount> {
       const startTime = Date.now();
+      const namespace = buildOrganizationNamespace(input.orgId);
+      const accountName = input.accountName ?? slugifyBillingAccountName(input.displayName);
       try {
-        const namespace = buildOrganizationNamespace(input.orgId);
-        const accountName = slugifyBillingAccountName(input.displayName);
         const [primaryEmail] = input.invoiceEmails;
+        const contactInfo: {
+          email: string;
+          name: string;
+          invoiceEmails: string[];
+          businessName?: string;
+          address?: CreateBillingAccountInput['address'];
+        } = {
+          email: primaryEmail,
+          name: input.name,
+          invoiceEmails: input.invoiceEmails,
+        };
+        if (input.businessName) {
+          contactInfo.businessName = input.businessName;
+        }
+        if (input.address) {
+          contactInfo.address = input.address;
+        }
         const resp = await createBillingMiloapisComV1Alpha1NamespacedBillingAccount({
           baseURL: getOrgScopedBase(input.orgId),
           path: { namespace },
@@ -260,11 +326,7 @@ export function createBillingAccountService() {
             },
             spec: {
               currencyCode: 'USD',
-              contactInfo: {
-                email: primaryEmail,
-                name: input.name,
-                invoiceEmails: input.invoiceEmails,
-              },
+              contactInfo,
             },
           },
         });
@@ -278,8 +340,24 @@ export function createBillingAccountService() {
         });
         return created;
       } catch (error) {
-        logger.error(`${SERVICE_NAME}.create failed`, error as Error);
-        throw mapApiError(error);
+        const mapped = mapApiError(error);
+        // Idempotent create. The authorizer occasionally returns a
+        // transient 401/403 on the create path right after an org is
+        // provisioned (identity/propagation race) *after* the server has
+        // already persisted the BillingAccount. A caller-level retry then
+        // comes back 409 Conflict for the deterministic slug name. Treat
+        // that as success — fetch and return the account that's already
+        // there — rather than surfacing a conflict that would trip the
+        // onboarding org rollback and destroy a healthy org.
+        if (mapped instanceof AppError && mapped.status === 409) {
+          logger.warn(
+            `${SERVICE_NAME}.create hit 409 for ${accountName}; returning existing account`,
+            { orgId: input.orgId, accountName }
+          );
+          return await this.get(input.orgId, accountName);
+        }
+        logger.error(`${SERVICE_NAME}.create failed`, mapped);
+        throw mapped;
       }
     },
 

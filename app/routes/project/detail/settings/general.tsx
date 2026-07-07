@@ -4,6 +4,7 @@ import { useGuardedRouteData } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import { type Project } from '@/resources/projects';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { type LoaderFunctionArgs } from 'react-router';
 
@@ -26,6 +27,8 @@ export const loader = (args: LoaderFunctionArgs) =>
     name: args.params.projectId,
   });
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 export const handle = {
   breadcrumb: () => <span>General</span>,

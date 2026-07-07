@@ -1,8 +1,10 @@
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
+import { CARD_BRAND_LABELS } from '@/features/billing/constants';
 import {
   AddPaymentMethodDialog,
   type AddPaymentMethodValues,
   type CreatePaymentMethodResult,
+  type StripeBillingDetailsPrefill,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
 import {
   isDefaultPaymentMethod,
@@ -18,18 +20,6 @@ import { Card, CardContent, CardFooter, CardTitle } from '@datum-cloud/datum-ui/
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
-
-/** Human label for each brand, surfaced as the secondary text line. */
-const brandLabels: Record<CardBrand, string> = {
-  visa: 'Visa',
-  mastercard: 'Mastercard',
-  amex: 'American Express',
-  discover: 'Discover',
-  diners: 'Diners Club',
-  jcb: 'JCB',
-  unionpay: 'UnionPay',
-  unknown: 'Card',
-};
 
 // Active is the happy path — every healthy card lives there — so we skip the
 // badge in that case and only surface a pill when the row actually carries
@@ -82,7 +72,7 @@ const PaymentMethodRow = ({
 }: PaymentMethodRowProps) => {
   const card = method.status?.details?.card;
   const brand: CardBrand = normalizeCardBrand(card?.brand);
-  const brandLabel = brandLabels[brand];
+  const brandLabel = CARD_BRAND_LABELS[brand];
   // `phase` defaults to `Pending` when the controller hasn't published
   // status yet — surface the muted "Pending" pill rather than hiding
   // the row entirely so the user knows their action landed.
@@ -205,6 +195,7 @@ interface PaymentMethodsCardProps {
   onPaymentMethodConfirmed?: () => void;
   onSetAsDefault?: (method: PaymentMethod) => void;
   onRemove?: (method: PaymentMethod) => void;
+  billingDetailsPrefill?: StripeBillingDetailsPrefill;
 }
 
 export const PaymentMethodsCard = ({
@@ -215,6 +206,7 @@ export const PaymentMethodsCard = ({
   onPaymentMethodConfirmed,
   onSetAsDefault,
   onRemove,
+  billingDetailsPrefill,
 }: PaymentMethodsCardProps) => {
   const [open, setOpen] = useState(false);
   const hasMethods = paymentMethods.length > 0;
@@ -259,6 +251,7 @@ export const PaymentMethodsCard = ({
         onOpenChange={setOpen}
         stripePublishableKey={stripePublishableKey}
         forceDefault={!hasMethods}
+        billingDetailsPrefill={billingDetailsPrefill}
         onCreatePaymentMethod={onCreatePaymentMethod}
         onConfirmed={() => {
           onPaymentMethodConfirmed?.();

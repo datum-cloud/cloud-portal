@@ -1,7 +1,7 @@
 // app/resources/projects/project.watch.ts
 import { toProject } from './project.adapter';
 import type { Project } from './project.schema';
-import { projectKeys } from './project.service';
+import { createProjectService, projectKeys } from './project.service';
 import type { ComMiloapisResourcemanagerV1Alpha1Project } from '@/modules/control-plane/resource-manager';
 import { useResourceWatch } from '@/modules/watch';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
@@ -96,6 +96,57 @@ export function useProjectWatch(orgId: string, name: string, options?: { enabled
  * }
  * ```
  */
+export function inspectProjectReady(project: Project): Project | 'pending' {
+  const status = transformControlPlaneStatus(project.status, {
+    includeConditionDetails: true,
+  });
+
+  if (status.status === ControlPlaneStatus.Success) {
+    return project;
+  }
+
+  const failedCondition = status.conditions?.find((c) => c.status === 'False');
+  if (failedCondition) {
+    throw new Error(failedCondition.message || status.message || 'Resource reconciliation failed');
+  }
+
+  return 'pending';
+}
+
+/**
+ * Resolves when a project is Ready. Polls the current object first so a watch
+ * that starts after reconciliation already finished does not hang forever.
+ */
+export async function awaitProjectReady(
+  orgId: string,
+  projectName: string,
+  seed?: Project
+): Promise<Project> {
+  if (seed) {
+    const ready = inspectProjectReady(seed);
+    if (ready !== 'pending') {
+      return ready;
+    }
+  }
+
+  try {
+    const current = await createProjectService().get(projectName);
+    const ready = inspectProjectReady(current);
+    if (ready !== 'pending') {
+      return ready;
+    }
+  } catch {
+    // Fall through to the watch — the project may not be readable yet.
+  }
+
+  const { promise, cancel } = waitForProjectReady(orgId, projectName);
+  try {
+    return await promise;
+  } finally {
+    cancel();
+  }
+}
+
 export function waitForProjectReady(
   orgId: string,
   projectName: string
@@ -109,30 +160,19 @@ export function waitForProjectReady(
     name: projectName,
     onEvent: (event) => {
       if (event.type === 'ADDED' || event.type === 'MODIFIED') {
-        // Transform raw K8s object to domain type
         const project = toProject(event.object as ComMiloapisResourcemanagerV1Alpha1Project);
-
-        // Check status with condition details for error detection
-        const status = transformControlPlaneStatus(project.status, {
-          includeConditionDetails: true,
-        });
-
-        if (status.status === ControlPlaneStatus.Success) {
-          return { resolve: project };
-        }
-
-        // Check conditions for error states (status is Pending when not all conditions met)
-        const failedCondition = status.conditions?.find((c) => c.status === 'False');
-        if (failedCondition) {
+        try {
+          const ready = inspectProjectReady(project);
+          if (ready !== 'pending') {
+            return { resolve: ready };
+          }
+        } catch (error) {
           return {
-            reject: new Error(
-              failedCondition.message || status.message || 'Resource reconciliation failed'
-            ),
+            reject: error instanceof Error ? error : new Error('Resource reconciliation failed'),
           };
         }
       }
 
-      // Keep waiting if status is Pending without error
       return 'continue';
     },
   });

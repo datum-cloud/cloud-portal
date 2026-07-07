@@ -102,7 +102,8 @@ describe('Projects — regression', () => {
     cy.waitForProjectAbsentInOrg(orgId, testName);
     cy.reload();
     cy.get('body', { timeout: 10_000 }).should('not.contain.text', testName);
-    // Clear last — signals after() that cleanup is done
+    cy.task('releaseTestProject', resourceId, { log: false });
+    // Clear last — project deleted via UI; after() still removes the org via API
     resourceId = '';
   });
 });

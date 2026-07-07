@@ -196,7 +196,7 @@ export const BillingAddressFieldsCard = ({
           label="Contact name"
           description="Person we should talk to about this account. Appears as the “ATTN:” line on invoices when a business name is also set."
           className="max-w-md">
-          <Form.Input placeholder="e.g. Jane Doe" autoComplete="name" />
+          <Form.Input autoComplete="name" />
         </Form.Field>
 
         <Form.Field
@@ -204,7 +204,7 @@ export const BillingAddressFieldsCard = ({
           label="Business name"
           description="Legal entity that pays. Leave blank for personal accounts; we'll print this on invoices for B2B billing."
           className="max-w-md">
-          <Form.Input placeholder="e.g. Acme Holdings Ltd" autoComplete="organization" />
+          <Form.Input autoComplete="organization" />
         </Form.Field>
 
         <Form.Field name="country" label="Country or region" required className="max-w-md">
@@ -224,24 +224,24 @@ export const BillingAddressFieldsCard = ({
         </Form.Field>
 
         <Form.Field name="line1" label="Address line 1">
-          <Form.Input placeholder="Street and number" autoComplete="address-line1" />
+          <Form.Input autoComplete="address-line1" />
         </Form.Field>
 
         <Form.Field name="line2" label="Address line 2">
-          <Form.Input placeholder="Apartment, suite, building" autoComplete="address-line2" />
+          <Form.Input autoComplete="address-line2" />
         </Form.Field>
 
         <div className="flex w-full flex-col gap-4 sm:flex-row">
           <Form.Field name="city" label="City" className="sm:w-1/2">
-            <Form.Input placeholder="e.g. London" autoComplete="address-level2" />
+            <Form.Input autoComplete="address-level2" />
           </Form.Field>
           <Form.Field name="region" label="State / Region" className="sm:w-1/2">
-            <Form.Input placeholder="e.g. England" autoComplete="address-level1" />
+            <Form.Input autoComplete="address-level1" />
           </Form.Field>
         </div>
 
         <Form.Field name="postalCode" label="Postal code" className="max-w-xs">
-          <Form.Input placeholder="e.g. SW1A 1AA" autoComplete="postal-code" />
+          <Form.Input autoComplete="postal-code" />
         </Form.Field>
 
         <div className="border-border space-y-3 border-t pt-5">

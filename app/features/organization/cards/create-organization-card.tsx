@@ -62,7 +62,7 @@ export const CreateOrganizationCard = ({ onClick, className }: CreateOrganizatio
             transition={{ delay: 0.2, duration: 0.3 }}>
             <CardTitle className="text-lg">Create new organization</CardTitle>
             <CardDescription className="text-sm leading-relaxed">
-              Set up a standard organization for team collaboration and production workloads
+              Set up an organization with contact and billing details
             </CardDescription>
           </motion.div>
         </div>

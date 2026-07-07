@@ -11,6 +11,7 @@ import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type Connector,
+  connectorKeys,
   createConnectorService,
   useConnectors,
   useConnectorsWatch,
@@ -21,6 +22,11 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import {
+  createProjectListClientLoader,
+  getValidCachedQueryData,
+} from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -68,6 +74,18 @@ export const loader = (args: LoaderFunctionArgs) =>
     },
   });
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoader<LoaderData>((projectId) => {
+  const connectors = getValidCachedQueryData<Connector[]>(connectorKeys.list(projectId));
+  if (connectors === undefined) {
+    return undefined;
+  }
+  // downloadDismissed is cookie-backed and only resolved server-side; hide the
+  // promo card on cached revisits to avoid re-showing a dismissed alert.
+  return { connectors, downloadDismissed: true };
+});
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { headers } = await setAlertClosed(request, ALERT_KEY);

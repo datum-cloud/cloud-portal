@@ -17,14 +17,6 @@ export const projectListSchema = paginatedResponseSchema(projectSchema);
 export type ProjectList = z.infer<typeof projectListSchema>;
 
 export const createProjectSchema = z.object({
-  name: z
-    .string()
-    .min(3, 'Name must be at least 3 characters')
-    .max(63, 'Name must be at most 63 characters')
-    .regex(
-      /^[a-z][a-z0-9-]*[a-z0-9]$/,
-      'Name must be lowercase, start with letter, use only letters, numbers, hyphens'
-    ),
   description: z.string().max(500).optional(),
   organizationId: z.string().min(1, 'Organization ID is required'),
 });
@@ -41,14 +33,6 @@ export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
 // Form validation schemas (legacy)
 export const projectFormSchema = z.object({
-  name: z
-    .string({ error: 'Resource ID is required.' })
-    .min(6, { message: 'Resource ID must be at least 6 characters long.' })
-    .max(30, { message: 'Resource ID must be less than 30 characters long.' })
-    .regex(/^[a-z][a-z0-9-]*[a-z0-9]$/, {
-      message:
-        'Resource ID must be kebab-case, start with a letter, and end with a letter or number',
-    }),
   description: z
     .string({ error: 'Project name is required.' })
     .max(100, { message: 'Project name must be less than 100 characters long.' }),

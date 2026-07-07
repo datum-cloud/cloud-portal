@@ -26,7 +26,7 @@ export default function VerifyingPage() {
       if (stopped) return;
 
       try {
-        const response = await fetch(paths.fraud.statusApi);
+        const response = await fetch(paths.fraud.statusApi, { credentials: 'include' });
 
         if (!response.ok) {
           return;
@@ -42,8 +42,7 @@ export default function VerifyingPage() {
           } else if (decision === 'DEACTIVATE') {
             window.location.replace(paths.fraud.accountSuspended);
           } else {
-            // ACCEPTED or unknown — approved, navigate to the platform
-            window.location.replace(paths.account.organizations.root);
+            window.location.replace(result.redirectTo ?? paths.onboarding.account);
           }
         }
         // If status === 'pending', continue polling

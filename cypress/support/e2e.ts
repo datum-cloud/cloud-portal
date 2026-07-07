@@ -1,3 +1,9 @@
+import {
+  completeOrgBillingSetup,
+  completeOrgContactInfo,
+  completeOrgPaymentMethod,
+  fillStripePaymentDialog,
+} from './org-billing-setup';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import '@testing-library/cypress/add-commands';
@@ -27,13 +33,17 @@ Cypress.on('window:before:load', (win) => {
  * Stub the "ambient" authenticated-page polling that fires on every visit so
  * the e2e suite doesn't trip the upstream IAM rate limiter for the test
  * account. None of the smoke specs exercise these endpoints — they're noise
- * from global header components (notification bell, watch SSE, org switcher).
+ * from global header components (notification bell, org switcher).
  *
- * Without this, every `cy.visit` opens a fresh QueryClient + WatchManager
- * that hammers IAM, and in CI — where specs run back-to-back against the
- * same test account — the cumulative load returns 429s. The user-visible
- * symptom is a "Too Many Requests" toast on whatever spec runs latest in
- * the suite (most often the alphabetically-last `secrets.cy.ts`).
+ * Watch SSE is intentionally left live — org billing setup and other flows
+ * depend on `waitForWatch` receiving real K8s events (SetupIntent secrets,
+ * payment-method card details). Stubbing the stream breaks those flows.
+ *
+ * Without the remaining stubs, every `cy.visit` still opens ambient IAM
+ * polling, and in CI — where specs run back-to-back against the same test
+ * account — the cumulative load can return 429s. The user-visible symptom
+ * is a "Too Many Requests" toast on whatever spec runs latest in the suite
+ * (most often the alphabetically-last `secrets.cy.ts`).
  *
  * Specs that genuinely exercise one of these endpoints can override the
  * intercept locally (later `cy.intercept` calls for the same route win) or
@@ -51,19 +61,6 @@ function stubAmbientApis(): void {
       items: [],
     },
   });
-
-  // Multiplexed watch SSE. We can't easily simulate a real SSE stream from
-  // `cy.intercept`, so we hold the request open longer than any test could
-  // run. The client-side WatchManager sits awaiting `fetch` and never enters
-  // its retry loop, never opens upstream K8s watches, and never reconnects.
-  cy.intercept('GET', '/api/watch/stream*', {
-    statusCode: 200,
-    headers: { 'content-type': 'text/event-stream' },
-    body: '',
-    delay: 5 * 60 * 1000,
-  });
-  cy.intercept('POST', '/api/watch/subscribe', { statusCode: 200, body: {} });
-  cy.intercept('POST', '/api/watch/unsubscribe', { statusCode: 200, body: {} });
 
   // RBAC access-review BFF (#1269). Every authenticated page fires one or
   // both of these on mount; when they resolve, components re-render to
@@ -323,21 +320,25 @@ Cypress.Commands.add('logout', () => {
 
 /**
  * Create a standard org and return its orgId (resource name).
+ *
+ * Walks the create-organization dialog: contact info → Stripe test card → submit.
+ * Requires Stripe test mode (`StripeProviderConfig`) in the target environment.
  */
 Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainable<string> => {
   cy.visit(paths.account.organizations.root);
-  // Wait for the list to finish its loading → loaded transition before clicking
-  // the header action. Otherwise the CardList re-renders mid-click and detaches
-  // the button, causing `cy.click()` to fail with "page updated while executing".
-  cy.get('[data-e2e="organization-card-personal"]', { timeout: 10000 }).should('be.visible');
+  cy.get('[data-e2e="organization-card-personal"]', { timeout: 10_000 }).should('be.visible');
   cy.get('[data-e2e="create-organization-button"]').should('be.visible').click();
-  cy.get('[data-e2e="create-organization-name-input"]', { timeout: 10000 })
-    .should('be.visible')
-    .type(displayName);
-  cy.contains('button', 'Confirm').click();
+
+  cy.contains('Create organization', { timeout: 10_000 }).should('be.visible');
+
+  completeOrgBillingSetup(displayName);
+
+  cy.get('[data-e2e="create-organization-submit"]', { timeout: 10_000 })
+    .should('not.be.disabled')
+    .click();
 
   return cy
-    .url({ timeout: 30_000 })
+    .url({ timeout: 120_000 })
     .should('match', /\/org\/[a-z0-9-]+\//)
     .then((url) => {
       const parsedOrgId = url.split('/org/')[1]?.split('/')[0]?.trim();
@@ -346,7 +347,26 @@ Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainab
       }
       return parsedOrgId;
     })
-    .then((parsedOrgId) => cy.wrap(parsedOrgId, { log: false }));
+    .then((parsedOrgId) => {
+      cy.task('registerTestOrg', parsedOrgId, { log: false });
+      return cy.wrap(parsedOrgId, { log: false });
+    });
+});
+
+Cypress.Commands.add('completeOrgBillingSetup', (displayName?: string) => {
+  completeOrgBillingSetup(displayName);
+});
+
+Cypress.Commands.add('completeOrgContactInfo', () => {
+  completeOrgContactInfo();
+});
+
+Cypress.Commands.add('completeOrgPaymentMethod', () => {
+  completeOrgPaymentMethod();
+});
+
+Cypress.Commands.add('fillStripePaymentDialog', (displayName?: string) => {
+  fillStripePaymentDialog(displayName);
 });
 
 /**
@@ -421,7 +441,10 @@ Cypress.Commands.add(
         }
         return trimmedId;
       })
-      .then((trimmedId) => cy.wrap(trimmedId, { log: false }));
+      .then((trimmedId) => {
+        cy.task('registerTestProject', { projectId: trimmedId, orgId }, { log: false });
+        return cy.wrap(trimmedId, { log: false });
+      });
   }
 );
 
@@ -501,7 +524,10 @@ Cypress.Commands.add('deleteProjectIfExists', (projectId: string, orgId?: string
 
   cy.visit(getPathWithParams(paths.project.detail.settings.general, { projectId }));
   cy.get('body').then(($body) => {
-    if (!$body.find('[data-e2e="delete-project-button"]').length) return;
+    if (!$body.find('[data-e2e="delete-project-button"]').length) {
+      cy.task('releaseTestProject', projectId, { log: false });
+      return;
+    }
 
     cy.get('[data-e2e="delete-project-button"]').click();
     cy.get('body').then(($dialogBody) => {
@@ -512,6 +538,7 @@ Cypress.Commands.add('deleteProjectIfExists', (projectId: string, orgId?: string
     if (orgId) {
       cy.url().should('include', paths.org.detail.projects.root.replace('[orgId]', orgId));
     }
+    cy.task('releaseTestProject', projectId, { log: false });
   });
 });
 
@@ -523,7 +550,10 @@ Cypress.Commands.add('deleteOrganizationIfExists', (orgId: string) => {
 
   cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId }));
   cy.get('body').then(($body) => {
-    if (!$body.find('[data-e2e="delete-organization-button"]').length) return;
+    if (!$body.find('[data-e2e="delete-organization-button"]').length) {
+      cy.task('releaseTestOrg', orgId, { log: false });
+      return;
+    }
 
     cy.get('[data-e2e="delete-organization-button"]').click();
     cy.get('body').then(($dialogBody) => {
@@ -532,7 +562,16 @@ Cypress.Commands.add('deleteOrganizationIfExists', (orgId: string) => {
       cy.get('[data-e2e="confirmation-dialog-submit"]').click();
       cy.url().should('include', paths.account.organizations.root);
     });
+    cy.task('releaseTestOrg', orgId, { log: false });
   });
+});
+
+/**
+ * Delete all orgs/projects registered during this Cypress run (Node-side API cleanup).
+ * Called automatically in `after:run`; specs can call explicitly in `after()` hooks too.
+ */
+Cypress.Commands.add('cleanupTestResources', () => {
+  cy.task('cleanupAllTestResources', null, { log: false });
 });
 
 /**
@@ -544,7 +583,7 @@ Cypress.Commands.add('deleteOrganizationIfExists', (orgId: string) => {
  *   });
  *
  * The first spec to call this creates the resources; subsequent specs reuse them.
- * Cleanup happens via after:run at the Node level (see shared-resources.ts).
+ * Cleanup happens via `after:run` at the Node level (see shared-resources.ts).
  */
 Cypress.Commands.add(
   'ensureSharedResources',
@@ -619,6 +658,12 @@ declare global {
        */
       createStandardOrg(displayName: string): Chainable<string>;
 
+      /** Fill contact + payment in the org billing setup dialog (without submitting). */
+      completeOrgBillingSetup(displayName?: string): Chainable<void>;
+      completeOrgContactInfo(): Chainable<void>;
+      completeOrgPaymentMethod(): Chainable<void>;
+      fillStripePaymentDialog(displayName?: string): Chainable<void>;
+
       /**
        * Create a project in an org and return its resource ID.
        * @example cy.createProjectInOrg(orgId, 'e2e-test-project').then((projectId) => { ... })
@@ -638,6 +683,12 @@ declare global {
       deleteOrganizationIfExists(orgId: string): Chainable<void>;
 
       /**
+       * Delete all orgs/projects registered during this Cypress run via the control-plane API.
+       * Runs automatically in `after:run`; call from spec `after()` hooks when needed.
+       */
+      cleanupTestResources(): Chainable<void>;
+
+      /**
        * Get or create shared regression resources (1 org + 1 project per shard).
        * First call creates them; subsequent calls return the cached IDs.
        * Cleanup is automatic via a global after() hook.
@@ -653,6 +704,14 @@ declare global {
        * @example cy.waitForProjectAbsentInOrg(orgId, testName)
        */
       waitForProjectAbsentInOrg(orgId: string, displayName: string): Chainable<void>;
+
+      /**
+       * Poll the account organizations SSR HTML via `cy.request` until the org's
+       * display name appears. Handles the account-level org LIST eventual-
+       * consistency window after creating a new org.
+       * @example cy.waitForOrgPresentInList(testName)
+       */
+      waitForOrgPresentInList(displayName: string): Chainable<void>;
     }
   }
 }
@@ -660,6 +719,31 @@ declare global {
 Cypress.Commands.add('waitForProjectAbsentInOrg', (orgId: string, displayName: string) => {
   const pageUrl = getPathWithParams(paths.org.detail.projects.root, { orgId });
   pollPageHtmlUntilDisplayNameGone(pageUrl, displayName, 60_000, 3_000);
+});
+
+Cypress.Commands.add('waitForOrgPresentInList', (displayName: string) => {
+  // The account org list is fetched client-side (useOrganizationsGql), so it's
+  // NOT in the SSR HTML — cy.request polling can't see it. Reload the page and
+  // check the rendered DOM instead, waiting for the client fetch to settle each
+  // time (the personal org card always renders once the list has loaded).
+  const attempt = (remainingMs: number): void => {
+    cy.visit(paths.account.organizations.root);
+    // Wait for the client-side list to render at least one card (any variant —
+    // typeless `organization-card` or legacy `-personal`/`-standard`).
+    cy.get('[data-e2e^="organization-card"]', { timeout: 30_000 }).should('exist');
+    cy.get('body').then(($body) => {
+      if ($body.text().includes(displayName)) return;
+      if (remainingMs <= 0) {
+        throw new Error(
+          `Org '${displayName}' did not appear in the organizations list within the poll budget`
+        );
+      }
+      cy.wait(5_000, { log: false });
+      attempt(remainingMs - 5_000);
+    });
+  };
+
+  attempt(120_000);
 });
 
 /**

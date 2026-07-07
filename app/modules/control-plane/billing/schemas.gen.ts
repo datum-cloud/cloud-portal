@@ -128,6 +128,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
         paymentTerms: {
           description: 'PaymentTerms defines the invoicing schedule for this billing account.',
           type: 'object',
+          default: {},
           properties: {
             invoiceDayOfMonth: {
               description: 'InvoiceDayOfMonth is the day of the month invoices are generated.',
@@ -733,6 +734,15 @@ export const com_miloapis_billing_v1alpha1_MeterDefinitionSchema = {
             'PublishedAt is the time at which the controller first observed the\nresource in the Published phase.',
           type: 'string',
           format: 'date-time',
+        },
+        systemDimensions: {
+          description:
+            'SystemDimensions lists the dimension keys injected by the billing\npipeline on every valid event, in addition to those declared in\nspec.measurement.dimensions. Providers must configure these alongside\nspec.measurement.dimensions when setting up meters in downstream systems.',
+          type: 'array',
+          items: {
+            type: 'string',
+          },
+          'x-kubernetes-list-type': 'atomic',
         },
       },
     },

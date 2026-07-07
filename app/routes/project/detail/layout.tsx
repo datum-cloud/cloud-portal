@@ -26,6 +26,8 @@ import { setOrgSession, setProjectSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
+import { projectLegacySetupMiddleware, withMiddleware } from '@/utils/middlewares';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
@@ -46,8 +48,8 @@ import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
   Outlet,
-  type ShouldRevalidateFunction,
   useFetcher,
+  useLocation,
   useNavigate,
   useParams,
 } from 'react-router';
@@ -73,36 +75,39 @@ const route = defineResourceRoute<Project, ProjectLayoutCompanions>({
   metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Project',
 });
 
-export const loader = (args: LoaderFunctionArgs) =>
-  runDetailLoader<Project, ProjectLayoutCompanions>(args, {
-    resource: 'projects',
-    group: 'resourcemanager.miloapis.com',
-    scope: 'user',
-    paramName: 'projectId',
-    notFoundLabel: 'Project',
-    fetch: ({ id }) => createProjectService().get(id),
-    companions: {
-      billingEnabled: {
-        resource: 'projects',
-        group: 'resourcemanager.miloapis.com',
-        verb: 'get',
-        scope: 'user',
-        onError: 'tolerate',
-        fetch: ({ data: project }) =>
-          project?.organizationId
-            ? isFeatureEnabled(FeatureFlag.Billing, project.organizationId)
-            : Promise.resolve(false),
+export const loader = withMiddleware(
+  (args: LoaderFunctionArgs) =>
+    runDetailLoader<Project, ProjectLayoutCompanions>(args, {
+      resource: 'projects',
+      group: 'resourcemanager.miloapis.com',
+      scope: 'user',
+      paramName: 'projectId',
+      notFoundLabel: 'Project',
+      fetch: ({ id }) => createProjectService().get(id),
+      companions: {
+        billingEnabled: {
+          resource: 'projects',
+          group: 'resourcemanager.miloapis.com',
+          verb: 'get',
+          scope: 'user',
+          onError: 'tolerate',
+          fetch: ({ data: project }) =>
+            project?.organizationId
+              ? isFeatureEnabled(FeatureFlag.Billing, project.organizationId)
+              : Promise.resolve(false),
+        },
+        organizationId: {
+          resource: 'projects',
+          group: 'resourcemanager.miloapis.com',
+          verb: 'get',
+          scope: 'user',
+          onError: 'tolerate',
+          fetch: ({ data: project }) => Promise.resolve(project?.organizationId),
+        },
       },
-      organizationId: {
-        resource: 'projects',
-        group: 'resourcemanager.miloapis.com',
-        verb: 'get',
-        scope: 'user',
-        onError: 'tolerate',
-        fetch: ({ data: project }) => Promise.resolve(project?.organizationId),
-      },
-    },
-  });
+    }),
+  projectLegacySetupMiddleware
+);
 
 export const handle = route.handle;
 export const meta = route.meta;
@@ -127,17 +132,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 /** Skip re-running the loader when navigating within the same project (e.g. Home → AI Edge → Connectors). */
-export const shouldRevalidate: ShouldRevalidateFunction = ({
-  currentParams,
-  nextParams,
-  defaultShouldRevalidate,
-}) => {
-  if (currentParams.projectId === nextParams.projectId) return false;
-  return defaultShouldRevalidate;
-};
+export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 export default route.Page(({ data: initialProject, companions }) => {
   const { projectId } = useParams();
+  const location = useLocation();
+  const fromOnboarding =
+    (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding === true;
   const breakpoint = useBreakpoint();
   const seededOrgId = companions.organizationId;
   const navigate = useNavigate();
@@ -153,9 +154,9 @@ export default route.Page(({ data: initialProject, companions }) => {
     error: projectErrorDetail,
   } = useProject(projectId ?? '', {
     enabled: !!projectId,
-    staleTime: QUERY_STALE_TIME,
-    refetchOnMount: false,
-    initialData: initialProject,
+    staleTime: fromOnboarding ? 0 : QUERY_STALE_TIME,
+    refetchOnMount: fromOnboarding ? 'always' : false,
+    initialData: fromOnboarding ? undefined : initialProject,
   });
 
   // Fire in parallel with the project query: seed orgId from the loader's

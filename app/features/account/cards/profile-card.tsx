@@ -1,9 +1,16 @@
+import { BILLING_COUNTRIES } from '@/features/billing/constants';
 import { useApp } from '@/providers/app.provider';
 import { useUpdateUser, userSchema } from '@/resources/users';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { useMemo } from 'react';
+import { z } from 'zod';
+
+const accountProfileSettingsSchema = userSchema.extend({
+  country: z.string().optional(),
+});
 
 /**
  * Account Profile Settings Card Component
@@ -11,6 +18,15 @@ import { toast } from '@datum-cloud/datum-ui/toast';
  */
 export const AccountProfileSettingsCard = () => {
   const { user, setUser } = useApp();
+
+  const countryLabel = useMemo(() => {
+    if (!user?.country) {
+      return undefined;
+    }
+    return (
+      BILLING_COUNTRIES.find((country) => country.value === user.country)?.label ?? user.country
+    );
+  }, [user?.country]);
 
   const updateMutation = useUpdateUser(user?.sub ?? 'me', {
     onSuccess: (updatedUser) => {
@@ -35,19 +51,20 @@ export const AccountProfileSettingsCard = () => {
       <Form.Root
         name="update-profile"
         id="update-profile-form"
-        schema={userSchema}
+        schema={accountProfileSettingsSchema}
         mode="onBlur"
         defaultValues={{
           firstName: user?.givenName ?? '',
           lastName: user?.familyName ?? '',
           email: user?.email ?? '',
+          country: countryLabel ?? '',
         }}
         isSubmitting={updateMutation.isPending}
-        onSubmit={(data) => {
+        onSubmit={({ firstName, lastName, email }) => {
           updateMutation.mutate({
-            firstName: data.firstName,
-            lastName: data.lastName,
-            email: data.email,
+            firstName,
+            lastName,
+            email,
           });
         }}
         className="flex flex-col space-y-0">
@@ -73,6 +90,15 @@ export const AccountProfileSettingsCard = () => {
                     <Form.SelectItem value={user?.email ?? ''}>{user?.email}</Form.SelectItem>
                   </Form.Select>
                 </Form.Field>
+                {countryLabel && (
+                  <Form.Field
+                    name="country"
+                    label="Country"
+                    className="sm:w-1/2 sm:pr-2"
+                    description="Set during account setup and used for legal and regional defaults.">
+                    <Form.Input readOnly tabIndex={-1} aria-readonly="true" value={countryLabel} />
+                  </Form.Field>
+                )}
               </div>
             </CardContent>
             <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">

@@ -25,6 +25,8 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getDnsZoneErrorGuidance, isDnsZoneErrored } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -50,6 +52,12 @@ export const loader = (args: LoaderFunctionArgs) =>
     fetch: ({ projectId }) => createDnsZoneService().list(projectId!),
   });
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoaderFromQueryKey<DnsZone[]>((projectId) =>
+  dnsZoneKeys.list(projectId)
+);
 
 interface DnsZoneWithComputed extends DnsZone {
   _computed: {

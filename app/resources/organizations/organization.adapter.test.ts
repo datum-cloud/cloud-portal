@@ -1,4 +1,5 @@
 import {
+  isOrganizationOwnerGrantReady,
   toCreatePayload,
   toOrganization,
   toOrganizationFromMembership,
@@ -35,7 +36,16 @@ describe('toOrganization', () => {
     const org = toOrganization(raw as never);
     expect(org.status).toBe('Pending');
     expect(org.displayName).toBe('no-status');
-    expect(org.type).toBe('Standard');
+    expect(org.type).toBeUndefined();
+  });
+
+  it('drops empty or unknown organization types from unified orgs', () => {
+    const raw = {
+      metadata: rawMetadata({ name: 'unified' }),
+      spec: { type: '' },
+      status: { conditions: [{ type: 'Ready', status: 'True', reason: 'Ready' }] },
+    };
+    expect(toOrganization(raw as never).type).toBeUndefined();
   });
 
   it('maps a Suspended reason to Suspended status', () => {
@@ -75,6 +85,38 @@ describe('toOrganization', () => {
   });
 });
 
+describe('isOrganizationOwnerGrantReady', () => {
+  it('returns true when RolesApplied is True', () => {
+    expect(
+      isOrganizationOwnerGrantReady({
+        status: {
+          conditions: [{ type: 'RolesApplied', status: 'True', reason: 'AllRolesApplied' }],
+        },
+      } as never)
+    ).toBe(true);
+  });
+
+  it('returns true when every applied role is Applied', () => {
+    expect(
+      isOrganizationOwnerGrantReady({
+        status: {
+          appliedRoles: [{ status: 'Applied' }, { status: 'Applied' }],
+        },
+      } as never)
+    ).toBe(true);
+  });
+
+  it('returns false while roles are still pending', () => {
+    expect(
+      isOrganizationOwnerGrantReady({
+        status: {
+          appliedRoles: [{ status: 'Pending' }],
+        },
+      } as never)
+    ).toBe(false);
+  });
+});
+
 describe('toOrganizationList', () => {
   it('maps items and reads the pagination cursor from metadata.continue', () => {
     const raw = {
@@ -102,6 +144,15 @@ describe('toOrganizationFromMembership', () => {
     expect(org.name).toBe('acme');
     expect(org.displayName).toBe('Acme Inc');
     expect(org.type).toBe('Personal');
+  });
+
+  it('drops empty organization type from membership status', () => {
+    const raw = {
+      metadata: rawMetadata({ uid: 'mem-2' }),
+      spec: { organizationRef: { name: 'unified' } },
+      status: { organization: { displayName: 'Unified Org', type: '' } },
+    };
+    expect(toOrganizationFromMembership(raw as never).type).toBeUndefined();
   });
 });
 

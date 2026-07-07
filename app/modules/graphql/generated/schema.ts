@@ -1,6 +1,6 @@
 export type Scalars = {
-  DateTime: any;
   JSON: any;
+  DateTime: any;
   BigInt: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_message: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_reason: any;
@@ -11,6 +11,7 @@ export type Scalars = {
   Boolean: boolean;
   String: string;
   Int: number;
+  ID: string;
 };
 
 export interface Query {
@@ -18,6 +19,15 @@ export interface Query {
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces?: com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipList;
   /** read the specified Organization */
   readResourcemanagerMiloapisComV1alpha1Organization?: com_miloapis_resourcemanager_v1alpha1_Organization;
+  /**
+   * Returns sessions for the authenticated caller by default.
+   *
+   * When userID is provided and differs from the caller, the request is
+   * forwarded to milo with a status.userUID field selector. milo authorizes
+   * the cross-user lookup via SubjectAccessReview against
+   * iam.miloapis.com/users/<userID> — callers without that permission get
+   * an empty list (the underlying 403 is logged).
+   */
   sessions: ExtendedSession[];
   __typename: 'Query';
 }
@@ -689,9 +699,21 @@ export interface QueryRequest {
     },
     com_miloapis_resourcemanager_v1alpha1_OrganizationRequest,
   ];
-  sessions?: ExtendedSessionRequest;
+  /**
+   * Returns sessions for the authenticated caller by default.
+   *
+   * When userID is provided and differs from the caller, the request is
+   * forwarded to milo with a status.userUID field selector. milo authorizes
+   * the cross-user lookup via SubjectAccessReview against
+   * iam.miloapis.com/users/<userID> — callers without that permission get
+   * an empty list (the underlying 403 is logged).
+   */
+  sessions?: [{ userID?: Scalars['ID'] | null }, ExtendedSessionRequest] | ExtendedSessionRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: QueryRequest;
+  };
 }
 
 /** ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create. */
@@ -746,6 +768,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaRequest {
   uid?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaRequest;
+  };
 }
 
 /** ManagedFieldsEntry is a workflow-id, a FieldSet and the group version of the resource that the fieldset applies to. */
@@ -765,6 +790,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntryRequest 
   time?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_ManagedFieldsEntryRequest;
+  };
 }
 
 /** OwnerReference contains enough information to let you identify an owning object. An owning object must be in the same namespace as the dependent, or be cluster-scoped, so there is no namespace field. */
@@ -783,6 +811,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceRequest {
   uid?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_OwnerReferenceRequest;
+  };
 }
 
 /** ListMeta describes metadata that synthetic resources must have, including lists and various status objects. A resource may have only one of {ObjectMeta, ListMeta}. */
@@ -797,6 +828,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaRequest {
   selfLink?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaRequest;
+  };
 }
 
 export interface MutationRequest {
@@ -858,6 +892,9 @@ export interface MutationRequest {
   deleteSession?: [{ id: Scalars['String'] }];
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: MutationRequest;
+  };
 }
 
 /** Status is a return value for calls that don't return other objects. */
@@ -878,6 +915,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_StatusRequest {
   status?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_StatusRequest;
+  };
 }
 
 /** StatusDetails is a set of additional properties that MAY be set by the server to provide additional information about a response. The Reason field of a Status object defines what attributes will be set. Clients must ignore fields that do not match the defined type of each attribute, and should assume that any attribute may be empty, invalid, or under defined. */
@@ -896,6 +936,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsRequest {
   uid?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsRequest;
+  };
 }
 
 /** StatusCause provides more information about an api.Status failure, including cases when multiple errors are encountered. */
@@ -914,6 +957,9 @@ export interface io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseRequest {
   reason?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: io_k8s_apimachinery_pkg_apis_meta_v1_StatusCauseRequest;
+  };
 }
 
 /** OrganizationMembershipList is a list of OrganizationMembership */
@@ -927,6 +973,9 @@ export interface com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipLis
   metadata?: io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest;
+  };
 }
 
 /**
@@ -979,6 +1028,9 @@ export interface com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipReq
   status?: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_statusRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipRequest;
+  };
 }
 
 /**
@@ -1016,6 +1068,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   userRef?: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_spec_userRefRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_specRequest;
+  };
 }
 
 /**
@@ -1029,6 +1086,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   name?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_spec_organizationRefRequest;
+  };
 }
 
 /** RoleReference defines a reference to a Role resource for organization membership. */
@@ -1042,6 +1104,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   namespace?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_spec_roles_itemsRequest;
+  };
 }
 
 /**
@@ -1055,6 +1122,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   name?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_spec_userRefRequest;
+  };
 }
 
 /**
@@ -1117,6 +1189,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   user?: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_userRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_statusRequest;
+  };
 }
 
 /**
@@ -1159,6 +1236,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   status?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_appliedRoles_itemsRequest;
+  };
 }
 
 /**
@@ -1175,6 +1257,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   namespace?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_appliedRoles_items_policyBindingRefRequest;
+  };
 }
 
 /** Condition contains details for one aspect of the current state of this API Resource. */
@@ -1200,6 +1287,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   type?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_itemsRequest;
+  };
 }
 
 /**
@@ -1213,6 +1305,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   type?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_organizationRequest;
+  };
 }
 
 /**
@@ -1230,6 +1327,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
   givenName?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_userRequest;
+  };
 }
 
 /**
@@ -1246,6 +1348,9 @@ export interface com_miloapis_resourcemanager_v1alpha1_OrganizationRequest {
   status?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_statusRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: com_miloapis_resourcemanager_v1alpha1_OrganizationRequest;
+  };
 }
 
 /** OrganizationSpec defines the desired state of Organization */
@@ -1253,6 +1358,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_
   type?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_specRequest;
+  };
 }
 
 /** OrganizationStatus defines the observed state of Organization */
@@ -1266,6 +1376,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_
   observedGeneration?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_statusRequest;
+  };
 }
 
 /** Condition contains details for one aspect of the current state of this API Resource. */
@@ -1291,6 +1406,11 @@ export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_
   type?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_itemsRequest;
+  };
 }
 
 /** ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create. */
@@ -1466,6 +1586,9 @@ export interface ParsedUserAgentRequest {
   formatted?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: ParsedUserAgentRequest;
+  };
 }
 
 export interface GeoLocationRequest {
@@ -1475,6 +1598,9 @@ export interface GeoLocationRequest {
   formatted?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: GeoLocationRequest;
+  };
 }
 
 export interface ExtendedSessionRequest {
@@ -1489,6 +1615,9 @@ export interface ExtendedSessionRequest {
   location?: GeoLocationRequest;
   __typename?: boolean | number;
   __scalar?: boolean | number;
+  __alias?: {
+    [alias: string]: ExtendedSessionRequest;
+  };
 }
 
 const Query_possibleTypes: string[] = ['Query'];

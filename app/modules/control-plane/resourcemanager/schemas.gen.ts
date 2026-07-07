@@ -4,7 +4,6 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationSchema = {
   description:
     'Use lowercase for path, which influences plural name. Ensure kind is Organization.\nOrganization is the Schema for the Organizations API',
   type: 'object',
-  required: ['spec'],
   properties: {
     apiVersion: {
       description:
@@ -28,10 +27,72 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationSchema = {
     spec: {
       description: 'OrganizationSpec defines the desired state of Organization',
       type: 'object',
-      required: ['type'],
       properties: {
+        contactInfo: {
+          description:
+            'ContactInfo describes who the organization is and how to reach them.\nEmail and name are required for onboarding to complete.',
+          type: 'object',
+          required: ['email', 'name'],
+          properties: {
+            address: {
+              description: 'Address is the optional postal address for the organization.',
+              type: 'object',
+              required: ['country'],
+              properties: {
+                city: {
+                  description: 'City is the locality.',
+                  type: 'string',
+                  maxLength: 128,
+                },
+                country: {
+                  description: 'Country is the ISO 3166-1 alpha-2 country code (e.g. "GB", "US").',
+                  type: 'string',
+                  pattern: '^[A-Z]{2}$',
+                },
+                line1: {
+                  description: 'Line1 is the first line of the street address.',
+                  type: 'string',
+                  maxLength: 256,
+                },
+                line2: {
+                  description: 'Line2 is the second line of the street address.',
+                  type: 'string',
+                  maxLength: 256,
+                },
+                postalCode: {
+                  description: 'PostalCode is the post or zip code.',
+                  type: 'string',
+                  maxLength: 32,
+                },
+                region: {
+                  description: 'Region is the state, province, or county.',
+                  type: 'string',
+                  maxLength: 128,
+                },
+              },
+            },
+            businessName: {
+              description: 'BusinessName is the optional legal entity or company name.',
+              type: 'string',
+              maxLength: 256,
+            },
+            email: {
+              description: 'Email is the primary contact email for the organization.',
+              type: 'string',
+              maxLength: 256,
+              minLength: 1,
+            },
+            name: {
+              description: 'Name is the display name of the primary contact.',
+              type: 'string',
+              maxLength: 256,
+              minLength: 1,
+            },
+          },
+        },
         type: {
-          description: 'The type of organization.',
+          description:
+            'Type distinguishes personal and standard organizations in legacy mode.\n\nDeprecated: This field is ignored when the UnifiedOrganizations feature\ngate is enabled. Use unified organizations without a type distinction.',
           type: 'string',
           enum: ['Personal', 'Standard'],
           'x-kubernetes-validations': [
@@ -49,7 +110,7 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationSchema = {
       properties: {
         conditions: {
           description:
-            'Conditions represents the observations of an organization\'s current state.\nKnown condition types are: "Ready"',
+            'Conditions represents the observations of an organization\'s current state.\nKnown condition types are: "Ready", "OnboardingComplete"',
           type: 'array',
           default: [
             {
@@ -58,6 +119,13 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationSchema = {
               reason: 'Unknown',
               status: 'Unknown',
               type: 'Ready',
+            },
+            {
+              lastTransitionTime: '1970-01-01T00:00:00Z',
+              message: 'Organization contact information is incomplete',
+              reason: 'ContactInfoIncomplete',
+              status: 'False',
+              type: 'OnboardingComplete',
             },
           ],
           items: {
@@ -124,7 +192,6 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_resourcemanager_v1alpha1_OrganizationListSchema = {
@@ -167,7 +234,6 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipSchema = {
@@ -384,12 +450,18 @@ export const com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipSchema 
             'Organization contains cached information about the organization in this membership.\nThis information is populated by the controller from the referenced organization.',
           type: 'object',
           properties: {
+            contactEmail: {
+              description:
+                'ContactEmail is the primary contact email cached from the organization.',
+              type: 'string',
+            },
             displayName: {
               description: 'DisplayName is the display name of the organization in the membership.',
               type: 'string',
             },
             type: {
-              description: 'Type is the type of the organization in the membership.',
+              description:
+                'Type is the legacy organization type cached from the organization.\n\nDeprecated: This field reflects organization.spec.type, which is deprecated\nwhen the UnifiedOrganizations feature gate is enabled.',
               type: 'string',
             },
           },
@@ -610,7 +682,6 @@ export const com_miloapis_resourcemanager_v1alpha1_ProjectSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_resourcemanager_v1alpha1_ProjectListSchema = {
@@ -653,7 +724,6 @@ export const com_miloapis_resourcemanager_v1alpha1_ProjectListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
@@ -890,11 +960,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'networking.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
-    },
-    {
-      group: 'networking.k8s.io',
-      kind: 'DeleteOptions',
       version: 'v1beta1',
     },
     {
@@ -936,6 +1001,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'rbac.authorization.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1',
     },
     {
       group: 'resource.k8s.io',
@@ -946,6 +1016,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'resource.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta2',
     },
     {
       group: 'scheduling.k8s.io',
@@ -980,7 +1055,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'storagemigration.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1beta1',
     },
   ],
 } as const;
@@ -1284,7 +1359,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails',
         },
       ],
-      'x-kubernetes-list-type': 'atomic',
     },
     kind: {
       description:

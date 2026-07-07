@@ -6,11 +6,14 @@ import {
   type ResourceRegistration,
 } from '@/resources/resource-registrations';
 import { BadRequestError, withLoaderErrors } from '@/utils/errors';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { LoaderFunctionArgs, useLoaderData } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Quotas</span>,
 };
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 interface ProjectQuotasLoaderData {
   buckets: AllowanceBucket[];

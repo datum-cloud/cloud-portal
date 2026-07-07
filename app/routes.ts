@@ -55,6 +55,10 @@ export default [
       route(':orgId', 'routes/org/detail/layout.tsx', { id: 'org-detail' }, [
         index('routes/org/detail/index.tsx'),
 
+        // Shown to non-owners when the org still needs billing setup. Exempted
+        // from the legacy-setup gate so it doesn't redirect-loop.
+        route('setup-required', 'routes/org/detail/setup-required.tsx'),
+
         // Projects of an organization
         route('projects', 'routes/org/detail/projects/layout.tsx', [
           index('routes/org/detail/projects/index.tsx'),
@@ -237,8 +241,15 @@ export default [
     route('callback', 'routes/auth/callback.tsx'),
   ]),
 
-  // Onboarding (outside private layout — BlankLayout + own loader auth)
-  route('complete-profile', 'routes/onboarding/complete-profile.tsx'),
+  // Onboarding (outside private layout — own loader auth + AppProvider for user menu)
+  ...prefix('onboarding', [
+    layout('routes/onboarding/layout.tsx', [
+      route('profile', 'routes/onboarding/profile.tsx'),
+      route('account', 'routes/onboarding/account.tsx'),
+      route('billing', 'routes/onboarding/billing.tsx'),
+      route('provisioning', 'routes/onboarding/provisioning.tsx'),
+    ]),
+  ]),
 
   // Fraud / gating routes — outside the private layout because the private layout loader fetches
   // the user and would throw NotFoundError for brand-new users not yet in Milo.

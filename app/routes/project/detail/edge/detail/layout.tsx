@@ -6,6 +6,7 @@ import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { createHttpProxyService, httpProxyKeys, type HttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
 import { useMemo } from 'react';
 import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
@@ -32,6 +33,8 @@ export const loader = (args: LoaderFunctionArgs) =>
   });
 export const handle = route.handle;
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProjectResource('proxyId');
 
 export default route.Page(({ data: proxy }) => {
   const { projectId = '', proxyId = '' } = useParams<{ projectId: string; proxyId: string }>();

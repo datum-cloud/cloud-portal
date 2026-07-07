@@ -1,10 +1,9 @@
+import { resolveUserFraudRedirectPath } from './fraud-redirect';
 import { type MiddlewareContext, type NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
-import { createUserService } from '@/resources/users';
-import { RegistrationApproval } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
-import { AuthorizationError, NotFoundError } from '@/utils/errors';
+import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
 import { redirect } from 'react-router';
 
 /**
@@ -14,10 +13,10 @@ import { redirect } from 'react-router';
  *
  * Algorithm:
  * 1. Read session; if no sub, call next() (let authMiddleware handle)
- * 2. Fetch user; if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
+ * 2. Fetch user (or reuse auth middleware cache); if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
  * 3. Cache user in reqCtx to avoid a second upstream call in the layout loader
  * 4. state === 'Inactive'                  → /account-suspended
- * 5. registrationApproval === 'Approved'   → if nameReviewRequired and not on onboarding complete-profile → redirect there; else next()
+ * 5. registrationApproval === 'Approved'   → if nameReviewRequired and not on onboarding profile → redirect there; else next()
  * 6. registrationApproval === 'Rejected'   → /account-under-review
  * 7. Pending or undefined                  → /verifying
  */
@@ -39,21 +38,21 @@ export async function fraudStatusMiddleware(
       return next();
     }
 
-    let user;
-    try {
-      user = await createUserService().get(session.sub);
-    } catch (userError) {
-      if (userError instanceof NotFoundError) {
-        return redirect(paths.fraud.verifying);
+    let user = getRequestContext()?.cachedUser;
+    let refreshedHeaders: Headers | undefined;
+
+    if (!user) {
+      const access = await getUserWithAccessRetry(session.sub, request.headers.get('Cookie'));
+
+      if ('error' in access) {
+        if (access.error === 'not_found' || access.error === 'forbidden') {
+          return redirect(paths.fraud.verifying);
+        }
+        return next();
       }
-      // 403 means the user exists in Milo but OpenFGA permissions haven't
-      // propagated yet (race condition on new signups). Send to /verifying
-      // so the polling loop waits for propagation before proceeding.
-      if (userError instanceof AuthorizationError) {
-        return redirect(paths.fraud.verifying);
-      }
-      // Fail-open on other errors (e.g. upstream unavailable)
-      return next();
+
+      user = access.user;
+      refreshedHeaders = access.refreshedHeaders;
     }
 
     if (!user) {
@@ -65,25 +64,15 @@ export async function fraudStatusMiddleware(
       reqCtx.cachedUser = user;
     }
 
-    // Deactivated accounts take priority over registrationApproval
-    if (user.state === 'Inactive') {
-      return redirect(paths.fraud.accountSuspended);
+    const pathname = new URL(request.url).pathname;
+    const fraudRedirect = resolveUserFraudRedirectPath(user, pathname);
+    if (fraudRedirect) {
+      const headers = new Headers();
+      appendSetCookieHeaders(headers, refreshedHeaders);
+      return redirect(fraudRedirect, { headers });
     }
 
-    if (user.registrationApproval === RegistrationApproval.Approved) {
-      const pathname = new URL(request.url).pathname;
-      if (user.nameReviewRequired && pathname !== paths.onboarding.completeProfile) {
-        return redirect(paths.onboarding.completeProfile);
-      }
-      return next();
-    }
-
-    if (user.registrationApproval === RegistrationApproval.Rejected) {
-      return redirect(paths.fraud.accountUnderReview);
-    }
-
-    // Pending or undefined — evaluation still in progress
-    return redirect(paths.fraud.verifying);
+    return next();
   } catch {
     // Fail-open on unexpected errors
     return next();

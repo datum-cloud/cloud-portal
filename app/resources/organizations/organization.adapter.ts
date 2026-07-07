@@ -4,6 +4,7 @@ import {
   type Organization,
   type OrganizationList,
   type CreateOrganizationInput,
+  type CreateOnboardingOrganizationInput,
   type UpdateOrganizationInput,
 } from './organization.schema';
 import type {
@@ -11,6 +12,17 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1OrganizationList,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
+
+type Condition = {
+  type: string;
+  status: 'True' | 'False' | 'Unknown';
+  reason: string;
+};
+
+/** Legacy org types only — unified orgs omit type or send empty values. */
+function normalizeOrganizationType(type: unknown): Organization['type'] | undefined {
+  return type === 'Personal' || type === 'Standard' ? type : undefined;
+}
 
 export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organization): Organization {
   const transformed = {
@@ -23,10 +35,11 @@ export function toOrganization(raw: ComMiloapisResourcemanagerV1Alpha1Organizati
     resourceVersion: raw.metadata?.resourceVersion ?? '',
     createdAt: raw.metadata?.creationTimestamp ?? new Date(),
     updatedAt: raw.metadata?.creationTimestamp,
-    type: raw.spec?.type ?? 'Standard',
+    type: normalizeOrganizationType(raw.spec?.type),
     status: mapStatusFromConditions(raw.status?.conditions),
     memberCount: undefined,
     projectCount: undefined,
+    contactInfo: raw.spec?.contactInfo,
   };
 
   return organizationSchema.parse(transformed);
@@ -58,7 +71,7 @@ export function toOrganizationFromMembership(
     resourceVersion: metadata?.resourceVersion ?? '',
     createdAt: metadata?.creationTimestamp ?? new Date(),
     updatedAt: metadata?.creationTimestamp,
-    type: (status?.organization?.type as Organization['type']) ?? 'Standard',
+    type: normalizeOrganizationType(status?.organization?.type),
     status: mapStatusFromConditions(status?.conditions as Condition[]),
     memberCount: undefined,
     projectCount: undefined,
@@ -84,6 +97,24 @@ export function toCreatePayload(
     },
     spec: {
       type: input.type,
+    },
+  };
+}
+
+export function toOnboardingCreatePayload(
+  input: CreateOnboardingOrganizationInput
+): ComMiloapisResourcemanagerV1Alpha1Organization {
+  return {
+    apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
+    kind: 'Organization',
+    metadata: {
+      generateName: 'org-',
+      annotations: {
+        'kubernetes.io/display-name': input.displayName,
+      },
+    },
+    spec: {
+      contactInfo: input.contactInfo,
     },
   };
 }
@@ -116,11 +147,23 @@ export function toUpdatePayload(input: UpdateOrganizationInput): JsonPatchOp[] {
   return patches;
 }
 
-type Condition = {
-  type: string;
-  status: 'True' | 'False' | 'Unknown';
-  reason: string;
-};
+/** True once the membership controller has applied all owner PolicyBindings. */
+export function isOrganizationOwnerGrantReady(
+  membership: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership
+): boolean {
+  const conditions = membership.status?.conditions as Condition[] | undefined;
+  const rolesApplied = conditions?.find((condition) => condition.type === 'RolesApplied');
+  if (rolesApplied?.status === 'True') {
+    return true;
+  }
+
+  const appliedRoles = membership.status?.appliedRoles ?? [];
+  if (appliedRoles.length === 0) {
+    return false;
+  }
+
+  return appliedRoles.every((role) => role.status === 'Applied');
+}
 
 function mapStatusFromConditions(conditions?: Condition[]): Organization['status'] {
   if (!conditions || conditions.length === 0) {

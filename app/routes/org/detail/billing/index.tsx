@@ -6,10 +6,12 @@ import {
 } from '@/features/billing/dialogs/create-billing-account-dialog';
 import {
   getBillingAccountDisplayName,
+  getDefaultOrgBillingAccountName,
   type BillingAccount,
   type BillingAccountBinding,
 } from '@/features/billing/types';
 import { FeatureFlag } from '@/modules/feature-flags';
+import { requireBillingForOrg } from '@/modules/feature-flags/billing-gate.server';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { PermissionButton } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
@@ -54,6 +56,7 @@ import {
   type LoaderFunctionArgs,
   type MetaFunction,
   Link,
+  redirect,
   useLoaderData,
   useNavigate,
   useParams,
@@ -95,6 +98,7 @@ interface SwitcherRow {
  */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { orgId } = params;
+  await requireBillingForOrg(orgId);
 
   if (!orgId) {
     const emptyProjects: ProjectList = { items: [], hasMore: false, nextCursor: null };
@@ -116,6 +120,23 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     createProjectService().list(orgId),
     isFeatureEnabled(FeatureFlag.MultiBillingAccounts, orgId),
   ]);
+
+  // Nothing to switch when the org has no projects — this page is a
+  // projects-to-account pivot, so send the user straight to their billing
+  // account instead of a "create a project first" dead-end. Billing stays
+  // viewable without any linked projects. Only redirect when there's an
+  // account to land on; otherwise fall through to the empty state so they
+  // can still create one.
+  if (projects.items.length === 0) {
+    const defaultAccountName = getDefaultOrgBillingAccountName(accounts);
+    if (defaultAccountName) {
+      throw redirect(
+        getPathWithParams(paths.account.billing.detail.root, {
+          billingAccountId: defaultAccountName,
+        })
+      );
+    }
+  }
 
   return { accounts, bindings, projects, multiBillingAccountsEnabled };
 };
