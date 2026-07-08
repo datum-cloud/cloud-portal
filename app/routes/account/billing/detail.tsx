@@ -748,7 +748,7 @@ function AccountBillingAccountDetailPageInner() {
             stripePublishableKey={stripePublishableKey}
             billingDetailsPrefill={{
               email: contactInfo?.email,
-              name: contactInfo?.name ?? contactInfo?.businessName,
+              name: contactInfo?.name,
               address: buildContactAddressPrefill(address),
             }}
             onCreatePaymentMethod={createPaymentMethod}

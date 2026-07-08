@@ -289,13 +289,11 @@ export const OrgBillingSetupForm = ({
     if (!source.email?.trim()) return undefined;
     return {
       email: source.email.trim(),
-      // Org display name > business name > contact name. The explicit org
-      // name the user entered should appear in the billing address form, not
-      // the legal entity or personal contact name.
-      name: displayName.trim() || source.businessName?.trim() || source.name?.trim() || undefined,
+      // Card billing address uses the contact's personal name, not the org or business name.
+      name: source.name?.trim() || undefined,
       address: buildContactAddressPrefill(source),
     };
-  }, [contactInfo, contactDialogDefaults, displayName]);
+  }, [contactInfo, contactDialogDefaults]);
 
   const handleContactSave = async (values: OrgContactInfoValues) => {
     // First complete setup this session: no billingSetup yet (fresh create or
