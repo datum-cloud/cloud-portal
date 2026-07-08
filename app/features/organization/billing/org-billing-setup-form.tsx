@@ -25,6 +25,7 @@ import {
   type CreatePaymentMethodInput,
 } from '@/resources/payment-methods';
 import { waitForStripePaymentMethodSetup } from '@/resources/stripe-payment-methods';
+import { useStripePublishableKey } from '@/resources/stripe-provider-configs';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
@@ -95,7 +96,7 @@ export interface OrgBillingSetupFormProps {
 }
 
 export const OrgBillingSetupForm = ({
-  stripePublishableKey,
+  stripePublishableKey: initialStripePublishableKey,
   contactDefaults,
   initialSetup,
   initialContactInfo,
@@ -124,6 +125,14 @@ export const OrgBillingSetupForm = ({
     namespace: string;
   } | null>(initialSetup ?? null);
   const [isCompleting, setIsCompleting] = useState(false);
+
+  const stripeKeyQuery = useStripePublishableKey({
+    initialPublishableKey: initialStripePublishableKey,
+  });
+  const stripePublishableKey = stripeKeyQuery.publishableKey;
+  const stripeKeyLoading = !stripePublishableKey && stripeKeyQuery.isFetching;
+  const stripeKeyUnavailable =
+    !stripePublishableKey && stripeKeyQuery.isFetched && !stripeKeyQuery.isFetching;
 
   const setupBillingMutation = useSetupOnboardingBilling({
     onError: (error) => {
@@ -377,7 +386,9 @@ export const OrgBillingSetupForm = ({
           ) : null}
         </VerificationField>
 
-        {!stripePublishableKey ? (
+        {stripeKeyLoading ? (
+          <StripePaymentLoading />
+        ) : stripeKeyUnavailable ? (
           <UnconfiguredStripeFallback />
         ) : (
           <VerificationField
@@ -501,6 +512,14 @@ const VerificationField = ({
     {description && (
       <p className="text-foreground text-1xs font-normal opacity-60">{description}</p>
     )}
+  </div>
+);
+
+const StripePaymentLoading = () => (
+  <div className="border-border bg-muted/40 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center">
+    <SpinnerIcon size="sm" aria-hidden="true" />
+    <p className="text-foreground text-sm font-medium">Loading payment form…</p>
+    <p className="text-muted-foreground max-w-md text-xs">This usually takes a moment.</p>
   </div>
 );
 
