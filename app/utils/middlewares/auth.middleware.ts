@@ -63,6 +63,12 @@ export { onboardingEntryPath };
 const isOnboardingPath = (pathname: string): boolean =>
   pathname === paths.onboarding.root || pathname.startsWith(`${paths.onboarding.root}/`);
 
+// Settings paths the user should always be able to reach, even before they
+// have an organisation (e.g. to change their name, delete their account, or
+// manage sessions). Derived from the paths config so additions there are
+// automatically included here.
+const ACCOUNT_SETTINGS_PATHS = new Set(Object.values(paths.account.settings));
+
 /** Routes that should not trigger the no-orgs onboarding redirect. */
 const shouldSkipOnboardingRedirect = (pathname: string): boolean => {
   if (pathname === paths.auth.logOut) return true;
@@ -72,6 +78,8 @@ const shouldSkipOnboardingRedirect = (pathname: string): boolean => {
   if (pathname === paths.fraud.accountUnderReview) return true;
   if (pathname === paths.fraud.accountSuspended) return true;
   if (/^\/invitation\/[^/]+\/accept$/.test(pathname)) return true;
+  // Account settings are user-level and org-independent — always reachable.
+  if (ACCOUNT_SETTINGS_PATHS.has(pathname)) return true;
   return false;
 };
 

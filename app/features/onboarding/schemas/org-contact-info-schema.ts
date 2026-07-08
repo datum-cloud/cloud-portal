@@ -58,9 +58,15 @@ export const formatOrgContactSecondaryLine = (values: OrgContactInfoValues): str
   return parts.join(', ');
 };
 
-/** Org display name for provisioning step — business name preferred. */
+/**
+ * Derives an org display name from contact info when no explicit name was
+ * entered. Contact name is preferred over business name: the contact name is
+ * what the user typed as their primary identifier, while business name is an
+ * optional legal-entity field. An explicit `displayNameOverride` always wins
+ * over both (see `useSetupOnboardingBilling`).
+ */
 export const orgDisplayNameFromContact = (values: OrgContactInfoValues): string =>
-  values.businessName?.trim() || values.name.trim();
+  values.name.trim() || values.businessName?.trim() || '';
 
 /**
  * Display name for the first project created during onboarding.

@@ -344,6 +344,14 @@ const StripePaymentMethodFormBody = ({
   // and (re)reads `defaultValues`. Auto-unticking after a manual edit must NOT
   // bump this — a remount would wipe whatever the user just typed.
   const [addressSeed, setAddressSeed] = useState(0);
+  // Hidden during a checkbox-driven remount to prevent the Stripe iframe
+  // flicker. Cleared by onReady (or a safety timeout) once Stripe renders.
+  const [addressVisible, setAddressVisible] = useState(true);
+  const addressVisibleTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Holds the wrapper's pixel height during a remount so the iframe collapse
+  // doesn't cause a layout shift that makes the whole dialog flicker.
+  const [addressHeldHeight, setAddressHeldHeight] = useState<number | undefined>();
+  const addressWrapperRef = useRef<HTMLDivElement>(null);
 
   // After each (re)seed we snapshot Stripe's own normalized value (from the
   // first change event) and treat any later divergence as a manual edit. This
@@ -353,15 +361,46 @@ const StripePaymentMethodFormBody = ({
   const awaitingBaselineRef = useRef(canCopyContactAddress);
   const seededBaselineRef = useRef('');
 
-  const addressOptions = useMemo(
-    () =>
-      sameAsContact && contactAddressDefaults
-        ? { ...ADDRESS_ELEMENT_OPTIONS, defaultValues: contactAddressDefaults }
-        : ADDRESS_ELEMENT_OPTIONS,
-    [sameAsContact, contactAddressDefaults]
-  );
+  const addressOptions = useMemo(() => {
+    if (sameAsContact && contactAddressDefaults) {
+      return { ...ADDRESS_ELEMENT_OPTIONS, defaultValues: contactAddressDefaults };
+    }
+    if (contactAddressDefaults) {
+      // When the user unchecks, preserve the name but explicitly clear the
+      // address fields. Without defaultValues the remounted AddressElement
+      // would drop the name too; with an empty address object Stripe starts
+      // the fields blank while keeping the name the user may have edited.
+      return {
+        ...ADDRESS_ELEMENT_OPTIONS,
+        defaultValues: {
+          name: contactAddressDefaults.name,
+          address: { line1: '', line2: '', city: '', state: '', postal_code: '', country: '' },
+        },
+      };
+    }
+    return ADDRESS_ELEMENT_OPTIONS;
+  }, [sameAsContact, contactAddressDefaults]);
+
+  const handleAddressReady = useCallback(() => {
+    clearTimeout(addressVisibleTimerRef.current);
+    setAddressHeldHeight(undefined);
+    setAddressVisible(true);
+  }, []);
 
   const handleSameAsContactChange = useCallback((checked: boolean) => {
+    // Snapshot the current rendered height so the wrapper keeps its size
+    // while the Stripe iframe collapses and re-renders. Without this the
+    // dialog shrinks and jumps, making the whole dialog appear to flicker.
+    setAddressHeldHeight(addressWrapperRef.current?.offsetHeight);
+    // Hide content before remounting so the iframe re-render is invisible.
+    // onReady (or the safety timeout) fades it back in once Stripe is ready.
+    setAddressVisible(false);
+    clearTimeout(addressVisibleTimerRef.current);
+    addressVisibleTimerRef.current = setTimeout(() => {
+      setAddressHeldHeight(undefined);
+      setAddressVisible(true);
+    }, 800);
+
     // Explicit toggle: reseed (checked) or clear (unchecked) by remounting.
     setSameAsContact(checked);
     setAddressSeed((seed) => seed + 1);
@@ -501,6 +540,10 @@ const StripePaymentMethodFormBody = ({
     onReadyChange?.(isReady);
   }, [isReady, onReadyChange]);
 
+  useEffect(() => {
+    return () => clearTimeout(addressVisibleTimerRef.current);
+  }, []);
+
   const handleSubmit = async (values: AddPaymentMethodValues) => {
     const success = await runSubmit(values);
     if (success && layout === 'dialog') {
@@ -530,11 +573,20 @@ const StripePaymentMethodFormBody = ({
           </label>
         ) : null}
       </div>
-      <AddressElement
-        key={`address-seed-${addressSeed}`}
-        options={addressOptions}
-        onChange={handleAddressChange}
-      />
+      <div
+        ref={addressWrapperRef}
+        style={{
+          opacity: addressVisible ? 1 : 0,
+          transition: 'opacity 200ms ease',
+          minHeight: addressHeldHeight,
+        }}>
+        <AddressElement
+          key={`address-seed-${addressSeed}`}
+          options={addressOptions}
+          onChange={handleAddressChange}
+          onReady={handleAddressReady}
+        />
+      </div>
     </section>
   ) : null;
 

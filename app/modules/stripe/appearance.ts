@@ -348,11 +348,11 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
   // yet list but the runtime appearance API supports. Spread (not added as
   // literal props) so TS's excess-property check doesn't reject them.
   //   labelSpacing      → label↔input gap, matches `space-y-2` (8px)
-  //   gridRowSpacing     → field↔field gap, matches the form `gap-6` (24px)
+  //   gridRowSpacing     → field↔field gap and terms-text top margin (16px)
   //   gridColumnSpacing  → Expiry↔CVC column gap
   const spacingVariables: Record<string, string> = {
     labelSpacing: '8px',
-    gridRowSpacing: '24px',
+    gridRowSpacing: '16px',
     gridColumnSpacing: '16px',
   };
 

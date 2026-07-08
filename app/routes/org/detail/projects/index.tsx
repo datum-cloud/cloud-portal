@@ -2,7 +2,6 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
 import { NoteCard } from '@/components/note-card/note-card';
-import { useAutoOpenProjectFromOnboarding } from '@/features/onboarding/provisioning/use-auto-open-project';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { PermissionButton, useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -127,8 +126,6 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDialog, setOpenDialog] = useState(false);
-
-  useAutoOpenProjectFromOnboarding();
 
   // Sync dialog state from URL search params (for external links)
   useEffect(() => {

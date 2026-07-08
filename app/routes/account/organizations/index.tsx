@@ -8,12 +8,14 @@ import {
 import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
+import { createOrganizationService } from '@/resources/organizations';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
 import { createUserService } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, getSession, setAlertClosed } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { onboardingEntryPath } from '@/utils/middlewares/fraud-redirect';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -41,7 +43,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
-    const user = await createUserService().get(session.sub);
+    const [user, orgs] = await Promise.all([
+      createUserService().get(session.sub),
+      createOrganizationService().list({ limit: 1 }),
+    ]);
+
+    // A user with no orgs belongs in onboarding. This guard handles
+    // client-side navigation that bypasses the middleware redirect.
+    if (orgs.items.length === 0) {
+      return redirect(onboardingEntryPath(user));
+    }
+
     const contactDefaults: Partial<OrgContactInfoValues> = {
       email: user.email ?? '',
       name: user.fullName?.trim() || '',

@@ -12,7 +12,6 @@ import {
   onboardingCrossfadeVariants,
   onboardingStepPopTransition,
 } from '@/features/onboarding/onboarding-motion';
-import { waitForProjectAccessReady } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { DATUMCTL_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -22,7 +21,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon, ExternalLinkIcon, LoaderCircleIcon, XIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 
 type ProvisioningLocationState = {
@@ -73,10 +72,6 @@ export const ProvisioningPage = () => {
   const [orgStepVisibleComplete, setOrgStepVisibleComplete] = useState(false);
   const [projectStepStartedAt, setProjectStepStartedAt] = useState<number | null>(null);
   const [projectStepVisibleComplete, setProjectStepVisibleComplete] = useState(false);
-  const [projectAccessReady, setProjectAccessReady] = useState(false);
-  const [projectAccessError, setProjectAccessError] = useState<Error | null>(null);
-  const [projectAccessRetryToken, setProjectAccessRetryToken] = useState(0);
-  const projectAccessWaitRef = useRef(0);
 
   const setupProjectMutation = useSetupOnboardingProject({
     onError: (error) => {
@@ -121,44 +116,20 @@ export const ProvisioningPage = () => {
   }, []);
 
   const projectId = projectSetup?.projectId ?? legacyProjectId;
-  const orgId = setup?.orgId ?? projectSetup?.orgId;
   const projectActuallyDone =
     Boolean(legacyProjectId) || (isProjectSetupSuccess && Boolean(projectId));
-  const projectStepError = isProjectSetupError || Boolean(projectAccessError);
+  const projectStepError = isProjectSetupError;
 
+  // Once the project is provisioned (and billing bound), start the minimum
+  // display timer. RBAC propagation is handled by useAutoOpenProjectFromOnboarding
+  // on the org projects page — no need to poll here and block the button.
   useEffect(() => {
-    if (!projectActuallyDone || !orgId || !projectId) {
-      setProjectAccessReady(false);
-      setProjectAccessError(null);
-      return;
-    }
-
-    const waitId = ++projectAccessWaitRef.current;
-    setProjectAccessReady(false);
-    setProjectAccessError(null);
-
-    void waitForProjectAccessReady(orgId, projectId)
-      .then(() => {
-        if (projectAccessWaitRef.current !== waitId) return;
-        setProjectAccessReady(true);
-      })
-      .catch((error: unknown) => {
-        if (projectAccessWaitRef.current !== waitId) return;
-        setProjectAccessError(
-          error instanceof Error
-            ? error
-            : new Error('Timed out waiting for project permissions to propagate')
-        );
-      });
-  }, [orgId, projectAccessRetryToken, projectActuallyDone, projectId]);
-
-  useEffect(() => {
-    if (!projectActuallyDone || !projectAccessReady || projectStepStartedAt === null) return;
+    if (!projectActuallyDone || projectStepStartedAt === null) return;
 
     const remaining = Math.max(0, STEP_MIN_DURATION_MS - (Date.now() - projectStepStartedAt));
     const timer = window.setTimeout(() => setProjectStepVisibleComplete(true), remaining);
     return () => window.clearTimeout(timer);
-  }, [projectAccessReady, projectActuallyDone, projectStepStartedAt]);
+  }, [projectActuallyDone, projectStepStartedAt]);
 
   const allComplete = orgStepVisibleComplete && projectStepVisibleComplete;
 
@@ -191,7 +162,6 @@ export const ProvisioningPage = () => {
               <div className="flex w-full max-w-[311px] flex-col gap-4 text-center">
                 <p className="text-foreground text-sm opacity-80">
                   {projectSetupError?.message ??
-                    projectAccessError?.message ??
                     'We could not finish setting up your first project.'}
                 </p>
                 <div className="flex flex-col gap-2">
@@ -199,11 +169,6 @@ export const ProvisioningPage = () => {
                     htmlType="button"
                     type="primary"
                     onClick={() => {
-                      if (projectAccessError && orgId && projectId) {
-                        setProjectStepVisibleComplete(false);
-                        setProjectAccessRetryToken((token) => token + 1);
-                        return;
-                      }
                       if (!setup) return;
                       resetProjectSetup();
                       setProjectStepVisibleComplete(false);
@@ -265,21 +230,10 @@ export const ProvisioningPage = () => {
                 )}
                 disabled={!allComplete}
                 onClick={() => {
-                  if (projectId && orgId) {
-                    navigate(getPathWithParams(paths.org.detail.projects.root, { orgId }), {
-                      replace: true,
-                      state: { openProjectId: projectId, orgId },
-                    });
-                    return;
-                  }
-
                   if (projectId) {
-                    navigate(
-                      getPathWithParams(paths.project.detail.home, {
-                        projectId,
-                      }),
-                      { replace: true }
-                    );
+                    navigate(getPathWithParams(paths.project.detail.home, { projectId }), {
+                      replace: true,
+                    });
                     return;
                   }
 
