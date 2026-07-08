@@ -76,13 +76,17 @@ export interface OrgBillingSetupFormProps {
   showDisplayNameField?: boolean;
   submitLabel?: string;
   /**
-   * Fired once a brand-new org (and its billing account) has been provisioned
-   * from within this form — i.e. the point after which abandoning the flow
-   * leaves an orphaned org behind. Only fires for a fresh create (not when
-   * resuming a `partialOrgId` or editing an `initialSetup`), so the caller can
-   * clean up a half-finished org if the user bails before `onComplete`.
+   * Fired the first time this form session obtains a complete org + billing
+   * account (fresh create or finishing a `partialOrgId`). Does not fire when
+   * editing an already-loaded `initialSetup`, so callers can clean up a
+   * half-finished org or kick off follow-on work (e.g. default project) once.
    */
-  onOrgProvisioned?: (setup: { orgId: string; accountName: string; namespace: string }) => void;
+  onOrgProvisioned?: (setup: {
+    orgId: string;
+    accountName: string;
+    namespace: string;
+    contactInfo: OrgContactInfoValues;
+  }) => void;
   onComplete?: (result: {
     orgId: string;
     accountName: string;
@@ -285,10 +289,11 @@ export const OrgBillingSetupForm = ({
   }, [contactInfo, contactDialogDefaults, displayName]);
 
   const handleContactSave = async (values: OrgContactInfoValues) => {
-    // Fresh create = no org exists yet from a prior save (`billingSetup`) and
-    // we're not resuming a partial one (`partialOrgId`). Only then does saving
-    // provision a new org that would be orphaned if the user bails.
-    const isFreshCreate = !billingSetup && !partialOrgId;
+    // First complete setup this session: no billingSetup yet (fresh create or
+    // finishing a partialOrgId). Editing an already-loaded setup is a no-op for
+    // onOrgProvisioned so follow-on work (project kickoff / orphan tracking)
+    // only runs once.
+    const isFirstCompleteSetup = !billingSetup;
     const setup = await setupBillingMutation.mutateAsync({
       contactInfo: values,
       displayNameOverride: showDisplayNameField ? displayName : undefined,
@@ -297,8 +302,8 @@ export const OrgBillingSetupForm = ({
     });
     setContactInfo(values);
     setBillingSetup(setup);
-    if (isFreshCreate) {
-      onOrgProvisioned?.(setup);
+    if (isFirstCompleteSetup) {
+      onOrgProvisioned?.({ ...setup, contactInfo: values });
     }
   };
 

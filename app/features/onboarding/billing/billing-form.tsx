@@ -1,4 +1,7 @@
-import { useCompleteLegacyOrgSetup } from '@/features/onboarding/billing/use-setup-onboarding-project';
+import {
+  useCompleteLegacyOrgSetup,
+  useSetupOnboardingProject,
+} from '@/features/onboarding/billing/use-setup-onboarding-project';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import {
@@ -6,11 +9,13 @@ import {
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { OrgBillingSetupForm } from '@/features/organization/billing/org-billing-setup-form';
+import { logger } from '@/modules/logger';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
 export interface BillingFormProps {
@@ -43,6 +48,7 @@ export const BillingForm = ({
   needsPaymentOnly = false,
 }: BillingFormProps) => {
   const navigate = useNavigate();
+  const projectKickoffRef = useRef<string | null>(null);
 
   const completeLegacySetupMutation = useCompleteLegacyOrgSetup({
     onError: (error) => {
@@ -51,6 +57,40 @@ export const BillingForm = ({
       });
     },
   });
+
+  // New-user onboarding only: start default project + billing bind as soon as
+  // org + billing account exist so IAM can propagate during payment entry.
+  // Idempotent — provisioning joins the same in-flight work.
+  const setupProjectMutation = useSetupOnboardingProject({
+    onError: (error) => {
+      logger.warn('Background onboarding project setup failed; provisioning will retry', {
+        error: error.message,
+      });
+    },
+  });
+  const { mutate: startProjectSetup } = setupProjectMutation;
+
+  const kickOffDefaultProject = (input: {
+    orgId: string;
+    billingAccountName: string;
+    contactInfo: OrgContactInfoValues;
+  }) => {
+    if (isLegacySetupResume) return;
+    if (projectKickoffRef.current === input.orgId) return;
+    projectKickoffRef.current = input.orgId;
+    startProjectSetup(input);
+  };
+
+  useEffect(() => {
+    if (!initialSetup || !initialContactInfo || isLegacySetupResume) return;
+    if (projectKickoffRef.current === initialSetup.orgId) return;
+    projectKickoffRef.current = initialSetup.orgId;
+    startProjectSetup({
+      orgId: initialSetup.orgId,
+      billingAccountName: initialSetup.accountName,
+      contactInfo: initialContactInfo,
+    });
+  }, [initialContactInfo, initialSetup, isLegacySetupResume, startProjectSetup]);
 
   const stepLabel = isLegacySetupResume ? 'Billing setup' : 'Step 2 / 2';
   const heading = isLegacySetupResume ? 'Complete billing setup' : 'Payment Verification';
@@ -89,6 +129,13 @@ export const BillingForm = ({
               initialPaymentSummary={initialPayment}
               partialOrgId={partialOrgId}
               submitLabel={submitLabel}
+              onOrgProvisioned={({ orgId, accountName, contactInfo }) => {
+                kickOffDefaultProject({
+                  orgId,
+                  billingAccountName: accountName,
+                  contactInfo,
+                });
+              }}
               onComplete={async ({ orgId, accountName, contactInfo }) => {
                 if (isLegacySetupResume) {
                   const result = await completeLegacySetupMutation.mutateAsync({

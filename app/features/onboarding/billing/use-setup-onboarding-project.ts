@@ -194,7 +194,7 @@ export function useCompleteLegacyOrgSetup(
   });
 }
 
-/** Provisioning page is the sole owner of project setup during new-org onboarding. */
+/** Shared mutation key — billing kickoff and provisioning join the same work. */
 export const onboardingProjectSetupMutationKey = ['onboarding', 'project-setup'] as const;
 
 export function useSetupOnboardingProject(
