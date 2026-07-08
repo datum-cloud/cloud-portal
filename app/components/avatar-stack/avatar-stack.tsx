@@ -46,13 +46,13 @@ export function AvatarStack({ items, max = 4, size = 'xs' }: AvatarStackProps) {
       {visible.map((item, i) => (
         <Avatar
           key={`${item.name}-${i}`}
-          className={cn(sizeClasses, 'ring-background ring-2', i > 0 && '-ml-1.5')}
+          className={cn(sizeClasses, 'rounded-xl', i > 0 && '-ml-1.5')}
           style={{ zIndex: visible.length - i }}>
           {item.avatarUrl && <AvatarImage src={item.avatarUrl} alt={item.name} />}
           <AvatarFallback
             className={cn(
               sizeClasses,
-              'font-bold text-white',
+              'rounded-lg font-bold text-white',
               COLORS[hashName(item.name) % COLORS.length]
             )}>
             {getInitials(item.name)}
@@ -63,7 +63,7 @@ export function AvatarStack({ items, max = 4, size = 'xs' }: AvatarStackProps) {
         <div
           className={cn(
             sizeClasses,
-            'bg-muted text-muted-foreground ring-background -ml-1.5 flex items-center justify-center rounded-full font-bold ring-2'
+            'bg-muted text-muted-foreground -ml-1.5 flex items-center justify-center rounded-xl font-bold'
           )}
           style={{ zIndex: 0 }}>
           +{overflow}

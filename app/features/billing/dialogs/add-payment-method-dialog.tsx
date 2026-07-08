@@ -2,6 +2,7 @@ import {
   StripePaymentMethodForm,
   type AddPaymentMethodValues,
   type CreatePaymentMethodResult,
+  type StripeBillingDetailsPrefill,
 } from '@/modules/stripe';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -11,7 +12,7 @@ import { ClockIcon } from 'lucide-react';
 
 // Re-export shared types so consumers can keep importing them from the
 // dialog. The Stripe module owns the canonical definitions.
-export type { AddPaymentMethodValues, CreatePaymentMethodResult };
+export type { AddPaymentMethodValues, CreatePaymentMethodResult, StripeBillingDetailsPrefill };
 
 /**
  * Add Payment Method dialog.
@@ -68,6 +69,11 @@ interface AddPaymentMethodDialogProps {
    * handler.
    */
   onConfirmed?: () => void;
+  /**
+   * Email/name omitted from PaymentElement — forwarded to Stripe at confirm time.
+   * Typically sourced from billing account contact info.
+   */
+  billingDetailsPrefill?: StripeBillingDetailsPrefill;
 }
 
 export const AddPaymentMethodDialog = ({
@@ -77,6 +83,7 @@ export const AddPaymentMethodDialog = ({
   forceDefault = false,
   onCreatePaymentMethod,
   onConfirmed,
+  billingDetailsPrefill,
 }: AddPaymentMethodDialogProps) => {
   const onClose = () => onOpenChange(false);
 
@@ -87,6 +94,7 @@ export const AddPaymentMethodDialog = ({
           <StripePaymentMethodForm
             publishableKey={stripePublishableKey}
             forceDefault={forceDefault}
+            billingDetailsPrefill={billingDetailsPrefill}
             onClose={onClose}
             onCreatePaymentMethod={onCreatePaymentMethod}
             onConfirmed={onConfirmed}

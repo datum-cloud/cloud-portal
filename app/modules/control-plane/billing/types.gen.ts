@@ -526,6 +526,13 @@ export type ComMiloapisBillingV1Alpha1MeterDefinition = {
      * resource in the Published phase.
      */
     publishedAt?: string;
+    /**
+     * SystemDimensions lists the dimension keys injected by the billing
+     * pipeline on every valid event, in addition to those declared in
+     * spec.measurement.dimensions. Providers must configure these alongside
+     * spec.measurement.dimensions when setting up meters in downstream systems.
+     */
+    systemDimensions?: Array<string>;
   };
 };
 

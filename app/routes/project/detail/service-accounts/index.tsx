@@ -19,6 +19,8 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -48,6 +50,12 @@ export const loader = (args: LoaderFunctionArgs) =>
   });
 
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoaderFromQueryKey<ServiceAccount[]>(
+  (projectId) => serviceAccountKeys.list(projectId)
+);
 
 export default route.Page(({ data: initialData }) => (
   <ServiceAccountsInner initialData={initialData} />

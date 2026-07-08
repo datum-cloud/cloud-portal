@@ -6,6 +6,7 @@ import {
   toUserIdentity,
   toUserIdentityList,
   USER_NAME_REVIEW_REQUIRED_ANNOTATION,
+  USER_PROFILE_COUNTRY_ANNOTATION,
 } from './user.adapter';
 import { describe, expect, it } from 'bun:test';
 
@@ -23,6 +24,7 @@ describe('toUser', () => {
           'preferences/newsletter': 'true',
           'onboarding/completedAt': '2024-02-02T00:00:00Z',
           [USER_NAME_REVIEW_REQUIRED_ANNOTATION]: 'true',
+          [USER_PROFILE_COUNTRY_ANNOTATION]: 'US',
         },
       },
       spec: { email: 'a@b.com', givenName: 'Ada', familyName: 'Lovelace' },
@@ -39,6 +41,7 @@ describe('toUser', () => {
     expect(user.registrationApproval).toBe('Approved');
     expect(user.lastLoginProvider).toBe('google');
     expect(user.nameReviewRequired).toBe(true);
+    expect(user.country).toBe('US');
   });
 
   it('applies preference defaults and leaves status-derived fields undefined', () => {
@@ -77,6 +80,13 @@ describe('toUpdateUserPreferencesPayload', () => {
     expect(payload.metadata?.annotations).toEqual({
       'preferences/theme': 'dark',
       'preferences/newsletter': 'false',
+    });
+  });
+
+  it('stamps profile country when provided', () => {
+    const payload = toUpdateUserPreferencesPayload({ country: 'GB' });
+    expect(payload.metadata?.annotations).toEqual({
+      [USER_PROFILE_COUNTRY_ANNOTATION]: 'GB',
     });
   });
 

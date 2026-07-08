@@ -17,6 +17,8 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { ColumnDef } from '@tanstack/react-table';
@@ -45,6 +47,12 @@ export const loader = (args: LoaderFunctionArgs) =>
   });
 
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoaderFromQueryKey<ExportPolicy[]>((projectId) =>
+  exportPolicyKeys.list(projectId)
+);
 
 export default route.Page(({ data: initialData }) => (
   <ExportPoliciesInner initialData={initialData} />

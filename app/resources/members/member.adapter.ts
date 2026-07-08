@@ -9,7 +9,9 @@ export function toMember(raw: ComMiloapisResourcemanagerV1Alpha1OrganizationMemb
     uid: raw.metadata?.uid ?? '',
     name: raw.metadata?.name ?? '',
     resourceVersion: raw.metadata?.resourceVersion ?? '',
-    createdAt: raw.metadata?.creationTimestamp ?? new Date(),
+    createdAt: raw.metadata?.creationTimestamp
+      ? new Date(raw.metadata.creationTimestamp)
+      : new Date(),
     user: {
       id: raw.spec?.userRef?.name ?? '',
       ...raw.status?.user,

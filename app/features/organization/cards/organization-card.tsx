@@ -2,7 +2,6 @@ import { DateTime } from '@/components/date-time';
 import { ProfileIdentity } from '@/components/profile-identity';
 import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
-import { Badge } from '@datum-cloud/datum-ui/badge';
 import {
   Card,
   CardContent,
@@ -124,14 +123,6 @@ export const OrganizationCard = ({
                 <motion.h3 className="text-foreground text-lg leading-5 font-semibold" layout>
                   {organization?.displayName ?? organization?.name ?? ''}
                 </motion.h3>
-                {isPersonal && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}>
-                    <Badge type="secondary">Personal</Badge>
-                  </motion.div>
-                )}
               </div>
               <motion.p className="text-muted-foreground text-sm" layout>
                 {organization?.name}
@@ -192,15 +183,6 @@ export const OrganizationCard = ({
                 <motion.h3 className="truncate font-medium" layout>
                   {organization.displayName || organization.name}
                 </motion.h3>
-                {isPersonal && (
-                  <motion.div
-                    className="absolute top-4 right-4"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1 }}>
-                    <Badge type="secondary">Personal</Badge>
-                  </motion.div>
-                )}
               </div>
               <motion.p className="text-muted-foreground truncate text-sm" layout>
                 {organization.name}
@@ -230,16 +212,7 @@ export const OrganizationCard = ({
         className="relative shrink-0 pb-3"
         variants={contentVariants}
         animate="selection">
-        {isPersonal && (
-          <motion.div
-            className="absolute top-4 right-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}>
-            <Badge type="secondary">Personal</Badge>
-          </motion.div>
-        )}
-        <div className={cn('flex items-center space-x-3', isPersonal && 'pr-16')}>
+        <div className="flex items-center space-x-3">
           <motion.div whileHover={{ rotate: 5 }} transition={{ duration: 0.2 }}>
             <ProfileIdentity
               avatarOnly
@@ -274,7 +247,9 @@ export const OrganizationCard = ({
           transition={{ delay: 0.2, duration: 0.3 }}>
           {isPersonal
             ? 'A persistent entity just for you. Perfect for experimentation and personal projects.'
-            : 'Ideal teams and production use cases with features like groups, RBAC, etc. Same free cost!'}
+            : organization.type === 'Standard'
+              ? 'Ideal teams and production use cases with features like groups, RBAC, etc. Same free cost!'
+              : 'Group projects with separate team and billing settings.'}
         </motion.p>
       </MotionCardContent>
     </MotionCard>

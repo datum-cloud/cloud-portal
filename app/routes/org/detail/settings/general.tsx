@@ -1,4 +1,5 @@
 import { OrganizationDangerCard } from '@/features/organization';
+import { OrganizationContactCard } from '@/features/organization/settings/contact-card';
 import { OrganizationGeneralCard } from '@/features/organization/settings/general-card';
 import { useGuardedRouteData } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -42,6 +43,10 @@ function GeneralForm() {
       <Row gutter={[0, 32]}>
         <Col span={24}>
           <OrganizationGeneralCard organization={organization} />
+        </Col>
+
+        <Col span={24}>
+          <OrganizationContactCard organization={organization} />
         </Col>
 
         {organization.type !== 'Personal' && (

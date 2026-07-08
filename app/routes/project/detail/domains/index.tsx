@@ -29,6 +29,11 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import {
+  createProjectListClientLoader,
+  getValidCachedQueryData,
+} from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -88,6 +93,17 @@ export const loader = (args: LoaderFunctionArgs) =>
   });
 
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoader<DomainsListData>((projectId) => {
+  const domains = getValidCachedQueryData<Domain[]>(domainKeys.list(projectId));
+  if (domains === undefined) {
+    return undefined;
+  }
+  const dnsZones = getValidCachedQueryData<DnsZone[]>(dnsZoneKeys.list(projectId));
+  return { domains, dnsZones: dnsZones ?? [] };
+});
 
 export default route.Page(({ data: { domains: initialDomains, dnsZones: initialDnsZones } }) => (
   <DomainsInner initialDomains={initialDomains} initialDnsZones={initialDnsZones} />

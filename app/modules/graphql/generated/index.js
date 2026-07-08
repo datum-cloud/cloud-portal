@@ -9,7 +9,7 @@ import {
 var typeMap = linkTypeMap(types);
 export * from './guards.esm';
 
-export var version = '3.3.0';
+export var version = '3.4.2';
 assertSameVersion(version);
 
 export var createClient = function (options) {

@@ -28,6 +28,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Note: showConfirmInput is false for domains — no text input required
  *
  * Uses shared regression resources (1 org + 1 project per shard).
+ * Org + project are deleted automatically when the Cypress run finishes (`after:run`).
  */
 
 describe('Domains — regression', () => {

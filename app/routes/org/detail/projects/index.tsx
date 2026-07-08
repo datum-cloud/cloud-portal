@@ -1,12 +1,15 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
-import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { PermissionButton, useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import {
+  billingAccountBindingKeys,
+  createBillingAccountBindingService,
+} from '@/resources/billing-account-bindings';
 import { type Organization } from '@/resources/organizations';
 import {
   createProjectService,
@@ -23,7 +26,7 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
+import { Form } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue } from '@datum-cloud/datum-ui/task-queue';
@@ -75,21 +78,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { headers } = await setAlertClosed(request, ALERT_KEY);
   return data({ success: true }, { headers });
 };
-
-function ProjectResourceName({ field }: { field: NormalizedFieldState }) {
-  const description = useWatch('description') as string | undefined;
-
-  return (
-    <InputName
-      required
-      label="Resource ID"
-      showTooltip={false}
-      description="This unique resource ID will be used to identify your project and cannot be changed."
-      field={field}
-      baseName={description}
-    />
-  );
-}
 
 export default route.Page(({ data: loaderData }) => <OrgProjectsInner loaderData={loaderData} />);
 
@@ -192,19 +180,24 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
       processor: async (ctx) => {
         try {
           // 1. Create via API (returns 200 immediately)
-          await createProject({
-            name: formData.name,
+          const createdProject = await createProject({
             description: formData.description,
             organizationId: orgId as string,
           });
 
           // 2. Wait for K8s reconciliation
-          const { promise, cancel } = waitForProjectReady(orgId as string, formData.name);
+          const { promise, cancel } = waitForProjectReady(orgId as string, createdProject.name);
           ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
 
           const readyProject = await promise;
 
-          // 3. Task completes when Ready
+          // 3. Charge the project against the org's default billing account.
+          await createBillingAccountBindingService().bindProjectToDefaultOrgAccount(
+            orgId as string,
+            readyProject.name
+          );
+
+          // 4. Task completes when Ready
           ctx.setResult(readyProject);
           ctx.succeed();
         } catch (error) {
@@ -222,6 +215,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
           }
         }
         queryClient.invalidateQueries({ queryKey: projectKeys.list(orgId) });
+        queryClient.invalidateQueries({ queryKey: billingAccountBindingKeys.list(orgId) });
       },
       completionActions: (_result, info) => {
         if (info.status === 'failed') {
@@ -234,7 +228,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
               onClick: () =>
                 showSummary(taskTitle, [
                   {
-                    id: formData.name,
+                    id: formData.description,
                     label: formData.description,
                     status: 'failed',
                     message: failureMessage || 'Project creation failed',
@@ -355,7 +349,9 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   <li>
                     {isPersonalOrg
                       ? `Personal organizations can have up to ${projectLimit} projects.`
-                      : `Standard organizations can have up to ${projectLimit} projects. You can always reach out to request more.`}
+                      : organization?.type === 'Standard'
+                        ? `Standard organizations can have up to ${projectLimit} projects. You can always reach out to request more.`
+                        : `Organizations can have up to ${projectLimit} projects. You can always reach out to request more.`}
                   </li>
                 </ul>
               }
@@ -370,7 +366,6 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
         description="Add a project to manage your resources and services."
         schema={projectFormSchema}
         defaultValues={{
-          name: '',
           description: '',
           orgEntityId: orgId,
         }}
@@ -389,10 +384,6 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
               placeholder="e.g. My Project"
               autoFocus
             />
-          </Form.Field>
-
-          <Form.Field name="name">
-            {({ field }) => <ProjectResourceName field={field} />}
           </Form.Field>
         </div>
       </Form.Dialog>

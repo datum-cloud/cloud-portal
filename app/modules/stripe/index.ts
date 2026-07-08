@@ -7,5 +7,14 @@ export {
   type AddPaymentMethodValues,
   type BasePaymentMethodFormProps,
   type CreatePaymentMethodResult,
+  type StripeBillingAddressPrefill,
+  type StripeBillingDetailsPrefill,
+  type StripePaymentMethodConfirmedDetails,
   type StripePaymentMethodFormProps,
+  type StripePaymentMethodSubmitHandle,
 } from './payment-method-form';
+export {
+  addressSignature,
+  buildContactAddressPrefill,
+  type ContactAddressInput,
+} from './billing-address';

@@ -21,6 +21,7 @@ import {
   type PaymentMethod,
 } from '@/features/billing/types';
 import { FeatureFlag } from '@/modules/feature-flags';
+import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { checkPermissionAPI } from '@/modules/rbac/client/rbac-api';
 import { useApp } from '@/providers/app.provider';
@@ -83,6 +84,8 @@ export const handle = {
 export const loader = async () => {
   const organizations = await createOrganizationService().list();
   const orgIds = organizations.items.map((o) => o.name);
+  await requireBillingForAnyOrg(orgIds);
+
   const [accounts, bindings, paymentMethods] = await Promise.all([
     createBillingAccountService().listForOrgs(orgIds),
     createBillingAccountBindingService().listForOrgs(orgIds),

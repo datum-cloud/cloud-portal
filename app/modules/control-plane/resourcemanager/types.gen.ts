@@ -24,11 +24,61 @@ export type ComMiloapisResourcemanagerV1Alpha1Organization = {
   /**
    * OrganizationSpec defines the desired state of Organization
    */
-  spec: {
+  spec?: {
     /**
-     * The type of organization.
+     * ContactInfo describes who the organization is and how to reach them.
+     * Email and name are required for onboarding to complete.
      */
-    type: 'Personal' | 'Standard';
+    contactInfo?: {
+      /**
+       * Address is the optional postal address for the organization.
+       */
+      address?: {
+        /**
+         * City is the locality.
+         */
+        city?: string;
+        /**
+         * Country is the ISO 3166-1 alpha-2 country code (e.g. "GB", "US").
+         */
+        country: string;
+        /**
+         * Line1 is the first line of the street address.
+         */
+        line1?: string;
+        /**
+         * Line2 is the second line of the street address.
+         */
+        line2?: string;
+        /**
+         * PostalCode is the post or zip code.
+         */
+        postalCode?: string;
+        /**
+         * Region is the state, province, or county.
+         */
+        region?: string;
+      };
+      /**
+       * BusinessName is the optional legal entity or company name.
+       */
+      businessName?: string;
+      /**
+       * Email is the primary contact email for the organization.
+       */
+      email: string;
+      /**
+       * Name is the display name of the primary contact.
+       */
+      name: string;
+    };
+    /**
+     * Type distinguishes personal and standard organizations in legacy mode.
+     *
+     * Deprecated: This field is ignored when the UnifiedOrganizations feature
+     * gate is enabled. Use unified organizations without a type distinction.
+     */
+    type?: 'Personal' | 'Standard';
   };
   /**
    * OrganizationStatus defines the observed state of Organization
@@ -36,7 +86,7 @@ export type ComMiloapisResourcemanagerV1Alpha1Organization = {
   status?: {
     /**
      * Conditions represents the observations of an organization's current state.
-     * Known condition types are: "Ready"
+     * Known condition types are: "Ready", "OnboardingComplete"
      */
     conditions?: Array<{
       /**
@@ -374,11 +424,18 @@ export type ComMiloapisResourcemanagerV1Alpha1OrganizationMembership = {
      */
     organization?: {
       /**
+       * ContactEmail is the primary contact email cached from the organization.
+       */
+      contactEmail?: string;
+      /**
        * DisplayName is the display name of the organization in the membership.
        */
       displayName?: string;
       /**
-       * Type is the type of the organization in the membership.
+       * Type is the legacy organization type cached from the organization.
+       *
+       * Deprecated: This field reflects organization.spec.type, which is deprecated
+       * when the UnifiedOrganizations feature gate is enabled.
        */
       type?: string;
     };

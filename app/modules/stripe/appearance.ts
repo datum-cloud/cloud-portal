@@ -1,4 +1,4 @@
-import type { Appearance } from '@stripe/stripe-js';
+import type { Appearance, CustomFontSource } from '@stripe/stripe-js';
 
 /**
  * Stripe Elements appearance config that mirrors the datum-ui form input
@@ -150,26 +150,57 @@ function readMixedColor(
 }
 
 /**
- * Apply an alpha channel to an sRGB colour string (`#rrggbb` or
- * `rgba(…)`) and return a `rgba(…)` form. Used to mirror Tailwind's
- * `text-foreground/80`-style opacity utilities, since Stripe Elements
- * doesn't accept the `/<alpha>` slash syntax inside its rules.
+ * Collect the `--font-sans` (Alliance No1) `@font-face` rules from the
+ * page's own stylesheets and hand them to Stripe's `fonts` option so the
+ * cross-origin Elements iframe renders labels/inputs in the same family
+ * as datum-ui. The `src` URLs are resolved to absolute against the owning
+ * stylesheet — relative `url(./fonts/…)` would otherwise resolve against
+ * Stripe's origin inside the iframe and 404.
  */
-function applyAlpha(color: string, alpha: number): string {
-  if (!color) return color;
-  if (color.startsWith('rgba')) {
-    return color.replace(/[\d.]+\s*\)$/, `${alpha})`);
+export function getStripeFontFaces(): CustomFontSource[] {
+  if (typeof document === 'undefined') return [];
+
+  const faces: CustomFontSource[] = [];
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules: CSSRuleList;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      // Cross-origin stylesheet — can't read its rules.
+      continue;
+    }
+
+    for (const rule of Array.from(rules)) {
+      if (!(rule instanceof CSSFontFaceRule)) continue;
+
+      const family = rule.style.fontFamily?.replace(/^["']|["']$/g, '');
+      if (!family || !family.includes('Alliance')) continue;
+
+      const rawSrc = rule.style.getPropertyValue('src');
+      const urlMatch = rawSrc.match(/url\(\s*["']?([^"')]+)["']?\s*\)/);
+      if (!urlMatch) continue;
+
+      let url = urlMatch[1];
+      try {
+        url = new URL(url, sheet.href ?? document.baseURI).href;
+      } catch {
+        continue;
+      }
+
+      const styleValue = rule.style.fontStyle;
+      const style =
+        styleValue === 'italic' || styleValue === 'oblique' ? styleValue : ('normal' as const);
+
+      faces.push({
+        family,
+        src: `url(${url})`,
+        weight: rule.style.fontWeight || '400',
+        style,
+      });
+    }
   }
-  if (color.startsWith('rgb(')) {
-    return color.replace('rgb(', 'rgba(').replace(/\)$/, `, ${alpha})`);
-  }
-  if (color.startsWith('#') && color.length === 7) {
-    const r = parseInt(color.slice(1, 3), 16);
-    const g = parseInt(color.slice(3, 5), 16);
-    const b = parseInt(color.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-  }
-  return color;
+
+  return faces;
 }
 
 /**
@@ -222,6 +253,9 @@ const LIGHT_FALLBACK = {
   // through the same code path.
   inputBackground: '#fcfdf7',
   foreground: '#0c1d31', // --input-foreground → --midnight-fjord
+  // `--foreground` at 80% flattened over `--popover` (white) — the opaque
+  // equivalent of datum-ui's `text-foreground/80` label colour.
+  labelColor: '#3d4a5a',
   border: '#e6ede0', // --input-border → --app-dark-utility-5
   placeholder: '#aab4d2', // --input-placeholder → --app-dark-utility-4
   focusBorder: '#707ca7', // --input-focus-border → --app-dark-utility-3
@@ -237,6 +271,8 @@ const DARK_FALLBACK = {
   // to (12+44)/2, (29+52)/2, (49+84)/2 ≈ #1c2942 against the surface.
   inputBackground: '#0c1d31',
   foreground: '#fcfdf7',
+  // `--foreground` at 80% flattened over the dark `--popover` surface.
+  labelColor: '#d2d5d6',
   border: '#394367', // --app-dark-utility-2
   placeholder: '#707ca7', // --app-dark-utility-3
   focusBorder: '#e6f59e', // --aurora-moss
@@ -299,6 +335,26 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
   // colour, so we hand it over verbatim without sRGB normalisation.
   const focusShadow = readVar('--input-focus-shadow') || f.focusShadow;
   const borderRadius = readVar('--radius');
+  // datum-ui `FieldLabel` uses `text-foreground/80`. Stripe Elements run
+  // in a cross-origin iframe and don't honour a translucent label colour
+  // the way the page composites `/80` against its surface — they paint the
+  // colour at full strength, so the labels read too dark (light) / too
+  // bright (dark) next to ours. Flatten `--foreground` at 80% over the
+  // form surface (`--popover`) and hand Stripe an opaque colour. This is
+  // still var-driven and rebuilt on theme toggle, so dark mode works.
+  const labelColor = readMixedColor('--foreground', '--popover', 80, f.labelColor);
+
+  // Spacing variables that the installed `@stripe/stripe-js` types don't
+  // yet list but the runtime appearance API supports. Spread (not added as
+  // literal props) so TS's excess-property check doesn't reject them.
+  //   labelSpacing      → label↔input gap, matches `space-y-2` (8px)
+  //   gridRowSpacing     → field↔field gap and terms-text top margin (16px)
+  //   gridColumnSpacing  → Expiry↔CVC column gap
+  const spacingVariables: Record<string, string> = {
+    labelSpacing: '8px',
+    gridRowSpacing: '16px',
+    gridColumnSpacing: '16px',
+  };
 
   return {
     // 'flat' is the most neutral built-in theme — no Stripe-branded
@@ -327,6 +383,7 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
       borderRadius: '9px', // --radius-lg ≈ 0.5625rem
       focusBoxShadow: focusShadow,
       focusOutline: 'none',
+      ...spacingVariables,
     },
     rules: {
       // Base text input. The shadcn primitive is
@@ -385,16 +442,18 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
       '.AccordionItem--selected': {
         backgroundColor: surface,
       },
-      // Field labels above the input — mirror the live datum-ui
-      // `FieldLabel`:
-      //   `text-foreground/80 gap-0 text-xs font-semibold`
-      // The `/80` is reproduced with `applyAlpha(foreground, 0.8)`
-      // because Stripe rules don't accept Tailwind's slash-alpha syntax.
+      // Field labels above the input — mirror datum-ui `FieldLabel`:
+      //   `text-foreground/80 gap-0 text-xs font-semibold leading-none`
+      // wrapped in a `Form.Field` with `space-y-2` (8px) to its input.
+      // `text-xs` = 12px and `leading-none` = line-height 1; both as
+      // absolute px so they don't scale with Stripe's iframe root size.
+      // Colour is the flattened opaque form of `--foreground/80`.
       '.Label': {
-        color: applyAlpha(foreground, 0.8),
-        fontSize: '0.75rem',
+        color: labelColor,
+        fontFamily: FONT_FAMILY,
+        fontSize: '13px',
+        lineHeight: '12px',
         fontWeight: '600',
-        marginBottom: '6px',
       },
       // Inline validation message under a field.
       '.Error': {

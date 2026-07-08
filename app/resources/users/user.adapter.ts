@@ -20,6 +20,9 @@ import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 /** Milo User CRD: set when givenName and familyName are identical (e.g. single IdP display name). */
 export const USER_NAME_REVIEW_REQUIRED_ANNOTATION = 'iam.miloapis.com/name-review-required';
 
+/** User-declared country (ISO 3166-1 alpha-2) collected during onboarding. */
+export const USER_PROFILE_COUNTRY_ANNOTATION = 'profile/country';
+
 // Raw API user type
 export interface ComMiloapisIamV1Alpha1User {
   apiVersion: string;
@@ -79,6 +82,7 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
         ? (status.lastLoginProvider as LastLoginProviderValue)
         : undefined,
     nameReviewRequired: metadata?.annotations?.[USER_NAME_REVIEW_REQUIRED_ANNOTATION] === 'true',
+    country: metadata?.annotations?.[USER_PROFILE_COUNTRY_ANNOTATION],
   };
 }
 
@@ -109,6 +113,7 @@ export function toUpdateUserPreferencesPayload(input: {
   timezone?: string;
   newsletter?: boolean;
   onboardedAt?: string;
+  country?: string;
 }): { apiVersion: string; kind: string; metadata?: { annotations: Record<string, string> } } {
   const annotations: Record<string, string> = {};
 
@@ -123,6 +128,9 @@ export function toUpdateUserPreferencesPayload(input: {
   }
   if (input.onboardedAt) {
     annotations['onboarding/completedAt'] = input.onboardedAt;
+  }
+  if (input.country) {
+    annotations[USER_PROFILE_COUNTRY_ANNOTATION] = input.country;
   }
 
   const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;

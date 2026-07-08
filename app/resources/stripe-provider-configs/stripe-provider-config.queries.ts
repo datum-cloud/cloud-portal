@@ -5,6 +5,10 @@ import {
 import type { StripeProviderConfig } from '@/features/billing/types';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
+function stripeConfigsFromPublishableKey(key: string): StripeProviderConfig[] {
+  return [{ spec: { publishableKey: key } } as StripeProviderConfig];
+}
+
 /**
  * Query every `StripeProviderConfig` the user can see. Most callers
  * just want `stripePublishableKey` — `useStripePublishableKey`
@@ -27,9 +31,20 @@ export function useStripeProviderConfigs(
  * "not ready yet" fallback).
  */
 export function useStripePublishableKey(
-  options?: Omit<UseQueryOptions<StripeProviderConfig[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<StripeProviderConfig[]>, 'queryKey' | 'queryFn'> & {
+    /** Loader- or parent-provided key; seeds the cache and still refetches on mount. */
+    initialPublishableKey?: string;
+  }
 ) {
-  const query = useStripeProviderConfigs(options);
+  const { initialPublishableKey, ...queryOptions } = options ?? {};
+  const query = useStripeProviderConfigs({
+    retry: 3,
+    refetchOnMount: true,
+    ...queryOptions,
+    initialData: initialPublishableKey
+      ? stripeConfigsFromPublishableKey(initialPublishableKey)
+      : queryOptions.initialData,
+  });
   const key = query.data?.[0]?.spec?.publishableKey ?? undefined;
   return { ...query, publishableKey: key };
 }

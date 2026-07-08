@@ -1,5 +1,4 @@
 import { DateTime } from '@/components/date-time';
-import { PersonalBadge } from '@/components/personal-badge/personal-badge';
 import { ProfileIdentity } from '@/components/profile-identity';
 import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
@@ -29,7 +28,6 @@ export const OrganizationListCard = ({ org }: { org: Organization }) => {
               <h3 className="text-foreground text-lg leading-5 font-semibold">
                 {org?.displayName ?? org?.name ?? ''}
               </h3>
-              {org.type === 'Personal' && <PersonalBadge />}
             </div>
             <p className="text-muted-foreground text-sm">{org?.name}</p>
             {org?.createdAt && (

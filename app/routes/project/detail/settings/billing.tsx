@@ -6,6 +6,7 @@ import { createProjectService } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { redirect } from 'react-router';
@@ -15,6 +16,8 @@ export const meta: MetaFunction = mergeMeta(() => metaObject('Billing'));
 export const handle = {
   breadcrumb: () => <span>Billing</span>,
 };
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const projectId = params.projectId;

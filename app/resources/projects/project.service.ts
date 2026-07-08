@@ -1,4 +1,10 @@
-import { toProject, toProjectList, toCreatePayload, toUpdatePayload } from './project.adapter';
+import {
+  toProject,
+  toProjectList,
+  toProjectListAll,
+  toCreatePayload,
+  toUpdatePayload,
+} from './project.adapter';
 import {
   createProjectSchema,
   type Project,
@@ -75,6 +81,45 @@ export function createProjectService() {
       return toProjectList(response.data);
     },
 
+    /** Lists all non-deleting projects, including those still provisioning. */
+    async fetchListAll(orgId: string, params?: PaginationParams): Promise<ProjectList> {
+      const response = await listResourcemanagerMiloapisComV1Alpha1Project({
+        baseURL: getOrgScopedBase(orgId),
+        query: {
+          limit: params?.limit ?? 1000,
+          continue: params?.cursor,
+        },
+      });
+
+      if (!response.data) {
+        return { items: [], nextCursor: null, hasMore: false };
+      }
+
+      return toProjectListAll(response.data);
+    },
+
+    async listAll(
+      orgId: string,
+      params?: PaginationParams,
+      _options?: ServiceOptions
+    ): Promise<ProjectList> {
+      const startTime = Date.now();
+
+      try {
+        const result = await this.fetchListAll(orgId, params);
+
+        logger.service(SERVICE_NAME, 'listAll', {
+          input: { orgId, params },
+          duration: Date.now() - startTime,
+        });
+
+        return result;
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.listAll failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
     async get(name: string, _options?: ServiceOptions): Promise<Project> {
       const startTime = Date.now();
 
@@ -136,7 +181,7 @@ export function createProjectService() {
         const project = toProject(response.data);
 
         logger.service(SERVICE_NAME, 'create', {
-          input: { name: input.name },
+          input: { name: project.name },
           duration: Date.now() - startTime,
         });
 

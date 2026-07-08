@@ -1,6 +1,6 @@
 import type { Variables } from '../types';
-import { createUserService } from '@/resources/users';
-import { RegistrationApproval } from '@/resources/users/user.schema';
+import { getUserWithAccessRetry } from '@/utils/fraud/user-access';
+import { resolveFraudPollResult } from '@/utils/middlewares/fraud-redirect';
 import { Hono } from 'hono';
 
 const fraudStatus = new Hono<{ Variables: Variables }>();
@@ -10,37 +10,26 @@ const fraudStatus = new Hono<{ Variables: Variables }>();
  *
  * Lightweight polling endpoint used by the /verifying page to check whether
  * the fraud evaluation has completed and what decision was made.
- *
- * Returns:
- * - 200 { status: 'pending' }                           — not yet in system or approval is Pending
- * - 200 { status: 'completed', decision: 'ACCEPTED' }   — registrationApproval is Approved
- * - 200 { status: 'completed', decision: 'REVIEW' }     — registrationApproval is Rejected
- * - 200 { status: 'completed', decision: 'DEACTIVATE' } — user state is Inactive
  */
 fraudStatus.get('/', async (c) => {
   const session = c.get('session')!;
+  const cookieHeader = c.req.header('Cookie') ?? null;
+  const access = await getUserWithAccessRetry(session.sub!, cookieHeader, {
+    refreshBeforeRead: true,
+  });
 
-  try {
-    const user = await createUserService().get(session.sub!);
-
-    if (user.state === 'Inactive') {
-      return c.json({ status: 'completed', decision: 'DEACTIVATE' });
-    }
-
-    if (user.registrationApproval === RegistrationApproval.Approved) {
-      return c.json({ status: 'completed', decision: 'ACCEPTED' });
-    }
-
-    if (user.registrationApproval === RegistrationApproval.Rejected) {
-      return c.json({ status: 'completed', decision: 'REVIEW' });
-    }
-
-    // Pending or undefined — evaluation still in progress
-    return c.json({ status: 'pending' });
-  } catch {
-    // Fail-open: user not yet provisioned or API unavailable — continue polling
-    return c.json({ status: 'pending' });
+  if ('error' in access) {
+    return c.json({ status: 'pending' as const });
   }
+
+  const { user, refreshedHeaders } = access;
+  refreshedHeaders?.forEach((value, key) => {
+    if (key.toLowerCase() === 'set-cookie') {
+      c.header('Set-Cookie', value, { append: true });
+    }
+  });
+
+  return c.json(resolveFraudPollResult(user));
 });
 
 export { fraudStatus as fraudStatusRoutes };

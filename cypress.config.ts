@@ -26,6 +26,29 @@ import 'dotenv/config';
 process.env.CYPRESS = 'true';
 process.env.NODE_ENV = 'test';
 
+/**
+ * Regression specs that currently contain zero runnable tests — either fully
+ * `.skip`-ed skeletons (the Phase 3 RBAC deny matrix, pending a deny-scoped CI
+ * fixture user) or temporarily commented-out suites (`secrets`, `dns-zones`).
+ *
+ * They're excluded from the run because Cypress still boots a full browser,
+ * loads the support bundle and records video for every spec in the glob —
+ * `.skip` only skips the test *body*, not the file. `cypress-split` also counts
+ * them as real specs, so an all-skip file gets its own shard slot and, in CI,
+ * the all-skip RBAC skeletons have been hanging their shard at startup and
+ * burning the 20-min job timeout (blocking `status-check`) despite having
+ * nothing to assert.
+ *
+ * Set `RUN_DISABLED_SPECS=1` to include them locally when re-enabling a suite.
+ */
+const DISABLED_REGRESSION_SPECS = [
+  '**/regression/rbac-denials.cy.ts',
+  '**/regression/rbac-denials-org.cy.ts',
+  '**/regression/rbac-denials-project.cy.ts',
+  '**/regression/secrets.cy.ts',
+  '**/regression/dns-zones.cy.ts',
+];
+
 export default defineConfig({
   env: {
     CYPRESS: 'true',
@@ -34,6 +57,8 @@ export default defineConfig({
     SUB: process.env.SUB,
   },
   e2e: {
+    // Required to type into Stripe PaymentElement / AddressElement iframes (js.stripe.com).
+    chromeWebSecurity: false,
     baseUrl: process.env.CYPRESS_BASE_URL || 'http://localhost:3000',
     supportFile: 'cypress/support/e2e.ts',
     setupNodeEvents(on, config) {
@@ -98,6 +123,7 @@ export default defineConfig({
     video: true,
     screenshotOnRunFailure: true,
     specPattern: 'cypress/e2e/{smoke,regression}/**/*.{cy,spec}.{js,jsx,ts,tsx}',
+    excludeSpecPattern: process.env.RUN_DISABLED_SPECS ? [] : DISABLED_REGRESSION_SPECS,
   },
   component: {
     devServer: {
