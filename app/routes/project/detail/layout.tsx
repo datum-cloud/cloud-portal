@@ -1,3 +1,4 @@
+import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { ProjectBottomBar } from '@/features/project-bottom-bar';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
@@ -7,6 +8,7 @@ import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
+import type { DslLoaderData } from '@/modules/rbac/types';
 import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
@@ -49,6 +51,7 @@ import {
   type LoaderFunctionArgs,
   Outlet,
   useFetcher,
+  useLoaderData,
   useLocation,
   useNavigate,
   useParams,
@@ -64,13 +67,181 @@ type ProjectLayoutCompanions = {
   organizationId: string | null | undefined;
 };
 
+const RESTRICTED_TITLE = 'Access restricted';
+const RESTRICTED_MESSAGE = "You don't have permission to view this project.";
+
+type BuildProjectNavOptions = {
+  /** When false, non-Home links are disabled (project control-plane not Ready). */
+  isReady?: boolean;
+  /**
+   * Optional React Query client for sidebar prefetch. Omitted on the
+   * restricted shell — those fetches would just 403.
+   */
+  queryClient?: ReturnType<typeof useQueryClient>;
+};
+
+function buildProjectNavItems(
+  projectId: string,
+  { isReady = true, queryClient }: BuildProjectNavOptions = {}
+): NavItem[] {
+  const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
+    projectId,
+  });
+  const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
+    projectId,
+  });
+  const settingsNotifications = getPathWithParams(paths.project.detail.settings.notifications, {
+    projectId,
+  });
+  const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, {
+    projectId,
+  });
+
+  return [
+    {
+      title: 'Home',
+      href: getPathWithParams(paths.project.detail.home, { projectId }),
+      type: 'link',
+      icon: HomeIcon,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: domainKeys.list(projectId),
+              queryFn: () => createDomainService().list(projectId),
+            });
+            void queryClient.prefetchQuery({
+              queryKey: exportPolicyKeys.list(projectId),
+              queryFn: () => createExportPolicyService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'AI Edge',
+      href: getPathWithParams(paths.project.detail.proxy.root, { projectId }),
+      icon: GaugeIcon,
+      disabled: !isReady,
+      type: 'link',
+      showSeparatorAbove: true,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: httpProxyKeys.list(projectId),
+              queryFn: () => createHttpProxyService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'Connectors',
+      href: getPathWithParams(paths.project.detail.connectors.root, { projectId }),
+      type: 'link',
+      icon: CableIcon,
+      disabled: !isReady,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: connectorKeys.list(projectId),
+              queryFn: () => createConnectorService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'DNS',
+      href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId }),
+      icon: SignpostIcon,
+      disabled: !isReady,
+      type: 'link',
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: dnsZoneKeys.list(projectId),
+              queryFn: () => createDnsZoneService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'Domains',
+      href: getPathWithParams(paths.project.detail.domains.root, { projectId }),
+      type: 'link',
+      icon: LayersIcon,
+      disabled: !isReady,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: domainKeys.list(projectId),
+              queryFn: () => createDomainService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'Metrics',
+      href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
+      type: 'link',
+      icon: ChartSplineIcon,
+      disabled: !isReady,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: exportPolicyKeys.list(projectId),
+              queryFn: () => createExportPolicyService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'Secrets',
+      href: getPathWithParams(paths.project.detail.secrets.root, { projectId }),
+      type: 'link',
+      icon: FileLockIcon,
+      disabled: !isReady,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: secretKeys.list(projectId),
+              queryFn: () => createSecretService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'Service Accounts',
+      href: getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }),
+      type: 'link',
+      icon: BotIcon,
+      disabled: !isReady,
+      onPrefetch: queryClient
+        ? () => {
+            void queryClient.prefetchQuery({
+              queryKey: serviceAccountKeys.list(projectId),
+              queryFn: () => createServiceAccountService().list(projectId),
+            });
+          }
+        : undefined,
+    },
+    {
+      title: 'Project Settings',
+      href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
+      type: 'link',
+      disabled: !isReady,
+      icon: SettingsIcon,
+      showSeparatorAbove: true,
+      showSeparatorBelow: true,
+      tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
+    },
+  ];
+}
+
 const route = defineResourceRoute<Project, ProjectLayoutCompanions>({
   type: 'detail',
   resource: 'projects',
   paramName: 'projectId',
   notFoundLabel: 'Project',
-  restrictedTitle: 'Access restricted',
-  restrictedMessage: "You don't have permission to view this project.",
+  restrictedTitle: RESTRICTED_TITLE,
+  restrictedMessage: RESTRICTED_MESSAGE,
   breadcrumb: ({ data }) => <span>{data?.displayName ?? data?.name ?? 'Project'}</span>,
   metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Project',
 });
@@ -134,7 +305,45 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 /** Skip re-running the loader when navigating within the same project (e.g. Home → AI Edge → Connectors). */
 export const shouldRevalidate = skipRevalidateWithinSameProject;
 
-export default route.Page(({ data: initialProject, companions }) => {
+/**
+ * Keep the dashboard chrome (header + org/project switcher) when the loader
+ * returns restricted, so the user can navigate away instead of seeing a
+ * full-page lock with no escape hatch. Child routes still use `route.Page`.
+ */
+export default function ProjectDetailLayout() {
+  const loaderData = useLoaderData<DslLoaderData<Project, ProjectLayoutCompanions>>();
+  const { projectId = '' } = useParams<{ projectId: string }>();
+  const { organization: appOrg } = useApp();
+
+  const restrictedNavItems = useMemo(
+    () => (projectId ? buildProjectNavItems(projectId) : []),
+    [projectId]
+  );
+
+  if (loaderData.restricted) {
+    return (
+      <DashboardLayout
+        navItems={restrictedNavItems}
+        sidebarCollapsible="icon"
+        defaultSidebarOpen={false}
+        currentOrg={appOrg}
+        expandBehavior="push"
+        showBackdrop={false}>
+        <RestrictedState title={RESTRICTED_TITLE} message={RESTRICTED_MESSAGE} />
+      </DashboardLayout>
+    );
+  }
+
+  return <ProjectDetailLayoutContent data={loaderData.data} companions={loaderData.companions} />;
+}
+
+function ProjectDetailLayoutContent({
+  data: initialProject,
+  companions,
+}: {
+  data: Project;
+  companions: ProjectLayoutCompanions;
+}) {
   const { projectId } = useParams();
   const location = useLocation();
   const fromOnboarding =
@@ -198,141 +407,7 @@ export default route.Page(({ data: initialProject, companions }) => {
 
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
-    const pid = project.name;
-
-    const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
-      projectId: pid,
-    });
-    const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
-      projectId: pid,
-    });
-    const settingsNotifications = getPathWithParams(paths.project.detail.settings.notifications, {
-      projectId: pid,
-    });
-    const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, {
-      projectId: pid,
-    });
-
-    return [
-      {
-        title: 'Home',
-        href: getPathWithParams(paths.project.detail.home, { projectId: pid }),
-        type: 'link',
-        icon: HomeIcon,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: domainKeys.list(pid),
-            queryFn: () => createDomainService().list(pid),
-          });
-          void queryClient.prefetchQuery({
-            queryKey: exportPolicyKeys.list(pid),
-            queryFn: () => createExportPolicyService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'AI Edge',
-        href: getPathWithParams(paths.project.detail.proxy.root, { projectId: pid }),
-        icon: GaugeIcon,
-        disabled: !isReady,
-        type: 'link',
-        showSeparatorAbove: true,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: httpProxyKeys.list(pid),
-            queryFn: () => createHttpProxyService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'Connectors',
-        href: getPathWithParams(paths.project.detail.connectors.root, { projectId: pid }),
-        type: 'link',
-        icon: CableIcon,
-        disabled: !isReady,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: connectorKeys.list(pid),
-            queryFn: () => createConnectorService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'DNS',
-        href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId: pid }),
-        icon: SignpostIcon,
-        disabled: !isReady,
-        type: 'link',
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: dnsZoneKeys.list(pid),
-            queryFn: () => createDnsZoneService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'Domains',
-        href: getPathWithParams(paths.project.detail.domains.root, { projectId: pid }),
-        type: 'link',
-        icon: LayersIcon,
-        disabled: !isReady,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: domainKeys.list(pid),
-            queryFn: () => createDomainService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'Metrics',
-        href: getPathWithParams(paths.project.detail.metrics.root, { projectId: pid }),
-        type: 'link',
-        icon: ChartSplineIcon,
-        disabled: !isReady,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: exportPolicyKeys.list(pid),
-            queryFn: () => createExportPolicyService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'Secrets',
-        href: getPathWithParams(paths.project.detail.secrets.root, { projectId: pid }),
-        type: 'link',
-        icon: FileLockIcon,
-        disabled: !isReady,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: secretKeys.list(pid),
-            queryFn: () => createSecretService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'Service Accounts',
-        href: getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId: pid }),
-        type: 'link',
-        icon: BotIcon,
-        disabled: !isReady,
-        onPrefetch: () => {
-          void queryClient.prefetchQuery({
-            queryKey: serviceAccountKeys.list(pid),
-            queryFn: () => createServiceAccountService().list(pid),
-          });
-        },
-      },
-      {
-        title: 'Project Settings',
-        href: getPathWithParams(paths.project.detail.settings.general, { projectId: pid }),
-        type: 'link',
-        disabled: !isReady,
-        icon: SettingsIcon,
-        showSeparatorAbove: true,
-        showSeparatorBelow: true,
-        tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
-      },
-    ];
+    return buildProjectNavItems(project.name, { isReady, queryClient });
   }, [project, queryClient]);
 
   useEffect(() => {
@@ -352,10 +427,10 @@ export default route.Page(({ data: initialProject, companions }) => {
 
   // Set org/project session cookies when project loads - enables "return to last project" on next visit
   useEffect(() => {
-    const orgId = org?.name ?? appOrg?.name;
-    if (project?.name && orgId && lastSessionProjectRef.current !== project.name) {
+    const oid = org?.name ?? appOrg?.name;
+    if (project?.name && oid && lastSessionProjectRef.current !== project.name) {
       lastSessionProjectRef.current = project.name;
-      sessionFetcher.submit({ projectId: project.name, orgId }, { method: 'POST' });
+      sessionFetcher.submit({ projectId: project.name, orgId: oid }, { method: 'POST' });
     }
   }, [project?.name, org?.name, appOrg?.name, sessionFetcher]);
 
@@ -392,4 +467,4 @@ export default route.Page(({ data: initialProject, companions }) => {
       </DashboardLayout>
     </ProjectProvider>
   );
-});
+}
