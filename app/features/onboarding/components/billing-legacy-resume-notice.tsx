@@ -5,6 +5,7 @@ import {
 } from '@/features/onboarding/components/onboarding-entrance';
 import { helpScoutAPI } from '@/modules/helpscout';
 import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useCallback, useState } from 'react';
@@ -12,19 +13,19 @@ import { Link } from 'react-router';
 
 const PLATFORM_CHANGES = [
   {
-    title: 'Deprecating personal organizations',
+    title: 'No more personal orgs',
     description:
-      'Going forward we will no longer use limited “personal” organizations. As such, all organizations have been upgraded to our “standard” quota limits, including around collaborators, projects, etc. No action required!',
+      'We’ve deprecated “personal” orgs. All organizations now have our “standard” quota limits, including around collaborators, projects, etc.',
   },
   {
-    title: 'We now require a payment method',
+    title: 'Payment method',
     description:
-      'To improve the security and stability of our platform, we now require a payment method for every active organization. Datum is currently free during public beta, and your account won’t accrue any charges without prior notice.',
+      'Datum is currently free during public beta, but we now require a payment method for each organization. Note: your account won’t accrue any charges without prior notice.',
   },
   {
-    title: 'You’ll need to confirm your contact details',
+    title: 'Contact details',
     description:
-      'As part of adding your payment method, we’ll ask you to confirm your legal name as well as any company name you want associated with an organization.',
+      'While adding your payment method, please confirm your legal name as well as any company name you want associated.',
   },
 ] as const;
 
@@ -36,9 +37,9 @@ const linkClassName = 'text-foreground underline underline-offset-2 hover:opacit
 /**
  * Right-hand notice shown to returning users resuming legacy org setup on the
  * onboarding billing page. Explains the platform changes that require them to
- * add a payment method, with escape hatches (deactivate account, support).
+ * add a payment method, with escape hatches (deactivate the org, support).
  */
-export const BillingLegacyResumeNotice = ({ firstName }: { firstName?: string }) => {
+export const BillingLegacyResumeNotice = ({ orgId }: { orgId: string }) => {
   const [contentVisible, setContentVisible] = useState(false);
 
   const revealContent = useCallback((progress: number) => {
@@ -46,8 +47,6 @@ export const BillingLegacyResumeNotice = ({ firstName }: { firstName?: string })
       setContentVisible(true);
     }
   }, []);
-
-  const heading = `Welcome back${firstName?.trim() ? `, ${firstName.trim()}` : ''}!`;
 
   return (
     <OnboardingEntrance
@@ -60,17 +59,14 @@ export const BillingLegacyResumeNotice = ({ firstName }: { firstName?: string })
           <div className="my-auto flex flex-col gap-5">
             <div className="flex items-center">
               <HandwritingText
-                text={heading}
+                text="Hey there!"
                 className="rotate-[-5.212deg]"
                 onProgress={revealContent}
               />
             </div>
 
             <OnboardingStagger visible={contentVisible} index={0}>
-              <p className={cn(bodyTextClassName, 'mt-4')}>
-                We’ve updated our platform in some important ways. Here’s what’s changed and the
-                actions you need to take:
-              </p>
+              <p className={cn(bodyTextClassName, 'mt-4')}>We’ve made some important changes:</p>
             </OnboardingStagger>
 
             {PLATFORM_CHANGES.map((change, index) => (
@@ -84,19 +80,13 @@ export const BillingLegacyResumeNotice = ({ firstName }: { firstName?: string })
 
             <OnboardingStagger visible={contentVisible} index={PLATFORM_CHANGES.length + 1}>
               <p className={bodyTextClassName}>
-                Don’t want to add a payment method? No hard feelings, we get it! Please click{' '}
-                <Link to={paths.account.settings.general} className={linkClassName}>
+                Don’t want to add a payment method? Please click{' '}
+                <Link
+                  to={getPathWithParams(paths.org.detail.settings.general, { orgId })}
+                  className={linkClassName}>
                   here
                 </Link>{' '}
-                to deactivate your account. If you take no action on your account it will be
-                automatically deactivated in 60 days.
-              </p>
-            </OnboardingStagger>
-
-            <OnboardingStagger visible={contentVisible} index={PLATFORM_CHANGES.length + 2}>
-              <p className={bodyTextClassName}>
-                Thanks for your cooperation. If you need help or have questions, please reach out to
-                us at{' '}
+                to deactivate your organization. If you need help or have questions, please email{' '}
                 <a href="mailto:support@datum.net" className={linkClassName}>
                   support@datum.net
                 </a>{' '}

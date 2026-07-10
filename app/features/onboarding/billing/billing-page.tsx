@@ -18,8 +18,6 @@ export type BillingPageData = {
   partialOrgId?: string;
   /** Billing account exists but payment method is still required. */
   needsPaymentOnly?: boolean;
-  /** Personalizes the legacy-resume notice card heading. */
-  userGivenName?: string;
 };
 
 export const BillingPage = ({ data }: { data: BillingPageData }) => (
@@ -33,6 +31,5 @@ export const BillingPage = ({ data }: { data: BillingPageData }) => (
     initialPayment={data.initialPayment}
     partialOrgId={data.partialOrgId}
     needsPaymentOnly={data.needsPaymentOnly}
-    userFirstName={data.userGivenName}
   />
 );

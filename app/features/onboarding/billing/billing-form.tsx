@@ -36,8 +36,6 @@ export interface BillingFormProps {
   /** Org exists from a prior partial setup — billing account create will be retried. */
   partialOrgId?: string;
   needsPaymentOnly?: boolean;
-  /** Personalizes the legacy-resume notice card heading. */
-  userFirstName?: string;
 }
 
 export const BillingForm = ({
@@ -50,7 +48,6 @@ export const BillingForm = ({
   initialPayment,
   partialOrgId,
   needsPaymentOnly = false,
-  userFirstName,
 }: BillingFormProps) => {
   const navigate = useNavigate();
   const projectKickoffRef = useRef<string | null>(null);
@@ -96,6 +93,9 @@ export const BillingForm = ({
       contactInfo: initialContactInfo,
     });
   }, [initialContactInfo, initialSetup, isLegacySetupResume, startProjectSetup]);
+
+  // Legacy resume always has an org — either a full prior setup or a partial one.
+  const resumeOrgId = initialSetup?.orgId ?? partialOrgId;
 
   const stepLabel = isLegacySetupResume ? 'Billing setup' : 'Step 2 / 2';
   const heading = isLegacySetupResume ? 'Complete organization setup' : 'Payment Verification';
@@ -196,7 +196,9 @@ export const BillingForm = ({
         </Card>
       </OnboardingEntrance>
 
-      {isLegacySetupResume ? <BillingLegacyResumeNotice firstName={userFirstName} /> : null}
+      {isLegacySetupResume && resumeOrgId ? (
+        <BillingLegacyResumeNotice orgId={resumeOrgId} />
+      ) : null}
     </div>
   );
 };
