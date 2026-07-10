@@ -240,19 +240,21 @@ Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
     return cy.wrap(storedId, { log: false });
   }
 
-  // If not in env, fetch it from the page
+  // If not in env, fetch it from the page.
+  // Orgs are now typeless (unified orgs omit `type`), so the legacy
+  // `organization-card-personal` hook is unreliable. Identify the personal org
+  // by its stable resource name (`personal-org-…`) via its id badge instead.
   cy.visit(paths.account.organizations.root);
   return cy
-    .get('[data-e2e="organization-card-personal"]', { timeout: 10000 })
+    .contains('[data-e2e="organization-card-id-copy"]', /personal-org-[a-z0-9]+/, {
+      timeout: 10000,
+    })
     .should('be.visible')
-    .find('[data-e2e="organization-card-id-copy"]')
-    .should('be.visible')
-    .first()
     .invoke('text')
     .then((orgId: string) => {
       const trimmedId = orgId.trim();
-      if (!trimmedId) {
-        throw new Error('Failed to extract personal org ID from page');
+      if (!/^personal-org-[a-z0-9]+$/.test(trimmedId)) {
+        throw new Error(`Failed to extract personal org ID from page (got: "${trimmedId}")`);
       }
       Cypress.env('personalOrgId', trimmedId);
       return trimmedId;
@@ -326,7 +328,9 @@ Cypress.Commands.add('logout', () => {
  */
 Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainable<string> => {
   cy.visit(paths.account.organizations.root);
-  cy.get('[data-e2e="organization-card-personal"]', { timeout: 10_000 }).should('be.visible');
+  // Wait for the org list to render. Cards are typeless for unified orgs, so
+  // match any card variant with the prefix selector.
+  cy.get('[data-e2e^="organization-card"]', { timeout: 10_000 }).first().should('be.visible');
   cy.get('[data-e2e="create-organization-button"]').should('be.visible').click();
 
   cy.contains('Create organization', { timeout: 10_000 }).should('be.visible');
