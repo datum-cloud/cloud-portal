@@ -118,7 +118,7 @@
         "bun-types": "^1.3.14",
         "cypress": "^15.17.0",
         "cypress-split": "^1.25.0",
-        "cypress-vite": "1.10.0",
+        "cypress-vite": "1.10.2",
         "eslint": "^10.5.0",
         "eslint-plugin-jsx-a11y": "^6.10.2",
         "eslint-plugin-prettier": "^5.5.6",
@@ -1570,7 +1570,7 @@
 
     "cypress-split": ["cypress-split@1.25.0", "", { "dependencies": { "@actions/core": "2.0.3", "arg": "^5.0.2", "console.table": "^0.10.0", "debug": "^4.3.4", "fast-shuffle": "^6.1.0", "find-cypress-specs": "1.54.12", "globby": "^11.1.0", "humanize-duration": "^3.28.0" }, "bin": { "cypress-split-merge": "bin/merge.js", "cypress-split-preview": "bin/preview.js" } }, "sha512-/K8qQz3yeSc5GyHFyqJC6ipz3S47kwtFu7WfuZ+uSAjtfNlCxTBlPV5CTTn0v39zjWEVqrfpu2arZuzZegu/9g=="],
 
-    "cypress-vite": ["cypress-vite@1.10.0", "", { "peerDependencies": { "chokidar": "^2 || ^3 || ^4 || ^5", "debug": "^2 || ^3 || ^4", "vite": "^2.9 || ^3 || ^4 || ^5 || ^6 || ^7 || ^8" } }, "sha512-jZtf8IGr3xDer0I/gE69OqvWK8c+Tbn6OQSUeH3h9xJTiitfyuYo/WvevjSNJICg4IV/pEjlUclqpBpc5KF9fQ=="],
+    "cypress-vite": ["cypress-vite@1.10.2", "", { "peerDependencies": { "chokidar": "^2 || ^3 || ^4 || ^5", "debug": "^2 || ^3 || ^4", "vite": "^2.9 || ^3 || ^4 || ^5 || ^6 || ^7 || ^8" } }, "sha512-tmCH7riwzprnl5M21ZXfU4jzBY7XBFHLBOAZA7B+SXSYOHmMbNPFrt+Y45EzlW8DVQCTVWs/dH76zx3WXvCZAA=="],
 
     "cytoscape": ["cytoscape@3.34.0", "", {}, "sha512-62rNSrioXw93uliKFBwjukeQyeWwH2PqDrTac31r2P6464u3AUvTk0xS4LVvT251g7IgkFunrI48ZEZGjywSOg=="],
 

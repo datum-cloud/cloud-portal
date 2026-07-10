@@ -142,7 +142,7 @@
     "bun-types": "^1.3.14",
     "cypress": "^15.17.0",
     "cypress-split": "^1.25.0",
-    "cypress-vite": "1.10.0",
+    "cypress-vite": "1.10.2",
     "eslint": "^10.5.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-prettier": "^5.5.6",
