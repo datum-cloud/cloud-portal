@@ -43,14 +43,13 @@ describe('Load org list', () => {
 
   it('should render a list of the users orgs and store personal org ID', () => {
     cy.visit(paths.account.organizations.root);
-    cy.get('[data-e2e="organization-card-personal"]').should('be.visible');
-    cy.get('[data-e2e="organization-card-standard"]').should('be.visible');
+    // Org cards render regardless of type (unified orgs are typeless), so match
+    // any card variant with the prefix selector.
+    cy.get('[data-e2e^="organization-card"]').first().should('be.visible');
 
-    // Extract the personal org ID from the BadgeCopy component
-    // Find the personal org card, then find the badge with the org ID
-    cy.get('[data-e2e="organization-card-personal"]')
-      .find('[data-e2e="organization-card-id-copy"]')
-      .first()
+    // Extract the personal org ID from its BadgeCopy. The personal org is
+    // identified by its stable `personal-org-…` resource name, not its type.
+    cy.contains('[data-e2e="organization-card-id-copy"]', /personal-org-[a-z0-9]+/)
       .invoke('text')
       .then((orgId) => {
         const trimmedId = orgId.trim();
