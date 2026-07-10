@@ -1,0 +1,118 @@
+import { HandwritingText } from '@/features/onboarding/components/handwriting-text';
+import {
+  OnboardingEntrance,
+  OnboardingStagger,
+} from '@/features/onboarding/components/onboarding-entrance';
+import { helpScoutAPI } from '@/modules/helpscout';
+import { paths } from '@/utils/config/paths.config';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { useCallback, useState } from 'react';
+import { Link } from 'react-router';
+
+const PLATFORM_CHANGES = [
+  {
+    title: 'Deprecating personal organizations',
+    description:
+      'Going forward we will no longer use limited “personal” organizations. As such, all organizations have been upgraded to our “standard” quota limits, including around collaborators, projects, etc. No action required!',
+  },
+  {
+    title: 'We now require a payment method',
+    description:
+      'To improve the security and stability of our platform, we now require a payment method for every active organization. Datum is currently free during public beta, and your account won’t accrue any charges without prior notice.',
+  },
+  {
+    title: 'You’ll need to confirm your contact details',
+    description:
+      'As part of adding your payment method, we’ll ask you to confirm your legal name as well as any company name you want associated with an organization.',
+  },
+] as const;
+
+const NOTICE_REVEAL_PROGRESS = 0.35;
+
+const bodyTextClassName = 'text-foreground text-[13px] leading-[18px] opacity-60';
+const linkClassName = 'text-foreground underline underline-offset-2 hover:opacity-80';
+
+/**
+ * Right-hand notice shown to returning users resuming legacy org setup on the
+ * onboarding billing page. Explains the platform changes that require them to
+ * add a payment method, with escape hatches (deactivate account, support).
+ */
+export const BillingLegacyResumeNotice = ({ firstName }: { firstName?: string }) => {
+  const [contentVisible, setContentVisible] = useState(false);
+
+  const revealContent = useCallback((progress: number) => {
+    if (progress >= NOTICE_REVEAL_PROGRESS) {
+      setContentVisible(true);
+    }
+  }, []);
+
+  const heading = `Welcome back${firstName?.trim() ? `, ${firstName.trim()}` : ''}!`;
+
+  return (
+    <OnboardingEntrance
+      delay={1}
+      className="w-full min-w-0 md:relative md:max-w-[410px] md:self-stretch">
+      {/* On md+ the card is absolutely positioned so it never contributes to the
+          row height — it matches the form card on the left and scrolls inside. */}
+      <Card className="bg-card/50 text-foreground flex w-full min-w-0 flex-col rounded-xl border-none py-0 shadow-none md:absolute md:inset-0">
+        <CardContent className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6 sm:p-8 md:p-[44px]">
+          <div className="my-auto flex flex-col gap-5">
+            <div className="flex items-center">
+              <HandwritingText
+                text={heading}
+                className="rotate-[-5.212deg]"
+                onProgress={revealContent}
+              />
+            </div>
+
+            <OnboardingStagger visible={contentVisible} index={0}>
+              <p className={cn(bodyTextClassName, 'mt-4')}>
+                We’ve updated our platform in some important ways. Here’s what’s changed and the
+                actions you need to take:
+              </p>
+            </OnboardingStagger>
+
+            {PLATFORM_CHANGES.map((change, index) => (
+              <OnboardingStagger key={change.title} visible={contentVisible} index={index + 1}>
+                <div className="flex flex-col gap-0">
+                  <p className="text-foreground text-base font-medium opacity-60">{change.title}</p>
+                  <p className={bodyTextClassName}>{change.description}</p>
+                </div>
+              </OnboardingStagger>
+            ))}
+
+            <OnboardingStagger visible={contentVisible} index={PLATFORM_CHANGES.length + 1}>
+              <p className={bodyTextClassName}>
+                Don’t want to add a payment method? No hard feelings, we get it! Please click{' '}
+                <Link to={paths.account.settings.general} className={linkClassName}>
+                  here
+                </Link>{' '}
+                to deactivate your account. If you take no action on your account it will be
+                automatically deactivated in 60 days.
+              </p>
+            </OnboardingStagger>
+
+            <OnboardingStagger visible={contentVisible} index={PLATFORM_CHANGES.length + 2}>
+              <p className={bodyTextClassName}>
+                Thanks for your cooperation. If you need help or have questions, please reach out to
+                us at{' '}
+                <a href="mailto:support@datum.net" className={linkClassName}>
+                  support@datum.net
+                </a>{' '}
+                or{' '}
+                <button
+                  type="button"
+                  onClick={() => helpScoutAPI.open()}
+                  className={`${linkClassName} cursor-pointer`}>
+                  chat to us here
+                </button>
+                .
+              </p>
+            </OnboardingStagger>
+          </div>
+        </CardContent>
+      </Card>
+    </OnboardingEntrance>
+  );
+};

@@ -119,6 +119,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           contactDefaults,
           stripePublishableKey,
           isLegacySetupResume,
+          userGivenName: user.givenName?.trim() || undefined,
           orgDisplayName: fullOrg.displayName?.trim() || fullOrg.name,
           initialSetup: {
             orgId: resolvedOrgId,
@@ -137,6 +138,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         contactDefaults,
         stripePublishableKey,
         isLegacySetupResume,
+        userGivenName: user.givenName?.trim() || undefined,
         orgDisplayName: fullOrg.displayName?.trim() || fullOrg.name,
         partialOrgId: orgId,
         initialContactInfo: orgContactInfo,

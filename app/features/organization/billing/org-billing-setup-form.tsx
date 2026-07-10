@@ -368,7 +368,6 @@ export const OrgBillingSetupForm = ({
 
         <VerificationField
           label="Contact information"
-          description="Add your company name and address"
           isEmpty={!contactComplete}
           openE2e="org-billing-contact-open"
           onOpen={() => setContactDialogOpen(true)}>
