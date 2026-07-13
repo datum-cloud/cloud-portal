@@ -65,6 +65,14 @@ export async function orgLegacySetupMiddleware(
     return next();
   }
 
+  // Org general settings stays reachable for incomplete orgs so owners who
+  // don't want to add a payment method can still delete the organization
+  // (linked from the billing setup resume notice).
+  const settingsGeneralPath = getPathWithParams(paths.org.detail.settings.general, { orgId });
+  if (pathname === settingsGeneralPath) {
+    return next();
+  }
+
   try {
     const response = await resolveOrgSetupRedirect(orgId);
     return response ?? (await next());

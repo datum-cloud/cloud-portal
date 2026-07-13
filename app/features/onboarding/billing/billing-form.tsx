@@ -1,7 +1,9 @@
+import { ProfileIdentity } from '@/components/profile-identity';
 import {
   useCompleteLegacyOrgSetup,
   useSetupOnboardingProject,
 } from '@/features/onboarding/billing/use-setup-onboarding-project';
+import { BillingLegacyResumeNotice } from '@/features/onboarding/components/billing-legacy-resume-notice';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import {
@@ -92,28 +94,45 @@ export const BillingForm = ({
     });
   }, [initialContactInfo, initialSetup, isLegacySetupResume, startProjectSetup]);
 
+  // Legacy resume always has an org — either a full prior setup or a partial one.
+  const resumeOrgId = initialSetup?.orgId ?? partialOrgId;
+
   const stepLabel = isLegacySetupResume ? 'Billing setup' : 'Step 2 / 2';
-  const heading = isLegacySetupResume ? 'Complete billing setup' : 'Payment Verification';
+  const heading = isLegacySetupResume ? 'Complete organization setup' : 'Payment Verification';
   const submitLabel = isLegacySetupResume ? 'Continue' : 'Start free';
 
   return (
-    <div className="z-10 flex w-full min-w-0 flex-col items-stretch gap-5">
-      <OnboardingEntrance className="mx-auto w-full min-w-0 md:max-w-[410px]">
+    <div
+      className={cn(
+        'z-10 flex w-full min-w-0 flex-col items-stretch gap-5',
+        isLegacySetupResume && 'mx-auto md:flex-row md:justify-center'
+      )}>
+      <OnboardingEntrance
+        className={cn('w-full min-w-0 md:max-w-[410px]', !isLegacySetupResume && 'mx-auto')}>
         <Card className={cn(onboardingCardClassName, 'flex flex-col md:self-stretch')}>
           <CardContent className="flex flex-col gap-8 p-0">
             <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
               {stepLabel}
             </p>
 
-            <h2 className="flex flex-col gap-2 text-center text-2xl font-semibold">
-              {heading}
+            <div className="flex flex-col items-center gap-3">
+              <h2 className="text-center text-2xl font-semibold">{heading}</h2>
 
               {isLegacySetupResume && orgDisplayName ? (
-                <p className="text-muted-foreground text-center text-sm font-normal">
-                  {orgDisplayName}
-                </p>
+                <div className="border-border bg-muted/50 flex max-w-full items-center gap-2 rounded-full border py-1 pr-3 pl-1">
+                  <ProfileIdentity
+                    avatarOnly
+                    name={orgDisplayName}
+                    size="xs"
+                    className="size-6 rounded-full"
+                    fallbackClassName="rounded-full text-[10px]"
+                  />
+                  <span className="text-foreground truncate text-sm font-medium">
+                    {orgDisplayName}
+                  </span>
+                </div>
               ) : null}
-            </h2>
+            </div>
 
             {isLegacySetupResume && needsPaymentOnly ? (
               <p className="text-muted-foreground text-center text-sm">
@@ -176,6 +195,10 @@ export const BillingForm = ({
           </CardContent>
         </Card>
       </OnboardingEntrance>
+
+      {isLegacySetupResume && resumeOrgId ? (
+        <BillingLegacyResumeNotice orgId={resumeOrgId} />
+      ) : null}
     </div>
   );
 };

@@ -1,6 +1,7 @@
 export { AccountPage, type AccountPageProps } from './account/account-page';
 export { BillingForm, type BillingFormProps } from './billing/billing-form';
 export { BillingPage, type BillingPageData } from './billing/billing-page';
+export { BillingLegacyResumeNotice } from './components/billing-legacy-resume-notice';
 export { BillingVerificationBenefits } from './components/billing-verification-benefits';
 export { HandwritingText, type HandwritingTextProps } from './components/handwriting-text';
 export {
