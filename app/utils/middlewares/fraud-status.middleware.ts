@@ -1,6 +1,5 @@
 import { resolveUserFraudRedirectPath } from './fraud-redirect';
 import { type MiddlewareContext, type NextFunction } from './middleware';
-import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -46,15 +45,7 @@ export async function fraudStatusMiddleware(
       const access = await getUserWithAccessRetry(session.sub, request.headers.get('Cookie'));
 
       if ('error' in access) {
-        // A service-account principal (e.g. the plugin e2e suite's dev token
-        // exchange) has no `users.iam.miloapis.com` resource at all, so this
-        // 403/404s permanently — it's never "still propagating" like it is
-        // for a freshly-signed-up human. Same dev-only escape hatch already
-        // used to skip the nameReviewRequired gate for automated sessions.
-        if (
-          (access.error === 'not_found' || access.error === 'forbidden') &&
-          !isOnboardingDevBypassEnabled()
-        ) {
+        if (access.error === 'not_found' || access.error === 'forbidden') {
           return redirect(paths.fraud.verifying);
         }
         return next();

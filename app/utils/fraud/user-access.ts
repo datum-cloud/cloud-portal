@@ -1,3 +1,4 @@
+import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { createUserService } from '@/resources/users';
 import type { User } from '@/resources/users';
@@ -7,6 +8,23 @@ import { AuthorizationError, NotFoundError } from '@/utils/errors';
 export type UserAccessResult =
   | { user: User; refreshedHeaders?: Headers }
   | { error: 'not_found' | 'forbidden' | 'other' };
+
+/**
+ * A service-account principal (e.g. the plugin e2e suite's dev token
+ * exchange) has no `users.iam.miloapis.com` resource at all — the fetch
+ * 403/404s permanently, unlike a freshly-signed-up human where it's a
+ * propagation delay. Stand in a minimal, already-approved User so every
+ * caller downstream of this function (fraud gates, the private layout's own
+ * user lookup) treats the session like any other authenticated account.
+ */
+function buildDevStubUser(userId: string): User {
+  return {
+    sub: userId,
+    registrationApproval: 'Approved',
+    state: 'Active',
+    nameReviewRequired: false,
+  };
+}
 
 /**
  * Load the signed-in user for fraud/onboarding gates. On 403 (common right
@@ -30,6 +48,9 @@ export async function getUserWithAccessRetry(
     return { user };
   } catch (error) {
     if (error instanceof NotFoundError) {
+      if (isOnboardingDevBypassEnabled()) {
+        return { user: buildDevStubUser(userId) };
+      }
       return { error: 'not_found' };
     }
 
@@ -37,6 +58,9 @@ export async function getUserWithAccessRetry(
       const retried = await retryAfterTokenRefresh(userId, cookieHeader);
       if (retried) {
         return retried;
+      }
+      if (isOnboardingDevBypassEnabled()) {
+        return { user: buildDevStubUser(userId) };
       }
       return { error: 'forbidden' };
     }
