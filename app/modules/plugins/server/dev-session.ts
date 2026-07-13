@@ -69,12 +69,26 @@ export function createDevSessionRoutes() {
       return c.json({ error: 'Access token has no subject' }, 401);
     }
 
-    // Validate the token against the platform with a cheap authenticated call.
+    // Validate the token against the platform via SelfSubjectReview — it only
+    // requires a valid credential (no RBAC grant), so it works uniformly for
+    // both human users and service accounts. (A `users/{sub}` GET, tried
+    // earlier, requires cluster-scope permission a viewer-on-project service
+    // account doesn't have, and doesn't even resolve for a non-user principal.)
     let validation: Response;
     try {
       validation = await fetch(
-        `${env.public.apiUrl}/apis/iam.miloapis.com/v1alpha1/users/${decoded.sub}`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        `${env.public.apiUrl}/apis/authentication.k8s.io/v1/selfsubjectreviews`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            apiVersion: 'authentication.k8s.io/v1',
+            kind: 'SelfSubjectReview',
+          }),
+        }
       );
     } catch (err) {
       return c.json({ error: `Platform validation failed: ${String(err)}` }, 502);
