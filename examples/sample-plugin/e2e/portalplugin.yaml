@@ -1,0 +1,38 @@
+# PortalPlugin CR for the sample plugin — applied/deleted by the e2e spec to
+# drive registration → discovery → unload against the local kwok registry.
+#
+# In production this resource is materialized by the services-operator fan-out
+# from your ServiceConfiguration's spec.userInterface block; here (and in your
+# own plugin repo) you apply an equivalent CR directly to exercise the portal's
+# watch + status pipeline. Edit slug / name / assets.baseURL / proxy for your plugin.
+apiVersion: portal.miloapis.com/v1alpha1
+kind: PortalPlugin
+metadata:
+  name: sample.miloapis.com
+  labels:
+    app.kubernetes.io/managed-by: services.miloapis.com
+    services.miloapis.com/service: sample.miloapis.com
+  annotations:
+    discovery.miloapis.com/parent-contexts: Platform
+spec:
+  serviceRef:
+    name: sample
+  serviceName: sample.miloapis.com
+  slug: sample
+  displayName: Sample Plugin
+  deprecated: false
+  suspend: false
+  assets:
+    baseURL: http://localhost:7777
+    manifestPath: /plugin-manifest.json
+    caBundle: ""
+  proxy:
+    - alias: api
+      backend:
+        url: http://localhost:7778
+      authorization: UserToken
+  visibility:
+    entitlement: None
+    featureFlag: ""
+    organizations: []
+  contentSecurityPolicy: []

@@ -32,3 +32,15 @@ cypress/results
 
 # Playwright MCP
 .playwright-mcp/
+
+# Playwright plugin e2e (reports, traces, storageState, orchestration state)
+/playwright-report/
+/test-results/
+e2e/plugins/.artifacts/
+
+# Local plugin dev environment (kwok binaries, kubeconfig, cluster state)
+.devenv/
+
+# Sample plugin build/deps (own package.json under examples/)
+examples/sample-plugin/dist/
+examples/sample-plugin/node_modules/

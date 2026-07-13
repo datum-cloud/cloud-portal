@@ -1,0 +1,195 @@
+# Taskfile for the Portal Plugin System local dev environment.
+#
+# Two tiers (see devenv/README.md and docs/enhancements/portal-plugin-system.md):
+#   Tier 0 — direct override, no Kubernetes:  PORTAL_PLUGINS="sample=http://localhost:7777" bun run dev
+#   Tier 1 — local plugin registry (this Taskfile): kwok + PortalPlugin CRD + watch/status pipeline
+#
+# Quick start (Tier 1):
+#   task devenv:up        # kwok cluster + CRD, kubeconfig -> .devenv/kubeconfig
+#   task plugin:preview   # sample plugin (built, proxy-safe) on :7777  (separate terminal)
+#   task devenv:register  # apply the sample PortalPlugin
+#   task devenv:portal    # run the portal against the local registry (separate terminal)
+#
+# NB: the portal loads plugin assets through its same-origin proxy. Serve the
+# plugin with `plugin:preview` (built); the Vite dev server (`plugin:dev`) uses
+# host-absolute module URLs that don't survive the proxy — it's for the
+# standalone :7777 preview / component HMR only. See devenv/README.md.
+#
+# Requires: task, kubectl, and one of {curl+internet for kwok, docker, kind}.
+version: '3'
+
+vars:
+  DEVENV_DIR: '{{.ROOT_DIR}}/.devenv'
+  KUBECONFIG_PATH: '{{.ROOT_DIR}}/.devenv/kubeconfig'
+  CLUSTER_NAME: portal-dev
+  CRD_NAME: portalplugins.portal.miloapis.com
+  PLUGIN_DIR: '{{.ROOT_DIR}}/examples/sample-plugin'
+  PLUGIN_PORT: '7777'
+  PLUGIN_BACKEND_PORT: '7778'
+  # Tier 0 override that also declares the sample's backend proxy alias `api`,
+  # so /api/plugins/sample/proxy/api/* works without a cluster (portal-core #7).
+  # JSON entries compose with and win over PORTAL_PLUGINS on slug collision.
+  SAMPLE_PLUGINS_JSON: '[{"slug":"sample","assets":{"baseURL":"http://localhost:7777"},"proxy":[{"alias":"api","backend":{"url":"http://localhost:7778"},"authorization":"UserToken"}]}]'
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  # ---------------------------------------------------------------------------
+  # Tier 1: local plugin registry (kwok)
+  # ---------------------------------------------------------------------------
+  devenv:up:
+    desc: 'Stand up the local plugin registry (kwok cluster + PortalPlugin CRD). Idempotent.'
+    aliases: [portal:registry]
+    cmds:
+      - bash '{{.ROOT_DIR}}/devenv/scripts/ensure-kwok.sh'
+      - task: crds:apply
+      - task: _next-steps
+
+  devenv:down:
+    desc: 'Tear down the local plugin registry cluster and remove its kubeconfig.'
+    cmds:
+      - |
+        runtime="$(cat '{{.DEVENV_DIR}}/runtime' 2>/dev/null || echo unknown)"
+        echo "Tearing down cluster '{{.CLUSTER_NAME}}' (runtime: $runtime)"
+        case "$runtime" in
+          kwok-*)
+            KWOK_WORKDIR='{{.DEVENV_DIR}}/kwok' '{{.DEVENV_DIR}}/bin/kwokctl' delete cluster --name '{{.CLUSTER_NAME}}' || true ;;
+          kind)
+            kind delete cluster --name '{{.CLUSTER_NAME}}' || true ;;
+          *)
+            KWOK_WORKDIR='{{.DEVENV_DIR}}/kwok' '{{.DEVENV_DIR}}/bin/kwokctl' delete cluster --name '{{.CLUSTER_NAME}}' 2>/dev/null || true
+            kind delete cluster --name '{{.CLUSTER_NAME}}' 2>/dev/null || true ;;
+        esac
+      - rm -f '{{.DEVENV_DIR}}/kubeconfig' '{{.DEVENV_DIR}}/runtime'
+
+  crds:apply:
+    desc: 'Apply the PortalPlugin CRD to the local registry and wait for it to establish.'
+    cmds:
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' apply -f '{{.ROOT_DIR}}/devenv/crds/'
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' wait --for=condition=Established --timeout=60s crd/{{.CRD_NAME}}
+
+  devenv:register:
+    desc: 'Apply the sample PortalPlugin (slug "sample", assets http://localhost:7777) to the registry.'
+    cmds:
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' apply -f '{{.ROOT_DIR}}/devenv/manifests/sample-portalplugin.yaml'
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' get portalplugins
+
+  devenv:unregister:
+    desc: 'Delete the sample PortalPlugin from the registry (exercises the portal unload-on-delete path).'
+    cmds:
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' delete -f '{{.ROOT_DIR}}/devenv/manifests/sample-portalplugin.yaml' --ignore-not-found
+
+  devenv:status:
+    desc: 'Show the local registry: chosen runtime, cluster nodes, CRD, and registered plugins.'
+    cmds:
+      - 'echo "runtime: $(cat ''{{.DEVENV_DIR}}/runtime'' 2>/dev/null || echo none)"'
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' get crd {{.CRD_NAME}} 2>/dev/null || echo "CRD not applied"
+      - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' get portalplugins 2>/dev/null || echo "no portalplugins"
+
+  devenv:portal:
+    desc: 'Run the portal against the local registry (Tier 1). Serve the plugin with `plugin:preview`. Auth/orgs/projects stay remote.'
+    cmds:
+      - PLUGIN_REGISTRY_KUBECONFIG='{{.KUBECONFIG_PATH}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
+
+  devenv:portal:tier0:
+    desc: 'Run the portal in Tier 0 (direct override, no Kubernetes) — includes the backend proxy alias. Serve the plugin with `plugin:preview`.'
+    cmds:
+      # PORTAL_PLUGINS_JSON carries the `api` proxy alias so the Instances pages
+      # work in Tier 0 too; identical alias + behavior to the Tier 1 CR.
+      - PORTAL_PLUGINS_JSON='{{.SAMPLE_PLUGINS_JSON}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
+
+  # ---------------------------------------------------------------------------
+  # Sample plugin (own package.json under examples/sample-plugin)
+  # ---------------------------------------------------------------------------
+  plugin:install:
+    desc: 'Install the sample plugin dependencies (bun, own package.json).'
+    dir: '{{.PLUGIN_DIR}}'
+    cmds:
+      - bun install
+    status:
+      - test -d '{{.PLUGIN_DIR}}/node_modules'
+
+  plugin:dev:
+    desc: 'Run the sample plugin: Vite dev server (HMR) on :7777 + backend on :7778. Humans/standalone; see plugin:preview for proxy/CI.'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:install]
+    cmds:
+      - bun run dev
+
+  plugin:backend:
+    desc: 'Run just the sample plugin backend (in-memory instances API) on :7778.'
+    dir: '{{.PLUGIN_DIR}}'
+    cmds:
+      - bun run backend
+
+  plugin:preview:web:
+    desc: 'Serve ONLY the built plugin frontend on :7777 (no backend). Pair with `task plugin:backend` for independent control (e.g. e2e).'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:build]
+    cmds:
+      - bun run preview:web
+
+  plugin:build:
+    desc: 'Build the sample plugin frontend to a static dist/ (remote entry + manifest + chunks).'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:install]
+    cmds:
+      - bun run build
+
+  plugin:preview:
+    desc: 'Build then serve the STATIC plugin on :7777 + backend on :7778. Proxy-safe — use this for e2e/CI, not plugin:dev.'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:build]
+    cmds:
+      - bun run preview
+
+  # ---------------------------------------------------------------------------
+  # Platform control plane (documented option; NOT used by tests)
+  # ---------------------------------------------------------------------------
+  devenv:platform-kubeconfig:
+    desc: >-
+      Point the SAME portal registry knob at a REAL platform control plane
+      instead of kwok. Requires an active `datumctl` session and DATUM_ORG or
+      DATUM_PROJECT. Writes .devenv/platform-kubeconfig. Never run by tests.
+    cmds:
+      - |
+        set -e
+        if [ -n "${DATUM_ORG:-}" ]; then
+          scope="--organization ${DATUM_ORG}"
+        elif [ -n "${DATUM_PROJECT:-}" ]; then
+          scope="--project ${DATUM_PROJECT}"
+        else
+          echo "Set DATUM_ORG=<org-id> or DATUM_PROJECT=<project-id> first." >&2
+          echo "This configures kubectl/portal access to a real Datum control plane." >&2
+          exit 1
+        fi
+        datumctl auth update-kubeconfig $scope \
+          --kubeconfig '{{.DEVENV_DIR}}/platform-kubeconfig' \
+          --exec-interactive-mode Never
+        echo ""
+        echo "Wrote {{.DEVENV_DIR}}/platform-kubeconfig"
+        echo "Run the portal against it with:"
+        echo "  PLUGIN_REGISTRY_KUBECONFIG={{.DEVENV_DIR}}/platform-kubeconfig AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev"
+
+  # ---------------------------------------------------------------------------
+  # Internal helpers
+  # ---------------------------------------------------------------------------
+  _next-steps:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        echo ""
+        echo "Local plugin registry is up (runtime: $(cat '{{.DEVENV_DIR}}/runtime' 2>/dev/null || echo unknown))."
+        echo "  kubeconfig: {{.KUBECONFIG_PATH}}"
+        echo ""
+        echo "Next steps:"
+        echo "  task plugin:dev        # serve the sample plugin on :{{.PLUGIN_PORT}} (separate terminal)"
+        echo "  task devenv:register   # register the sample PortalPlugin"
+        echo "  task devenv:portal     # run the portal against the local registry (separate terminal)"
+        echo ""
+        echo "Inspect with:  kubectl --kubeconfig {{.KUBECONFIG_PATH}} get portalplugins"
