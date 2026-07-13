@@ -126,7 +126,7 @@ describe('StaticSource', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  test('seeds a JSON plugin with its declared proxy aliases', async () => {
+  test('seeds a JSON plugin with a custom manifestPath', async () => {
     const fetchImpl = mock(
       async () => new Response(JSON.stringify(VALID_MANIFEST), { status: 200 })
     );
@@ -135,14 +135,7 @@ describe('StaticSource', () => {
       rawJson: JSON.stringify([
         {
           slug: 'compute',
-          assets: { baseURL: 'http://localhost:7777' },
-          proxy: [
-            {
-              alias: 'metrics',
-              backend: { url: 'http://localhost:9091' },
-              authorization: 'UserToken',
-            },
-          ],
+          assets: { baseURL: 'http://localhost:7777', manifestPath: '/custom-manifest.json' },
         },
       ]),
       refreshIntervalMs: 0,
@@ -154,23 +147,19 @@ describe('StaticSource', () => {
     const plugin = registry.getPlugin('compute');
     expect(plugin).toBeDefined();
     expect(plugin?.devMode).toBe(true);
-    expect(plugin?.spec.proxy).toEqual([
-      { alias: 'metrics', backend: { url: 'http://localhost:9091' }, authorization: 'UserToken' },
-    ]);
+    expect(plugin?.spec.assets.manifestPath).toBe('/custom-manifest.json');
   });
 });
 
 describe('parsePortalPluginsJson', () => {
-  test('parses a spec-shaped entry with proxy aliases', () => {
+  test('parses a spec-shaped entry with visibility overrides', () => {
     const { specs, errors } = parsePortalPluginsJson(
       JSON.stringify([
         {
           slug: 'compute',
           displayName: 'Compute',
           assets: { baseURL: 'http://localhost:7777/' },
-          proxy: [
-            { alias: 'metrics', backend: { url: 'http://localhost:9091' }, authorization: 'None' },
-          ],
+          visibility: { entitlement: 'Required', featureFlag: 'compute-plugin' },
         },
       ])
     );
@@ -181,23 +170,8 @@ describe('parsePortalPluginsJson', () => {
     expect(specs[0].displayName).toBe('Compute');
     expect(specs[0].assets.baseURL).toBe('http://localhost:7777'); // trailing slash stripped
     expect(specs[0].assets.manifestPath).toBe('/plugin-manifest.json');
-    expect(specs[0].visibility.entitlement).toBe('None'); // dev default
-    expect(specs[0].proxy).toEqual([
-      { alias: 'metrics', backend: { url: 'http://localhost:9091' }, authorization: 'None' },
-    ]);
-  });
-
-  test('defaults proxy authorization to UserToken when omitted', () => {
-    const { specs } = parsePortalPluginsJson(
-      JSON.stringify([
-        {
-          slug: 'compute',
-          assets: { baseURL: 'http://localhost:7777' },
-          proxy: [{ alias: 'm', backend: { url: 'http://localhost:9091' } }],
-        },
-      ])
-    );
-    expect(specs[0].proxy[0].authorization).toBe('UserToken');
+    expect(specs[0].visibility.entitlement).toBe('Required');
+    expect(specs[0].visibility.featureFlag).toBe('compute-plugin');
   });
 
   test('returns empty for undefined/blank input', () => {
@@ -219,22 +193,11 @@ describe('parsePortalPluginsJson', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
-  test('rejects an invalid slug and a bad authorization value', () => {
+  test('rejects an invalid slug', () => {
     const badSlug = parsePortalPluginsJson(
       JSON.stringify([{ slug: 'Bad_Slug', assets: { baseURL: 'http://x:1' } }])
     );
     expect(badSlug.specs).toEqual([]);
-
-    const badAuth = parsePortalPluginsJson(
-      JSON.stringify([
-        {
-          slug: 'compute',
-          assets: { baseURL: 'http://x:1' },
-          proxy: [{ alias: 'm', backend: { url: 'http://x:2' }, authorization: 'Bogus' }],
-        },
-      ])
-    );
-    expect(badAuth.specs).toEqual([]);
   });
 
   test('skips a duplicate slug within the JSON array', () => {
@@ -258,15 +221,15 @@ describe('composeStaticSpecs (precedence)', () => {
         {
           slug: 'compute',
           assets: { baseURL: 'http://json:2' },
-          proxy: [{ alias: 'metrics', backend: { url: 'http://b:3' } }],
+          visibility: { entitlement: 'Required' },
         },
       ])
     );
 
     expect(specs).toHaveLength(1);
     expect(specs[0].assets.baseURL).toBe('http://json:2');
-    // The JSON entry's proxy alias survives (the simple entry had none).
-    expect(specs[0].proxy.map((p) => p.alias)).toEqual(['metrics']);
+    // The JSON entry's visibility override survives (the simple entry had none).
+    expect(specs[0].visibility.entitlement).toBe('Required');
   });
 
   test('composes non-overlapping simple and JSON entries', () => {

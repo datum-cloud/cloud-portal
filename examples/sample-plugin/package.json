@@ -1,14 +1,12 @@
 {
   "name": "@datum-cloud/sample-portal-plugin",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
-  "description": "Reference Portal Plugin: a Module Federation remote + tiny backend exercising every v1 extension point (nav, page, home card) plus proxied data (declared backend + Milo control plane).",
+  "description": "Reference Portal Plugin: a Module Federation remote exercising every v1 extension point (nav, page, home card), reading data exclusively through the portal's Milo control-plane proxy.",
   "scripts": {
-    "dev": "concurrently -k -n web,api -c cyan,magenta \"vite\" \"bun run backend/server.ts\"",
-    "preview": "concurrently -k -n web,api -c cyan,magenta \"vite preview\" \"bun run backend/server.ts\"",
-    "preview:web": "vite preview",
-    "backend": "bun run backend/server.ts",
+    "dev": "vite",
+    "preview": "vite preview",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test --config playwright.config.ts"
@@ -26,7 +24,6 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.2.0",
-    "concurrently": "^9.2.1",
     "typescript": "^6.0.3",
     "vite": "^7.3.5"
   }

@@ -1,6 +1,4 @@
 import SampleHomeCard from './cards/sample-home-card';
-import InstanceDetail from './pages/instance-detail';
-import InstancesList from './pages/instances-list';
 import PlatformData from './pages/platform-data';
 import { DetailView } from './pages/sample-detail';
 import SamplePage from './pages/sample-page';
@@ -12,9 +10,9 @@ import { Link, MemoryRouter, Route, Routes } from 'react-router';
 // Standalone preview only. Wraps the pages in a MemoryRouter so `useParams()`
 // resolves the same params the host mount would supply, and a QueryClientProvider
 // so the data hooks run — exactly what the host provides in production. Data
-// calls hit /api/plugins/... which 404s standalone (no portal proxy), so the
-// data pages show their error states; that's expected here. Run `bun run backend`
-// + the full portal to see live data.
+// calls hit /api/proxy/... which 404s standalone (no portal proxy), so the data
+// pages show their error states; that's expected here. Run the full portal to
+// see live data.
 const queryClient = new QueryClient();
 
 const base = '/project/:projectId/services/:serviceSlug';
@@ -32,14 +30,11 @@ createRoot(document.getElementById('root')!).render(
         <MemoryRouter initialEntries={['/project/demo-project/services/sample/home']}>
           <nav style={{ display: 'flex', gap: '1rem', margin: '0 0 1rem' }}>
             <Link to="/project/demo-project/services/sample/home">Home</Link>
-            <Link to="/project/demo-project/services/sample/instances">Instances</Link>
             <Link to="/project/demo-project/services/sample/platform">Platform data</Link>
           </nav>
           <Routes>
             <Route path={`${base}/home`} element={<SamplePage />} />
             <Route path={`${base}/items/:itemId`} element={<DetailView />} />
-            <Route path={`${base}/instances`} element={<InstancesList />} />
-            <Route path={`${base}/instances/:instanceId`} element={<InstanceDetail />} />
             <Route path={`${base}/platform`} element={<PlatformData />} />
           </Routes>
         </MemoryRouter>

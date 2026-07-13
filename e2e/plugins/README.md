@@ -120,9 +120,6 @@ Reports/artifacts (git-ignored): `playwright-report/`, `test-results/`, and
 | `E2E_DEVENV_UP_CMD` / `_DOWN_CMD` / `_REGISTER_CMD` | `task devenv:{up,down,register}` | Registry lifecycle |
 | `E2E_REUSE_PORTAL` | unset | Reuse a portal already on the target port |
 | `E2E_PORTAL_HEALTH_TIMEOUT` | `180000` | Max wait for a portal to compile + serve |
-| `E2E_SERVICE_CONSOLE` | auto-detect | Force the backend-proxy specs on (`1`) or off (`0`) |
-| `E2E_SAMPLE_BACKEND_PORT` / `_CMD` / `_READY_URL` | `7778` / `task plugin:backend` / `.../healthz` | Sample backend server |
-| `E2E_PROXY_ALIAS` | `api` | Declared proxy alias the plugin calls through |
 
 ## What each tier asserts
 
@@ -130,22 +127,11 @@ Reports/artifacts (git-ignored): `playwright-report/`, `test-results/`, and
 project sidebar → click navigates to `/project/<id>/services/sample/home` → remote
 heading renders → counter button increments (React singleton) → dev-plugin badge
 visible → bogus sub-path shows not-found → `/api/plugins` lists the plugin with
-`portal.nav/project` + `portal.page/project` extension counts.
-
-**Tier 0 service console** (`tier0-service-console.spec.ts`): runs only when the
-sample backend (:7778, devenv) and `PORTAL_PLUGINS_JSON` proxy support
-(portal-core) are available — otherwise every spec skips with a reason and the
-rest of Tier 0 still runs. When enabled, the Tier 0 portal launches with
-`PORTAL_PLUGINS_JSON` (plugin + `api` proxy alias → the backend, `UserToken`).
-Asserts: the Instances list renders rows fetched through
-`/api/plugins/sample/proxy/api/*` (the browser never hits :7778 directly) and the
-auth badge confirms the portal injected the session bearer (UserToken mediation)
-→ row click opens the detail via `:param` routing → Restart flips the instance
-status Running→Restarting→Running via the LOCAL backend (mutation + query
-invalidation) → the platform-data page renders the read-only DNS-zones list or its
-empty state (via `/api/proxy`) → the project-home card shows the live instance
-count → `/api/plugins` exposes `proxyAliases` → an undeclared proxy alias returns
-4xx.
+`portal.nav/project` + `portal.page/project` extension counts → the platform-data
+page renders the read-only DNS-zones list or its empty state, read via the
+portal's Milo control-plane proxy (`/api/proxy`) → the project-home card shows
+the live DNS zone count. There is no plugin-declared backend: every API call the
+plugin issues goes through Milo.
 
 **Tier 1** (`tier1-crd-registration.spec.ts`, serial): nav empty initially →
 `task devenv:register` applies the CR → nav item appears (watch-driven) and

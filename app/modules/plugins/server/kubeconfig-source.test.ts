@@ -53,13 +53,6 @@ function portalPluginResource(
       deprecated: false,
       suspend: false,
       assets: { baseURL: 'http://plugin.example.com' },
-      proxy: [
-        {
-          alias: 'metrics',
-          backend: { url: 'https://metrics.example.com' },
-          authorization: 'UserToken',
-        },
-      ],
       visibility: { entitlement: 'Required' },
       ...spec,
     },
@@ -101,13 +94,6 @@ describe('specFromResource', () => {
     expect(spec).not.toBeNull();
     expect(spec!.slug).toBe('compute');
     expect(spec!.assets.manifestPath).toBe('/plugin-manifest.json');
-    expect(spec!.proxy).toEqual([
-      {
-        alias: 'metrics',
-        backend: { url: 'https://metrics.example.com' },
-        authorization: 'UserToken',
-      },
-    ]);
     expect(spec!.visibility.entitlement).toBe('Required');
   });
 
@@ -148,33 +134,25 @@ describe('KubeconfigSource.applyWatchEvent', () => {
     ).toBe(true);
   });
 
-  test('spec-only MODIFIED hot-applies the new spec (proxy authorization flip)', async () => {
+  test('spec-only MODIFIED hot-applies the new spec (entitlement flip)', async () => {
     const { registry } = makeRegistry();
     const { client } = makeClient();
     const source = new KubeconfigSource(registry, client, { logger: silentLogger });
 
     await source.applyWatchEvent({ type: 'ADDED', object: portalPluginResource() });
-    expect(registry.getPlugin('compute')?.spec.proxy[0].authorization).toBe('UserToken');
+    expect(registry.getPlugin('compute')?.spec.visibility.entitlement).toBe('Required');
 
-    // Patch proxy authorization UserToken → None (a new generation).
+    // Patch entitlement Required → None (a new generation).
     await source.applyWatchEvent({
       type: 'MODIFIED',
       object: portalPluginResource(
-        {
-          proxy: [
-            {
-              alias: 'metrics',
-              backend: { url: 'https://metrics.example.com' },
-              authorization: 'None',
-            },
-          ],
-        },
+        { visibility: { entitlement: 'None' } },
         { generation: 2, resourceVersion: '200' }
       ),
     });
 
     // The served entry reflects the change immediately — no stale spec.
-    expect(registry.getPlugin('compute')?.spec.proxy[0].authorization).toBe('None');
+    expect(registry.getPlugin('compute')?.spec.visibility.entitlement).toBe('None');
   });
 
   test('suspend kill switch takes effect within one watch event, and un-suspend restores', async () => {

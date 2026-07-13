@@ -48,8 +48,6 @@ export default defineConfig({
         './SamplePage': './src/pages/sample-page.tsx',
         './SampleDetail': './src/pages/sample-detail.tsx',
         './SampleHomeCard': './src/cards/sample-home-card.tsx',
-        './InstancesList': './src/pages/instances-list.tsx',
-        './InstanceDetail': './src/pages/instance-detail.tsx',
         './PlatformData': './src/pages/platform-data.tsx',
       },
       // Host-pinned singletons. requiredVersion tracks the host's majors
@@ -70,7 +68,6 @@ export default defineConfig({
         '@datum-cloud/datum-ui/card': { singleton: true, requiredVersion: false },
         '@datum-cloud/datum-ui/separator': { singleton: true, requiredVersion: false },
         '@datum-cloud/datum-ui/skeleton': { singleton: true, requiredVersion: false },
-        '@datum-cloud/datum-ui/table': { singleton: true, requiredVersion: false },
       },
     }),
   ],

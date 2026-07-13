@@ -15,6 +15,10 @@
 # host-absolute module URLs that don't survive the proxy — it's for the
 # standalone :7777 preview / component HMR only. See devenv/README.md.
 #
+# Every API call a plugin issues goes through the portal's Milo control-plane
+# proxy (including calls to a service's own aggregated apiserver) — there is
+# no plugin-declared backend, so no separate backend process to run here.
+#
 # Requires: task, kubectl, and one of {curl+internet for kwok, docker, kind}.
 version: '3'
 
@@ -25,11 +29,6 @@ vars:
   CRD_NAME: portalplugins.portal.miloapis.com
   PLUGIN_DIR: '{{.ROOT_DIR}}/examples/sample-plugin'
   PLUGIN_PORT: '7777'
-  PLUGIN_BACKEND_PORT: '7778'
-  # Tier 0 override that also declares the sample's backend proxy alias `api`,
-  # so /api/plugins/sample/proxy/api/* works without a cluster (portal-core #7).
-  # JSON entries compose with and win over PORTAL_PLUGINS on slug collision.
-  SAMPLE_PLUGINS_JSON: '[{"slug":"sample","assets":{"baseURL":"http://localhost:7777"},"proxy":[{"alias":"api","backend":{"url":"http://localhost:7778"},"authorization":"UserToken"}]}]'
 
 tasks:
   default:
@@ -96,11 +95,9 @@ tasks:
       - PLUGIN_REGISTRY_KUBECONFIG='{{.KUBECONFIG_PATH}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
 
   devenv:portal:tier0:
-    desc: 'Run the portal in Tier 0 (direct override, no Kubernetes) — includes the backend proxy alias. Serve the plugin with `plugin:preview`.'
+    desc: 'Run the portal in Tier 0 (direct override, no Kubernetes). Serve the plugin with `plugin:preview`.'
     cmds:
-      # PORTAL_PLUGINS_JSON carries the `api` proxy alias so the Instances pages
-      # work in Tier 0 too; identical alias + behavior to the Tier 1 CR.
-      - PORTAL_PLUGINS_JSON='{{.SAMPLE_PLUGINS_JSON}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
+      - PORTAL_PLUGINS='sample=http://localhost:{{.PLUGIN_PORT}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
 
   # ---------------------------------------------------------------------------
   # Sample plugin (own package.json under examples/sample-plugin)
@@ -114,24 +111,11 @@ tasks:
       - test -d '{{.PLUGIN_DIR}}/node_modules'
 
   plugin:dev:
-    desc: 'Run the sample plugin: Vite dev server (HMR) on :7777 + backend on :7778. Humans/standalone; see plugin:preview for proxy/CI.'
+    desc: 'Run the sample plugin: Vite dev server (HMR) on :7777. Humans/standalone; see plugin:preview for proxy/CI.'
     dir: '{{.PLUGIN_DIR}}'
     deps: [plugin:install]
     cmds:
       - bun run dev
-
-  plugin:backend:
-    desc: 'Run just the sample plugin backend (in-memory instances API) on :7778.'
-    dir: '{{.PLUGIN_DIR}}'
-    cmds:
-      - bun run backend
-
-  plugin:preview:web:
-    desc: 'Serve ONLY the built plugin frontend on :7777 (no backend). Pair with `task plugin:backend` for independent control (e.g. e2e).'
-    dir: '{{.PLUGIN_DIR}}'
-    deps: [plugin:build]
-    cmds:
-      - bun run preview:web
 
   plugin:build:
     desc: 'Build the sample plugin frontend to a static dist/ (remote entry + manifest + chunks).'
@@ -141,7 +125,7 @@ tasks:
       - bun run build
 
   plugin:preview:
-    desc: 'Build then serve the STATIC plugin on :7777 + backend on :7778. Proxy-safe — use this for e2e/CI, not plugin:dev.'
+    desc: 'Build then serve the STATIC plugin on :7777. Proxy-safe — use this for e2e/CI, not plugin:dev.'
     dir: '{{.PLUGIN_DIR}}'
     deps: [plugin:build]
     cmds:

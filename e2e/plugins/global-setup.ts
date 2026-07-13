@@ -23,11 +23,8 @@ import {
   DEVENV_KUBECONFIG,
   HEALTHZ_PATH,
   PORTAL_PLUGINS_VALUE,
-  PROXY_ALIAS,
   REPO_ROOT,
-  SAMPLE_BACKEND_READY_URL,
   SAMPLE_HOME_PATH,
-  SAMPLE_INSTANCES_PATH,
   SAMPLE_MANIFEST_URL,
   SAMPLE_PLATFORM_DATA_PATH,
   SAMPLE_SLUG,
@@ -37,7 +34,6 @@ import {
   TIER1_PORTAL_PORT,
   TIER1_PORTAL_URL,
   TIER1_SLUG,
-  portalPluginsJson,
 } from './lib/config';
 import { getPlatformToken, tryWhoami, discoverProject } from './lib/datumctl';
 import { exchangeTokenForStorageState } from './lib/dev-session';
@@ -83,44 +79,6 @@ function detectTier1(): { enabled: boolean; reason?: string } {
   if (!has('task') || !taskfile)
     return { enabled: false, reason: 'devenv Taskfile / `task` binary not available' };
   if (!has('kubectl')) return { enabled: false, reason: 'kubectl not installed' };
-  return { enabled: true };
-}
-
-function fileContains(file: string, needle: string): boolean {
-  try {
-    return fs.readFileSync(file, 'utf8').includes(needle);
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Decide whether the Tier 0 service-console specs (backend proxy) can run.
- * Requires portal-core's PORTAL_PLUGINS_JSON/proxy support (#7) AND devenv's
- * sample backend (#6). Until both land, the console specs skip and the original
- * Tier 0 specs run with the simple PORTAL_PLUGINS form (kept green).
- */
-function detectServiceConsole(): { enabled: boolean; reason?: string } {
-  if (process.env.E2E_SERVICE_CONSOLE === '0')
-    return { enabled: false, reason: 'disabled via E2E_SERVICE_CONSOLE=0' };
-  if (process.env.E2E_SERVICE_CONSOLE === '1') return { enabled: true };
-
-  const jsonSupported = fileContains(
-    `${REPO_ROOT}/app/utils/env/env.server.ts`,
-    'PORTAL_PLUGINS_JSON'
-  );
-  if (!jsonSupported)
-    return {
-      enabled: false,
-      reason: 'portal has no PORTAL_PLUGINS_JSON support yet (portal-core #7)',
-    };
-
-  // The backend is bundled into `task plugin:preview` (started via concurrently
-  // alongside the web server); detect it by its source file.
-  const backendAvailable = fs.existsSync(`${REPO_ROOT}/examples/sample-plugin/backend/server.ts`);
-  if (!backendAvailable)
-    return { enabled: false, reason: 'sample backend not present yet (devenv #6)' };
-
   return { enabled: true };
 }
 
@@ -225,40 +183,9 @@ export default async function globalSetup(_config: FullConfig) {
   });
   log('Sample plugin manifest is serving.');
 
-  // 4a-bis. Service console (task #8): the sample backend is started alongside
-  // the web server by `task plugin:preview` (concurrently). Gate on its
-  // availability + readiness; it is reached only via the portal's proxy.
-  const sc = detectServiceConsole();
-  let serviceConsoleEnabled = sc.enabled;
-  let serviceConsoleSkipReason = sc.reason;
-  if (serviceConsoleEnabled) {
-    try {
-      await waitForHttp(SAMPLE_BACKEND_READY_URL, {
-        timeoutMs: 60_000,
-        label: 'sample backend (:7778)',
-        logFile: sample.logFile,
-      });
-      log('Sample backend is serving.');
-    } catch (e) {
-      serviceConsoleEnabled = false;
-      serviceConsoleSkipReason = `sample backend not ready: ${(e as Error).message.slice(0, 160)}`;
-      log(`Service console disabled: ${serviceConsoleSkipReason}`);
-    }
-  } else {
-    log(`Service console skipped: ${serviceConsoleSkipReason}`);
-  }
-
-  // 4b. Tier 0 portal. When the service console is enabled, launch with
-  // PORTAL_PLUGINS_JSON (plugin + declared proxy alias); otherwise the simple
-  // PORTAL_PLUGINS form so the original Tier 0 specs stay green.
-  const tier0PluginEnv: Record<string, string> = serviceConsoleEnabled
-    ? { PORTAL_PLUGINS_JSON: portalPluginsJson() }
-    : { PORTAL_PLUGINS: PORTAL_PLUGINS_VALUE };
+  // 4b. Tier 0 portal, statically overridden onto the sample plugin.
   await assertPortFree(TIER0_PORTAL_PORT, TIER0_PORTAL_URL);
-  log(
-    `Starting Tier 0 portal on :${TIER0_PORTAL_PORT} ` +
-      `(${serviceConsoleEnabled ? 'PORTAL_PLUGINS_JSON + backend proxy' : `PORTAL_PLUGINS=${PORTAL_PLUGINS_VALUE}`})`
-  );
+  log(`Starting Tier 0 portal on :${TIER0_PORTAL_PORT} (PORTAL_PLUGINS=${PORTAL_PLUGINS_VALUE})`);
   const tier0 = startServer({
     name: 'portal-tier0',
     command: 'bun run dev',
@@ -266,7 +193,7 @@ export default async function globalSetup(_config: FullConfig) {
     env: {
       ...overrideEnv,
       PORT: String(TIER0_PORTAL_PORT),
-      ...tier0PluginEnv,
+      PORTAL_PLUGINS: PORTAL_PLUGINS_VALUE,
       AUTH_DEV_TOKEN_EXCHANGE: '1',
     },
   });
@@ -335,11 +262,7 @@ export default async function globalSetup(_config: FullConfig) {
     alignmentNotes: alignment.notes,
     datumctlEndpoint: ctx.endpoint,
     tokenIssuer,
-    serviceConsoleEnabled,
-    serviceConsoleSkipReason,
-    proxyAlias: PROXY_ALIAS,
-    instancesPath: SAMPLE_INSTANCES_PATH,
     platformDataPath: SAMPLE_PLATFORM_DATA_PATH,
   });
-  log(`Global setup complete. Service console: ${serviceConsoleEnabled ? 'enabled' : 'skipped'}.`);
+  log('Global setup complete.');
 }

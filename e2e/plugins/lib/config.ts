@@ -68,59 +68,11 @@ export const SAMPLE_MANIFEST_URL = `${SAMPLE_PLUGIN_URL}/plugin-manifest.json`;
 export const SAMPLE_SLUG = process.env.E2E_SAMPLE_SLUG ?? 'sample';
 /** First page path the sample plugin exposes under its mount. */
 export const SAMPLE_HOME_PATH = process.env.E2E_SAMPLE_HOME_PATH ?? 'home';
-/** Static-override wiring for the Tier 0 portal (simple form, no proxy). */
+/** Static-override wiring for the Tier 0 portal. */
 export const PORTAL_PLUGINS_VALUE = `${SAMPLE_SLUG}=${SAMPLE_PLUGIN_URL}`;
 
-// ───────────────────────────────────────────────────────────────────────────
-// Service console (task #8): sample plugin backend + proxy alias
-// Contracts owned by devenv (#6, elaborated plugin + backend) and portal-core
-// (#7, PORTAL_PLUGINS_JSON + dev proxy aliases). Confirm exact values with them.
-// ───────────────────────────────────────────────────────────────────────────
-
-/**
- * The sample plugin's own backend (non-Milo), reached only via the portal
- * proxy. `task plugin:preview` starts it alongside the web server (concurrently),
- * so there is no separate backend command; we just wait on its readiness URL.
- */
-export const SAMPLE_BACKEND_PORT = num(process.env.E2E_SAMPLE_BACKEND_PORT, 7778);
-export const SAMPLE_BACKEND_URL = `http://localhost:${SAMPLE_BACKEND_PORT}`;
-/** Backend readiness URL — GET /instances returns 200 (there is no /healthz). */
-export const SAMPLE_BACKEND_READY_URL =
-  process.env.E2E_SAMPLE_BACKEND_READY_URL ?? `${SAMPLE_BACKEND_URL}/instances`;
-
-/** Declared proxy alias the plugin calls through: /api/plugins/<slug>/proxy/<alias>/*. */
-export const PROXY_ALIAS = process.env.E2E_PROXY_ALIAS ?? 'api';
-/** Same-origin proxy path prefix (through the portal, never the backend directly). */
-export const proxyPathPrefix = (slug: string, alias: string) =>
-  `/api/plugins/${slug}/proxy/${alias}`;
-
-/** Mount-relative paths the elaborated plugin exposes (from its manifest). */
-export const SAMPLE_INSTANCES_PATH = process.env.E2E_SAMPLE_INSTANCES_PATH ?? 'instances';
+/** Mount-relative path the sample plugin's Milo-backed page exposes. */
 export const SAMPLE_PLATFORM_DATA_PATH = process.env.E2E_SAMPLE_PLATFORM_DATA_PATH ?? 'platform';
-
-/**
- * PORTAL_PLUGINS_JSON value for the Tier 0 portal: the sample plugin plus its
- * declared proxy alias. Shape matches portal-core's zod schema (#7,
- * static-source.ts `portalPluginJsonEntrySchema`): the plugin URL lives under
- * `assets.baseURL`, and each proxy entry's `backend` is `{ url }`. `None`
- * forwards anonymously to the local dev backend (no session bearer needed).
- */
-export function portalPluginsJson(): string {
-  return (
-    process.env.E2E_PORTAL_PLUGINS_JSON ??
-    JSON.stringify([
-      {
-        slug: SAMPLE_SLUG,
-        assets: { baseURL: SAMPLE_PLUGIN_URL },
-        // UserToken: the portal injects the session bearer to the backend (the
-        // backend surfaces whether it saw it via `sample-instances-auth-badge`).
-        proxy: [
-          { alias: PROXY_ALIAS, backend: { url: SAMPLE_BACKEND_URL }, authorization: 'UserToken' },
-        ],
-      },
-    ])
-  );
-}
 
 /**
  * PortalPlugin resource name applied/deleted in Tier 1. Deterministic per the

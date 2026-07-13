@@ -5,9 +5,13 @@
  * the asset proxy can serve plugin bundles without a session (the browser only
  * ever talks to the portal origin). Trust-sensitive routes gate themselves.
  *
- * - `GET /api/plugins`                     → sanitized plugin list
- * - `ALL /api/plugins/:slug/proxy/:alias/*`→ declared-backend proxy
- * - `ALL /api/plugins/:slug/*`             → asset proxy
+ * - `GET /api/plugins`         → sanitized plugin list
+ * - `ALL /api/plugins/:slug/*` → asset proxy
+ *
+ * Plugin API calls are NOT mediated here — every call a plugin issues goes
+ * through the portal's existing Milo control-plane proxy (`/api/proxy/…`,
+ * unchanged by this module), including calls to a service's own aggregated
+ * apiserver. There is no declared-backend proxy for non-Milo services.
  */
 import { toPublicPlugin } from '../sanitize';
 import type { PublicPlugin } from '../types';
@@ -53,59 +57,6 @@ export function createPluginRoutes() {
       .map(toPublicPlugin)
       .filter((p): p is PublicPlugin => p !== null);
     return c.json(plugins);
-  });
-
-  // ── Declared-backend proxy (registered before the asset catch-all) ─────────
-  routes.all('/:slug/proxy/:alias/*', async (c) => {
-    const slug = c.req.param('slug');
-    const alias = c.req.param('alias');
-    const plugin = getPlugin(slug);
-    if (!plugin) return c.json({ error: 'Unknown plugin' }, 404);
-
-    const declared = plugin.spec.proxy.find((p) => p.alias === alias);
-    if (!declared) return c.json({ error: 'Unknown proxy alias' }, 404);
-
-    const session = c.get('session');
-    if (declared.authorization === 'UserToken' && !session) {
-      return c.json({ error: 'Unauthorized' }, 401);
-    }
-
-    const url = new URL(c.req.url);
-    const rest = subPathAfter(url.pathname, `/api/plugins/${slug}/proxy/${alias}/`);
-    const targetBase = declared.backend.url.replace(/\/+$/, '');
-    const target = `${targetBase}/${rest}${url.search}`;
-
-    const controller = new AbortController();
-    c.req.raw.signal?.addEventListener('abort', () => controller.abort());
-
-    const headers: Record<string, string> = {
-      'Content-Type': c.req.header('Content-Type') ?? 'application/json',
-      'X-Request-ID': c.get('requestId'),
-    };
-    if (declared.authorization === 'UserToken' && session) {
-      headers.Authorization = `Bearer ${session.accessToken}`;
-    }
-
-    try {
-      const upstream = await fetch(target, {
-        method: c.req.method,
-        headers,
-        body: c.req.method !== 'GET' && c.req.method !== 'HEAD' ? await c.req.text() : undefined,
-        signal: controller.signal,
-      });
-
-      const responseHeaders = new Headers(upstream.headers);
-      responseHeaders.delete('content-encoding');
-      responseHeaders.delete('transfer-encoding');
-      responseHeaders.delete('set-cookie');
-
-      return new Response(upstream.body, { status: upstream.status, headers: responseHeaders });
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return new Response(null, { status: 499 });
-      }
-      return c.json({ error: error instanceof Error ? error.message : 'Proxy error' }, 502);
-    }
   });
 
   // ── Asset proxy (no auth; only known slugs) ────────────────────────────────

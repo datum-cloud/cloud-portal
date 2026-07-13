@@ -46,9 +46,6 @@ export type PluginRegistrySource = 'static' | 'kubeconfig' | 'platform';
 // PortalPlugin spec (mirrors the CRD)
 // ═══════════════════════════════════════════════════════════
 
-/** Whether a proxied backend call carries the user's session bearer token. */
-export type PluginProxyAuthorization = 'UserToken' | 'None';
-
 /** Whether the plugin requires an Active ServiceEntitlement to be visible. */
 export type PluginEntitlementRequirement = 'Required' | 'None';
 
@@ -61,23 +58,10 @@ export interface PluginAssets {
   caBundle?: string;
 }
 
-export interface PluginProxyBackend {
-  url: string;
-}
-
-/** A named non-Milo backend the plugin may call through the portal. */
-export interface PluginProxyEntry {
-  alias: string;
-  backend: PluginProxyBackend;
-  authorization: PluginProxyAuthorization;
-}
-
 export interface PluginVisibility {
   entitlement: PluginEntitlementRequirement;
   /** Optional OpenFeature flag key gating visibility. */
   featureFlag?: string;
-  /** Optional early-access org allowlist; empty/absent = all orgs. */
-  organizations?: string[];
 }
 
 /**
@@ -97,7 +81,6 @@ export interface PortalPluginSpec {
   /** Platform-operator kill switch; suspended plugins are never served. */
   suspend: boolean;
   assets: PluginAssets;
-  proxy: PluginProxyEntry[];
   visibility: PluginVisibility;
   /** Rarely needed; assets are same-origin proxied. */
   contentSecurityPolicy?: string[];
@@ -268,9 +251,11 @@ export interface PluginRegistryEntry {
 
 /**
  * The browser-safe projection of a registry entry served by `GET /api/plugins`.
- * Deliberately omits `caBundle`, `assets.baseURL`, and proxy backend URLs —
- * plugin origins are never exposed to the browser. The client loads assets and
- * proxies calls exclusively through `/api/plugins/<slug>/…`.
+ * Deliberately omits `caBundle` and `assets.baseURL` — plugin origins are never
+ * exposed to the browser. The client loads assets through
+ * `/api/plugins/<slug>/…`; all plugin API calls go through the portal's
+ * existing Milo control-plane proxy (`/api/proxy/…`), never a plugin-declared
+ * backend.
  */
 export interface PublicPlugin {
   slug: string;
@@ -278,8 +263,6 @@ export interface PublicPlugin {
   devMode: boolean;
   deprecated: boolean;
   source: PluginRegistrySource;
-  /** Declared proxy aliases (names only; backend URLs stay server-side). */
-  proxyAliases: string[];
   manifest: {
     name: string;
     version: string;

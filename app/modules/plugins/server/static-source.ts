@@ -3,10 +3,11 @@
  *
  * Two composable env inputs, both hard-disabled outside development:
  * - `PORTAL_PLUGINS="<slug>=<url>,…"` — the simple syntax, for pure UI
- *   iteration. Synthesizes entries with no declared proxy backends.
+ *   iteration.
  * - `PORTAL_PLUGINS_JSON=[…]` — a spec-shaped array, for when a Tier 0 plugin
- *   needs to exercise the `/api/plugins/:slug/proxy/:alias/*` backend proxy.
- *   JSON entries take precedence over the simple syntax on slug collision.
+ *   needs richer options the simple syntax doesn't expose (a custom
+ *   `manifestPath`, `caBundle`, or `visibility` overrides). JSON entries take
+ *   precedence over the simple syntax on slug collision.
  *
  * Synthesized entries run the identical manifest pipeline as production; only
  * discovery is short-circuited. They are `devMode` (relaxed gating + "dev
@@ -93,12 +94,11 @@ export function staticPluginSpec(parsed: ParsedStaticPlugin): PortalPluginSpec {
       baseURL: parsed.baseURL,
       manifestPath: DEFAULT_MANIFEST_PATH,
     },
-    proxy: [],
     visibility: { entitlement: 'None' },
   };
 }
 
-// ── PORTAL_PLUGINS_JSON: spec-shaped entries with declared proxy backends ────
+// ── PORTAL_PLUGINS_JSON: spec-shaped entries with richer options ────────────
 
 const portalPluginJsonEntrySchema = z.object({
   slug: z.string().regex(DNS_LABEL, 'must be a DNS label'),
@@ -108,21 +108,10 @@ const portalPluginJsonEntrySchema = z.object({
     manifestPath: z.string().optional(),
     caBundle: z.string().optional(),
   }),
-  proxy: z
-    .array(
-      z.object({
-        alias: z.string().min(1),
-        backend: z.object({ url: z.url() }),
-        // Defaults to UserToken (session bearer injected, like the K8s proxy).
-        authorization: z.enum(['UserToken', 'None']).default('UserToken'),
-      })
-    )
-    .optional(),
   visibility: z
     .object({
       entitlement: z.enum(['Required', 'None']).optional(),
       featureFlag: z.string().optional(),
-      organizations: z.array(z.string()).optional(),
     })
     .optional(),
 });
@@ -147,15 +136,9 @@ function jsonEntryToSpec(entry: PortalPluginJsonEntry): PortalPluginSpec {
       manifestPath: entry.assets.manifestPath?.trim() || DEFAULT_MANIFEST_PATH,
       caBundle: entry.assets.caBundle || undefined,
     },
-    proxy: (entry.proxy ?? []).map((p) => ({
-      alias: p.alias,
-      backend: { url: p.backend.url },
-      authorization: p.authorization,
-    })),
     visibility: {
       entitlement: entry.visibility?.entitlement ?? 'None',
       featureFlag: entry.visibility?.featureFlag,
-      organizations: entry.visibility?.organizations,
     },
   };
 }

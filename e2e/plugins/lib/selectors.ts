@@ -16,7 +16,7 @@ export const sel = {
    * can also link to the mount.
    */
   navItem: (slug: string) => `a[href*="/services/${slug}/"]`,
-  /** A specific plugin nav item by its mount sub-path (e.g. instances). */
+  /** A specific plugin nav item by its mount sub-path (e.g. platform). */
   navItemPath: (slug: string, path: string) => `a[href*="/services/${slug}/${path}"]`,
 
   /** Host wrapper around the rendered remote page (present during skeleton too). */
@@ -44,27 +44,7 @@ export const sel = {
   /** Detail page param readout ("itemId: 42"). */
   sampleDetailParam: '[data-testid="sample-plugin-detail-param"]',
 
-  // ── Service console (task #8) — elaborated plugin + backend (devenv #6) ────
-  /** Instances list page container. */
-  instancesPage: '[data-testid="sample-instances-page"]',
-  /** The instances table. */
-  instancesTable: '[data-testid="sample-instances-table"]',
-  /** A single instance row in the list. */
-  instanceRow: '[data-testid="sample-instances-row"]',
-  /** Empty state for the instances list. */
-  instancesEmpty: '[data-testid="sample-instances-empty"]',
-  /** Badge showing whether the backend saw the injected bearer (UserToken). */
-  instancesAuthBadge: '[data-testid="sample-instances-auth-badge"]',
-  /** Status pill (in list rows and on the detail page); carries data-status. */
-  instanceStatus: '[data-testid="sample-status-badge"]',
-  /** The Restart button on the instance detail page. */
-  instanceRestart: '[data-testid="sample-instance-restart"]',
-  /** Instance detail page container. */
-  instanceDetail: '[data-testid="sample-instance-detail"]',
-  /** Instance detail name heading. */
-  instanceDetailName: '[data-testid="sample-instance-detail-name"]',
-  /** Instance detail status wrapper. */
-  instanceDetailStatus: '[data-testid="sample-instance-detail-status"]',
+  // ── Milo control-plane data (DNS zones, via the portal's authenticated proxy) ─
   /** Platform-data (read-only control-plane / DNS zones) page container. */
   platformDataPage: '[data-testid="sample-platform-page"]',
   /** The DNS zones list. */
@@ -73,7 +53,7 @@ export const sel = {
   platformDataRow: '[data-testid="sample-platform-zone"]',
   /** Empty-state shown when the project has no DNS zones. */
   platformDataEmpty: '[data-testid="sample-platform-empty"]',
-  /** Home card showing the live instance count. */
+  /** Home card showing the live DNS zone count. */
   homeCardCount: '[data-testid="sample-plugin-home-card-count"]',
 
   // Text fallbacks (used only if a host testid is ever absent).

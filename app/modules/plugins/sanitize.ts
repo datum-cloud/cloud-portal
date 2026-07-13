@@ -6,9 +6,10 @@
  * server loader that resolves a single plugin via `getPlugin(slug)` can produce
  * the identical sanitized shape from one definition — no drift.
  *
- * Deliberately omits `assets.caBundle`, `assets.baseURL`, and proxy backend
- * URLs: plugin origins are never exposed to the browser. The client loads
- * assets and proxies calls exclusively through `/api/plugins/<slug>/…`.
+ * Deliberately omits `assets.caBundle` and `assets.baseURL`: plugin origins
+ * are never exposed to the browser. The client loads assets through
+ * `/api/plugins/<slug>/…`; all plugin API calls go through the portal's
+ * existing Milo control-plane proxy.
  */
 import type { PluginRegistryEntry, PublicPlugin } from './types';
 
@@ -24,7 +25,6 @@ export function toPublicPlugin(entry: PluginRegistryEntry): PublicPlugin | null 
     devMode: entry.devMode,
     deprecated: entry.spec.deprecated,
     source: entry.source,
-    proxyAliases: entry.spec.proxy.map((p) => p.alias),
     manifest: {
       name: entry.manifest.name,
       version: entry.manifest.version,

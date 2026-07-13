@@ -24,19 +24,9 @@ spec:
     baseURL: http://localhost:7777
     manifestPath: /plugin-manifest.json
     caBundle: ""
-  proxy:
-    # Declared non-Milo backend for the sample plugin's own API. The plugin calls
-    # /api/plugins/sample/proxy/api/… and the portal forwards to this URL,
-    # injecting the user's bearer token (authorization: UserToken). Started by
-    # `task plugin:backend` (also run by plugin:dev / plugin:preview).
-    - alias: api
-      backend:
-        url: http://localhost:7778
-      authorization: UserToken
   visibility:
     # None: no ServiceEntitlement exists for a service that isn't in the remote
     # catalog, so the local sample must not be entitlement-gated.
     entitlement: None
     featureFlag: ""
-    organizations: []
   contentSecurityPolicy: []

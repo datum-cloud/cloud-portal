@@ -25,15 +25,6 @@ export interface RuntimeState {
   datumctlEndpoint?: string;
   tokenIssuer?: string;
 
-  // Service console (task #8) — the elaborated plugin + backend proxy.
-  /** True only when the backend (:7778) is up AND the portal supports proxy aliases. */
-  serviceConsoleEnabled: boolean;
-  /** Why the service-console specs are skipped. */
-  serviceConsoleSkipReason?: string;
-  /** Declared proxy alias the plugin calls through the portal. */
-  proxyAlias: string;
-  /** Mount-relative path of the Instances list page. */
-  instancesPath: string;
   /** Mount-relative path of the platform-data (read-only control-plane) page. */
   platformDataPath: string;
 }

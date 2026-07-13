@@ -69,14 +69,13 @@ task devenv:portal        # PLUGIN_REGISTRY_KUBECONFIG=.devenv/kubeconfig AUTH_D
 ```
 
 Then log in with your real remote account, open a real project, and the sample
-plugin's nav items (Instances, Platform data, Sample Plugin) appear in the
-project sidebar.
+plugin's nav items (Platform data, Sample Plugin) appear in the project
+sidebar.
 
-`task plugin:preview` runs both the plugin frontend (:7777) **and** its backend
-(:7778). The registered CR declares a `proxy` alias `api` → `http://localhost:7778`
-(`authorization: UserToken`), so the Instances pages fetch the plugin's own API
-through the portal proxy, and the Platform data page reads project DNS zones
-through the portal's `/api/proxy`. See
+Every API call the plugin issues goes through the portal's existing Milo
+control-plane proxy (`/api/proxy`) — the Platform data page reads project DNS
+zones this way. There is no plugin-declared backend; a plugin's data must live
+behind a Milo (or Milo-aggregated) control plane. See
 [`examples/sample-plugin/README.md`](../examples/sample-plugin/README.md).
 
 Inspect the registry the same way production is inspected:
@@ -84,7 +83,7 @@ Inspect the registry the same way production is inspected:
 ```bash
 kubectl --kubeconfig .devenv/kubeconfig get portalplugins
 # NAME                  SLUG     READY   VERSION   AGE
-# sample.miloapis.com   sample   True    0.2.0     30s
+# sample.miloapis.com   sample   True    0.3.0     30s
 ```
 
 `READY` / `VERSION` are written by the **portal** (`task devenv:portal`) once it
@@ -101,11 +100,9 @@ against the registry at least once.
 | `task devenv:unregister` | Delete the sample PortalPlugin (exercises the portal's unload-on-delete path). |
 | `task devenv:status` | Show chosen runtime, CRD, and registered plugins. |
 | `task devenv:portal` | Run the portal against the local registry (Tier 1). |
-| `task devenv:portal:tier0` | Run the portal in Tier 0 (no Kubernetes) via `PORTAL_PLUGINS_JSON`, which also declares the backend proxy alias `api` so the Instances pages work — identical alias to the Tier 1 CR. |
-| `task plugin:dev` | Run the sample plugin: Vite dev server (:7777) + backend (:7778). Human/standalone loop — see the dev-vs-preview note below. |
-| `task plugin:preview` | Build then serve the STATIC plugin (:7777) + backend (:7778). **Proxy-safe** — use this for e2e/CI. |
-| `task plugin:preview:web` | Serve ONLY the built frontend (:7777), no backend. Pair with `task plugin:backend` when you want to control the two independently. |
-| `task plugin:backend` | Run just the sample plugin backend (in-memory instances API) on :7778. |
+| `task devenv:portal:tier0` | Run the portal in Tier 0 (no Kubernetes) via `PORTAL_PLUGINS`. |
+| `task plugin:dev` | Run the sample plugin: Vite dev server (:7777). Human/standalone loop — see the dev-vs-preview note below. |
+| `task plugin:preview` | Build then serve the STATIC plugin (:7777). **Proxy-safe** — use this for e2e/CI. |
 | `task plugin:build` | Build the sample plugin to a static `dist/`. |
 | `task crds:apply` | (Re)apply the CRD and wait for it to establish. |
 | `task devenv:platform-kubeconfig` | Point the SAME portal knob at a real platform control plane (see below). |

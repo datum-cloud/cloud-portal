@@ -119,41 +119,6 @@ spec:
                     caBundle:
                       type: string
                       description: Optional PEM bundle for internal CAs terminating the assets origin.
-                proxy:
-                  type: array
-                  description: |-
-                    Named non-Milo backends the plugin may call through the portal.
-                    Milo control-plane data needs no entry — the portal's existing
-                    authenticated proxy to scoped control planes covers it.
-                  items:
-                    type: object
-                    required:
-                      - alias
-                      - backend
-                    properties:
-                      alias:
-                        type: string
-                        description: Stable name referenced by usePluginProxyFetch(alias).
-                        pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
-                        maxLength: 63
-                      backend:
-                        type: object
-                        required:
-                          - url
-                        properties:
-                          url:
-                            type: string
-                            description: Absolute URL of the backend the portal proxies to.
-                            minLength: 1
-                      authorization:
-                        type: string
-                        default: UserToken
-                        enum:
-                          - UserToken
-                          - None
-                        description: |-
-                          UserToken injects the user's session bearer token; None
-                          forwards anonymously.
                 visibility:
                   type: object
                   description: Fail-closed gates controlling where the plugin appears.
@@ -170,11 +135,6 @@ spec:
                     featureFlag:
                       type: string
                       description: Optional OpenFeature flag key gating visibility.
-                    organizations:
-                      type: array
-                      description: Optional early-access org allowlist; empty means all.
-                      items:
-                        type: string
                 contentSecurityPolicy:
                   type: array
                   description: |-

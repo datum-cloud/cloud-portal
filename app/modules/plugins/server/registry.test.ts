@@ -27,7 +27,6 @@ function spec(overrides: Partial<PortalPluginSpec> = {}): PortalPluginSpec {
     deprecated: false,
     suspend: false,
     assets: { baseURL: 'http://plugin.example.com', manifestPath: '/plugin-manifest.json' },
-    proxy: [],
     visibility: { entitlement: 'None' },
     ...overrides,
   };

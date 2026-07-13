@@ -1,6 +1,6 @@
 {
   "name": "sample.miloapis.com",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "sdk": {
     "name": "@datum-cloud/portal-plugin-sdk",
     "range": "^1.0.0"
@@ -10,21 +10,9 @@
     "SamplePage": "./src/pages/sample-page.tsx",
     "SampleDetail": "./src/pages/sample-detail.tsx",
     "SampleHomeCard": "./src/cards/sample-home-card.tsx",
-    "InstancesList": "./src/pages/instances-list.tsx",
-    "InstanceDetail": "./src/pages/instance-detail.tsx",
     "PlatformData": "./src/pages/platform-data.tsx"
   },
   "extensions": [
-    {
-      "type": "portal.nav/project",
-      "properties": {
-        "id": "sample-instances",
-        "title": "Instances",
-        "icon": "server",
-        "path": "instances",
-        "order": 20
-      }
-    },
     {
       "type": "portal.nav/project",
       "properties": {
@@ -48,20 +36,6 @@
         "icon": "puzzle",
         "path": "home",
         "order": 50
-      }
-    },
-    {
-      "type": "portal.page/project",
-      "properties": {
-        "path": "instances",
-        "component": { "$codeRef": "InstancesList" }
-      }
-    },
-    {
-      "type": "portal.page/project",
-      "properties": {
-        "path": "instances/:instanceId",
-        "component": { "$codeRef": "InstanceDetail" }
       }
     },
     {

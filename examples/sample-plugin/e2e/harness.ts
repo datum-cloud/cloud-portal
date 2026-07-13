@@ -10,7 +10,7 @@
  * What it does, driven entirely by `plugin-e2e.config.ts`:
  *   1. Get a platform token from datumctl and align the portal's API_URL to it.
  *   2. Bring up the portal's local kwok registry (`task devenv:up`).
- *   3. Start your plugin (its `preview` script: built assets [+ backend]).
+ *   3. Start your plugin (its `preview` script: built assets).
  *   4. Start the portal from PORTAL_REPO_DIR watching the kwok registry.
  *   5. Exchange the token for a portal session cookie (Playwright storageState).
  * The spec then applies your PortalPlugin CR and asserts the plugin appears.
@@ -29,14 +29,14 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ─── Config contract (what a plugin team edits in plugin-e2e.config.ts) ──────
 
 export interface NavItemSpec {
-  /** Mount-relative path, e.g. "instances". */
+  /** Mount-relative path, e.g. "platform". */
   path: string;
-  /** Visible nav item text, e.g. "Instances". */
+  /** Visible nav item text, e.g. "Platform data". */
   title: string;
 }
 
 export interface PageSpec {
-  /** Mount-relative path, e.g. "home" or "instances". */
+  /** Mount-relative path, e.g. "home" or "platform". */
   path: string;
   /** A selector that is present once the page has rendered. */
   readySelector: string;
@@ -53,14 +53,14 @@ export interface PluginE2EConfig {
   navItems: NavItemSpec[];
   /** Pages to smoke-test: navigate to each and assert its ready selector. */
   pages: PageSpec[];
-  /** Command that serves your built plugin (and backend, if any). */
+  /**
+   * Command that serves your built plugin. There is no backend to start here —
+   * every API call your plugin issues goes through the portal's Milo
+   * control-plane proxy, including calls to your own aggregated apiserver.
+   */
   pluginCommand: string;
   /** URL that returns 200 once your plugin's manifest is served. */
   pluginReadyUrl: string;
-  /** Whether a backend must also be up before tests run. */
-  startBackend: boolean;
-  /** URL that returns 200 once your backend is ready (when startBackend). */
-  backendReadyUrl?: string;
   /** Port the portal listens on for this run. */
   portalPort: number;
 }
@@ -399,13 +399,10 @@ export async function setup(config: PluginE2EConfig): Promise<void> {
   registerTeardown('task devenv:down', PORTAL_REPO_DIR);
   await waitFile(DEVENV_KUBECONFIG, 'kwok kubeconfig');
 
-  // 3. Plugin (built assets [+ backend]).
+  // 3. Plugin (built assets).
   log(`Starting plugin: ${config.pluginCommand}`);
   const pluginLog = startServer('plugin', config.pluginCommand, PACKAGE_ROOT);
   await waitHttp(config.pluginReadyUrl, 'plugin manifest', 120_000, pluginLog);
-  if (config.startBackend && config.backendReadyUrl) {
-    await waitHttp(config.backendReadyUrl, 'plugin backend', 60_000, pluginLog);
-  }
   log('Plugin is serving.');
 
   // 4. Portal, watching the kwok registry.

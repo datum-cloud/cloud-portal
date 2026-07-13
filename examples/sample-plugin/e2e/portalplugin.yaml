@@ -4,7 +4,7 @@
 # In production this resource is materialized by the services-operator fan-out
 # from your ServiceConfiguration's spec.userInterface block; here (and in your
 # own plugin repo) you apply an equivalent CR directly to exercise the portal's
-# watch + status pipeline. Edit slug / name / assets.baseURL / proxy for your plugin.
+# watch + status pipeline. Edit slug / name / assets.baseURL for your plugin.
 apiVersion: portal.miloapis.com/v1alpha1
 kind: PortalPlugin
 metadata:
@@ -26,13 +26,7 @@ spec:
     baseURL: http://localhost:7777
     manifestPath: /plugin-manifest.json
     caBundle: ""
-  proxy:
-    - alias: api
-      backend:
-        url: http://localhost:7778
-      authorization: UserToken
   visibility:
     entitlement: None
     featureFlag: ""
-    organizations: []
   contentSecurityPolicy: []

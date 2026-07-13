@@ -29,7 +29,7 @@ The portal is becoming the bottleneck for platform growth. Each new service (com
 - A service team can ship a portal UI without touching the cloud-portal repository or coordinating a portal deploy.
 - Plugin registration flows through the **same catalog resource** service teams already author (`ServiceConfiguration`), with the same `Draft → Published → Deprecated → Retired` lifecycle.
 - Plugins are visible **only** in projects with an `Active` `ServiceEntitlement` for the service, and pages render **only** when the user passes Kubernetes RBAC checks — both fail-closed.
-- The browser never contacts a plugin-owned origin directly; all plugin assets and backend calls are mediated by the portal.
+- The browser never contacts a plugin-owned origin directly; plugin assets are mediated by the portal. Every API call a plugin issues goes through Milo's control plane (including a service's own aggregated apiserver) — there is no plugin-declared, non-Milo backend.
 - A service repository can see its plugin running inside the real portal locally within minutes, and can test the actual CRD registration path against a lightweight local Kubernetes API.
 
 ## Non-goals (v1)
@@ -68,7 +68,7 @@ Five key ideas:
 2. **The portal watches, then discovers.** The portal server watches `PortalPlugin` resources, fetches each plugin's `plugin-manifest.json` server-side, validates it, and records health in the resource's `status` — observable via `kubectl get portalplugins`.
 3. **Typed extension points, not arbitrary DOM.** A plugin declares *what* it contributes (nav items, pages, cards) through a closed, versioned vocabulary. The portal stays in control of where plugin UI can appear.
 4. **Static mount, dynamic content.** The portal's route tree gains one permanent catch-all mount (`/project/:projectId/services/:serviceSlug/*`). Plugin routes resolve inside that mount at runtime, so the compiled React Router route tree never changes and no rebuild is needed per plugin.
-5. **Same-origin mediation.** Plugin assets load through the portal server (`/api/plugins/<slug>/…`), and plugin backend calls go through the portal's existing authenticated proxy. Plugin origins are never exposed to the browser.
+5. **Same-origin mediation.** Plugin assets load through the portal server (`/api/plugins/<slug>/…`), and every API call a plugin issues — including calls to a service's own aggregated apiserver — goes through the portal's existing Milo control-plane proxy. Plugin origins are never exposed to the browser.
 
 ## Registering a plugin: the service side
 
@@ -96,14 +96,6 @@ spec:
       baseURL: https://portal-plugin.compute.miloapis.com
       manifestPath: /plugin-manifest.json   # optional; this is the default
       caBundle: ""                          # optional PEM for internal CAs
-    # Named non-Milo backends the plugin may call through the portal.
-    # Milo control-plane data needs NO entry — the portal's existing
-    # authenticated proxy to scoped control planes covers it.
-    proxy:
-      - alias: metrics
-        backend:
-          url: https://metrics.compute.miloapis.com
-        authorization: UserToken   # UserToken | None
     visibility:
       entitlement: Required        # Required (default) | None
       featureFlag: ""              # optional OpenFeature flag key
@@ -138,7 +130,7 @@ spec:
   serviceRef:
     name: compute                       # catalog Service object name
   serviceName: compute.miloapis.com     # canonical reverse-DNS id
-  slug: compute                         # unique DNS label; URL + proxy segment
+  slug: compute                         # unique DNS label; URL + asset-proxy segment
   displayName: Compute                  # copied from Service.spec.displayName
   deprecated: false                     # true when the winning configuration is Deprecated
   suspend: false                        # platform-operator kill switch
@@ -146,15 +138,9 @@ spec:
     baseURL: https://portal-plugin.compute.miloapis.com
     manifestPath: /plugin-manifest.json
     caBundle: ""
-  proxy:
-    - alias: metrics
-      backend:
-        url: https://metrics.compute.miloapis.com
-      authorization: UserToken          # UserToken | None
   visibility:
     entitlement: Required               # Required | None
     featureFlag: ""                     # optional OpenFeature flag key
-    organizations: []                   # optional early-access allowlist; empty = all
   contentSecurityPolicy: []             # rarely needed; assets are same-origin proxied
 status:
   observedGeneration: 3
@@ -287,8 +273,7 @@ Two packages define the integration surface; service teams never hand-write bund
 
 - **`@datum-cloud/portal-plugin-sdk`** — the versioned contract. TypeScript types for every extension point, plus runtime hooks:
   - `useProjectContext()` — current project/org identity and metadata.
-  - `usePluginFetch()` — fetch pre-scoped to the current project's control plane, through the portal's authenticated proxy.
-  - `usePluginProxyFetch(alias)` — fetch to a backend declared in `spec.proxy`.
+  - `usePluginFetch()` — fetch pre-scoped to the current project's control plane, through the portal's authenticated Milo proxy. This is the only data path — every API call a plugin issues, including calls to a service's own aggregated apiserver, goes through it.
   - `useResourceWatch()` — live resource updates through the portal's watch stream.
 
   The host advertises its SDK version; a manifest whose `sdk.range` doesn't match is not loaded (`Compatible=False`). Semver policy: additive changes are minor; extension-point removal is major with a deprecation window.
@@ -299,14 +284,11 @@ Two packages define the integration surface; service teams never hand-write bund
 
 **Same-origin asset mediation.** A portal server route (`/api/plugins/<slug>/…`) proxies all plugin assets from `spec.assets.baseURL`: fetched server-side (honoring `caBundle`), served with `X-Content-Type-Options: nosniff`, no cookies or authorization forwarded to the plugin origin, immutable caching keyed by manifest digest. The browser's `script-src`/`connect-src` stay `'self'`.
 
-**Backend calls, two tiers:**
-
-1. *Milo control-plane data* (the common case): the portal's existing authenticated proxy to scoped control planes, unchanged. The plugin uses `usePluginFetch()`; the portal injects the user's session token; the project's control plane enforces authorization.
-2. *Non-Milo backends*: `/api/plugins/<slug>/proxy/<alias>/…`, allowed only for aliases declared in `spec.proxy`. `UserToken` injects the session bearer token (the plugin backend validates it as an OIDC resource server against the same issuer); `None` forwards anonymously. There is no mechanism for a plugin to reach an undeclared host through the portal.
+**Backend calls: Milo only.** Every API call a plugin issues goes through the portal's existing authenticated proxy to scoped control planes, unchanged — including calls to a service's own aggregated apiserver, which is reached exactly the same way as any other Milo resource. The plugin uses `usePluginFetch()`; the portal injects the user's session token; the project's control plane enforces authorization. There is no plugin-declared backend proxy and no mechanism for a plugin to reach an undeclared host through the portal — a plugin's data must live behind a Milo (or Milo-aggregated) control plane.
 
 **Three fail-closed authorization layers:**
 
-1. **Entitlement** — the plugin (nav, routes, cards) is invisible unless the current project has an `Active` `ServiceEntitlement` for the service. `visibility.featureFlag` optionally adds the portal's existing feature-flag gate; `visibility.organizations` supports early access.
+1. **Entitlement** — the plugin (nav, routes, cards) is invisible unless the current project has an `Active` `ServiceEntitlement` for the service. `visibility.featureFlag` optionally adds the portal's existing feature-flag gate.
 2. **RBAC** — every extension's `requirements.permissions` run as `SelfSubjectAccessReview` checks with the user's own identity before the extension renders.
 3. **Kill switch** — `spec.suspend: true` unloads the plugin portal-wide within one watch event.
 
@@ -418,10 +400,9 @@ Portal contributors use the same two tiers, plus `examples/sample-plugin/`: a re
 ## Open questions
 
 1. **Portal platform identity** — the portal server needs its own credential to `list/watch` `PortalPlugin` resources and patch status (today it holds only end-user tokens). Machine-account provisioning needs an owner.
-2. **Token audience for proxied backends** — is the session access token acceptable to non-Milo resource servers as-is, or does v1.x need per-alias token exchange (RFC 8693)?
-3. **Multi-version coexistence** — v1 is one live plugin version per service. Is per-org version pinning (canarying a plugin to select orgs) a near-term need?
-4. **Design system as a shared singleton** — partially resolved: the host shares a curated subset of `@datum-cloud/datum-ui` subpath modules as host-backed singletons (badge, button, card, empty-content, icons, separator, skeleton, table — see the host's federation host module), so plugins render pixel-identical to built-in pages with zero duplication. Remaining: ratify the curation list with the design-system team and re-export it through the plugin SDK with a semver-stability guarantee.
-5. **Gated services** — entitlement gating makes pending/rejected services invisible; should a pending request instead render a "request access" teaser?
-6. **Dev-mode gating posture** — the local environment skips entitlement gating and downgrades RBAC failures to warnings for dev-sourced plugins; confirm that default, or keep RBAC blocking with a per-run opt-out.
+2. **Multi-version coexistence** — v1 is one live plugin version per service. Is per-org version pinning (canarying a plugin to select orgs) a near-term need?
+3. **Design system as a shared singleton** — partially resolved: the host shares a curated subset of `@datum-cloud/datum-ui` subpath modules as host-backed singletons (badge, button, card, empty-content, icons, separator, skeleton, table — see the host's federation host module), so plugins render pixel-identical to built-in pages with zero duplication. Remaining: ratify the curation list with the design-system team and re-export it through the plugin SDK with a semver-stability guarantee.
+4. **Gated services** — entitlement gating makes pending/rejected services invisible; should a pending request instead render a "request access" teaser?
+5. **Dev-mode gating posture** — the local environment skips entitlement gating and downgrades RBAC failures to warnings for dev-sourced plugins; confirm that default, or keep RBAC blocking with a per-run opt-out.
 7. **Pre-release staging path** — once a plugin passes the local Tier 1 loop, what's the process for registering the service in the staging catalog so the team can validate with real entitlements before production?
 8. **Interim catalog mirror** — `app/features/quotas/service-catalog.ts` should collapse onto `PortalPlugin`/`Service` display metadata once this ships; that migration should be sequenced with this work.

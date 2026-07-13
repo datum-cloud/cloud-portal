@@ -13,7 +13,6 @@ import {
   PORTAL_PLUGIN_PLURAL,
   PORTAL_PLUGIN_VERSION,
   type PluginEntryStatus,
-  type PluginProxyAuthorization,
   type PortalPluginSpec,
 } from '../types';
 import type { KubeClient } from './kubeconfig';
@@ -61,18 +60,6 @@ export function specFromResource(resource: PortalPluginResource): PortalPluginSp
   if (!slug) return null;
   if (!s.assets?.baseURL) return null;
 
-  const proxy = Array.isArray(s.proxy)
-    ? s.proxy
-        .filter((p: any) => p && typeof p.alias === 'string')
-        .map((p: any) => ({
-          alias: p.alias as string,
-          backend: { url: p.backend?.url ?? '' },
-          authorization: (p.authorization === 'None'
-            ? 'None'
-            : 'UserToken') as PluginProxyAuthorization,
-        }))
-    : [];
-
   return {
     serviceRef: s.serviceRef?.name ? { name: s.serviceRef.name } : undefined,
     serviceName: typeof s.serviceName === 'string' ? s.serviceName : undefined,
@@ -85,13 +72,9 @@ export function specFromResource(resource: PortalPluginResource): PortalPluginSp
       manifestPath: s.assets.manifestPath || DEFAULT_MANIFEST_PATH,
       caBundle: s.assets.caBundle || undefined,
     },
-    proxy,
     visibility: {
       entitlement: s.visibility?.entitlement === 'None' ? 'None' : 'Required',
       featureFlag: s.visibility?.featureFlag || undefined,
-      organizations: Array.isArray(s.visibility?.organizations)
-        ? s.visibility.organizations
-        : undefined,
     },
     contentSecurityPolicy: Array.isArray(s.contentSecurityPolicy)
       ? s.contentSecurityPolicy

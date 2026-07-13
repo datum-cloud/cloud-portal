@@ -1,7 +1,7 @@
-import { PLUGIN_ID } from '../lib/api';
+import { useDnsZones } from '../lib/api';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Separator } from '@datum-cloud/datum-ui/separator';
-import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router';
 
 /**
  * `portal.card/project-home` extension component, exposed as `SampleHomeCard`.
@@ -9,27 +9,14 @@ import { useQuery } from '@tanstack/react-query';
  * The host renders the card chrome + title ("Sample Plugin") from the manifest;
  * this component supplies the body — styled with host-shared datum-ui.
  *
- * Shows a LIVE instance count via TanStack Query (host singleton). The count is
- * strictly additive and degrades gracefully — the description always renders,
- * so a missing backend never breaks the card.
+ * Shows a LIVE DNS zone count, read from the Milo control plane through the
+ * portal's authenticated proxy (same `useDnsZones` hook as the platform-data
+ * page). The count is strictly additive and degrades gracefully — the
+ * description always renders, so a failed fetch never breaks the card.
  */
-function useInstanceCount() {
-  return useQuery({
-    queryKey: [PLUGIN_ID, 'instances', 'count'],
-    queryFn: async () => {
-      const res = await fetch('/api/plugins/sample/proxy/api/instances', {
-        headers: { Accept: 'application/json' },
-      });
-      if (!res.ok) throw new Error(String(res.status));
-      const body = (await res.json()) as { data: { items: unknown[] } };
-      return body.data.items.length;
-    },
-    retry: false,
-  });
-}
-
 export default function SampleHomeCard() {
-  const { data: count, isLoading, isError } = useInstanceCount();
+  const { projectId } = useParams<{ projectId: string }>();
+  const { data: zones, isLoading, isError } = useDnsZones(projectId);
 
   return (
     <div data-testid="sample-plugin-home-card" className="flex flex-col gap-3 text-sm">
@@ -39,7 +26,7 @@ export default function SampleHomeCard() {
       </p>
       <Separator />
       <p data-testid="sample-plugin-home-card-count" className="flex items-center gap-2">
-        <span className="font-medium">Instances:</span>
+        <span className="font-medium">DNS zones:</span>
         {isLoading ? (
           <span className="text-muted-foreground">…</span>
         ) : isError ? (
@@ -48,7 +35,7 @@ export default function SampleHomeCard() {
           </Badge>
         ) : (
           <Badge type="success" theme="light">
-            {count}
+            {zones?.length ?? 0}
           </Badge>
         )}
       </p>

@@ -119,4 +119,26 @@ test.describe('Tier 0: static plugin override', () => {
     expect(counts[EXTENSION_PAGE_PROJECT] ?? 0).toBeGreaterThanOrEqual(1);
     expect(counts[EXTENSION_CARD_PROJECT_HOME] ?? 0).toBeGreaterThanOrEqual(1);
   });
+
+  // ── Milo control-plane data (DNS zones, via the portal's authenticated proxy) ─
+
+  test('platform-data page lists DNS zones (or the empty state), read-only', async ({
+    page,
+    pluginPageUrl,
+    state,
+  }) => {
+    await page.goto(pluginPageUrl(state.sampleSlug, state.platformDataPath));
+    await expect(page.locator(sel.platformDataPage)).toBeVisible();
+    // Read-only through the control-plane proxy: rows or the empty state.
+    await expect(
+      page.locator(sel.platformDataRow).first().or(page.locator(sel.platformDataEmpty))
+    ).toBeVisible();
+  });
+
+  test('the project-home card shows the live DNS zone count', async ({ page, projectHomeUrl }) => {
+    await page.goto(projectHomeUrl);
+    const count = page.locator(sel.homeCardCount);
+    await expect(count).toBeVisible();
+    await expect(count).toContainText(/\d+/);
+  });
 });
