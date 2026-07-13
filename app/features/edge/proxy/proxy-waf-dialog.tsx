@@ -63,8 +63,9 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
       try {
         await updateMutation.mutateAsync({
           trafficProtectionMode: data.trafficProtectionMode,
+          // CRS requires detection >= blocking; keep them locked together.
           paranoiaLevels: data.paranoiaLevelBlocking
-            ? { blocking: data.paranoiaLevelBlocking }
+            ? { blocking: data.paranoiaLevelBlocking, detection: data.paranoiaLevelBlocking }
             : undefined,
         });
         toast.success('AI Edge', {
