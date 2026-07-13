@@ -28,7 +28,7 @@
     "test:rbac": "bun test app/modules/rbac",
     "test:plugins": "bun test app/modules/plugins",
     "test:e2e:plugins": "playwright test --config playwright.config.ts",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test app --coverage"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.85",
