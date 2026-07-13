@@ -188,6 +188,16 @@ export default async function globalSetup(_config: FullConfig) {
   // makes Sentry disable itself (invalid DSN → no transport). Tests never report.
   overrideEnv.SENTRY_DSN = 'https://sentry.example.com/0';
 
+  // PROMETHEUS_URL / CLOUDVALID_* are required (non-test-mode) server env vars
+  // with no built-in default — locally they come from the dev's gitignored
+  // .env (seeded from .env.example); CI writes no .env at all. The plugin e2e
+  // suite never exercises these features, so placeholders are enough to pass
+  // validation and let the portal boot.
+  overrideEnv.PROMETHEUS_URL = 'http://localhost:9090';
+  overrideEnv.CLOUDVALID_API_URL = 'http://localhost:8081';
+  overrideEnv.CLOUDVALID_API_KEY = 'test-cloudvalid-api-key';
+  overrideEnv.CLOUDVALID_TEMPLATE_ID = 'test-cloudvalid-template-id';
+
   // Plugin UI lives under the project-detail layout, which is hard-gated by the
   // legacy-setup billing middleware: every project route redirects to
   // /onboarding/billing unless the owning org has contact info + a billing
