@@ -338,12 +338,26 @@ const StripePaymentMethodFormBody = ({
     };
   }, [billingDetailsPrefill]);
 
+  // Stripe collapses city/postcode/etc. until line1 has content unless
+  // defaultValues include a country. Prefer the contact country when known.
+  const preferredCountry =
+    contactAddressDefaults?.address.country?.trim() ||
+    billingDetailsPrefill?.address?.country?.trim() ||
+    'US';
+
   const canCopyContactAddress = Boolean(contactAddressDefaults);
   const [sameAsContact, setSameAsContact] = useState(canCopyContactAddress);
   // Bumped only on an explicit checkbox click, so the AddressElement remounts
   // and (re)reads `defaultValues`. Auto-unticking after a manual edit must NOT
   // bump this — a remount would wipe whatever the user just typed.
   const [addressSeed, setAddressSeed] = useState(0);
+  // Which defaultValues the *current* AddressElement mount was seeded with.
+  // Kept separate from `sameAsContact` so auto-unticking the checkbox (after
+  // a manual edit) does not rewrite `options` mid-typing — that churn was
+  // causing Stripe iframes to steal focus and require a second click.
+  const [addressDefaultsMode, setAddressDefaultsMode] = useState<'contact' | 'empty' | 'none'>(
+    canCopyContactAddress ? 'contact' : 'none'
+  );
   // Hidden during a checkbox-driven remount to prevent the Stripe iframe
   // flicker. Cleared by onReady (or a safety timeout) once Stripe renders.
   const [addressVisible, setAddressVisible] = useState(true);
@@ -362,24 +376,28 @@ const StripePaymentMethodFormBody = ({
   const seededBaselineRef = useRef('');
 
   const addressOptions = useMemo(() => {
-    if (sameAsContact && contactAddressDefaults) {
+    if (addressDefaultsMode === 'contact' && contactAddressDefaults) {
       return { ...ADDRESS_ELEMENT_OPTIONS, defaultValues: contactAddressDefaults };
     }
-    if (contactAddressDefaults) {
-      // When the user unchecks, preserve the name but explicitly clear the
-      // address fields. Without defaultValues the remounted AddressElement
-      // would drop the name too; with an empty address object Stripe starts
-      // the fields blank while keeping the name the user may have edited.
-      return {
-        ...ADDRESS_ELEMENT_OPTIONS,
-        defaultValues: {
-          name: contactAddressDefaults.name,
-          address: { line1: '', line2: '', city: '', state: '', postal_code: '', country: '' },
+
+    // Always seed a country so the Address Element mounts expanded (city,
+    // postcode, line 2 visible). Leaving country empty keeps Stripe's
+    // condensed layout until the user types in Address line 1.
+    return {
+      ...ADDRESS_ELEMENT_OPTIONS,
+      defaultValues: {
+        name: contactAddressDefaults?.name || billingDetailsPrefill?.name || '',
+        address: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          postal_code: '',
+          country: preferredCountry,
         },
-      };
-    }
-    return ADDRESS_ELEMENT_OPTIONS;
-  }, [sameAsContact, contactAddressDefaults]);
+      },
+    };
+  }, [addressDefaultsMode, contactAddressDefaults, billingDetailsPrefill?.name, preferredCountry]);
 
   const handleAddressReady = useCallback(() => {
     clearTimeout(addressVisibleTimerRef.current);
@@ -403,6 +421,7 @@ const StripePaymentMethodFormBody = ({
 
     // Explicit toggle: reseed (checked) or clear (unchecked) by remounting.
     setSameAsContact(checked);
+    setAddressDefaultsMode(checked ? 'contact' : 'empty');
     setAddressSeed((seed) => seed + 1);
     // Recapture the baseline after a checkbox-driven reseed; nothing to track
     // once the user opts out.
@@ -423,7 +442,8 @@ const StripePaymentMethodFormBody = ({
       }
 
       // The user changed a field away from the copied contact values — untick
-      // the box, but don't remount, so their edit is preserved.
+      // the box only. Do not remount or rewrite AddressElement options, or
+      // focus jumps to the next field get swallowed by an iframe refresh.
       if (sameAsContact && signature !== seededBaselineRef.current) {
         setSameAsContact(false);
       }

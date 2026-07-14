@@ -263,6 +263,7 @@ const LIGHT_FALLBACK = {
   danger: '#e15853', // --destructive → --alert-red-light
   mutedForeground: '#707ca7', // --muted-foreground
   primary: '#707ca7',
+  primaryForeground: '#ffffff',
 } as const;
 
 const DARK_FALLBACK = {
@@ -280,6 +281,7 @@ const DARK_FALLBACK = {
   danger: '#e15853',
   mutedForeground: '#aab4d2',
   primary: '#e6f59e',
+  primaryForeground: '#0c1d31',
 } as const;
 
 /**
@@ -317,6 +319,16 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
   const danger = readColor('--destructive', f.danger);
   const mutedForeground = readColor('--muted-foreground', f.mutedForeground);
   const primary = readColor('--primary', f.primary);
+  const primaryForeground = readColor('--primary-foreground', f.primaryForeground);
+  // Selected payment-method tab fill: primary at 70% over the dialog surface.
+  // Stripe can't alpha-composite against the parent page, so we flatten the
+  // mix the same way we do for input backgrounds and labels.
+  const selectedTabBackground = readMixedColor(
+    '--primary',
+    '--popover',
+    70,
+    blend(primary, surface, 0.7)
+  );
   // datum-ui's `Input` uses `bg-input-background/50` — a translucent
   // layer over whatever sits beneath. Stripe Elements render inside
   // their own iframe and can't composite against the parent page, so
@@ -356,6 +368,20 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
     gridColumnSpacing: '16px',
   };
 
+  // Tab icon/logo colours aren't always typed on `Appearance['variables']`
+  // yet, but the runtime API supports them. Without these, Stripe falls
+  // back to a dark hover icon that vanishes on dark surfaces.
+  const tabIconVariables: Record<string, string> = {
+    tabIconColor: foreground,
+    tabIconHoverColor: foreground,
+    tabIconSelectedColor: primaryForeground,
+    iconColor: foreground,
+    iconHoverColor: foreground,
+    // Brand-logo variants inside tabs (Amazon Pay, etc.).
+    tabLogoColor: theme === 'dark' ? 'light' : 'dark',
+    tabLogoSelectedColor: theme === 'dark' ? 'dark' : 'light',
+  };
+
   return {
     // 'flat' is the most neutral built-in theme — no Stripe-branded
     // gradients, shadows or accent backgrounds. We use it for both light
@@ -384,6 +410,7 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
       focusBoxShadow: focusShadow,
       focusOutline: 'none',
       ...spacingVariables,
+      ...tabIconVariables,
     },
     rules: {
       // Base text input. The shadcn primitive is
@@ -463,19 +490,59 @@ export const buildStripeAppearance = (theme: 'light' | 'dark'): Appearance => {
       },
       // Tabs are only visible when multiple payment methods are
       // configured — kept consistent so a future expansion stays
-      // on-brand.
+      // on-brand. Selected fill is primary at 70% (flattened over the
+      // dialog surface); text/icons stay on the accessible-on-primary colour.
       '.Tab': {
         backgroundColor: surface,
         border: `1px solid ${border}`,
         borderRadius: '9px',
         color: foreground,
       },
+      '.TabIcon': {
+        fill: foreground,
+        color: foreground,
+      },
+      '.TabLabel': {
+        color: foreground,
+      },
       '.Tab--selected': {
+        backgroundColor: selectedTabBackground,
+        borderColor: selectedTabBackground,
+        color: primaryForeground,
+      },
+      '.TabIcon--selected': {
+        fill: primaryForeground,
+        color: primaryForeground,
+      },
+      '.TabLabel--selected': {
+        color: primaryForeground,
+      },
+      // Stripe's default hover text/icon reads as near-invisible on dark
+      // surfaces. Keep unselected tabs on foreground; selected stays on
+      // primary-foreground. Icon hover is also set via `tabIconHoverColor`
+      // in variables — rules alone don't reliably override it.
+      '.Tab:hover': {
         borderColor: focusBorder,
         color: foreground,
       },
-      '.Tab:hover': {
-        borderColor: focusBorder,
+      '.TabIcon:hover': {
+        fill: foreground,
+        color: foreground,
+      },
+      '.TabLabel:hover': {
+        color: foreground,
+      },
+      '.Tab--selected:hover': {
+        backgroundColor: selectedTabBackground,
+        borderColor: selectedTabBackground,
+        color: primaryForeground,
+      },
+      '.TabIcon--selected:hover': {
+        fill: primaryForeground,
+        color: primaryForeground,
+      },
+      '.TabLabel--selected:hover': {
+        color: primaryForeground,
       },
     },
   };
