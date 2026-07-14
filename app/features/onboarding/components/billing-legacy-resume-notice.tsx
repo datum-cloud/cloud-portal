@@ -49,14 +49,10 @@ export const BillingLegacyResumeNotice = ({ orgId }: { orgId: string }) => {
   }, []);
 
   return (
-    <OnboardingEntrance
-      delay={1}
-      className="w-full min-w-0 md:relative md:max-w-[410px] md:self-stretch">
-      {/* On md+ the card is absolutely positioned so it never contributes to the
-          row height — it matches the form card on the left and scrolls inside. */}
-      <Card className="bg-card/50 text-foreground flex w-full min-w-0 flex-col rounded-xl border-none py-0 shadow-none md:absolute md:inset-0">
-        <CardContent className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6 sm:p-8 md:p-[44px]">
-          <div className="my-auto flex flex-col gap-5">
+    <OnboardingEntrance delay={1} className="flex w-full min-w-0 md:max-w-[410px] md:self-stretch">
+      <Card className="bg-card/50 text-foreground flex h-full w-full min-w-0 flex-col rounded-xl border-none shadow-none">
+        <CardContent className="flex flex-1 flex-col p-6 sm:p-8 md:p-[44px]">
+          <div className="flex flex-col gap-5">
             <div className="flex items-center">
               <HandwritingText
                 text="Hey there!"

@@ -51,7 +51,7 @@ export const OrgContactInfoDialog = ({
           name="org-contact-info"
           id="org-contact-info-form"
           schema={orgContactInfoSchema}
-          mode="onBlur"
+          mode="onSubmit"
           defaultValues={buildOrgContactDefaults(defaultValues)}
           onSubmit={async (values) => {
             try {

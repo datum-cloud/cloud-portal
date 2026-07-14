@@ -105,11 +105,22 @@ export const BillingForm = ({
     <div
       className={cn(
         'z-10 flex w-full min-w-0 flex-col items-stretch gap-5',
-        isLegacySetupResume && 'mx-auto md:flex-row md:justify-center'
+        isLegacySetupResume && 'mx-auto md:flex-row md:items-stretch md:justify-center'
       )}>
       <OnboardingEntrance
-        className={cn('w-full min-w-0 md:max-w-[410px]', !isLegacySetupResume && 'mx-auto')}>
-        <Card className={cn(onboardingCardClassName, 'flex flex-col md:self-stretch')}>
+        className={cn(
+          'flex w-full min-w-0 md:max-w-[410px]',
+          isLegacySetupResume && 'md:self-stretch',
+          !isLegacySetupResume && 'mx-auto'
+        )}>
+        <Card
+          className={cn(
+            onboardingCardClassName,
+            'flex h-full flex-col',
+            // Extra vertical space is shared top/bottom so form content
+            // stays centered when the notice card sets the row height.
+            isLegacySetupResume && 'md:justify-center'
+          )}>
           <CardContent className="flex flex-col gap-8 p-0">
             <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
               {stepLabel}

@@ -32,7 +32,7 @@ import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { ClockIcon } from 'lucide-react';
+import { ClockIcon, CheckIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 /** How long to wait for the provider to publish card brand/last4 after confirm. */
@@ -287,11 +287,15 @@ export const OrgBillingSetupForm = ({
   const billingDetailsPrefill = useMemo(() => {
     const source = contactInfo ?? contactDialogDefaults;
     if (!source.email?.trim()) return undefined;
+    const fullAddress = buildContactAddressPrefill(source);
+    const countryOnly = source.country?.trim();
     return {
       email: source.email.trim(),
       // Card billing address uses the contact's personal name, not the org or business name.
       name: source.name?.trim() || undefined,
-      address: buildContactAddressPrefill(source),
+      // Prefer a full address when present; otherwise pass country alone so the
+      // Address Element can expand all fields on mount.
+      address: fullAddress ?? (countryOnly ? { country: countryOnly } : undefined),
     };
   }, [contactInfo, contactDialogDefaults]);
 
@@ -373,10 +377,10 @@ export const OrgBillingSetupForm = ({
           onOpen={() => setContactDialogOpen(true)}>
           {contactComplete && contactInfo ? (
             <div className="flex min-w-0 flex-col gap-1 text-left">
-              <p className="text-foreground truncate text-[13px] leading-[18px]">
+              <p className="text-foreground text-[13px] leading-[18px] font-medium break-words">
                 {formatOrgContactPrimaryLine(contactInfo)}
               </p>
-              <p className="text-muted-foreground truncate text-xs leading-4 opacity-60">
+              <p className="text-muted-foreground text-xs leading-4 break-words opacity-60">
                 {formatOrgContactSecondaryLine(contactInfo)}
               </p>
             </div>
@@ -403,7 +407,7 @@ export const OrgBillingSetupForm = ({
                 className="flex min-w-0 items-center gap-2.5"
                 data-e2e="org-billing-payment-summary">
                 <CardBrandIcon brand={paymentSummary.brand} />
-                <p className="text-foreground truncate text-[13px] leading-[18px]">
+                <p className="text-foreground truncate text-[13px] leading-[18px] font-medium">
                   {paymentSummary.label}
                 </p>
               </div>
@@ -499,11 +503,21 @@ const VerificationField = ({
         </span>
       </button>
     ) : (
-      <div className="border-border bg-muted/50 flex h-auto min-h-9 w-full items-center gap-2.5 rounded-md border px-3 py-2">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">{children}</div>
-        <button type="button" onClick={onOpen} className="text-primary shrink-0 text-xs underline">
-          Change
-        </button>
+      <div className="bg-card-success flex w-full min-w-0 overflow-hidden rounded-md border border-[#86A182]">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2.5">{children}</div>
+          <button
+            type="button"
+            onClick={onOpen}
+            className="text-foreground hover:text-foreground shrink-0 text-xs transition-colors">
+            Edit
+          </button>
+        </div>
+        <div
+          className="flex w-4 shrink-0 items-center justify-center bg-[#86A182]"
+          aria-hidden="true">
+          <Icon icon={CheckIcon} className="size-2.5 text-white" strokeWidth={2.5} />
+        </div>
       </div>
     )}
     {description && (

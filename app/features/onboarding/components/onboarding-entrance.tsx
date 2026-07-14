@@ -7,7 +7,7 @@ import {
 } from '../onboarding-motion';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { motion, useReducedMotion } from 'motion/react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 
 type OnboardingEntranceProps = {
   children: ReactNode;
@@ -17,14 +17,20 @@ type OnboardingEntranceProps = {
 
 export const OnboardingEntrance = ({ children, className, delay = 0 }: OnboardingEntranceProps) => {
   const reducedMotion = useReducedMotion() ?? false;
+  // Transforms left on a wrapping motion node break input focus (click often
+  // needs a second attempt). Once the entrance settles, stop controlling
+  // transform props and force them clear.
+  const [entranceSettled, setEntranceSettled] = useState(false);
 
   return (
     <motion.div
       className={className}
       initial="hidden"
-      animate="visible"
+      animate={entranceSettled ? { opacity: 1 } : 'visible'}
       variants={onboardingEntranceVariants(reducedMotion)}
-      transition={onboardingEntranceTransition(ONBOARDING_DELAYS[delay], reducedMotion)}>
+      transition={onboardingEntranceTransition(ONBOARDING_DELAYS[delay], reducedMotion)}
+      onAnimationComplete={() => setEntranceSettled(true)}
+      style={entranceSettled ? { transform: 'none' } : undefined}>
       {children}
     </motion.div>
   );

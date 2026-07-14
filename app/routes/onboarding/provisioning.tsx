@@ -41,7 +41,7 @@ export default function OnboardingProvisioningRoute() {
       width="full"
       splitBackground
       sceneOnTop
-      contentClassName="px-0 pt-0 pb-0 md:px-0 md:pt-0 md:pb-0 min-h-svh">
+      contentClassName="justify-start px-0 py-0 md:px-0 md:py-0 min-h-svh">
       <ProvisioningPage />
     </OnboardingLayout>
   );

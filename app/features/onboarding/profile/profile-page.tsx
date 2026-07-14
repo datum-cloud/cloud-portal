@@ -60,7 +60,7 @@ export const ProfilePage = ({
             name="onboarding-profile"
             id="onboarding-profile-form"
             schema={userSchema}
-            mode="onBlur"
+            mode="onSubmit"
             defaultValues={{ email }}
             isSubmitting={isNavigating ? true : undefined}
             onSubmit={(data) =>
