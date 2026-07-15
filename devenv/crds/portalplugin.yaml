@@ -1,0 +1,219 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: portalplugins.portal.miloapis.com
+  labels:
+    app.kubernetes.io/part-of: cloud-portal
+    app.kubernetes.io/component: plugin-registry
+spec:
+  group: portal.miloapis.com
+  names:
+    kind: PortalPlugin
+    listKind: PortalPluginList
+    plural: portalplugins
+    singular: portalplugin
+    shortNames:
+      - pplug
+      - portalplugins
+    categories:
+      - portal
+  scope: Cluster
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      subresources:
+        status: {}
+      additionalPrinterColumns:
+        - name: Slug
+          type: string
+          description: URL and asset-proxy segment for the plugin
+          jsonPath: .spec.slug
+        - name: Ready
+          type: string
+          description: Aggregate readiness (discovered + compatible + not suspended)
+          jsonPath: .status.conditions[?(@.type=="Ready")].status
+        - name: Version
+          type: string
+          description: Version of the live manifest resolved by the portal
+          jsonPath: .status.manifest.version
+        - name: Age
+          type: date
+          jsonPath: .metadata.creationTimestamp
+      schema:
+        openAPIV3Schema:
+          type: object
+          description: |-
+            PortalPlugin declares a service-owned UI plugin the cloud portal
+            discovers and loads at runtime. Written only by the services-operator
+            (fanned out from a ServiceConfiguration's spec.userInterface block);
+            consumed by the portal server, which also writes status.
+          required:
+            - spec
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              type: object
+              description: Desired state, materialized by the services-operator fan-out.
+              required:
+                - serviceName
+                - slug
+                - assets
+              properties:
+                serviceRef:
+                  type: object
+                  description: Reference to the catalog Service object this plugin belongs to.
+                  required:
+                    - name
+                  properties:
+                    name:
+                      type: string
+                      description: catalog Service object name (e.g. "compute").
+                      minLength: 1
+                serviceName:
+                  type: string
+                  description: Canonical reverse-DNS service identifier (Service.spec.serviceName).
+                  minLength: 1
+                  maxLength: 253
+                slug:
+                  type: string
+                  description: |-
+                    Unique DNS label. Forms /project/:id/services/<slug>/… in the
+                    portal and the asset-proxy prefix. Uniqueness enforced at fan-out.
+                  maxLength: 63
+                  pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+                displayName:
+                  type: string
+                  description: Human-facing name, copied from Service.spec.displayName.
+                deprecated:
+                  type: boolean
+                  default: false
+                  description: True when the winning ServiceConfiguration is Deprecated.
+                suspend:
+                  type: boolean
+                  default: false
+                  description: Platform-operator kill switch; unloads the plugin portal-wide.
+                assets:
+                  type: object
+                  description: Where the portal fetches the plugin's manifest and bundle (server-side).
+                  required:
+                    - baseURL
+                  properties:
+                    baseURL:
+                      type: string
+                      description: |-
+                        Origin serving the built plugin (plugin-manifest.json,
+                        remote entry, chunks, static assets). HTTPS in production;
+                        http://localhost is accepted only by dev registry sources.
+                      minLength: 1
+                    manifestPath:
+                      type: string
+                      default: /plugin-manifest.json
+                      description: Manifest path under baseURL. Defaults to /plugin-manifest.json.
+                      pattern: ^/.*
+                    caBundle:
+                      type: string
+                      description: Optional PEM bundle for internal CAs terminating the assets origin.
+                visibility:
+                  type: object
+                  description: Fail-closed gates controlling where the plugin appears.
+                  properties:
+                    entitlement:
+                      type: string
+                      default: Required
+                      enum:
+                        - Required
+                        - None
+                      description: |-
+                        Required: plugin visible only in projects with an Active
+                        ServiceEntitlement. None: no entitlement gate (dev/platform use).
+                    featureFlag:
+                      type: string
+                      description: Optional OpenFeature flag key gating visibility.
+                contentSecurityPolicy:
+                  type: array
+                  description: |-
+                    Rarely needed extra CSP directives, merged from an allowlisted
+                    set by the host. Assets are same-origin proxied, so usually empty.
+                  items:
+                    type: string
+            status:
+              type: object
+              description: Observed state, written by the portal server.
+              properties:
+                observedGeneration:
+                  type: integer
+                  format: int64
+                  description: The metadata.generation the status was last reconciled against.
+                conditions:
+                  type: array
+                  description: |-
+                    Standard conditions. Discovered (manifest fetched + schema-valid),
+                    Compatible (SDK range satisfied), Ready (aggregate).
+                  items:
+                    type: object
+                    # Only type+status+reason are required so the portal's status
+                    # writer (PluginCondition: {type, status, reason, message?})
+                    # validates. lastTransitionTime/observedGeneration are optional
+                    # here for metav1.Condition compatibility if added later.
+                    required:
+                      - type
+                      - status
+                      - reason
+                    properties:
+                      type:
+                        type: string
+                        maxLength: 316
+                        pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      status:
+                        type: string
+                        enum:
+                          - "True"
+                          - "False"
+                          - Unknown
+                      reason:
+                        type: string
+                        maxLength: 1024
+                        minLength: 1
+                        pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      message:
+                        type: string
+                        maxLength: 32768
+                      observedGeneration:
+                        type: integer
+                        format: int64
+                        minimum: 0
+                      lastTransitionTime:
+                        type: string
+                        format: date-time
+                  x-kubernetes-list-type: map
+                  x-kubernetes-list-map-keys:
+                    - type
+                manifest:
+                  type: object
+                  description: Portal-resolved snapshot of the live manifest.
+                  properties:
+                    version:
+                      type: string
+                      description: Manifest version string.
+                    sdkRange:
+                      type: string
+                      description: SDK semver range the manifest requires.
+                    digest:
+                      type: string
+                      description: Content digest of the fetched manifest (e.g. sha256:…).
+                    fetchedAt:
+                      type: string
+                      format: date-time
+                      description: When the portal last fetched the manifest.
+                    extensions:
+                      type: object
+                      description: Count of extensions by type in the resolved manifest.
+                      additionalProperties:
+                        type: integer
+                        format: int64

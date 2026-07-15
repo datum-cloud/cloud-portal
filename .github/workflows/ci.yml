@@ -285,10 +285,91 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  e2e-plugins:
+    name: E2E Plugins
+    needs: install
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: ${{ !failure() && !cancelled() }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with: { bun-version: 1.3.14 } # renovate: datasource=docker depName=oven/bun
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: |
+            ${{ env.BUN_CACHE }}
+            **/node_modules
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+      # Logs in a dedicated, viewer-scoped service account (see PolicyBinding
+      # portal-plugin-e2e-viewer) so the suite gets its token via the same
+      # `datumctl auth get-token` path as local dev — no long-lived ACCESS_TOKEN
+      # secret. Auth host is staging, where this SA lives.
+      - name: Setup datumctl
+        uses: datum-cloud/setup-datumctl-action@93d64fd09171e95e6516ed9d64515dfda6ae39a0 # v1
+        with:
+          auth-hostname: auth.staging.env.datum.net
+          credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
+      # go-task — the suite shells `task devenv:up` / `devenv:register`. Pinned to
+      # a specific release (kubectl is preinstalled on the ubuntu-latest runner).
+      - name: Install go-task
+        run: |
+          curl -fsSL https://github.com/go-task/task/releases/download/v3.49.1/task_linux_amd64.tar.gz | tar -xz task
+          sudo install -m 0755 task /usr/local/bin/task
+          task --version
+      # Cache the kwok binary that `task devenv:up` downloads into .devenv/bin.
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: .devenv/bin
+          key: ${{ runner.os }}-kwok-${{ hashFiles('devenv/scripts/ensure-kwok.sh') }}
+      # Cache Playwright browsers, keyed on the resolved @playwright/test version.
+      - id: pw-version
+        run: echo "version=$(bunx playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
+      # Dev-mode .env from the SAME secrets the Cypress jobs use. NOTE: no
+      # NODE_ENV=test — the plugin suite launches the portal in DEVELOPMENT
+      # (the dev registry sources + dev-session are hard-disabled otherwise);
+      # global-setup also pins NODE_ENV=development on the portal it spawns.
+      - name: Setup Environment
+        env:
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          API_URL: ${{ secrets.API_URL }}
+          GRAPHQL_URL: ${{ secrets.GRAPHQL_URL }}
+          AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
+          AUTH_OIDC_CLIENT_ID: ${{ secrets.AUTH_OIDC_CLIENT_ID }}
+        run: |
+          cat > .env << EOF
+          APP_URL=http://localhost:3000
+          API_URL=$API_URL
+          GRAPHQL_URL=$GRAPHQL_URL
+          AUTH_OIDC_ISSUER=$AUTH_OIDC_ISSUER
+          AUTH_OIDC_CLIENT_ID=$AUTH_OIDC_CLIENT_ID
+          SESSION_SECRET=$SESSION_SECRET
+          LOG_LEVEL=warn
+          EOF
+      - run: bunx playwright install --with-deps chromium
+      - name: Run Plugin E2E
+        # No E2E_ACCESS_TOKEN override: datumctl is authenticated as the SA
+        # (previous step), so the suite calls `datumctl auth get-token` itself —
+        # the same code path exercised locally.
+        run: bun run test:e2e:plugins
+      - if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: e2e-plugins-artifacts-${{ github.run_id }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+          if-no-files-found: warn
+
   # ─── Status Gate ────────────────────────────────────────────
   status-check:
     name: Final Status Check
-    needs: [install, lint, typecheck, build, bun-tests, unit-tests, e2e-smoke, e2e-regression]
+    needs: [install, lint, typecheck, build, bun-tests, unit-tests, e2e-smoke, e2e-regression, e2e-plugins]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -343,7 +424,7 @@ jobs:
   # ─── PR Comment ─────────────────────────────────────────────
   pr-comment:
     name: PR Test Summary
-    needs: [bun-tests, unit-tests, e2e-smoke]
+    needs: [bun-tests, unit-tests, e2e-smoke, e2e-plugins]
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     permissions:

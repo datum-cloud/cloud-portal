@@ -10,7 +10,13 @@ import tseslint from 'typescript-eslint';
 export default [
   // Global ignores (must be separate config object)
   {
-    ignores: ['app/modules/gqlts/generated/**', 'app/modules/control-plane/**/client.gen.ts'],
+    ignores: [
+      'app/modules/gqlts/generated/**',
+      'app/modules/control-plane/**/client.gen.ts',
+      // Standalone package with its own toolchain/tsconfig — see tsconfig.json's
+      // matching exclude.
+      'examples/**',
+    ],
   },
   {
     files: ['**/*.ts', '**/*.tsx'],

@@ -7,6 +7,7 @@ import { DnsIllustration } from '@/features/project/illustrations/dns';
 import { DomainIllustration } from '@/features/project/illustrations/domain';
 import { MetricsIllustration } from '@/features/project/illustrations/metrics';
 import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
@@ -303,6 +304,9 @@ export default function ProjectHomePage() {
           </Col>
         ))}
       </Row>
+
+      {/* Plugin-contributed project-home cards (portal.card/project-home) */}
+      <ProjectHomePluginCards projectId={projectName} />
 
       {/* Community */}
       <Row className="shrink-0">

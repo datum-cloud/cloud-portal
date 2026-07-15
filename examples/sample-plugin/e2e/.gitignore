@@ -1,0 +1,2 @@
+# Ephemeral e2e run artifacts (storageState, server logs, reports, traces).
+.artifacts/

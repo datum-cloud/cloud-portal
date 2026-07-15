@@ -11,6 +11,9 @@ import type { Variables } from './types';
 import '@/modules/control-plane/setup.server';
 import { ensureFeatureFlagProvider } from '@/modules/feature-flags/setup.server';
 import { Logger } from '@/modules/logger';
+import { initPluginRegistry } from '@/modules/plugins/server';
+import { createDevSessionRoutes, isDevSessionEnabled } from '@/modules/plugins/server/dev-session';
+import { createPluginRoutes } from '@/modules/plugins/server/routes';
 // Side-effect import: registers RBAC prom-client metrics into the global registry
 // at module-load time so they appear on the /metrics endpoint.
 import '@/modules/rbac/observability/metrics';
@@ -46,6 +49,10 @@ sessionManager.registerRefreshHook(({ userId, accessToken }) => {
 // relying on a bare side-effect import) so `"sideEffects": false` tree-shaking
 // can't drop the registration from the production server bundle.
 ensureFeatureFlagProvider();
+
+// Instantiate the plugin registry with the server and wire its dev-only
+// discovery sources (static + kubeconfig). No-op in production builds.
+initPluginRegistry();
 
 // Initialize observability (OTEL + Sentry + error handlers)
 initializeObservability().catch((error: unknown) => {
@@ -169,6 +176,19 @@ app.use(
 );
 
 app.onError(errorHandler);
+
+// ============================================================================
+// Plugin Routes (registered BEFORE the guarded /api sub-app)
+// ============================================================================
+// The asset proxy must serve plugin bundles without a session, so plugin routes
+// escape the blanket API auth guard and gate themselves per-route. The
+// dev-session token exchange is mounted only when explicitly enabled in dev.
+app.route('/api/plugins', createPluginRoutes());
+
+if (isDevSessionEnabled()) {
+  app.route('/api/auth', createDevSessionRoutes());
+  console.info('[plugins] dev session exchange enabled at POST /api/auth/dev-session');
+}
 
 // ============================================================================
 // API Routes (sub-app with its own middleware + 404 handling)
