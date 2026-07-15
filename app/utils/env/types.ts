@@ -29,7 +29,8 @@ export interface PublicEnv {
   otelLogLevel?: 'debug' | 'info' | 'warn' | 'error';
 
   // Optional: Analytics & Support
-  fathomId?: string;
+  rybbitSiteId?: string;
+  rybbitTag?: string;
   helpscoutBeaconId?: string;
 
   // Feature Flags

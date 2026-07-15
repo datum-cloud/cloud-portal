@@ -21,7 +21,8 @@ const clientDefaults: PublicEnv = {
   authZitadelProjectId: undefined,
   sentryDsn: undefined,
   sentryEnv: undefined,
-  fathomId: undefined,
+  rybbitSiteId: undefined,
+  rybbitTag: undefined,
   helpscoutBeaconId: undefined,
   logLevel: 'info',
   logFormat: 'pretty',
@@ -53,7 +54,8 @@ function getPublicEnv(): PublicEnv {
     authZitadelProjectId: process.env.AUTH_ZITADEL_PROJECT_ID,
     sentryDsn: process.env.SENTRY_DSN,
     sentryEnv: process.env.SENTRY_ENV,
-    fathomId: process.env.FATHOM_ID,
+    rybbitSiteId: process.env.RYBBIT_SITE_ID,
+    rybbitTag: process.env.RYBBIT_TAG,
     helpscoutBeaconId: process.env.HELPSCOUT_BEACON_ID,
     logLevel:
       (process.env.LOG_LEVEL as PublicEnv['logLevel']) ??

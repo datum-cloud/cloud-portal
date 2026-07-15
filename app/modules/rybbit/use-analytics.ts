@@ -1,7 +1,5 @@
 import type { AnalyticsActionName, AnalyticsOverrides } from './analytics.types';
-import { buildEventName } from './build-event-name';
-import { useAnalyticsIdentity } from './fathom-provider';
-import { trackEvent } from 'fathom-client';
+import { useAnalyticsIdentity } from './rybbit-provider';
 import { useCallback } from 'react';
 
 export function useAnalytics() {
@@ -15,8 +13,8 @@ export function useAnalytics() {
       const orgId = overrides?.orgId ?? identity.orgId;
       const projectId = overrides?.projectId ?? identity.projectId;
 
-      const eventName = buildEventName(action, sub, orgId, projectId);
-      trackEvent(eventName);
+      if (typeof window === 'undefined') return;
+      window.rybbit?.event(action, { sub, orgId, projectId });
     },
     [identity]
   );

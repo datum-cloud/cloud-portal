@@ -1,4 +1,4 @@
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { type DomainSchema, domainSchema, useCreateDomain, type Domain } from '@/resources/domains';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';

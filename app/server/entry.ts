@@ -108,7 +108,7 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
-        'https://*.usefathom.com', // Fathom
+        'https://app.rybbit.io', // Rybbit
         'https://api.stripe.com',
         'https://maps.googleapis.com', // AddressElement autocomplete
       ],
@@ -125,7 +125,6 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
-        'https://*.usefathom.com', // Fathom
         'https://js.stripe.com',
         'https://hooks.stripe.com',
       ],
@@ -138,7 +137,6 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
         'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
-        'https://*.usefathom.com', // Fathom
         'https://*.stripe.com',
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR

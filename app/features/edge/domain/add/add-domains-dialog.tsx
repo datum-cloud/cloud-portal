@@ -1,4 +1,4 @@
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
 import {
   type Domain,

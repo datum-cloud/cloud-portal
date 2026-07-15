@@ -1,10 +1,11 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { useNonce } from '@/hooks/useNonce';
 import { getRequestContext } from '@/modules/axios/request-context';
-import { FathomProvider } from '@/modules/fathom';
 import { ROOT_FEATURE_FLAGS, type FeatureFlagMap } from '@/modules/feature-flags';
 import { evaluateFlagsForOrgs } from '@/modules/feature-flags/evaluate.server';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { RbacProvider } from '@/modules/rbac';
+import { RybbitProvider } from '@/modules/rybbit';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
 import { createOrganizationService } from '@/resources/organizations';
@@ -95,19 +96,22 @@ export const loader = withMiddleware(
   fraudStatusMiddleware
 );
 
-function FathomWrapper({ children }: { children: ReactNode }) {
+function RybbitWrapper({ children }: { children: ReactNode }) {
   const { user, orgId, project } = useApp();
+  const nonce = useNonce();
 
-  if (!env.public.fathomId || !env.isProd) {
+  if (!env.public.rybbitSiteId) {
     return <>{children}</>;
   }
 
   return (
-    <FathomProvider
-      siteId={env.public.fathomId}
+    <RybbitProvider
+      siteId={env.public.rybbitSiteId}
+      tag={env.public.rybbitTag}
+      nonce={nonce}
       identity={user?.sub ? { sub: user.sub, orgId, projectId: project?.name } : null}>
       {children}
-    </FathomProvider>
+    </RybbitProvider>
   );
 }
 
@@ -153,7 +157,7 @@ export default function PrivateLayout() {
   return (
     <WatchProvider>
       <AppProvider initialUser={data?.user} initialFeatureFlags={data?.featureFlags}>
-        <FathomWrapper>
+        <RybbitWrapper>
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <ConfirmationDialogProvider>
               <RbacAppWrapper>
@@ -181,7 +185,7 @@ export default function PrivateLayout() {
               </Await>
             </Suspense>
           </TaskQueueProvider>
-        </FathomWrapper>
+        </RybbitWrapper>
       </AppProvider>
     </WatchProvider>
   );

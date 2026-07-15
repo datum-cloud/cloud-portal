@@ -2,10 +2,10 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
 import { NoteCard } from '@/components/note-card/note-card';
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { PermissionButton, useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   billingAccountBindingKeys,
   createBillingAccountBindingService,

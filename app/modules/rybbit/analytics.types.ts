@@ -10,6 +10,9 @@ export const AnalyticsAction = {
   InviteCollaborator: 'invite_collaborator',
   CreateOrg: 'create_org',
   DownloadDesktopApp: 'download_desktop_app',
+  ContactDetailsSaved: 'contact_details_saved',
+  PaymentDetailsSaved: 'payment_details_saved',
+  FirstProjectView: 'first_project_view',
 } as const;
 
 export type AnalyticsActionName = (typeof AnalyticsAction)[keyof typeof AnalyticsAction];
@@ -23,4 +26,14 @@ export interface AnalyticsIdentity {
 export interface AnalyticsOverrides {
   orgId?: string;
   projectId?: string;
+}
+
+declare global {
+  interface Window {
+    rybbit?: {
+      event: (name: string, properties?: Record<string, unknown>) => void;
+      identify: (userId: string, traits?: Record<string, unknown>) => void;
+      pageview: () => void;
+    };
+  }
 }
