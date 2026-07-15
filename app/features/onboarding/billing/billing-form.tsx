@@ -208,7 +208,7 @@ export const BillingForm = ({
       </OnboardingEntrance>
 
       {isLegacySetupResume && resumeOrgId ? (
-        <BillingLegacyResumeNotice orgId={resumeOrgId} />
+        <BillingLegacyResumeNotice orgId={resumeOrgId} orgDisplayName={orgDisplayName} />
       ) : null}
     </div>
   );
