@@ -1,9 +1,9 @@
-import { DeleteOrganizationDialog } from '@/features/organization/delete-organization-dialog';
 import { HandwritingText } from '@/features/onboarding/components/handwriting-text';
 import {
   OnboardingEntrance,
   OnboardingStagger,
 } from '@/features/onboarding/components/onboarding-entrance';
+import { DeleteOrganizationDialog } from '@/features/organization/delete-organization-dialog';
 import { helpScoutAPI } from '@/modules/helpscout';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { cn } from '@datum-cloud/datum-ui/utils';
