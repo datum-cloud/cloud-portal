@@ -3,13 +3,11 @@ import {
   OnboardingEntrance,
   OnboardingStagger,
 } from '@/features/onboarding/components/onboarding-entrance';
+import { DeleteOrganizationDialog } from '@/features/organization/delete-organization-dialog';
 import { helpScoutAPI } from '@/modules/helpscout';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useCallback, useState } from 'react';
-import { Link } from 'react-router';
 
 const PLATFORM_CHANGES = [
   {
@@ -37,10 +35,17 @@ const linkClassName = 'text-foreground underline underline-offset-2 hover:opacit
 /**
  * Right-hand notice shown to returning users resuming legacy org setup on the
  * onboarding billing page. Explains the platform changes that require them to
- * add a payment method, with escape hatches (deactivate the org, support).
+ * add a payment method, with escape hatches (delete the org, support).
  */
-export const BillingLegacyResumeNotice = ({ orgId }: { orgId: string }) => {
+export const BillingLegacyResumeNotice = ({
+  orgId,
+  orgDisplayName,
+}: {
+  orgId: string;
+  orgDisplayName?: string;
+}) => {
   const [contentVisible, setContentVisible] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const revealContent = useCallback((progress: number) => {
     if (progress >= NOTICE_REVEAL_PROGRESS) {
@@ -77,12 +82,13 @@ export const BillingLegacyResumeNotice = ({ orgId }: { orgId: string }) => {
             <OnboardingStagger visible={contentVisible} index={PLATFORM_CHANGES.length + 1}>
               <p className={bodyTextClassName}>
                 Don’t want to add a payment method? Please click{' '}
-                <Link
-                  to={getPathWithParams(paths.org.detail.settings.general, { orgId })}
+                <button
+                  type="button"
+                  onClick={() => setDeleteDialogOpen(true)}
                   className={linkClassName}>
                   here
-                </Link>{' '}
-                to deactivate your organization. If you need help or have questions, please email{' '}
+                </button>{' '}
+                to delete your organization. If you need help or have questions, please email{' '}
                 <a href="mailto:support@datum.net" className={linkClassName}>
                   support@datum.net
                 </a>{' '}
@@ -99,6 +105,12 @@ export const BillingLegacyResumeNotice = ({ orgId }: { orgId: string }) => {
           </div>
         </CardContent>
       </Card>
+      <DeleteOrganizationDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        orgId={orgId}
+        orgDisplayName={orgDisplayName}
+      />
     </OnboardingEntrance>
   );
 };
