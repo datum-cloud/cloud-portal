@@ -12,6 +12,7 @@ import {
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { OrgBillingSetupForm } from '@/features/organization/billing/org-billing-setup-form';
 import { logger } from '@/modules/logger';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -50,6 +51,7 @@ export const BillingForm = ({
   needsPaymentOnly = false,
 }: BillingFormProps) => {
   const navigate = useNavigate();
+  const { trackAction } = useAnalytics();
   const projectKickoffRef = useRef<string | null>(null);
 
   const completeLegacySetupMutation = useCompleteLegacyOrgSetup({
@@ -160,6 +162,7 @@ export const BillingForm = ({
               partialOrgId={partialOrgId}
               submitLabel={submitLabel}
               onOrgProvisioned={({ orgId, accountName, contactInfo }) => {
+                trackAction(AnalyticsAction.ContactDetailsSaved, { orgId });
                 kickOffDefaultProject({
                   orgId,
                   billingAccountName: accountName,
@@ -167,6 +170,8 @@ export const BillingForm = ({
                 });
               }}
               onComplete={async ({ orgId, accountName, contactInfo }) => {
+                trackAction(AnalyticsAction.PaymentDetailsSaved, { orgId });
+
                 if (isLegacySetupResume) {
                   const result = await completeLegacySetupMutation.mutateAsync({
                     orgId,

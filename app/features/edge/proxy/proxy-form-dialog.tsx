@@ -1,6 +1,6 @@
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   type HttpProxySchema,
   httpProxySchema,

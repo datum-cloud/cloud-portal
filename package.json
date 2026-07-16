@@ -76,7 +76,6 @@
     "date-fns-tz": "^3.2.0",
     "dotenv": "^17.4.2",
     "es-toolkit": "^1.48.1",
-    "fathom-client": "^3.7.2",
     "graphql": "^16.14.2",
     "hono": "^4.12.26",
     "hono-rate-limiter": "^0.5.3",

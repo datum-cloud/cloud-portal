@@ -1,15 +1,19 @@
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
+import { useNonce } from '@/hooks/useNonce';
 import { HelpScoutBeacon } from '@/modules/helpscout';
-import { AppProvider } from '@/providers/app.provider';
+import { RybbitProvider } from '@/modules/rybbit';
+import { AppProvider, useApp } from '@/providers/app.provider';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
+import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
 import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { resolveUserFraudRedirectPath } from '@/utils/middlewares/fraud-redirect';
 import { createHmac } from 'crypto';
+import type { ReactNode } from 'react';
 import { type LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -103,12 +107,33 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 };
 
+function RybbitWrapper({ children }: { children: ReactNode }) {
+  const { user } = useApp();
+  const nonce = useNonce();
+
+  if (!env.public.rybbitSiteId) {
+    return <>{children}</>;
+  }
+
+  return (
+    <RybbitProvider
+      siteId={env.public.rybbitSiteId}
+      tag={env.public.rybbitTag}
+      nonce={nonce}
+      identity={user?.sub ? { sub: user.sub, email: user.email, name: user.fullName } : null}>
+      {children}
+    </RybbitProvider>
+  );
+}
+
 export default function OnboardingRouteLayout() {
   const { user, helpscoutBeaconId, helpscoutSignature } = useLoaderData<typeof loader>();
 
   return (
     <AppProvider initialUser={user}>
-      <Outlet />
+      <RybbitWrapper>
+        <Outlet />
+      </RybbitWrapper>
 
       {helpscoutBeaconId && helpscoutSignature ? (
         <HelpScoutBeacon

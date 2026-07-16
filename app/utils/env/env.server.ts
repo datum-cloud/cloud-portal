@@ -69,7 +69,8 @@ const publicSchema = z.object({
   // ─────────────────────────────────────────────────────────
   // Optional: Analytics & Support (graceful degradation)
   // ─────────────────────────────────────────────────────────
-  FATHOM_ID: z.string().optional(),
+  RYBBIT_SITE_ID: z.string().optional(),
+  RYBBIT_TAG: z.string().optional(),
   HELPSCOUT_BEACON_ID: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
@@ -198,7 +199,8 @@ export const env: Env = {
     authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
     sentryEnv: data.SENTRY_ENV,
-    fathomId: data.FATHOM_ID,
+    rybbitSiteId: data.RYBBIT_SITE_ID,
+    rybbitTag: data.RYBBIT_TAG,
     helpscoutBeaconId: data.HELPSCOUT_BEACON_ID,
     logLevel: data.LOG_LEVEL ?? (data.NODE_ENV === 'production' ? 'info' : 'debug'),
     logFormat: data.LOG_FORMAT ?? (data.NODE_ENV === 'production' ? 'json' : 'pretty'),
