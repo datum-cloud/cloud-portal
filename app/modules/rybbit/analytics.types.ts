@@ -21,6 +21,9 @@ export interface AnalyticsIdentity {
   sub: string;
   orgId?: string;
   projectId?: string;
+  /** Special-cased in Rybbit's dashboard — see rybbit.com/docs/identify-users. */
+  email?: string;
+  name?: string;
 }
 
 export interface AnalyticsOverrides {
@@ -33,6 +36,7 @@ declare global {
     rybbit?: {
       event: (name: string, properties?: Record<string, unknown>) => void;
       identify: (userId: string, traits?: Record<string, unknown>) => void;
+      clearUserId: () => void;
       pageview: () => void;
     };
   }

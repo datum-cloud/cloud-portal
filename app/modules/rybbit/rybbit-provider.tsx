@@ -17,9 +17,20 @@ export function RybbitProvider({
   identity: AnalyticsIdentity | null;
 }) {
   useEffect(() => {
-    if (typeof window === 'undefined' || !identity?.sub) return;
-    window.rybbit?.identify(identity.sub);
-  }, [identity?.sub]);
+    if (typeof window === 'undefined') return;
+    if (!identity?.sub) {
+      window.rybbit?.clearUserId();
+      return;
+    }
+    const traits: Record<string, unknown> = {};
+    if (identity.email) traits.email = identity.email;
+    if (identity.name) traits.name = identity.name;
+    if (Object.keys(traits).length > 0) {
+      window.rybbit?.identify(identity.sub, traits);
+    } else {
+      window.rybbit?.identify(identity.sub);
+    }
+  }, [identity?.sub, identity?.email, identity?.name]);
 
   return (
     <AnalyticsContext.Provider value={identity}>

@@ -109,7 +109,17 @@ function RybbitWrapper({ children }: { children: ReactNode }) {
       siteId={env.public.rybbitSiteId}
       tag={env.public.rybbitTag}
       nonce={nonce}
-      identity={user?.sub ? { sub: user.sub, orgId, projectId: project?.name } : null}>
+      identity={
+        user?.sub
+          ? {
+              sub: user.sub,
+              orgId,
+              projectId: project?.name,
+              email: user.email,
+              name: user.fullName,
+            }
+          : null
+      }>
       {children}
     </RybbitProvider>
   );
