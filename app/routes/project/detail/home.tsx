@@ -6,6 +6,7 @@ import { AIEdgeIllustration } from '@/features/project/illustrations/ai-edge';
 import { DnsIllustration } from '@/features/project/illustrations/dns';
 import { DomainIllustration } from '@/features/project/illustrations/domain';
 import { MetricsIllustration } from '@/features/project/illustrations/metrics';
+import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { useResourcePermissions } from '@/modules/rbac';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
@@ -311,6 +312,9 @@ export default function ProjectHomePage() {
           </Col>
         ))}
       </Row>
+
+      {/* Plugin-contributed project-home cards (portal.card/project-home) */}
+      <ProjectHomePluginCards projectId={projectName} />
 
       {/* Community */}
       <Row className="shrink-0">

@@ -96,6 +96,12 @@ export const paths = {
     detail: {
       root: '/project/[projectId]',
       home: '/project/[projectId]/home',
+      // Service plugins mount. `plugin` is the per-plugin base; plugin page
+      // paths append to it (`/project/[projectId]/services/[serviceSlug]/...`).
+      services: {
+        root: '/project/[projectId]/services',
+        plugin: '/project/[projectId]/services/[serviceSlug]',
+      },
       secrets: {
         root: '/project/[projectId]/secrets',
         detail: {
