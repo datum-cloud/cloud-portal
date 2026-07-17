@@ -33,7 +33,7 @@ function windowDuration(ctx: QueryBuilderContext): string {
 // A counter reset inside the range makes increase() extrapolate a bogus,
 // wildly inflated delta. Zero out any window where a reset occurred instead
 // of reporting it.
-function resetGuardedIncrease(metric: string, selector: string, window: string): string {
+export function resetGuardedIncrease(metric: string, selector: string, window: string): string {
   const series = `${metric}${selector}`;
   return `(increase(${series}[${window}]) * (resets(${series}[${window}]) == bool 0))`;
 }
