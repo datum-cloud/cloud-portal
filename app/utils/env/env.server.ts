@@ -82,6 +82,11 @@ const publicSchema = z.object({
     .optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Google Maps / Places (browser key)
+  // ─────────────────────────────────────────────────────────
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
   // ─────────────────────────────────────────────────────────
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
@@ -222,6 +227,7 @@ export const env: Env = {
     otelEnabled: data.OTEL_ENABLED === true && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: data.OTEL_LOG_LEVEL,
     chatbotEnabled: data.CHATBOT_ENABLED === true,
+    googleMapsApiKey: data.GOOGLE_MAPS_API_KEY || undefined,
   },
   server: {
     sessionSecret: data.SESSION_SECRET,

@@ -117,7 +117,8 @@ app.use(
         'https://*.helpscout.net',
         'https://app.rybbit.io', // Rybbit
         'https://api.stripe.com',
-        'https://maps.googleapis.com', // AddressElement autocomplete
+        'https://maps.googleapis.com', // Maps JS / legacy Places
+        'https://places.googleapis.com', // Places API (New) autocomplete RPC
       ],
       fontSrc: [
         "'self'",
@@ -151,6 +152,8 @@ app.use(
         "'strict-dynamic'",
         "'self'",
         NONCE,
+        'https://maps.googleapis.com',
+        'https://*.gstatic.com',
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],
       scriptSrcElem: [
@@ -159,6 +162,8 @@ app.use(
         'https://js.sentry-cdn.com',
         'https://browser.sentry-cdn.com',
         'https://js.stripe.com',
+        'https://maps.googleapis.com',
+        'https://*.gstatic.com',
         NONCE,
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],

@@ -136,16 +136,30 @@ export function useDeleteDnsRecord(
     ...options,
     onSuccess: async (...args) => {
       const [, input] = args;
-      // Cancel in-flight queries for the deleted record
       await queryClient.cancelQueries({
         queryKey: dnsRecordKeys.detail(projectId, input.recordSetName),
       });
 
+      // Optimistically drop the flattened row so the table updates immediately.
+      // removeRecord may PATCH or DELETE the RecordSet; either way the matching
+      // flattened row should disappear now rather than waiting on watch/refetch.
+      queryClient.setQueryData<FlattenedDnsRecord[]>(
+        dnsRecordKeys.list(projectId, dnsZoneId),
+        (old) => {
+          if (!old) return old;
+          return old.filter((record) => {
+            if (record.recordSetName !== input.recordSetName) return true;
+            if (record.type !== input.recordType) return true;
+            if (record.name !== input.name) return true;
+            if (record.value !== input.value) return true;
+            const recordTtl = record.ttl ?? null;
+            const inputTtl = input.ttl ?? null;
+            return recordTtl !== inputTtl;
+          });
+        }
+      );
+
       options?.onSuccess?.(...args);
-    },
-    onSettled: () => {
-      // Fallback: invalidate list cache in case watch doesn't trigger
-      queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
 }
