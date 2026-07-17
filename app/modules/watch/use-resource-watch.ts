@@ -198,8 +198,33 @@ export function useResourceWatch<T>({
             if (name) {
               // Single resource: remove from cache
               queryClient.removeQueries({ queryKey: queryKeyRef.current });
+            } else if (getItemKeyRef.current) {
+              // List with key extractor: remove in-place (no network call)
+              queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {
+                if (!oldData) return oldData;
+                const itemKey = getItemKeyRef.current!(transformedEvent.object);
+
+                if (Array.isArray(oldData)) {
+                  return oldData.filter((item: T) => getItemKeyRef.current!(item) !== itemKey);
+                }
+
+                // Paginated { items: T[] } shape
+                if (
+                  typeof oldData === 'object' &&
+                  oldData !== null &&
+                  Array.isArray((oldData as { items?: unknown }).items)
+                ) {
+                  const list = oldData as { items: T[] };
+                  return {
+                    ...list,
+                    items: list.items.filter((item) => getItemKeyRef.current!(item) !== itemKey),
+                  };
+                }
+
+                return oldData;
+              });
             } else {
-              // List: debounced invalidate to batch multiple events
+              // List without key extractor: fallback to invalidate
               debouncedInvalidate();
             }
             break;

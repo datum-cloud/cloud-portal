@@ -66,8 +66,23 @@ export function useUpdateProject(
     ...options,
     onSuccess: (...args) => {
       const [data] = args;
-      // Update detail cache with server response - Watch handles list sync
+      // Update detail cache with server response
       queryClient.setQueryData(projectKeys.detail(name), data);
+
+      // Patch any cached org project lists so switchers/tables don't keep the
+      // old display name until the next refetch (list watches are not always mounted).
+      if (data.organizationId) {
+        queryClient.setQueriesData<ProjectList>(
+          { queryKey: [...projectKeys.lists(), data.organizationId] },
+          (old) => {
+            if (!old?.items) return old;
+            return {
+              ...old,
+              items: old.items.map((item) => (item.name === data.name ? data : item)),
+            };
+          }
+        );
+      }
 
       options?.onSuccess?.(...args);
     },

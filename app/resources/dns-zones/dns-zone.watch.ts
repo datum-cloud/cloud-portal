@@ -31,9 +31,16 @@ export function useDnsZonesWatch(projectId: string, options?: { enabled?: boolea
     queryKey: dnsZoneKeys.list(projectId),
     transform: (item) => toDnsZone(item as ComMiloapisNetworkingDnsV1Alpha1DnsZone),
     enabled: options?.enabled ?? true,
-    // In-place cache update for MODIFIED events (avoids full list refetch)
+    // In-place cache update for MODIFIED events (avoids full list refetch).
+    // List queries store a plain DnsZone[] (not DnsZoneList).
     getItemKey: (zone) => zone.name,
     updateListCache: (oldData, newItem) => {
+      if (Array.isArray(oldData)) {
+        const list = oldData as DnsZone[];
+        const idx = list.findIndex((z) => z.name === newItem.name);
+        if (idx === -1) return [...list, newItem];
+        return list.map((z) => (z.name === newItem.name ? newItem : z));
+      }
       const old = oldData as DnsZoneList;
       return {
         ...old,

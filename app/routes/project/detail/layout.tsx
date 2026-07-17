@@ -58,6 +58,25 @@ import {
 } from 'react-router';
 
 /**
+ * Live project name for breadcrumbs. Loader data stays frozen under
+ * skipRevalidateWithinSameProject, so prefer the app project (kept in sync
+ * with React Query). Falls back to loader snapshot when unset.
+ */
+function ProjectBreadcrumbLabel({
+  fallbackDisplayName,
+  fallbackName,
+}: {
+  fallbackDisplayName?: string;
+  fallbackName?: string;
+}) {
+  const { project } = useApp();
+  return (
+    <span>
+      {project?.displayName ?? project?.name ?? fallbackDisplayName ?? fallbackName ?? 'Project'}
+    </span>
+  );
+}
+/**
  * Companion data attached to the project-detail loader envelope. Both companions
  * are tolerant of permission/fetch failures — denial leaves the flags at safe
  * defaults so the rest of the layout can still render.
@@ -242,7 +261,9 @@ const route = defineResourceRoute<Project, ProjectLayoutCompanions>({
   notFoundLabel: 'Project',
   restrictedTitle: RESTRICTED_TITLE,
   restrictedMessage: RESTRICTED_MESSAGE,
-  breadcrumb: ({ data }) => <span>{data?.displayName ?? data?.name ?? 'Project'}</span>,
+  breadcrumb: ({ data }) => (
+    <ProjectBreadcrumbLabel fallbackDisplayName={data?.displayName} fallbackName={data?.name} />
+  ),
   metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Project',
 });
 
