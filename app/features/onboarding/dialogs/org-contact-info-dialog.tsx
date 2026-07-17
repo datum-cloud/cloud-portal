@@ -1,4 +1,4 @@
-import { BILLING_COUNTRIES, BILLING_PRIORITY_COUNTRY_CODES } from '@/features/billing/constants';
+import { AddressFields } from '@/features/address/address-fields';
 import {
   buildOrgContactDefaults,
   orgContactInfoSchema,
@@ -7,8 +7,6 @@ import {
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { SelectSeparator } from '@datum-cloud/datum-ui/select';
-import { useMemo } from 'react';
 
 interface OrgContactInfoDialogProps {
   open: boolean;
@@ -26,22 +24,6 @@ export const OrgContactInfoDialog = ({
   isSaving = false,
 }: OrgContactInfoDialogProps) => {
   const onClose = () => onOpenChange(false);
-
-  const { priorityItems, otherItems } = useMemo(() => {
-    const prioritySet = new Set<string>(BILLING_PRIORITY_COUNTRY_CODES);
-    const priority: typeof BILLING_COUNTRIES = [];
-    const others: typeof BILLING_COUNTRIES = [];
-    for (const country of BILLING_COUNTRIES) {
-      if (prioritySet.has(country.value)) {
-        priority.push(country);
-      } else {
-        others.push(country);
-      }
-    }
-    return { priorityItems: priority, otherItems: others };
-  }, []);
-
-  const showCountrySeparator = priorityItems.length > 0 && otherItems.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -78,42 +60,7 @@ export const OrgContactInfoDialog = ({
               <Form.Input placeholder="e.g. Acme Corp Ltd" autoComplete="organization" />
             </Form.Field>
 
-            <Form.Field name="country" label="Country or region">
-              <Form.Select placeholder="Select a country">
-                {priorityItems.map((country) => (
-                  <Form.SelectItem key={country.value} value={country.value}>
-                    {country.label}
-                  </Form.SelectItem>
-                ))}
-                {showCountrySeparator && <SelectSeparator />}
-                {otherItems.map((country) => (
-                  <Form.SelectItem key={country.value} value={country.value}>
-                    {country.label}
-                  </Form.SelectItem>
-                ))}
-              </Form.Select>
-            </Form.Field>
-
-            <Form.Field name="line1" label="Address line 1">
-              <Form.Input autoComplete="address-line1" />
-            </Form.Field>
-
-            <Form.Field name="line2" label="Address line 2">
-              <Form.Input autoComplete="address-line2" />
-            </Form.Field>
-
-            <div className="flex w-full flex-col gap-4 sm:flex-row">
-              <Form.Field name="city" label="City" className="sm:w-1/2">
-                <Form.Input autoComplete="address-level2" />
-              </Form.Field>
-              <Form.Field name="region" label="State / Region" className="sm:w-1/2">
-                <Form.Input autoComplete="address-level1" />
-              </Form.Field>
-            </div>
-
-            <Form.Field name="postalCode" label="Postal code" className="max-w-xs">
-              <Form.Input autoComplete="postal-code" />
-            </Form.Field>
+            <AddressFields dataE2ePrefix="org-contact" />
           </Dialog.Body>
           <Dialog.Footer className="border-t">
             <Button htmlType="button" type="quaternary" theme="outline" onClick={onClose}>
