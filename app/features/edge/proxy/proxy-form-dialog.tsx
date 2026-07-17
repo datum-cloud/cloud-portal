@@ -119,7 +119,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
                 <div className="relative space-y-2">
                   <div className="flex w-full items-center justify-between gap-2">
                     <label htmlFor={field.id} className="text-foreground/80 text-xs font-semibold">
-                      Name {meta.required && <span className="text-destructive/80">*</span>}
+                      Display name {meta.required && <span className="text-destructive/80">*</span>}
                     </label>
                   </div>
                   <Form.Input

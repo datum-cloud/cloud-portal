@@ -99,8 +99,14 @@ export function useDeleteDnsZone(
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;
-      // Cancel in-flight queries - Watch handles list update
       await queryClient.cancelQueries({ queryKey: dnsZoneKeys.detail(projectId, name) });
+      // Optimistically remove from list caches so the table updates immediately
+      // (watch DELETED events are debounced and can lag behind the API response).
+      queryClient.setQueriesData<DnsZone[]>(
+        { queryKey: [...dnsZoneKeys.lists(), projectId] },
+        (old) => (old ? old.filter((zone) => zone.name !== name) : old)
+      );
+      queryClient.removeQueries({ queryKey: dnsZoneKeys.detail(projectId, name) });
 
       options?.onSuccess?.(...args);
     },
