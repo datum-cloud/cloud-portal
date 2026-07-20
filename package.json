@@ -39,6 +39,7 @@
     "@googlemaps/js-api-loader": "^2.1.1",
     "@gqlts/runtime": "^3.4.2",
     "@hono/prometheus": "^1.0.3",
+    "@module-federation/runtime": "^2.7.0",
     "@monaco-editor/react": "^4.7.0",
     "@openfeature/server-sdk": "^1.22.0",
     "@opentelemetry/auto-instrumentations-node": "^0.78.0",

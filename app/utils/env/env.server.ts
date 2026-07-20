@@ -167,6 +167,18 @@ const serverSchema = z.object({
   REDIS_CONNECT_TIMEOUT: z.coerce.number().int().positive().default(5000),
   REDIS_COMMAND_TIMEOUT: z.coerce.number().int().positive().default(3000),
   REDIS_KEY_PREFIX: z.string().default('cloud-portal:'),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Portal Plugin System (dev-only)
+  //
+  // These are development-only plugin-loading vectors — they are ignored
+  // unless NODE_ENV=development. See docs/enhancements/portal-plugin-system.md.
+  //   PORTAL_PLUGINS: "<slug>=<url>,…" static dev-override registry entries.
+  //   PORTAL_PLUGINS_JSON: JSON array of spec-shaped entries; takes
+  //     precedence over PORTAL_PLUGINS on slug collision.
+  // ─────────────────────────────────────────────────────────
+  PORTAL_PLUGINS: z.string().optional(),
+  PORTAL_PLUGINS_JSON: z.string().optional(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -243,6 +255,9 @@ export const env: Env = {
     redisConnectTimeout: data.REDIS_CONNECT_TIMEOUT,
     redisCommandTimeout: data.REDIS_COMMAND_TIMEOUT,
     redisKeyPrefix: data.REDIS_KEY_PREFIX,
+    // Portal Plugin System (dev-only)
+    portalPlugins: data.PORTAL_PLUGINS,
+    portalPluginsJson: data.PORTAL_PLUGINS_JSON,
   },
   isProd: data.NODE_ENV === 'production',
   isDev: data.NODE_ENV === 'development',
