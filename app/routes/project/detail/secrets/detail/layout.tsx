@@ -5,6 +5,7 @@ import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { createSecretService, secretKeys, type Secret } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
 import { useMemo } from 'react';
 import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
@@ -35,6 +36,8 @@ export const loader = (args: LoaderFunctionArgs) =>
 
 export const handle = route.handle;
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProjectResource('secretId');
 
 export default route.Page(({ data: secret }) => {
   const { projectId, secretId } = useParams();

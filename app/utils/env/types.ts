@@ -29,11 +29,15 @@ export interface PublicEnv {
   otelLogLevel?: 'debug' | 'info' | 'warn' | 'error';
 
   // Optional: Analytics & Support
-  fathomId?: string;
+  rybbitSiteId?: string;
+  rybbitTag?: string;
   helpscoutBeaconId?: string;
 
   // Feature Flags
   chatbotEnabled: boolean;
+
+  // Optional: Google Maps / Places (browser key; HTTP-referrer restricted)
+  googleMapsApiKey?: string;
 
   // Logging (always has defaults)
   logLevel: 'debug' | 'info' | 'warn' | 'error';

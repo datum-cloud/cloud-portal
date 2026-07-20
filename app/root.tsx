@@ -150,13 +150,14 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
 
         <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
         <ScrollRestoration nonce={nonce} />
-        <Scripts nonce={nonce} />
+        {/* ENV must be set before module Scripts so client `@/utils/env` can read it. */}
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `window.ENV = ${JSON.stringify(data?.ENV)}`,
           }}
         />
+        <Scripts nonce={nonce} />
       </body>
     </html>
   );
@@ -222,6 +223,31 @@ export default function AppWithProviders() {
       stopProgress();
     }
   }, [state]);
+
+  // Global safety net for a Radix limitation: `@radix-ui/react-dismissable-layer`
+  // stores the body's original `pointer-events` in a single module-level global
+  // shared across independent modal layers. Opening a modal Dialog while another
+  // modal layer (e.g. a Popover/dropdown) is still open corrupts that value to
+  // "none", so on close the body stays `pointer-events: none` and the entire app
+  // becomes unclickable. When the body is stuck at "none" while no Radix modal
+  // layer is actually open, clear it so interaction is restored.
+  // TODO: Remove once fixed centrally in @datum-cloud/datum-ui's Dialog (the
+  // library is under audit; this guard is the interim app-wide fix).
+  useEffect(() => {
+    const body = document.body;
+    const clearIfStuck = () => {
+      if (body.style.pointerEvents !== 'none') return;
+      const modalLayerOpen = document.querySelector(
+        '[data-radix-popper-content-wrapper], [role="dialog"][data-state="open"], [role="alertdialog"][data-state="open"]'
+      );
+      if (!modalLayerOpen) {
+        body.style.pointerEvents = '';
+      }
+    };
+    const observer = new MutationObserver(clearIfStuck);
+    observer.observe(body, { attributes: true, attributeFilter: ['style'] });
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <Document nonce={nonce}>

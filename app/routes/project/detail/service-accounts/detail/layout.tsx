@@ -12,6 +12,7 @@ import {
 } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { type LoaderFunctionArgs, Outlet, useNavigate, useParams } from 'react-router';
@@ -43,6 +44,8 @@ export const loader = (args: LoaderFunctionArgs) =>
 
 export const handle = route.handle;
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProjectResource('serviceAccountId');
 
 export type ServiceAccountDetailContext = {
   account: ServiceAccount;

@@ -448,6 +448,45 @@ describe('runDetailLoader', () => {
 });
 
 describe('runDetailLoader > companions', () => {
+  test('user-scope companion gate passes URL param as check.name', async () => {
+    const gateCalls: Array<{ resource: string; name?: string }> = [];
+    gateRouteAccessSpy.mockImplementation((async (
+      _org: string,
+      check: { resource: string; name?: string }
+    ) => {
+      gateCalls.push({ resource: check.resource, name: check.name });
+      return true;
+    }) as unknown as () => Promise<boolean>);
+
+    const response = await runDetailLoader(makeArgs({ orgId: 'org-wwxjm' }), {
+      resource: 'organizations',
+      group: 'resourcemanager.miloapis.com',
+      scope: 'user',
+      paramName: 'orgId',
+      notFoundLabel: 'Organization',
+      fetch: async () => ({ name: 'org-wwxjm' }),
+      companions: {
+        billingEnabled: {
+          resource: 'organizations',
+          group: 'resourcemanager.miloapis.com',
+          verb: 'get',
+          scope: 'user',
+          onError: 'tolerate',
+          fetch: async () => true,
+        },
+      },
+    });
+
+    expect(asAny(response).data).toMatchObject({
+      restricted: false,
+      companions: { billingEnabled: true },
+    });
+    expect(gateCalls).toEqual([
+      { resource: 'organizations', name: 'org-wwxjm' },
+      { resource: 'organizations', name: 'org-wwxjm' },
+    ]);
+  });
+
   test('companion fetch succeeds → returned alongside primary data', async () => {
     gateRouteAccessSpy.mockImplementation(async () => true);
 

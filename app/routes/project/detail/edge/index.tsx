@@ -27,6 +27,8 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -54,6 +56,12 @@ export const loader = (args: LoaderFunctionArgs) =>
     fetch: ({ projectId }) => createHttpProxyService().list(projectId!),
   });
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoaderFromQueryKey<HttpProxy[]>((projectId) =>
+  httpProxyKeys.list(projectId)
+);
 
 export default route.Page(({ data: initialProxies }) => (
   <HttpProxyInner initialProxies={initialProxies} />

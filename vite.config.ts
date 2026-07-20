@@ -119,7 +119,7 @@ export default defineConfig(async (config): Promise<UserConfig> => {
       alias: aliases,
     },
     server: {
-      port: 3000,
+      port: process.env.PORT ? Number(process.env.PORT) : 3000,
     },
     optimizeDeps: {
       include: [

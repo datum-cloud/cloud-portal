@@ -24,7 +24,9 @@ import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
+import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { RbacProvider, usePermission } from '@/modules/rbac';
+import { buildContactAddressPrefill } from '@/modules/stripe';
 import { useApp } from '@/providers/app.provider';
 import {
   createBillingAccountBindingService,
@@ -111,6 +113,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     .list()
     .catch(() => ({ items: [], nextCursor: null, hasMore: false }));
   const orgIds = orgsResult.items.map((o) => o.name);
+  await requireBillingForAnyOrg(orgIds);
 
   // Per-org fan-out to find the account. The URL only has the bare
   // resource id, so we walk each org the user is in until we hit a
@@ -743,6 +746,11 @@ function AccountBillingAccountDetailPageInner() {
             paymentMethods={paymentMethods}
             billingAccount={account}
             stripePublishableKey={stripePublishableKey}
+            billingDetailsPrefill={{
+              email: contactInfo?.email,
+              name: contactInfo?.name,
+              address: buildContactAddressPrefill(address),
+            }}
             onCreatePaymentMethod={createPaymentMethod}
             onPaymentMethodConfirmed={handleConfirmed}
             onSetAsDefault={handleSetDefaultPaymentMethod}

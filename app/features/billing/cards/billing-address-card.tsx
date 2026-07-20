@@ -1,16 +1,12 @@
-import {
-  BILLING_COUNTRIES,
-  BILLING_PRIORITY_COUNTRY_CODES,
-  BUSINESS_TAX_ID_TYPES,
-} from '@/features/billing/constants';
+import { AddressFields } from '@/features/address/address-fields';
+import { BILLING_COUNTRIES, BUSINESS_TAX_ID_TYPES } from '@/features/billing/constants';
 import type { BillingAddress, TaxID } from '@/features/billing/types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Form, useFormContext } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
-import { useMemo, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { z } from 'zod';
 
 /**
@@ -166,28 +162,6 @@ export const BillingAddressFieldsCard = ({
   // the `<Form.Root>` render-prop signature.
   const { reset } = useFormContext();
 
-  // Split the incoming country list into the "priority" markets (US, UK,
-  // Western Europe, …) and the alphabetical rest so we can render a
-  // `<SelectSeparator>` between them. When a consumer passes a custom
-  // `countries` list that doesn't overlap with the priority set (e.g. an
-  // EU-only filter), `priorityItems` is empty and the separator is
-  // skipped automatically — the picker renders as a flat list.
-  const { priorityItems, otherItems } = useMemo(() => {
-    const prioritySet = new Set<string>(BILLING_PRIORITY_COUNTRY_CODES);
-    const priority: typeof countries = [];
-    const others: typeof countries = [];
-    for (const country of countries) {
-      if (prioritySet.has(country.value)) {
-        priority.push(country);
-      } else {
-        others.push(country);
-      }
-    }
-    return { priorityItems: priority, otherItems: others };
-  }, [countries]);
-
-  const showCountrySeparator = priorityItems.length > 0 && otherItems.length > 0;
-
   return (
     <Card className="gap-0 rounded-xl py-0 shadow-none">
       <CardContent className="space-y-5 px-5 py-4">
@@ -196,7 +170,7 @@ export const BillingAddressFieldsCard = ({
           label="Contact name"
           description="Person we should talk to about this account. Appears as the “ATTN:” line on invoices when a business name is also set."
           className="max-w-md">
-          <Form.Input placeholder="e.g. Jane Doe" autoComplete="name" />
+          <Form.Input autoComplete="name" />
         </Form.Field>
 
         <Form.Field
@@ -204,45 +178,10 @@ export const BillingAddressFieldsCard = ({
           label="Business name"
           description="Legal entity that pays. Leave blank for personal accounts; we'll print this on invoices for B2B billing."
           className="max-w-md">
-          <Form.Input placeholder="e.g. Acme Holdings Ltd" autoComplete="organization" />
+          <Form.Input autoComplete="organization" />
         </Form.Field>
 
-        <Form.Field name="country" label="Country or region" required className="max-w-md">
-          <Form.Select placeholder="Select a country">
-            {priorityItems.map((country) => (
-              <Form.SelectItem key={country.value} value={country.value}>
-                {country.label}
-              </Form.SelectItem>
-            ))}
-            {showCountrySeparator && <SelectSeparator />}
-            {otherItems.map((country) => (
-              <Form.SelectItem key={country.value} value={country.value}>
-                {country.label}
-              </Form.SelectItem>
-            ))}
-          </Form.Select>
-        </Form.Field>
-
-        <Form.Field name="line1" label="Address line 1">
-          <Form.Input placeholder="Street and number" autoComplete="address-line1" />
-        </Form.Field>
-
-        <Form.Field name="line2" label="Address line 2">
-          <Form.Input placeholder="Apartment, suite, building" autoComplete="address-line2" />
-        </Form.Field>
-
-        <div className="flex w-full flex-col gap-4 sm:flex-row">
-          <Form.Field name="city" label="City" className="sm:w-1/2">
-            <Form.Input placeholder="e.g. London" autoComplete="address-level2" />
-          </Form.Field>
-          <Form.Field name="region" label="State / Region" className="sm:w-1/2">
-            <Form.Input placeholder="e.g. England" autoComplete="address-level1" />
-          </Form.Field>
-        </div>
-
-        <Form.Field name="postalCode" label="Postal code" className="max-w-xs">
-          <Form.Input placeholder="e.g. SW1A 1AA" autoComplete="postal-code" />
-        </Form.Field>
+        <AddressFields countries={countries} countryRequired dataE2ePrefix="billing-address" />
 
         <div className="border-border space-y-3 border-t pt-5">
           <div className="flex flex-col gap-1">

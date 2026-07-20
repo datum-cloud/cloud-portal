@@ -108,9 +108,10 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
-        'https://*.usefathom.com', // Fathom
+        'https://app.rybbit.io', // Rybbit
         'https://api.stripe.com',
-        'https://maps.googleapis.com', // AddressElement autocomplete
+        'https://maps.googleapis.com', // Maps JS / legacy Places
+        'https://places.googleapis.com', // Places API (New) autocomplete RPC
       ],
       fontSrc: [
         "'self'",
@@ -125,7 +126,6 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
-        'https://*.usefathom.com', // Fathom
         'https://js.stripe.com',
         'https://hooks.stripe.com',
       ],
@@ -138,7 +138,6 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
         'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
-        'https://*.usefathom.com', // Fathom
         'https://*.stripe.com',
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
@@ -146,6 +145,8 @@ app.use(
         "'strict-dynamic'",
         "'self'",
         NONCE,
+        'https://maps.googleapis.com',
+        'https://*.gstatic.com',
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],
       scriptSrcElem: [
@@ -154,6 +155,8 @@ app.use(
         'https://js.sentry-cdn.com',
         'https://browser.sentry-cdn.com',
         'https://js.stripe.com',
+        'https://maps.googleapis.com',
+        'https://*.gstatic.com',
         NONCE,
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],

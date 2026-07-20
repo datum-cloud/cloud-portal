@@ -578,6 +578,63 @@ describe('toUpdateHttpProxyPayload — hostHeader', () => {
   });
 });
 
+describe('toUpdateHttpProxyPayload — tlsHostname', () => {
+  const currentProxy = {
+    uid: 'uid-1',
+    name: 'test-proxy',
+    resourceVersion: '1',
+    createdAt: new Date(),
+    endpoint: 'https://api.example.com',
+    chosenName: '',
+    enableHttpRedirect: false,
+    hostnames: ['app.example.com'],
+  };
+
+  it('writes tlsHostname when updating hostnames without changing endpoint', () => {
+    const payload = toUpdateHttpProxyPayload(
+      { hostnames: ['app.example.com'], tlsHostname: 'secure.example.com' },
+      currentProxy
+    );
+    const rules = payload.spec?.rules ?? [];
+    const backendRule = rules.find((r) => 'backends' in r) as {
+      backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+    };
+    expect(payload.spec?.hostnames).to.deep.equal(['app.example.com']);
+    expect(backendRule?.backends?.[0].tls?.hostname).to.equal('secure.example.com');
+  });
+
+  it('writes tlsHostname when only tlsHostname is provided', () => {
+    const payload = toUpdateHttpProxyPayload({ tlsHostname: 'sni.example.com' }, currentProxy);
+    const rules = payload.spec?.rules ?? [];
+    const backendRule = rules.find((r) => 'backends' in r) as {
+      backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+    };
+    expect(backendRule?.backends?.[0].endpoint).to.equal('https://api.example.com');
+    expect(backendRule?.backends?.[0].tls?.hostname).to.equal('sni.example.com');
+  });
+
+  it('preserves existing tlsHostname when updating hostnames only', () => {
+    const proxyWithTls = { ...currentProxy, tlsHostname: 'existing-sni.example.com' };
+    const payload = toUpdateHttpProxyPayload({ hostnames: ['other.example.com'] }, proxyWithTls);
+    // hostnames-only update must not rebuild rules (avoids clobbering unrelated fields)
+    expect(payload.spec?.hostnames).to.deep.equal(['other.example.com']);
+    expect(payload.spec?.rules).to.equal(undefined);
+  });
+
+  it('clears tlsHostname when an empty string is provided', () => {
+    const proxyWithTls = { ...currentProxy, tlsHostname: 'existing-sni.example.com' };
+    const payload = toUpdateHttpProxyPayload(
+      { hostnames: ['app.example.com'], tlsHostname: '' },
+      proxyWithTls
+    );
+    const rules = payload.spec?.rules ?? [];
+    const backendRule = rules.find((r) => 'backends' in r) as {
+      backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+    };
+    expect(backendRule?.backends?.[0].tls).to.equal(undefined);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Round-trip parity
 // ---------------------------------------------------------------------------

@@ -9,7 +9,11 @@ export const paths = {
   home: '/',
   gettingStarted: '/getting-started',
   onboarding: {
-    completeProfile: '/complete-profile',
+    root: '/onboarding',
+    profile: '/onboarding/profile',
+    account: '/onboarding/account',
+    billing: '/onboarding/billing',
+    provisioning: '/onboarding/provisioning',
   },
   fraud: {
     verifying: '/verifying',
@@ -49,6 +53,9 @@ export const paths = {
     root: '/org',
     detail: {
       root: '/org/[orgId]',
+      // Shown when an org still needs billing setup but the current user is not
+      // an owner — they can't complete setup, so we point them at the owners.
+      setupRequired: '/org/[orgId]/setup-required',
       team: {
         root: '/org/[orgId]/team',
         invite: '/org/[orgId]/team/invite',

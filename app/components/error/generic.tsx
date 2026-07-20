@@ -1,11 +1,33 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { paths } from '@/utils/config/paths.config';
-import { Button } from '@datum-cloud/datum-ui/button';
+import { Button, buttonVariants } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { BuildingIcon, RefreshCcwIcon } from 'lucide-react';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { BuildingIcon, FolderIcon, RefreshCcwIcon } from 'lucide-react';
 // import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
+
+/**
+ * When a specific organization or project can't be found, the primary action
+ * should drop the user on the relevant list rather than the home page. We infer
+ * the resource type from the not-found message (`NotFoundError` renders it as
+ * `Organization '…' not found` / `Project '…' not found`).
+ */
+const resolvePrimaryAction = (
+  message: string,
+  isNotFound: boolean
+): { label: string; to: string; icon: typeof BuildingIcon } => {
+  if (isNotFound) {
+    if (/^\s*organization\b/i.test(message)) {
+      return { label: 'Organizations', to: paths.account.organizations.root, icon: BuildingIcon };
+    }
+    if (/^\s*project\b/i.test(message)) {
+      return { label: 'Projects', to: paths.project.root, icon: FolderIcon };
+    }
+  }
+  return { label: 'Organization', to: paths.home, icon: BuildingIcon };
+};
 
 export const GenericError = ({ message, status }: { message: string; status?: number }) => {
   const navigate = useNavigate();
@@ -17,6 +39,7 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
 
   const isNotFound = status === 404;
   const isForbidden = status === 403;
+  const primaryAction = resolvePrimaryAction(message, isNotFound);
   const title = isNotFound
     ? "We couldn't find that page."
     : isForbidden
@@ -62,17 +85,16 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
           {/* )} */}
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            size="small"
-            type="primary"
-            theme="solid"
-            icon={<Icon icon={BuildingIcon} className="size-4" />}
-            className="bg-primary hover:bg-primary/90 active:bg-primary/80"
-            onClick={() => {
-              navigate(paths.home);
-            }}>
-            Organization
-          </Button>
+          <a
+            href={primaryAction.to}
+            className={cn(
+              buttonVariants({ type: 'primary', theme: 'solid', size: 'small' }),
+              'bg-primary hover:bg-primary/90 active:bg-primary/80'
+            )}
+            data-e2e="error-page-primary-action">
+            <Icon icon={primaryAction.icon} className="size-4" />
+            {primaryAction.label}
+          </a>
           <Button
             type="quaternary"
             theme="outline"

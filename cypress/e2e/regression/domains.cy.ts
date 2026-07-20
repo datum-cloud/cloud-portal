@@ -28,6 +28,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Note: showConfirmInput is false for domains — no text input required
  *
  * Uses shared regression resources (1 org + 1 project per shard).
+ * Org + project are deleted automatically when the Cypress run finishes (`after:run`).
  */
 
 describe('Domains — regression', () => {
@@ -67,10 +68,8 @@ describe('Domains — regression', () => {
       }
     });
     cy.get('[data-e2e="add-domains-input"]').type(domainName);
-    // Unified dialog: submit label reflects the parsed count, e.g. "Add domain (1)".
-    cy.get('[role="dialog"]')
-      .contains('button', /add domain/i)
-      .click();
+
+    submitAddDomainAndExpectSuccess();
 
     // After creation the app navigates to the overview page — extract domain ID from URL
     cy.url()
@@ -138,3 +137,55 @@ describe('Domains — regression', () => {
     domainId = '';
   });
 });
+
+const MAX_QUOTA_RETRIES = 3;
+const QUOTA_RETRY_WAIT_MS = 20_000;
+
+/**
+ * Submit the "Add domains" dialog and assert success. Retries on a 403 whose
+ * body mentions quota.
+ *
+ * A project's networking ResourceGrant (covers domains, httpproxies, etc.)
+ * is supposed to be provisioned automatically when the project is created.
+ * That provisioning has been observed missing entirely for e2e-created
+ * projects, not merely delayed — this retry is a mitigation and a
+ * diagnostic improvement, not a confirmed fix. If the grant never arrives,
+ * this still fails, but with a specific error instead of the confusing
+ * downstream timeouts the other three specs in this file produced when
+ * domain creation failed silently.
+ */
+function submitAddDomainAndExpectSuccess(attempt = 1): void {
+  cy.intercept('POST', '**/control-plane/**/domains').as(`createDomainReq${attempt}`);
+  cy.get('[role="dialog"]')
+    .contains('button', /add domain/i)
+    .click();
+  cy.wait(`@createDomainReq${attempt}`, { timeout: 30_000 }).then((intercept) => {
+    const status = intercept.response?.statusCode;
+    if (status === 200 || status === 201) return;
+
+    const isQuotaError =
+      status === 403 &&
+      JSON.stringify(intercept.response?.body ?? '')
+        .toLowerCase()
+        .includes('quota');
+
+    if (!isQuotaError) {
+      throw new Error(`should create a domain: POST failed with ${status}`);
+    }
+
+    if (attempt >= MAX_QUOTA_RETRIES) {
+      throw new Error(
+        `should create a domain: still hitting quota after ${MAX_QUOTA_RETRIES} attempts — ` +
+          `the project's networking ResourceGrant likely never provisioned, not just delayed`
+      );
+    }
+
+    cy.log(
+      `should create a domain: got 403 quota error — waiting ${QUOTA_RETRY_WAIT_MS / 1000}s for grant provisioning, then retrying (attempt ${attempt + 1}/${MAX_QUOTA_RETRIES})`
+    );
+    cy.wait(QUOTA_RETRY_WAIT_MS, { log: false });
+    // Dialog stays open with the domain name still filled in on error (see
+    // add-domains-dialog.tsx's catch block) — just resubmit, no re-typing.
+    submitAddDomainAndExpectSuccess(attempt + 1);
+  });
+}

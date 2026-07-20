@@ -32,4 +32,11 @@ export {
 } from './project.queries';
 
 // Watch hook exports (only list watch - single project watch not supported for cluster-scoped resources)
-export { useProjectsWatch } from './project.watch';
+export { useProjectsWatch, inspectProjectReady } from './project.watch';
+
+export {
+  waitForProjectAccessReady,
+  findReadyProjectPolicyBinding,
+  isProjectAccessGrantReady,
+  policyBindingTargetsProject,
+} from './project-access';

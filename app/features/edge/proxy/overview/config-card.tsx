@@ -67,7 +67,7 @@ export const HttpProxyConfigCard = ({
 
     return [
       {
-        label: 'Name',
+        label: 'Display Name',
         content: (
           <div className="flex items-center gap-1.5">
             <span className="text-sm">{proxy.chosenName || proxy.name}</span>

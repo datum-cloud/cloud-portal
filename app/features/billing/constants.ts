@@ -8,10 +8,23 @@
  * the library's alias form sometimes returns abbreviations like "UK"
  * which aren't great in a formal billing context.
  */
+import type { CardBrand } from './types';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
 
 countries.registerLocale(enLocale);
+
+/** Human-readable card brand labels for payment method rows and summaries. */
+export const CARD_BRAND_LABELS: Record<CardBrand, string> = {
+  visa: 'Visa',
+  mastercard: 'Mastercard',
+  amex: 'American Express',
+  discover: 'Discover',
+  diners: 'Diners Club',
+  jcb: 'JCB',
+  unionpay: 'UnionPay',
+  unknown: 'Card',
+};
 
 /**
  * Markets we expect to bill into most often. Surfaced at the top of the

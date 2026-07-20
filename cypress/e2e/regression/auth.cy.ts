@@ -22,7 +22,8 @@ describe('Authentication — regression', () => {
     // After reload the session cookie is re-validated server-side.
     // The page must still render the authenticated view.
     cy.url().should('include', paths.account.organizations.root);
-    cy.get('[data-e2e="organization-card-personal"]').should('be.visible');
+    // Org cards are typeless for unified orgs — match any card variant.
+    cy.get('[data-e2e^="organization-card"]').first().should('be.visible');
   });
 
   it('should block unauthenticated access to protected routes', () => {

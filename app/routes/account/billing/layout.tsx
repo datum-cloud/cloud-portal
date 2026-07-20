@@ -1,10 +1,9 @@
 import { MinimalLayout } from '@/layouts';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { type MetaFunction, Outlet, redirect } from 'react-router';
+import { type MetaFunction, Outlet } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Billing Accounts</span>,
@@ -22,16 +21,7 @@ export const meta: MetaFunction = mergeMeta(() => metaObject('Billing Accounts')
  */
 export const loader = async () => {
   const organizations = await createOrganizationService().list();
-  const orgIds = organizations.items.map((o) => o.name);
-  if (orgIds.length === 0) {
-    throw redirect(paths.account.root);
-  }
-  const results = await Promise.all(
-    orgIds.map((orgId) => isFeatureEnabled(FeatureFlag.Billing, orgId).catch(() => false))
-  );
-  if (!results.some(Boolean)) {
-    throw redirect(paths.account.root);
-  }
+  await requireBillingForAnyOrg(organizations.items.map((o) => o.name));
   return null;
 };
 

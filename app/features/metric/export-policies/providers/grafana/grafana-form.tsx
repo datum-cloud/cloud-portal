@@ -2,7 +2,7 @@ import type { GrafanaFormProps } from './grafana.types';
 import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
 import { TextCopyBox } from '@/components/text-copy/text-copy-box';
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkTypeEnum,

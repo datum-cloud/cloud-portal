@@ -69,7 +69,8 @@ const publicSchema = z.object({
   // ─────────────────────────────────────────────────────────
   // Optional: Analytics & Support (graceful degradation)
   // ─────────────────────────────────────────────────────────
-  FATHOM_ID: z.string().optional(),
+  RYBBIT_SITE_ID: z.string().optional(),
+  RYBBIT_TAG: z.string().optional(),
   HELPSCOUT_BEACON_ID: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
@@ -79,6 +80,11 @@ const publicSchema = z.object({
     .string()
     .transform((val) => val === 'true')
     .optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Google Maps / Places (browser key)
+  // ─────────────────────────────────────────────────────────
+  GOOGLE_MAPS_API_KEY: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
@@ -198,7 +204,8 @@ export const env: Env = {
     authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
     sentryEnv: data.SENTRY_ENV,
-    fathomId: data.FATHOM_ID,
+    rybbitSiteId: data.RYBBIT_SITE_ID,
+    rybbitTag: data.RYBBIT_TAG,
     helpscoutBeaconId: data.HELPSCOUT_BEACON_ID,
     logLevel: data.LOG_LEVEL ?? (data.NODE_ENV === 'production' ? 'info' : 'debug'),
     logFormat: data.LOG_FORMAT ?? (data.NODE_ENV === 'production' ? 'json' : 'pretty'),
@@ -208,6 +215,7 @@ export const env: Env = {
     otelEnabled: data.OTEL_ENABLED === true && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: data.OTEL_LOG_LEVEL,
     chatbotEnabled: data.CHATBOT_ENABLED === true,
+    googleMapsApiKey: data.GOOGLE_MAPS_API_KEY || undefined,
   },
   server: {
     sessionSecret: data.SESSION_SECRET,

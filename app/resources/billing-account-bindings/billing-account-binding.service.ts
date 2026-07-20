@@ -1,10 +1,16 @@
+import { getDefaultOrgBillingAccountName } from '@/features/billing/types';
 import type { BillingAccountBinding } from '@/features/billing/types';
 import {
   createBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding,
   listBillingMiloapisComV1Alpha1NamespacedBillingAccountBinding,
 } from '@/modules/control-plane/billing';
 import { logger } from '@/modules/logger';
-import { fanOutAcrossOrgs, getOrgScopedBase } from '@/resources/base/utils';
+import {
+  fanOutAcrossOrgs,
+  getOrgScopedBase,
+  retryOnTransientAuthError,
+} from '@/resources/base/utils';
+import { createBillingAccountService } from '@/resources/billing-accounts';
 import { newBindingName } from '@/resources/billing/_naming';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
@@ -115,6 +121,48 @@ export function createBillingAccountBindingService() {
       } catch (error) {
         logger.error(`${SERVICE_NAME}.create failed`, error as Error);
         throw mapApiError(error);
+      }
+    },
+
+    /**
+     * Link a newly-created project to the org's default billing account.
+     * Best-effort: returns null when the org has no account or the bind
+     * fails so callers can still treat project creation as successful.
+     */
+    async bindProjectToDefaultOrgAccount(
+      orgId: string,
+      projectName: string
+    ): Promise<BillingAccountBinding | null> {
+      let accounts;
+      try {
+        accounts = await createBillingAccountService().list(orgId);
+      } catch (error) {
+        logger.warn(
+          `Skipping billing bind for project ${projectName}: could not list billing accounts in ${orgId}`,
+          { error: error instanceof Error ? error.message : String(error) }
+        );
+        return null;
+      }
+
+      const billingAccountName = getDefaultOrgBillingAccountName(accounts);
+      if (!billingAccountName) {
+        logger.warn(
+          `Skipping billing bind for project ${projectName}: org ${orgId} has no billing account`
+        );
+        return null;
+      }
+
+      try {
+        return await retryOnTransientAuthError(
+          () => this.create({ orgId, projectName, billingAccountName }),
+          { operation: 'bindProjectToDefaultOrgAccount' }
+        );
+      } catch (error) {
+        logger.warn(
+          `Failed to bind project ${projectName} to billing account ${billingAccountName}`,
+          { error: error instanceof Error ? error.message : String(error) }
+        );
+        return null;
       }
     },
   };

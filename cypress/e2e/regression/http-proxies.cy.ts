@@ -22,6 +22,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Note: showConfirmInput is true for AI Edge delete
  *
  * Uses shared regression resources (1 org + 1 project per shard).
+ * Org + project are deleted automatically when the Cypress run finishes (`after:run`).
  */
 
 describe('AI Edge — regression', () => {

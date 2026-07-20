@@ -1,0 +1,43 @@
+name: Publish
+
+# Branch pushes publish branch-named GHCR tags for staging infra pins.
+# Tests run via pull_request in ci.yml — not duplicated here.
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - 'README.md'
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish-container-image:
+    name: Publish Container Image
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+      attestations: write
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@a39a3b1772cda084b55e4504a48f39b4309a644b # v1.20.0
+    with:
+      image-name: cloud-portal
+    secrets: inherit
+
+  publish-kustomize-bundles:
+    name: Publish Kustomize Bundles
+    needs: [publish-container-image]
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@a39a3b1772cda084b55e4504a48f39b4309a644b # v1.20.0
+    with:
+      bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
+      bundle-path: config
+      image-overlays: config/base
+      image-name: ghcr.io/datum-cloud/cloud-portal

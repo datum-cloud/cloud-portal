@@ -9,7 +9,9 @@ import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 
 import { z } from 'zod';
 
 const hostnamesConfigSchema = httpProxyHostnameSchema.extend({
-  tlsHostname: z.string().min(1).max(253).optional(),
+  // Allow empty string so clearing the TLS field validates and can be sent as an
+  // explicit clear (undefined would preserve the existing backend tls hostname).
+  tlsHostname: z.string().max(253).optional(),
 });
 
 type HostnamesConfigSchema = z.infer<typeof hostnamesConfigSchema>;
@@ -68,7 +70,8 @@ export const ProxyHostnamesConfigDialog = forwardRef<
     try {
       await updateMutation.mutateAsync({
         hostnames: data.hostnames ?? [],
-        tlsHostname: data.tlsHostname,
+        // Always send a string: '' clears TLS; omitting would leave the old value.
+        tlsHostname: (data.tlsHostname ?? '').trim(),
       });
       toast.success('AI Edge', {
         description: 'Hostnames and TLS settings have been updated successfully',

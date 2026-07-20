@@ -14,4 +14,10 @@ export {
   type DeletePaymentMethodInput,
 } from './payment-method.queries';
 
-export { usePaymentMethodsWatch } from './payment-method.watch';
+export {
+  usePaymentMethodsWatch,
+  waitForPaymentMethodCard,
+  waitForPaymentMethodActive,
+  type WaitForPaymentMethodCardOptions,
+  type PaymentMethodCardResult,
+} from './payment-method.watch';

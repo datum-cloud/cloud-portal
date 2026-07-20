@@ -16,11 +16,16 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  *   1. The document response carries HTTP 404 (not 500).
  *   2. The rendered page is the 404 view ("We couldn't find that page."),
  *      not the generic 5xx view ("Our team has been notified").
+ *   3. The primary action is context-aware: org/project not-founds offer the
+ *      right label and href for the organizations or projects list; other
+ *      resources keep the home action. Navigation from the root error boundary
+ *      is exercised via the link href (see `followPrimaryAction`).
  *
  * Selectors come from `GenericError`:
- *   [data-e2e="error-page"]         The error card.
- *   [data-e2e="error-page-title"]   Title paragraph.
- *   [data-error-status]             Status code as a string ('' when unset).
+ *   [data-e2e="error-page"]                 The error card.
+ *   [data-e2e="error-page-title"]           Title paragraph.
+ *   [data-e2e="error-page-primary-action"]  Context-aware back button.
+ *   [data-error-status]                     Status code as a string ('' when unset).
  *
  * No resources are created — each path uses a deliberately bogus ID.
  */
@@ -75,6 +80,28 @@ const cases: Case[] = [
   },
 ];
 
+/** Wait for a full document navigation away from the error page. */
+const expectLeftErrorPage = (destinationPath: string) => {
+  cy.location('pathname', { timeout: 20000 }).should('eq', destinationPath);
+  cy.get('[data-e2e="error-page"]').should('not.exist');
+};
+
+/**
+ * Assert the primary action target, then navigate via its href. React Router
+ * `Link` clicks (even with `reloadDocument`) do not leave the root error
+ * boundary in production SSR builds — native `<a href>` is what users get.
+ */
+const followPrimaryAction = (href: string, label: string) => {
+  cy.get('[data-e2e="error-page-primary-action"]', { timeout: 10000 })
+    .should('have.attr', 'href', href)
+    .and('contain.text', label)
+    .then(($el) => {
+      cy.window().then((win) => {
+        win.location.assign($el.attr('href')!);
+      });
+    });
+};
+
 describe('Not found page', () => {
   beforeEach(() => {
     cy.login();
@@ -95,7 +122,42 @@ describe('Not found page', () => {
           "We couldn't find that page."
         );
         cy.get('[data-e2e="error-page"]').should('not.contain.text', 'Our team has been notified');
+        cy.get('[data-e2e="error-page-primary-action"]').should('contain.text', 'Organization');
       });
+    });
+  });
+
+  it('sends a missing organization to the organizations list', () => {
+    // `/org/:id` redirects to `/org/:id/projects`, which is where the 404 lands.
+    const url = getPathWithParams(paths.org.detail.projects.root, { orgId: MISSING_ID });
+
+    cy.request({ url, failOnStatusCode: false }).its('status').should('eq', 404);
+
+    cy.visit(url, { failOnStatusCode: false });
+    cy.get('[data-e2e="error-page"]').should('contain.text', MISSING_ID);
+    cy.get('[data-e2e="error-page"]').should('contain.text', 'Organization');
+    cy.get('[data-e2e="error-page"]').should('contain.text', 'not found');
+    followPrimaryAction(paths.account.organizations.root, 'Organizations');
+    expectLeftErrorPage(paths.account.organizations.root);
+  });
+
+  it('sends a missing project to the projects list', () => {
+    cy.getPersonalOrgId().then((orgId) => {
+      const projectsPath = getPathWithParams(paths.org.detail.projects.root, { orgId });
+
+      // Pin the org session cookie so `/project` redirects here.
+      cy.visit(projectsPath);
+
+      const url = getPathWithParams(paths.project.detail.home, { projectId: MISSING_ID });
+
+      cy.request({ url, failOnStatusCode: false }).its('status').should('eq', 404);
+
+      cy.visit(url, { failOnStatusCode: false });
+      cy.get('[data-e2e="error-page"]').should('contain.text', MISSING_ID);
+      cy.get('[data-e2e="error-page"]').should('contain.text', 'Project');
+      cy.get('[data-e2e="error-page"]').should('contain.text', 'not found');
+      followPrimaryAction(paths.project.root, 'Projects');
+      expectLeftErrorPage(projectsPath);
     });
   });
 });

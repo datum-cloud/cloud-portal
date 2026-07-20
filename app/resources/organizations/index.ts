@@ -9,7 +9,9 @@ export {
   organizationMetadataSchema,
   organizationFormSchema,
   updateOrganizationFormSchema,
+  organizationContactInfoSchema,
   type Organization,
+  type OrganizationContactInfo,
   type OrganizationList,
   type OrganizationType,
   type OrganizationStatus,
@@ -42,7 +44,9 @@ export {
   useOrganization,
   useCreateOrganization,
   useUpdateOrganization,
+  useUpdateOrganizationContactInfo,
   useDeleteOrganization,
+  type UpdateOrganizationContactInfoVariables,
 } from './organization.queries';
 
 // GraphQL Service exports

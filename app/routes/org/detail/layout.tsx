@@ -20,6 +20,7 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { clearProjectSession, setOrgSession } from '@/utils/cookies';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
+import { orgLegacySetupMiddleware, withMiddleware } from '@/utils/middlewares';
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { BarChart3Icon, FolderRoot, SettingsIcon, UsersIcon, WalletIcon } from 'lucide-react';
@@ -42,44 +43,47 @@ const route = defineResourceRoute<Organization, OrgLayoutCompanions>({
   metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Organization',
 });
 
-export const loader = (args: LoaderFunctionArgs) =>
-  runDetailLoader<Organization, OrgLayoutCompanions>(args, {
-    resource: 'organizations',
-    group: 'resourcemanager.miloapis.com',
-    scope: 'user',
-    paramName: 'orgId',
-    notFoundLabel: 'Organization',
-    fetch: ({ id }) => createOrganizationService().get(id),
-    companions: {
-      billingEnabled: {
-        resource: 'organizations',
-        group: 'resourcemanager.miloapis.com',
-        verb: 'get',
-        scope: 'user',
-        onError: 'tolerate',
-        fetch: ({ data: org }) =>
-          org?.name ? isFeatureEnabled(FeatureFlag.Billing, org.name) : Promise.resolve(false),
+export const loader = withMiddleware(
+  (args: LoaderFunctionArgs) =>
+    runDetailLoader<Organization, OrgLayoutCompanions>(args, {
+      resource: 'organizations',
+      group: 'resourcemanager.miloapis.com',
+      scope: 'user',
+      paramName: 'orgId',
+      notFoundLabel: 'Organization',
+      fetch: ({ id }) => createOrganizationService().get(id),
+      companions: {
+        billingEnabled: {
+          resource: 'organizations',
+          group: 'resourcemanager.miloapis.com',
+          verb: 'get',
+          scope: 'user',
+          onError: 'tolerate',
+          fetch: ({ data: org }) =>
+            org?.name ? isFeatureEnabled(FeatureFlag.Billing, org.name) : Promise.resolve(false),
+        },
+        usageMeteringEnabled: {
+          resource: 'organizations',
+          group: 'resourcemanager.miloapis.com',
+          verb: 'get',
+          scope: 'user',
+          onError: 'tolerate',
+          fetch: ({ data: org }) =>
+            org?.name
+              ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, org.name)
+              : Promise.resolve(false),
+        },
       },
-      usageMeteringEnabled: {
-        resource: 'organizations',
-        group: 'resourcemanager.miloapis.com',
-        verb: 'get',
-        scope: 'user',
-        onError: 'tolerate',
-        fetch: ({ data: org }) =>
-          org?.name
-            ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, org.name)
-            : Promise.resolve(false),
+      setHeaders: async ({ data: org, args: loaderArgs }) => {
+        // Preserve the existing cookie side-effects: pin the current org and
+        // clear any stale project pick. Only runs on the success path.
+        const orgSession = await setOrgSession(loaderArgs.request, org.name);
+        const projectSession = await clearProjectSession(loaderArgs.request);
+        return combineHeaders(orgSession.headers, projectSession.headers);
       },
-    },
-    setHeaders: async ({ data: org, args: loaderArgs }) => {
-      // Preserve the existing cookie side-effects: pin the current org and
-      // clear any stale project pick. Only runs on the success path.
-      const orgSession = await setOrgSession(loaderArgs.request, org.name);
-      const projectSession = await clearProjectSession(loaderArgs.request);
-      return combineHeaders(orgSession.headers, projectSession.headers);
-    },
-  });
+    }),
+  orgLegacySetupMiddleware
+);
 export const handle = route.handle;
 export const meta = route.meta;
 

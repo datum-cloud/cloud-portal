@@ -67,16 +67,6 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     badgeTheme: 'light',
     defaultLabel: 'Ready',
   },
-  personal: {
-    badgeType: 'primary',
-    badgeTheme: 'light',
-    defaultLabel: 'Personal',
-  },
-  standard: {
-    badgeType: 'info',
-    badgeTheme: 'light',
-    defaultLabel: 'Standard',
-  },
 };
 
 // Helper to map ControlPlaneStatus to BadgeStatusStatus

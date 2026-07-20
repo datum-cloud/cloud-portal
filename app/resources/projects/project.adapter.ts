@@ -55,6 +55,17 @@ export function toProjectList(raw: ComMiloapisResourcemanagerV1Alpha1ProjectList
   };
 }
 
+/** Like `toProjectList`, but includes in-flight (non-Ready) projects for idempotent guards. */
+export function toProjectListAll(raw: ComMiloapisResourcemanagerV1Alpha1ProjectList): ProjectList {
+  const items = (raw.items ?? []).filter((p) => !p.metadata?.deletionTimestamp).map(toProject);
+
+  return {
+    items,
+    nextCursor: raw.metadata?.continue ?? null,
+    hasMore: !!raw.metadata?.continue,
+  };
+}
+
 export function toCreatePayload(
   input: CreateProjectInput
 ): ComMiloapisResourcemanagerV1Alpha1Project {
@@ -62,7 +73,7 @@ export function toCreatePayload(
     apiVersion: 'resourcemanager.miloapis.com/v1alpha1',
     kind: 'Project',
     metadata: {
-      name: input.name,
+      generateName: 'project-',
       annotations: {
         'kubernetes.io/description': input.description ?? '',
       },

@@ -1,4 +1,10 @@
-import { toCreatePayload, toProject, toProjectList, toUpdatePayload } from './project.adapter';
+import {
+  toCreatePayload,
+  toProject,
+  toProjectList,
+  toProjectListAll,
+  toUpdatePayload,
+} from './project.adapter';
 import { pendingStatus, rawMetadata, readyStatus } from '@/test/factories/k8s';
 import { describe, expect, it } from 'bun:test';
 
@@ -70,17 +76,37 @@ describe('toProjectList', () => {
   });
 });
 
+describe('toProjectListAll', () => {
+  it('includes pending projects for idempotent setup guards', () => {
+    const items = [
+      {
+        metadata: rawMetadata({ name: 'ready' }),
+        spec: { ownerRef: { name: 'acme' } },
+        status: readyStatus(),
+      },
+      {
+        metadata: rawMetadata({ name: 'pending' }),
+        spec: { ownerRef: { name: 'acme' } },
+        status: pendingStatus(),
+      },
+    ];
+    const list = toProjectListAll({ items } as never);
+
+    expect(list.items.map((p) => p.name)).toEqual(['ready', 'pending']);
+  });
+});
+
 describe('toCreatePayload', () => {
-  it('builds a Project owned by the given organization', () => {
+  it('builds a Project owned by the given organization with a generated name', () => {
     const payload = toCreatePayload({
-      name: 'web',
       organizationId: 'acme',
       description: 'desc',
     } as never);
 
     expect(payload.apiVersion).toBe('resourcemanager.miloapis.com/v1alpha1');
     expect(payload.kind).toBe('Project');
-    expect(payload.metadata?.name).toBe('web');
+    expect(payload.metadata?.generateName).toBe('project-');
+    expect(payload.metadata?.name).toBeUndefined();
     expect(payload.metadata?.annotations?.['kubernetes.io/description']).toBe('desc');
     expect(payload.spec?.ownerRef).toEqual({ kind: 'Organization', name: 'acme' });
   });

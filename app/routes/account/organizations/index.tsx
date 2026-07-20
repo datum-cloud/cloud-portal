@@ -1,43 +1,77 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { BadgeStatus } from '@/components/badge/badge-status';
 import { CardList } from '@/components/card-list';
-import { InputName } from '@/components/input-name/input-name';
 import { NoteCard } from '@/components/note-card/note-card';
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
-  organizationFormSchema,
-  useCreateOrganization,
-  useOrganizationsGql,
-  type Organization,
-} from '@/resources/organizations';
+  buildOrgContactDefaults,
+  type OrgContactInfoValues,
+} from '@/features/onboarding/schemas/org-contact-info-schema';
+import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
+import { useOrganizationsGql, type Organization } from '@/resources/organizations';
+import { createOrganizationService } from '@/resources/organizations';
+import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
+import { createUserService } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
-import { getAlertState, setAlertClosed } from '@/utils/cookies';
+import { getAlertState, getSession, setAlertClosed } from '@/utils/cookies';
+import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { onboardingEntryPath } from '@/utils/middlewares/fraud-redirect';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { toast } from '@datum-cloud/datum-ui/toast';
-import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, Building, PlusIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   data,
+  redirect,
   useFetcher,
   useLoaderData,
   useNavigate,
   useRevalidator,
 } from 'react-router';
-import z from 'zod';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { isClosed: alertClosed, headers: alertHeaders } = await getAlertState(
-    request,
-    'organizations_understanding'
-  );
-  return data({ alertClosed }, { headers: alertHeaders });
+  const [{ isClosed: alertClosed, headers: alertHeaders }, { session }] = await Promise.all([
+    getAlertState(request, 'organizations_understanding'),
+    getSession(request),
+  ]);
+
+  if (!session?.sub) {
+    return redirect(paths.auth.logOut);
+  }
+
+  try {
+    const [user, orgs] = await Promise.all([
+      createUserService().get(session.sub),
+      createOrganizationService().list({ limit: 1 }),
+    ]);
+
+    // A user with no orgs belongs in onboarding. This guard handles
+    // client-side navigation that bypasses the middleware redirect.
+    if (orgs.items.length === 0) {
+      return redirect(onboardingEntryPath(user));
+    }
+
+    const contactDefaults: Partial<OrgContactInfoValues> = {
+      email: user.email ?? '',
+      name: user.fullName?.trim() || '',
+      country: user.country ?? '',
+    };
+
+    const stripeConfigs = await createStripeProviderConfigService()
+      .list()
+      .catch(() => []);
+    const stripePublishableKey = stripeConfigs[0]?.spec?.publishableKey ?? undefined;
+
+    return data({ alertClosed, contactDefaults, stripePublishableKey }, { headers: alertHeaders });
+  } catch (userError) {
+    if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
+      return redirect(paths.fraud.verifying);
+    }
+    return redirect(paths.auth.logOut);
+  }
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -45,28 +79,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return data({ success: true }, { headers });
 };
 
-function OrganizationResourceName({ field }: { field: NormalizedFieldState }) {
-  const description = useWatch('description') as string | undefined;
-
-  return (
-    <InputName
-      required
-      showTooltip={false}
-      description="This unique resource name will be used to identify your organization and cannot be changed."
-      field={field}
-      baseName={description}
-    />
-  );
-}
-
 export default function AccountOrganizations() {
-  const { alertClosed } = useLoaderData<typeof loader>();
-  const {
-    data: orgList,
-    isLoading: _isLoading,
-    refetch: refetchOrgs,
-    error: orgsError,
-  } = useOrganizationsGql();
+  const { alertClosed, contactDefaults, stripePublishableKey } = useLoaderData<typeof loader>();
+  const { data: orgList, isLoading: _isLoading, error: orgsError } = useOrganizationsGql();
   const orgs = orgList?.items ?? [];
   const navigate = useNavigate();
   const revalidator = useRevalidator();
@@ -74,7 +89,6 @@ export default function AccountOrganizations() {
 
   const [openDialog, setOpenDialog] = useState<boolean>(false);
 
-  // Alert close fetcher - native useFetcher with effect-based callback
   const alertFetcher = useFetcher<{ success: boolean }>({ key: 'alert-closed' });
   const alertSubmittedRef = useRef(false);
 
@@ -85,40 +99,26 @@ export default function AccountOrganizations() {
     }
   }, [alertFetcher.data, alertFetcher.state, revalidator]);
 
-  const createMutation = useCreateOrganization({
-    onSuccess: (newOrg) => {
-      trackAction(AnalyticsAction.CreateOrg, { orgId: newOrg.name });
-      refetchOrgs();
-      setTimeout(() => {
-        setOpenDialog(false);
-        navigate(getPathWithParams(paths.org.detail.root, { orgId: newOrg.name }));
-      }, 500);
-    },
-    onError: (error) => {
-      toast.error('Organization', {
-        description: error?.message || 'Failed to create organization',
-      });
-    },
-  });
-
-  const hasStandardOrg = useMemo(() => {
+  const hasLegacyStandardOrg = useMemo(() => {
     return orgs.some((org) => org.type === 'Standard');
   }, [orgs]);
 
-  const showAlert = !alertClosed && !hasStandardOrg;
+  const hasUnifiedOrg = useMemo(() => {
+    return orgs.some((org) => !org.type);
+  }, [orgs]);
+
+  const showAlert = !alertClosed && !hasLegacyStandardOrg && !hasUnifiedOrg;
 
   const handleAlertClose = () => {
     alertSubmittedRef.current = true;
     alertFetcher.submit({}, { method: 'POST' });
   };
 
-  const handleSubmit = async (formData: z.infer<typeof organizationFormSchema>) => {
-    await createMutation.mutateAsync({
-      name: formData.name,
-      displayName: formData.description, // description field is used as display name in the form
-      description: formData.description,
-      type: 'Standard',
-    });
+  const handleCreated = async ({ orgId }: { orgId: string }) => {
+    trackAction(AnalyticsAction.CreateOrg, { orgId });
+    navigate(getPathWithParams(paths.org.detail.root, { orgId }));
+    // Hold the dialog + submit spinner until this route unmounts after navigation.
+    await new Promise<void>(() => {});
   };
 
   return (
@@ -154,15 +154,11 @@ export default function AccountOrganizations() {
               renderCard={(org) => (
                 <div
                   className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2"
-                  data-e2e={`organization-card-${org.type.toLowerCase()}`}>
+                  data-e2e={
+                    org.type ? `organization-card-${org.type.toLowerCase()}` : 'organization-card'
+                  }>
                   <div className="flex items-center gap-5">
-                    <Icon
-                      icon={Building}
-                      className={cn(
-                        'text-icon-primary size-4',
-                        org.type === 'Personal' && 'text-primary'
-                      )}
-                    />
+                    <Icon icon={Building} className="text-icon-primary size-4" />
                     <span>{org.displayName || org.name}</span>
                   </div>
                   <div className="flex w-full items-center justify-between gap-4 md:w-auto md:gap-6">
@@ -174,13 +170,9 @@ export default function AccountOrganizations() {
                       badgeType="muted"
                       textClassName="max-w-[8rem] truncate sm:max-w-[12rem] md:max-w-none"
                     />
-                    <BadgeStatus status={org.type} />
                   </div>
                 </div>
               )}
-              cardClassName={(org) =>
-                org.type === 'Personal' ? 'text-primary border-primary' : ''
-              }
               onSelect={(org) =>
                 navigate(getPathWithParams(paths.org.detail.root, { orgId: org.name }))
               }
@@ -210,13 +202,9 @@ export default function AccountOrganizations() {
                     Organizations group your projects with separate team and billing settings.
                   </li>
                   <li>
-                    You start with a Personal organization to explore and manage small projects (try
-                    the one we&apos;ve created for you above!)
+                    Each organization needs contact and billing details before you can use it.
                   </li>
-                  <li>
-                    Add Standard organizations for team collaboration and production workload
-                    features.
-                  </li>
+                  <li>You can create additional organizations for separate teams or workloads.</li>
                 </ul>
               }
             />
@@ -224,39 +212,13 @@ export default function AccountOrganizations() {
         )}
       </Row>
 
-      {/* Create Organization Dialog */}
-      <Form.Dialog
+      <CreateOrganizationDialog
         open={openDialog}
         onOpenChange={setOpenDialog}
-        title="Create an Organization"
-        description="Add a Standard organization to enable team collaboration and manage production workloads."
-        schema={organizationFormSchema}
-        defaultValues={{
-          description: '',
-          name: '',
-        }}
-        onSubmit={handleSubmit}
-        submitText="Confirm"
-        submitTextLoading="Creating..."
-        className="w-full sm:max-w-3xl">
-        <div className="divide-border space-y-0 divide-y [&>*]:px-5 [&>*]:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-          <Form.Field
-            name="description"
-            label="Organization Name"
-            description="Could be the name of your company or team. This can be changed."
-            required>
-            <Form.Input
-              data-e2e="create-organization-name-input"
-              placeholder="e.g. My Organization"
-              autoFocus
-            />
-          </Form.Field>
-
-          <Form.Field name="name">
-            {({ field }) => <OrganizationResourceName field={field} />}
-          </Form.Field>
-        </div>
-      </Form.Dialog>
+        contactDefaults={buildOrgContactDefaults(contactDefaults)}
+        stripePublishableKey={stripePublishableKey}
+        onCreated={handleCreated}
+      />
     </div>
   );
 }

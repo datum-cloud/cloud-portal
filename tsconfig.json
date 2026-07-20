@@ -19,7 +19,13 @@
   ],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
-    "types": ["@react-router/node", "vite/client", "cypress", "@testing-library/cypress"],
+    "types": [
+      "@react-router/node",
+      "vite/client",
+      "cypress",
+      "@testing-library/cypress",
+      "google.maps"
+    ],
     "isolatedModules": true,
     "esModuleInterop": true,
     "jsx": "react-jsx",

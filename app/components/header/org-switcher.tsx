@@ -1,4 +1,3 @@
-import { BadgeStatus } from '@/components/badge/badge-status';
 import { SelectOrganization } from '@/components/select-organization/select-organization';
 import { useApp } from '@/providers/app.provider';
 import type { Organization } from '@/resources/organizations';
@@ -23,9 +22,6 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
           <span className="truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
             {currentOrg?.displayName ?? currentOrg?.name}
           </span>
-          {currentOrg?.type === 'Personal' && (
-            <BadgeStatus status={currentOrg.type} className="hidden sm:block" />
-          )}
         </>
       }
       onSelect={(org: Organization) => {

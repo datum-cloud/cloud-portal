@@ -147,7 +147,9 @@ export function useUpdateHttpProxy(
           ...old,
           ...(input.endpoint !== undefined && { endpoint: input.endpoint }),
           ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
-          ...(input.tlsHostname !== undefined && { tlsHostname: input.tlsHostname }),
+          ...(input.tlsHostname !== undefined && {
+            tlsHostname: input.tlsHostname.trim() || undefined,
+          }),
           ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
           ...(input.enableHttpRedirect !== undefined && {
             enableHttpRedirect: input.enableHttpRedirect,

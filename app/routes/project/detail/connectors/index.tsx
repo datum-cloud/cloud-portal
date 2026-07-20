@@ -11,6 +11,7 @@ import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type Connector,
+  connectorKeys,
   createConnectorService,
   useConnectors,
   useConnectorsWatch,
@@ -21,11 +22,16 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import {
+  createProjectListClientLoader,
+  getValidCachedQueryData,
+} from '@/utils/helpers/project-list-client-loader';
+import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { ColumnDef } from '@tanstack/react-table';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ActionFunctionArgs,
   data,
@@ -38,6 +44,14 @@ import {
 export type ConnectorWithProxies = Connector & { proxies: HttpProxy[] };
 
 const ALERT_KEY = 'connector_download';
+
+// Client-side record of whether the user dismissed the download card this
+// session. Starts false; set to true when the dismiss action is submitted.
+// Resets on full page reload (at which point the server loader re-checks the
+// cookie and returns the authoritative value). This lets the clientLoader skip
+// re-hitting the server on fast cached navigations without always hiding the
+// card for users who have never dismissed it.
+let cardDismissedThisSession = false;
 
 type LoaderData = {
   connectors: Connector[];
@@ -68,6 +82,19 @@ export const loader = (args: LoaderFunctionArgs) =>
     },
   });
 export const meta = route.meta;
+
+export const shouldRevalidate = skipRevalidateWithinSameProject;
+
+export const clientLoader = createProjectListClientLoader<LoaderData>((projectId) => {
+  const connectors = getValidCachedQueryData<Connector[]>(connectorKeys.list(projectId));
+  if (connectors === undefined) {
+    return undefined;
+  }
+  // downloadDismissed is cookie-backed (httpOnly) so it can't be read here.
+  // Use the client-side session flag instead: false until the user actually
+  // clicks dismiss, then true for the rest of the session.
+  return { connectors, downloadDismissed: cardDismissedThisSession };
+});
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { headers } = await setAlertClosed(request, ALERT_KEY);
@@ -124,8 +151,20 @@ export default route.Page(({ data: loaderData }) => {
     return connectorsData.map((c) => ({ ...c, proxies: byConnector.get(c.name) ?? [] }));
   }, [connectorsData, proxies]);
 
-  const handleDismissDownload = () => dismissFetcher.submit({}, { method: 'POST' });
-  const isDownloadVisible = !downloadDismissed && dismissFetcher.state === 'idle';
+  // Track dismissal in local state. This route sets
+  // shouldRevalidate = skipRevalidateWithinSameProject, so the loader does NOT
+  // re-run after the dismiss POST (projectId is unchanged). Relying on
+  // loaderData.downloadDismissed alone would let the card reappear once the
+  // fetcher returns to idle. Local state keeps it hidden for the session; the
+  // POST + module flag persist the choice across reloads and navigations.
+  const [dismissed, setDismissed] = useState(downloadDismissed);
+
+  const handleDismissDownload = () => {
+    cardDismissedThisSession = true;
+    setDismissed(true);
+    dismissFetcher.submit({}, { method: 'POST' });
+  };
+  const isDownloadVisible = !dismissed;
 
   const columns: ColumnDef<ConnectorWithProxies>[] = useMemo(
     () => [

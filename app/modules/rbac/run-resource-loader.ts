@@ -269,6 +269,7 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
         namespace: decl.namespace,
         scope: decl.scope,
         projectId: ctx.projectId,
+        name: decl.scope === 'user' ? id : undefined,
       });
 
       if (!companionAllowed) {

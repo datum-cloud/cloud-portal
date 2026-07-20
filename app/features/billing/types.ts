@@ -108,6 +108,30 @@ export const getBillingAccountDisplayName = (account: BillingAccount): string =>
 export const isBillingAccountReady = (account: BillingAccount): boolean =>
   account.status?.phase === 'Ready';
 
+/**
+ * True once the account has been marked for deletion. Terminating accounts
+ * still report `Ready` for a while (finalizers keep them around), so callers
+ * that pick a "usable" account must skip them explicitly.
+ */
+export const isBillingAccountTerminating = (account: BillingAccount): boolean =>
+  Boolean(account.metadata?.deletionTimestamp);
+
+/**
+ * Default org billing account for auto-binding new projects. Ignores accounts
+ * pending deletion, then prefers a Ready account; falls back to the first
+ * remaining account while one is still provisioning.
+ */
+export const selectDefaultOrgBillingAccount = (
+  accounts: BillingAccount[]
+): BillingAccount | undefined => {
+  const usable = accounts.filter((account) => !isBillingAccountTerminating(account));
+  return usable.find(isBillingAccountReady) ?? usable[0];
+};
+
+/** Convenience: resource name of {@link selectDefaultOrgBillingAccount}. */
+export const getDefaultOrgBillingAccountName = (accounts: BillingAccount[]): string | undefined =>
+  selectDefaultOrgBillingAccount(accounts)?.metadata?.name;
+
 /** Convenience: does this payment method back the account default? */
 export const isDefaultPaymentMethod = (
   method: PaymentMethod,

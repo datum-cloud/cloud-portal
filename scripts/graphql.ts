@@ -534,7 +534,15 @@ async function main(): Promise<void> {
 
     // 13. Run Gqlts CLI
     console.log(`\nGenerating Gqlts client...`);
-    await exec('bunx', ['gqlts', '--schema', TEMP_SCHEMA_FILE, '--output', OUTPUT_DIR, '--esm']);
+    // Use bun so gqlts runs in the same runtime as this script (avoids Node CJS/ESM issues with yargs).
+    await exec('bun', [
+      'node_modules/@gqlts/cli/dist/cli.js',
+      '--schema',
+      TEMP_SCHEMA_FILE,
+      '--output',
+      OUTPUT_DIR,
+      '--esm',
+    ]);
 
     // 14. Cleanup
     await cleanup();

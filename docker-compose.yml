@@ -10,7 +10,7 @@ services:
     depends_on:
       - otel-collector
   grafana:
-    image: grafana/grafana:13.0.1
+    image: grafana/grafana:13.1.0@sha256:121a7a9ece6dc10b969f1f96eed64b4f07dfac0d0b8abc070f7cb83bbde86f63
     depends_on:
       - prometheus
       - jaeger
@@ -23,7 +23,7 @@ services:
     env_file:
       - ./dev/docker/grafana/.env
   prometheus:
-    image: prom/prometheus:v3.11.3
+    image: prom/prometheus:v3.13.0@sha256:c6b27ea434f8389bfe233fbc7be381cf50587c286e871bc842008f5a1b1908a7
     ports:
       - '9090:9090'
     volumes:
