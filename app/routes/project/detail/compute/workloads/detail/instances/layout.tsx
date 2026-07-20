@@ -13,9 +13,8 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { ArrowLeftIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { type LoaderFunctionArgs, Link, Outlet, useParams } from 'react-router';
+import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
 const route = defineResourceRoute<Instance>({
   type: 'detail',
@@ -65,29 +64,16 @@ export default route.Page(({ data: initialInstance }) => {
     ];
   }, [projectId, workloadName, instanceName]);
 
-  const backHref = getPathWithParams(paths.project.detail.compute.workloads.detail.root, {
-    projectId,
-    workloadName,
-  });
-
   return (
     <SubLayout
       title={instance?.name ?? instanceName}
-      status={
+      actions={
         instance && (
           <BadgeStatus
             status={instanceStatusToBadgeStatus(instance.status)}
             label={instance.status}
           />
         )
-      }
-      actions={
-        <Link
-          to={backHref}
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm transition-colors">
-          <ArrowLeftIcon className="size-3.5" />
-          Back to {workloadName}
-        </Link>
       }
       navItems={navItems}>
       <Outlet />

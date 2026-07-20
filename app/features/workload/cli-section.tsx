@@ -2,7 +2,7 @@ import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { CheckIcon, CopyIcon } from 'lucide-react';
+import { BookOpenIcon, CheckIcon, CopyIcon, DownloadIcon, SquareTerminalIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export function CommandBlock({ value, danger }: { value: string; danger?: boolean }) {
@@ -18,15 +18,15 @@ export function CommandBlock({ value, danger }: { value: string; danger?: boolea
   };
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-[#0d1117] px-4 py-3">
-      <span className={cn('font-mono text-sm', danger ? 'text-red-400' : 'text-gray-200')}>
-        <span className="mr-2 text-gray-500">$</span>
+    <div className="bg-background flex items-center justify-between gap-3 rounded-lg border px-4 py-3">
+      <span className={cn('font-mono text-sm', danger ? 'text-red-500' : 'text-foreground')}>
+        <span className="text-muted-foreground mr-2">$</span>
         {value}
       </span>
       <button
         type="button"
         onClick={handleCopy}
-        className="shrink-0 text-gray-500 transition-colors hover:text-gray-300">
+        className="text-muted-foreground hover:text-foreground shrink-0 transition-colors">
         {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
       </button>
     </div>
@@ -64,5 +64,36 @@ export function SectionCard({
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/** Banner pointing users at the datumctl CLI docs — shown wherever a resource is CLI-managed only. */
+export function CliBanner({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="bg-primary/5 border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4">
+      <SquareTerminalIcon className="text-primary size-8 shrink-0" />
+      <div className="min-w-0 flex-1">
+        <p className="text-primary font-semibold">{title}</p>
+        <p className="text-muted-foreground text-sm">{description}</p>
+      </div>
+      <div className="flex gap-2">
+        <a
+          href="https://docs.datum.net/cli/install"
+          target="_blank"
+          rel="noreferrer"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors">
+          <DownloadIcon className="size-4" />
+          Install CLI
+        </a>
+        <a
+          href="https://docs.datum.net/cli"
+          target="_blank"
+          rel="noreferrer"
+          className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors">
+          <BookOpenIcon className="size-4" />
+          CLI Docs
+        </a>
+      </div>
+    </div>
   );
 }

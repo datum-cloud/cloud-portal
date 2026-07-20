@@ -1,12 +1,10 @@
-import { SectionCard } from '@/features/workload/cli-section';
+import { CliBanner, SectionCard } from '@/features/workload/cli-section';
 import { useGuardedRouteData } from '@/modules/rbac';
 import { useWorkloadInstances, useWorkloadInstancesWatch } from '@/resources/instances';
 import { type Workload } from '@/resources/workloads';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import {
-  BookOpenIcon,
-  DownloadIcon,
   LayersIcon,
   LogsIcon,
   RefreshCwIcon,
@@ -39,34 +37,10 @@ export default function WorkloadSettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Banner */}
-      <div className="bg-primary/5 border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4">
-        <SquareTerminalIcon className="text-primary size-8 shrink-0" />
-        <div className="min-w-0 flex-1">
-          <p className="text-primary font-semibold">Manage this workload with datumctl</p>
-          <p className="text-muted-foreground text-sm">
-            Use the CLI commands below to inspect, update, and manage your workload.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <a
-            href="https://docs.datum.net/cli/install"
-            target="_blank"
-            rel="noreferrer"
-            className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors">
-            <DownloadIcon className="size-4" />
-            Install CLI
-          </a>
-          <a
-            href="https://docs.datum.net/cli"
-            target="_blank"
-            rel="noreferrer"
-            className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors">
-            <BookOpenIcon className="size-4" />
-            CLI Docs
-          </a>
-        </div>
-      </div>
+      <CliBanner
+        title="Manage this workload with datumctl"
+        description="Use the CLI commands below to inspect, update, and manage your workload."
+      />
 
       {/* Two-column grid */}
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">

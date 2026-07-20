@@ -1,7 +1,7 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { Table } from '@/components/table';
-import { SectionCard } from '@/features/workload/cli-section';
+import { CliBanner, SectionCard } from '@/features/workload/cli-section';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import {
@@ -16,15 +16,9 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { ColumnDef } from '@tanstack/react-table';
-import {
-  BookOpenIcon,
-  DownloadIcon,
-  RocketIcon,
-  SearchIcon,
-  SquareTerminalIcon,
-} from 'lucide-react';
+import { RocketIcon, SearchIcon } from 'lucide-react';
 import { useMemo } from 'react';
-import { Link, type LoaderFunctionArgs, useParams } from 'react-router';
+import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
 
 type LoaderData = {
   workloads: Workload[];
@@ -53,6 +47,7 @@ export const meta = route.meta;
 
 export default route.Page(({ data: loaderData }) => {
   const { projectId = '' } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
   const { workloads: initialWorkloads } = loaderData;
 
   useWorkloadsWatch(projectId);
@@ -69,16 +64,7 @@ export default route.Page(({ data: loaderData }) => {
         header: 'Name',
         accessorKey: 'name',
         meta: { className: 'min-w-32' },
-        cell: ({ row }) => (
-          <Link
-            to={getPathWithParams(paths.project.detail.compute.workloads.detail.root, {
-              projectId,
-              workloadName: row.original.name,
-            })}
-            className="font-medium underline-offset-2 hover:underline">
-            {row.original.name}
-          </Link>
-        ),
+        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         header: 'Image',
@@ -134,35 +120,10 @@ export default route.Page(({ data: loaderData }) => {
       <div className="flex flex-col gap-6">
         <PageTitle title="Workloads" />
 
-        {/* Banner */}
-        <div className="bg-primary/5 border-primary/20 flex flex-wrap items-center gap-4 rounded-xl border p-4">
-          <SquareTerminalIcon className="text-primary size-8 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-primary font-semibold">Deploy workloads with datumctl</p>
-            <p className="text-muted-foreground text-sm">
-              Workloads are created and managed using the Datum CLI. Install datumctl, write a
-              manifest, and deploy — workloads you create will appear here automatically.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <a
-              href="https://docs.datum.net/cli/install"
-              target="_blank"
-              rel="noreferrer"
-              className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors">
-              <DownloadIcon className="size-4" />
-              Install CLI
-            </a>
-            <a
-              href="https://docs.datum.net/cli"
-              target="_blank"
-              rel="noreferrer"
-              className="border-border hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors">
-              <BookOpenIcon className="size-4" />
-              CLI Docs
-            </a>
-          </div>
-        </div>
+        <CliBanner
+          title="Deploy workloads with datumctl"
+          description="Workloads are created and managed using the Datum CLI. Install datumctl, write a manifest, and deploy — workloads you create will appear here automatically."
+        />
 
         {/* Getting started cards */}
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
@@ -196,6 +157,14 @@ export default route.Page(({ data: loaderData }) => {
       title="Workloads"
       search="Search"
       empty="No workloads found"
+      onRowClick={(row) => {
+        navigate(
+          getPathWithParams(paths.project.detail.compute.workloads.detail.root, {
+            projectId,
+            workloadName: row.name,
+          })
+        );
+      }}
     />
   );
 });

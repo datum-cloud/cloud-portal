@@ -42,30 +42,38 @@ export function ComputeNotEntitled({
   }, [fetcher.state, fetcher.data]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <EmptyContent
-        title="Compute is not enabled for this project"
-        subtitle="Your project doesn't have an active compute service entitlement. Request access to start deploying workloads."
-        actions={[
-          {
-            as: 'button' as const,
-            label: submitting ? 'Requesting…' : requested ? 'Access requested' : 'Request access',
-            disabled: submitting || requested,
-            onClick: () =>
-              fetcher.submit(null, { method: 'POST', action: '?_action=request-compute' }),
-          },
-        ]}
-      />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {features.map(({ icon: Icon, title, description }) => (
-          <Card key={title} className="shadow-none">
-            <CardContent className="flex flex-col gap-3 p-5">
-              <Icon className="text-muted-foreground h-5 w-5" />
-              <span className="text-sm font-medium">{title}</span>
-              <span className="text-muted-foreground text-xs leading-relaxed">{description}</span>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="flex flex-col">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <EmptyContent
+          title="Compute is not enabled for this project"
+          subtitle="Your project doesn't have an active compute service entitlement. Request access to start deploying workloads."
+          size="xl"
+          className="[&>div]:max-w-md"
+          actions={[
+            {
+              as: 'button' as const,
+              label: submitting ? 'Requesting…' : requested ? 'Access requested' : 'Request access',
+              disabled: submitting || requested,
+              onClick: () =>
+                fetcher.submit(null, { method: 'POST', action: '?_action=request-compute' }),
+            },
+          ]}
+        />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {features.map(({ icon: Icon, title, description }) => (
+            <Card key={title} className="py-0 shadow-none transition-shadow hover:shadow-sm">
+              <CardContent className="flex flex-col gap-2 px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="bg-muted dark:bg-accent flex h-7 w-7 shrink-0 items-center justify-center rounded-md">
+                    <Icon className="text-muted-foreground h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-sm font-medium">{title}</span>
+                </div>
+                <span className="text-muted-foreground text-xs leading-relaxed">{description}</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     </div>
   );

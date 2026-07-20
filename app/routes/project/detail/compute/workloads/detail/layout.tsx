@@ -84,26 +84,26 @@ export default route.Page(({ data: initialWorkload }) => {
   return (
     <SubLayout
       title={workload?.name}
-      status={
-        workload && (
-          <BadgeStatus
-            status={workloadHealthToBadgeStatus(workload.health)}
-            label={workload.health}
-          />
-        )
-      }
       actions={
-        <Button
-          type="secondary"
-          theme="outline"
-          size="small"
-          loading={isFetching}
-          icon={<RefreshCwIcon className="size-4" />}
-          onClick={() => {
-            void refetch();
-          }}>
-          Refresh
-        </Button>
+        <div className="flex items-center gap-3">
+          {workload && (
+            <BadgeStatus
+              status={workloadHealthToBadgeStatus(workload.health)}
+              label={workload.health}
+            />
+          )}
+          <Button
+            type="secondary"
+            theme="outline"
+            size="small"
+            loading={isFetching}
+            icon={<RefreshCwIcon className="size-4" />}
+            onClick={() => {
+              void refetch();
+            }}>
+            Refresh
+          </Button>
+        </div>
       }
       navItems={navItems}>
       <Outlet />
