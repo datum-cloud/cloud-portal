@@ -176,9 +176,13 @@ const serverSchema = z.object({
   //   PORTAL_PLUGINS: "<slug>=<url>,…" static dev-override registry entries.
   //   PORTAL_PLUGINS_JSON: JSON array of spec-shaped entries; takes
   //     precedence over PORTAL_PLUGINS on slug collision.
+  //   PLUGIN_REGISTRY_KUBECONFIG: path to a local kwok kubeconfig to watch.
+  //   AUTH_DEV_TOKEN_EXCHANGE: "1" enables POST /api/auth/dev-session.
   // ─────────────────────────────────────────────────────────
   PORTAL_PLUGINS: z.string().optional(),
   PORTAL_PLUGINS_JSON: z.string().optional(),
+  PLUGIN_REGISTRY_KUBECONFIG: z.string().optional(),
+  AUTH_DEV_TOKEN_EXCHANGE: z.string().optional(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -258,6 +262,8 @@ export const env: Env = {
     // Portal Plugin System (dev-only)
     portalPlugins: data.PORTAL_PLUGINS,
     portalPluginsJson: data.PORTAL_PLUGINS_JSON,
+    pluginRegistryKubeconfig: data.PLUGIN_REGISTRY_KUBECONFIG,
+    authDevTokenExchange: data.AUTH_DEV_TOKEN_EXCHANGE,
   },
   isProd: data.NODE_ENV === 'production',
   isDev: data.NODE_ENV === 'development',
