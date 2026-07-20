@@ -107,7 +107,7 @@
     "streamdown": "^2.5.0",
     "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss-animate": "^1.0.7",
-    "tegaki": "^0.19.0",
+    "tegaki": "^0.22.0",
     "tslib": "^2.8.1",
     "urql": "^5.0.3",
     "zod": "4.4.3"
