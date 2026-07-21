@@ -13,8 +13,8 @@ import { ExternalLinkIcon, KeyRoundIcon } from 'lucide-react';
 
 /**
  * Builds the auth-ui management link with a returnTo pointing back at this
- * page, per Phase A spec §3.1 ("Entry from portal:
- * /id/passkeys?returnTo=<portal-url>").
+ * page (/id/passkeys?returnTo=<portal-url>). All passkey mutations live in
+ * auth-ui; this card is display-only.
  */
 function buildManagePasskeysUrl(): string {
   const returnTo = `${env.public.appUrl}${paths.account.settings.security}`;
