@@ -171,7 +171,7 @@ describe('toPasskey', () => {
   it('maps an explicit Inactive state', () => {
     const raw = {
       metadata: { name: 'passkey-2' },
-      status: { displayName: 'Old Phone', state: 'Inactive' as const },
+      status: { displayName: 'Old Phone', state: 'Inactive' as const, userUID: 'user-uid-2' },
     };
 
     expect(toPasskey(raw).state).toBe('Inactive');

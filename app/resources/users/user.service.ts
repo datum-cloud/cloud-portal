@@ -3,7 +3,6 @@ import {
   toUpdateUserPayload,
   toUpdateUserPreferencesPayload,
   type ComMiloapisIamV1Alpha1User,
-  type ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList,
   toUserIdentityList,
   toUserActiveSessionList,
   toPasskeyList,
@@ -17,9 +16,11 @@ import {
   UserActiveSession,
 } from './user.schema';
 import {
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList,
   deleteIdentityMiloapisComV1Alpha1Session,
+  listIdentityMiloapisComV1Alpha1Passkey,
   listIdentityMiloapisComV1Alpha1Session,
   listIdentityMiloapisComV1Alpha1UserIdentity,
 } from '@/modules/control-plane/identity';
@@ -38,24 +39,6 @@ export const userKeys = {
 };
 
 const SERVICE_NAME = 'UserService';
-
-/** TEMPORARY fixture pending milo A1b + zitadel-provider A2b (roadmap A5: "Depends on A2b deployed to staging"). The gated client-regen task deletes this. */
-const FIXTURE_PASSKEYS_RAW: ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList = {
-  items: [
-    {
-      metadata: { name: 'passkey-fixture-1' },
-      status: {
-        displayName: 'MacBook Pro (Touch ID)',
-        state: 'Active',
-        userUID: 'fixture-user-uid',
-      },
-    },
-    {
-      metadata: { name: 'passkey-fixture-2' },
-      status: { displayName: 'iPhone 15', state: 'Inactive', userUID: 'fixture-user-uid' },
-    },
-  ],
-};
 
 export function createUserService() {
   return {
@@ -198,7 +181,7 @@ export function createUserService() {
         });
 
         return toUserIdentityList(
-          response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
+          response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList
         );
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getUserIdentity failed`, error as Error);
@@ -206,17 +189,20 @@ export function createUserService() {
       }
     },
 
-    /** TEMPORARY: returns fixture data until the gated client-regen task swaps in the real call. */
     async getPasskeys(userId: string): Promise<Passkey[]> {
       const startTime = Date.now();
 
       try {
+        const response = await listIdentityMiloapisComV1Alpha1Passkey({
+          baseURL: getUserScopedBase(userId),
+        });
+
         logger.service(SERVICE_NAME, 'getPasskeys', {
           input: { userId },
           duration: Date.now() - startTime,
         });
 
-        return toPasskeyList(FIXTURE_PASSKEYS_RAW);
+        return toPasskeyList(response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList);
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getPasskeys failed`, error as Error);
         throw mapApiError(error);
@@ -241,7 +227,7 @@ export function createUserService() {
         });
 
         return toUserActiveSessionList(
-          response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList
+          response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList
         );
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getUserActiveSessions failed`, error as Error);
