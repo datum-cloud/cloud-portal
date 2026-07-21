@@ -84,7 +84,7 @@
         "streamdown": "^2.5.0",
         "tailwind-scrollbar-hide": "^4.0.0",
         "tailwindcss-animate": "^1.0.7",
-        "tegaki": "^0.19.0",
+        "tegaki": "^0.22.0",
         "tslib": "^2.8.1",
         "urql": "^5.0.3",
         "zod": "4.4.3",
@@ -2986,7 +2986,7 @@
 
     "tdigest": ["tdigest@0.1.2", "", { "dependencies": { "bintrees": "1.0.2" } }, "sha512-+G0LLgjjo9BZX2MfdvPfH+MKLCrxlXSYec5DaPYP1fe6Iyhf0/fSmJ0bFiZ1F8BT6cGXl2LpltQptzjXKWEkKA=="],
 
-    "tegaki": ["tegaki@0.19.0", "", { "peerDependencies": { "@nuxt/kit": "^3.0.0 || ^4.0.0", "harfbuzzjs": "^1.1.0", "react": ">=18", "solid-js": ">=1", "svelte": ">=5", "vue": ">=3" }, "optionalPeers": ["@nuxt/kit", "harfbuzzjs", "react", "solid-js", "svelte", "vue"] }, "sha512-WLmZgTf7Rq8paelxeXBou0ABtBhEZztVKcLpQp2Ae4s8xhXvztPzX/8+p0nIhLo/wb+jTY+7v4rs+Q9U8To/Cg=="],
+    "tegaki": ["tegaki@0.22.1", "", { "peerDependencies": { "@nuxt/kit": "^3.0.0 || ^4.0.0", "harfbuzzjs": "^1.1.0", "react": ">=18", "solid-js": ">=1", "svelte": ">=5", "vue": ">=3" }, "optionalPeers": ["@nuxt/kit", "harfbuzzjs", "react", "solid-js", "svelte", "vue"], "bin": { "tegaki": "dist/cli.mjs" } }, "sha512-A0an66+uJZsPfRfr+kkB5h33YgZMiB3E4w0qxPI5VMfDe5l+drR86kXHgxohqP3faxq/RCMdn50BOOv8LvovVg=="],
 
     "throttleit": ["throttleit@2.1.0", "", {}, "sha512-nt6AMGKW1p/70DF/hGBdJB57B8Tspmbp5gfJ8ilhLnt7kkr2ye7hzD6NVG8GGErk2HWF34igrL2CXmNIkzKqKw=="],
 
