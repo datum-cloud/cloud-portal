@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.85",
-    "@ai-sdk/react": "^3.0.210",
+    "@ai-sdk/react": "^4.0.0",
     "@conform-to/react": "^1.19.4",
     "@conform-to/zod": "^1.19.4",
     "@datum-cloud/activity-ui": "^0.5.1",
