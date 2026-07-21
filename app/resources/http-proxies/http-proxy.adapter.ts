@@ -678,10 +678,7 @@ export function toUpdateHttpProxyPayload(
   const hasRulesChange =
     input.endpoint !== undefined ||
     input.enableHttpRedirect !== undefined ||
-    input.hostHeader !== undefined ||
-    // TLS lives on the backend rule — rebuild rules when it changes even if
-    // endpoint/redirect/hostHeader are untouched (e.g. hostnames dialog save).
-    input.tlsHostname !== undefined;
+    input.hostHeader !== undefined;
 
   let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
 
@@ -715,11 +712,7 @@ export function toUpdateHttpProxyPayload(
 
       const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
       if (effectiveEndpoint) {
-        // Explicit tlsHostname (including '') means set/clear; omit means preserve.
-        const effectiveTls =
-          input.tlsHostname !== undefined
-            ? input.tlsHostname.trim() || undefined
-            : currentProxy?.tlsHostname;
+        const effectiveTls = input.tlsHostname ?? currentProxy?.tlsHostname;
 
         // Determine effective host header: explicit input > current proxy value
         // A defined-but-empty string in input means "clear the host header"

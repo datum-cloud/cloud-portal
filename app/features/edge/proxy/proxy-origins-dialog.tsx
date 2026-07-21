@@ -11,8 +11,7 @@ import { z } from 'zod';
 const originsConfigSchema = z.object({
   protocol: z.enum(['http', 'https']).default('https'),
   endpointHost: z.string().min(1, 'Origin is required'),
-  // Allow empty string so clearing TLS validates and can be sent as an explicit clear.
-  tlsHostname: z.string().max(253).optional(),
+  tlsHostname: z.string().min(1).max(253).optional(),
 });
 
 type OriginsConfigSchema = z.infer<typeof originsConfigSchema>;
@@ -71,8 +70,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       try {
         await updateMutation.mutateAsync({
           endpoint: fullEndpoint,
-          // Always send a string: '' clears TLS; omitting would leave the old value.
-          tlsHostname: (data.tlsHostname ?? '').trim(),
+          tlsHostname: data.tlsHostname,
         });
         toast.success('AI Edge', {
           description: 'Origin has been updated successfully',

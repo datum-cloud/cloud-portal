@@ -78,11 +78,6 @@ type SelectDomainProps = {
   compact?: boolean;
   /** Show the "Add a Domain" footer even in compact mode */
   showAddDomain?: boolean;
-  /**
-   * Autocomplete popover modality. Required inside Dialog/Modal so option
-   * clicks aren't swallowed by the dialog focus trap. Defaults to true.
-   */
-  modal?: boolean;
 } & Pick<AutocompleteProps, 'loading' | 'emptyContent' | 'contentClassName' | 'listClassName'>;
 
 export function SelectDomain({
@@ -97,7 +92,6 @@ export function SelectDomain({
   triggerClassName,
   compact,
   showAddDomain,
-  modal = true,
   loading: externalLoading,
   emptyContent = 'No domains found',
   ...rest
@@ -223,7 +217,6 @@ export function SelectDomain({
         triggerClassName={triggerClassName}
         creatable={creatable}
         creatableLabel={creatable ? renderCreatableLabel : undefined}
-        modal={modal}
         renderOption={(option, isSelected) => (
           <DomainOptionContent option={option} isSelected={isSelected} />
         )}

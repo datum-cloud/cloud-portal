@@ -1,8 +1,9 @@
 import { ProjectDangerCard } from '@/features/project/settings/danger-card';
 import { ProjectGeneralCard } from '@/features/project/settings/general-card';
+import { useGuardedRouteData } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runRouteGate } from '@/modules/rbac/run-resource-loader';
-import { useProjectContext } from '@/providers/project.provider';
+import { type Project } from '@/resources/projects';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { type LoaderFunctionArgs } from 'react-router';
@@ -36,14 +37,9 @@ export const handle = {
 export default route.Page(() => <GeneralForm />);
 
 function GeneralForm() {
-  // Prefer ProjectContext (React Query) over the project-detail loader envelope.
-  // Within a project, shouldRevalidate skips loader refresh, so loader data can
-  // lag behind display-name updates while the header already shows the new name.
-  const { project } = useProjectContext();
-
-  if (!project) {
-    return null;
-  }
+  const { data: project } = useGuardedRouteData<Project, { organizationId?: string | null }>(
+    'project-detail'
+  );
 
   return (
     <div className="flex w-full flex-col gap-8">

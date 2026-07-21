@@ -1,4 +1,4 @@
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   type CreateDnsZoneInput,
   createDnsZoneSchema,

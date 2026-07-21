@@ -1,5 +1,5 @@
 import { CreateDNSSetupResponse } from '@/modules/cloudvalid';
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';

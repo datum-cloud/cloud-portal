@@ -21,6 +21,9 @@ export interface PublicEnv {
   // When set, sent as the OIDC end_session post_logout_redirect_uri. MUST be registered on the
   // Zitadel client or Zitadel returns 400; leave unset to use Zitadel's default logout page.
   authPostLogoutRedirectUri?: string;
+  // Origin of the auth-ui service (passkey management, reauth). Distinct
+  // from authOidcIssuer (Zitadel itself).
+  authUiOrigin: string;
 
   // Optional: Observability
   sentryDsn?: string;
@@ -29,15 +32,11 @@ export interface PublicEnv {
   otelLogLevel?: 'debug' | 'info' | 'warn' | 'error';
 
   // Optional: Analytics & Support
-  rybbitSiteId?: string;
-  rybbitTag?: string;
+  fathomId?: string;
   helpscoutBeaconId?: string;
 
   // Feature Flags
   chatbotEnabled: boolean;
-
-  // Optional: Google Maps / Places (browser key; HTTP-referrer restricted)
-  googleMapsApiKey?: string;
 
   // Logging (always has defaults)
   logLevel: 'debug' | 'info' | 'warn' | 'error';
@@ -96,14 +95,6 @@ export interface ServerEnv {
   // amberfloBaseUrl: defaults to https://app.amberflo.io
   amberfloApiKey?: string;
   amberfloBaseUrl?: string;
-
-  // Optional: Portal Plugin System (dev-only registry sources)
-  // Both are hard-disabled outside NODE_ENV=development.
-  // portalPlugins: "<slug>=<url>,…" static dev-override entries.
-  // portalPluginsJson: JSON array of spec-shaped entries; takes precedence
-  //   over portalPlugins on slug collision.
-  portalPlugins?: string;
-  portalPluginsJson?: string;
 }
 
 /**

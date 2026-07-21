@@ -109,13 +109,6 @@ export default [
 
         route('home', 'routes/project/detail/home.tsx'),
 
-        // Service plugins — permanent catch-all mount for dynamically-loaded
-        // service UI plugins. Plugin routes resolve inside this mount at
-        // runtime, so the compiled route tree never changes per plugin (see
-        // docs/enhancements/portal-plugin-system.md, "Loading plugins in the
-        // portal"). The `services/` prefix avoids collisions with host routes.
-        route('services/:serviceSlug/*', 'routes/project/detail/services/plugin-mount.tsx'),
-
         // Settings
         layout('routes/project/detail/settings/layout.tsx', [
           route('general', 'routes/project/detail/settings/general.tsx'),

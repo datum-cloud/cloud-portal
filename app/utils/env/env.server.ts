@@ -54,6 +54,9 @@ const publicSchema = z.object({
   AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
   AUTH_ZITADEL_PROJECT_ID: z.string().optional(),
   AUTH_OIDC_POST_LOGOUT_REDIRECT_URI: urlSchemaOptional(),
+  // Origin of the auth-ui service (passkey management, reauth). Distinct
+  // from AUTH_OIDC_ISSUER (Zitadel itself). Used to build /id/passkeys links.
+  AUTH_UI_ORIGIN: urlSchema('http://localhost:3001'),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -69,8 +72,7 @@ const publicSchema = z.object({
   // ─────────────────────────────────────────────────────────
   // Optional: Analytics & Support (graceful degradation)
   // ─────────────────────────────────────────────────────────
-  RYBBIT_SITE_ID: z.string().optional(),
-  RYBBIT_TAG: z.string().optional(),
+  FATHOM_ID: z.string().optional(),
   HELPSCOUT_BEACON_ID: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
@@ -80,11 +82,6 @@ const publicSchema = z.object({
     .string()
     .transform((val) => val === 'true')
     .optional(),
-
-  // ─────────────────────────────────────────────────────────
-  // Optional: Google Maps / Places (browser key)
-  // ─────────────────────────────────────────────────────────
-  GOOGLE_MAPS_API_KEY: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
@@ -167,18 +164,6 @@ const serverSchema = z.object({
   REDIS_CONNECT_TIMEOUT: z.coerce.number().int().positive().default(5000),
   REDIS_COMMAND_TIMEOUT: z.coerce.number().int().positive().default(3000),
   REDIS_KEY_PREFIX: z.string().default('cloud-portal:'),
-
-  // ─────────────────────────────────────────────────────────
-  // Optional: Portal Plugin System (dev-only)
-  //
-  // These are development-only plugin-loading vectors — they are ignored
-  // unless NODE_ENV=development. See docs/enhancements/portal-plugin-system.md.
-  //   PORTAL_PLUGINS: "<slug>=<url>,…" static dev-override registry entries.
-  //   PORTAL_PLUGINS_JSON: JSON array of spec-shaped entries; takes
-  //     precedence over PORTAL_PLUGINS on slug collision.
-  // ─────────────────────────────────────────────────────────
-  PORTAL_PLUGINS: z.string().optional(),
-  PORTAL_PLUGINS_JSON: z.string().optional(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -212,12 +197,12 @@ export const env: Env = {
     apiUrl: data.API_URL,
     graphqlUrl: data.GRAPHQL_URL,
     authOidcIssuer: data.AUTH_OIDC_ISSUER,
+    authUiOrigin: data.AUTH_UI_ORIGIN,
     authZitadelProjectId: data.AUTH_ZITADEL_PROJECT_ID,
     authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
     sentryEnv: data.SENTRY_ENV,
-    rybbitSiteId: data.RYBBIT_SITE_ID,
-    rybbitTag: data.RYBBIT_TAG,
+    fathomId: data.FATHOM_ID,
     helpscoutBeaconId: data.HELPSCOUT_BEACON_ID,
     logLevel: data.LOG_LEVEL ?? (data.NODE_ENV === 'production' ? 'info' : 'debug'),
     logFormat: data.LOG_FORMAT ?? (data.NODE_ENV === 'production' ? 'json' : 'pretty'),
@@ -227,7 +212,6 @@ export const env: Env = {
     otelEnabled: data.OTEL_ENABLED === true && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: data.OTEL_LOG_LEVEL,
     chatbotEnabled: data.CHATBOT_ENABLED === true,
-    googleMapsApiKey: data.GOOGLE_MAPS_API_KEY || undefined,
   },
   server: {
     sessionSecret: data.SESSION_SECRET,
@@ -255,9 +239,6 @@ export const env: Env = {
     redisConnectTimeout: data.REDIS_CONNECT_TIMEOUT,
     redisCommandTimeout: data.REDIS_COMMAND_TIMEOUT,
     redisKeyPrefix: data.REDIS_KEY_PREFIX,
-    // Portal Plugin System (dev-only)
-    portalPlugins: data.PORTAL_PLUGINS,
-    portalPluginsJson: data.PORTAL_PLUGINS_JSON,
   },
   isProd: data.NODE_ENV === 'production',
   isDev: data.NODE_ENV === 'development',

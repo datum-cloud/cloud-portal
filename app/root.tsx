@@ -150,14 +150,13 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
 
         <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
         <ScrollRestoration nonce={nonce} />
-        {/* ENV must be set before module Scripts so client `@/utils/env` can read it. */}
+        <Scripts nonce={nonce} />
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `window.ENV = ${JSON.stringify(data?.ENV)}`,
           }}
         />
-        <Scripts nonce={nonce} />
       </body>
     </html>
   );

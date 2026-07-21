@@ -11,8 +11,6 @@ import type { Variables } from './types';
 import '@/modules/control-plane/setup.server';
 import { ensureFeatureFlagProvider } from '@/modules/feature-flags/setup.server';
 import { Logger } from '@/modules/logger';
-import { initPluginRegistry } from '@/modules/plugins/server';
-import { createPluginRoutes } from '@/modules/plugins/server/routes';
 // Side-effect import: registers RBAC prom-client metrics into the global registry
 // at module-load time so they appear on the /metrics endpoint.
 import '@/modules/rbac/observability/metrics';
@@ -48,11 +46,6 @@ sessionManager.registerRefreshHook(({ userId, accessToken }) => {
 // relying on a bare side-effect import) so `"sideEffects": false` tree-shaking
 // can't drop the registration from the production server bundle.
 ensureFeatureFlagProvider();
-
-// Instantiate the plugin registry with the server and wire its dev-only
-// discovery sources (static; kubeconfig ships in a follow-up PR). No-op in
-// production builds.
-initPluginRegistry();
 
 // Initialize observability (OTEL + Sentry + error handlers)
 initializeObservability().catch((error: unknown) => {
@@ -115,10 +108,9 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
-        'https://app.rybbit.io', // Rybbit
+        'https://*.usefathom.com', // Fathom
         'https://api.stripe.com',
-        'https://maps.googleapis.com', // Maps JS / legacy Places
-        'https://places.googleapis.com', // Places API (New) autocomplete RPC
+        'https://maps.googleapis.com', // AddressElement autocomplete
       ],
       fontSrc: [
         "'self'",
@@ -133,6 +125,7 @@ app.use(
         'https://*.datum.net',
         'https://*.cloudfront.net',
         'https://*.helpscout.net',
+        'https://*.usefathom.com', // Fathom
         'https://js.stripe.com',
         'https://hooks.stripe.com',
       ],
@@ -145,6 +138,7 @@ app.use(
         'https://*.cloudfront.net',
         'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
         'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
+        'https://*.usefathom.com', // Fathom
         'https://*.stripe.com',
       ],
       // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
@@ -152,8 +146,6 @@ app.use(
         "'strict-dynamic'",
         "'self'",
         NONCE,
-        'https://maps.googleapis.com',
-        'https://*.gstatic.com',
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],
       scriptSrcElem: [
@@ -162,8 +154,6 @@ app.use(
         'https://js.sentry-cdn.com',
         'https://browser.sentry-cdn.com',
         'https://js.stripe.com',
-        'https://maps.googleapis.com',
-        'https://*.gstatic.com',
         NONCE,
         ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
       ],
@@ -179,13 +169,6 @@ app.use(
 );
 
 app.onError(errorHandler);
-
-// ============================================================================
-// Plugin Routes (registered BEFORE the guarded /api sub-app)
-// ============================================================================
-// The asset proxy must serve plugin bundles without a session, so plugin routes
-// escape the blanket API auth guard and gate themselves per-route.
-app.route('/api/plugins', createPluginRoutes());
 
 // ============================================================================
 // API Routes (sub-app with its own middleware + 404 handling)

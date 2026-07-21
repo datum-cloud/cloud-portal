@@ -24,7 +24,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
       });
       if (updatedProject.organizationId) {
         queryClient.invalidateQueries({
-          queryKey: [...projectKeys.lists(), updatedProject.organizationId],
+          queryKey: projectKeys.list(updatedProject.organizationId),
         });
       }
     },
@@ -41,16 +41,13 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
         <CardTitle className="text-sm font-medium">Project Info</CardTitle>
       </CardHeader>
       <Form.Root
-        // Remount when the project revision changes so defaultValues (and Cancel
-        // reset) track the latest display name after a successful save.
-        key={project.resourceVersion || project.displayName || project.name}
         name="update-project"
         id="update-project-form"
         schema={updateProjectSchema.pick({ description: true, name: true })}
         mode="onBlur"
         defaultValues={{
-          description: project.displayName ?? project.description ?? '',
-          name: project.name ?? '',
+          description: project?.description ?? '',
+          name: project?.name ?? '',
         }}
         isSubmitting={updateMutation.isPending}
         onSubmit={(data) => {

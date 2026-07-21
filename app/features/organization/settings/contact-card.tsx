@@ -1,5 +1,4 @@
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
-import { AddressFields } from '@/features/address/address-fields';
 import { BILLING_COUNTRIES, BILLING_PRIORITY_COUNTRY_CODES } from '@/features/billing/constants';
 import {
   buildOrgContactDefaults,
@@ -131,7 +130,29 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
                 </Form.Field>
               </div>
 
-              <AddressFields layout="grid" includeCountry={false} dataE2ePrefix="org-contact" />
+              <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <Form.Field name="line1" label="Address line 1">
+                    <Form.Input autoComplete="address-line1" />
+                  </Form.Field>
+
+                  <Form.Field name="line2" label="Address line 2">
+                    <Form.Input autoComplete="address-line2" />
+                  </Form.Field>
+
+                  <Form.Field name="city" label="City">
+                    <Form.Input autoComplete="address-level2" />
+                  </Form.Field>
+
+                  <Form.Field name="region" label="State / Region">
+                    <Form.Input autoComplete="address-level1" />
+                  </Form.Field>
+
+                  <Form.Field name="postalCode" label="Postal code">
+                    <Form.Input autoComplete="postal-code" />
+                  </Form.Field>
+                </div>
+              </div>
             </CardContent>
             {!permLoading && canEdit && (
               <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">

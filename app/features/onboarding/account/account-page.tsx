@@ -7,7 +7,6 @@ import {
   type OnboardingAccountValues,
 } from '@/features/onboarding/schemas/onboarding-account-schema';
 import { useTransitionNavigate } from '@/hooks/useTransitionNavigate';
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useUpdateUserPreferences, type LastLoginProviderValue } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -36,12 +35,8 @@ export const AccountPage = ({
   country = '',
 }: AccountPageProps) => {
   const { submitAndNavigate, isNavigating } = useTransitionNavigate();
-  const { trackAction } = useAnalytics();
 
   const updateProfileMutation = useUpdateUserPreferences(userId, {
-    onSuccess: () => {
-      trackAction(AnalyticsAction.AccountDetailsSaved);
-    },
     onError: (error) => {
       toast.error('Account information', {
         description: error.message ?? 'Failed to save your country',

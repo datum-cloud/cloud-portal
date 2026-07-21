@@ -1,7 +1,6 @@
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import { useTransitionNavigate } from '@/hooks/useTransitionNavigate';
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { userKeys, userSchema, useUpdateUser, type User } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -31,13 +30,11 @@ export const ProfilePage = ({
 }: ProfilePageProps) => {
   const { submitAndNavigate, isNavigating } = useTransitionNavigate();
   const queryClient = useQueryClient();
-  const { trackAction } = useAnalytics();
 
   const updateMutation = useUpdateUser(userId, {
     onSuccess: (updatedUser) => {
       const next = userAfterSuccessfulNameSave(updatedUser);
       queryClient.setQueryData(userKeys.detail(userId), next);
-      trackAction(AnalyticsAction.ProfileDetailsSaved);
     },
     onError: (error) => {
       toast.error('Profile', {

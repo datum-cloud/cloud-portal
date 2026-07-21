@@ -1,7 +1,7 @@
 import { InvitationForm } from '@/features/organization/team/invitation-form';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runRouteGate } from '@/modules/rbac/run-resource-loader';
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   useCreateInvitation,
   type CreateInvitationInput,

@@ -204,10 +204,18 @@ const PAYMENT_ELEMENT_OPTIONS = {
 
 const ADDRESS_ELEMENT_OPTIONS = {
   mode: 'billing' as const,
-  // Disable Stripe's built-in Google Places autocomplete. The suggestions
-  // dropdown is rendered through a portal we can't style (Stripe iframe), and
-  // it sits under our dialog footer. Users type the address manually; the
-  // AddressElement still validates and attaches the entered fields.
+  // Disable Stripe's built-in Google Places autocomplete. The
+  // suggestions dropdown is rendered through a portal that escapes the
+  // dialog body's overflow but sits *under* our sticky `Dialog.Footer`,
+  // which interleaves the buttons through the middle of the list (see
+  // https://github.com/stripe/stripe-js issues around AddressElement +
+  // modal containers — Stripe can't z-index above an arbitrary parent).
+  //
+  // Users can still type the address manually; the AddressElement
+  // continues to validate and attach the entered fields to the
+  // resulting PaymentMethod. If we want autocomplete back, the fix is
+  // to drop the sticky footer (let the dialog scroll the buttons too)
+  // or move the AddressElement into its own non-modal step.
   autocomplete: { mode: 'disabled' as const },
 };
 

@@ -103,7 +103,7 @@ modules/
 │   ├── networking/
 │   └── ...
 ├── datum-ui/               # Datum component library
-├── rybbit/                 # Analytics integration
+├── fathom/                 # Analytics integration
 ├── helpscout/              # Support widget
 ├── logger/                 # Structured logging
 ├── prometheus/             # Metrics collection

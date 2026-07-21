@@ -1,7 +1,7 @@
 import { InputName } from '@/components/input-name/input-name';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { KeyValueFieldArray } from '@/features/secret/form/key-value-field-array';
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   type SecretCreateSchema,
   type CreateSecretInput,

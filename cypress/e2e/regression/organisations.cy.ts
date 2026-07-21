@@ -16,24 +16,12 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * [data-e2e="org-billing-contact-open"]           Open contact info dialog
  * [data-e2e="org-contact-email"]                  Contact email input
  * [data-e2e="org-contact-name"]                   Contact name input
- * [data-e2e="org-contact-line1"]                  Address line 1 (Places autocomplete when Maps key set)
- * [data-e2e="org-contact-line2"]                  Address line 2
- * [data-e2e="org-contact-city"]                   City
- * [data-e2e="org-contact-region"]                 State / Region
- * [data-e2e="org-contact-postal-code"]            Postal code
  * [data-e2e="org-contact-save"]                   Save contact info
  * [data-e2e="org-billing-payment-open"]           Open payment method dialog
  * [data-e2e="payment-method-display-name"]        Card display name input
  * [data-e2e="payment-method-submit"]              Add payment method submit
  * [data-e2e="org-billing-payment-summary"]        Saved card summary row
  * [data-e2e="create-organization-submit"]         Final create/submit button
- *
- * Billing address (account billing)
- * [data-e2e="billing-address-line1"]              Address line 1
- * [data-e2e="billing-address-line2"]              Address line 2
- * [data-e2e="billing-address-city"]               City
- * [data-e2e="billing-address-region"]             State / Region
- * [data-e2e="billing-address-postal-code"]        Postal code
  *
  * General settings
  * [data-e2e="edit-organization-name-input"]   Organization Name input

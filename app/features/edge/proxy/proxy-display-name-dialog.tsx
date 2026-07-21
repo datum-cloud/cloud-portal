@@ -70,7 +70,7 @@ export const ProxyDisplayNameDialog = forwardRef<
     <Form.Dialog
       open={open}
       onOpenChange={setOpen}
-      title="Edit Display Name"
+      title="Edit Name"
       description="Update the name shown for this AI Edge."
       schema={displayNameSchema}
       defaultValues={defaultValues}
@@ -79,7 +79,7 @@ export const ProxyDisplayNameDialog = forwardRef<
       submitTextLoading="Saving..."
       className="w-full focus:ring-0 focus:outline-none sm:max-w-lg">
       <div className="px-5">
-        <Form.Field name="chosenName" label="Display name" required>
+        <Form.Field name="chosenName" label="Name" required>
           <Form.Input autoFocus placeholder="e.g. Customer API" />
         </Form.Field>
       </div>

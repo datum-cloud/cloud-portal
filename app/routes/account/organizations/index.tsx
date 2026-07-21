@@ -6,7 +6,7 @@ import {
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
-import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
+import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { createOrganizationService } from '@/resources/organizations';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
