@@ -4,6 +4,7 @@ import type {
   UserSchema,
   UserIdentity,
   UserActiveSession,
+  Passkey,
 } from './user.schema';
 import { createUserService, userKeys } from './user.service';
 import {
@@ -99,6 +100,18 @@ export function useUserIdentities(
   return useQuery({
     queryKey: userKeys.identities(userId),
     queryFn: () => createUserService().getUserIdentity(userId),
+    enabled: !!userId,
+    ...options,
+  });
+}
+
+export function usePasskeys(
+  userId: string,
+  options?: Omit<UseQueryOptions<Passkey[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: userKeys.passkeys(userId),
+    queryFn: () => createUserService().getPasskeys(userId),
     enabled: !!userId,
     ...options,
   });

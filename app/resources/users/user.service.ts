@@ -3,14 +3,17 @@ import {
   toUpdateUserPayload,
   toUpdateUserPreferencesPayload,
   type ComMiloapisIamV1Alpha1User,
+  type ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList,
   toUserIdentityList,
   toUserActiveSessionList,
+  toPasskeyList,
 } from './user.adapter';
 import {
   type User,
   type UpdateUserPreferencesInput,
   type UserSchema,
   type UserIdentity,
+  type Passkey,
   UserActiveSession,
 } from './user.schema';
 import {
@@ -31,9 +34,24 @@ export const userKeys = {
   detail: (userId: string) => [...userKeys.details(), userId] as const,
   identities: (userId: string) => [...userKeys.all, 'identities', userId] as const,
   activeSessions: (userId: string) => [...userKeys.all, 'activeSessions', userId] as const,
+  passkeys: (userId: string) => [...userKeys.all, 'passkeys', userId] as const,
 };
 
 const SERVICE_NAME = 'UserService';
+
+/** TEMPORARY fixture pending milo A1b + zitadel-provider A2b (roadmap A5: "Depends on A2b deployed to staging"). The gated client-regen task deletes this. */
+const FIXTURE_PASSKEYS_RAW: ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList = {
+  items: [
+    {
+      metadata: { name: 'passkey-fixture-1' },
+      status: { displayName: 'MacBook Pro (Touch ID)', state: 'Active' },
+    },
+    {
+      metadata: { name: 'passkey-fixture-2' },
+      status: { displayName: 'iPhone 15', state: 'Inactive' },
+    },
+  ],
+};
 
 export function createUserService() {
   return {
@@ -180,6 +198,23 @@ export function createUserService() {
         );
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getUserIdentity failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    /** TEMPORARY: returns fixture data until the gated client-regen task swaps in the real call. */
+    async getPasskeys(userId: string): Promise<Passkey[]> {
+      const startTime = Date.now();
+
+      try {
+        logger.service(SERVICE_NAME, 'getPasskeys', {
+          input: { userId },
+          duration: Date.now() - startTime,
+        });
+
+        return toPasskeyList(FIXTURE_PASSKEYS_RAW);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.getPasskeys failed`, error as Error);
         throw mapApiError(error);
       }
     },
