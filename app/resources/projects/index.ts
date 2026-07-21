@@ -34,6 +34,8 @@ export {
 // Watch hook exports (only list watch - single project watch not supported for cluster-scoped resources)
 export { useProjectsWatch, inspectProjectReady } from './project.watch';
 
+export { createProjectWithBillingBind } from './create-project-with-billing';
+
 export {
   waitForProjectAccessReady,
   findReadyProjectPolicyBinding,

@@ -179,25 +179,21 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
       },
       processor: async (ctx) => {
         try {
-          // 1. Create via API (returns 200 immediately)
           const createdProject = await createProject({
             description: formData.description,
             organizationId: orgId as string,
           });
 
-          // 2. Wait for K8s reconciliation
           const { promise, cancel } = waitForProjectReady(orgId as string, createdProject.name);
-          ctx.onCancel(cancel); // Register cleanup - called automatically on cancel/timeout
+          ctx.onCancel(cancel);
 
           const readyProject = await promise;
 
-          // 3. Charge the project against the org's default billing account.
           await createBillingAccountBindingService().bindProjectToDefaultOrgAccount(
             orgId as string,
             readyProject.name
           );
 
-          // 4. Task completes when Ready
           ctx.setResult(readyProject);
           ctx.succeed();
         } catch (error) {
