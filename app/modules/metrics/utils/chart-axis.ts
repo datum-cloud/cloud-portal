@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
@@ -48,12 +48,15 @@ export function buildUniformYTicks(domain: [number, number], tickCount = 5): num
 
 /**
  * Pick an X-axis time label format based on the selected range width.
+ * Renders in the given timezone so ticks match the picker and tooltips,
+ * which are timezone-aware — falling back to the runtime's local zone
+ * would otherwise silently mislabel every tick.
  */
-export function formatChartTimeTick(timestamp: number, rangeMs: number): string {
+export function formatChartTimeTick(timestamp: number, rangeMs: number, timezone: string): string {
   const date = new Date(timestamp);
-  if (rangeMs < SIX_HOURS_MS) return format(date, 'h:mm a');
-  if (rangeMs < FORTY_EIGHT_HOURS_MS) return format(date, 'MMM d, h:mm a');
-  return format(date, 'MMM d');
+  if (rangeMs < SIX_HOURS_MS) return formatInTimeZone(date, timezone, 'h:mm a');
+  if (rangeMs < FORTY_EIGHT_HOURS_MS) return formatInTimeZone(date, timezone, 'MMM d, h:mm a');
+  return formatInTimeZone(date, timezone, 'MMM d');
 }
 
 type ChartRow = Record<string, number>;
