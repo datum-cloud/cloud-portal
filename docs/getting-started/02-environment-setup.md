@@ -120,7 +120,8 @@ bun run typecheck
 
 | Variable              | Required | Default | Description              |
 | --------------------- | -------- | ------- | ------------------------ |
-| `FATHOM_ID`           | No       | -       | Fathom Analytics ID      |
+| `RYBBIT_SITE_ID`      | No       | -       | Rybbit Analytics site ID |
+| `RYBBIT_TAG`          | No       | -       | Rybbit Analytics tag     |
 | `HELPSCOUT_BEACON_ID` | No       | -       | HelpScout support widget |
 | `REDIS_URL`           | No       | -       | Redis for rate limiting  |
 

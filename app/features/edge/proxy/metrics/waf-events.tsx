@@ -30,6 +30,14 @@ function windowDuration(ctx: QueryBuilderContext): string {
   return formatDurationFromMs(ctx.timeRange.end.getTime() - ctx.timeRange.start.getTime());
 }
 
+// A counter reset inside the range makes increase() extrapolate a bogus,
+// wildly inflated delta. Zero out any window where a reset occurred instead
+// of reporting it.
+export function resetGuardedIncrease(metric: string, selector: string, window: string): string {
+  const series = `${metric}${selector}`;
+  return `(increase(${series}[${window}]) * (resets(${series}[${window}]) == bool 0))`;
+}
+
 function WafStat({ label, query }: { label: string; query: (ctx: QueryBuilderContext) => string }) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
   const resolvedQuery = useMemo(
@@ -77,7 +85,7 @@ export const HttpProxyWafEvents = ({
         },
         filters: [regionFilter],
       });
-      return `sum(increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration(ctx)}]))`;
+      return `sum(${resetGuardedIncrease('coraza_envoy_filter_request_events_total', selector, windowDuration(ctx))})`;
     },
     [projectId, proxyId]
   );
@@ -95,7 +103,7 @@ export const HttpProxyWafEvents = ({
         customLabels: { label_topology_kubernetes_io_region: '!=""' },
         filters: [regionFilter],
       });
-      return `sum(increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration(ctx)}]))`;
+      return `sum(${resetGuardedIncrease('coraza_envoy_filter_request_events_total', selector, windowDuration(ctx))})`;
     },
     [projectId, proxyId, trafficProtectionMode]
   );
@@ -140,7 +148,7 @@ export const HttpProxyWafEvents = ({
           return (
             `sum by (coraza_outcome) (` +
             `sum_over_time(` +
-            `increase(coraza_envoy_filter_request_events_total${selector}[1m])` +
+            `${resetGuardedIncrease('coraza_envoy_filter_request_events_total', selector, '1m')}` +
             `[${step}:1m]))`
           );
         }}

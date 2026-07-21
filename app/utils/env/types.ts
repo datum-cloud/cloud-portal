@@ -32,11 +32,15 @@ export interface PublicEnv {
   otelLogLevel?: 'debug' | 'info' | 'warn' | 'error';
 
   // Optional: Analytics & Support
-  fathomId?: string;
+  rybbitSiteId?: string;
+  rybbitTag?: string;
   helpscoutBeaconId?: string;
 
   // Feature Flags
   chatbotEnabled: boolean;
+
+  // Optional: Google Maps / Places (browser key; HTTP-referrer restricted)
+  googleMapsApiKey?: string;
 
   // Logging (always has defaults)
   logLevel: 'debug' | 'info' | 'warn' | 'error';
@@ -95,6 +99,14 @@ export interface ServerEnv {
   // amberfloBaseUrl: defaults to https://app.amberflo.io
   amberfloApiKey?: string;
   amberfloBaseUrl?: string;
+
+  // Optional: Portal Plugin System (dev-only registry sources)
+  // Both are hard-disabled outside NODE_ENV=development.
+  // portalPlugins: "<slug>=<url>,…" static dev-override entries.
+  // portalPluginsJson: JSON array of spec-shaped entries; takes precedence
+  //   over portalPlugins on slug collision.
+  portalPlugins?: string;
+  portalPluginsJson?: string;
 }
 
 /**

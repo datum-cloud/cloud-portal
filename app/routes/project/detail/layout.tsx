@@ -6,6 +6,8 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { buildPluginNavItems } from '@/modules/plugins/client/plugin-nav';
+import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import type { DslLoaderData } from '@/modules/rbac/types';
@@ -57,6 +59,25 @@ import {
   useParams,
 } from 'react-router';
 
+/**
+ * Live project name for breadcrumbs. Loader data stays frozen under
+ * skipRevalidateWithinSameProject, so prefer the app project (kept in sync
+ * with React Query). Falls back to loader snapshot when unset.
+ */
+function ProjectBreadcrumbLabel({
+  fallbackDisplayName,
+  fallbackName,
+}: {
+  fallbackDisplayName?: string;
+  fallbackName?: string;
+}) {
+  const { project } = useApp();
+  return (
+    <span>
+      {project?.displayName ?? project?.name ?? fallbackDisplayName ?? fallbackName ?? 'Project'}
+    </span>
+  );
+}
 /**
  * Companion data attached to the project-detail loader envelope. Both companions
  * are tolerant of permission/fetch failures — denial leaves the flags at safe
@@ -242,7 +263,9 @@ const route = defineResourceRoute<Project, ProjectLayoutCompanions>({
   notFoundLabel: 'Project',
   restrictedTitle: RESTRICTED_TITLE,
   restrictedMessage: RESTRICTED_MESSAGE,
-  breadcrumb: ({ data }) => <span>{data?.displayName ?? data?.name ?? 'Project'}</span>,
+  breadcrumb: ({ data }) => (
+    <ProjectBreadcrumbLabel fallbackDisplayName={data?.displayName} fallbackName={data?.name} />
+  ),
   metaTitle: ({ data }) => data?.displayName ?? data?.name ?? 'Project',
 });
 
@@ -402,13 +425,21 @@ function ProjectDetailLayoutContent({
     [project, org, projectLoading, projectError, projectErrorDetail]
   );
 
+  // Ready + entitled plugins for this project. Best-effort: a failed fetch
+  // resolves to no plugin nav rather than blocking the sidebar.
+  const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name });
+
   const navItems: NavItem[] = useMemo(() => {
     if (!project?.name) return [];
 
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
-    return buildProjectNavItems(project.name, { isReady, queryClient });
-  }, [project, queryClient]);
+    const builtInItems = buildProjectNavItems(project.name, { isReady, queryClient });
+    // Plugin nav items append after built-ins; the first plugin item carries a
+    // separator so plugin nav reads as a distinct group.
+    const pluginItems = plugins ? buildPluginNavItems(plugins, project.name) : [];
+    return [...builtInItems, ...pluginItems];
+  }, [project, queryClient, plugins]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;

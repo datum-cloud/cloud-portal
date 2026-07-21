@@ -6,8 +6,9 @@ import { AIEdgeIllustration } from '@/features/project/illustrations/ai-edge';
 import { DnsIllustration } from '@/features/project/illustrations/dns';
 import { DomainIllustration } from '@/features/project/illustrations/domain';
 import { MetricsIllustration } from '@/features/project/illustrations/metrics';
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
+import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { useResourcePermissions } from '@/modules/rbac';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
 import { useDnsZones } from '@/resources/dns-zones';
@@ -22,6 +23,7 @@ import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { CalendarFold } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 
 // ---------------------------------------------------------------------------
@@ -72,6 +74,7 @@ export default function ProjectHomePage() {
   const { trackAction } = useAnalytics();
   const navigate = useNavigate();
   const { user } = useApp();
+  const firstProjectViewTrackedRef = useRef(false);
 
   const { data: httpProxies = [], isLoading: httpProxiesLoading } = useHttpProxies(
     project?.name ?? '',
@@ -134,6 +137,12 @@ export default function ProjectHomePage() {
   const isNewUser = Boolean(
     user?.createdAt && Date.now() - new Date(user.createdAt).getTime() < NEW_USER_THRESHOLD_MS
   );
+
+  useEffect(() => {
+    if (!isNewUser || firstProjectViewTrackedRef.current) return;
+    firstProjectViewTrackedRef.current = true;
+    trackAction(AnalyticsAction.FirstProjectView);
+  }, [isNewUser, trackAction]);
 
   if (isLoading) {
     return null;
@@ -303,6 +312,9 @@ export default function ProjectHomePage() {
           </Col>
         ))}
       </Row>
+
+      {/* Plugin-contributed project-home cards (portal.card/project-home) */}
+      <ProjectHomePluginCards projectId={projectName} />
 
       {/* Community */}
       <Row className="shrink-0">

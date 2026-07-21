@@ -16,13 +16,13 @@ import {
   isRowLocked,
 } from '@/features/edge/dns-records/utils';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
-import { AnalyticsAction, useAnalytics } from '@/modules/fathom';
 import {
   PermissionButton,
   PermissionGate,
   useGuardedRouteData,
   useResourcePermissions,
 } from '@/modules/rbac';
+import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   IFlattenedDnsRecord,
   dnsRecordKeys,

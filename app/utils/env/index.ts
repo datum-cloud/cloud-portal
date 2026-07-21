@@ -22,7 +22,8 @@ const clientDefaults: PublicEnv = {
   authZitadelProjectId: undefined,
   sentryDsn: undefined,
   sentryEnv: undefined,
-  fathomId: undefined,
+  rybbitSiteId: undefined,
+  rybbitTag: undefined,
   helpscoutBeaconId: undefined,
   logLevel: 'info',
   logFormat: 'pretty',
@@ -32,6 +33,7 @@ const clientDefaults: PublicEnv = {
   otelEnabled: false,
   otelLogLevel: undefined,
   chatbotEnabled: false,
+  googleMapsApiKey: undefined,
 };
 
 // Get public env values - works on both server and client
@@ -55,7 +57,8 @@ function getPublicEnv(): PublicEnv {
     authZitadelProjectId: process.env.AUTH_ZITADEL_PROJECT_ID,
     sentryDsn: process.env.SENTRY_DSN,
     sentryEnv: process.env.SENTRY_ENV,
-    fathomId: process.env.FATHOM_ID,
+    rybbitSiteId: process.env.RYBBIT_SITE_ID,
+    rybbitTag: process.env.RYBBIT_TAG,
     helpscoutBeaconId: process.env.HELPSCOUT_BEACON_ID,
     logLevel:
       (process.env.LOG_LEVEL as PublicEnv['logLevel']) ??
@@ -69,6 +72,7 @@ function getPublicEnv(): PublicEnv {
     otelEnabled: process.env.OTEL_ENABLED === 'true' && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: process.env.OTEL_LOG_LEVEL as PublicEnv['otelLogLevel'],
     chatbotEnabled: process.env.CHATBOT_ENABLED === 'true',
+    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || undefined,
   };
 }
 
