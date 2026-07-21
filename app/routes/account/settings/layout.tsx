@@ -22,10 +22,10 @@ export default function AccountSettingsLayout() {
       label: 'General',
       href: paths.account.settings.general,
     },
-    // {
-    //   label: 'Security',
-    //   href: paths.account.settings.security,
-    // },
+    {
+      label: 'Security',
+      href: paths.account.settings.security,
+    },
     {
       label: 'Active Sessions',
       href: paths.account.settings.activeSessions,
