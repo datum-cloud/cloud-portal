@@ -180,6 +180,7 @@ export interface ComMiloapisGoMiloPkgApisIdentityV1Alpha1Passkey {
   status?: {
     displayName?: string;
     state?: 'Active' | 'Inactive';
+    userUID?: string;
   };
 }
 
@@ -193,6 +194,7 @@ export function toPasskey(raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Passkey):
     id: raw.metadata?.name ?? '',
     displayName: raw.status?.displayName ?? '',
     state: raw.status?.state === 'Inactive' ? 'Inactive' : 'Active',
+    userUID: raw.status?.userUID ?? '',
   };
 }
 

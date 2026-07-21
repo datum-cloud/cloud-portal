@@ -151,16 +151,21 @@ describe('toUserActiveSessionList', () => {
 });
 
 describe('toPasskey', () => {
-  it('maps metadata.name to id and status fields to displayName/state', () => {
+  it('maps metadata.name to id and status fields to displayName/state/userUID', () => {
     const raw = {
       metadata: { name: 'passkey-1' },
-      status: { displayName: 'MacBook Pro (Touch ID)', state: 'Active' as const },
+      status: {
+        displayName: 'MacBook Pro (Touch ID)',
+        state: 'Active' as const,
+        userUID: 'user-uid-1',
+      },
     };
     const passkey = toPasskey(raw);
 
     expect(passkey.id).toBe('passkey-1');
     expect(passkey.displayName).toBe('MacBook Pro (Touch ID)');
     expect(passkey.state).toBe('Active');
+    expect(passkey.userUID).toBe('user-uid-1');
   });
 
   it('maps an explicit Inactive state', () => {
@@ -172,12 +177,13 @@ describe('toPasskey', () => {
     expect(toPasskey(raw).state).toBe('Inactive');
   });
 
-  it('defaults state to Active and displayName to empty string when status is absent', () => {
+  it('defaults state to Active and displayName/userUID to empty strings when status is absent', () => {
     const raw = { metadata: { name: 'passkey-3' } };
     const passkey = toPasskey(raw);
 
     expect(passkey.state).toBe('Active');
     expect(passkey.displayName).toBe('');
+    expect(passkey.userUID).toBe('');
   });
 });
 
@@ -185,14 +191,21 @@ describe('toPasskeyList', () => {
   it('maps a raw list to domain Passkey[]', () => {
     const raw = {
       items: [
-        { metadata: { name: 'p-1' }, status: { displayName: 'A', state: 'Active' as const } },
-        { metadata: { name: 'p-2' }, status: { displayName: 'B', state: 'Inactive' as const } },
+        {
+          metadata: { name: 'p-1' },
+          status: { displayName: 'A', state: 'Active' as const, userUID: 'u-1' },
+        },
+        {
+          metadata: { name: 'p-2' },
+          status: { displayName: 'B', state: 'Inactive' as const, userUID: 'u-1' },
+        },
       ],
     };
     const list = toPasskeyList(raw);
 
     expect(list).toHaveLength(2);
     expect(list[0].id).toBe('p-1');
+    expect(list[0].userUID).toBe('u-1');
     expect(list[1].state).toBe('Inactive');
   });
 

@@ -44,11 +44,15 @@ const FIXTURE_PASSKEYS_RAW: ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList 
   items: [
     {
       metadata: { name: 'passkey-fixture-1' },
-      status: { displayName: 'MacBook Pro (Touch ID)', state: 'Active' },
+      status: {
+        displayName: 'MacBook Pro (Touch ID)',
+        state: 'Active',
+        userUID: 'fixture-user-uid',
+      },
     },
     {
       metadata: { name: 'passkey-fixture-2' },
-      status: { displayName: 'iPhone 15', state: 'Inactive' },
+      status: { displayName: 'iPhone 15', state: 'Inactive', userUID: 'fixture-user-uid' },
     },
   ],
 };

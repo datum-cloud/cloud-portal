@@ -90,6 +90,8 @@ export const passkeySchema = z.object({
   id: z.string(),
   displayName: z.string(),
   state: z.enum(PASSKEY_STATE_VALUES),
+  /** Owning user's UID (spec §2.1) — backs the `status.userUID=<uid>` field selector for cross-user MiloSAR reads, mirroring Session/UserIdentity. */
+  userUID: z.string(),
 });
 
 export type Passkey = z.infer<typeof passkeySchema>;
