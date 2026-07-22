@@ -56,7 +56,9 @@ async function resolveCaBundleRef(client: KubeClient, ref: CaBundleRef): Promise
     { headers: { Accept: 'application/json' } }
   );
   if (!response.ok) {
-    throw new Error(`fetch ${ref.kind} "${ref.namespace}/${ref.name}" failed: HTTP ${response.status}`);
+    throw new Error(
+      `fetch ${ref.kind} "${ref.namespace}/${ref.name}" failed: HTTP ${response.status}`
+    );
   }
   const body = (await response.json()) as { data?: Record<string, string> };
   const value = body.data?.[ref.key];
@@ -120,7 +122,9 @@ export async function specFromResource(
     try {
       caBundle = await resolveCaBundleRef(client, ref);
     } catch (err) {
-      logger.warn(`[plugins] PortalPlugin "${slug}" caBundleRef could not be resolved: ${String(err)}`);
+      logger.warn(
+        `[plugins] PortalPlugin "${slug}" caBundleRef could not be resolved: ${String(err)}`
+      );
       return null;
     }
   }

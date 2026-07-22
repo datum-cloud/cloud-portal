@@ -143,7 +143,12 @@ describe('specFromResource', () => {
       portalPluginResource({
         assets: {
           baseURL: 'https://plugin.example.com',
-          caBundleRef: { kind: 'ConfigMap', name: 'plugin-ca', namespace: 'default', key: 'ca.crt' },
+          caBundleRef: {
+            kind: 'ConfigMap',
+            name: 'plugin-ca',
+            namespace: 'default',
+            key: 'ca.crt',
+          },
         },
       }),
       client,
