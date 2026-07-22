@@ -9,8 +9,8 @@ import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Activity, Suspense, useRef, useState } from 'react';
 
-const ChatPanel = lazyWithRetry(() =>
-  import('./chat/chat-panel').then((m) => ({ default: m.ChatPanel }))
+const AssistantWorkspace = lazyWithRetry(() =>
+  import('@/features/assistant').then((m) => ({ default: m.AssistantWorkspace }))
 );
 
 type PanelType = 'chat' | 'docs';
@@ -55,43 +55,28 @@ function ToolbarButton({ panel, icon: icon, label, isActive, onClick }: ToolbarB
   );
 }
 
+// Mirrors the shared workspace's rail + empty-state layout (history collapsed by
+// default) so the lazy-load fallback matches what mounts in.
 function ChatPanelSkeleton() {
   return (
-    <div className="relative flex h-full overflow-hidden">
-      {/* Sidebar skeleton */}
-      <div className="bg-card hidden h-full w-[250px] shrink-0 flex-col gap-3 p-3 sm:flex">
-        <Skeleton className="h-8 w-full rounded-lg" />
-        <div className="flex flex-col gap-2 pt-2">
-          <Skeleton className="h-10 w-full rounded-lg" />
-          <Skeleton className="h-10 w-full rounded-lg" />
-          <Skeleton className="h-10 w-3/4 rounded-lg" />
-        </div>
+    <div className="bg-background flex h-full w-full overflow-hidden">
+      <div className="flex w-12 shrink-0 flex-col items-center gap-1 border-r py-3">
+        <Skeleton className="size-9 rounded-md" />
+        <Skeleton className="size-9 rounded-md" />
       </div>
 
-      {/* Resize handle */}
-      <div className="bg-muted hidden w-4 shrink-0 sm:block" />
-
-      {/* Chat area skeleton */}
-      <div className="bg-muted flex min-w-0 flex-1 flex-col">
-        <div className="flex flex-1 flex-col gap-3 p-4">
-          <Skeleton className="h-4 w-24 rounded" />
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-9 w-56 rounded-xl" />
-            <Skeleton className="h-9 w-44 rounded-xl" />
-            <Skeleton className="h-9 w-64 rounded-xl" />
-            <Skeleton className="h-9 w-52 rounded-xl" />
-            <Skeleton className="h-9 w-60 rounded-xl" />
-          </div>
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-8">
+        <div className="mb-8 flex flex-col items-center">
+          <Skeleton className="mb-4 size-16 rounded-full" />
+          <Skeleton className="h-8 w-64 rounded-lg" />
         </div>
 
-        {/* Input skeleton */}
-        <div className="px-2 pb-2">
-          <div className="mx-auto w-full sm:w-1/2">
-            <Skeleton className="h-[52px] w-full rounded-[28px]" />
-          </div>
-          <div className="mt-1 flex justify-center">
-            <Skeleton className="h-3 w-48 rounded" />
-          </div>
+        <Skeleton className="h-24 w-full rounded-2xl" />
+
+        <div className="mt-4 flex flex-col gap-1">
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-xl" />
         </div>
       </div>
     </div>
@@ -183,7 +168,7 @@ export function ProjectBottomBar() {
                 {isDragging && <div className="absolute inset-0 z-50" />}
                 <Activity mode={activePanel === 'chat' ? 'visible' : 'hidden'}>
                   <Suspense fallback={<ChatPanelSkeleton />}>
-                    <ChatPanel key={project?.name ?? 'no-project'} />
+                    <AssistantWorkspace key={project?.name ?? 'no-project'} />
                   </Suspense>
                 </Activity>
                 {docsEverOpened.current && (
