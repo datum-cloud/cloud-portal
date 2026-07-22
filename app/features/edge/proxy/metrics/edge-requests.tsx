@@ -67,11 +67,10 @@ export const HttpProxyEdgeRequests = ({
               const step = filters.step ?? '15m';
               return (
                 `sum by (envoy_response_code_class) (` +
-                `sum_over_time(` +
                 `label_replace(` +
-                `increase(envoy_vhost_vcluster_upstream_rq${selector}[1m]),` +
+                `rate(envoy_vhost_vcluster_upstream_rq${selector}[${step}]),` +
                 `"envoy_response_code_class","$\{1}XX","envoy_response_code","([0-9]).*"` +
-                `)[${step}:1m]))`
+                `))`
               );
             }}
             chartType="area"

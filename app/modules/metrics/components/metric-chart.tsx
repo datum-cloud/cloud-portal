@@ -26,6 +26,8 @@ import {
   type PrometheusQueryOptions,
   ChartSeries,
 } from '@/modules/prometheus';
+import { useApp } from '@/providers/app.provider';
+import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import {
   ChartContainer,
   ChartLegend,
@@ -126,6 +128,8 @@ export function MetricChart({
   children,
 }: MetricChartProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
+  const { userPreferences } = useApp();
+  const timezone = userPreferences?.timezone ?? getBrowserTimezone();
 
   // Resolve custom API parameters - include filterState in dependencies to trigger re-evaluation
   const resolvedApiParams = useMemo(() => {
@@ -255,9 +259,9 @@ export function MetricChart({
       if (xAxisFormatter) {
         return xAxisFormatter(tickItem);
       }
-      return formatChartTimeTick(tickItem, timeRangeMs);
+      return formatChartTimeTick(tickItem, timeRangeMs, timezone);
     },
-    [xAxisFormatter, timeRangeMs]
+    [xAxisFormatter, timeRangeMs, timezone]
   );
 
   const tooltipLabelFormatter: any = useCallback((label: string) => {
