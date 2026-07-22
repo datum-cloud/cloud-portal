@@ -23,6 +23,11 @@ export const roleResourceSchema = z.object({
   annotations: z.record(z.string(), z.string()).optional(),
   includedPermissions: z.array(z.string()).optional(),
   inheritedRoles: z.array(z.string()).optional(),
+  // Controller-computed flattened permission set (spec.includedPermissions + all
+  // inheritedRoles, resolved transitively and across namespaces). Prefer this over
+  // walking inheritedRoles client-side — inherited roles can live in other
+  // namespaces (e.g. milo-system) that aren't present in a single-namespace role list.
+  effectivePermissions: z.array(z.string()).optional(),
   launchStage: z.string().optional(),
 });
 

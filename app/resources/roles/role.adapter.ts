@@ -5,7 +5,7 @@ import type { ComMiloapisIamV1Alpha1Role } from '@/modules/control-plane/iam';
  * Transform raw API Role to domain Role type
  */
 export function toRole(raw: ComMiloapisIamV1Alpha1Role): Role {
-  const { metadata, spec } = raw;
+  const { metadata, spec, status } = raw;
   return {
     uid: metadata?.uid ?? '',
     name: metadata?.name ?? '',
@@ -17,6 +17,7 @@ export function toRole(raw: ComMiloapisIamV1Alpha1Role): Role {
     annotations: metadata?.annotations,
     includedPermissions: spec?.includedPermissions,
     inheritedRoles: spec?.inheritedRoles?.map((r) => r.name),
+    effectivePermissions: status?.effectivePermissions,
     launchStage: spec?.launchStage,
   };
 }
