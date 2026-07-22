@@ -1,17 +1,8 @@
 import type { Role } from '@/resources/roles';
 
-export function resolveAllPermissions(
-  role: Role,
-  allRoles: Role[],
-  visited = new Set<string>()
-): string[] {
-  if (visited.has(role.name)) return [];
-  visited.add(role.name);
-  const own = role.includedPermissions ?? [];
-  const inherited = (role.inheritedRoles ?? []).flatMap((name) => {
-    const parent = allRoles.find((r) => r.name === name);
-    if (!parent) return [];
-    return resolveAllPermissions(parent, allRoles, visited);
-  });
-  return [...new Set([...own, ...inherited])];
+// The controller flattens spec.includedPermissions + all inheritedRoles (transitively,
+// across namespaces) into status.effectivePermissions — that's the source of truth.
+// Falling back to includedPermissions covers roles the controller hasn't reconciled yet.
+export function resolveAllPermissions(role: Role): string[] {
+  return role.effectivePermissions ?? role.includedPermissions ?? [];
 }

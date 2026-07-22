@@ -123,8 +123,8 @@ export function AddRoleScreen({
   );
 
   const resolvedPermissions = useMemo(
-    () => (fetchedRole ? resolveAllPermissions(fetchedRole, roles) : []),
-    [fetchedRole, roles]
+    () => (fetchedRole ? resolveAllPermissions(fetchedRole) : []),
+    [fetchedRole]
   );
 
   // Build a set of role names already assigned at the selected scope
