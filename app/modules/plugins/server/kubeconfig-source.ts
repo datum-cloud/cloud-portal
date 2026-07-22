@@ -26,6 +26,46 @@ interface PortalPluginConditionResource {
   lastTransitionTime?: string;
 }
 
+interface CaBundleRef {
+  kind: 'Secret' | 'ConfigMap';
+  name: string;
+  namespace: string;
+  key: string;
+}
+
+function parseCaBundleRef(value: unknown): CaBundleRef | null {
+  if (!value || typeof value !== 'object') return null;
+  const ref = value as Record<string, unknown>;
+  if (ref.kind !== 'Secret' && ref.kind !== 'ConfigMap') return null;
+  if (typeof ref.name !== 'string' || !ref.name) return null;
+  if (typeof ref.namespace !== 'string' || !ref.namespace) return null;
+  if (typeof ref.key !== 'string' || !ref.key) return null;
+  return { kind: ref.kind, name: ref.name, namespace: ref.namespace, key: ref.key };
+}
+
+/**
+ * Resolves a `caBundleRef` into the PEM bundle it points at. Secret `data` is
+ * base64-encoded (the k8s API convention); ConfigMap `data` is plain text.
+ * Throws on any failure (404, missing key) — a broken ref is a real
+ * misconfiguration, not something to silently degrade past.
+ */
+async function resolveCaBundleRef(client: KubeClient, ref: CaBundleRef): Promise<string> {
+  const resourcePath = ref.kind === 'Secret' ? 'secrets' : 'configmaps';
+  const response = await client.request(
+    `/api/v1/namespaces/${ref.namespace}/${resourcePath}/${ref.name}`,
+    { headers: { Accept: 'application/json' } }
+  );
+  if (!response.ok) {
+    throw new Error(`fetch ${ref.kind} "${ref.namespace}/${ref.name}" failed: HTTP ${response.status}`);
+  }
+  const body = (await response.json()) as { data?: Record<string, string> };
+  const value = body.data?.[ref.key];
+  if (!value) {
+    throw new Error(`${ref.kind} "${ref.namespace}/${ref.name}" has no data key "${ref.key}"`);
+  }
+  return ref.kind === 'Secret' ? Buffer.from(value, 'base64').toString('utf8') : value;
+}
+
 /** A cluster-scoped PortalPlugin resource as returned by the API server. */
 interface PortalPluginResource {
   apiVersion?: string;
@@ -53,12 +93,37 @@ export interface KubeconfigSourceOptions {
   delay?: (ms: number) => Promise<void>;
 }
 
-/** Normalizes a PortalPlugin resource's spec into the internal spec shape. */
-export function specFromResource(resource: PortalPluginResource): PortalPluginSpec | null {
+/**
+ * Normalizes a PortalPlugin resource's spec into the internal spec shape.
+ * `client` is used to resolve `assets.caBundleRef`, if set. Returns null for a
+ * malformed resource — missing slug/baseURL, an unparseable caBundleRef, or a
+ * caBundleRef that fails to resolve are all treated the same way: skip this
+ * resource and log, rather than serve a plugin with a broken TLS config.
+ */
+export async function specFromResource(
+  resource: PortalPluginResource,
+  client: KubeClient,
+  logger: Pick<Console, 'warn'> = console
+): Promise<PortalPluginSpec | null> {
   const s = resource.spec ?? {};
   const slug = typeof s.slug === 'string' ? s.slug : undefined;
   if (!slug) return null;
   if (!s.assets?.baseURL) return null;
+
+  let caBundle: string | undefined;
+  if (s.assets.caBundleRef !== undefined) {
+    const ref = parseCaBundleRef(s.assets.caBundleRef);
+    if (!ref) {
+      logger.warn(`[plugins] PortalPlugin "${slug}" has a malformed assets.caBundleRef`);
+      return null;
+    }
+    try {
+      caBundle = await resolveCaBundleRef(client, ref);
+    } catch (err) {
+      logger.warn(`[plugins] PortalPlugin "${slug}" caBundleRef could not be resolved: ${String(err)}`);
+      return null;
+    }
+  }
 
   return {
     slug,
@@ -68,7 +133,7 @@ export function specFromResource(resource: PortalPluginResource): PortalPluginSp
     assets: {
       baseURL: s.assets.baseURL,
       manifestPath: s.assets.manifestPath || DEFAULT_MANIFEST_PATH,
-      caBundle: s.assets.caBundle || undefined,
+      caBundle,
     },
     visibility: {
       entitlement: s.visibility?.entitlement === 'None' ? 'None' : 'Required',
@@ -281,7 +346,7 @@ export class KubeconfigSource {
     resource: PortalPluginResource,
     force = false
   ): Promise<string | undefined> {
-    const spec = specFromResource(resource);
+    const spec = await specFromResource(resource, this.client, this.logger);
     const name = resource.metadata?.name;
     if (!spec) {
       this.logger.warn(

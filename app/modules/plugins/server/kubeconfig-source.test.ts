@@ -72,12 +72,21 @@ function makeRegistry() {
   return { registry, fetchImpl };
 }
 
-/** A KubeClient whose requests (status patches) always succeed. */
-function makeClient() {
+/**
+ * A KubeClient whose requests (status patches, and any path in `responses`)
+ * succeed. Paths not present in `responses` 404 — used to simulate a
+ * caBundleRef pointing at a Secret/ConfigMap that doesn't exist.
+ */
+function makeClient(responses?: Record<string, unknown>) {
   const calls: { url: string; init: RequestInit }[] = [];
   const fetchImpl = mock(async (url: string, init: RequestInit) => {
     calls.push({ url, init });
-    return new Response('{}', { status: 200 });
+    if (!responses) return new Response('{}', { status: 200 });
+    const path = new URL(url).pathname;
+    if (path in responses) {
+      return new Response(JSON.stringify(responses[path]), { status: 200 });
+    }
+    return new Response('not found', { status: 404 });
   });
   const client = new KubeClient(resolveKubeContext(parseKubeconfig(NO_AUTH_KUBECONFIG)), {
     fetchImpl: fetchImpl as unknown as typeof fetch,
@@ -88,17 +97,86 @@ function makeClient() {
 const silentLogger = { warn: mock(() => {}), info: mock(() => {}), error: mock(() => {}) };
 
 describe('specFromResource', () => {
-  test('maps a resource spec with defaults applied', () => {
-    const spec = specFromResource(portalPluginResource());
+  test('maps a resource spec with defaults applied', async () => {
+    const { client } = makeClient();
+    const spec = await specFromResource(portalPluginResource(), client, silentLogger);
     expect(spec).not.toBeNull();
     expect(spec!.slug).toBe('compute');
     expect(spec!.assets.manifestPath).toBe('/plugin-manifest.json');
     expect(spec!.visibility.entitlement).toBe('Required');
   });
 
-  test('returns null when slug or assets.baseURL is missing', () => {
-    expect(specFromResource({ spec: { slug: 'x' } })).toBeNull();
-    expect(specFromResource({ spec: { assets: { baseURL: 'http://x' } } })).toBeNull();
+  test('returns null when slug or assets.baseURL is missing', async () => {
+    const { client } = makeClient();
+    expect(await specFromResource({ spec: { slug: 'x' } }, client, silentLogger)).toBeNull();
+    expect(
+      await specFromResource({ spec: { assets: { baseURL: 'http://x' } } }, client, silentLogger)
+    ).toBeNull();
+  });
+
+  test('resolves a Secret-backed caBundleRef, base64-decoding its data', async () => {
+    const { client } = makeClient({
+      '/api/v1/namespaces/default/secrets/plugin-ca': {
+        data: { 'ca.crt': Buffer.from('-----BEGIN CERTIFICATE-----\nfake\n').toString('base64') },
+      },
+    });
+    const spec = await specFromResource(
+      portalPluginResource({
+        assets: {
+          baseURL: 'https://plugin.example.com',
+          caBundleRef: { kind: 'Secret', name: 'plugin-ca', namespace: 'default', key: 'ca.crt' },
+        },
+      }),
+      client,
+      silentLogger
+    );
+    expect(spec?.assets.caBundle).toBe('-----BEGIN CERTIFICATE-----\nfake\n');
+  });
+
+  test('resolves a ConfigMap-backed caBundleRef without decoding', async () => {
+    const { client } = makeClient({
+      '/api/v1/namespaces/default/configmaps/plugin-ca': {
+        data: { 'ca.crt': '-----BEGIN CERTIFICATE-----\nplain\n' },
+      },
+    });
+    const spec = await specFromResource(
+      portalPluginResource({
+        assets: {
+          baseURL: 'https://plugin.example.com',
+          caBundleRef: { kind: 'ConfigMap', name: 'plugin-ca', namespace: 'default', key: 'ca.crt' },
+        },
+      }),
+      client,
+      silentLogger
+    );
+    expect(spec?.assets.caBundle).toBe('-----BEGIN CERTIFICATE-----\nplain\n');
+  });
+
+  test('returns null when caBundleRef is malformed', async () => {
+    const { client } = makeClient();
+    const spec = await specFromResource(
+      portalPluginResource({
+        assets: { baseURL: 'https://plugin.example.com', caBundleRef: { kind: 'Secret' } },
+      }),
+      client,
+      silentLogger
+    );
+    expect(spec).toBeNull();
+  });
+
+  test('returns null when the referenced Secret/key does not exist', async () => {
+    const { client } = makeClient({}); // no responses registered → 404 fallback
+    const spec = await specFromResource(
+      portalPluginResource({
+        assets: {
+          baseURL: 'https://plugin.example.com',
+          caBundleRef: { kind: 'Secret', name: 'missing', namespace: 'default', key: 'ca.crt' },
+        },
+      }),
+      client,
+      silentLogger
+    );
+    expect(spec).toBeNull();
   });
 });
 

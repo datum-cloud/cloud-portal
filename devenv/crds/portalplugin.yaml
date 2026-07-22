@@ -100,9 +100,34 @@ spec:
                       default: /plugin-manifest.json
                       description: Manifest path under baseURL. Defaults to /plugin-manifest.json.
                       pattern: ^/.*
-                    caBundle:
-                      type: string
-                      description: Optional PEM bundle for internal CAs terminating the assets origin.
+                    caBundleRef:
+                      type: object
+                      description: |-
+                        Reference to a Secret or ConfigMap holding a PEM CA bundle
+                        for internal CAs terminating the assets origin. Omit when
+                        the origin's certificate is trusted by the system CA store,
+                        or the origin is plain HTTP (e.g. local dev sources).
+                      required:
+                        - kind
+                        - name
+                        - namespace
+                        - key
+                      properties:
+                        kind:
+                          type: string
+                          enum:
+                            - Secret
+                            - ConfigMap
+                        name:
+                          type: string
+                          minLength: 1
+                        namespace:
+                          type: string
+                          minLength: 1
+                        key:
+                          type: string
+                          minLength: 1
+                          description: Key within the referenced object's data holding the PEM bundle.
                 visibility:
                   type: object
                   description: Fail-closed gates controlling where the plugin appears.
