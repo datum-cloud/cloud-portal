@@ -65,49 +65,43 @@ export function useProjectWatch(orgId: string, name: string, options?: { enabled
   });
 }
 
+/** Reasons on Ready=False that mean "still provisioning", not a hard failure. */
+const PENDING_READY_REASONS = new Set([
+  'Pending',
+  'Provisioning',
+  'Unknown',
+  'Waiting',
+  'Creating',
+]);
+
 /**
- * Wait for project to reach Ready status.
- * Used in task processors for async K8s operations.
+ * Inspect whether a project has finished provisioning.
  *
- * Returns a cancellable promise that resolves when the project status becomes Ready,
- * or rejects if the project has an error condition. Call `cancel()` to cleanup the
- * watch subscription (important for task cancellation and timeout handling).
+ * Only the Ready condition matters. Other conditions (e.g. Suspended=False with
+ * reason Active / message "Project is active") are healthy signals and must not
+ * abort the wait — treating any status=False as failure caused create tasks to
+ * fail as soon as Suspended flipped to False.
  *
- * @param orgId - Organization ID (used to scope the watch through org control-plane)
- * @param projectName - Name of the project to watch
- * @returns Object with `promise` and `cancel()` function
- *
- * @example
- * ```typescript
- * // Inside a task processor with automatic cleanup
- * processor: async (ctx) => {
- *   // 1. Create project via API
- *   await createProject({ body: projectSpec });
- *
- *   // 2. Wait for K8s reconciliation with auto cleanup
- *   const { promise, cancel } = waitForProjectReady(orgId, projectName);
- *   ctx.onCancel(cancel); // Cleanup called automatically on cancel/timeout
- *
- *   const project = await promise;
- *
- *   // 3. Task completes when Ready
- *   ctx.setResult(project);
- *   ctx.succeed();
- * }
- * ```
+ * Ready=False during provisioning is pending. Ready=False with a hard failure
+ * reason (e.g. ProjectNameConflict) rejects so the task can surface the error.
  */
 export function inspectProjectReady(project: Project): Project | 'pending' {
   const status = transformControlPlaneStatus(project.status, {
     includeConditionDetails: true,
+    requiredConditions: ['Ready'],
   });
 
   if (status.status === ControlPlaneStatus.Success) {
     return project;
   }
 
-  const failedCondition = status.conditions?.find((c) => c.status === 'False');
-  if (failedCondition) {
-    throw new Error(failedCondition.message || status.message || 'Resource reconciliation failed');
+  const readyCondition = status.conditions?.find((c) => c.type === 'Ready');
+  if (
+    readyCondition?.status === 'False' &&
+    readyCondition.reason &&
+    !PENDING_READY_REASONS.has(readyCondition.reason)
+  ) {
+    throw new Error(readyCondition.message || status.message || 'Resource reconciliation failed');
   }
 
   return 'pending';
@@ -147,6 +141,14 @@ export async function awaitProjectReady(
   }
 }
 
+/**
+ * Wait for project to reach Ready status.
+ * Used in task processors for async K8s operations.
+ *
+ * Returns a cancellable promise that resolves when the project status becomes Ready,
+ * or rejects if Ready has a hard failure reason. Call `cancel()` to cleanup the
+ * watch subscription (important for task cancellation and timeout handling).
+ */
 export function waitForProjectReady(
   orgId: string,
   projectName: string

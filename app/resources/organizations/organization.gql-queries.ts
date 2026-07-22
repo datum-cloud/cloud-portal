@@ -1,4 +1,4 @@
-import { toOrganizationFromMembership } from './organization.adapter';
+import { createOrganizationGatewayService } from './organization.gateway';
 import { createOrganizationGqlService, organizationKeys } from './organization.gql-service';
 import type {
   Organization,
@@ -6,95 +6,35 @@ import type {
   CreateOrganizationInput,
   UpdateOrganizationInput,
 } from './organization.schema';
-import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
-import { generateQueryOp } from '@/modules/graphql/generated';
-import type { com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest } from '@/modules/graphql/generated';
-import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
-import { useMemo } from 'react';
-import { useQuery } from 'urql';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationOptions,
+} from '@tanstack/react-query';
 
-// Module-level constant — computed once, not per render.
-const orgListOp = generateQueryOp({
-  listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
-    {},
-    {
-      items: {
-        metadata: {
-          uid: true,
-          name: true,
-          namespace: true,
-          creationTimestamp: true,
-          resourceVersion: true,
-          labels: true,
-          annotations: true,
-        },
-        spec: {
-          organizationRef: { name: true },
-          roles: { name: true, namespace: true },
-          userRef: { name: true },
-        },
-        status: {
-          organization: { displayName: true, type: true },
-          conditions: { reason: true, status: true, type: true },
-        },
-      },
-      metadata: { continue: true, remainingItemCount: true },
-    } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
-  ],
-});
+const organizationsListQueryKey = [...organizationKeys.lists(), 'gateway'] as const;
 
 /**
- * Hook to fetch the organizations list via GraphQL using URQL.
+ * Hook to fetch the organizations list via the gateway GraphQL API.
  *
- * Uses a module-level operation constant so the query string is identical to
- * the SSR loader, guaranteeing a cache hit on the first CSR render.
- *
- * Accepts an optional `options.enabled` boolean (default true) that maps to
- * URQL's `pause` — preserving the same call-site API as the previous
- * TanStack Query version used by existing callers.
+ * Uses the user's membership list for org rows, then batch-fetches member
+ * avatars via the gateway `organizationMembers` query.
  */
 export function useOrganizationsGql(_params?: undefined, options?: { enabled?: boolean }) {
-  const pause = options?.enabled === false;
-
-  const [result, reexecute] = useQuery({
-    query: orgListOp.query,
-    variables: orgListOp.variables,
-    requestPolicy: 'cache-and-network',
-    pause,
+  const query = useQuery({
+    queryKey: organizationsListQueryKey,
+    queryFn: () => createOrganizationGatewayService().listAll(),
+    enabled: options?.enabled !== false,
+    staleTime: QUERY_STALE_TIME,
   });
 
-  const data = useMemo<OrganizationList | undefined>(() => {
-    const raw =
-      result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
-
-    if (!raw?.items) return undefined;
-
-    const items = (raw.items as (ComMiloapisResourcemanagerV1Alpha1OrganizationMembership | null)[])
-      .filter(
-        (item): item is ComMiloapisResourcemanagerV1Alpha1OrganizationMembership => item !== null
-      )
-      .map((item) => toOrganizationFromMembership(item))
-      .filter((org: Organization) => org.status === 'Active')
-      .sort((a: Organization, b: Organization) => {
-        if (a.type === 'Personal' && b.type !== 'Personal') return -1;
-        if (b.type === 'Personal' && a.type !== 'Personal') return 1;
-        const aName = a.displayName ?? a.name ?? '';
-        const bName = b.displayName ?? b.name ?? '';
-        return aName.localeCompare(bName);
-      });
-
-    return {
-      items,
-      nextCursor: raw.metadata?.continue ?? null,
-      hasMore: !!raw.metadata?.continue,
-    };
-  }, [result.data]);
-
   return {
-    data,
-    isLoading: result.fetching,
-    error: result.error,
-    refetch: () => reexecute({ requestPolicy: 'network-only' }),
+    data: query.data as OrganizationList | undefined,
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
   };
 }
 

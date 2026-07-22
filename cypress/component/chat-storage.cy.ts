@@ -1,11 +1,5 @@
-import {
-  deleteChat,
-  deriveTitle,
-  formatRelativeTime,
-  listChats,
-  saveChat,
-  type StoredChat,
-} from '@/features/project-bottom-bar/chat/chat-storage';
+import { deleteChat, deriveTitle, listChats, saveChat } from '@/features/assistant/lib';
+import type { StoredChat } from '@/features/assistant/types';
 import type { UIMessage } from 'ai';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -70,35 +64,8 @@ describe('deriveTitle', () => {
   });
 });
 
-// ─── formatRelativeTime (pure) ────────────────────────────────────────────────
-
-describe('formatRelativeTime', () => {
-  it('returns "just now" for timestamps < 60s ago', () => {
-    expect(formatRelativeTime(Date.now() - 10_000)).to.equal('just now');
-  });
-
-  it('returns minutes ago', () => {
-    expect(formatRelativeTime(Date.now() - 5 * 60_000)).to.equal('5m ago');
-  });
-
-  it('returns hours ago', () => {
-    expect(formatRelativeTime(Date.now() - 3 * 3_600_000)).to.equal('3h ago');
-  });
-
-  it('returns "Yesterday" for 1 day ago', () => {
-    expect(formatRelativeTime(Date.now() - 24 * 3_600_000)).to.equal('Yesterday');
-  });
-
-  it('returns days ago for 2–6 days', () => {
-    expect(formatRelativeTime(Date.now() - 4 * 24 * 3_600_000)).to.equal('4d ago');
-  });
-
-  it('returns a locale date string for 7+ days ago', () => {
-    const ts = Date.now() - 10 * 24 * 3_600_000;
-    const result = formatRelativeTime(ts);
-    expect(result).to.equal(new Date(ts).toLocaleDateString());
-  });
-});
+// `formatRelativeTime` moved into @datum-cloud/datum-ui with the shared
+// assistant; it's covered by datum-ui's own unit tests now.
 
 // ─── localStorage-backed CRUD ─────────────────────────────────────────────────
 

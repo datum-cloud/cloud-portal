@@ -1,55 +1,15 @@
-import { deleteChat, deriveTitle, listChats, saveChat, type StoredChat } from './chat-storage';
+import { deleteChat, deriveTitle, listChats, saveChat } from '../lib';
+import type { StoredChat } from '../types';
 import { useSpeechInput } from './use-speech-input';
 import { useProjectContext } from '@/providers/project.provider';
 import { useChat } from '@ai-sdk/react';
+import { sanitizeUserHtml } from '@datum-cloud/datum-ui/assistant';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import Placeholder from '@tiptap/extension-placeholder';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { DefaultChatTransport } from 'ai';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-const HTML_ESCAPE_MAP: Record<string, string> = {
-  '&': '&amp;',
-  '<': '&lt;',
-  '>': '&gt;',
-  '"': '&quot;',
-  "'": '&#39;',
-};
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => HTML_ESCAPE_MAP[c]!);
-}
-
-const ALLOWED_TAGS = new Set(['p', 'strong', 'em', 'u', 's', 'br']);
-
-/**
- * Sanitises user-authored HTML by walking the DOM tree and keeping only
- * the Tiptap-safe tags (p, strong, em, u, s, br). Text nodes are escaped.
- * Plain text (no tags) is wrapped in a `<p>` so the bubble renders correctly.
- */
-export function sanitizeUserHtml(raw: string): string {
-  const doc = new DOMParser().parseFromString(raw, 'text/html');
-
-  function walk(node: Node): string {
-    if (node.nodeType === Node.TEXT_NODE) {
-      return escapeHtml(node.textContent ?? '');
-    }
-    if (node.nodeType !== Node.ELEMENT_NODE) return '';
-
-    const el = node as Element;
-    const tag = el.tagName.toLowerCase();
-    const children = Array.from(el.childNodes).map(walk).join('');
-
-    if (ALLOWED_TAGS.has(tag)) {
-      return tag === 'br' ? '<br>' : `<${tag}>${children}</${tag}>`;
-    }
-    return children;
-  }
-
-  const result = Array.from(doc.body.childNodes).map(walk).join('');
-  return result.startsWith('<p>') ? result : `<p>${result}</p>`;
-}
 
 function detectOs(): 'macos' | 'windows' | 'linux' | 'unknown' {
   const ua = navigator.userAgent;
@@ -63,7 +23,7 @@ export function useChatLogic() {
   const { project, org } = useProjectContext();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // ── Chat history (localStorage) ──────────────────────────────────────────────
+  // ── Chat history (localStorage, scoped per project) ───────────────────────────
   const [currentChatId, setCurrentChatId] = useState<string>(() => crypto.randomUUID());
   const currentChatIdRef = useRef(currentChatId);
   currentChatIdRef.current = currentChatId;
@@ -207,6 +167,9 @@ export function useChatLogic() {
         orderedList: false,
         listItem: false,
         horizontalRule: false,
+        // StarterKit bundles Link (autolink + openOnClick); in a plain-text
+        // prompt a pasted email becomes a clickable mailto. Disable it.
+        link: false,
       }),
       Placeholder.configure({ placeholder: 'Ask about your resources…' }),
     ],
@@ -214,7 +177,7 @@ export function useChatLogic() {
       attributes: {
         class: cn(
           'prose prose-sm dark:prose-invert max-w-none',
-          'px-3 py-2 text-sm focus:outline-none',
+          'px-1 py-1 text-sm focus:outline-none',
           '[&_p]:my-0.5'
         ),
       },
@@ -253,6 +216,16 @@ export function useChatLogic() {
     }
   };
 
+  const sendSuggestion = useCallback(
+    (suggestion: string) => {
+      if (!isReady) return;
+      clearError();
+      htmlByUserMsgIndex.current.push(`<p>${suggestion}</p>`);
+      void sendMessage({ text: suggestion });
+    },
+    [isReady, clearError, sendMessage]
+  );
+
   const handleRetry = useCallback(() => {
     const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user');
     if (!lastUserMsg) return;
@@ -273,7 +246,7 @@ export function useChatLogic() {
     });
   }, [messages, setMessages, clearError, sendMessage]);
 
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   return {
     project,
@@ -295,9 +268,10 @@ export function useChatLogic() {
     userScrolledUp,
     editor,
     handleSendClick,
+    sendSuggestion,
     handleRetry,
-    sidebarOpen,
-    setSidebarOpen,
+    historyOpen,
+    setHistoryOpen,
     speech,
   };
 }
