@@ -1,19 +1,12 @@
 apiVersion: portal.miloapis.com/v1alpha1
 kind: PortalPlugin
 metadata:
-  # Deterministic name = Service.spec.serviceName. In production this is written
-  # by the services-operator fan-out; here we apply it directly (Tier 1) to
-  # exercise the portal's watch + status pipeline against a real kube-apiserver.
+  # In production this is written by the services-operator fan-out; here we
+  # apply it directly (Tier 1) to exercise the portal's watch + status
+  # pipeline against a real kube-apiserver. The portal doesn't need to know
+  # this resource came from the service catalog — it only reads spec below.
   name: sample.miloapis.com
-  labels:
-    app.kubernetes.io/managed-by: services.miloapis.com
-    services.miloapis.com/service: sample.miloapis.com
-  annotations:
-    discovery.miloapis.com/parent-contexts: Platform
 spec:
-  serviceRef:
-    name: sample
-  serviceName: sample.miloapis.com
   slug: sample
   displayName: Sample Plugin
   deprecated: false

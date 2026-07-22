@@ -48,7 +48,6 @@ function portalPluginResource(
     },
     spec: {
       slug: 'compute',
-      serviceName: 'compute.miloapis.com',
       displayName: 'Compute',
       deprecated: false,
       suspend: false,

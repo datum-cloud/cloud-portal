@@ -61,25 +61,9 @@ spec:
               type: object
               description: Desired state, materialized by the services-operator fan-out.
               required:
-                - serviceName
                 - slug
                 - assets
               properties:
-                serviceRef:
-                  type: object
-                  description: Reference to the catalog Service object this plugin belongs to.
-                  required:
-                    - name
-                  properties:
-                    name:
-                      type: string
-                      description: catalog Service object name (e.g. "compute").
-                      minLength: 1
-                serviceName:
-                  type: string
-                  description: Canonical reverse-DNS service identifier (Service.spec.serviceName).
-                  minLength: 1
-                  maxLength: 253
                 slug:
                   type: string
                   description: |-

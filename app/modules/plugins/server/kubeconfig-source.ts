@@ -61,8 +61,6 @@ export function specFromResource(resource: PortalPluginResource): PortalPluginSp
   if (!s.assets?.baseURL) return null;
 
   return {
-    serviceRef: s.serviceRef?.name ? { name: s.serviceRef.name } : undefined,
-    serviceName: typeof s.serviceName === 'string' ? s.serviceName : undefined,
     slug,
     displayName: typeof s.displayName === 'string' && s.displayName ? s.displayName : slug,
     deprecated: s.deprecated === true,
