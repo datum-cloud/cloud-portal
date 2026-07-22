@@ -55,6 +55,11 @@ export {
   type OrganizationGqlService,
 } from './organization.gql-service';
 
+export {
+  createOrganizationGatewayService,
+  type OrganizationGatewayService,
+} from './organization.gateway';
+
 // GraphQL Query hook exports
 export {
   useOrganizationsGql,

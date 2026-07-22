@@ -13,6 +13,7 @@ import {
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { newBindingName } from '@/resources/billing/_naming';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { AppError, ConflictError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 /**
@@ -42,6 +43,19 @@ export const billingAccountBindingKeys = {
 };
 
 const SERVICE_NAME = 'BillingAccountBindingService';
+
+function isActiveBinding(binding: BillingAccountBinding): boolean {
+  return !binding.status?.phase || binding.status.phase === 'Active';
+}
+
+function findActiveBindingForProject(
+  bindings: BillingAccountBinding[],
+  projectName: string
+): BillingAccountBinding | undefined {
+  return bindings.find(
+    (binding) => binding.spec?.projectRef?.name === projectName && isActiveBinding(binding)
+  );
+}
 
 export function createBillingAccountBindingService() {
   return {
@@ -133,9 +147,30 @@ export function createBillingAccountBindingService() {
       orgId: string,
       projectName: string
     ): Promise<BillingAccountBinding | null> {
+      let bindings: BillingAccountBinding[] = [];
+      try {
+        bindings = await retryOnTransientAuthError(() => this.list(orgId), {
+          operation: 'bindProjectToDefaultOrgAccount.listBindings',
+        });
+      } catch (error) {
+        logger.warn(
+          `Skipping billing bind for project ${projectName}: could not list billing bindings in ${orgId}`,
+          { error: error instanceof Error ? error.message : String(error) }
+        );
+        return null;
+      }
+
+      const existingBinding = findActiveBindingForProject(bindings, projectName);
+      if (existingBinding) {
+        return existingBinding;
+      }
+
       let accounts;
       try {
-        accounts = await createBillingAccountService().list(orgId);
+        accounts = await retryOnTransientAuthError(
+          () => createBillingAccountService().list(orgId),
+          { operation: 'bindProjectToDefaultOrgAccount.listAccounts' }
+        );
       } catch (error) {
         logger.warn(
           `Skipping billing bind for project ${projectName}: could not list billing accounts in ${orgId}`,
@@ -155,9 +190,23 @@ export function createBillingAccountBindingService() {
       try {
         return await retryOnTransientAuthError(
           () => this.create({ orgId, projectName, billingAccountName }),
-          { operation: 'bindProjectToDefaultOrgAccount' }
+          {
+            operation: 'bindProjectToDefaultOrgAccount.create',
+            attempts: 10,
+            baseDelayMs: 1000,
+            maxDelayMs: 12000,
+          }
         );
       } catch (error) {
+        const mapped = error instanceof AppError ? error : null;
+        if (mapped instanceof ConflictError || (mapped && mapped.status === 409)) {
+          const rebound = findActiveBindingForProject(
+            await this.list(orgId).catch(() => bindings),
+            projectName
+          );
+          if (rebound) return rebound;
+        }
+
         logger.warn(
           `Failed to bind project ${projectName} to billing account ${billingAccountName}`,
           { error: error instanceof Error ? error.message : String(error) }
