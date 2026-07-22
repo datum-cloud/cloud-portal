@@ -30,11 +30,19 @@ export const organizationContactInfoSchema = z.object({
 
 export type OrganizationContactInfo = z.infer<typeof organizationContactInfoSchema>;
 
+export const organizationMemberAvatarSchema = z.object({
+  name: z.string(),
+  avatarUrl: z.string().optional(),
+});
+
+export type OrganizationMemberAvatar = z.infer<typeof organizationMemberAvatarSchema>;
+
 export const organizationSchema = resourceMetadataSchema.extend({
   type: organizationTypeSchema.optional(),
   status: organizationStatusSchema,
   memberCount: z.number().optional(),
   projectCount: z.number().optional(),
+  memberAvatars: z.array(organizationMemberAvatarSchema).optional(),
   // `spec.contactInfo` on unified orgs. Read leniently: legacy orgs have none,
   // and we never want a malformed contact block to break loading the org, so
   // fall back to `undefined` instead of throwing on parse.

@@ -1,3 +1,4 @@
+import { AvatarStack } from '@/components/avatar-stack';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { NoteCard } from '@/components/note-card/note-card';
@@ -162,6 +163,7 @@ export default function AccountOrganizations() {
                     <span>{org.displayName || org.name}</span>
                   </div>
                   <div className="flex w-full items-center justify-between gap-4 md:w-auto md:gap-6">
+                    <AvatarStack items={org.memberAvatars ?? []} max={5} />
                     <BadgeCopy
                       data-e2e="organization-card-id-copy"
                       value={org.name ?? ''}
