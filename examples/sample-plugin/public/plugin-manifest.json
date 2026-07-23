@@ -1,0 +1,76 @@
+{
+  "name": "sample.miloapis.com",
+  "version": "0.3.0",
+  "sdk": {
+    "name": "@datum-cloud/portal-plugin-sdk",
+    "range": "^1.0.0"
+  },
+  "remoteEntry": "remoteEntry.js",
+  "exposedModules": {
+    "SamplePage": "./src/pages/sample-page.tsx",
+    "SampleDetail": "./src/pages/sample-detail.tsx",
+    "SampleHomeCard": "./src/cards/sample-home-card.tsx",
+    "PlatformData": "./src/pages/platform-data.tsx"
+  },
+  "extensions": [
+    {
+      "type": "portal.nav/project",
+      "properties": {
+        "id": "sample-platform",
+        "title": "Platform data",
+        "icon": "globe",
+        "path": "platform",
+        "order": 30
+      },
+      "requirements": {
+        "permissions": [
+          { "group": "dns.networking.miloapis.com", "resource": "dnszones", "verb": "list" }
+        ]
+      }
+    },
+    {
+      "type": "portal.nav/project",
+      "properties": {
+        "id": "sample-home",
+        "title": "Sample Plugin",
+        "icon": "puzzle",
+        "path": "home",
+        "order": 50
+      }
+    },
+    {
+      "type": "portal.page/project",
+      "properties": {
+        "path": "platform",
+        "component": { "$codeRef": "PlatformData" }
+      },
+      "requirements": {
+        "permissions": [
+          { "group": "dns.networking.miloapis.com", "resource": "dnszones", "verb": "list" }
+        ]
+      }
+    },
+    {
+      "type": "portal.page/project",
+      "properties": {
+        "path": "home",
+        "component": { "$codeRef": "SamplePage" }
+      }
+    },
+    {
+      "type": "portal.page/project",
+      "properties": {
+        "path": "items/:itemId",
+        "component": { "$codeRef": "SampleDetail.DetailView" }
+      }
+    },
+    {
+      "type": "portal.card/project-home",
+      "properties": {
+        "title": "Sample Plugin",
+        "component": { "$codeRef": "SampleHomeCard" },
+        "order": 50
+      }
+    }
+  ]
+}
