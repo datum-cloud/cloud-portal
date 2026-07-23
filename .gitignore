@@ -32,3 +32,6 @@ cypress/results
 
 # Playwright MCP
 .playwright-mcp/
+
+# Local plugin dev environment (kwok binaries, kubeconfig, cluster state)
+.devenv/

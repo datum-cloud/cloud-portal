@@ -120,6 +120,13 @@ export default defineConfig(async (config): Promise<UserConfig> => {
     },
     server: {
       port: process.env.PORT ? Number(process.env.PORT) : 3000,
+      // .devenv/ holds the local kwok cluster's etcd/log state (Tier 1 plugin
+      // dev registry), which writes continuously while task devenv:portal is
+      // running. Without this, Vite's watcher treats those writes as source
+      // changes and triggers a full-reload loop.
+      watch: {
+        ignored: ['**/.devenv/**'],
+      },
     },
     optimizeDeps: {
       include: [
