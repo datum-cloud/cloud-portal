@@ -26,8 +26,8 @@ import {
   listIdentityMiloapisComV1Alpha1ServiceAccountKey,
   createIdentityMiloapisComV1Alpha1ServiceAccountKey,
   deleteIdentityMiloapisComV1Alpha1ServiceAccountKey,
-  type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey,
-  type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList,
+  type GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey,
+  type GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList,
 } from '@/modules/control-plane/identity';
 import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
@@ -169,7 +169,7 @@ export function createServiceAccountService() {
         const response = await listIdentityMiloapisComV1Alpha1ServiceAccountKey({
           baseURL: getProjectScopedBase(projectId),
         });
-        const data = response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList;
+        const data = response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList;
         logger.service(SERVICE_NAME, 'listKeys', {
           input: { projectId, serviceAccountEmail },
           duration: Date.now() - startTime,
@@ -206,7 +206,7 @@ export function createServiceAccountService() {
           const errData = response.error as { message?: string };
           throw new Error(errData.message ?? 'Failed to create service account key');
         }
-        const data = response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey & {
+        const data = response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey & {
           status?: { privateKey?: string };
         };
         if (!data) throw new Error('Failed to create service account key');

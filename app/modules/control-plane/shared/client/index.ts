@@ -12,6 +12,7 @@ export { serializeQueryKeyValue } from '../core/queryKeySerializer.gen';
 export { createClient } from './client.gen';
 export type {
   Client,
+  ClientMeta,
   ClientOptions,
   Config,
   CreateClientConfig,

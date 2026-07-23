@@ -153,3 +153,11 @@ export type Options<
   TResponse = unknown,
 > = OmitKeys<RequestOptions<TResponse, ThrowOnError>, 'body' | 'path' | 'query' | 'url'> &
   ([TData] extends [never] ? unknown : Omit<TData, 'url'>);
+
+/**
+ * Arbitrary metadata passed through the `meta` request option.
+ * Mirrors the @hey-api/openapi-ts v0.99 client runtime (empty extensible
+ * interface), which newer generated sdk.gen.ts files import.
+ */
+
+export interface ClientMeta {}

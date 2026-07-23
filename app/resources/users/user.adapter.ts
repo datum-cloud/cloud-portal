@@ -7,12 +7,15 @@ import type {
   UserSchema,
   UserIdentity,
   UserActiveSession,
+  Passkey,
 } from './user.schema';
 import {
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1Passkey,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1Session,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentity,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList,
 } from '@/modules/control-plane/identity/types.gen';
 import { toBoolean } from '@/utils/helpers/text.helper';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
@@ -146,7 +149,7 @@ export function toUpdateUserPreferencesPayload(input: {
  * Transform UserIdentity to domain UserIdentity type
  */
 export function toUserIdentity(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity
+  raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentity
 ): UserIdentity {
   const { metadata, status } = raw;
 
@@ -161,13 +164,27 @@ export function toUserIdentity(
 }
 
 export function toUserIdentityList(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
+  raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList
 ): UserIdentity[] {
   return raw.items.map(toUserIdentity);
 }
 
+/** Absent status.state defaults to 'Active' — display-only; the kind has no DELETE verb, so this is never a security decision. */
+export function toPasskey(raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1Passkey): Passkey {
+  return {
+    id: raw.metadata?.name ?? '',
+    displayName: raw.status?.displayName ?? '',
+    state: raw.status?.state === 'Inactive' ? 'Inactive' : 'Active',
+    userUID: raw.status?.userUID ?? '',
+  };
+}
+
+export function toPasskeyList(raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList): Passkey[] {
+  return raw.items.map(toPasskey);
+}
+
 export function toUserActiveSession(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session
+  raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1Session
 ): UserActiveSession {
   const { metadata, status } = raw;
   const statusAny = status as { lastUpdatedAt?: string } | undefined;
@@ -183,7 +200,7 @@ export function toUserActiveSession(
 }
 
 export function toUserActiveSessionList(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList
+  raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList
 ): UserActiveSession[] {
   return raw.items.filter((item) => !item.metadata?.deletionTimestamp).map(toUserActiveSession);
 }

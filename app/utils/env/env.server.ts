@@ -54,6 +54,9 @@ const publicSchema = z.object({
   AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
   AUTH_ZITADEL_PROJECT_ID: z.string().optional(),
   AUTH_OIDC_POST_LOGOUT_REDIRECT_URI: urlSchemaOptional(),
+  // Origin of the auth-ui service (passkey management, reauth). Distinct
+  // from AUTH_OIDC_ISSUER (Zitadel itself). Used to build /id/passkeys links.
+  AUTH_UI_ORIGIN: urlSchema('http://localhost:3001'),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -212,6 +215,7 @@ export const env: Env = {
     apiUrl: data.API_URL,
     graphqlUrl: data.GRAPHQL_URL,
     authOidcIssuer: data.AUTH_OIDC_ISSUER,
+    authUiOrigin: data.AUTH_UI_ORIGIN,
     authZitadelProjectId: data.AUTH_ZITADEL_PROJECT_ID,
     authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
