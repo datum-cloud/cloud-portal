@@ -6,12 +6,14 @@
 #
 # Quick start (Tier 1):
 #   task devenv:up        # kwok cluster + CRD, kubeconfig -> .devenv/kubeconfig
-#   <serve a plugin on :7777>  # see examples/sample-plugin once it lands (separate terminal)
+#   task plugin:preview   # sample plugin (built, proxy-safe) on :7777  (separate terminal)
 #   task devenv:register  # apply the sample PortalPlugin
 #   task devenv:portal    # run the portal against the local registry (separate terminal)
 #
-# NB: the portal loads plugin assets through its same-origin proxy. See
-# devenv/README.md.
+# NB: the portal loads plugin assets through its same-origin proxy. Serve the
+# plugin with `plugin:preview` (built); the Vite dev server (`plugin:dev`) uses
+# host-absolute module URLs that don't survive the proxy — it's for the
+# standalone :7777 preview / component HMR only. See devenv/README.md.
 #
 # Every API call a plugin issues goes through the portal's Milo control-plane
 # proxy (including calls to a service's own aggregated apiserver) — there is
@@ -88,14 +90,46 @@ tasks:
       - kubectl --kubeconfig '{{.KUBECONFIG_PATH}}' get portalplugins 2>/dev/null || echo "no portalplugins"
 
   devenv:portal:
-    desc: 'Run the portal against the local registry (Tier 1). Serve a plugin on :7777 separately. Auth/orgs/projects stay remote.'
+    desc: 'Run the portal against the local registry (Tier 1). Serve the plugin with `plugin:preview`. Auth/orgs/projects stay remote.'
     cmds:
       - PLUGIN_REGISTRY_KUBECONFIG='{{.KUBECONFIG_PATH}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
 
   devenv:portal:tier0:
-    desc: 'Run the portal in Tier 0 (direct override, no Kubernetes). Serve a plugin on :{{.PLUGIN_PORT}} separately.'
+    desc: 'Run the portal in Tier 0 (direct override, no Kubernetes). Serve the plugin with `plugin:preview`.'
     cmds:
       - PORTAL_PLUGINS='sample=http://localhost:{{.PLUGIN_PORT}}' AUTH_DEV_TOKEN_EXCHANGE=1 bun run dev
+
+  # ---------------------------------------------------------------------------
+  # Sample plugin (own package.json under examples/sample-plugin)
+  # ---------------------------------------------------------------------------
+  plugin:install:
+    desc: 'Install the sample plugin dependencies (bun, own package.json).'
+    dir: '{{.PLUGIN_DIR}}'
+    cmds:
+      - bun install
+    status:
+      - test -d '{{.PLUGIN_DIR}}/node_modules'
+
+  plugin:dev:
+    desc: 'Run the sample plugin: Vite dev server (HMR) on :7777. Humans/standalone; see plugin:preview for proxy/CI.'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:install]
+    cmds:
+      - bun run dev
+
+  plugin:build:
+    desc: 'Build the sample plugin frontend to a static dist/ (remote entry + manifest + chunks).'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:install]
+    cmds:
+      - bun run build
+
+  plugin:preview:
+    desc: 'Build then serve the STATIC plugin on :7777. Proxy-safe — use this for e2e/CI, not plugin:dev.'
+    dir: '{{.PLUGIN_DIR}}'
+    deps: [plugin:build]
+    cmds:
+      - bun run preview
 
   # ---------------------------------------------------------------------------
   # Platform control plane (documented option; NOT used by tests)
@@ -138,7 +172,7 @@ tasks:
         echo "  kubeconfig: {{.KUBECONFIG_PATH}}"
         echo ""
         echo "Next steps:"
-        echo "  <serve a plugin on :{{.PLUGIN_PORT}}>  # e.g. examples/sample-plugin once it lands (separate terminal)"
+        echo "  task plugin:preview    # build + serve the sample plugin on :{{.PLUGIN_PORT}} (separate terminal)"
         echo "  task devenv:register   # register the sample PortalPlugin"
         echo "  task devenv:portal     # run the portal against the local registry (separate terminal)"
         echo ""

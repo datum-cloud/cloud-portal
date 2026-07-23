@@ -1,0 +1,28 @@
+{
+  "name": "@datum-cloud/sample-portal-plugin",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "Reference Portal Plugin: a Module Federation remote exercising every v1 extension point (nav, page, home card), reading data exclusively through the portal's Milo control-plane proxy.",
+  "scripts": {
+    "dev": "vite",
+    "preview": "vite preview",
+    "build": "vite build",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@datum-cloud/datum-ui": "^1.3.2",
+    "@tanstack/react-query": "^5.101.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-router": "^7.18.0"
+  },
+  "devDependencies": {
+    "@module-federation/vite": "^1.16.16",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.2.0",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.5"
+  }
+}

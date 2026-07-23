@@ -35,3 +35,7 @@ cypress/results
 
 # Local plugin dev environment (kwok binaries, kubeconfig, cluster state)
 .devenv/
+
+# Sample plugin (own package.json/build under examples/sample-plugin)
+examples/sample-plugin/dist/
+examples/sample-plugin/node_modules/
