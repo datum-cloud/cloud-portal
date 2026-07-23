@@ -146,6 +146,34 @@ export default [
           index('routes/project/detail/connectors/index.tsx'),
         ]),
 
+        // Compute
+        route('compute/workloads', 'routes/project/detail/compute/workloads/layout.tsx', [
+          index('routes/project/detail/compute/workloads/index.tsx'),
+          route('new', 'routes/project/detail/compute/workloads/new.tsx'),
+          route(
+            ':workloadName',
+            'routes/project/detail/compute/workloads/detail/layout.tsx',
+            { id: 'workload-detail' },
+            [
+              index('routes/project/detail/compute/workloads/detail/index.tsx'),
+              route('activity', 'routes/project/detail/compute/workloads/detail/activity.tsx'),
+              route('metrics', 'routes/project/detail/compute/workloads/detail/metrics.tsx'),
+              route('settings', 'routes/project/detail/compute/workloads/detail/settings.tsx'),
+              route(
+                'instances/:instanceName',
+                'routes/project/detail/compute/workloads/detail/instances/layout.tsx',
+                [
+                  index('routes/project/detail/compute/workloads/detail/instances/index.tsx'),
+                  route(
+                    'settings',
+                    'routes/project/detail/compute/workloads/detail/instances/settings.tsx'
+                  ),
+                ]
+              ),
+            ]
+          ),
+        ]),
+
         // DNS Zones
         route('dns-zones', 'routes/project/detail/dns-zones/layout.tsx', [
           index('routes/project/detail/dns-zones/index.tsx'),

@@ -10,6 +10,9 @@
  * within logical groups for readability.
  */
 export type ActivityResourceKind =
+  // Compute
+  | 'Workload'
+  | 'Instance'
   // DNS
   | 'DNSZone'
   | 'DNSRecordSet'
