@@ -45,12 +45,13 @@ const fakeEnv = {
     authOidcClientId: 'test-client-id',
   },
 };
+// Only mock env.server (what AuthService imports). Mocking the universal
+// `@/utils/env` barrel with `{ env }` drops named exports like `isDev` and
+// breaks later suites under `bun test --coverage`.
 mock.module('@/utils/env/env.server', () => ({ env: fakeEnv }));
-mock.module('@/utils/env', () => ({ env: fakeEnv }));
 
 const { AuthService } = await import('@/utils/auth/auth.service');
 const { getUserWithAccessRetry } = await import('./user-access');
-
 describe('getUserWithAccessRetry', () => {
   let getRefreshTokenSpy: ReturnType<typeof spyOn>;
   let getSessionSpy: ReturnType<typeof spyOn>;
