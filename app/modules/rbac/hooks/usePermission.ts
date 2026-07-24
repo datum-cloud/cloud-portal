@@ -63,7 +63,9 @@ export function usePermission(
 
   return {
     hasPermission: query.data ? query.data.allowed && !query.data.denied : false,
-    isLoading: query.isLoading,
+    // Prefer isPending: disabled/idle queries have isLoading=false with no data,
+    // which would flash denied UI before the check runs.
+    isLoading: query.isPending,
     isFetching: query.isFetching,
     isError: query.isError,
     error: query.error as Error | null,

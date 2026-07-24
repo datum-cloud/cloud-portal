@@ -51,9 +51,9 @@ const fakeEnv = {
     authOidcClientId: 'test-client-id',
   },
 };
+// Only mock env.server — mocking `@/utils/env` with `{ env }` drops named
+// exports like `isDev` and leaks into other files under coverage runs.
 mock.module('@/utils/env/env.server', () => ({ env: fakeEnv }));
-mock.module('@/utils/env', () => ({ env: fakeEnv }));
-
 // Import AFTER mocks are registered.
 const { AuthService, sessionStorage, refreshTokenStorage } = await import('./auth.service');
 const { AUTH_COOKIE_KEYS } = await import('./auth.config');

@@ -1,5 +1,13 @@
-import { getUserWithAccessRetry } from './user-access';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
+
+/**
+ * Avoid `mock.module('@/utils/auth', …)` with a partial AuthService. That mock
+ * leaks across files in `bun test --coverage` (CI) and breaks auth.utils /
+ * auth.service.refresh-race tests (`destroySession` / `getValidSession` missing).
+ *
+ * Stub zitadel + env so AuthService can load without OIDC discovery, then spy
+ * only the static methods this suite needs.
+ */
 
 const get = mock(async () => ({ sub: 'user-1', registrationApproval: 'Approved' }));
 const refreshTokens = mock(async () => ({
@@ -11,22 +19,66 @@ mock.module('@/resources/users', () => ({
   createUserService: () => ({ get }),
 }));
 
-mock.module('@/utils/auth', () => ({
-  AuthService: {
-    getRefreshToken: async () => ({ refreshToken: 'refresh', rawSession: {} }),
-    getSession: async () => ({ rawSession: {} }),
-    refreshTokens,
-  },
-}));
-
 mock.module('@/modules/axios/request-context', () => ({
   getRequestContext: () => ({ token: 'stale-token' }),
 }));
 
+mock.module('@/modules/auth/strategies/zitadel.server', () => ({
+  zitadelIssuer: 'https://zitadel.example.test',
+  zitadelStrategy: {
+    refreshToken: async () => {
+      throw new Error('refreshToken not used in user-access tests');
+    },
+    revokeToken: async () => undefined,
+  },
+}));
+
+const fakeEnv = {
+  isProd: false,
+  isDev: false,
+  public: {
+    appUrl: 'https://portal.example.test',
+    authOidcIssuer: 'https://zitadel.example.test',
+  },
+  server: {
+    sessionSecret: 'test-session-secret-value',
+    authOidcClientId: 'test-client-id',
+  },
+};
+// Only mock env.server (what AuthService imports). Mocking the universal
+// `@/utils/env` barrel with `{ env }` drops named exports like `isDev` and
+// breaks later suites under `bun test --coverage`.
+mock.module('@/utils/env/env.server', () => ({ env: fakeEnv }));
+
+const { AuthService } = await import('@/utils/auth/auth.service');
+const { getUserWithAccessRetry } = await import('./user-access');
 describe('getUserWithAccessRetry', () => {
+  let getRefreshTokenSpy: ReturnType<typeof spyOn>;
+  let getSessionSpy: ReturnType<typeof spyOn>;
+  let refreshTokensSpy: ReturnType<typeof spyOn>;
+
   beforeEach(() => {
     get.mockClear();
     refreshTokens.mockClear();
+
+    getRefreshTokenSpy = spyOn(AuthService, 'getRefreshToken').mockResolvedValue({
+      refreshToken: 'refresh',
+      // Cookie session shape is opaque to this test
+      rawSession: {} as never,
+    });
+    getSessionSpy = spyOn(AuthService, 'getSession').mockResolvedValue({
+      session: null,
+      rawSession: {} as never,
+    });
+    refreshTokensSpy = spyOn(AuthService, 'refreshTokens').mockImplementation(
+      refreshTokens as never
+    );
+  });
+
+  afterEach(() => {
+    getRefreshTokenSpy.mockRestore();
+    getSessionSpy.mockRestore();
+    refreshTokensSpy.mockRestore();
   });
 
   it('refreshes the session before reading the user when requested', async () => {

@@ -9,7 +9,7 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 export type { DnsRecordModalFormRef } from './types';
 
 export const DnsRecordModalForm = forwardRef<DnsRecordModalFormRef, DnsRecordModalFormProps>(
-  ({ projectId, dnsZoneId, dnsZoneName, onSuccess }, ref) => {
+  ({ projectId, dnsZoneId, dnsZoneName, zoneDomain, onSuccess }, ref) => {
     const [isOpen, setIsOpen] = useState(false);
     const resolveRef = useRef<(value: boolean) => void>(null);
     const [mode, setMode] = useState<'create' | 'edit'>('create');
@@ -71,6 +71,7 @@ export const DnsRecordModalForm = forwardRef<DnsRecordModalFormRef, DnsRecordMod
               projectId={projectId}
               dnsZoneId={dnsZoneId}
               dnsZoneName={dnsZoneName}
+              zoneDomain={zoneDomain}
               recordSetName={initialData?.recordSetName}
               recordName={initialData?.name}
               oldValue={initialData?.value}
