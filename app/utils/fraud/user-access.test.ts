@@ -22,14 +22,25 @@ mock.module('@/resources/users', () => ({
   createUserService: () => ({ get }),
 }));
 
+// `AuthService` is a class — its static methods are non-enumerable own
+// properties, so a plain `{...actualAuth.AuthService}` spread silently drops
+// all of them (getValidSession, destroySession, etc. would resolve to
+// `undefined` for every other test file). Clone via property descriptors
+// instead so unrelated static methods survive, then override just the ones
+// this suite needs.
+const AuthServiceOverride = Object.create(
+  Object.getPrototypeOf(actualAuth.AuthService),
+  Object.getOwnPropertyDescriptors(actualAuth.AuthService)
+);
+Object.assign(AuthServiceOverride, {
+  getRefreshToken: async () => ({ refreshToken: 'refresh', rawSession: {} }),
+  getSession: async () => ({ rawSession: {} }),
+  refreshTokens,
+});
+
 mock.module('@/utils/auth', () => ({
   ...actualAuth,
-  AuthService: {
-    ...actualAuth.AuthService,
-    getRefreshToken: async () => ({ refreshToken: 'refresh', rawSession: {} }),
-    getSession: async () => ({ rawSession: {} }),
-    refreshTokens,
-  },
+  AuthService: AuthServiceOverride,
 }));
 
 mock.module('@/modules/axios/request-context', () => ({
