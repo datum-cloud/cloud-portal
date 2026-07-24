@@ -49,15 +49,20 @@ export function usePermissionCheck(checks: PermissionCheckInput[]) {
     retry: 1,
   });
 
+  // Prefer isPending over isLoading: while the query is disabled (e.g. org
+  // context not ready) isLoading is false even though we have no result yet,
+  // which lets UIs flash empty/denied states before the check runs.
+  const isPermissionsPending = query.isPending;
+
   const permissions: PermissionCheckResult = {};
   checks.forEach((check, index) => {
     const key = `${check.resource}:${check.verb}`;
     const result = query.data?.[index];
     permissions[key] = {
       allowed: result ? result.allowed && !result.denied : false,
-      isLoading: query.isLoading,
+      isLoading: isPermissionsPending,
     };
   });
 
-  return { permissions, isLoading: query.isLoading, isError: query.isError };
+  return { permissions, isLoading: isPermissionsPending, isError: query.isError };
 }

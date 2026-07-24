@@ -32,6 +32,8 @@ export interface DnsRecordInlineFormProps {
   projectId: string;
   dnsZoneId: string;
   dnsZoneName?: string;
+  /** Zone domain (e.g. example.com) for name-field guidance */
+  zoneDomain?: string;
   onClose: () => void;
   onSuccess?: () => void;
 }
@@ -43,6 +45,8 @@ export interface DnsRecordModalFormProps {
   projectId: string;
   dnsZoneId: string;
   dnsZoneName?: string;
+  /** Zone domain (e.g. example.com) for name-field guidance */
+  zoneDomain?: string;
   onSuccess?: () => void;
 }
 

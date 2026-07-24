@@ -1,3 +1,4 @@
+import { toFlattenedDnsRecords } from './dns-record.adapter';
 import { createDnsRecordManager, type ImportResult } from './dns-record.manager';
 import type { DnsRecordSet, FlattenedDnsRecord, CreateDnsRecordSchema } from './dns-record.schema';
 import { createDnsRecordService, dnsRecordKeys } from './dns-record.service';
@@ -9,6 +10,16 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
+
+/** Replace flattened list rows for a RecordSet with rows from the server response. */
+function mergeRecordSetIntoListCache(
+  old: FlattenedDnsRecord[] | undefined,
+  recordSet: DnsRecordSet
+): FlattenedDnsRecord[] {
+  const newRows = toFlattenedDnsRecords([recordSet]);
+  if (!old) return newRows;
+  return [...old.filter((r) => r.recordSetName !== recordSet.name), ...newRows];
+}
 
 export function useDnsRecords(
   projectId: string,
@@ -53,8 +64,12 @@ export function useCreateDnsRecord(
     ...options,
     onSuccess: (...args) => {
       const [recordSet] = args;
-      // Set detail cache immediately
+      // Set detail + list cache immediately so the table updates without waiting on watch
       queryClient.setQueryData(dnsRecordKeys.detail(projectId, recordSet.name), recordSet);
+      queryClient.setQueryData<FlattenedDnsRecord[]>(
+        dnsRecordKeys.list(projectId, dnsZoneId),
+        (old) => mergeRecordSetIntoListCache(old, recordSet)
+      );
 
       options?.onSuccess?.(...args);
     },
@@ -100,8 +115,12 @@ export function useUpdateDnsRecord(
     ...options,
     onSuccess: (...args) => {
       const [recordSet] = args;
-      // Update detail cache with server response
+      // Update detail + list cache with server response (full RecordSet)
       queryClient.setQueryData(dnsRecordKeys.detail(projectId, recordSet.name), recordSet);
+      queryClient.setQueryData<FlattenedDnsRecord[]>(
+        dnsRecordKeys.list(projectId, dnsZoneId),
+        (old) => mergeRecordSetIntoListCache(old, recordSet)
+      );
 
       options?.onSuccess?.(...args);
     },
@@ -160,6 +179,10 @@ export function useDeleteDnsRecord(
       );
 
       options?.onSuccess?.(...args);
+    },
+    onSettled: () => {
+      // Fallback: invalidate list cache in case watch doesn't trigger
+      queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
 }

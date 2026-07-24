@@ -59,6 +59,9 @@ import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
+/** Stable empty list for query fallbacks — avoids new `[]` identity each render. */
+const EMPTY_DNS_RECORDS: IFlattenedDnsRecord[] = [];
+
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
 };
@@ -125,6 +128,7 @@ export default function DnsRecordsPage() {
     canPatch: canPatchRecord,
     canDelete: canDeleteRecord,
     canViewProxy,
+    isLoading: isPermissionsLoading,
   } = useResourcePermissions({
     resource: 'dnsrecordsets',
     group: 'dns.networking.miloapis.com',
@@ -144,18 +148,26 @@ export default function DnsRecordsPage() {
   // Subscribe to watch for real-time updates
   useDnsRecordsWatch(projectId, dnsZoneId, { enabled: canListRecords });
 
-  const { data: queryData = [] } = useDnsRecords(projectId, dnsZoneId, undefined, {
+  const { data: queryData, isPending } = useDnsRecords(projectId, dnsZoneId, undefined, {
     staleTime: QUERY_STALE_TIME,
     enabled: canListRecords,
   });
+
+  // Stable empty fallback — `data = []` allocates a new array each render while
+  // undefined, which churns datum-ui's client table store via the data effect.
+  const dnsRecords = queryData ?? EMPTY_DNS_RECORDS;
+
+  // Show skeleton until permissions resolve and (when list is allowed) until the
+  // records query has real data. Using only isPending is not enough: canList is
+  // false while SSAR is unknown, which would otherwise look like an empty zone.
+  const isTableLoading =
+    isPermissionsLoading || (canListRecords && (isPending || queryData === undefined));
 
   // AI Edge enrichment is optional — only fetch when the user can list proxies
   // (a denied viewer still sees the records table without the linked-proxy cell).
   const { data: proxies = [] } = useHttpProxies(projectId, {
     enabled: canViewProxy,
   });
-
-  const dnsRecords = queryData;
 
   const zoneDomain = dnsZone?.domainName ?? '';
   const enrichedRecords = useMemo((): IFlattenedDnsRecord[] => {
@@ -295,7 +307,7 @@ export default function DnsRecordsPage() {
       variant: 'destructive',
       onSubmit: async () => {
         if (record.recordSetName) {
-          deleteMutation.mutate({
+          await deleteMutation.mutateAsync({
             recordSetName: record.recordSetName,
             recordType: record.type,
             name: record.name,
@@ -431,14 +443,17 @@ export default function DnsRecordsPage() {
         ref={dnsRecordModalFormRef}
         projectId={projectId}
         dnsZoneId={dnsZoneId}
+        zoneDomain={zoneDomain}
         onSuccess={handleOnSuccess}
       />
 
       <DnsRecordTable
         mode="full"
         data={enrichedRecords}
+        loading={isTableLoading}
         projectId={projectId}
         dnsZoneId={dnsZoneId}
+        zoneDomain={zoneDomain}
         renderAiEdgeCell={(record) => (
           <DnsRecordAiEdgeCell
             record={record}
@@ -484,6 +499,7 @@ export default function DnsRecordsPage() {
         onInlineClose={handleInlineClose}
         onOpenCreate={handleOpenCreate}
         onOpenEdit={handleOpenEdit}
+        onFormSuccess={handleOnSuccess}
         canEdit={canPatchRecord}
         extraRowActions={extraRowActions}
       />
@@ -498,14 +514,17 @@ export default function DnsRecordsPage() {
             ref={dnsRecordModalFormRef}
             projectId={projectId}
             dnsZoneId={dnsZoneId}
+            zoneDomain={zoneDomain}
             onSuccess={handleOnSuccess}
           />
 
           <DnsRecordTable
             mode="full"
             data={enrichedRecords}
+            loading={isTableLoading}
             projectId={projectId}
             dnsZoneId={dnsZoneId}
+            zoneDomain={zoneDomain}
             renderAiEdgeCell={(record) => (
               <DnsRecordAiEdgeCell
                 record={record}
@@ -565,6 +584,7 @@ export default function DnsRecordsPage() {
             onInlineClose={handleInlineClose}
             onOpenCreate={handleOpenCreate}
             onOpenEdit={handleOpenEditMobile}
+            onFormSuccess={handleOnSuccess}
             canEdit={canPatchRecord}
             extraRowActions={extraRowActions}
           />

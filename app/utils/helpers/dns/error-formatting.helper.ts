@@ -63,6 +63,11 @@ export function formatDnsError(errorMessage: string): string {
     return conflictFormatted;
   }
 
-  // Add other error formatting here as needed
+  // Record name outside zone (relative name already included the zone domain)
+  const lower = errorMessage.toLowerCase();
+  if (lower.includes('outside the zone') || lower.includes('not in zone')) {
+    return 'The record name is outside the zone. Enter a relative name without the zone domain (for example, "www" instead of "www.example.com").';
+  }
+
   return errorMessage;
 }

@@ -23,6 +23,7 @@ import {
   useCreateDnsRecord,
   useUpdateDnsRecord,
 } from '@/resources/dns-records';
+import { getNameEndsWithZoneWarning } from '@/utils/helpers/dns';
 import { formatDnsError, getDnsRecordTypeSelectOptions } from '@/utils/helpers/dns-record.helper';
 import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -84,6 +85,8 @@ interface DnsRecordFormProps {
   projectId: string;
   dnsZoneId: string;
   dnsZoneName?: string;
+  /** Zone domain (e.g. example.com) for non-blocking name-field warnings */
+  zoneDomain?: string;
   recordSetName?: string;
   recordName?: string;
   oldValue?: string; // The original value being edited (for updating specific values in arrays)
@@ -101,6 +104,7 @@ export function DnsRecordForm({
   projectId,
   dnsZoneId,
   dnsZoneName,
+  zoneDomain,
   recordSetName,
   recordName,
   oldValue,
@@ -203,16 +207,7 @@ export function DnsRecordForm({
               />
             </Form.Field>
 
-            {/* Name */}
-            <Form.Field name="name" label="Name" required>
-              <Form.Input
-                placeholder="e.g., www or @"
-                disabled={loading}
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-              />
-            </Form.Field>
+            <NameField zoneDomain={zoneDomain} loading={loading} />
 
             {/* TTL */}
             <Form.Field
@@ -288,6 +283,33 @@ export function DnsRecordForm({
 function PreserveAllFieldsTouched() {
   usePreserveTouchedOnSubmit(DNS_RECORD_FIELD_NAMES);
   return null;
+}
+
+/** Name field with optional non-blocking warning when name already includes the zone */
+function NameField({ zoneDomain, loading }: { zoneDomain?: string; loading: boolean }) {
+  const nameValue = useWatch('name');
+  const warning = getNameEndsWithZoneWarning(
+    typeof nameValue === 'string' ? nameValue : '',
+    zoneDomain ?? ''
+  );
+
+  return (
+    <Form.Field
+      name="name"
+      label="Name"
+      required
+      description={
+        warning ? <span className="text-(--color-badge-warning)">{warning}</span> : undefined
+      }>
+      <Form.Input
+        placeholder="e.g., www or @"
+        disabled={loading}
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+      />
+    </Form.Field>
+  );
 }
 
 /** Renders the appropriate type-specific fields based on the current recordType value */
