@@ -1,5 +1,5 @@
 /// <reference types="bun-types/test" />
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { LoaderFunctionArgs } from 'react-router';
 
 // Module-level mock for gateRouteAccess. We hold a mutable ref the tests can
@@ -38,6 +38,15 @@ mock.module('@/utils/cookies', () => ({
 // server-only runtime directly since loader behavior is what we want to assert.
 const { runListLoader, runDetailLoader } = await import('./run-resource-loader');
 const { defineResourceRoute } = await import('./define-resource-route');
+
+// Bun's mock.module replaces these modules in the global registry for the
+// rest of the test run, not just this file. Reinstall the untouched real
+// modules once this file's tests finish so later test files see the
+// genuine implementations again.
+afterAll(() => {
+  mock.module('./server/check-permission', () => actualCheckPermission);
+  mock.module('@/utils/cookies', () => actualCookies);
+});
 
 beforeEach(() => {
   // Default: allow access. Individual tests override as needed.

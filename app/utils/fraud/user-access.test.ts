@@ -1,5 +1,5 @@
 import { getUserWithAccessRetry } from './user-access';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterAll, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 const get = mock(async () => ({ sub: 'user-1', registrationApproval: 'Approved' }));
 const refreshTokens = mock(async () => ({
@@ -47,6 +47,18 @@ mock.module('@/modules/axios/request-context', () => ({
   ...actualRequestContext,
   getRequestContext: () => ({ token: 'stale-token' }),
 }));
+
+// Bun's mock.module patches the shared module registry in place — the
+// override above is visible even to code that imports './auth.service'
+// directly (not just via the '@/utils/auth' barrel), because the barrel
+// re-exports the same underlying class object. Reinstall the untouched
+// real modules once this file's tests finish so later test files in the
+// same run see the genuine implementations again.
+afterAll(() => {
+  mock.module('@/resources/users', () => actualUsers);
+  mock.module('@/utils/auth', () => actualAuth);
+  mock.module('@/modules/axios/request-context', () => actualRequestContext);
+});
 
 describe('getUserWithAccessRetry', () => {
   beforeEach(() => {
