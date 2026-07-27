@@ -1,6 +1,5 @@
-import { describe, expect, it } from 'bun:test';
-
 import { resetGuardedIncrease } from './waf-events';
+import { describe, expect, it } from 'bun:test';
 
 describe('resetGuardedIncrease', () => {
   it('multiplies increase() by a resets()-equals-zero guard over the same series and window', () => {
