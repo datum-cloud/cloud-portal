@@ -28,7 +28,7 @@ describe('toUser', () => {
         },
       },
       spec: { email: 'a@b.com', givenName: 'Ada', familyName: 'Lovelace' },
-      status: { registrationApproval: 'Approved', state: 'Active', lastLoginProvider: 'google' },
+      status: { platformAccess: 'Approved', state: 'Active', lastLoginProvider: 'google' },
     };
     const user = toUser(raw as never);
 
@@ -38,7 +38,7 @@ describe('toUser', () => {
     expect(user.preferences!.timezone).toBe('America/New_York');
     expect(user.preferences!.newsletter).toBe(true);
     expect(user.onboardedAt).toBe('2024-02-02T00:00:00Z');
-    expect(user.registrationApproval).toBe('Approved');
+    expect(user.platformAccess).toBe('Approved');
     expect(user.lastLoginProvider).toBe('google');
     expect(user.nameReviewRequired).toBe(true);
     expect(user.country).toBe('US');
@@ -56,7 +56,7 @@ describe('toUser', () => {
     expect(typeof user.preferences!.timezone).toBe('string');
     expect(user.preferences!.timezone.length).toBeGreaterThan(0);
     expect(user.preferences!.newsletter).toBe(false);
-    expect(user.registrationApproval).toBeUndefined();
+    expect(user.platformAccess).toBeUndefined();
     expect(user.lastLoginProvider).toBeUndefined();
     expect(user.nameReviewRequired).toBe(false);
   });

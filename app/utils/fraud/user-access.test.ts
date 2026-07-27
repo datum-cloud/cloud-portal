@@ -1,7 +1,7 @@
 import { getUserWithAccessRetry } from './user-access';
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 
-const get = mock(async () => ({ sub: 'user-1', registrationApproval: 'Approved' }));
+const get = mock(async () => ({ sub: 'user-1', platformAccess: 'Approved' }));
 const refreshTokens = mock(async () => ({
   session: { accessToken: 'fresh-token', expiredAt: new Date().toISOString(), sub: 'user-1' },
   headers: new Headers({ 'Set-Cookie': 'session=fresh' }),
@@ -37,7 +37,7 @@ describe('getUserWithAccessRetry', () => {
     expect(refreshTokens).toHaveBeenCalledTimes(1);
     expect(get).toHaveBeenCalledTimes(1);
     expect(result).toEqual({
-      user: { sub: 'user-1', registrationApproval: 'Approved' },
+      user: { sub: 'user-1', platformAccess: 'Approved' },
       refreshedHeaders: expect.any(Headers),
     });
   });
