@@ -24,6 +24,8 @@ interface DnsRecordTableBaseProps {
   projectId: string;
   className?: string;
   showStatus?: boolean;
+  /** Show table skeleton while the records query is loading */
+  loading?: boolean;
   /** When set (full mode), adds an AI Edge column before TTL with this cell renderer. */
   renderAiEdgeCell?: (record: IFlattenedDnsRecord) => ReactNode;
 }
@@ -52,6 +54,8 @@ interface DnsRecordTableFullProps extends DnsRecordTableBaseProps {
   mode: 'full';
   dnsZoneId: string;
   dnsZoneName?: string;
+  /** Zone domain (e.g. example.com) for name-field guidance in the inline form */
+  zoneDomain?: string;
   tableTitle?: {
     title?: string;
     description?: string;
@@ -77,6 +81,8 @@ interface DnsRecordTableFullProps extends DnsRecordTableBaseProps {
   canEdit?: boolean;
   /** Optional additional row actions appended after the built-in Edit action */
   extraRowActions?: ActionItem<IFlattenedDnsRecord>[];
+  /** Called after a successful inline create/edit submit */
+  onFormSuccess?: (mode: 'create' | 'edit') => void;
 }
 
 export type DnsRecordTableProps = DnsRecordTableCompactProps | DnsRecordTableFullProps;
@@ -304,7 +310,7 @@ function useDnsRecordColumns(
  *   `inlineRowId`, `onInlineClose`, `onOpenCreate`, and `onOpenEdit`.
  */
 export function DnsRecordTable(props: DnsRecordTableProps) {
-  const { data, projectId, className, showStatus = true, renderAiEdgeCell } = props;
+  const { data, projectId, className, showStatus = true, loading, renderAiEdgeCell } = props;
   const resolvedMode = props.mode === 'full' ? 'full' : 'compact';
 
   // Hooks must be called unconditionally — resolve mode first, then call once.
@@ -338,6 +344,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
         className={className}
         columns={baseColumns}
         data={data}
+        loading={loading}
         getRowId={getRowId ? (row) => getRowId(row, rowIndexMap.get(row) ?? 0) : undefined}
         enableRowSelection={enableMultiSelect ? true : undefined}>
         <DataTable.Content emptyMessage="No DNS records found." />
@@ -352,6 +359,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
   const {
     dnsZoneId,
     dnsZoneName,
+    zoneDomain,
     tableTitle,
     inlineOpen,
     inlinePosition,
@@ -360,6 +368,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     onOpenEdit,
     canEdit = true,
     extraRowActions = [],
+    onFormSuccess,
   } = props as DnsRecordTableFullProps;
 
   const rowActions: ActionItem<IFlattenedDnsRecord>[] = [
@@ -397,6 +406,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     <Table.Client
       columns={columns}
       data={data}
+      loading={loading}
       className={className}
       // Match the id shape used by the parent for `inlineRowId` so
       // `DataTable.InlineContent` can anchor the panel to the correct row.
@@ -436,7 +446,9 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
             projectId={projectId}
             dnsZoneId={dnsZoneId}
             dnsZoneName={dnsZoneName}
+            zoneDomain={zoneDomain}
             onClose={onClose}
+            onSuccess={() => onFormSuccess?.(rowData ? 'edit' : 'create')}
           />
         ),
       }}

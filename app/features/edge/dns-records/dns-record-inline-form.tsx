@@ -13,6 +13,7 @@ export function DnsRecordInlineForm({
   projectId,
   dnsZoneId,
   dnsZoneName,
+  zoneDomain,
   onClose,
   onSuccess,
 }: DnsRecordInlineFormProps) {
@@ -31,6 +32,7 @@ export function DnsRecordInlineForm({
       projectId={projectId}
       dnsZoneId={dnsZoneId}
       dnsZoneName={dnsZoneName}
+      zoneDomain={zoneDomain}
       recordSetName={initialData?.recordSetName}
       recordName={initialData?.name}
       oldValue={initialData?.value} // Pass the original value for edit mode
