@@ -89,7 +89,6 @@ export const com_miloapis_iam_v1alpha1_GroupSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_GroupListSchema = {
@@ -132,7 +131,6 @@ export const com_miloapis_iam_v1alpha1_GroupListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_GroupMembershipSchema = {
@@ -318,8 +316,9 @@ export const com_miloapis_iam_v1alpha1_GroupMembershipListSchema = {
   ],
 } as const;
 
-export const com_miloapis_iam_v1alpha1_MachineAccountSchema = {
-  description: 'MachineAccount is the Schema for the machine accounts API',
+export const com_miloapis_iam_v1alpha1_PlatformAccessSchema = {
+  description:
+    'PlatformAccess is the Schema for the platformaccesses API.\nIt is the single mutable resource governing whether a user can access the platform,\nreplacing UserDeactivation, PlatformAccessApproval, and PlatformAccessRejection.\nThere is at most one PlatformAccess per user; by convention it is named after the user.\nThe UserController derives User.status.accessState from this resource.',
   type: 'object',
   properties: {
     apiVersion: {
@@ -342,26 +341,66 @@ export const com_miloapis_iam_v1alpha1_MachineAccountSchema = {
       ],
     },
     spec: {
-      description: 'MachineAccountSpec defines the desired state of MachineAccount',
+      description:
+        'PlatformAccessSpec defines the desired access state for a user on the platform.',
       type: 'object',
+      required: ['state', 'userRef'],
       properties: {
+        reason: {
+          description: 'Reason is a human-readable explanation for the current state.',
+          type: 'string',
+        },
         state: {
           description:
-            'The state of the machine account. This state can be safely changed as needed.\nStates:\n  - Active: The machine account can be used to authenticate.\n  - Inactive: The machine account is prohibited to be used to authenticate, and revokes all existing sessions.',
+            'State is the desired platform access state for the user.\nValid transitions:\n  Pending  → Approved  (fraud accepts, or admin approves)\n  Pending  → Rejected  (fraud or admin rejects)\n  Approved → Suspended (fraud deactivates, or admin suspends)\n  Approved → Rejected  (admin disapproves)\n  Suspended → Approved (admin reactivates)',
           type: 'string',
-          default: 'Active',
-          enum: ['Active', 'Inactive'],
+          default: 'Pending',
+          allOf: [
+            {
+              enum: ['Pending', 'Approved', 'Rejected', 'Suspended'],
+            },
+            {
+              enum: ['Pending', 'Approved', 'Rejected', 'Suspended'],
+            },
+          ],
+        },
+        userRef: {
+          description:
+            'UserRef is a reference to the User this resource governs.\nUser is a cluster-scoped resource.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the User being referenced.',
+              type: 'string',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'oldSelf == null || self == oldSelf',
+              message: 'userRef is immutable',
+            },
+          ],
         },
       },
     },
     status: {
-      description: 'MachineAccountStatus defines the observed state of MachineAccount',
+      description: 'PlatformAccessStatus defines the observed state of PlatformAccess.',
       type: 'object',
       properties: {
         conditions: {
           description:
-            'Conditions provide conditions that represent the current status of the MachineAccount.',
+            "Conditions represent the latest available observations of the resource's current state.",
           type: 'array',
+          default: [
+            {
+              lastTransitionTime: '1970-01-01T00:00:00Z',
+              message: 'Waiting for control plane to reconcile',
+              reason: 'Unknown',
+              status: 'Unknown',
+              type: 'Ready',
+            },
+          ],
           items: {
             description:
               'Condition contains details for one aspect of the current state of this API Resource.',
@@ -410,71 +449,24 @@ export const com_miloapis_iam_v1alpha1_MachineAccountSchema = {
             },
           },
         },
-        email: {
-          description:
-            'The computed email of the machine account following the pattern:\n{metadata.name}@{metadata.namespace}.{project.metadata.name}.{global-suffix}',
-          type: 'string',
-        },
-        state: {
-          description:
-            'State represents the current activation state of the machine account from the auth provider.\nThis field tracks the state from the previous generation and is updated when state changes\nare successfully propagated to the auth provider. It helps optimize performance by only\nupdating the auth provider when a state change is detected.',
-          type: 'string',
-          enum: ['Active', 'Inactive'],
-        },
       },
     },
   },
   'x-kubernetes-group-version-kind': [
     {
       group: 'iam.miloapis.com',
-      kind: 'MachineAccount',
+      kind: 'PlatformAccess',
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
-} as const;
-
-export const com_miloapis_iam_v1alpha1_MachineAccountListSchema = {
-  description: 'MachineAccountList is a list of MachineAccount',
-  type: 'object',
-  required: ['items'],
-  properties: {
-    apiVersion: {
-      description:
-        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
-      type: 'string',
-    },
-    items: {
-      description:
-        'List of machineaccounts. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
-      type: 'array',
-      items: {
-        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.MachineAccount',
-      },
-    },
-    kind: {
-      description:
-        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
-      type: 'string',
-    },
-    metadata: {
-      description:
-        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
-      allOf: [
-        {
-          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
-        },
-      ],
-    },
-  },
-  'x-kubernetes-group-version-kind': [
+  'x-kubernetes-selectable-fields': [
     {
-      group: 'iam.miloapis.com',
-      kind: 'MachineAccountList',
-      version: 'v1alpha1',
+      fieldPath: 'spec.userRef.name',
+    },
+    {
+      fieldPath: 'spec.state',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_PlatformAccessApprovalSchema = {
@@ -776,7 +768,6 @@ export const com_miloapis_iam_v1alpha1_PlatformAccessDenialSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_PlatformAccessDenialListSchema = {
@@ -819,7 +810,56 @@ export const com_miloapis_iam_v1alpha1_PlatformAccessDenialListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_iam_v1alpha1_PlatformAccessListSchema = {
+  description: 'PlatformAccessList is a list of PlatformAccess',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of platformaccesses. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.iam.v1alpha1.PlatformAccess',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'iam.miloapis.com',
+      kind: 'PlatformAccessList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [
+    {
+      fieldPath: 'spec.userRef.name',
+    },
+    {
+      fieldPath: 'spec.state',
+    },
+  ],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_PlatformAccessRejectionSchema = {
@@ -1113,7 +1153,6 @@ export const com_miloapis_iam_v1alpha1_PlatformInvitationSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_PlatformInvitationListSchema = {
@@ -1156,7 +1195,6 @@ export const com_miloapis_iam_v1alpha1_PlatformInvitationListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_PolicyBindingSchema = {
@@ -1397,7 +1435,6 @@ export const com_miloapis_iam_v1alpha1_PolicyBindingSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_PolicyBindingListSchema = {
@@ -1440,7 +1477,6 @@ export const com_miloapis_iam_v1alpha1_PolicyBindingListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_ProtectedResourceSchema = {
@@ -1608,7 +1644,6 @@ export const com_miloapis_iam_v1alpha1_ProtectedResourceSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_ProtectedResourceListSchema = {
@@ -1651,7 +1686,6 @@ export const com_miloapis_iam_v1alpha1_ProtectedResourceListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_RoleSchema = {
@@ -1816,7 +1850,6 @@ export const com_miloapis_iam_v1alpha1_RoleSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_RoleListSchema = {
@@ -1859,7 +1892,6 @@ export const com_miloapis_iam_v1alpha1_RoleListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_ServiceAccountSchema = {
@@ -1975,7 +2007,6 @@ export const com_miloapis_iam_v1alpha1_ServiceAccountSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_ServiceAccountListSchema = {
@@ -2018,7 +2049,6 @@ export const com_miloapis_iam_v1alpha1_ServiceAccountListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_UserSchema = {
@@ -2136,14 +2166,26 @@ export const com_miloapis_iam_v1alpha1_UserSchema = {
         },
         lastLoginProvider: {
           description:
-            'LastLoginProvider records the identity provider that was most recently used by the\nuser to log in (e.g., "github" or "google"). This field is set by the auth provider\nbased on authentication events.',
+            'LastLoginProvider records the identity provider that was most recently used by the\nuser to log in (e.g., "github", "google", "passkey", or "email"). This field is set\nby the auth provider based on authentication events.',
           type: 'string',
           allOf: [
             {
-              enum: ['github', 'google'],
+              enum: ['github', 'google', 'passkey', 'email'],
             },
             {
-              enum: ['github', 'google'],
+              enum: ['github', 'google', 'passkey', 'email'],
+            },
+          ],
+        },
+        platformAccess: {
+          description: "PlatformAccess represents the user's access state on the platform.",
+          type: 'string',
+          allOf: [
+            {
+              enum: ['Pending', 'Approved', 'Rejected', 'Suspended'],
+            },
+            {
+              enum: ['Pending', 'Approved', 'Rejected', 'Suspended'],
             },
           ],
         },
@@ -2855,7 +2897,6 @@ export const com_miloapis_iam_v1alpha1_UserPreferenceSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_iam_v1alpha1_UserPreferenceListSchema = {
@@ -2898,7 +2939,6 @@ export const com_miloapis_iam_v1alpha1_UserPreferenceListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
@@ -3135,11 +3175,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'networking.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
-    },
-    {
-      group: 'networking.k8s.io',
-      kind: 'DeleteOptions',
       version: 'v1beta1',
     },
     {
@@ -3181,6 +3216,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'rbac.authorization.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1',
     },
     {
       group: 'resource.k8s.io',
@@ -3191,6 +3231,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'resource.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta2',
     },
     {
       group: 'scheduling.k8s.io',
@@ -3225,7 +3270,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'storagemigration.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1beta1',
     },
   ],
 } as const;
@@ -3529,7 +3574,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails',
         },
       ],
-      'x-kubernetes-list-type': 'atomic',
     },
     kind: {
       description:
