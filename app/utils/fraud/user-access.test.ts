@@ -11,8 +11,18 @@ mock.module('@/resources/users', () => ({
   createUserService: () => ({ get }),
 }));
 
+// Partial mock. `mock.module` is process-global in Bun and every test file
+// shares one module registry, so replacing the whole '@/utils/auth' barrel here
+// strips exports that later test files still need — session.server.ts imports
+// AUTH_COOKIE_KEYS, AuthService and sessionStorage from this same barrel, while
+// only getRefreshToken/getSession/refreshTokens were stubbed. Spreading the real
+// module keeps the rest intact so this stub cannot leak past this file.
+const actualAuth = await import('@/utils/auth');
+
 mock.module('@/utils/auth', () => ({
+  ...actualAuth,
   AuthService: {
+    ...actualAuth.AuthService,
     getRefreshToken: async () => ({ refreshToken: 'refresh', rawSession: {} }),
     getSession: async () => ({ rawSession: {} }),
     refreshTokens,
