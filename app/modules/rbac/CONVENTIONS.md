@@ -80,7 +80,7 @@ Enforcement: PR review.
 ### Shared cards that own their own affordance
 
 `<PermissionButton>` / `<PermissionGate>` gate an affordance the page
-renders. A few shared cards instead *own* the affordance internally and
+renders. A few shared cards instead _own_ the affordance internally and
 expose a permission boolean as their public API. Threading the boolean
 into these is the canonical, codebase-wide pattern — not the banned
 "ad-hoc permission rendering" — because the page has no button/trigger of
@@ -92,7 +92,7 @@ its own to wrap:
   `project/settings`, and `dns-zones/detail/settings`.
 - **Single-field form cards** (e.g. billing `DisplayNameFormCard`,
   `BillingAddressFieldsCard`) take `canEdit` — it disables the form
-  *inputs* (and the submit, with a denied tooltip), which a button-only
+  _inputs_ (and the submit, with a denied tooltip), which a button-only
   `<PermissionButton>` can't express.
 
 Gate the underlying permission once with `usePermission` /
