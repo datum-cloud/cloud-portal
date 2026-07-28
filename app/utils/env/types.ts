@@ -97,13 +97,17 @@ export interface ServerEnv {
   amberfloApiKey?: string;
   amberfloBaseUrl?: string;
 
-  // Optional: Portal Plugin System (dev-only registry sources)
-  // Both are hard-disabled outside NODE_ENV=development.
+  // Optional: Portal Plugin System (dev-only registry sources + token exchange)
+  // All are hard-disabled outside NODE_ENV=development.
   // portalPlugins: "<slug>=<url>,…" static dev-override entries.
   // portalPluginsJson: JSON array of spec-shaped entries; takes precedence
   //   over portalPlugins on slug collision.
+  // pluginRegistryKubeconfig: path to a local kwok kubeconfig to watch.
+  // authDevTokenExchange: "1" enables POST /api/auth/dev-session.
   portalPlugins?: string;
   portalPluginsJson?: string;
+  pluginRegistryKubeconfig?: string;
+  authDevTokenExchange?: string;
 }
 
 /**

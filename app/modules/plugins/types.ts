@@ -69,10 +69,6 @@ export interface PluginVisibility {
  * synthesize equivalent specs so the downstream pipeline is identical.
  */
 export interface PortalPluginSpec {
-  /** Catalog Service object name (absent for synthesized dev entries). */
-  serviceRef?: { name: string };
-  /** Canonical reverse-DNS service id (absent for synthesized dev entries). */
-  serviceName?: string;
   /** Unique DNS label; the URL + asset-proxy segment. */
   slug: string;
   displayName: string;

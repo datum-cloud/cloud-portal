@@ -1,5 +1,6 @@
 import { type MiddlewareContext, type NextFunction } from './middleware';
 import { isOrgSetupComplete } from '@/features/onboarding/legacy-setup/org-setup-status.server';
+import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createProjectService } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
@@ -52,6 +53,10 @@ export async function orgLegacySetupMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
+  if (isOnboardingDevBypassEnabled()) {
+    return next();
+  }
+
   const pathname = new URL(ctx.request.url).pathname;
   const orgId = orgIdFromPathname(pathname);
   if (!orgId) {
@@ -93,6 +98,10 @@ export async function projectLegacySetupMiddleware(
   ctx: MiddlewareContext,
   next: NextFunction
 ): Promise<Response> {
+  if (isOnboardingDevBypassEnabled()) {
+    return next();
+  }
+
   const pathname = new URL(ctx.request.url).pathname;
   const projectId = projectIdFromPathname(pathname);
   if (!projectId) {

@@ -1,0 +1,25 @@
+apiVersion: portal.miloapis.com/v1alpha1
+kind: PortalPlugin
+metadata:
+  # In production this is written by the services-operator fan-out; here we
+  # apply it directly (Tier 1) to exercise the portal's watch + status
+  # pipeline against a real kube-apiserver. The portal doesn't need to know
+  # this resource came from the service catalog — it only reads spec below.
+  name: sample.miloapis.com
+spec:
+  slug: sample
+  displayName: Sample Plugin
+  deprecated: false
+  suspend: false
+  assets:
+    # The sample plugin dev server (task plugin:dev). Assets are fetched
+    # server-side by the portal's asset proxy, so plain http://localhost is fine.
+    baseURL: http://localhost:7777
+    manifestPath: /plugin-manifest.json
+    caBundle: ""
+  visibility:
+    # None: no ServiceEntitlement exists for a service that isn't in the remote
+    # catalog, so the local sample must not be entitlement-gated.
+    entitlement: None
+    featureFlag: ""
+  contentSecurityPolicy: []

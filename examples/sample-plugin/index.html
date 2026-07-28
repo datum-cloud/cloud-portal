@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sample Portal Plugin — standalone preview</title>
+  </head>
+  <body>
+    <!--
+      Standalone dev harness. Humans can open http://localhost:7777/ to preview
+      the plugin's page + card in isolation. The PORTAL never loads this page —
+      it only fetches /plugin-manifest.json and /remoteEntry.js. This harness
+      exists purely so the components can be eyeballed without the full portal.
+    -->
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
