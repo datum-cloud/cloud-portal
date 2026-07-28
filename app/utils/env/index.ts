@@ -1,6 +1,7 @@
 // app/utils/env/index.ts
 // Universal env module - works on both server and client
 // For server secrets, import directly from '@/utils/env/env.server'
+import { omitBlankEnv } from './omit-blank-env';
 import type { PublicEnv } from './types';
 
 declare global {
@@ -42,35 +43,37 @@ function getPublicEnv(): PublicEnv {
     return window.ENV ?? clientDefaults;
   }
 
-  // Server-side (SSR): read from process.env
-  const nodeEnv = (process.env.NODE_ENV as PublicEnv['nodeEnv']) ?? 'development';
+  // Server-side (SSR): read from process.env. Blank values are dropped so the
+  // `??` fallbacks below treat `FOO=` the same as an absent FOO — matching
+  // env.server.ts, which would otherwise disagree with this module.
+  const source = omitBlankEnv(process.env);
+  const nodeEnv = (source.NODE_ENV as PublicEnv['nodeEnv']) ?? 'development';
   return {
     nodeEnv,
-    version: process.env.VERSION,
-    debug: process.env.DEBUG === 'true' || process.env.DEBUG === '1',
-    appUrl: process.env.APP_URL ?? '',
-    apiUrl: process.env.API_URL ?? '',
-    graphqlUrl: process.env.GRAPHQL_URL ?? '',
-    authOidcIssuer: process.env.AUTH_OIDC_ISSUER ?? '',
-    authZitadelProjectId: process.env.AUTH_ZITADEL_PROJECT_ID,
-    sentryDsn: process.env.SENTRY_DSN,
-    sentryEnv: process.env.SENTRY_ENV,
-    rybbitSiteId: process.env.RYBBIT_SITE_ID,
-    rybbitTag: process.env.RYBBIT_TAG,
-    helpscoutBeaconId: process.env.HELPSCOUT_BEACON_ID,
+    version: source.VERSION,
+    debug: source.DEBUG === 'true' || source.DEBUG === '1',
+    appUrl: source.APP_URL ?? '',
+    apiUrl: source.API_URL ?? '',
+    graphqlUrl: source.GRAPHQL_URL ?? '',
+    authOidcIssuer: source.AUTH_OIDC_ISSUER ?? '',
+    authZitadelProjectId: source.AUTH_ZITADEL_PROJECT_ID,
+    sentryDsn: source.SENTRY_DSN,
+    sentryEnv: source.SENTRY_ENV,
+    rybbitSiteId: source.RYBBIT_SITE_ID,
+    rybbitTag: source.RYBBIT_TAG,
+    helpscoutBeaconId: source.HELPSCOUT_BEACON_ID,
     logLevel:
-      (process.env.LOG_LEVEL as PublicEnv['logLevel']) ??
-      (nodeEnv === 'production' ? 'info' : 'debug'),
+      (source.LOG_LEVEL as PublicEnv['logLevel']) ?? (nodeEnv === 'production' ? 'info' : 'debug'),
     logFormat:
-      (process.env.LOG_FORMAT as PublicEnv['logFormat']) ??
+      (source.LOG_FORMAT as PublicEnv['logFormat']) ??
       (nodeEnv === 'production' ? 'json' : 'pretty'),
-    logCurl: process.env.LOG_CURL !== 'false' && nodeEnv === 'development',
-    logRedactTokens: process.env.LOG_REDACT_TOKENS !== 'false' || nodeEnv === 'production',
-    logPayloads: process.env.LOG_PAYLOADS === 'true' || nodeEnv === 'development',
-    otelEnabled: process.env.OTEL_ENABLED === 'true' && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
-    otelLogLevel: process.env.OTEL_LOG_LEVEL as PublicEnv['otelLogLevel'],
-    chatbotEnabled: process.env.CHATBOT_ENABLED === 'true',
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || undefined,
+    logCurl: source.LOG_CURL !== 'false' && nodeEnv === 'development',
+    logRedactTokens: source.LOG_REDACT_TOKENS !== 'false' || nodeEnv === 'production',
+    logPayloads: source.LOG_PAYLOADS === 'true' || nodeEnv === 'development',
+    otelEnabled: source.OTEL_ENABLED === 'true' && !!source.OTEL_EXPORTER_OTLP_ENDPOINT,
+    otelLogLevel: source.OTEL_LOG_LEVEL as PublicEnv['otelLogLevel'],
+    chatbotEnabled: source.CHATBOT_ENABLED === 'true',
+    googleMapsApiKey: source.GOOGLE_MAPS_API_KEY || undefined,
   };
 }
 

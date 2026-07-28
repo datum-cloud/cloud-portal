@@ -1,4 +1,5 @@
 // app/utils/env/env.server.ts
+import { omitBlankEnv } from './omit-blank-env';
 import type { Env } from './types';
 import { z } from 'zod';
 
@@ -191,7 +192,10 @@ const serverSchema = z.object({
 
 // Zod v4: Use .extend() instead of deprecated .merge()
 const fullSchema = publicSchema.extend(serverSchema.shape);
-const parsed = fullSchema.safeParse(process.env);
+// Blank values are treated as absent so `.default()` / `.optional()` apply —
+// see omitBlankEnv. Without it, an unset CI secret (exported as "") or a bare
+// `KEY=` in .env fails validation and exits(1) below instead of defaulting.
+const parsed = fullSchema.safeParse(omitBlankEnv(process.env));
 
 if (!parsed.success) {
   console.error('❌ Invalid environment variables:');

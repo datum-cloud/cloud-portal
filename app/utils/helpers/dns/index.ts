@@ -47,7 +47,7 @@ export {
 } from './record-comparison.helper';
 
 // Record hostname (record name + zone → hostname)
-export { getRecordHostname } from './record-hostname.helper';
+export { getRecordHostname, getNameEndsWithZoneWarning } from './record-hostname.helper';
 
 // Form transform helpers
 export { transformFormToRecord, recordToFormDefaultValue } from './form-transform.helper';

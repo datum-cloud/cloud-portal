@@ -153,3 +153,5 @@ export type Options<
   TResponse = unknown,
 > = OmitKeys<RequestOptions<TResponse, ThrowOnError>, 'body' | 'path' | 'query' | 'url'> &
   ([TData] extends [never] ? unknown : Omit<TData, 'url'>);
+
+export interface ClientMeta {}
