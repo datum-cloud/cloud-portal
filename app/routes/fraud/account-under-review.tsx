@@ -1,6 +1,6 @@
 import BlankLayout from '@/layouts/blank.layout';
 import { createUserService } from '@/resources/users';
-import { RegistrationApproval } from '@/resources/users/user.schema';
+import { PlatformAccess } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -21,9 +21,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const user = await createUserService().get(session.sub);
 
-    // If registrationApproval is no longer Rejected, the review has been resolved —
+    // If platformAccess is no longer Rejected, the review has been resolved —
     // redirect forward so the user can access the platform.
-    if (user.registrationApproval !== RegistrationApproval.Rejected) {
+    if (user.platformAccess !== PlatformAccess.Rejected) {
       return redirect(paths.home);
     }
   } catch {

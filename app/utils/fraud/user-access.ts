@@ -20,7 +20,7 @@ export type UserAccessResult =
 function buildDevStubUser(userId: string): User {
   return {
     sub: userId,
-    registrationApproval: 'Approved',
+    platformAccess: 'Approved',
     state: 'Active',
     nameReviewRequired: false,
   };

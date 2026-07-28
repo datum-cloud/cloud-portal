@@ -1,4 +1,7 @@
-import { getRecordHostname } from '@/utils/helpers/dns/record-hostname.helper';
+import {
+  getNameEndsWithZoneWarning,
+  getRecordHostname,
+} from '@/utils/helpers/dns/record-hostname.helper';
 
 describe('getRecordHostname', () => {
   const zoneDomain = 'example.com';
@@ -65,5 +68,42 @@ describe('getRecordHostname', () => {
     it('zone domain with trailing dot is normalized in result for @', () => {
       expect(getRecordHostname('@', 'zone.with.dots.')).to.equal('zone.with.dots');
     });
+  });
+});
+
+describe('getNameEndsWithZoneWarning', () => {
+  const zoneDomain = 'mdj-test.online';
+
+  it('warns when name already ends with the zone domain (relative suffix)', () => {
+    expect(getNameEndsWithZoneWarning('test.mdj-test.online', zoneDomain)).to.equal(
+      'This will create test.mdj-test.online.mdj-test.online. Use "test" to create test.mdj-test.online.'
+    );
+  });
+
+  it('warns when name equals the zone domain (suggests @)', () => {
+    expect(getNameEndsWithZoneWarning('mdj-test.online', zoneDomain)).to.equal(
+      'This will create mdj-test.online.mdj-test.online. Use "@" for the zone apex.'
+    );
+  });
+
+  it('does not warn for trailing-dot absolute FQDN', () => {
+    expect(getNameEndsWithZoneWarning('test.mdj-test.online.', zoneDomain)).to.equal(null);
+  });
+
+  it('is case-insensitive for zone matching', () => {
+    expect(getNameEndsWithZoneWarning('Test.MDJ-TEST.ONLINE', zoneDomain)).to.equal(
+      'This will create Test.MDJ-TEST.ONLINE.mdj-test.online. Use "Test" to create Test.MDJ-TEST.ONLINE.'
+    );
+  });
+
+  it('does not warn for simple relative labels', () => {
+    expect(getNameEndsWithZoneWarning('www', zoneDomain)).to.equal(null);
+    expect(getNameEndsWithZoneWarning('test', zoneDomain)).to.equal(null);
+    expect(getNameEndsWithZoneWarning('@', zoneDomain)).to.equal(null);
+    expect(getNameEndsWithZoneWarning('', zoneDomain)).to.equal(null);
+  });
+
+  it('does not warn when zone domain is missing', () => {
+    expect(getNameEndsWithZoneWarning('test.mdj-test.online', '')).to.equal(null);
   });
 });

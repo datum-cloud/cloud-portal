@@ -2,7 +2,7 @@ import type {
   User,
   UserPreferences,
   ThemeValue,
-  RegistrationApprovalValue,
+  PlatformAccessValue,
   LastLoginProviderValue,
   UserSchema,
   UserIdentity,
@@ -41,7 +41,7 @@ export interface ComMiloapisIamV1Alpha1User {
     givenName: string;
   };
   status: {
-    registrationApproval: 'Approved' | 'Rejected' | 'Pending';
+    platformAccess?: 'Approved' | 'Rejected' | 'Pending' | 'Suspended';
     state: string;
     avatarUrl?: string;
     lastLoginProvider?: 'google' | 'github';
@@ -71,9 +71,9 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
     fullName: `${spec?.givenName} ${spec?.familyName}`,
     preferences,
     onboardedAt: metadata?.annotations?.['onboarding/completedAt'],
-    registrationApproval:
-      status && typeof status.registrationApproval !== 'undefined'
-        ? (status.registrationApproval as RegistrationApprovalValue)
+    platformAccess:
+      status && typeof status.platformAccess !== 'undefined'
+        ? (status.platformAccess as PlatformAccessValue)
         : undefined,
     state: status?.state,
     avatarUrl: status?.avatarUrl,
