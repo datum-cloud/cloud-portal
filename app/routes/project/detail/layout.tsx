@@ -101,10 +101,18 @@ type BuildProjectNavOptions = {
   queryClient?: ReturnType<typeof useQueryClient>;
 };
 
+/**
+ * A built-in or plugin-contributed nav item plus its position in the single
+ * global ordering both are merged and sorted by (see the `navItems` memo).
+ * Spaced by 10 so plugin nav (declared via `portal.nav/project`'s `order`)
+ * can be interleaved between any two built-ins without renumbering them.
+ */
+type OrderedNavItem = NavItem & { order: number };
+
 function buildProjectNavItems(
   projectId: string,
   { isReady = true, queryClient }: BuildProjectNavOptions = {}
-): NavItem[] {
+): OrderedNavItem[] {
   const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
     projectId,
   });
@@ -121,6 +129,7 @@ function buildProjectNavItems(
   return [
     {
       title: 'Home',
+      order: 0,
       href: getPathWithParams(paths.project.detail.home, { projectId }),
       type: 'link',
       icon: HomeIcon,
@@ -139,6 +148,7 @@ function buildProjectNavItems(
     },
     {
       title: 'AI Edge',
+      order: 10,
       href: getPathWithParams(paths.project.detail.proxy.root, { projectId }),
       icon: GaugeIcon,
       disabled: !isReady,
@@ -155,6 +165,7 @@ function buildProjectNavItems(
     },
     {
       title: 'Connectors',
+      order: 20,
       href: getPathWithParams(paths.project.detail.connectors.root, { projectId }),
       type: 'link',
       icon: CableIcon,
@@ -170,6 +181,7 @@ function buildProjectNavItems(
     },
     {
       title: 'DNS',
+      order: 30,
       href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId }),
       icon: SignpostIcon,
       disabled: !isReady,
@@ -185,6 +197,7 @@ function buildProjectNavItems(
     },
     {
       title: 'Domains',
+      order: 40,
       href: getPathWithParams(paths.project.detail.domains.root, { projectId }),
       type: 'link',
       icon: LayersIcon,
@@ -200,6 +213,7 @@ function buildProjectNavItems(
     },
     {
       title: 'Metrics',
+      order: 50,
       href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
       type: 'link',
       icon: ChartSplineIcon,
@@ -215,6 +229,7 @@ function buildProjectNavItems(
     },
     {
       title: 'Secrets',
+      order: 60,
       href: getPathWithParams(paths.project.detail.secrets.root, { projectId }),
       type: 'link',
       icon: FileLockIcon,
@@ -230,6 +245,7 @@ function buildProjectNavItems(
     },
     {
       title: 'Service Accounts',
+      order: 70,
       href: getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }),
       type: 'link',
       icon: BotIcon,
@@ -245,6 +261,7 @@ function buildProjectNavItems(
     },
     {
       title: 'Project Settings',
+      order: 100,
       href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
       type: 'link',
       disabled: !isReady,
@@ -435,10 +452,12 @@ function ProjectDetailLayoutContent({
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
     const builtInItems = buildProjectNavItems(project.name, { isReady, queryClient });
-    // Plugin nav items append after built-ins; the first plugin item carries a
-    // separator so plugin nav reads as a distinct group.
+    // Plugin nav items are interleaved with built-ins by a single global
+    // `order` (see `OrderedNavItem`), so a plugin can declare a nav position
+    // anywhere in the sidebar — not just appended after every built-in item.
+    // `sort` is stable, so equal orders keep built-ins ahead of plugin items.
     const pluginItems = plugins ? buildPluginNavItems(plugins, project.name) : [];
-    return [...builtInItems, ...pluginItems];
+    return [...builtInItems, ...pluginItems].sort((a, b) => a.order - b.order);
   }, [project, queryClient, plugins]);
 
   useEffect(() => {
