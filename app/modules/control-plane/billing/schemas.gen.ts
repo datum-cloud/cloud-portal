@@ -240,6 +240,19 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
           'x-kubernetes-list-map-keys': ['type'],
           'x-kubernetes-list-type': 'map',
         },
+        latestInvoiceRef: {
+          description:
+            'LatestInvoiceRef references the most recently created Invoice for\nthis billing account. Cleared when no invoices exist.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the Invoice.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+        },
         linkedProjectsCount: {
           description:
             'LinkedProjectsCount is the number of projects currently bound to this\nbilling account.',
@@ -509,6 +522,246 @@ export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
     {
       group: 'billing.miloapis.com',
       kind: 'BillingAccountList',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
+  description:
+    "Invoice is the Schema for the invoices API.\n\nInvoice is the provider-written, vendor-agnostic record of a billing\naccount's invoice for a period. Names are deterministic\n(`<billing-account>-<year>-<month>`) so creation is idempotent.\nVendor identifiers live as provider-prefixed annotations, not typed\nfields.",
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'InvoiceSpec defines the desired state of an Invoice.\n\nInvoice is created and updated exclusively by an invoicing provider —\nnever by a consumer or the portal. Spec fields are immutable once set.',
+      type: 'object',
+      required: ['billingAccountRef', 'period'],
+      properties: {
+        billingAccountRef: {
+          description:
+            'BillingAccountRef references the BillingAccount this invoice\nbelongs to. The BillingAccount must reside in the same namespace.\nImmutable once set.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingAccount.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'billingAccountRef is immutable',
+            },
+          ],
+        },
+        period: {
+          description: 'Period is the billing period this invoice covers. Immutable once set.',
+          type: 'object',
+          required: ['end', 'start'],
+          properties: {
+            end: {
+              description: 'End is the inclusive end of the billing period.',
+              type: 'string',
+              format: 'date-time',
+            },
+            start: {
+              description: 'Start is the inclusive start of the billing period.',
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'period is immutable',
+            },
+            {
+              rule: 'self.start <= self.end',
+              message: 'period.start must be less than or equal to period.end',
+            },
+          ],
+        },
+      },
+    },
+    status: {
+      description:
+        'InvoiceStatus defines the observed state of an Invoice. Populated\nexclusively by the invoicing provider.',
+      type: 'object',
+      properties: {
+        amountDue: {
+          description:
+            'AmountDue is the remaining balance. Provider-authoritative — not\nderived client-side from total and amountPaid.',
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
+        amountPaid: {
+          description: 'AmountPaid is the amount collected so far, as a decimal string.',
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\ninvoice's state. See InvoiceConditionReady.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        currencyCode: {
+          description:
+            'CurrencyCode is the ISO 4217 currency code for the invoice totals.\nMust match BillingAccount.spec.currencyCode; providers that detect\na mismatch surface Ready=False with reason CurrencyMismatch.',
+          type: 'string',
+          pattern: '^[A-Z]{3}$',
+        },
+        documentUri: {
+          description:
+            'DocumentUri is a provider-hosted link to the human-readable\ninvoice document (PDF or HTML).',
+          type: 'string',
+        },
+        dueDate: {
+          description: 'DueDate is when payment is due.',
+          type: 'string',
+          format: 'date-time',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\nreconciling provider controller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        paidAt: {
+          description: 'PaidAt is set once amountDue reaches zero.',
+          type: 'string',
+          format: 'date-time',
+        },
+        phase: {
+          description: 'Phase represents the current payment lifecycle phase.',
+          type: 'string',
+          enum: ['Open', 'Paid', 'PastDue', 'Void'],
+        },
+        total: {
+          description:
+            'Total is the invoice total as computed by the provider, expressed\nas a decimal string (e.g. "482.19").',
+          type: 'string',
+          pattern: '^-?[0-9]+(\\.[0-9]+)?$',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'Invoice',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_InvoiceListSchema = {
+  description: 'InvoiceList is a list of Invoice',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of invoices. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.Invoice',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'InvoiceList',
       version: 'v1alpha1',
     },
   ],

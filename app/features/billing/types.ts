@@ -14,6 +14,8 @@ import type {
   ComMiloapisBillingV1Alpha1BillingAccount,
   ComMiloapisBillingV1Alpha1BillingAccountBinding,
   ComMiloapisBillingV1Alpha1BillingAccountList,
+  ComMiloapisBillingV1Alpha1Invoice,
+  ComMiloapisBillingV1Alpha1InvoiceList,
   ComMiloapisBillingV1Alpha1PaymentMethod,
   ComMiloapisBillingV1Alpha1PaymentMethodClass,
   ComMiloapisBillingV1Alpha1PaymentMethodList,
@@ -26,11 +28,76 @@ import type {
 export type BillingAccount = ComMiloapisBillingV1Alpha1BillingAccount;
 export type BillingAccountList = ComMiloapisBillingV1Alpha1BillingAccountList;
 export type BillingAccountBinding = ComMiloapisBillingV1Alpha1BillingAccountBinding;
+export type Invoice = ComMiloapisBillingV1Alpha1Invoice;
+export type InvoiceList = ComMiloapisBillingV1Alpha1InvoiceList;
 export type PaymentMethod = ComMiloapisBillingV1Alpha1PaymentMethod;
 export type PaymentMethodList = ComMiloapisBillingV1Alpha1PaymentMethodList;
 export type PaymentMethodClass = ComMiloapisBillingV1Alpha1PaymentMethodClass;
 export type StripePaymentMethod = ComMiloapisBillingStripeV1Alpha1StripePaymentMethod;
 export type StripeProviderConfig = ComMiloapisBillingStripeV1Alpha1StripeProviderConfig;
+
+/** Pulled out of the generated nested status so callers can write `InvoicePhase`. */
+export type InvoicePhase = NonNullable<NonNullable<Invoice['status']>['phase']>;
+
+/** UI status values mapped from Invoice.status.phase for PastInvoicesCard. */
+export type PastInvoiceStatus = 'paid' | 'open' | 'pastDue' | 'void';
+
+/** Row shape rendered by PastInvoicesCard. */
+export type PastInvoiceRow = {
+  id: string;
+  date: string;
+  amount: string;
+  invoiceNumber: string;
+  status: PastInvoiceStatus;
+  downloadUrl?: string;
+};
+
+const phaseToStatus: Record<InvoicePhase, PastInvoiceStatus> = {
+  Paid: 'paid',
+  Open: 'open',
+  PastDue: 'pastDue',
+  Void: 'void',
+};
+
+const formatInvoiceAmount = (
+  total: string | undefined,
+  currencyCode: string | undefined
+): string => {
+  const amount = Number.parseFloat(total ?? '');
+  if (Number.isNaN(amount)) return total ?? '—';
+  try {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode ?? 'USD',
+    }).format(amount);
+  } catch {
+    return `${total} ${currencyCode ?? ''}`.trim();
+  }
+};
+
+const formatInvoiceDate = (iso: string | undefined): string => {
+  if (!iso) return '—';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+};
+
+/**
+ * Project an Invoice CRD onto the row shape PastInvoicesCard renders.
+ * Missing phase (provider still projecting) collapses to `open`.
+ */
+export const toPastInvoiceRow = (invoice: Invoice): PastInvoiceRow => {
+  const name = invoice.metadata?.name ?? '';
+  const phase = invoice.status?.phase;
+  return {
+    id: name,
+    invoiceNumber: name,
+    date: formatInvoiceDate(invoice.spec?.period?.end),
+    amount: formatInvoiceAmount(invoice.status?.total, invoice.status?.currencyCode),
+    status: phase ? phaseToStatus[phase] : 'open',
+    downloadUrl: invoice.status?.documentUri,
+  };
+};
 
 /**
  * Pulled out of the inline generated shape so callers can write
