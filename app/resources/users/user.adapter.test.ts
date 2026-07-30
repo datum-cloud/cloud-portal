@@ -1,4 +1,6 @@
 import {
+  toPasskey,
+  toPasskeyList,
   toUpdateUserPayload,
   toUpdateUserPreferencesPayload,
   toUser,
@@ -145,5 +147,56 @@ describe('toUserActiveSessionList', () => {
     const sessions = toUserActiveSessionList(raw as never);
     expect(sessions.map((s) => s.name)).toEqual(['live']);
     expect(sessions[0].fingerprintID).toBeNull();
+  });
+});
+
+describe('toPasskey', () => {
+  it('maps metadata.name to id and status fields to displayName/state', () => {
+    const raw = {
+      metadata: { name: 'passkey-1' },
+      status: { displayName: 'MacBook Pro (Touch ID)', state: 'Active' as const },
+    };
+    const passkey = toPasskey(raw);
+
+    expect(passkey.id).toBe('passkey-1');
+    expect(passkey.displayName).toBe('MacBook Pro (Touch ID)');
+    expect(passkey.state).toBe('Active');
+  });
+
+  it('maps an explicit Inactive state', () => {
+    const raw = {
+      metadata: { name: 'passkey-2' },
+      status: { displayName: 'Old Phone', state: 'Inactive' as const },
+    };
+
+    expect(toPasskey(raw).state).toBe('Inactive');
+  });
+
+  it('defaults state to Active and displayName to empty string when status is absent', () => {
+    const raw = { metadata: { name: 'passkey-3' } };
+    const passkey = toPasskey(raw);
+
+    expect(passkey.state).toBe('Active');
+    expect(passkey.displayName).toBe('');
+  });
+});
+
+describe('toPasskeyList', () => {
+  it('maps a raw list to domain Passkey[]', () => {
+    const raw = {
+      items: [
+        { metadata: { name: 'p-1' }, status: { displayName: 'A', state: 'Active' as const } },
+        { metadata: { name: 'p-2' }, status: { displayName: 'B', state: 'Inactive' as const } },
+      ],
+    };
+    const list = toPasskeyList(raw);
+
+    expect(list).toHaveLength(2);
+    expect(list[0].id).toBe('p-1');
+    expect(list[1].state).toBe('Inactive');
+  });
+
+  it('returns an empty array for an empty list', () => {
+    expect(toPasskeyList({ items: [] })).toEqual([]);
   });
 });

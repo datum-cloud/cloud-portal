@@ -7,6 +7,7 @@ import type {
   UserSchema,
   UserIdentity,
   UserActiveSession,
+  Passkey,
 } from './user.schema';
 import {
   ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session,
@@ -164,6 +165,39 @@ export function toUserIdentityList(
   raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
 ): UserIdentity[] {
   return raw.items.map(toUserIdentity);
+}
+
+/**
+ * Raw milo `Passkey` kind, hand-rolled to the shape pinned in the Phase A
+ * spec §2.1 because milo A1b hasn't shipped the generated client yet. Named
+ * to match the hey-api convention used for UserIdentity/Session so this is
+ * a drop-in delete once `bun run openapi` regenerates the real type —
+ * VERIFY the generated name matches before deleting (see the gated
+ * client-regen task in the Phase A portal plan).
+ */
+export interface ComMiloapisGoMiloPkgApisIdentityV1Alpha1Passkey {
+  metadata: { name: string };
+  status?: {
+    displayName?: string;
+    state?: 'Active' | 'Inactive';
+  };
+}
+
+export interface ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList {
+  items: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Passkey[];
+}
+
+/** Absent status.state defaults to 'Active' — display-only; the kind has no DELETE verb, so this is never a security decision. */
+export function toPasskey(raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Passkey): Passkey {
+  return {
+    id: raw.metadata?.name ?? '',
+    displayName: raw.status?.displayName ?? '',
+    state: raw.status?.state === 'Inactive' ? 'Inactive' : 'Active',
+  };
+}
+
+export function toPasskeyList(raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1PasskeyList): Passkey[] {
+  return raw.items.map(toPasskey);
 }
 
 export function toUserActiveSession(
