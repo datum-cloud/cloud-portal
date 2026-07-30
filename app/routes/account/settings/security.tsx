@@ -1,4 +1,8 @@
-import { AccountPasskeysCard } from '@/features/account/cards/passkeys-card';
+import { Account2FACard } from '@/features/account/cards/2fa-card';
+import { AccountSignInMethodSettingsCard } from '@/features/account/cards/sign-in-method-card';
+// Hidden until org SSO/SAML has an API behind it (passkey roadmap C4, parked).
+// Kept commented rather than deleted so re-enabling is a one-liner.
+// import { AccountTeamAuthCard } from '@/features/account/cards/team-auth-card';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import type { MetaFunction } from 'react-router';
@@ -11,8 +15,14 @@ export default function AccountSecuritySettingsPage() {
   return (
     <Row gutter={[0, 16]}>
       <Col span={24}>
-        <AccountPasskeysCard />
+        <AccountSignInMethodSettingsCard />
       </Col>
+      <Col span={24}>
+        <Account2FACard />
+      </Col>
+      {/* <Col span={24}>
+        <AccountTeamAuthCard />
+      </Col> */}
     </Row>
   );
 }
