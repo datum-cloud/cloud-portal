@@ -5,9 +5,13 @@ export type ClientOptions = {
 };
 
 /**
- * ServiceAccountKey is the Schema for the serviceaccountkeys API
+ * Passkey represents a WebAuthn passkey credential registered by a user with the external authentication provider (e.g., Zitadel).
+ *
+ * This is a read-only, virtual resource: milo does not persist passkeys and does not accept create/update/delete requests for this kind. Enrollment and removal are performed by auth-ui directly against the authentication provider; this API exists so other Milo-aware surfaces (cloud-portal, staff-support tooling) can list/display a user's enrolled passkeys without embedding a provider-specific client.
+ *
+ * metadata.name is the passkey ID assigned by the authentication provider.
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1Passkey = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
@@ -17,19 +21,69 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey = {
    */
   kind?: string;
   metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
-  spec?: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeySpec;
-  status?: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyStatus;
+  status?: GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyStatus;
+};
+
+/**
+ * PasskeyList is a list of Passkey resources.
+ */
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  items: Array<GoMiloapisComMiloPkgApisIdentityV1Alpha1Passkey>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * PasskeyStatus contains the details of a passkey credential. All fields are read-only and populated by the authentication provider.
+ */
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyStatus = {
+  /**
+   * DisplayName is the human-readable name of the passkey (Zitadel `name`), either user-supplied at enrollment or defaulted from the authenticator AAGUID / user agent by auth-ui.
+   */
+  displayName: string;
+  /**
+   * State is the current activation state of the passkey, derived from the provider's AuthFactorState.
+   */
+  state: string;
+  /**
+   * UserUID is the unique identifier of the Milo user who owns this passkey. Used as a field-selector target (status.userUID=<uid>) for cross-user reads by staff-support callers — see the field-selector registration in pkg/apis/identity/scheme.go and the Session/ UserIdentity precedent it mirrors.
+   */
+  userUID: string;
+};
+
+/**
+ * ServiceAccountKey is the Schema for the serviceaccountkeys API
+ */
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  spec?: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeySpec;
+  status?: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyStatus;
 };
 
 /**
  * ServiceAccountKeyList contains a list of ServiceAccountKey
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
   apiVersion?: string;
-  items: Array<ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey>;
+  items: Array<GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
@@ -40,7 +94,7 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList = {
 /**
  * ServiceAccountKeySpec defines the desired state of ServiceAccountKey
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeySpec = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeySpec = {
   /**
    * ExpirationDate is the date and time when the ServiceAccountKey will expire. If not specified, the ServiceAccountKey will never expire.
    */
@@ -58,7 +112,7 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeySpec = {
 /**
  * ServiceAccountKeyStatus defines the observed state of ServiceAccountKey
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyStatus = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyStatus = {
   /**
    * AuthProviderKeyID is the unique identifier for the key in the auth provider. This field is populated by the controller after the key is created in the auth provider. For example, when using Zitadel, a typical value might be: "326102453042806786"
    */
@@ -75,7 +129,7 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyStatus = {
   privateKey?: string;
 };
 
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1Session = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
@@ -85,15 +139,15 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session = {
    */
   kind?: string;
   metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
-  status?: ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionStatus;
+  status?: GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionStatus;
 };
 
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
   apiVersion?: string;
-  items: Array<ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session>;
+  items: Array<GoMiloapisComMiloPkgApisIdentityV1Alpha1Session>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
@@ -104,7 +158,7 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList = {
 /**
  * SessionStatus contains session metadata exposed for display and management. All fields except those required for identity are optional and populated by the authentication provider.
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionStatus = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionStatus = {
   /**
    * CreatedAt is when the session was created.
    */
@@ -151,7 +205,7 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionStatus = {
  * authentication provider (e.g., Zitadel), not through this API
  * - No sensitive credentials or tokens are exposed through this resource
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentity = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
@@ -161,18 +215,18 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity = {
    */
   kind?: string;
   metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
-  status?: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityStatus;
+  status?: GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityStatus;
 };
 
 /**
  * UserIdentityList is a list of UserIdentity resources.
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList = {
   /**
    * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
    */
   apiVersion?: string;
-  items: Array<ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity>;
+  items: Array<GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentity>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
@@ -183,7 +237,7 @@ export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList = {
 /**
  * UserIdentityStatus contains the details of a user's identity within an external provider. All fields are read-only and populated by the authentication provider.
  */
-export type ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityStatus = {
+export type GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityStatus = {
   /**
    * ProviderID is the unique identifier of the external identity provider instance. This is typically an internal ID from the authentication system.
    */
@@ -652,6 +706,129 @@ export type GetIdentityMiloapisComV1Alpha1ApiResourcesResponses = {
 export type GetIdentityMiloapisComV1Alpha1ApiResourcesResponse =
   GetIdentityMiloapisComV1Alpha1ApiResourcesResponses[keyof GetIdentityMiloapisComV1Alpha1ApiResourcesResponses];
 
+export type ListIdentityMiloapisComV1Alpha1PasskeyData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/identity.miloapis.com/v1alpha1/passkeys';
+};
+
+export type ListIdentityMiloapisComV1Alpha1PasskeyErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListIdentityMiloapisComV1Alpha1PasskeyResponses = {
+  /**
+   * OK
+   */
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList;
+};
+
+export type ListIdentityMiloapisComV1Alpha1PasskeyResponse =
+  ListIdentityMiloapisComV1Alpha1PasskeyResponses[keyof ListIdentityMiloapisComV1Alpha1PasskeyResponses];
+
+export type ReadIdentityMiloapisComV1Alpha1PasskeyData = {
+  body?: never;
+  path: {
+    /**
+     * name of the Passkey
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+  };
+  url: '/apis/identity.miloapis.com/v1alpha1/passkeys/{name}';
+};
+
+export type ReadIdentityMiloapisComV1Alpha1PasskeyErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadIdentityMiloapisComV1Alpha1PasskeyResponses = {
+  /**
+   * OK
+   */
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1Passkey;
+};
+
+export type ReadIdentityMiloapisComV1Alpha1PasskeyResponse =
+  ReadIdentityMiloapisComV1Alpha1PasskeyResponses[keyof ReadIdentityMiloapisComV1Alpha1PasskeyResponses];
+
 export type ListIdentityMiloapisComV1Alpha1ServiceAccountKeyData = {
   body?: never;
   path?: never;
@@ -735,14 +912,14 @@ export type ListIdentityMiloapisComV1Alpha1ServiceAccountKeyResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList;
 };
 
 export type ListIdentityMiloapisComV1Alpha1ServiceAccountKeyResponse =
   ListIdentityMiloapisComV1Alpha1ServiceAccountKeyResponses[keyof ListIdentityMiloapisComV1Alpha1ServiceAccountKeyResponses];
 
 export type CreateIdentityMiloapisComV1Alpha1ServiceAccountKeyData = {
-  body: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
+  body: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
   path?: never;
   query?: {
     /**
@@ -776,15 +953,15 @@ export type CreateIdentityMiloapisComV1Alpha1ServiceAccountKeyResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
   /**
    * Created
    */
-  201: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
+  201: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
   /**
    * Accepted
    */
-  202: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
+  202: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
 };
 
 export type CreateIdentityMiloapisComV1Alpha1ServiceAccountKeyResponse =
@@ -876,7 +1053,7 @@ export type ReadIdentityMiloapisComV1Alpha1ServiceAccountKeyResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey;
 };
 
 export type ReadIdentityMiloapisComV1Alpha1ServiceAccountKeyResponse =
@@ -965,7 +1142,7 @@ export type ListIdentityMiloapisComV1Alpha1SessionResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList;
 };
 
 export type ListIdentityMiloapisComV1Alpha1SessionResponse =
@@ -1057,7 +1234,7 @@ export type ReadIdentityMiloapisComV1Alpha1SessionResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1Session;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1Session;
 };
 
 export type ReadIdentityMiloapisComV1Alpha1SessionResponse =
@@ -1146,7 +1323,7 @@ export type ListIdentityMiloapisComV1Alpha1UserIdentityResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList;
 };
 
 export type ListIdentityMiloapisComV1Alpha1UserIdentityResponse =
@@ -1180,7 +1357,7 @@ export type ReadIdentityMiloapisComV1Alpha1UserIdentityResponses = {
   /**
    * OK
    */
-  200: ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentity;
+  200: GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentity;
 };
 
 export type ReadIdentityMiloapisComV1Alpha1UserIdentityResponse =
