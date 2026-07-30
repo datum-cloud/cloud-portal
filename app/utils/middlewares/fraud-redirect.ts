@@ -1,6 +1,6 @@
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import type { User } from '@/resources/users';
-import { RegistrationApproval } from '@/resources/users/user.schema';
+import { PlatformAccess } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
 
 export type FraudPollResult =
@@ -16,11 +16,11 @@ export const onboardingEntryPath = (user: User): string =>
   user.nameReviewRequired ? paths.onboarding.profile : paths.onboarding.account;
 
 export function resolveFraudPollResult(user: User): FraudPollResult {
-  if (user.state === 'Inactive') {
+  if (user.platformAccess === PlatformAccess.Suspended || user.state === 'Inactive') {
     return { status: 'completed', decision: 'DEACTIVATE' };
   }
 
-  if (user.registrationApproval === RegistrationApproval.Approved) {
+  if (user.platformAccess === PlatformAccess.Approved) {
     return {
       status: 'completed',
       decision: 'ACCEPTED',
@@ -28,7 +28,7 @@ export function resolveFraudPollResult(user: User): FraudPollResult {
     };
   }
 
-  if (user.registrationApproval === RegistrationApproval.Rejected) {
+  if (user.platformAccess === PlatformAccess.Rejected) {
     return { status: 'completed', decision: 'REVIEW' };
   }
 
@@ -46,11 +46,11 @@ export function resolveUserFraudRedirectPath(
 ): string | null {
   const enforceNameReview = options?.enforceNameReview ?? true;
 
-  if (user.state === 'Inactive') {
+  if (user.platformAccess === PlatformAccess.Suspended || user.state === 'Inactive') {
     return paths.fraud.accountSuspended;
   }
 
-  if (user.registrationApproval === RegistrationApproval.Approved) {
+  if (user.platformAccess === PlatformAccess.Approved) {
     if (
       enforceNameReview &&
       user.nameReviewRequired &&
@@ -62,7 +62,7 @@ export function resolveUserFraudRedirectPath(
     return null;
   }
 
-  if (user.registrationApproval === RegistrationApproval.Rejected) {
+  if (user.platformAccess === PlatformAccess.Rejected) {
     return paths.fraud.accountUnderReview;
   }
 

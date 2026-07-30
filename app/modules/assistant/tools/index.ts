@@ -1,5 +1,6 @@
 import { createActivityTools } from './activity-tools';
 import { createBillingTools } from './billing-tools';
+import { withJsonSafeOutput } from './json-safe';
 import { createMetricsTools } from './metrics-tools';
 import { createResourceTools } from './resource-tools';
 import { createUtilityTools } from './utility-tools';
@@ -9,11 +10,11 @@ interface ToolDeps {
 }
 
 export function createAssistantTools({ accessToken }: ToolDeps) {
-  return {
+  return withJsonSafeOutput({
     ...createResourceTools(),
     ...createMetricsTools({ accessToken }),
     ...createActivityTools(),
     ...createBillingTools(),
     ...createUtilityTools(),
-  };
+  });
 }

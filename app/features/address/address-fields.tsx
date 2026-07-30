@@ -172,6 +172,7 @@ function AddressLine1Field({ dataE2e }: { dataE2e?: string }) {
   } = usePlacesAutocomplete({ countryCode: country });
 
   const [listOpen, setListOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const skipNextQueryRef = useRef(false);
   const applyingRef = useRef(false);
@@ -179,19 +180,21 @@ function AddressLine1Field({ dataE2e }: { dataE2e?: string }) {
   const countryRef = useRef(country);
   countryRef.current = country;
 
+  // Only fetch while the field is focused — otherwise a prefilled line1 (or a
+  // programmatic update) would fire Places and open the dropdown unprompted.
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !isFocused) return;
     if (skipNextQueryRef.current) {
       skipNextQueryRef.current = false;
       return;
     }
     onQueryChange(line1Value);
-  }, [enabled, line1Value, onQueryChange]);
+  }, [enabled, isFocused, line1Value, onQueryChange]);
 
   useEffect(() => {
     setActiveIndex(-1);
-    setListOpen(suggestions.length > 0);
-  }, [suggestions]);
+    setListOpen(suggestions.length > 0 && isFocused);
+  }, [suggestions, isFocused]);
 
   useEffect(() => {
     if (!listOpen) return;
@@ -199,6 +202,7 @@ function AddressLine1Field({ dataE2e }: { dataE2e?: string }) {
       if (applyingRef.current) return;
       if (!containerRef.current?.contains(event.target as Node)) {
         setListOpen(false);
+        setIsFocused(false);
       }
     };
     document.addEventListener('pointerdown', onPointerDown);
@@ -295,7 +299,14 @@ function AddressLine1Field({ dataE2e }: { dataE2e?: string }) {
             : 'Select a country first to search addresses'
         }
         onFocus={() => {
-          if (suggestions.length > 0) setListOpen(true);
+          setIsFocused(true);
+        }}
+        onBlur={() => {
+          // Suggestion buttons call preventDefault on mousedown so focus stays
+          // in the input — blur only fires when focus truly leaves the field.
+          setIsFocused(false);
+          setListOpen(false);
+          cancelPendingQuery();
         }}
         onKeyDown={onKeyDown}
         aria-autocomplete="list"

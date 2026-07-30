@@ -1,22 +1,14 @@
 import { IdentityItem } from '../identity-item';
 import { IdentityItemSkeleton } from '../identity-item-skeleton';
-import GitHubIcon from '@/components/icon/github';
-import GoogleIcon from '@/components/icon/google';
+import { GithubEmailTooltip, ProviderIcon } from '@/features/account/identity-providers';
+import { buildSsoHref, providerKeyOf, providerLabel } from '@/features/account/sign-in-methods';
 import { useApp } from '@/providers/app.provider';
 import { useUserIdentities } from '@/resources/users';
 import { env } from '@/utils/env';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { CircleAlertIcon, ExternalLinkIcon, MailIcon } from 'lucide-react';
-import { ComponentType, SVGProps } from 'react';
-
-const PROVIDERS: Record<string, { label: string; Icon: ComponentType<SVGProps<SVGSVGElement>> }> = {
-  email: { label: 'Email', Icon: MailIcon },
-  google: { label: 'Google', Icon: GoogleIcon },
-  github: { label: 'GitHub', Icon: GitHubIcon },
-};
+import { ExternalLinkIcon } from 'lucide-react';
 
 export const AccountIdentitySettingsCard = () => {
   const { user } = useApp();
@@ -33,20 +25,16 @@ export const AccountIdentitySettingsCard = () => {
         ) : (
           <div className="divide-stepper-line flex flex-col divide-y">
             {identities?.map((identity) => {
-              const provider = identity.providerName?.toLowerCase() ?? 'email';
-              const providerMeta = PROVIDERS?.[provider];
+              // Shared derivation: this card and the Security tab's render the
+              // same identities, and previously disagreed on both the key and
+              // the label fallback for an unrecognised provider.
+              const provider = providerKeyOf(identity);
               return (
                 <div key={identity.name} data-e2e="account-identity-item">
                   <IdentityItem
                     className="px-5 py-4"
-                    icon={
-                      providerMeta ? (
-                        <providerMeta.Icon className="size-3.5" />
-                      ) : (
-                        <Icon icon={MailIcon} className="size-3.5" />
-                      )
-                    }
-                    label={providerMeta?.label ?? 'Email address'}
+                    icon={<ProviderIcon providerKey={provider} />}
+                    label={providerLabel(identity)}
                     sublabel={identity.username}
                     middleContent={
                       // TODO: Enable this when we have a way to get the last used date
@@ -55,41 +43,14 @@ export const AccountIdentitySettingsCard = () => {
                     }
                     rightContent={
                       <>
-                        {provider === 'github' && (
-                          <Tooltip
-                            message={
-                              <div className="flex flex-col gap-3.5 p-7">
-                                <h4 className="text-foreground text-sm font-semibold">
-                                  Updating email addresses for GitHub identities
-                                </h4>
-                                <p className="text-foreground/80 text-xs text-wrap">
-                                  Email addresses for GitHub identities should be updated through
-                                  GitHub
-                                </p>
-                                <ul className="text-foreground/80 list-outside list-decimal space-y-3.5 pl-4 text-xs text-wrap">
-                                  <li>Log out of Datum</li>
-                                  <li>Change your Primary Email in GitHub (your primary email)</li>
-                                  <li>Log out of GitHub</li>
-                                  <li>
-                                    Log back into GitHub (with the new, desired email set as
-                                    primary)
-                                  </li>
-                                  <li>Log back into Datum</li>
-                                </ul>
-                              </div>
-                            }
-                            contentClassName="bg-card rounded-xl shadow-tooltip text-foreground max-w-[380px] border p-0"
-                            arrowClassName="fill-card">
-                            <div className="pointer flex cursor-pointer items-center gap-2.5">
-                              <Icon icon={CircleAlertIcon} size={12} className="text-primary" />
-                              <span className="text-primary text-xs underline">
-                                How to update your GitHub email
-                              </span>
-                            </div>
-                          </Tooltip>
-                        )}
+                        {provider === 'github' && <GithubEmailTooltip />}
                         <LinkButton
-                          href={`${env.public.authOidcIssuer}/ui/v2/login/idp/link`}
+                          // auth-ui's Linked accounts screen. The old
+                          // /ui/v2/login/idp/link is Zitadel-era and survives
+                          // only as a 301 to /id/sso/link — this targets the
+                          // canonical path directly, and matches what the
+                          // Security tab's Sign-in Methods card links to.
+                          href={buildSsoHref(env.public.authUiOrigin)}
                           target="_blank"
                           rel="noopener noreferrer"
                           type="quaternary"

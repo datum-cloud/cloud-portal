@@ -1,4 +1,6 @@
 import {
+  toPasskey,
+  toPasskeyList,
   toUpdateUserPayload,
   toUpdateUserPreferencesPayload,
   toUser,
@@ -28,7 +30,7 @@ describe('toUser', () => {
         },
       },
       spec: { email: 'a@b.com', givenName: 'Ada', familyName: 'Lovelace' },
-      status: { registrationApproval: 'Approved', state: 'Active', lastLoginProvider: 'google' },
+      status: { platformAccess: 'Approved', state: 'Active', lastLoginProvider: 'google' },
     };
     const user = toUser(raw as never);
 
@@ -38,7 +40,7 @@ describe('toUser', () => {
     expect(user.preferences!.timezone).toBe('America/New_York');
     expect(user.preferences!.newsletter).toBe(true);
     expect(user.onboardedAt).toBe('2024-02-02T00:00:00Z');
-    expect(user.registrationApproval).toBe('Approved');
+    expect(user.platformAccess).toBe('Approved');
     expect(user.lastLoginProvider).toBe('google');
     expect(user.nameReviewRequired).toBe(true);
     expect(user.country).toBe('US');
@@ -56,7 +58,7 @@ describe('toUser', () => {
     expect(typeof user.preferences!.timezone).toBe('string');
     expect(user.preferences!.timezone.length).toBeGreaterThan(0);
     expect(user.preferences!.newsletter).toBe(false);
-    expect(user.registrationApproval).toBeUndefined();
+    expect(user.platformAccess).toBeUndefined();
     expect(user.lastLoginProvider).toBeUndefined();
     expect(user.nameReviewRequired).toBe(false);
   });
@@ -145,5 +147,78 @@ describe('toUserActiveSessionList', () => {
     const sessions = toUserActiveSessionList(raw as never);
     expect(sessions.map((s) => s.name)).toEqual(['live']);
     expect(sessions[0].fingerprintID).toBeNull();
+  });
+});
+
+describe('toPasskey', () => {
+  it('maps metadata.name to id and status fields to displayName/state/userUID', () => {
+    const raw = {
+      metadata: { name: 'passkey-1' },
+      status: {
+        displayName: 'MacBook Pro (Touch ID)',
+        state: 'Active' as const,
+        userUID: 'user-uid-1',
+      },
+    };
+    const passkey = toPasskey(raw);
+
+    expect(passkey.id).toBe('passkey-1');
+    expect(passkey.displayName).toBe('MacBook Pro (Touch ID)');
+    expect(passkey.state).toBe('Active');
+    expect(passkey.userUID).toBe('user-uid-1');
+  });
+
+  it('maps an explicit Inactive state', () => {
+    const raw = {
+      metadata: { name: 'passkey-2' },
+      status: { displayName: 'Old Phone', state: 'Inactive' as const, userUID: 'user-uid-2' },
+    };
+
+    expect(toPasskey(raw).state).toBe('Inactive');
+  });
+
+  it('fails closed to Inactive and empties displayName/userUID when status is absent', () => {
+    const raw = { metadata: { name: 'passkey-3' } };
+    const passkey = toPasskey(raw);
+
+    expect(passkey.state).toBe('Inactive');
+    expect(passkey.displayName).toBe('');
+    expect(passkey.userUID).toBe('');
+  });
+
+  it('fails closed on a state value this client does not recognise', () => {
+    const raw = {
+      metadata: { name: 'passkey-4' },
+      status: { displayName: 'Future Device', state: 'Provisioning', userUID: 'user-uid-3' },
+    };
+
+    expect(toPasskey(raw).state).toBe('Inactive');
+  });
+});
+
+describe('toPasskeyList', () => {
+  it('maps a raw list to domain Passkey[]', () => {
+    const raw = {
+      items: [
+        {
+          metadata: { name: 'p-1' },
+          status: { displayName: 'A', state: 'Active' as const, userUID: 'u-1' },
+        },
+        {
+          metadata: { name: 'p-2' },
+          status: { displayName: 'B', state: 'Inactive' as const, userUID: 'u-1' },
+        },
+      ],
+    };
+    const list = toPasskeyList(raw);
+
+    expect(list).toHaveLength(2);
+    expect(list[0].id).toBe('p-1');
+    expect(list[0].userUID).toBe('u-1');
+    expect(list[1].state).toBe('Inactive');
+  });
+
+  it('returns an empty array for an empty list', () => {
+    expect(toPasskeyList({ items: [] })).toEqual([]);
   });
 });

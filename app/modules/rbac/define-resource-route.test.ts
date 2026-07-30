@@ -1,5 +1,5 @@
 /// <reference types="bun-types/test" />
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { LoaderFunctionArgs } from 'react-router';
 
 // Module-level mock for gateRouteAccess. We hold a mutable ref the tests can
@@ -8,7 +8,16 @@ import type { LoaderFunctionArgs } from 'react-router';
 // supported Bun primitive for this.
 const gateRouteAccessSpy = mock(async () => true);
 
+// `mock.module` replaces the module in Bun's global registry for the rest of
+// the test run (not just this file), so any export we omit here becomes
+// undefined for every other test file that imports the same module. Capture
+// the real modules first, then spread their exports and override only what
+// this suite needs.
+const actualCheckPermission = await import('./server/check-permission');
+const actualCookies = await import('@/utils/cookies');
+
 mock.module('./server/check-permission', () => ({
+  ...actualCheckPermission,
   gateRouteAccess: (...args: unknown[]) => gateRouteAccessSpy(...(args as [])),
 }));
 
@@ -18,6 +27,7 @@ mock.module('./server/check-permission', () => ({
 // returns a plain redirect Response. Tests assert on `status` + `Location`
 // only, which matches the real `redirectWithToast` contract.
 mock.module('@/utils/cookies', () => ({
+  ...actualCookies,
   redirectWithToast: async (url: string) =>
     new Response(null, { status: 302, headers: { Location: url } }),
 }));
@@ -28,6 +38,15 @@ mock.module('@/utils/cookies', () => ({
 // server-only runtime directly since loader behavior is what we want to assert.
 const { runListLoader, runDetailLoader } = await import('./run-resource-loader');
 const { defineResourceRoute } = await import('./define-resource-route');
+
+// Bun's mock.module replaces these modules in the global registry for the
+// rest of the test run, not just this file. Reinstall the untouched real
+// modules once this file's tests finish so later test files see the
+// genuine implementations again.
+afterAll(() => {
+  mock.module('./server/check-permission', () => actualCheckPermission);
+  mock.module('@/utils/cookies', () => actualCookies);
+});
 
 beforeEach(() => {
   // Default: allow access. Individual tests override as needed.

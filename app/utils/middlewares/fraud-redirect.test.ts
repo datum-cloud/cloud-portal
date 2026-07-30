@@ -3,13 +3,13 @@ import {
   resolveFraudPollResult,
   resolveUserFraudRedirectPath,
 } from './fraud-redirect';
-import { RegistrationApproval } from '@/resources/users/user.schema';
+import { PlatformAccess } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
 import { describe, expect, it } from 'bun:test';
 
 const baseUser = {
   state: 'Active' as const,
-  registrationApproval: RegistrationApproval.Approved,
+  platformAccess: PlatformAccess.Approved,
   nameReviewRequired: false,
 };
 
@@ -26,7 +26,7 @@ describe('resolveUserFraudRedirectPath', () => {
   it('redirects pending registration to verifying', () => {
     expect(
       resolveUserFraudRedirectPath(
-        { ...baseUser, registrationApproval: RegistrationApproval.Pending } as never,
+        { ...baseUser, platformAccess: PlatformAccess.Pending } as never,
         paths.account.organizations.root
       )
     ).toBe(paths.fraud.verifying);
@@ -35,7 +35,7 @@ describe('resolveUserFraudRedirectPath', () => {
   it('redirects rejected registration to under review', () => {
     expect(
       resolveUserFraudRedirectPath(
-        { ...baseUser, registrationApproval: RegistrationApproval.Rejected } as never,
+        { ...baseUser, platformAccess: PlatformAccess.Rejected } as never,
         paths.account.organizations.root
       )
     ).toBe(paths.fraud.accountUnderReview);
@@ -62,7 +62,7 @@ describe('resolveFraudPollResult', () => {
     expect(
       resolveFraudPollResult({
         ...baseUser,
-        registrationApproval: RegistrationApproval.Pending,
+        platformAccess: PlatformAccess.Pending,
       } as never)
     ).toEqual({ status: 'pending' });
   });

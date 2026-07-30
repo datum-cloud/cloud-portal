@@ -5,18 +5,22 @@ import {
   type ComMiloapisIamV1Alpha1User,
   toUserIdentityList,
   toUserActiveSessionList,
+  toPasskeyList,
 } from './user.adapter';
 import {
   type User,
   type UpdateUserPreferencesInput,
   type UserSchema,
   type UserIdentity,
+  type Passkey,
   UserActiveSession,
 } from './user.schema';
 import {
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList,
-  ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList,
+  GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList,
   deleteIdentityMiloapisComV1Alpha1Session,
+  listIdentityMiloapisComV1Alpha1Passkey,
   listIdentityMiloapisComV1Alpha1Session,
   listIdentityMiloapisComV1Alpha1UserIdentity,
 } from '@/modules/control-plane/identity';
@@ -31,6 +35,7 @@ export const userKeys = {
   detail: (userId: string) => [...userKeys.details(), userId] as const,
   identities: (userId: string) => [...userKeys.all, 'identities', userId] as const,
   activeSessions: (userId: string) => [...userKeys.all, 'activeSessions', userId] as const,
+  passkeys: (userId: string) => [...userKeys.all, 'passkeys', userId] as const,
 };
 
 const SERVICE_NAME = 'UserService';
@@ -176,10 +181,30 @@ export function createUserService() {
         });
 
         return toUserIdentityList(
-          response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1UserIdentityList
+          response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1UserIdentityList
         );
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getUserIdentity failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    async getPasskeys(userId: string): Promise<Passkey[]> {
+      const startTime = Date.now();
+
+      try {
+        const response = await listIdentityMiloapisComV1Alpha1Passkey({
+          baseURL: getUserScopedBase(userId),
+        });
+
+        logger.service(SERVICE_NAME, 'getPasskeys', {
+          input: { userId },
+          duration: Date.now() - startTime,
+        });
+
+        return toPasskeyList(response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1PasskeyList);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.getPasskeys failed`, error as Error);
         throw mapApiError(error);
       }
     },
@@ -202,7 +227,7 @@ export function createUserService() {
         });
 
         return toUserActiveSessionList(
-          response.data as ComMiloapisGoMiloPkgApisIdentityV1Alpha1SessionList
+          response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1SessionList
         );
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getUserActiveSessions failed`, error as Error);

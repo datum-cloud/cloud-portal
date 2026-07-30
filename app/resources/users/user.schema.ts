@@ -4,9 +4,9 @@ import { z } from 'zod';
 export const THEME_VALUES = ['dark', 'light', 'system'] as const;
 export type ThemeValue = (typeof THEME_VALUES)[number];
 
-// Registration approval enum values
-export const REGISTRATION_APPROVAL_VALUES = ['Approved', 'Rejected', 'Pending'] as const;
-export type RegistrationApprovalValue = (typeof REGISTRATION_APPROVAL_VALUES)[number];
+// Platform access enum values
+export const PLATFORM_ACCESS_VALUES = ['Approved', 'Rejected', 'Pending', 'Suspended'] as const;
+export type PlatformAccessValue = (typeof PLATFORM_ACCESS_VALUES)[number];
 
 // Last login provider values
 export const LAST_LOGIN_PROVIDER_VALUES = ['google', 'github'] as const;
@@ -33,7 +33,7 @@ export const userResourceSchema = z.object({
   fullName: z.string().optional(),
   preferences: userPreferencesResourceSchema.optional(),
   onboardedAt: z.string().optional(),
-  registrationApproval: z.enum(REGISTRATION_APPROVAL_VALUES).optional(),
+  platformAccess: z.enum(PLATFORM_ACCESS_VALUES).optional(),
   state: z.string().optional(),
   lastLoginProvider: z.enum(LAST_LOGIN_PROVIDER_VALUES).optional(),
   avatarUrl: z.string().optional(),
@@ -83,6 +83,19 @@ export const userIdentitySchema = z.object({
   providerName: z.string().optional(),
 });
 
+export const PASSKEY_STATE_VALUES = ['Active', 'Inactive'] as const;
+export type PasskeyStateValue = (typeof PASSKEY_STATE_VALUES)[number];
+
+export const passkeySchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  state: z.enum(PASSKEY_STATE_VALUES),
+  /** Owning user's UID — backs the `status.userUID=<uid>` field selector for cross-user MiloSAR reads, mirroring Session/UserIdentity. */
+  userUID: z.string(),
+});
+
+export type Passkey = z.infer<typeof passkeySchema>;
+
 export const parsedUserAgentSchema = z.object({
   browser: z.string().nullable().optional(),
   os: z.string().nullable().optional(),
@@ -117,9 +130,10 @@ export type UserIdentity = z.infer<typeof userIdentitySchema>;
 export type ParsedUserAgent = z.infer<typeof parsedUserAgentSchema>;
 export type GeoLocation = z.infer<typeof geoLocationSchema>;
 export type UserActiveSession = z.infer<typeof userActiveSessionSchema>;
-// Legacy enums
-export enum RegistrationApproval {
+// Platform access enums
+export enum PlatformAccess {
   Approved = 'Approved',
   Rejected = 'Rejected',
   Pending = 'Pending',
+  Suspended = 'Suspended',
 }

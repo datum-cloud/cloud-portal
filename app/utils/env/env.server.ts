@@ -1,4 +1,6 @@
 // app/utils/env/env.server.ts
+import { resolveAuthUiOrigin } from './auth-ui-origin';
+import { omitBlankEnv } from './omit-blank-env';
 import type { Env } from './types';
 import { z } from 'zod';
 
@@ -54,6 +56,11 @@ const publicSchema = z.object({
   AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
   AUTH_ZITADEL_PROJECT_ID: z.string().optional(),
   AUTH_OIDC_POST_LOGOUT_REDIRECT_URI: urlSchemaOptional(),
+  // Optional override for the origin auth-ui is served from. Deployed
+  // environments path-mount auth-ui on the Zitadel hostname, so this defaults
+  // to the AUTH_OIDC_ISSUER origin. Set it only when auth-ui runs elsewhere
+  // (e.g. localhost:3001 in local development).
+  AUTH_UI_ORIGIN: urlSchemaOptional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -176,9 +183,13 @@ const serverSchema = z.object({
   //   PORTAL_PLUGINS: "<slug>=<url>,…" static dev-override registry entries.
   //   PORTAL_PLUGINS_JSON: JSON array of spec-shaped entries; takes
   //     precedence over PORTAL_PLUGINS on slug collision.
+  //   PLUGIN_REGISTRY_KUBECONFIG: path to a local kwok kubeconfig to watch.
+  //   AUTH_DEV_TOKEN_EXCHANGE: "1" enables POST /api/auth/dev-session.
   // ─────────────────────────────────────────────────────────
   PORTAL_PLUGINS: z.string().optional(),
   PORTAL_PLUGINS_JSON: z.string().optional(),
+  PLUGIN_REGISTRY_KUBECONFIG: z.string().optional(),
+  AUTH_DEV_TOKEN_EXCHANGE: z.string().optional(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -187,7 +198,10 @@ const serverSchema = z.object({
 
 // Zod v4: Use .extend() instead of deprecated .merge()
 const fullSchema = publicSchema.extend(serverSchema.shape);
-const parsed = fullSchema.safeParse(process.env);
+// Blank values are treated as absent so `.default()` / `.optional()` apply —
+// see omitBlankEnv. Without it, an unset CI secret (exported as "") or a bare
+// `KEY=` in .env fails validation and exits(1) below instead of defaulting.
+const parsed = fullSchema.safeParse(omitBlankEnv(process.env));
 
 if (!parsed.success) {
   console.error('❌ Invalid environment variables:');
@@ -212,6 +226,7 @@ export const env: Env = {
     apiUrl: data.API_URL,
     graphqlUrl: data.GRAPHQL_URL,
     authOidcIssuer: data.AUTH_OIDC_ISSUER,
+    authUiOrigin: resolveAuthUiOrigin(data.AUTH_UI_ORIGIN, data.AUTH_OIDC_ISSUER),
     authZitadelProjectId: data.AUTH_ZITADEL_PROJECT_ID,
     authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
@@ -258,6 +273,8 @@ export const env: Env = {
     // Portal Plugin System (dev-only)
     portalPlugins: data.PORTAL_PLUGINS,
     portalPluginsJson: data.PORTAL_PLUGINS_JSON,
+    pluginRegistryKubeconfig: data.PLUGIN_REGISTRY_KUBECONFIG,
+    authDevTokenExchange: data.AUTH_DEV_TOKEN_EXCHANGE,
   },
   isProd: data.NODE_ENV === 'production',
   isDev: data.NODE_ENV === 'development',
