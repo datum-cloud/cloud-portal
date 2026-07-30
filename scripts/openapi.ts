@@ -128,6 +128,13 @@ function extractFolderName(resource: string): string {
 
 /**
  * Fix imports in sdk.gen.ts to use shared client
+ *
+ * Related generator-divergence note: `shared/client/types.gen.ts` carries an
+ * `export interface ClientMeta {}` mirroring the @hey-api/openapi-ts v0.99
+ * client runtime — newer generated `sdk.gen.ts` files import it. It is kept
+ * bare and uncommented so the file stays byte-comparable with generator output;
+ * the explanation lives here instead, because anything written into a `.gen.ts`
+ * file is lost on the next `bun run openapi`.
  */
 async function fixImports(filePath: string): Promise<void> {
   let content = await readFile(filePath, 'utf-8');

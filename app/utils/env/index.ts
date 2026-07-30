@@ -1,6 +1,7 @@
 // app/utils/env/index.ts
 // Universal env module - works on both server and client
 // For server secrets, import directly from '@/utils/env/env.server'
+import { resolveAuthUiOrigin } from './auth-ui-origin';
 import { omitBlankEnv } from './omit-blank-env';
 import type { PublicEnv } from './types';
 
@@ -19,6 +20,7 @@ const clientDefaults: PublicEnv = {
   apiUrl: '',
   graphqlUrl: '',
   authOidcIssuer: '',
+  authUiOrigin: '',
   authZitadelProjectId: undefined,
   sentryDsn: undefined,
   sentryEnv: undefined,
@@ -56,6 +58,7 @@ function getPublicEnv(): PublicEnv {
     apiUrl: source.API_URL ?? '',
     graphqlUrl: source.GRAPHQL_URL ?? '',
     authOidcIssuer: source.AUTH_OIDC_ISSUER ?? '',
+    authUiOrigin: resolveAuthUiOrigin(source.AUTH_UI_ORIGIN, source.AUTH_OIDC_ISSUER),
     authZitadelProjectId: source.AUTH_ZITADEL_PROJECT_ID,
     sentryDsn: source.SENTRY_DSN,
     sentryEnv: source.SENTRY_ENV,

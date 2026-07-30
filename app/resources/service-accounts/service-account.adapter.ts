@@ -1,7 +1,7 @@
 import type { UseCase } from './service-account.schema';
 import type { ServiceAccount, ServiceAccountKey } from './types';
 import type { ComMiloapisIamV1Alpha1ServiceAccount } from '@/modules/control-plane/iam';
-import type { ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey } from '@/modules/control-plane/identity';
+import type { GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey } from '@/modules/control-plane/identity';
 
 const DESCRIPTION_ANNOTATION = 'kubernetes.io/description';
 // Cross-tool annotation: any client (web, CLI, terraform) that knows the
@@ -28,7 +28,7 @@ export function toServiceAccount(raw: ComMiloapisIamV1Alpha1ServiceAccount): Ser
 }
 
 export function toServiceAccountKey(
-  raw: ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey
+  raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey
 ): ServiceAccountKey {
   const isUserManaged = !!raw.spec?.publicKey;
 
@@ -68,7 +68,7 @@ export function toCreateServiceAccountKeyPayload(
   name: string,
   publicKey?: string,
   expiresAt?: string
-): ComMiloapisGoMiloPkgApisIdentityV1Alpha1ServiceAccountKey {
+): GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKey {
   return {
     apiVersion: 'identity.miloapis.com/v1alpha1',
     kind: 'ServiceAccountKey',

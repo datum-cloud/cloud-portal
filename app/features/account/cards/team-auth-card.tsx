@@ -10,7 +10,7 @@ export const AccountTeamAuthCard = () => {
   return (
     <Card className="gap-0 rounded-xl py-0 shadow-none">
       <CardHeader className="gap-1 border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Two-factor Authentication</CardTitle>
+        <CardTitle className="text-sm font-medium">Team Authentication</CardTitle>
         <CardDescription className="text-1xs">
           Add an additional layer of security by requiring at least two methods of authentication to
           sign in.
