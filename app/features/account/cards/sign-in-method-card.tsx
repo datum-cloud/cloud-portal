@@ -23,11 +23,15 @@ export const AccountSignInMethodSettingsCard = () => {
   const passkeysQuery = usePasskeys(userId);
 
   const isLoading = identitiesQuery.isLoading || passkeysQuery.isLoading;
-  const isError = identitiesQuery.isError || passkeysQuery.isError;
+  // Only an identities failure blanks the card. Passkeys is a newer, optional,
+  // feature-gated API — ORing the two let it take down GA-backed identity rows
+  // that had loaded fine. A passkey failure degrades its own row instead (null,
+  // not [], so the row reports "couldn't load" rather than "No passkeys yet").
+  const isError = identitiesQuery.isError;
 
   const rows = buildSignInMethodRows({
     identities: identitiesQuery.data ?? [],
-    passkeys: passkeysQuery.data ?? [],
+    passkeys: passkeysQuery.isError ? null : (passkeysQuery.data ?? []),
     authUiOrigin: env.public.authUiOrigin,
     returnTo: buildSecurityReturnTo(env.public.appUrl),
   });

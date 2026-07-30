@@ -7,12 +7,26 @@ import { GitHubLineIcon } from '@/components/icon/github-line';
 import GoogleIcon from '@/components/icon/google';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { CircleAlertIcon, KeyRoundIcon, MailIcon, type LucideIcon } from 'lucide-react';
+import {
+  CircleAlertIcon,
+  KeyRoundIcon,
+  LockOpenIcon,
+  MailIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import type { ComponentType, SVGProps } from 'react';
 
 type SvgIcon = ComponentType<SVGProps<SVGSVGElement>>;
 
-/** Brand marks that ship as bare SVG components. */
+/**
+ * Brand marks that ship as bare SVG components.
+ *
+ * `github` uses the OUTLINE mark. That changed the General tab's appearance,
+ * which is worth calling out in the PR — but it is the direction of least
+ * surprise: the outline variant is what every other identity surface uses
+ * (onboarding's account-identity-summary, project home, export policies),
+ * while the filled variant had no other caller.
+ */
 const BRAND_ICONS: Record<string, SvgIcon> = {
   google: GoogleIcon,
   github: GitHubLineIcon,
@@ -22,16 +36,33 @@ const BRAND_ICONS: Record<string, SvgIcon> = {
 const LUCIDE_ICONS: Record<string, LucideIcon> = {
   email: MailIcon,
   passkeys: KeyRoundIcon,
+  totp: LockOpenIcon,
+  recoveryCodes: KeyRoundIcon,
 };
 
+interface ProviderIconProps {
+  providerKey: string;
+  /**
+   * The 2FA card's accent treatment (larger, primary-tinted). It lives here
+   * rather than inlined at that call site so both cards resolve their marks
+   * from this one module — which is the whole point of the module.
+   */
+  emphasis?: boolean;
+}
+
 /** Icon for a provider row. Unknown providers fall back to the mail mark. */
-export const ProviderIcon = ({ providerKey }: { providerKey: string }) => {
+export const ProviderIcon = ({ providerKey, emphasis = false }: ProviderIconProps) => {
   const Brand = BRAND_ICONS[providerKey];
   if (Brand) {
-    return <Brand className="size-3.5" />;
+    return <Brand className={emphasis ? 'size-4' : 'size-3.5'} />;
   }
 
-  return <Icon icon={LUCIDE_ICONS[providerKey] ?? MailIcon} className="size-3.5" />;
+  return (
+    <Icon
+      icon={LUCIDE_ICONS[providerKey] ?? MailIcon}
+      className={emphasis ? 'text-primary size-4' : 'size-3.5'}
+    />
+  );
 };
 
 /**

@@ -1,7 +1,7 @@
 import { IdentityItem } from '../identity-item';
 import { IdentityItemSkeleton } from '../identity-item-skeleton';
 import { GithubEmailTooltip, ProviderIcon } from '@/features/account/identity-providers';
-import { PROVIDER_LABELS } from '@/features/account/sign-in-methods';
+import { buildSsoHref, providerKeyOf, providerLabel } from '@/features/account/sign-in-methods';
 import { useApp } from '@/providers/app.provider';
 import { useUserIdentities } from '@/resources/users';
 import { env } from '@/utils/env';
@@ -25,13 +25,16 @@ export const AccountIdentitySettingsCard = () => {
         ) : (
           <div className="divide-stepper-line flex flex-col divide-y">
             {identities?.map((identity) => {
-              const provider = identity.providerName?.toLowerCase() ?? 'email';
+              // Shared derivation: this card and the Security tab's render the
+              // same identities, and previously disagreed on both the key and
+              // the label fallback for an unrecognised provider.
+              const provider = providerKeyOf(identity);
               return (
                 <div key={identity.name} data-e2e="account-identity-item">
                   <IdentityItem
                     className="px-5 py-4"
                     icon={<ProviderIcon providerKey={provider} />}
-                    label={PROVIDER_LABELS[provider] ?? 'Email address'}
+                    label={providerLabel(identity)}
                     sublabel={identity.username}
                     middleContent={
                       // TODO: Enable this when we have a way to get the last used date
@@ -42,7 +45,12 @@ export const AccountIdentitySettingsCard = () => {
                       <>
                         {provider === 'github' && <GithubEmailTooltip />}
                         <LinkButton
-                          href={`${env.public.authOidcIssuer}/ui/v2/login/idp/link`}
+                          // auth-ui's Linked accounts screen. The old
+                          // /ui/v2/login/idp/link is Zitadel-era and survives
+                          // only as a 301 to /id/sso/link — this targets the
+                          // canonical path directly, and matches what the
+                          // Security tab's Sign-in Methods card links to.
+                          href={buildSsoHref(env.public.authUiOrigin)}
                           target="_blank"
                           rel="noopener noreferrer"
                           type="quaternary"

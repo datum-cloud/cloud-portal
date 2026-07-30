@@ -29,7 +29,17 @@ export function resolveAuthUiOrigin(
   authOidcIssuer: string | undefined
 ): string {
   if (authUiOrigin) {
-    return trimTrailingSlashes(authUiOrigin);
+    try {
+      // Strip any path the operator included. `.env.example` warns not to append
+      // /id, but a comment is not a guard — and this override is the one value a
+      // human actually types, so it is the branch most likely to carry the /id
+      // that yields /id/id/passkeys. The derived branch below already normalises.
+      return new URL(authUiOrigin).origin;
+    } catch {
+      // Not a parseable URL (env.server.ts rejects that at startup); preserve
+      // the previous best-effort behaviour rather than throwing mid-render.
+      return trimTrailingSlashes(authUiOrigin);
+    }
   }
 
   if (!authOidcIssuer) {

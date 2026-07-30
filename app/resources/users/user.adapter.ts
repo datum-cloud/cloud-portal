@@ -169,12 +169,22 @@ export function toUserIdentityList(
   return raw.items.map(toUserIdentity);
 }
 
-/** Absent status.state defaults to 'Active' — display-only; the kind has no DELETE verb, so this is never a security decision. */
+/**
+ * Fails CLOSED: only the literal 'Active' counts as active; anything else —
+ * absent, empty, or a state this client does not know yet — maps to 'Inactive'.
+ *
+ * This used to default to 'Active', justified by the value being display-only.
+ * That justification expired when `countActivePasskeys` began driving the 2FA
+ * card's "Added" badge: the value now backs a claim that the user has a working
+ * second factor, and under-claiming protection is safer than over-claiming it.
+ * The generated contract types `status.state` as a bare `string`, so an
+ * unrecognised value is a real possibility as milo evolves.
+ */
 export function toPasskey(raw: GoMiloapisComMiloPkgApisIdentityV1Alpha1Passkey): Passkey {
   return {
     id: raw.metadata?.name ?? '',
     displayName: raw.status?.displayName ?? '',
-    state: raw.status?.state === 'Inactive' ? 'Inactive' : 'Active',
+    state: raw.status?.state === 'Active' ? 'Active' : 'Inactive',
     userUID: raw.status?.userUID ?? '',
   };
 }

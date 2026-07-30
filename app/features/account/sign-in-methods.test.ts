@@ -32,7 +32,7 @@ function passkey(overrides: Partial<Passkey> = {}): Passkey {
   };
 }
 
-function build(identities: UserIdentity[], passkeys: Passkey[]) {
+function build(identities: UserIdentity[], passkeys: Passkey[] | null) {
   return buildSignInMethodRows({
     identities,
     passkeys,
@@ -149,6 +149,24 @@ describe('buildSignInMethodRows', () => {
     );
 
     expect(rows.filter((row) => row.kind === 'connect')).toHaveLength(0);
+  });
+
+  it('reports an unknown count rather than zero when the passkey query failed', () => {
+    const rows = build([identity()], null);
+    const row = rows.find((candidate) => candidate.kind === 'passkeys');
+
+    // Regression: passing [] on failure rendered "No passkeys yet" — a
+    // confident false statement. null must read as unknown, and must never
+    // offer "Add", which also implies zero.
+    expect(row?.sublabel).toBe("Couldn't load your passkeys");
+    expect(row?.actionLabel).toBe('Manage');
+  });
+
+  it('still renders identity and connect rows when the passkey query failed', () => {
+    const rows = build([identity()], null);
+
+    expect(rows.map((r) => r.kind)).toEqual(['identity', 'passkeys', 'connect']);
+    expect(rows[0].sublabel).toBe('user@example.test');
   });
 
   it('describes a connect row with its provider label and sso href', () => {

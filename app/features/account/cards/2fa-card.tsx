@@ -1,5 +1,6 @@
 import { IdentityItem } from '@/features/account/identity-item';
 import { IdentityItemSkeleton } from '@/features/account/identity-item-skeleton';
+import { ProviderIcon } from '@/features/account/identity-providers';
 import {
   buildPasskeysHref,
   buildSecurityReturnTo,
@@ -17,7 +18,7 @@ import {
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { ExternalLinkIcon, KeyRoundIcon, LockOpenIcon } from 'lucide-react';
+import { ExternalLinkIcon } from 'lucide-react';
 
 /**
  * Rows whose state the portal cannot read. There is no API exposing enrolled
@@ -62,7 +63,7 @@ export const Account2FACard = () => {
         <div className="divide-stepper-line flex flex-col divide-y">
           <div className="px-5 py-4">
             <IdentityItem
-              icon={<Icon icon={LockOpenIcon} className="text-primary size-4" />}
+              icon={<ProviderIcon providerKey="totp" emphasis />}
               label="Authenticator App (TOTP)"
               sublabel="Generate codes using an app like Google Authenticator or Okta Verify."
               rightContent={<ComingSoonAction />}
@@ -74,9 +75,13 @@ export const Account2FACard = () => {
               <IdentityItemSkeleton count={1} showActions className="px-0 py-0" />
             ) : (
               <IdentityItem
-                icon={<Icon icon={KeyRoundIcon} className="text-primary size-4" />}
+                icon={<ProviderIcon providerKey="passkeys" emphasis />}
                 label="Passkeys"
-                sublabel="You can use the same passkeys you use for login as a second factor of authentication."
+                sublabel={
+                  isError
+                    ? "We couldn't load your passkeys, so we can't show whether this factor is set up."
+                    : 'You can use the same passkeys you use for login as a second factor of authentication.'
+                }
                 rightContent={
                   isError ? null : hasPasskey ? (
                     <Button
@@ -108,7 +113,7 @@ export const Account2FACard = () => {
 
           <div className="px-5 py-4">
             <IdentityItem
-              icon={<Icon icon={KeyRoundIcon} className="text-primary size-4" />}
+              icon={<ProviderIcon providerKey="recoveryCodes" emphasis />}
               label="Recovery Codes"
               sublabel="Security codes when you cannot access any of your other two-factor methods."
               rightContent={<ComingSoonAction />}

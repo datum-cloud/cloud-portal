@@ -101,6 +101,11 @@ export function useUserIdentities(
     queryKey: userKeys.identities(userId),
     queryFn: () => createUserService().getUserIdentity(userId),
     enabled: !!userId,
+    // Identities and passkeys are mutated out-of-band in auth-ui, so no
+    // mutation here can invalidate them and there is no Watch/SSE for these
+    // kinds. Without this they inherit the global 5-minute staleTime and a
+    // returning tab keeps asserting pre-enrollment state.
+    staleTime: 0,
     ...options,
   });
 }
@@ -113,6 +118,9 @@ export function usePasskeys(
     queryKey: userKeys.passkeys(userId),
     queryFn: () => createUserService().getPasskeys(userId),
     enabled: !!userId,
+    // See useUserIdentities: mutated only in auth-ui, no watch, no invalidation
+    // trigger. Stale data here would claim a second factor the user just removed.
+    staleTime: 0,
     ...options,
   });
 }

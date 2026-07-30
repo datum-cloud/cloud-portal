@@ -17,7 +17,12 @@ export const AUTH_UI_PASSKEYS_PATH = `${AUTH_UI_PATH_PREFIX}/passkeys`;
 /**
  * Providers the portal offers to connect. There is no API listing *available*
  * IdPs, so this hardcoded set is diffed against the user's linked identities.
- * Replace with a discovery endpoint if one ever lands.
+ *
+ * KNOWN LIMITATION: because the set is static, a Connect row can advertise a
+ * provider `/id/sso` does not actually offer for this org — auth-ui derives its
+ * linkable list from live IdP config, this does not. The row is honest about
+ * where it sends you, but it can be a dead end. Replace with a discovery
+ * endpoint, or surface auth-ui's `linkable` set, if either ever lands.
  */
 export const CONNECTABLE_PROVIDERS = ['google', 'github'] as const;
 
@@ -50,7 +55,12 @@ export interface SignInMethodRow {
 
 export interface BuildSignInMethodRowsInput {
   identities: UserIdentity[];
-  passkeys: Passkey[];
+  /**
+   * `null` means the passkey query failed. The row then says so instead of
+   * asserting a count — passing `[]` on failure would render "No passkeys yet",
+   * which is a confident false statement rather than an honest unknown.
+   */
+  passkeys: Passkey[] | null;
   /** Origin only, no trailing slash — see resolveAuthUiOrigin. */
   authUiOrigin: string;
   /** Absolute portal URL auth-ui returns to after passkey management. */
@@ -78,8 +88,23 @@ export function countActivePasskeys(passkeys: Passkey[]): number {
   return passkeys.filter((passkey) => passkey.state === 'Active').length;
 }
 
-function providerKeyOf(identity: UserIdentity): string {
+/**
+ * Lowercased provider key for an identity, used to index PROVIDER_LABELS and
+ * the icon map. Exported so every card derives the key the same way — the two
+ * cards that render identities previously disagreed on the fallback.
+ */
+export function providerKeyOf(identity: UserIdentity): string {
   return identity.providerName?.toLowerCase() || 'email';
+}
+
+/**
+ * Display label for an identity. Single fallback chain, shared by both the
+ * General tab's card and the Security tab's, so one API record can never render
+ * two different strings.
+ */
+export function providerLabel(identity: UserIdentity): string {
+  const key = providerKeyOf(identity);
+  return PROVIDER_LABELS[key] ?? identity.providerName ?? PROVIDER_LABELS.email;
 }
 
 function passkeysSublabel(activeCount: number): string {
@@ -95,26 +120,24 @@ export function buildSignInMethodRows({
 }: BuildSignInMethodRowsInput): SignInMethodRow[] {
   const ssoHref = buildSsoHref(authUiOrigin);
 
-  const identityRows: SignInMethodRow[] = identities.map((identity) => {
-    const providerKey = providerKeyOf(identity);
-    return {
-      kind: 'identity',
-      key: identity.name,
-      providerKey,
-      label: PROVIDER_LABELS[providerKey] ?? identity.providerName ?? PROVIDER_LABELS.email,
-      sublabel: identity.username ?? '',
-      actionLabel: 'Manage',
-      href: ssoHref,
-    };
-  });
+  const identityRows: SignInMethodRow[] = identities.map((identity) => ({
+    kind: 'identity',
+    key: identity.name,
+    providerKey: providerKeyOf(identity),
+    label: providerLabel(identity),
+    sublabel: identity.username ?? '',
+    actionLabel: 'Manage',
+    href: ssoHref,
+  }));
 
-  const activeCount = countActivePasskeys(passkeys);
+  const activeCount = passkeys === null ? null : countActivePasskeys(passkeys);
   const passkeysRow: SignInMethodRow = {
     kind: 'passkeys',
     key: 'passkeys',
     providerKey: 'passkeys',
     label: 'Passkeys',
-    sublabel: passkeysSublabel(activeCount),
+    sublabel: activeCount === null ? "Couldn't load your passkeys" : passkeysSublabel(activeCount),
+    // Never offer "Add" on an unknown count — that implies zero.
     actionLabel: activeCount === 0 ? 'Add' : 'Manage',
     href: buildPasskeysHref(authUiOrigin, returnTo),
   };

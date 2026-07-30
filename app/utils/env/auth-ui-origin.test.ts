@@ -20,6 +20,19 @@ describe('resolveAuthUiOrigin', () => {
     );
   });
 
+  it('drops any path on an explicit origin, not just trailing slashes', () => {
+    // Regression: the override branch only trimmed slashes, so an operator who
+    // set AUTH_UI_ORIGIN=<host>/id — the exact mistake .env.example warns
+    // against — got /id/id/passkeys. The derived branch already normalised.
+    expect(resolveAuthUiOrigin('http://localhost:3001/id', undefined)).toBe(
+      'http://localhost:3001'
+    );
+  });
+
+  it('falls back to slash-trimming when an explicit origin is unparseable', () => {
+    expect(resolveAuthUiOrigin('not a url//', undefined)).toBe('not a url');
+  });
+
   it('derives the issuer origin when AUTH_UI_ORIGIN is unset', () => {
     // Arrange
     const issuer = 'https://auth.staging.env.datum.net';

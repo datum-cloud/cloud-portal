@@ -177,13 +177,22 @@ describe('toPasskey', () => {
     expect(toPasskey(raw).state).toBe('Inactive');
   });
 
-  it('defaults state to Active and displayName/userUID to empty strings when status is absent', () => {
+  it('fails closed to Inactive and empties displayName/userUID when status is absent', () => {
     const raw = { metadata: { name: 'passkey-3' } };
     const passkey = toPasskey(raw);
 
-    expect(passkey.state).toBe('Active');
+    expect(passkey.state).toBe('Inactive');
     expect(passkey.displayName).toBe('');
     expect(passkey.userUID).toBe('');
+  });
+
+  it('fails closed on a state value this client does not recognise', () => {
+    const raw = {
+      metadata: { name: 'passkey-4' },
+      status: { displayName: 'Future Device', state: 'Provisioning', userUID: 'user-uid-3' },
+    };
+
+    expect(toPasskey(raw).state).toBe('Inactive');
   });
 });
 
