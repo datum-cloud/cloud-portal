@@ -4,6 +4,7 @@ import { useApp } from '@/providers/app.provider';
 import { usePasskeys, type PasskeyStateValue } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { env } from '@/utils/env';
+import { AUTH_UI_PATH_PREFIX } from '@/utils/env/auth-ui-origin';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
@@ -18,7 +19,8 @@ import { ExternalLinkIcon, KeyRoundIcon } from 'lucide-react';
  */
 function buildManagePasskeysUrl(): string {
   const returnTo = `${env.public.appUrl}${paths.account.settings.security}`;
-  return `${env.public.authUiOrigin}/id/passkeys?returnTo=${encodeURIComponent(returnTo)}`;
+  const managePath = `${AUTH_UI_PATH_PREFIX}/passkeys`;
+  return `${env.public.authUiOrigin}${managePath}?returnTo=${encodeURIComponent(returnTo)}`;
 }
 
 function StateBadge({ state }: { state: PasskeyStateValue }) {

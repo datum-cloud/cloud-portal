@@ -1,4 +1,5 @@
 // app/utils/env/env.server.ts
+import { resolveAuthUiOrigin } from './auth-ui-origin';
 import { omitBlankEnv } from './omit-blank-env';
 import type { Env } from './types';
 import { z } from 'zod';
@@ -55,9 +56,11 @@ const publicSchema = z.object({
   AUTH_OIDC_ISSUER: urlSchema('http://localhost:8080'),
   AUTH_ZITADEL_PROJECT_ID: z.string().optional(),
   AUTH_OIDC_POST_LOGOUT_REDIRECT_URI: urlSchemaOptional(),
-  // Origin of the auth-ui service (passkey management, reauth). Distinct
-  // from AUTH_OIDC_ISSUER (Zitadel itself). Used to build /id/passkeys links.
-  AUTH_UI_ORIGIN: urlSchema('http://localhost:3001'),
+  // Optional override for the origin auth-ui is served from. Deployed
+  // environments path-mount auth-ui on the Zitadel hostname, so this defaults
+  // to the AUTH_OIDC_ISSUER origin. Set it only when auth-ui runs elsewhere
+  // (e.g. localhost:3001 in local development).
+  AUTH_UI_ORIGIN: urlSchemaOptional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -223,7 +226,7 @@ export const env: Env = {
     apiUrl: data.API_URL,
     graphqlUrl: data.GRAPHQL_URL,
     authOidcIssuer: data.AUTH_OIDC_ISSUER,
-    authUiOrigin: data.AUTH_UI_ORIGIN,
+    authUiOrigin: resolveAuthUiOrigin(data.AUTH_UI_ORIGIN, data.AUTH_OIDC_ISSUER),
     authZitadelProjectId: data.AUTH_ZITADEL_PROJECT_ID,
     authPostLogoutRedirectUri: data.AUTH_OIDC_POST_LOGOUT_REDIRECT_URI,
     sentryDsn: data.SENTRY_DSN,
