@@ -201,9 +201,9 @@ function GroupDetailEditor({
 
   // Permissions for all currently effective (non-removed) assignments
   const effectivePermissions = useMemo(() => {
-    const perms = effectiveAssignments.flatMap((a) => resolveAllPermissions(a.role, roles));
+    const perms = effectiveAssignments.flatMap((a) => resolveAllPermissions(a.role));
     return [...new Set(perms)];
-  }, [effectiveAssignments, roles]);
+  }, [effectiveAssignments]);
 
   // Permissions that will be lost when pending-remove roles are saved
   // Only include permissions not covered by any remaining role
@@ -214,15 +214,15 @@ function GroupDetailEditor({
     const removingPerms = new Set(
       state.pendingChanges
         .filter((c) => c.op === 'remove')
-        .flatMap((c) => resolveAllPermissions(c.role, roles))
+        .flatMap((c) => resolveAllPermissions(c.role))
     );
     const remainingPerms = new Set(
       effectiveAssignments
         .filter((a) => !removedAssignmentIds.has(a.id))
-        .flatMap((a) => resolveAllPermissions(a.role, roles))
+        .flatMap((a) => resolveAllPermissions(a.role))
     );
     return [...removingPerms].filter((p) => !remainingPerms.has(p));
-  }, [state.pendingChanges, effectiveAssignments, roles]);
+  }, [state.pendingChanges, effectiveAssignments]);
 
   const createPolicyBinding = useCreatePolicyBinding(orgId);
   const deletePolicyBinding = useDeletePolicyBinding(orgId);
