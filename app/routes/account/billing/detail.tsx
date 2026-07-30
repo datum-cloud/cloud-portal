@@ -9,14 +9,18 @@ import {
   BillingAddressForm,
   DisplayNameFormCard,
   EmailRecipientCard,
+  PastInvoicesCard,
   PaymentMethodsCard,
   getBillingAccountDisplayName,
+  toPastInvoiceRow,
   type BillingAccount,
   type BillingAccountAssignment,
   type BillingAccountBinding,
   type BillingAddressValues,
   type DisplayNameFormValues,
   type EmailRecipientValues,
+  type Invoice,
+  type PastInvoiceRow,
   type PaymentMethod,
   type ProjectBillingBinding,
 } from '@/features/billing';
@@ -39,6 +43,7 @@ import {
   useDeleteBillingAccount,
   useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
+import { createInvoiceService, useInvoices, useInvoicesWatch } from '@/resources/invoices';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import {
   createPaymentMethodService,
@@ -71,6 +76,7 @@ interface LoaderData {
   /** Full pre-filter bindings list, used to seed the React Query cache. */
   allBindings: BillingAccountBinding[];
   paymentMethods: PaymentMethod[];
+  invoices: Invoice[];
   orgs: Array<{ name: string; displayName: string }>;
   orgIds: string[];
   projectsByOrg: Record<string, Array<{ name: string; displayName: string }>>;
@@ -97,11 +103,11 @@ interface LoaderData {
  *     `clientSecret`. No long-poll, no server route — the watch hub
  *     multiplexes one upstream connection per (org, namespace, kind)
  *     across every tab.
+ *   - Past invoices list the provider-written Invoice CRDs for this
+ *     account; download opens `status.documentUri` when present.
  *
- * `PastInvoicesCard` and `CreditsCard` are intentionally absent — the
- * billing API doesn't surface invoices or credits today, and rendering
- * them with placeholder data is worse than not rendering them at all.
- * They'll come back when the SDK ships matching resources.
+ * `CreditsCard` remains absent — the billing API doesn't surface
+ * credits today.
  */
 export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData> => {
   const { billingAccountId } = params;
@@ -131,12 +137,17 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
   // Fan the remaining reads out together — they're independent and
   // the page renders meaningful partial state from any subset, so a
   // single failure doesn't blank the whole detail.
-  const [allBindings, stripeConfigs, paymentMethods] = await Promise.all([
+  const [allBindings, stripeConfigs, paymentMethods, invoices] = await Promise.all([
     createBillingAccountBindingService().listForOrgs(orgIds),
     createStripeProviderConfigService()
       .list()
       .catch(() => []),
     orgId ? createPaymentMethodService().list(orgId) : Promise.resolve<PaymentMethod[]>([]),
+    orgId
+      ? createInvoiceService()
+          .list(orgId)
+          .catch(() => [] as Invoice[])
+      : Promise.resolve<Invoice[]>([]),
   ]);
 
   // For each org that has a binding to this account, hydrate the
@@ -183,6 +194,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     bindings: ourBindings,
     allBindings,
     paymentMethods,
+    invoices,
     orgs,
     orgIds,
     projectsByOrg,
@@ -257,6 +269,7 @@ function AccountBillingAccountDetailPageInner() {
     account: initialAccount,
     allBindings: initialAllBindings,
     paymentMethods: initialPaymentMethods,
+    invoices: initialInvoices,
     orgs,
     orgIds: initialOrgIds,
     projectsByOrg,
@@ -329,6 +342,12 @@ function AccountBillingAccountDetailPageInner() {
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
+  const invoicesQuery = useInvoices(orgId, {
+    initialData: initialInvoices,
+    initialDataUpdatedAt: Date.now(),
+    refetchOnMount: false,
+    staleTime: QUERY_STALE_TIME,
+  });
   const stripeConfigsQuery = useStripeProviderConfigs({
     refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
@@ -339,6 +358,7 @@ function AccountBillingAccountDetailPageInner() {
   // refreshes only on navigation / mutation invalidation.
   useBillingAccountWatch(orgId, accountName);
   usePaymentMethodsWatch(orgId);
+  useInvoicesWatch(orgId);
 
   const account =
     accountsQuery.data?.find((a) => a.metadata?.name === accountName) ?? initialAccount;
@@ -348,6 +368,13 @@ function AccountBillingAccountDetailPageInner() {
         (pm) => pm.spec?.billingAccountRef?.name === accountName
       ),
     [paymentMethodsQuery.data, initialPaymentMethods, accountName]
+  );
+  const pastInvoices = useMemo(
+    () =>
+      (invoicesQuery.data ?? initialInvoices)
+        .filter((inv) => inv.spec?.billingAccountRef?.name === accountName)
+        .map(toPastInvoiceRow),
+    [invoicesQuery.data, initialInvoices, accountName]
   );
   const allBindings = bindingsQuery.data ?? initialAllBindings;
   const ourBindings = useMemo(
@@ -715,6 +742,11 @@ function AccountBillingAccountDetailPageInner() {
     ]
   );
 
+  const handleDownloadInvoice = useCallback((invoice: PastInvoiceRow) => {
+    if (!invoice.downloadUrl) return;
+    window.open(invoice.downloadUrl, '_blank', 'noopener,noreferrer');
+  }, []);
+
   return (
     <div className="flex w-full flex-col gap-4">
       <BackButton to={paths.account.billing.root}>Back to Billing Accounts</BackButton>
@@ -756,6 +788,10 @@ function AccountBillingAccountDetailPageInner() {
             onSetAsDefault={handleSetDefaultPaymentMethod}
             onRemove={handleRemovePaymentMethod}
           />
+        </Section>
+
+        <Section title="Invoices" description="Past invoices for this billing account.">
+          <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
         </Section>
 
         <Section
