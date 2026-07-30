@@ -88,7 +88,7 @@
     "js-yaml": "^5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.21.0",
-    "monaco-editor": "^0.55.1",
+    "monaco-editor": "^0.56.0",
     "motion": "^12.40.0",
     "nprogress": "^0.2.0",
     "nuqs": "^2.8.9",
