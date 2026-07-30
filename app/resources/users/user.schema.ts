@@ -83,6 +83,19 @@ export const userIdentitySchema = z.object({
   providerName: z.string().optional(),
 });
 
+export const PASSKEY_STATE_VALUES = ['Active', 'Inactive'] as const;
+export type PasskeyStateValue = (typeof PASSKEY_STATE_VALUES)[number];
+
+export const passkeySchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  state: z.enum(PASSKEY_STATE_VALUES),
+  /** Owning user's UID — backs the `status.userUID=<uid>` field selector for cross-user MiloSAR reads, mirroring Session/UserIdentity. */
+  userUID: z.string(),
+});
+
+export type Passkey = z.infer<typeof passkeySchema>;
+
 export const parsedUserAgentSchema = z.object({
   browser: z.string().nullable().optional(),
   os: z.string().nullable().optional(),
