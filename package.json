@@ -42,7 +42,7 @@
     "@module-federation/runtime": "^2.7.0",
     "@monaco-editor/react": "^4.7.0",
     "@openfeature/server-sdk": "^1.22.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.78.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.79.0",
     "@opentelemetry/exporter-metrics-otlp-http": "^0.220.0",
     "@opentelemetry/exporter-trace-otlp-http": "^0.220.0",
     "@opentelemetry/sdk-node": "^0.220.0",
