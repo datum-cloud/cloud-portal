@@ -1,5 +1,4 @@
 import type { FeatureFlagKey, FeatureFlagMap } from './flags';
-import './setup.server';
 import { OpenFeature } from '@openfeature/server-sdk';
 
 /**

@@ -15,9 +15,7 @@ import { Logger } from '@/modules/logger';
 import { initPluginRegistry } from '@/modules/plugins/server';
 import { createDevSessionRoutes, isDevSessionEnabled } from '@/modules/plugins/server/dev-session';
 import { createPluginRoutes } from '@/modules/plugins/server/routes';
-// Side-effect import: registers RBAC prom-client metrics into the global registry
-// at module-load time so they appear on the /metrics endpoint.
-import '@/modules/rbac/observability/metrics';
+import { ensureRbacMetrics } from '@/modules/rbac/observability/metrics';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
 import { watchHub } from '@/server/watch';
@@ -56,6 +54,12 @@ configureServerClient();
 // relying on a bare side-effect import) so `"sideEffects": false` tree-shaking
 // can't drop the registration from the production server bundle.
 ensureFeatureFlagProvider();
+
+// Register RBAC prom-client metrics into the global registry so they appear
+// on the /metrics endpoint. Called explicitly (rather than relying on a bare
+// side-effect import) so `"sideEffects": false` tree-shaking can't drop the
+// registration from the production server bundle.
+ensureRbacMetrics();
 
 // Instantiate the plugin registry with the server and wire its dev-only
 // discovery sources (static + kubeconfig). No-op in production builds.
