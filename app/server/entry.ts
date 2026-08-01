@@ -8,7 +8,7 @@ import type { Variables } from './types';
 // Configure all @hey-api generated clients to use server axios instance
 // This allows generated OpenAPI functions to work on server-side
 // Token and requestId will be auto-injected via AsyncLocalStorage
-import '@/modules/control-plane/setup.server';
+import { configureServerClient } from '@/modules/control-plane/setup.server';
 import { ensureFeatureFlagProvider } from '@/modules/feature-flags/setup.server';
 import { Logger } from '@/modules/logger';
 import { initPluginRegistry } from '@/modules/plugins/server';
@@ -44,6 +44,11 @@ process.once('SIGINT', beginShutdown);
 sessionManager.registerRefreshHook(({ userId, accessToken }) => {
   watchHub.updateTokensByUserId(userId, accessToken);
 });
+
+// Configure the shared control-plane client at startup. Called explicitly
+// (rather than relying on a bare side-effect import) so `"sideEffects": false`
+// tree-shaking can't drop the registration from the production server bundle.
+configureServerClient();
 
 // Register the OpenFeature provider at startup. Called explicitly (rather than
 // relying on a bare side-effect import) so `"sideEffects": false` tree-shaking
