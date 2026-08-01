@@ -40,7 +40,7 @@ import {
 import type { LinksFunction, LoaderFunctionArgs } from 'react-router';
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react';
 
-export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
+export const meta: MetaFunction<typeof loader> = ({ loaderData, location }) => {
   // Get the current page title from the pathname
   const getPageTitle = () => {
     const path = location.pathname;
@@ -56,7 +56,7 @@ export const meta: MetaFunction<typeof loader> = ({ data, location }) => {
 
   const pageTitle = getPageTitle();
 
-  return metaObject(data ? pageTitle : 'Error');
+  return metaObject(loaderData ? pageTitle : 'Error');
 };
 
 export const links: LinksFunction = () => {
@@ -176,7 +176,7 @@ export default function AppWithProviders() {
 
   const urqlState = useMemo<SSRData>(() => {
     return matches.reduce<SSRData>((acc, match) => {
-      const state = (match.data as Record<string, unknown> | null)?.urqlState;
+      const state = (match.loaderData as Record<string, unknown> | null)?.urqlState;
       if (state && typeof state === 'object') {
         return { ...acc, ...(state as SSRData) };
       }

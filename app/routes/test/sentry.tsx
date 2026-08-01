@@ -24,6 +24,7 @@ import {
   setTag,
   setContext,
 } from '@/modules/sentry';
+import { loggerContext, requestIdContext } from '@/server/context';
 import * as Sentry from '@sentry/react-router';
 import { useState } from 'react';
 import { Form, type LoaderFunctionArgs, type ActionFunctionArgs } from 'react-router';
@@ -33,7 +34,7 @@ const ENABLE_LOADER_ERROR = false;
 const ENABLE_ACTION_ERROR = false;
 
 export async function loader({ context }: LoaderFunctionArgs) {
-  const reqLogger = context.logger;
+  const reqLogger = context.get(loggerContext);
 
   reqLogger.info('Sentry test page loaded', {
     feature: 'sentry-test',
@@ -47,12 +48,12 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
   return {
     message: 'Loader executed successfully',
-    requestId: context.requestId,
+    requestId: context.get(requestIdContext),
   };
 }
 
 export async function action({ context }: ActionFunctionArgs) {
-  const reqLogger = context.logger;
+  const reqLogger = context.get(loggerContext);
 
   if (ENABLE_ACTION_ERROR) {
     reqLogger.error('Test action error about to be thrown');

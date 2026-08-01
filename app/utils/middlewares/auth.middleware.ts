@@ -2,6 +2,7 @@ import { onboardingEntryPath, resolveUserFraudRedirectPath } from './fraud-redir
 import { MiddlewareContext, NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { createOrganizationService } from '@/resources/organizations';
+import { sessionContext } from '@/server/context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession, isAuthenticated } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
@@ -26,8 +27,9 @@ export async function authMiddleware(
 
   // Session already validated by Hono sessionMiddleware - skip redundant getSession
   // Verify session has an actual identity (sub), not just a truthy object
-  if (context?.session?.sub) {
-    const onboardingRedirect = await redirectToOnboardingIfNoOrgs(ctx, context.session.sub);
+  const contextSession = context?.get(sessionContext);
+  if (contextSession?.sub) {
+    const onboardingRedirect = await redirectToOnboardingIfNoOrgs(ctx, contextSession.sub);
     if (onboardingRedirect) {
       return onboardingRedirect;
     }

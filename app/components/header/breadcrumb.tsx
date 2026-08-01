@@ -68,9 +68,9 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
           ? [...matches]
               .slice(0, matchIndex)
               .reverse()
-              .find((parentMatch) => parentMatch.data)?.data
+              .find((parentMatch) => parentMatch.loaderData)?.loaderData
           : undefined;
-      const routeData = match.data ?? fallbackData;
+      const routeData = match.loaderData ?? fallbackData;
 
       // If handle.path is defined, use it (explicit override)
       if (match.handle?.path) {
@@ -92,7 +92,7 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
   const activeHandle = activeMatch?.handle as _RouteHandleWithBreadcrumb | undefined;
   const shouldHideBreadcrumb =
     typeof activeHandle?.hideBreadcrumb === 'function'
-      ? activeHandle.hideBreadcrumb(activeMatch.data)
+      ? activeHandle.hideBreadcrumb(activeMatch.loaderData)
       : Boolean(activeHandle?.hideBreadcrumb);
 
   if (shouldHideBreadcrumb) return null;

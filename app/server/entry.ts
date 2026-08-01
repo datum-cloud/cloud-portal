@@ -1,4 +1,5 @@
 import { initializeObservability } from '../../observability';
+import { cspNonceContext, loggerContext, requestIdContext, sessionContext } from './context';
 import { sessionMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error-handler';
 import { loggerMiddleware } from './middleware/logger';
@@ -27,6 +28,7 @@ import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { NONCE, secureHeaders } from 'hono/secure-headers';
 import { register } from 'prom-client';
+import { RouterContextProvider } from 'react-router';
 import { createHonoServer } from 'react-router-hono-server/bun';
 
 let isShuttingDown = false;
@@ -242,11 +244,12 @@ export default await createHonoServer({
       method: c.req.method,
     });
 
-    return {
-      requestId,
-      cspNonce,
-      session,
-      logger,
-    };
+    const context = new RouterContextProvider();
+    context.set(requestIdContext, requestId);
+    context.set(cspNonceContext, cspNonce);
+    context.set(sessionContext, session);
+    context.set(loggerContext, logger);
+
+    return context;
   },
 });
