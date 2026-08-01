@@ -10,7 +10,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { reactRouterHonoServer } from 'react-router-hono-server/dev';
-import type { ManualChunksOption } from 'rollup';
 import type { Plugin, PluginOption, UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -171,22 +170,26 @@ export default defineConfig(async (config): Promise<UserConfig> => {
       chunkSizeWarningLimit: 1000, // Increase size limit to 1000kb
       target: 'esnext', // Compiles to modern JavaScript features for latest browsers
       sourcemap: sentryConfig.isSourcemapEnabled ? 'hidden' : false,
-      rollupOptions: {
-        // cypress-vite bundles each spec with `inlineDynamicImports`, which
-        // rollup 4.61+ rejects alongside `manualChunks`. Only apply manual
-        // chunking for the real app build, never for Cypress spec bundling.
+      // rolldown (Vite 8) replaces rollupOptions/manualChunks. Object-form
+      // manualChunks is rejected by the compat layer; codeSplitting groups are
+      // the supported equivalent. cypress-vite bundles each spec with
+      // inlineDynamicImports, which conflicts with chunk grouping — only apply
+      // vendor grouping for the real app build, never for Cypress spec bundling.
+      rolldownOptions: {
         output: isCypress
           ? {}
           : {
-              manualChunks: {
-                // Splits heavy vendor packages into stable chunks so feature
-                // changes don't invalidate the entire JS payload for repeat visits.
-                'vendor-react': ['react', 'react-dom', 'react-router'],
-                'vendor-datum-ui': ['@datum-cloud/datum-ui'],
-                'vendor-recharts': ['recharts'],
-                'vendor-icons': ['lucide-react'],
-                'vendor-streamdown': ['streamdown'], // pulls mermaid, elk, shiki — ~5MB
-              } satisfies ManualChunksOption,
+              codeSplitting: {
+                groups: [
+                  // Splits heavy vendor packages into stable chunks so feature
+                  // changes don't invalidate the entire JS payload for repeat visits.
+                  { name: 'vendor-react', test: /node_modules\/(react|react-dom|react-router)\// },
+                  { name: 'vendor-datum-ui', test: /node_modules\/@datum-cloud\/datum-ui\// },
+                  { name: 'vendor-recharts', test: /node_modules\/recharts\// },
+                  { name: 'vendor-icons', test: /node_modules\/lucide-react\// },
+                  { name: 'vendor-streamdown', test: /node_modules\/streamdown\// }, // pulls mermaid, elk, shiki — ~5MB
+                ],
+              },
             },
       },
     },
