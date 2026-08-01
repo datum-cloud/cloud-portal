@@ -1,10 +1,5 @@
 import { sentryConfig } from './app/utils/config/sentry.config';
-// @react-router/dev/vite calls require("react-router") at module-top-level.
-// Under Cypress, tsx intercepts that require() and transforms react-router's
-// .mjs chunks via esbuild — react-router 7.18's multi-chunk layout causes
-// nested synchronous esbuild Worker calls that trip a re-entrancy guard
-// ("Expected id 1 but got id 0"). Dynamic import below skips the load
-// entirely when running under Cypress.
+import { reactRouter } from '@react-router/dev/vite';
 import { sentryReactRouter } from '@sentry/react-router';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
@@ -53,28 +48,12 @@ function stubServerModulesForCypress(): Plugin {
   };
 }
 
-// Workaround for issue with running react router in a production build
-//
-// See: https://github.com/remix-run/react-router/issues/12568#issuecomment-2629986004
-
-// Pre-resolve the reactRouter import at module evaluation time so the
-// defineConfig callback can remain synchronous (Vite's TS overloads don't
-// play well with async callbacks when the plugins array contains Promises).
-// When CYPRESS is set, this resolves immediately to null — the import is
-// never executed, avoiding the tsx/esbuild re-entrancy crash.
-const _reactRouterPromise = process.env.CYPRESS
-  ? Promise.resolve(null)
-  : import('@react-router/dev/vite');
-
 export default defineConfig(async (config): Promise<UserConfig> => {
   const isCypress = !!process.env.CYPRESS;
   const isProduction = process.env.NODE_ENV === 'production';
   const aliases: { [key: string]: string } = {
     '@': resolve(__dirname, './app'),
   };
-
-  const reactRouterMod = await _reactRouterPromise;
-  const reactRouter = reactRouterMod?.reactRouter ?? null;
 
   // The `stubServerModulesForCypress` plugin (registered below when CYPRESS
   // is set) rewrites the server-only modules transitively imported by
@@ -117,7 +96,7 @@ export default defineConfig(async (config): Promise<UserConfig> => {
       ...(isCypress ? [stubServerModulesForCypress()] : []),
       tailwindcss(),
       reactRouterHonoServer({ runtime: 'bun' }),
-      isCypress ? react() : reactRouter!(),
+      isCypress ? react() : reactRouter(),
       tsconfigPaths(),
       sentryReactRouter(
         {
