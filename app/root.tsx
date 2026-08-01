@@ -20,7 +20,7 @@ import { Toaster, useToast } from '@datum-cloud/datum-ui/toast';
 import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { SSRData } from '@urql/core';
-import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v8';
 import React, { useEffect, useMemo } from 'react';
 import {
   Links,
