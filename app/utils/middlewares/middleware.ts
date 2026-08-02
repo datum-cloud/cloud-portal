@@ -5,7 +5,12 @@
  * It allows you to chain multiple middleware functions that can process requests before they reach
  * the final handler.
  */
-import { ActionFunction, AppLoadContext, LoaderFunction, LoaderFunctionArgs } from 'react-router';
+import {
+  ActionFunction,
+  LoaderFunction,
+  LoaderFunctionArgs,
+  RouterContextProvider,
+} from 'react-router';
 
 /**
  * Represents the next middleware function in the chain
@@ -17,7 +22,7 @@ export type NextFunction = () => Promise<Response>;
  */
 export interface MiddlewareContext {
   request: Request;
-  context: AppLoadContext;
+  context: Readonly<RouterContextProvider>;
 }
 
 /**
@@ -154,7 +159,7 @@ export function withMiddleware(
       return result;
     };
 
-    const ctx: MiddlewareContext = { request, context: context as AppLoadContext };
+    const ctx: MiddlewareContext = { request, context };
     const response = await createMiddleware(...middleware)(ctx, next as NextFunction);
 
     if (response instanceof Response) {

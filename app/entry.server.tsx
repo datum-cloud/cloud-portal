@@ -1,11 +1,12 @@
 import { NonceProvider } from '@/hooks/useNonce';
+import { cspNonceContext } from '@/server/context';
 import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import * as Sentry from '@sentry/react-router';
 import { isbot } from 'isbot';
 import { PassThrough } from 'node:stream';
 import { renderToPipeableStream } from 'react-dom/server';
-import type { AppLoadContext, EntryContext, HandleErrorFunction } from 'react-router';
+import type { EntryContext, HandleErrorFunction, RouterContextProvider } from 'react-router';
 import { ServerRouter, isRouteErrorResponse } from 'react-router';
 
 const ABORT_DELAY = 5_000;
@@ -15,7 +16,7 @@ async function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   reactRouterContext: EntryContext,
-  loadContext: AppLoadContext
+  loadContext: Readonly<RouterContextProvider>
 ) {
   const callbackName = isbot(request.headers.get('user-agent')) ? 'onAllReady' : 'onShellReady';
 
@@ -23,7 +24,7 @@ async function handleRequest(
    * Content Security Policy.
    * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
    */
-  const nonce = String(loadContext.cspNonce) ?? undefined;
+  const nonce = String(loadContext.get(cspNonceContext)) ?? undefined;
 
   return new Promise((resolve, reject) => {
     let shellRendered = false;
