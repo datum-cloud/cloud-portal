@@ -2,6 +2,7 @@ import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { fetchOrgUsageDashboard, usageKeys } from '@/modules/billing/usage.queries';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { QuotaWatchBridge } from '@/modules/quota';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { setSentryOrgContext } from '@/modules/sentry';
@@ -245,6 +246,7 @@ export default route.Page(({ data: initialOrg, companions }) => {
 
   return (
     <DashboardLayout navItems={navItems} sidebarCollapsible="icon" currentOrg={org}>
+      <QuotaWatchBridge scope="org" />
       <Outlet />
     </DashboardLayout>
   );

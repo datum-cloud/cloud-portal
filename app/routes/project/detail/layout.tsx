@@ -8,6 +8,7 @@ import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { buildPluginNavItems } from '@/modules/plugins/client/plugin-nav';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
+import { QuotaWatchBridge } from '@/modules/quota';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import type { DslLoaderData } from '@/modules/rbac/types';
@@ -513,6 +514,7 @@ function ProjectDetailLayoutContent({
             {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
           </div>
         }>
+        <QuotaWatchBridge scope="project" />
         <Outlet />
       </DashboardLayout>
     </ProjectProvider>

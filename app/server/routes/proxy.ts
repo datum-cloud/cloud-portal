@@ -1,3 +1,4 @@
+import { extractQuotaDenialLabels, quotaDeniedTotal } from '@/server/observability/quota-metrics';
 import type { Variables } from '@/server/types';
 import { env } from '@/utils/env/env.server';
 import { Hono } from 'hono';
@@ -63,6 +64,17 @@ proxyRoutes.all('/*', async (c) => {
     const headers = new Headers(response.headers);
     headers.delete('content-encoding');
     headers.delete('transfer-encoding');
+
+    // Count real quota rejections (the "advisory gate missed" signal). Non-watch
+    // 403s only — watch streams must keep streaming untouched.
+    if (response.status === 403 && !isWatch) {
+      const text = await response.text();
+      const labels = extractQuotaDenialLabels(text);
+      if (labels) {
+        quotaDeniedTotal.inc(labels);
+      }
+      return new Response(text, { status: response.status, headers });
+    }
 
     return new Response(response.body, {
       status: response.status,
