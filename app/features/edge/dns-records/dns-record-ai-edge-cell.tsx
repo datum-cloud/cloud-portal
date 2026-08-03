@@ -1,4 +1,5 @@
 import { isEligibleForProtect } from './utils';
+import { QuotaGuard } from '@/modules/quota';
 import { PermissionButton } from '@/modules/rbac';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -61,23 +62,27 @@ export function DnsRecordAiEdgeCell({
 
   if (showProtect) {
     const isIpOrigin = record.type === 'A' || record.type === 'AAAA';
+    // Cross-resource action: protecting creates an HTTPProxy, so gate by the
+    // CREATED type (httpproxies), not the DNS record the button lives on.
     const protectButton = (
-      <PermissionButton
-        resource="httpproxies"
-        verb="create"
-        group="networking.datumapis.com"
-        scope="project"
-        type="secondary"
-        theme="outline"
-        size="xs"
-        className="shrink-0"
-        disabled={isProtecting}
-        onClick={handleProtect}
-        icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
-        iconPosition="left"
-        deniedReason="You don't have permission to create AI Edge">
-        Protect with AI Edge
-      </PermissionButton>
+      <QuotaGuard resource="httpproxies" group="networking.datumapis.com" scope="project">
+        <PermissionButton
+          resource="httpproxies"
+          verb="create"
+          group="networking.datumapis.com"
+          scope="project"
+          type="secondary"
+          theme="outline"
+          size="xs"
+          className="shrink-0"
+          disabled={isProtecting}
+          onClick={handleProtect}
+          icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
+          iconPosition="left"
+          deniedReason="You don't have permission to create AI Edge">
+          Protect with AI Edge
+        </PermissionButton>
+      </QuotaGuard>
     );
     if (isIpOrigin) {
       return (

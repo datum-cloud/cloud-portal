@@ -2,6 +2,7 @@ import { toFlattenedDnsRecords } from './dns-record.adapter';
 import { createDnsRecordManager, type ImportResult } from './dns-record.manager';
 import type { DnsRecordSet, FlattenedDnsRecord, CreateDnsRecordSchema } from './dns-record.schema';
 import { createDnsRecordService, dnsRecordKeys } from './dns-record.service';
+import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
 import {
   useQuery,
@@ -72,6 +73,7 @@ export function useCreateDnsRecord(
       );
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
     onSettled: () => {
       // Fallback: invalidate list cache in case watch doesn't trigger
@@ -179,6 +181,7 @@ export function useDeleteDnsRecord(
       );
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
     onSettled: () => {
       // Fallback: invalidate list cache in case watch doesn't trigger

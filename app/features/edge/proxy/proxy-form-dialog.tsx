@@ -1,5 +1,6 @@
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   type HttpProxySchema,
@@ -10,7 +11,6 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -45,9 +45,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         );
       },
       onError: (error) => {
-        toast.error('AI Edge', {
-          description: error.message || 'Failed to create AI Edge',
-        });
+        showMutationErrorToast(error, { fallbackTitle: 'AI Edge', scope: 'project', projectId });
         onError?.(error);
       },
     });

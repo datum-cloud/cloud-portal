@@ -7,6 +7,7 @@ import {
   DnsZoneFormDialog,
   type DnsZoneFormDialogRef,
 } from '@/features/edge/dns-zone/dns-zone-form-dialog';
+import { QuotaGuard, useResourceQuota } from '@/modules/quota';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -92,6 +93,15 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
       },
     ],
   });
+
+  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  const zoneQuota = useResourceQuota({
+    resource: 'dnszones',
+    group: 'dns.networking.miloapis.com',
+    scope: 'project',
+  });
+  const zoneQuotaDenied = zoneQuota.denied;
+  const zoneQuotaReason = zoneQuota.deniedReason;
 
   // Subscribe to watch for real-time updates
   useDnsZonesWatch(projectId);
@@ -365,28 +375,38 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
               label: 'Add zone',
               onClick: () => dialogRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              disabled: !canCreate,
-              tooltip: !canCreate ? "You don't have permission to add a DNS zone" : undefined,
+              disabled: !canCreate || zoneQuotaDenied,
+              // Dual denial: the quota message wins over the permission message.
+              tooltip: zoneQuotaDenied
+                ? zoneQuotaReason
+                : !canCreate
+                  ? "You don't have permission to add a DNS zone"
+                  : undefined,
             },
           ],
         }}
         actions={[
-          <PermissionButton
+          <QuotaGuard
             key="add-zone"
             resource="dnszones"
-            verb="create"
             group="dns.networking.miloapis.com"
-            scope="project"
-            deniedReason="You don't have permission to add a DNS zone"
-            type="primary"
-            theme="solid"
-            size="small"
-            className="w-full sm:w-auto"
-            data-e2e="create-dns-zone-button"
-            onClick={() => dialogRef.current?.show()}>
-            <Icon icon={PlusIcon} className="size-4" />
-            Add zone
-          </PermissionButton>,
+            scope="project">
+            <PermissionButton
+              resource="dnszones"
+              verb="create"
+              group="dns.networking.miloapis.com"
+              scope="project"
+              deniedReason="You don't have permission to add a DNS zone"
+              type="primary"
+              theme="solid"
+              size="small"
+              className="w-full sm:w-auto"
+              data-e2e="create-dns-zone-button"
+              onClick={() => dialogRef.current?.show()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Add zone
+            </PermissionButton>
+          </QuotaGuard>,
         ]}
       />
     </>

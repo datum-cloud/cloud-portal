@@ -16,6 +16,7 @@ import {
   isRowLocked,
 } from '@/features/edge/dns-records/utils';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { QuotaGuard, showMutationErrorToast } from '@/modules/quota';
 import {
   PermissionButton,
   PermissionGate,
@@ -88,21 +89,23 @@ function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
   };
 
   return (
-    <PermissionButton
-      resource="dnsrecordsets"
-      verb="create"
-      group="dns.networking.miloapis.com"
-      scope="project"
-      deniedReason="You don't have permission to add a DNS record"
-      htmlType="button"
-      type="primary"
-      theme="solid"
-      size="small"
-      className="min-w-0 flex-1 sm:flex-initial"
-      onClick={handleClick}>
-      <Icon icon={PlusIcon} className="size-4" />
-      Add record
-    </PermissionButton>
+    <QuotaGuard resource="dnsrecordsets" group="dns.networking.miloapis.com" scope="project">
+      <PermissionButton
+        resource="dnsrecordsets"
+        verb="create"
+        group="dns.networking.miloapis.com"
+        scope="project"
+        deniedReason="You don't have permission to add a DNS record"
+        htmlType="button"
+        type="primary"
+        theme="solid"
+        size="small"
+        className="min-w-0 flex-1 sm:flex-initial"
+        onClick={handleClick}>
+        <Icon icon={PlusIcon} className="size-4" />
+        Add record
+      </PermissionButton>
+    </QuotaGuard>
   );
 }
 
@@ -246,9 +249,8 @@ export default function DnsRecordsPage() {
         description: 'DNS will update shortly.',
       });
     },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to create AI Edge');
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, { fallbackTitle: 'AI Edge', scope: 'project', projectId }),
   });
 
   const addHostnameToProxyMutation = useMutation({
@@ -560,21 +562,26 @@ export default function DnsRecordsPage() {
                       }}
                     />
                   </PermissionGate>
-                  <PermissionButton
+                  <QuotaGuard
                     resource="dnsrecordsets"
-                    verb="create"
                     group="dns.networking.miloapis.com"
-                    scope="project"
-                    deniedReason="You don't have permission to add a DNS record"
-                    htmlType="button"
-                    type="primary"
-                    theme="solid"
-                    size="small"
-                    className="min-w-0 flex-1 sm:flex-initial"
-                    onClick={() => dnsRecordModalFormRef.current?.show('create')}>
-                    <Icon icon={PlusIcon} className="size-4" />
-                    Add record
-                  </PermissionButton>
+                    scope="project">
+                    <PermissionButton
+                      resource="dnsrecordsets"
+                      verb="create"
+                      group="dns.networking.miloapis.com"
+                      scope="project"
+                      deniedReason="You don't have permission to add a DNS record"
+                      htmlType="button"
+                      type="primary"
+                      theme="solid"
+                      size="small"
+                      className="min-w-0 flex-1 sm:flex-initial"
+                      onClick={() => dnsRecordModalFormRef.current?.show('create')}>
+                      <Icon icon={PlusIcon} className="size-4" />
+                      Add record
+                    </PermissionButton>
+                  </QuotaGuard>
                 </div>
               ),
             }}

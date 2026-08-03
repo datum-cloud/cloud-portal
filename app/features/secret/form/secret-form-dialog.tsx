@@ -1,6 +1,7 @@
 import { InputName } from '@/components/input-name/input-name';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { KeyValueFieldArray } from '@/features/secret/form/key-value-field-array';
+import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   type SecretCreateSchema,
@@ -11,7 +12,6 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
@@ -37,11 +37,8 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
         })
       );
     },
-    onError: (error) => {
-      toast.error('Secret', {
-        description: error.message,
-      });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, { fallbackTitle: 'Secret', scope: 'project', projectId }),
   });
 
   const show = useCallback(() => setOpen(true), []);

@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
   type CreateDnsZoneInput,
@@ -7,7 +8,6 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -39,11 +39,8 @@ export const DnsZoneFormDialog = forwardRef<DnsZoneFormDialogRef, DnsZoneFormDia
           })
         );
       },
-      onError: (error) => {
-        toast.error('DNS', {
-          description: error.message || 'Failed to create DNS zone',
-        });
-      },
+      onError: (error) =>
+        showMutationErrorToast(error, { fallbackTitle: 'DNS', scope: 'project', projectId }),
     });
 
     const show = useCallback((domainName?: string) => {

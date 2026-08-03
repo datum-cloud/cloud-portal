@@ -1,5 +1,6 @@
 import type { Domain, CreateDomainInput, UpdateDomainInput } from './domain.schema';
 import { createDomainService, domainKeys } from './domain.service';
+import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import { dnsZoneKeys } from '@/resources/dns-zones/dns-zone.service';
 import {
   useQuery,
@@ -50,6 +51,7 @@ export function useCreateDomain(
       queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }
@@ -94,6 +96,7 @@ export function useDeleteDomain(
       );
       queryClient.removeQueries({ queryKey: domainKeys.detail(projectId, name) });
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }

@@ -6,6 +6,7 @@ import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { useDomainExport } from '@/features/edge/domain/export';
 import { DomainStatus } from '@/features/edge/domain/status';
+import { QuotaGuard, useResourceQuota } from '@/modules/quota';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -147,6 +148,15 @@ function DomainsInner({
       },
     ],
   });
+
+  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  const domainQuota = useResourceQuota({
+    resource: 'domains',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+  });
+  const domainQuotaDenied = domainQuota.denied;
+  const domainQuotaReason = domainQuota.deniedReason;
 
   // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: domainsData } = useDomains(projectId ?? '', {
@@ -562,22 +572,27 @@ function DomainsInner({
             </Button>
           ) : null,
           canCreate ? (
-            <PermissionButton
+            <QuotaGuard
               key="add"
               resource="domains"
-              verb="create"
               group="networking.datumapis.com"
-              scope="project"
-              deniedReason="You don't have permission to add a domain"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-domain-button"
-              onClick={() => setAddOpen(true)}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add domains
-            </PermissionButton>
+              scope="project">
+              <PermissionButton
+                resource="domains"
+                verb="create"
+                group="networking.datumapis.com"
+                scope="project"
+                deniedReason="You don't have permission to add a domain"
+                type="primary"
+                theme="solid"
+                size="small"
+                className="w-full sm:w-auto"
+                data-e2e="create-domain-button"
+                onClick={() => setAddOpen(true)}>
+                <Icon icon={PlusIcon} className="size-4" />
+                Add domains
+              </PermissionButton>
+            </QuotaGuard>
           ) : null,
         ].filter(Boolean)}
         multiActions={
@@ -606,8 +621,13 @@ function DomainsInner({
               type: 'button',
               icon: <Icon icon={PlusIcon} className="size-3" />,
               onClick: () => setAddOpen(true),
-              disabled: !canCreate,
-              tooltip: !canCreate ? "You don't have permission to add a domain" : undefined,
+              disabled: !canCreate || domainQuotaDenied,
+              // Dual denial: the quota message wins over the permission message.
+              tooltip: domainQuotaDenied
+                ? domainQuotaReason
+                : !canCreate
+                  ? "You don't have permission to add a domain"
+                  : undefined,
             },
           ],
         }}

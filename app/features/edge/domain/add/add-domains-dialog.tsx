@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
 import {
@@ -71,9 +72,7 @@ export const AddDomainsDialog = ({
         onOpenChange(false);
         if (domain?.name) onSuccess?.(domain);
       } catch (error) {
-        toast.error('Domain', {
-          description: error instanceof Error ? error.message : 'Failed to add domain',
-        });
+        showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
       }
       return;
     }

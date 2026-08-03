@@ -1,7 +1,7 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { type DomainSchema, domainSchema, useCreateDomain, type Domain } from '@/resources/domains';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
 export interface DomainFormDialogRef {
@@ -44,9 +44,7 @@ export const DomainFormDialog = forwardRef<DomainFormDialogRef, DomainFormDialog
           onSuccess?.(domain);
         }
       } catch (error) {
-        toast.error('Domain', {
-          description: (error as Error).message || 'Failed to add domain',
-        });
+        showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
         onError?.(error as Error);
       }
     };

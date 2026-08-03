@@ -1,5 +1,6 @@
 import type { Secret, CreateSecretInput, UpdateSecretInput } from './secret.schema';
 import { createSecretService, secretKeys } from './secret.service';
+import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import {
   useQuery,
   useMutation,
@@ -47,6 +48,7 @@ export function useCreateSecret(
       const [newSecret] = args;
       // Set detail cache - Watch handles list update
       queryClient.setQueryData(secretKeys.detail(projectId, newSecret.name), newSecret);
+      void invalidateAllowanceBuckets(queryClient);
 
       options?.onSuccess?.(...args);
     },
@@ -88,6 +90,7 @@ export function useDeleteSecret(
       const detailKey = secretKeys.detail(projectId, name);
       // Cancel any in-flight queries for detail
       await queryClient.cancelQueries({ queryKey: detailKey });
+      void invalidateAllowanceBuckets(queryClient);
 
       options?.onSuccess?.(...args);
     },

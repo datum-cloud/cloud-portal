@@ -5,6 +5,7 @@ import type {
   UpdateProjectInput,
 } from './project.schema';
 import { createProjectService, projectKeys } from './project.service';
+import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
   useQuery,
@@ -51,6 +52,7 @@ export function useCreateProject(options?: UseMutationOptions<Project, Error, Cr
       queryClient.setQueryData(projectKeys.detail(newProject.name), newProject);
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }
@@ -101,6 +103,7 @@ export function useDeleteProject(options?: UseMutationOptions<void, Error, strin
       await queryClient.cancelQueries({ queryKey: projectKeys.detail(name) });
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
     onSettled: (...args) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
