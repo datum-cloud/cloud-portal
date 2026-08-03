@@ -15,6 +15,7 @@ import {
   TXTRecordField,
 } from './types';
 import { usePreserveTouchedOnSubmit } from '@/components/form/use-preserve-touched-on-submit';
+import { classifyQuotaError, showQuotaExceededToast } from '@/modules/quota';
 import {
   CreateDnsRecordSchema,
   createDnsRecordSchema,
@@ -152,6 +153,12 @@ export function DnsRecordForm({
       onSuccess?.();
       onClose();
     } catch (error: unknown) {
+      // Quota 403s get the quota-aware toast (View quotas / Request increase);
+      // everything else keeps the DNS-specific error formatting.
+      if (classifyQuotaError(error) === 'denied') {
+        showQuotaExceededToast(error, { scope: 'project', projectId });
+        return;
+      }
       const message = error instanceof Error ? error.message : String(error);
       toast.error('DNS Record', {
         description: formatDnsError(message) || `Failed to ${mode} DNS record`,

@@ -4,6 +4,7 @@ import { createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/secret-form-dialog';
+import { QuotaGuard, useResourceQuota } from '@/modules/quota';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -83,6 +84,15 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
     group: '',
     scope: 'project',
     verbs: ['create', 'delete'],
+  });
+
+  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  // Note: the RBAC group for core secrets is '' but the quota resourceType is
+  // core.miloapis.com/secrets — the two gates intentionally use different groups.
+  const secretQuota = useResourceQuota({
+    resource: 'secrets',
+    group: 'core.miloapis.com',
+    scope: 'project',
   });
 
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
@@ -198,28 +208,34 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
               label: 'Add secret',
               onClick: () => secretFormDialogRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              disabled: !canCreate,
-              tooltip: !canCreate ? "You don't have permission to create a secret" : undefined,
+              disabled: !canCreate || secretQuota.denied,
+              // Dual denial: the quota message wins over the permission message.
+              tooltip: secretQuota.denied
+                ? secretQuota.deniedReason
+                : !canCreate
+                  ? "You don't have permission to create a secret"
+                  : undefined,
             },
           ],
         }}
         actions={[
-          <PermissionButton
-            key="add-secret"
-            resource="secrets"
-            verb="create"
-            group=""
-            scope="project"
-            deniedReason="You don't have permission to create a secret"
-            type="primary"
-            theme="solid"
-            size="small"
-            className="w-full sm:w-auto"
-            data-e2e="create-secret-button"
-            onClick={() => secretFormDialogRef.current?.show()}>
-            <Icon icon={PlusIcon} className="size-4" />
-            Add secret
-          </PermissionButton>,
+          <QuotaGuard key="add-secret" resource="secrets" group="core.miloapis.com" scope="project">
+            <PermissionButton
+              resource="secrets"
+              verb="create"
+              group=""
+              scope="project"
+              deniedReason="You don't have permission to create a secret"
+              type="primary"
+              theme="solid"
+              size="small"
+              className="w-full sm:w-auto"
+              data-e2e="create-secret-button"
+              onClick={() => secretFormDialogRef.current?.show()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Add secret
+            </PermissionButton>
+          </QuotaGuard>,
         ]}
       />
       <SecretFormDialog ref={secretFormDialogRef} />

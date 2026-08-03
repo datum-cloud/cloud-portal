@@ -2,6 +2,12 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
 import { NoteCard } from '@/components/note-card/note-card';
+import {
+  QuotaGuard,
+  classifyQuotaError,
+  showQuotaExceededToast,
+  useResourceQuota,
+} from '@/modules/quota';
 import { PermissionButton, useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -124,6 +130,15 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
     verbs: ['create'],
   });
 
+  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  const projectQuota = useResourceQuota({
+    resource: 'projects',
+    group: 'resourcemanager.miloapis.com',
+    scope: 'org',
+  });
+  const projectQuotaDenied = projectQuota.denied;
+  const projectQuotaReason = projectQuota.deniedReason;
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [openDialog, setOpenDialog] = useState(false);
 
@@ -197,6 +212,11 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
           ctx.setResult(readyProject);
           ctx.succeed();
         } catch (error) {
+          // The task-queue summary only shows a generic failure line — surface the
+          // quota recovery toast (view quotas / request increase) for quota denials.
+          if (classifyQuotaError(error) === 'denied') {
+            showQuotaExceededToast(error, { scope: 'org', orgId: orgId as string });
+          }
           failureMessage = error instanceof Error ? error.message : 'Project creation failed';
           throw error;
         }
@@ -260,23 +280,25 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
             <CardList.Header
               title="Projects"
               actions={
-                <PermissionButton
-                  resource="projects"
-                  verb="create"
-                  group="resourcemanager.miloapis.com"
-                  scope="org"
-                  namespace={buildOrganizationNamespace(orgId)}
-                  deniedReason="You don't have permission to create projects in this organization"
-                  htmlType="button"
-                  onClick={() => setOpenDialog(true)}
-                  type="primary"
-                  theme="solid"
-                  size="small"
-                  data-e2e="create-project-button"
-                  className="w-full sm:w-auto"
-                  icon={<Icon icon={PlusIcon} className="size-4" />}>
-                  Create project
-                </PermissionButton>
+                <QuotaGuard resource="projects" group="resourcemanager.miloapis.com" scope="org">
+                  <PermissionButton
+                    resource="projects"
+                    verb="create"
+                    group="resourcemanager.miloapis.com"
+                    scope="org"
+                    namespace={buildOrganizationNamespace(orgId)}
+                    deniedReason="You don't have permission to create projects in this organization"
+                    htmlType="button"
+                    onClick={() => setOpenDialog(true)}
+                    type="primary"
+                    theme="solid"
+                    size="small"
+                    data-e2e="create-project-button"
+                    className="w-full sm:w-auto"
+                    icon={<Icon icon={PlusIcon} className="size-4" />}>
+                    Create project
+                  </PermissionButton>
+                </QuotaGuard>
               }>
               <CardList.Search<Project> placeholder="Search" fields={['displayName', 'name']} />
             </CardList.Header>
@@ -320,6 +342,8 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                       icon: <Icon icon={PlusIcon} className="size-4" />,
                       iconPosition: 'start',
                       variant: 'default',
+                      disabled: projectQuotaDenied,
+                      tooltip: projectQuotaDenied ? projectQuotaReason : undefined,
                     }
                   : undefined
               }

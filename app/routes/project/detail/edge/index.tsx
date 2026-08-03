@@ -8,6 +8,7 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
+import { QuotaGuard, useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions, usePermission, PermissionButton } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -94,6 +95,15 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
     staleTime: 0,
     refetchOnMount: 'always',
   });
+
+  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  const proxyQuota = useResourceQuota({
+    resource: 'httpproxies',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+  });
+  const proxyQuotaDenied = proxyQuota.denied;
+  const proxyQuotaReason = proxyQuota.deniedReason;
 
   useHttpProxiesWatch(projectId);
 
@@ -353,29 +363,39 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
               label: 'New',
               onClick: () => proxyFormRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              disabled: !canCreate,
-              tooltip: !canCreate ? "You don't have permission to create an AI Edge" : undefined,
+              disabled: !canCreate || proxyQuotaDenied,
+              // Dual denial: the quota message wins over the permission message.
+              tooltip: proxyQuotaDenied
+                ? proxyQuotaReason
+                : !canCreate
+                  ? "You don't have permission to create an AI Edge"
+                  : undefined,
             },
           ],
         }}
         actions={[
-          <PermissionButton
+          <QuotaGuard
             key="create-edge"
             resource="httpproxies"
-            verb="create"
             group="networking.datumapis.com"
-            namespace="default"
-            scope="project"
-            deniedReason="You don't have permission to create an AI Edge"
-            type="primary"
-            theme="solid"
-            size="small"
-            className="w-full sm:w-auto"
-            data-e2e="create-ai-edge-button"
-            onClick={() => proxyFormRef.current?.show()}>
-            <Icon icon={PlusIcon} className="size-4" />
-            New
-          </PermissionButton>,
+            scope="project">
+            <PermissionButton
+              resource="httpproxies"
+              verb="create"
+              group="networking.datumapis.com"
+              namespace="default"
+              scope="project"
+              deniedReason="You don't have permission to create an AI Edge"
+              type="primary"
+              theme="solid"
+              size="small"
+              className="w-full sm:w-auto"
+              data-e2e="create-ai-edge-button"
+              onClick={() => proxyFormRef.current?.show()}>
+              <Icon icon={PlusIcon} className="size-4" />
+              New
+            </PermissionButton>
+          </QuotaGuard>,
         ]}
       />
 

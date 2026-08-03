@@ -5,6 +5,7 @@ import {
   type TrafficProtectionMaps,
   type TrafficProtectionView,
 } from './http-proxy.service';
+import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import {
   useQuery,
   useMutation,
@@ -108,6 +109,7 @@ export function useCreateHttpProxy(
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }
@@ -228,6 +230,7 @@ export function useDeleteHttpProxy(
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }

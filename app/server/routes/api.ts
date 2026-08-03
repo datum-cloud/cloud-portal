@@ -29,9 +29,13 @@ export function createApiApp() {
   api.use(
     '*',
     rateLimiter(
-      process.env.NODE_ENV === 'development'
-        ? RateLimitPresets.development
-        : RateLimitPresets.standard
+      // Only production traffic gets the strict limit. Cypress e2e runs the
+      // built server with NODE_ENV=test and can exceed 100 req/min through
+      // normal SPA navigation (permission checks, watch streams, prometheus
+      // polls) — throttling there starves the UI and fails tests on timeouts.
+      process.env.NODE_ENV === 'production'
+        ? RateLimitPresets.standard
+        : RateLimitPresets.development
     )
   );
 

@@ -145,11 +145,23 @@ export class AuthenticationError extends AppError {
 }
 
 export class AuthorizationError extends AppError {
-  constructor(message = 'Permission denied', requestId?: string) {
+  constructor(
+    message = 'Permission denied',
+    requestId?: string,
+    options: {
+      code?: string;
+      originalMessage?: string;
+      k8sReason?: string;
+      k8sDetails?: K8sErrorDetails;
+    } = {}
+  ) {
     super(message, {
-      code: 'AUTHORIZATION_ERROR',
+      code: options.code ?? 'AUTHORIZATION_ERROR',
       status: 403,
       requestId,
+      originalMessage: options.originalMessage,
+      k8sReason: options.k8sReason,
+      k8sDetails: options.k8sDetails,
       captureToSentry: false,
     });
     this.name = 'AuthorizationError';

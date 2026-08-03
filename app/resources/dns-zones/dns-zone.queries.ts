@@ -1,5 +1,6 @@
 import type { DnsZone, CreateDnsZoneInput, UpdateDnsZoneInput } from './dns-zone.schema';
 import { createDnsZoneService, dnsZoneKeys } from './dns-zone.service';
+import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
   useQuery,
@@ -63,6 +64,7 @@ export function useCreateDnsZone(
       queryClient.setQueryData(dnsZoneKeys.detail(projectId, newDnsZone.name), newDnsZone);
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }
@@ -109,6 +111,7 @@ export function useDeleteDnsZone(
       queryClient.removeQueries({ queryKey: dnsZoneKeys.detail(projectId, name) });
 
       options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
     },
   });
 }

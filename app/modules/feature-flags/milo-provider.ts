@@ -138,7 +138,7 @@ export class MiloFeatureFlagProvider implements Provider {
 
 const BOOLEAN_ONLY_MESSAGE = 'milo feature flags are boolean entitlements; use getBooleanValue';
 
-function isAvailable(available: unknown): boolean {
+export function isAvailable(available: unknown): boolean {
   if (available === undefined || available === null) return false;
   try {
     return BigInt(available as string | number | bigint) > 0n;
