@@ -27,6 +27,7 @@
     "test:feature-flags": "bun test app/modules/feature-flags",
     "test:lib": "bun test app/lib",
     "test:rbac": "bun test app/modules/rbac",
+    "test:quota": "bun test app/modules/quota app/resources/allowance-buckets app/server/observability",
     "test:coverage": "bun test --coverage"
   },
   "dependencies": {

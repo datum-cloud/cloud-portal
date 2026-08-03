@@ -1,5 +1,5 @@
 /// <reference types="bun-types/test" />
-import { MiloFeatureFlagProvider, type OrgBucketLister } from './milo-provider';
+import { MiloFeatureFlagProvider, isAvailable, type OrgBucketLister } from './milo-provider';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import { ErrorCode } from '@openfeature/server-sdk';
 import { describe, expect, mock, test } from 'bun:test';
@@ -7,14 +7,16 @@ import { describe, expect, mock, test } from 'bun:test';
 const FLAG = 'billing.miloapis.com/cloud-portal-usage-metering-dashboard';
 const ORG = 'acme';
 
-function bucket(resourceType: string, available: bigint | number): AllowanceBucket {
+function bucket(resourceType: string, available: number): AllowanceBucket {
+  // Valid domain-shaped fixture — the adapter only ever emits complete numeric
+  // statuses; isAvailable's defensive bigint/string paths are tested directly below.
   return {
     uid: `uid-${resourceType}`,
     name: `bucket-${resourceType}`,
     namespace: `organization-${ORG}`,
     resourceType,
-    status: { available, allocated: 0n, claimCount: 0 },
-  } as AllowanceBucket;
+    status: { limit: 25, allocated: 25 - available, available, claimCount: 0 },
+  };
 }
 
 function mockLister(impl: (org: string) => Promise<AllowanceBucket[]>): {
@@ -27,7 +29,7 @@ function mockLister(impl: (org: string) => Promise<AllowanceBucket[]>): {
 
 describe('MiloFeatureFlagProvider', () => {
   test('returns true / TARGETING_MATCH when bucket has available > 0', async () => {
-    const { service } = mockLister(async () => [bucket(FLAG, 1n)]);
+    const { service } = mockLister(async () => [bucket(FLAG, 1)]);
     const provider = new MiloFeatureFlagProvider({ bucketService: service });
 
     const result = await provider.resolveBooleanEvaluation(FLAG, false, { targetingKey: ORG });
@@ -47,7 +49,7 @@ describe('MiloFeatureFlagProvider', () => {
   });
 
   test('returns false / TARGETING_MATCH when bucket exists but available is 0', async () => {
-    const { service } = mockLister(async () => [bucket(FLAG, 0n)]);
+    const { service } = mockLister(async () => [bucket(FLAG, 0)]);
     const provider = new MiloFeatureFlagProvider({ bucketService: service });
 
     const result = await provider.resolveBooleanEvaluation(FLAG, true, { targetingKey: ORG });
@@ -57,7 +59,7 @@ describe('MiloFeatureFlagProvider', () => {
   });
 
   test('caches per-org bucket list across flag evaluations within TTL', async () => {
-    const { service, list } = mockLister(async () => [bucket(FLAG, 1n), bucket('other/flag', 1n)]);
+    const { service, list } = mockLister(async () => [bucket(FLAG, 1), bucket('other/flag', 1)]);
     const provider = new MiloFeatureFlagProvider({ bucketService: service, ttlMs: 5_000 });
 
     await provider.resolveBooleanEvaluation(FLAG, false, { targetingKey: ORG });
@@ -69,7 +71,7 @@ describe('MiloFeatureFlagProvider', () => {
 
   test('refetches after TTL expires', async () => {
     let now = 1_000;
-    const { service, list } = mockLister(async () => [bucket(FLAG, 1n)]);
+    const { service, list } = mockLister(async () => [bucket(FLAG, 1)]);
     const provider = new MiloFeatureFlagProvider({
       bucketService: service,
       ttlMs: 5_000,
@@ -101,7 +103,7 @@ describe('MiloFeatureFlagProvider', () => {
     const lister = mock(async () => {
       calls++;
       if (calls === 1) throw new Error('transient');
-      return [bucket(FLAG, 1n)];
+      return [bucket(FLAG, 1)];
     });
     const provider = new MiloFeatureFlagProvider({
       bucketService: { list: lister } as unknown as OrgBucketLister,
@@ -133,5 +135,20 @@ describe('MiloFeatureFlagProvider', () => {
     await expect(provider.resolveStringEvaluation('x')).rejects.toThrow(/boolean/);
     await expect(provider.resolveNumberEvaluation('x')).rejects.toThrow(/boolean/);
     await expect(provider.resolveObjectEvaluation('x')).rejects.toThrow(/boolean/);
+  });
+});
+
+describe('isAvailable', () => {
+  test('accepts bigint, number, and numeric-string inputs defensively', () => {
+    expect(isAvailable(1n)).toBe(true);
+    expect(isAvailable(0n)).toBe(false);
+    expect(isAvailable(2)).toBe(true);
+    expect(isAvailable('3')).toBe(true);
+    expect(isAvailable('0')).toBe(false);
+  });
+  test('rejects null, undefined, and non-numeric garbage', () => {
+    expect(isAvailable(undefined)).toBe(false);
+    expect(isAvailable(null)).toBe(false);
+    expect(isAvailable('abc')).toBe(false);
   });
 });
