@@ -146,7 +146,54 @@ bun run typecheck
 This runs:
 
 1. `react-router typegen` - Generate route types
-2. `tsc` - TypeScript compiler
+2. `./node_modules/typescript-native/bin/tsc` - the native TypeScript 7 compiler
+
+### Native Compiler (`typescript-native`)
+
+Two TypeScript packages are installed side by side:
+
+| devDependency      | Resolves to                        | Used for                                                            |
+| ------------------- | ----------------------------------- | --------------------------------------------------------------------- |
+| `typescript`         | real `typescript@^6.0.3` (classic)  | `typescript-eslint` and editor/language-server integrations           |
+| `typescript-native`  | `npm:typescript@^7.0.2` (native, Go) | `bun run typecheck` and the Lefthook pre-commit `typecheck` hook       |
+
+`typescript` stays on 6.x deliberately: `typescript-eslint` (and VS Code's
+built-in TypeScript language server) need the classic JS compiler API, which
+TypeScript 7 removed. `typescript-native` gives us the ~5x faster native `tsc`
+for the type-check gate without touching that API surface.
+
+**Both packages declare a `tsc` (and `tsserver`) bin**, so
+`node_modules/.bin/tsc` and `bunx tsc` are **nondeterministic** — they resolve
+to whichever package happened to install its bin symlink last, not
+necessarily the one you want. Never call `tsc` or `bunx tsc` bare. Always use
+an explicit path:
+
+```bash
+./node_modules/typescript-native/bin/tsc   # fast native 7.x compiler
+./node_modules/typescript/bin/tsc          # classic 6.x compiler
+```
+
+This is why `package.json`'s `typecheck` script and `lefthook.yml`'s
+`typecheck` hook both call `./node_modules/typescript-native/bin/tsc`
+explicitly instead of plain `tsc`.
+
+**Why not Microsoft's official dual-alias pattern** (`typescript: npm:@typescript/typescript6@^6.x` + `@typescript/native: npm:typescript@^7.x`)?
+That's the pattern Microsoft documents for this transition, but it hits a
+reproducible Bun 1.3.14 bug: the `@typescript/typescript6` shim's own nested
+dependency (`@typescript/old: npm:typescript@^6`, meant to point at the real
+classic compiler) gets resolved by Bun back to the shim itself, in a circular
+loop. The practical effect: `require('typescript')` returns an empty object
+and the `tsc6` fallback binary silently no-ops on every invocation. See the
+"Record: the Bun bug (minimal repro)" section in PR
+[#1401](https://github.com/datum-cloud/cloud-portal/pull/1401) for the full
+repro (reproduced in an isolated scratch project, independent of this repo's
+other dependencies). The two-separate-packages setup above sidesteps the bug
+entirely by never aliasing `typescript` itself.
+
+**Collapse plan:** once `typescript-eslint` supports the TypeScript 7.1 API
+(tracked for ~Oct 2026), drop `typescript-native` and move `typescript` to
+`^7.1` directly. Optional in the meantime: install the "TypeScript (Native
+Preview)" VS Code extension for a faster native editor LSP.
 
 ### Strict Mode Rules
 
