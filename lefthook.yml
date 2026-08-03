@@ -11,5 +11,5 @@ pre-commit:
       auto_add: true
     typecheck:
       glob: '*.{ts,tsx}'
-      run: bunx tsc --noEmit
+      run: ./node_modules/typescript-native/bin/tsc --noEmit
       stage_fixed: false
