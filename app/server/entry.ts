@@ -1,4 +1,5 @@
 import { initializeObservability } from '../../observability';
+import { cspNonceContext, loggerContext, requestIdContext, sessionContext } from './context';
 import { sessionMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error-handler';
 import { loggerMiddleware } from './middleware/logger';
@@ -8,15 +9,13 @@ import type { Variables } from './types';
 // Configure all @hey-api generated clients to use server axios instance
 // This allows generated OpenAPI functions to work on server-side
 // Token and requestId will be auto-injected via AsyncLocalStorage
-import '@/modules/control-plane/setup.server';
+import { configureServerClient } from '@/modules/control-plane/setup.server';
 import { ensureFeatureFlagProvider } from '@/modules/feature-flags/setup.server';
 import { Logger } from '@/modules/logger';
 import { initPluginRegistry } from '@/modules/plugins/server';
 import { createDevSessionRoutes, isDevSessionEnabled } from '@/modules/plugins/server/dev-session';
 import { createPluginRoutes } from '@/modules/plugins/server/routes';
-// Side-effect import: registers RBAC prom-client metrics into the global registry
-// at module-load time so they appear on the /metrics endpoint.
-import '@/modules/rbac/observability/metrics';
+import { ensureRbacMetrics } from '@/modules/rbac/observability/metrics';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
 import { watchHub } from '@/server/watch';
@@ -27,6 +26,7 @@ import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { NONCE, secureHeaders } from 'hono/secure-headers';
 import { register } from 'prom-client';
+import { RouterContextProvider } from 'react-router';
 import { createHonoServer } from 'react-router-hono-server/bun';
 
 let isShuttingDown = false;
@@ -45,10 +45,21 @@ sessionManager.registerRefreshHook(({ userId, accessToken }) => {
   watchHub.updateTokensByUserId(userId, accessToken);
 });
 
+// Configure the shared control-plane client at startup. Called explicitly
+// (rather than relying on a bare side-effect import) so `"sideEffects": false`
+// tree-shaking can't drop the registration from the production server bundle.
+configureServerClient();
+
 // Register the OpenFeature provider at startup. Called explicitly (rather than
 // relying on a bare side-effect import) so `"sideEffects": false` tree-shaking
 // can't drop the registration from the production server bundle.
 ensureFeatureFlagProvider();
+
+// Register RBAC prom-client metrics into the global registry so they appear
+// on the /metrics endpoint. Called explicitly (rather than relying on a bare
+// side-effect import) so `"sideEffects": false` tree-shaking can't drop the
+// registration from the production server bundle.
+ensureRbacMetrics();
 
 // Instantiate the plugin registry with the server and wire its dev-only
 // discovery sources (static + kubeconfig). No-op in production builds.
@@ -237,11 +248,12 @@ export default await createHonoServer({
       method: c.req.method,
     });
 
-    return {
-      requestId,
-      cspNonce,
-      session,
-      logger,
-    };
+    const context = new RouterContextProvider();
+    context.set(requestIdContext, requestId);
+    context.set(cspNonceContext, cspNonce);
+    context.set(sessionContext, session);
+    context.set(loggerContext, logger);
+
+    return context;
   },
 });

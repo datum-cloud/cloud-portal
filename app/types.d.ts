@@ -1,25 +1,6 @@
 /* eslint-disable unused-imports/no-unused-vars */
-// Import required types
-import type { Logger } from '@/modules/logger';
-import type { IAccessTokenSession } from '@/utils/auth/auth.types';
-import 'react-router';
-
 // Enable absolute imports from the root directory
 declare module '@/*';
-
-/**
- * Extend the React Router AppLoadContext interface to include our custom properties.
- *
- * Services now use global axios clients configured via AsyncLocalStorage.
- */
-declare module 'react-router' {
-  interface AppLoadContext {
-    requestId: string;
-    cspNonce: string;
-    session: IAccessTokenSession | null;
-    logger?: Logger;
-  }
-}
 
 declare module '@tanstack/table-core' {
   interface ColumnMeta<TData extends RowData, TValue> {

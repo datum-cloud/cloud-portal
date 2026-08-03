@@ -10,6 +10,7 @@ import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
 import { createOrganizationService } from '@/resources/organizations';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
+import { sessionContext } from '@/server/context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
@@ -47,7 +48,7 @@ export const loader = withMiddleware(
     try {
       // Use session from load context (already validated by Hono sessionMiddleware)
       // to avoid redundant getSession call
-      const session = context?.session ?? (await getSession(request)).session;
+      const session = context?.get(sessionContext) ?? (await getSession(request)).session;
 
       // Re-use the user fetched by fraudStatusMiddleware when available,
       // avoiding a second upstream API call on the same request.

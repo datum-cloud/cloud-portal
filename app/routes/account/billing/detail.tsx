@@ -202,9 +202,11 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
   };
 };
 
-export const meta: MetaFunction<typeof loader> = mergeMeta(({ data }) => {
+export const meta: MetaFunction<typeof loader> = mergeMeta(({ loaderData }) => {
   return metaObject(
-    data?.account ? `${getBillingAccountDisplayName(data.account)} · Billing` : 'Billing'
+    loaderData?.account
+      ? `${getBillingAccountDisplayName(loaderData.account)} · Billing`
+      : 'Billing'
   );
 });
 

@@ -1,11 +1,16 @@
-// Configure @hey-api clients before any React code runs
-import '@/modules/control-plane/setup.client';
+import { configureBrowserClient } from '@/modules/control-plane/setup.client';
 import { shouldDropSentryEvent } from '@/modules/sentry/filters';
 import { env } from '@/utils/env';
 import * as Sentry from '@sentry/react-router';
 import { StrictMode, startTransition } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { HydratedRouter } from 'react-router/dom';
+
+// Configure the shared control-plane client before any React code runs.
+// Called explicitly (rather than relying on a bare side-effect import) so
+// `"sideEffects": false` tree-shaking can't drop the registration from the
+// production client bundle.
+configureBrowserClient();
 
 Sentry.init({
   dsn: env.public.sentryDsn ?? '',

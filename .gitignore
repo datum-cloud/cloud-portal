@@ -39,3 +39,4 @@ cypress/results
 # Sample plugin (own package.json/build under examples/sample-plugin)
 examples/sample-plugin/dist/
 examples/sample-plugin/node_modules/
+.vite/

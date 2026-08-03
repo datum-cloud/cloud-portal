@@ -105,7 +105,7 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
   return data({ plugin });
 });
 
-export const meta: MetaFunction<typeof loader> = ({ data: loaderData }) => {
+export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {
   return metaObject(loaderData?.plugin.displayName ?? 'Service');
 };
 

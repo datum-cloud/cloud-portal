@@ -20,3 +20,22 @@ export function recordDenial(resource: string, verb: string): void {
   permissionDeniedTotal.inc({ resource, verb });
   logger.warn('[RBAC] permission denied', { resource, verb });
 }
+
+let initialized = false;
+
+/**
+ * Ensures the RBAC prom-client metrics are registered. Called explicitly
+ * from the server entry (rather than relying on a bare side-effect import)
+ * so `"sideEffects": false` tree-shaking can't drop the registration from
+ * the production server bundle — see app/server/entry.ts.
+ *
+ * The counter is actually created eagerly above via the get-or-create
+ * pattern, so this is a no-op guard that just gives entry.ts a named,
+ * value-importable symbol to call — matching the explicit-init convention
+ * used by configureServerClient / ensureFeatureFlagProvider.
+ */
+export function ensureRbacMetrics(): void {
+  if (initialized) return;
+  initialized = true;
+  void permissionDeniedTotal;
+}
