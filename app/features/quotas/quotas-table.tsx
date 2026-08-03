@@ -1,3 +1,4 @@
+import { buildQuotaIncreaseRequest, isBucketExhausted } from './build-quota-increase-request';
 import { groupQuotas, type QuotaRow } from './quotas-grouping';
 import { resolveResourceDisplayName, resolveServiceDisplayName } from './service-catalog';
 import { sortableHeader, TableSearch } from '@/components/table';
@@ -17,12 +18,9 @@ import { useCallback, useMemo, useState } from 'react';
 
 const NEAR_LIMIT = 90;
 
-const calculateUsage = (usage: { allocated: bigint; limit: bigint }) => {
-  const used =
-    typeof usage.allocated === 'bigint' ? Number(usage.allocated) : (usage.allocated ?? 0);
-  const total = typeof usage.limit === 'bigint' ? Number(usage.limit) : (usage.limit ?? 0);
-  const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
-  return { used, total, percentage };
+const calculateUsage = (usage: { allocated: number; limit: number }) => {
+  const percentage = usage.limit > 0 ? Math.round((usage.allocated / usage.limit) * 100) : 0;
+  return { used: usage.allocated, total: usage.limit, percentage };
 };
 
 const getProgressBarColor = (percentage: number, limit: number) => {
@@ -75,7 +73,7 @@ export const QuotasTable = ({
       .filter((b) => regs[b.resourceType]?.type !== 'Feature')
       .map((b) => {
         const reg = regs[b.resourceType];
-        const { percentage } = calculateUsage(b.status ?? { allocated: 0n, limit: 0n });
+        const { percentage } = calculateUsage(b.status ?? { allocated: 0, limit: 0 });
         return {
           resourceType: b.resourceType,
           displayName: resolveResourceDisplayName(reg?.displayName, b.resourceType),
@@ -93,22 +91,13 @@ export const QuotasTable = ({
 
   const handleRequestIncrease = useCallback(
     (quota: AllowanceBucket) => {
-      const resourceInfo =
-        resourceType === 'organization'
-          ? `- Organization: ${(resource as Organization)?.displayName} (${(resource as Organization)?.name})\n`
-          : `- Project: ${(resource as Project)?.displayName} (${(resource as Project)?.name})\n`;
-
-      openSupportMessage({
-        subject: `Quota increase request: ${quota.resourceType}`,
-        text:
-          `Hello team,\n\n` +
-          `I'd like to request an increase for the "${quota.resourceType}" quota.\n\n` +
-          `Details:\n` +
-          resourceInfo +
-          `- Requested new limit: [please specify]\n` +
-          `- Reason/justification: [brief context, e.g., upcoming workload/traffic]\n\n` +
-          `Thank you!`,
-      });
+      openSupportMessage(
+        buildQuotaIncreaseRequest(quota.resourceType, {
+          scope: resourceType,
+          name: resource?.name,
+          displayName: resource?.displayName,
+        })
+      );
     },
     [resource, resourceType]
   );
@@ -141,7 +130,7 @@ export const QuotasTable = ({
       {
         id: 'usage',
         header: sortableHeader<QuotaTableRow>('Usage'),
-        accessorFn: (row) => calculateUsage(row.bucket.status ?? { allocated: 0n, limit: 0n }).used,
+        accessorFn: (row) => calculateUsage(row.bucket.status ?? { allocated: 0, limit: 0 }).used,
         size: 120,
         cell: ({ row }) => {
           const status = row.original.bucket.status;
@@ -192,7 +181,7 @@ export const QuotasTable = ({
         size: 170,
         enableSorting: false,
         cell: ({ row }) =>
-          row.original.percentage > NEAR_LIMIT ? (
+          row.original.percentage > NEAR_LIMIT || isBucketExhausted(row.original.bucket.status) ? (
             <div className="flex justify-end pr-1">
               <Button
                 type="quaternary"

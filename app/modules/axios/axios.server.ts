@@ -182,6 +182,19 @@ const onResponseError = (error: AxiosError): Promise<never> => {
       throw new AuthenticationError(message || 'Authentication required', requestId);
     }
     case 403: {
+      // K8s Status: keep originalMessage/k8sReason/k8sDetails so quota 403s
+      // remain classifiable (parity with the client interceptor), while
+      // preserving AuthorizationError identity — many callers branch on
+      // `instanceof AuthorizationError` (fraud retry, onboarding loaders,
+      // fan-out skipping, billing degradation).
+      if (parsed) {
+        throw new AuthorizationError(message, requestId, {
+          code: parsed.code,
+          originalMessage: parsed.originalMessage,
+          k8sReason: parsed.k8sReason,
+          k8sDetails: parsed.k8sDetails,
+        });
+      }
       throw new AuthorizationError(message || 'Permission denied', requestId);
     }
     case 404: {
