@@ -1,7 +1,4 @@
-import {
-  httpProxyPatchTouchesResource,
-  toUpdateHttpProxyPayload,
-} from './http-proxy.adapter';
+import { httpProxyPatchTouchesResource, toUpdateHttpProxyPayload } from './http-proxy.adapter';
 import { describe, expect, it } from 'bun:test';
 
 describe('toUpdateHttpProxyPayload', () => {
