@@ -4,7 +4,7 @@ import type { HttpProxy } from '@/resources/http-proxies';
 /** Record types that can be protected with Application Load Balancer (A, AAAA, CNAME, ALIAS). */
 export const ELIGIBLE_PROTECT_RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'ALIAS'] as const;
 
-/** Pure domain predicate: true when the record type is eligible for "Protect with Application Load Balancer". */
+/** Pure domain predicate: true when the record type is eligible for "Protect with ALB". */
 export function isEligibleForProtect(
   type: string
 ): type is (typeof ELIGIBLE_PROTECT_RECORD_TYPES)[number] {

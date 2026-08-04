@@ -197,17 +197,17 @@ describe('RBAC denials — DNS Zones', () => {
     cy.contains("You don't have permission to view this DNS zone.").should('be.visible');
   });
 
-  // CLIENT-side cross-resource gate. The "Protect with Application Load Balancer" button only
+  // CLIENT-side cross-resource gate. The "Protect with ALB" button only
   // renders for rows whose record type is eligible (A/AAAA/CNAME) AND that
   // are not already protected. The shared regression project starts empty,
   // so the row-level button doesn't exist. Skipped until the regression seed
   // creates an eligible DNS record. The cross-resource gate (`httpproxies:create`
   // checked from inside the dns-records page) is exercised by the Application Load Balancer
   // listing test above against the same verb.
-  it.skip('dns-records "Protect with Application Load Balancer" disabled when httpproxies:create denied (requires seed eligible record)', () => {
+  it.skip('dns-records "Protect with ALB" disabled when httpproxies:create denied (requires seed eligible record)', () => {
     interceptSSAR(['httpproxies:create']);
     cy.visit(`/project/${PROJECT}/dns-zones/${ZONE}/dns-records`, { failOnStatusCode: false });
-    cy.contains('button', 'Protect with Application Load Balancer').should('be.disabled');
+    cy.contains('button', 'Protect with ALB').should('be.disabled');
   });
 
   // CLIENT-side gate (`<PermissionGate mode="disable">` wraps the button).

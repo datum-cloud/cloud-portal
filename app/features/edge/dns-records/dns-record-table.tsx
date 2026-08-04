@@ -26,8 +26,8 @@ interface DnsRecordTableBaseProps {
   showStatus?: boolean;
   /** Show table skeleton while the records query is loading */
   loading?: boolean;
-  /** When set (full mode), adds an Application Load Balancer column before TTL with this cell renderer. */
-  renderAiEdgeCell?: (record: IFlattenedDnsRecord) => ReactNode;
+  /** When set (full mode), adds an ALB column before TTL with this cell renderer. */
+  renderAlbCell?: (record: IFlattenedDnsRecord) => ReactNode;
 }
 
 /**
@@ -127,7 +127,7 @@ function useDnsRecordColumns(
   mode: 'compact' | 'full',
   projectId: string,
   showStatus: boolean,
-  renderAiEdgeCell?: (record: IFlattenedDnsRecord) => ReactNode
+  renderAlbCell?: (record: IFlattenedDnsRecord) => ReactNode
 ): ColumnDef<IFlattenedDnsRecord>[] {
   return useMemo(
     () => [
@@ -264,13 +264,13 @@ function useDnsRecordColumns(
           );
         },
       },
-      ...(mode === 'full' && renderAiEdgeCell
+      ...(mode === 'full' && renderAlbCell
         ? [
             {
-              id: 'aiEdge',
-              header: () => <span>Application Load Balancer</span>,
+              id: 'alb',
+              header: () => <span>ALB</span>,
               cell: ({ row }) => (
-                <div className="flex flex-wrap items-center">{renderAiEdgeCell(row.original)}</div>
+                <div className="flex flex-wrap items-center">{renderAlbCell(row.original)}</div>
               ),
               meta: {
                 tooltip: "Protect your origin with Datum's Application Load Balancer",
@@ -293,7 +293,7 @@ function useDnsRecordColumns(
         },
       },
     ],
-    [mode, renderAiEdgeCell, projectId, showStatus]
+    [mode, renderAlbCell, projectId, showStatus]
   );
 }
 
@@ -310,11 +310,11 @@ function useDnsRecordColumns(
  *   `inlineRowId`, `onInlineClose`, `onOpenCreate`, and `onOpenEdit`.
  */
 export function DnsRecordTable(props: DnsRecordTableProps) {
-  const { data, projectId, className, showStatus = true, loading, renderAiEdgeCell } = props;
+  const { data, projectId, className, showStatus = true, loading, renderAlbCell } = props;
   const resolvedMode = props.mode === 'full' ? 'full' : 'compact';
 
   // Hooks must be called unconditionally — resolve mode first, then call once.
-  const baseColumns = useDnsRecordColumns(resolvedMode, projectId, showStatus, renderAiEdgeCell);
+  const baseColumns = useDnsRecordColumns(resolvedMode, projectId, showStatus, renderAlbCell);
   const rowIndexMap = useMemo(() => new Map(data.map((row, i) => [row, i])), [data]);
 
   // Derive type-filter options from the actual data, deduped and sorted by

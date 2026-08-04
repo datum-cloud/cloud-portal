@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import {
-  DnsRecordAiEdgeCell,
+  DnsRecordAlbCell,
   DnsRecordTable,
   getDnsRecordRowId,
   isEligibleForProtect,
@@ -342,7 +342,7 @@ export default function DnsRecordsPage() {
     // Watch will automatically update the list with real-time changes
   };
 
-  const handleProtectWithEdge = async (record: IFlattenedDnsRecord) => {
+  const handleProtectWithAlb = async (record: IFlattenedDnsRecord) => {
     const hostname = getRecordHostname(record.name ?? '', zoneDomain);
     const backendHost = record.value.replace(/\.$/, '');
     const resourceName = generateId(hostname, {
@@ -394,7 +394,7 @@ export default function DnsRecordsPage() {
     }
   };
 
-  const handleRemoveEdge = async (
+  const handleRemoveAlb = async (
     record: IFlattenedDnsRecord,
     callbacks?: { onMutationStart?: () => void }
   ) => {
@@ -466,12 +466,12 @@ export default function DnsRecordsPage() {
         projectId={projectId}
         dnsZoneId={dnsZoneId}
         zoneDomain={zoneDomain}
-        renderAiEdgeCell={(record) => (
-          <DnsRecordAiEdgeCell
+        renderAlbCell={(record) => (
+          <DnsRecordAlbCell
             record={record}
             zoneDomain={zoneDomain}
-            onProtect={handleProtectWithEdge}
-            onRemove={handleRemoveEdge}
+            onProtect={handleProtectWithAlb}
+            onRemove={handleRemoveAlb}
             onViewProxy={(proxyId) =>
               navigate(
                 getPathWithParams(paths.project.detail.proxy.detail.root, {
@@ -537,12 +537,12 @@ export default function DnsRecordsPage() {
             projectId={projectId}
             dnsZoneId={dnsZoneId}
             zoneDomain={zoneDomain}
-            renderAiEdgeCell={(record) => (
-              <DnsRecordAiEdgeCell
+            renderAlbCell={(record) => (
+              <DnsRecordAlbCell
                 record={record}
                 zoneDomain={zoneDomain}
-                onProtect={handleProtectWithEdge}
-                onRemove={handleRemoveEdge}
+                onProtect={handleProtectWithAlb}
+                onRemove={handleRemoveAlb}
                 onViewProxy={(proxyId) =>
                   navigate(
                     getPathWithParams(paths.project.detail.proxy.detail.root, {
