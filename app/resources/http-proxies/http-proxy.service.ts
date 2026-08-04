@@ -255,16 +255,26 @@ export function createHttpProxyService() {
         });
       };
 
-      try {
-        await tryCreate(httpProxyName);
-      } catch (error) {
-        // Same name may already exist for a different targetRef; don't steal it.
-        if (this.getErrorStatus(error) === 409) {
-          await tryCreate(`${httpProxyName}-protection`);
+      const candidates = [
+        httpProxyName,
+        `${httpProxyName}-protection`,
+        `${httpProxyName}-protection-${Date.now().toString(36)}`,
+      ];
+      let lastError: unknown;
+      for (const policyName of candidates) {
+        try {
+          await tryCreate(policyName);
           return;
+        } catch (error) {
+          lastError = error;
+          // Same name may already exist for a different targetRef; don't steal it.
+          if (this.getErrorStatus(error) === 409) {
+            continue;
+          }
+          throw error;
         }
-        throw error;
       }
+      throw lastError;
     },
 
     /** GET a SecurityPolicy by name; returns { data: null } on 404. */
@@ -512,12 +522,21 @@ export function createHttpProxyService() {
         return;
       }
 
-      await patchNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
-        baseURL,
-        path: { namespace: 'default', name: existing.metadata.name },
-        body: { spec: specBody },
-        headers: { 'Content-Type': 'application/merge-patch+json' },
-      });
+      try {
+        await patchNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+          baseURL,
+          path: { namespace: 'default', name: existing.metadata.name },
+          body: { spec: specBody },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+      } catch (error: unknown) {
+        // Race: policy disappeared between find and patch — recreate.
+        if (this.getErrorStatus(error) === 404) {
+          await this.createTrafficProtectionPolicy(projectId, proxyName, mode, paranoiaLevels);
+          return;
+        }
+        throw error;
+      }
     },
 
     /**

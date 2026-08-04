@@ -40,8 +40,9 @@ export function policyAttachesToProxy(
 }
 
 /**
- * Choose one attaching policy for a proxy.
- * Prefer metadata.name === proxyName (portal create convention), else stable name order.
+ * Choose one attaching policy for a proxy when several targetRefs match.
+ * Prefer metadata.name === proxyName (portal create convention), else stable
+ * lexicographic name order. The UI edits only the selected policy.
  */
 export function selectPolicyForProxy<T extends TrafficProtectionPolicyLike>(
   policies: T[],
