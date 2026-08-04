@@ -1,7 +1,7 @@
 import { Outlet } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>AI Edge</span>,
+  breadcrumb: () => <span>ALB</span>,
 };
 
 export default function HttpProxyLayout() {

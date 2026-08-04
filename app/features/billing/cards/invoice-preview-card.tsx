@@ -106,7 +106,7 @@ const SAMPLE_INVOICE_SECTIONS: readonly InvoiceSection[] = [
   {
     title: 'Usage',
     items: [
-      { description: 'AI Edge requests', qty: 1_200_000, amount: 24.0 },
+      { description: 'Application Load Balancer requests', qty: 1_200_000, amount: 24.0 },
       { description: 'Compute (GB-hours)', qty: 5_000, amount: 5.0 },
       { description: 'Bandwidth (GB)', qty: 1_000, amount: 10.0 },
     ],

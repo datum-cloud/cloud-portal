@@ -75,12 +75,12 @@ All other errors propagate through `withLoaderErrors`.
 | `PermissionButton`                        | bare button rendered, toggling only `disabled`                        | Preserves in-flight clicks (#1273)           |
 | `PermissionGate mode="disable"`           | child `disabled` + tooltip "Verifying permissions…"                   |                                              |
 | `PermissionGate mode="hide"`              | renders fallback until check resolves                                 |                                              |
-| Inline perm-driven data (e.g. WAF column) | `<SpinnerIcon size="sm" />` — never show verdict                      | AI Edge `wafPending` pattern                 |
-| `<RestrictedOverlay>` for danger zones    | `<LoaderOverlay />` while loading, then `<RestrictedOverlay>` on deny | AI Edge overview pattern                     |
+| Inline perm-driven data (e.g. WAF column) | `<SpinnerIcon size="sm" />` — never show verdict                      | Application Load Balancer `wafPending` pattern                 |
+| `<RestrictedOverlay>` for danger zones    | `<LoaderOverlay />` while loading, then `<RestrictedOverlay>` on deny | Application Load Balancer overview pattern                     |
 
 The "never show a verdict before resolution" rule is documented in
 `CONVENTIONS.md` and checked at PR review. Sub-resources with
-`staleTime: 0` (per AI Edge WAF) are supported via `useResourcePermissions`'s
+`staleTime: 0` (per Application Load Balancer WAF) are supported via `useResourcePermissions`'s
 per-verb `options`.
 
 ## Cross-resource gating rationale

@@ -43,8 +43,8 @@ const route = defineResourceRoute<HttpProxy[]>({
   type: 'list',
   resource: 'httpproxies',
   restrictedTitle: 'Access restricted',
-  restrictedMessage: "You don't have permission to view AI Edge.",
-  metaTitle: 'AI Edge',
+  restrictedMessage: "You don't have permission to view Application Load Balancer.",
+  metaTitle: 'Application Load Balancer',
   seedCache: ({ data, projectId }) =>
     [[httpProxyKeys.list(projectId), data as HttpProxy[]]] as never,
 });
@@ -148,7 +148,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
 
   const { confirmDelete } = useDeleteProxy(projectId, {
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete AI Edge');
+      toast.error(error.message || 'Failed to delete Application Load Balancer');
     },
   });
 
@@ -160,9 +160,9 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         meta: { className: 'min-w-32' },
         cell: ({ row }) => {
           return (
-            <div data-e2e="ai-edge-card">
+            <div data-e2e="alb-card">
               <Tooltip message={row.original.name || row.original.chosenName}>
-                <span className="font-medium" data-e2e="ai-edge-name">
+                <span className="font-medium" data-e2e="alb-name">
                   {row.original.chosenName || row.original.name}
                 </span>
               </Tooltip>
@@ -344,7 +344,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         columns={columns}
         data={data ?? []}
         loading={isPending}
-        title="AI Edge"
+        title="Application Load Balancer"
         onRowClick={(row) => {
           navigate(
             getPathWithParams(paths.project.detail.proxy.detail.root, {
@@ -356,7 +356,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         description="Give every agent or app a global edge to absorb attacks, interact with the broader internet, and safely route traffic to backend services."
         search="Search"
         empty={{
-          title: "let's add an AI Edge to get you started",
+          title: "let's add an Application Load Balancer to get you started",
           actions: [
             {
               type: 'button',
@@ -368,7 +368,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
               tooltip: proxyQuotaDenied
                 ? proxyQuotaReason
                 : !canCreate
-                  ? "You don't have permission to create an AI Edge"
+                  ? "You don't have permission to create an Application Load Balancer"
                   : undefined,
             },
           ],
@@ -385,12 +385,12 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
               group="networking.datumapis.com"
               namespace="default"
               scope="project"
-              deniedReason="You don't have permission to create an AI Edge"
+              deniedReason="You don't have permission to create an Application Load Balancer"
               type="primary"
               theme="solid"
               size="small"
               className="w-full sm:w-auto"
-              data-e2e="create-ai-edge-button"
+              data-e2e="create-alb-button"
               onClick={() => proxyFormRef.current?.show()}>
               <Icon icon={PlusIcon} className="size-4" />
               New

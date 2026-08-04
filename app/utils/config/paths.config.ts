@@ -111,11 +111,11 @@ export const paths = {
         },
       },
       proxy: {
-        root: '/project/[projectId]/edge',
+        root: '/project/[projectId]/alb',
         detail: {
-          root: '/project/[projectId]/edge/[proxyId]',
-          overview: '/project/[projectId]/edge/[proxyId]/overview',
-          activity: '/project/[projectId]/edge/[proxyId]/activity',
+          root: '/project/[projectId]/alb/[proxyId]',
+          overview: '/project/[projectId]/alb/[proxyId]/overview',
+          activity: '/project/[projectId]/alb/[proxyId]/activity',
         },
       },
       domains: {

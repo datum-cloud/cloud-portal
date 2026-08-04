@@ -26,7 +26,7 @@ interface DnsRecordTableBaseProps {
   showStatus?: boolean;
   /** Show table skeleton while the records query is loading */
   loading?: boolean;
-  /** When set (full mode), adds an AI Edge column before TTL with this cell renderer. */
+  /** When set (full mode), adds an Application Load Balancer column before TTL with this cell renderer. */
   renderAiEdgeCell?: (record: IFlattenedDnsRecord) => ReactNode;
 }
 
@@ -268,12 +268,12 @@ function useDnsRecordColumns(
         ? [
             {
               id: 'aiEdge',
-              header: () => <span>AI Edge</span>,
+              header: () => <span>Application Load Balancer</span>,
               cell: ({ row }) => (
                 <div className="flex flex-wrap items-center">{renderAiEdgeCell(row.original)}</div>
               ),
               meta: {
-                tooltip: "Protect your origin with Datum's AI Edge",
+                tooltip: "Protect your origin with Datum's Application Load Balancer",
               },
               enableSorting: false,
               size: 180,

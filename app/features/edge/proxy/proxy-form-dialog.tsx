@@ -45,7 +45,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         );
       },
       onError: (error) => {
-        showMutationErrorToast(error, { fallbackTitle: 'AI Edge', scope: 'project', projectId });
+        showMutationErrorToast(error, {
+          fallbackTitle: 'Application Load Balancer',
+          scope: 'project',
+          projectId,
+        });
         onError?.(error);
       },
     });
@@ -94,7 +98,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       <Form.Dialog
         open={open}
         onOpenChange={setOpen}
-        title="New AI Edge"
+        title="New Application Load Balancer"
         description="Put your apps, API's, and agents behind a secure, global proxy."
         schema={httpProxySchema}
         defaultValues={defaultValues}
@@ -124,7 +128,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
                     autoFocus
                     placeholder="e.g. Customer API"
                     className="-mb-0.5"
-                    data-e2e="create-ai-edge-name-input"
+                    data-e2e="create-alb-name-input"
                   />
                   <input type="hidden" name="name" value={resourceName} />
                 </div>

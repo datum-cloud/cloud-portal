@@ -23,7 +23,7 @@ export interface DnsRecordAiEdgeCellProps {
 }
 
 /**
- * Renders the AI Edge column cell: Protect / Remove / View button or "DNS only".
+ * Renders the Application Load Balancer column cell: Protect / Remove / View button or "DNS only".
  * Buttons are disabled (no loading spinner) while the action is in progress to avoid layout shift.
  */
 export function DnsRecordAiEdgeCell({
@@ -79,8 +79,8 @@ export function DnsRecordAiEdgeCell({
           onClick={handleProtect}
           icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
           iconPosition="left"
-          deniedReason="You don't have permission to create AI Edge">
-          Protect with AI Edge
+          deniedReason="You don't have permission to create Application Load Balancer">
+          Protect with Application Load Balancer
         </PermissionButton>
       </QuotaGuard>
     );
@@ -111,8 +111,8 @@ export function DnsRecordAiEdgeCell({
         onClick={handleRemove}
         icon={<Icon icon={ShieldOffIcon} className="size-3.5 shrink-0" />}
         iconPosition="left"
-        deniedReason="You don't have permission to edit AI Edge">
-        Remove AI Edge
+        deniedReason="You don't have permission to edit Application Load Balancer">
+        Remove Application Load Balancer
       </PermissionButton>
     );
   }
@@ -127,7 +127,7 @@ export function DnsRecordAiEdgeCell({
         onClick={() => onViewProxy(record.gatewaySourceName!)}
         icon={<Icon icon={EyeIcon} className="size-3.5 shrink-0" />}
         iconPosition="left">
-        View AI Edge
+        View Application Load Balancer
       </Button>
     );
   }

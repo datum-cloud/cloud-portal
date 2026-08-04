@@ -68,13 +68,13 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
             ? { blocking: data.paranoiaLevelBlocking, detection: data.paranoiaLevelBlocking }
             : undefined,
         });
-        toast.success('AI Edge', {
+        toast.success('Application Load Balancer', {
           description: 'Protection configuration has been updated successfully',
         });
         setOpen(false);
         onSuccess?.();
       } catch (error) {
-        toast.error('AI Edge', {
+        toast.error('Application Load Balancer', {
           description: (error as Error).message || 'Failed to update Protection configuration',
         });
         onError?.(error as Error);
@@ -86,7 +86,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
         const confirmed = await confirm({
           title: 'Remove protection',
           description:
-            'This will remove WAF protection from this AI Edge. Traffic will no longer be inspected for common web attacks.',
+            'This will remove WAF protection from this Application Load Balancer. Traffic will no longer be inspected for common web attacks.',
           submitText: 'Remove',
           cancelText: 'Cancel',
           variant: 'destructive',
@@ -95,14 +95,14 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
           },
         });
         if (confirmed) {
-          toast.success('AI Edge', {
+          toast.success('Application Load Balancer', {
             description: 'Protection has been removed',
           });
           setOpen(false);
           onSuccess?.();
         }
       } catch (error) {
-        toast.error('AI Edge', {
+        toast.error('Application Load Balancer', {
           description: (error as Error).message || 'Failed to remove protection',
         });
         onError?.(error as Error);

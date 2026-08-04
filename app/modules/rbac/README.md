@@ -171,7 +171,7 @@ When a button on resource A triggers a mutation on resource B, gate it
 against B — not against A.
 
 ```tsx
-// Inside a DNS records page, "Protect with AI Edge" creates an HTTP proxy.
+// Inside a DNS records page, "Protect with Application Load Balancer" creates an HTTP proxy.
 // Gate by httpproxies:create, not dnsrecordsets:patch.
 <PermissionButton
   resource="httpproxies"
@@ -179,7 +179,7 @@ against B — not against A.
   group="networking.datumapis.com"
   scope="project"
   onClick={protectWithEdge}>
-  Protect with AI Edge
+  Protect with Application Load Balancer
 </PermissionButton>
 ```
 
