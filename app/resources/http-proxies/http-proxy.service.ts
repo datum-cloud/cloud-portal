@@ -578,10 +578,14 @@ export function createHttpProxyService() {
       try {
         const payload = toUpdateHttpProxyPayload(input, options?.currentProxy);
         const touchesProxy = httpProxyPatchTouchesResource(payload);
+        const touchesWaf =
+          !!input.removeTrafficProtection ||
+          input.trafficProtectionMode !== undefined ||
+          input.paranoiaLevels !== undefined;
 
         let httpProxy: HttpProxy;
 
-        if (touchesProxy || options?.dryRun) {
+        if (touchesProxy) {
           const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
             baseURL: getProjectScopedBase(projectId),
             path: { namespace: 'default', name },
@@ -608,6 +612,9 @@ export function createHttpProxyService() {
           // Protection / basic-auth only: skip the empty HTTPProxy merge-patch
           // ({apiVersion,kind}) that otherwise returns 200 with no object change.
           httpProxy = options?.currentProxy ?? (await this.fetchOne(projectId, name));
+          if (options?.dryRun) {
+            return httpProxy;
+          }
         }
 
         // If WAF should be removed, delete the TrafficProtectionPolicy.
@@ -640,7 +647,11 @@ export function createHttpProxyService() {
               `${SERVICE_NAME}.updateTrafficProtectionPolicyMode failed`,
               policyError as Error
             );
-            // Don't fail the proxy update if WAF update fails
+            // When the only write was WAF, surface the failure. If the proxy
+            // patch already succeeded, keep the prior soft-fail behavior.
+            if (!touchesProxy && touchesWaf) {
+              throw mapApiError(policyError);
+            }
           }
         }
 
