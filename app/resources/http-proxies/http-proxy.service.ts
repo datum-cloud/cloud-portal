@@ -13,6 +13,7 @@ import {
   toTrafficProtectionModeMap,
   toParanoiaLevelsMap,
 } from './http-proxy.adapter';
+import { policyAttachesToProxy, selectPolicyForProxy } from './http-proxy.waf-attach';
 import type {
   HttpProxy,
   CreateHttpProxyInput,
@@ -33,6 +34,7 @@ import {
   deleteNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
   type ComDatumapisNetworkingV1AlphaHttpProxyList,
   type ComDatumapisNetworkingV1AlphaHttpProxy,
+  type ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy,
   type ListNetworkingDatumapisComV1AlphaNamespacedHttpProxyData,
 } from '@/modules/control-plane/networking';
 import { client } from '@/modules/control-plane/shared/client.gen';
@@ -61,6 +63,8 @@ export const httpProxyKeys = {
 export interface TrafficProtectionView {
   mode?: TrafficProtectionMode;
   paranoiaLevels?: { blocking?: number; detection?: number };
+  /** Actual policy object name when it differs from the proxy name. */
+  policyName?: string;
 }
 export interface TrafficProtectionMaps {
   modeByName: Map<string, TrafficProtectionMode>;
@@ -163,30 +167,68 @@ export function createHttpProxyService() {
     },
 
     /**
+     * List TrafficProtectionPolicies in the project namespace.
+     */
+    async listTrafficProtectionPolicyItems(
+      projectId: string
+    ): Promise<ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy[]> {
+      const baseURL = getProjectScopedBase(projectId);
+      const response = await listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+        baseURL,
+        path: { namespace: 'default' },
+      });
+      return response.data?.items ?? [];
+    },
+
+    /**
+     * Resolve the TrafficProtectionPolicy attached to a proxy via targetRefs
+     * (Gateway or HTTPRoute named like the proxy). Same-name GET is only a fast
+     * path when that object actually attaches.
+     */
+    async findTrafficProtectionPolicyForProxy(
+      projectId: string,
+      proxyName: string
+    ): Promise<ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy | undefined> {
+      const baseURL = getProjectScopedBase(projectId);
+      try {
+        const response = await readNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+          baseURL,
+          path: { namespace: 'default', name: proxyName },
+        });
+        if (response.data && policyAttachesToProxy(response.data, proxyName)) {
+          return response.data;
+        }
+      } catch (error) {
+        if (this.getErrorStatus(error) !== 404) {
+          throw error;
+        }
+      }
+
+      const items = await this.listTrafficProtectionPolicyItems(projectId);
+      return selectPolicyForProxy(items, proxyName);
+    },
+
+    /**
      * Read a single proxy's WAF (TrafficProtectionPolicy) view. Decoupled from the
-     * proxy fetch so it can be gated behind view permission. A genuine 404 (no
-     * policy) resolves to an empty view; other errors are surfaced so callers can
-     * distinguish "couldn't read WAF" (show "—") from "no WAF policy" ("Disabled").
+     * proxy fetch so it can be gated behind view permission. A genuine miss (no
+     * attaching policy) resolves to an empty view; other errors are surfaced so
+     * callers can distinguish "couldn't read WAF" (show "—") from "no WAF policy".
      */
     async getTrafficProtectionPolicy(
       projectId: string,
       name: string
     ): Promise<TrafficProtectionView> {
       try {
-        const baseURL = getProjectScopedBase(projectId);
-        const response = await readNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
-          baseURL,
-          path: { namespace: 'default', name },
-        });
-        return {
-          mode: getTrafficProtectionMode(response.data),
-          paranoiaLevels: getParanoiaLevels(response.data),
-        };
-      } catch (error) {
-        // No policy for this proxy is a normal "WAF disabled" state, not an error.
-        if (this.getErrorStatus(error) === 404) {
+        const policy = await this.findTrafficProtectionPolicyForProxy(projectId, name);
+        if (!policy) {
           return { mode: undefined, paranoiaLevels: undefined };
         }
+        return {
+          mode: getTrafficProtectionMode(policy),
+          paranoiaLevels: getParanoiaLevels(policy),
+          policyName: policy.metadata?.name,
+        };
+      } catch (error) {
         logger.error(`${SERVICE_NAME}.getTrafficProtectionPolicy failed`, error as Error);
         throw mapApiError(error);
       }
@@ -199,12 +241,30 @@ export function createHttpProxyService() {
       paranoiaLevels?: { blocking?: number; detection?: number }
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
-      const body = toTrafficProtectionPolicyPayload(httpProxyName, mode, paranoiaLevels);
-      await createNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
-        baseURL,
-        path: { namespace: 'default' },
-        body,
-      });
+      const tryCreate = async (policyName: string) => {
+        const body = toTrafficProtectionPolicyPayload(
+          httpProxyName,
+          mode,
+          paranoiaLevels,
+          policyName
+        );
+        await createNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+          baseURL,
+          path: { namespace: 'default' },
+          body,
+        });
+      };
+
+      try {
+        await tryCreate(httpProxyName);
+      } catch (error) {
+        // Same name may already exist for a different targetRef; don't steal it.
+        if (this.getErrorStatus(error) === 409) {
+          await tryCreate(`${httpProxyName}-protection`);
+          return;
+        }
+        throw error;
+      }
     },
 
     /** GET a SecurityPolicy by name; returns { data: null } on 404. */
@@ -386,11 +446,15 @@ export function createHttpProxyService() {
       }
     },
 
-    async deleteTrafficProtectionPolicy(projectId: string, name: string): Promise<void> {
+    async deleteTrafficProtectionPolicy(projectId: string, proxyName: string): Promise<void> {
+      const policy = await this.findTrafficProtectionPolicyForProxy(projectId, proxyName);
+      const policyName = policy?.metadata?.name;
+      if (!policyName) return;
+
       try {
         await deleteNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
           baseURL: getProjectScopedBase(projectId),
-          path: { namespace: 'default', name },
+          path: { namespace: 'default', name: policyName },
         });
       } catch (error: unknown) {
         const status =
@@ -402,7 +466,7 @@ export function createHttpProxyService() {
 
     async updateTrafficProtectionPolicyMode(
       projectId: string,
-      name: string,
+      proxyName: string,
       mode: TrafficProtectionMode,
       paranoiaLevels?: { blocking?: number; detection?: number }
     ): Promise<void> {
@@ -442,20 +506,18 @@ export function createHttpProxyService() {
         ];
       }
 
-      try {
-        await patchNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
-          baseURL,
-          path: { namespace: 'default', name },
-          body: { spec: specBody },
-          headers: { 'Content-Type': 'application/merge-patch+json' },
-        });
-      } catch (error: unknown) {
-        if (this.getErrorStatus(error) === 404) {
-          await this.createTrafficProtectionPolicy(projectId, name, mode, paranoiaLevels);
-        } else {
-          throw error;
-        }
+      const existing = await this.findTrafficProtectionPolicyForProxy(projectId, proxyName);
+      if (!existing?.metadata?.name) {
+        await this.createTrafficProtectionPolicy(projectId, proxyName, mode, paranoiaLevels);
+        return;
       }
+
+      await patchNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
+        baseURL,
+        path: { namespace: 'default', name: existing.metadata.name },
+        body: { spec: specBody },
+        headers: { 'Content-Type': 'application/merge-patch+json' },
+      });
     },
 
     /**

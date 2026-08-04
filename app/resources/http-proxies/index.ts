@@ -60,6 +60,12 @@ export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from '.
 // Utility exports
 export { getParanoiaLevelLabel, formatWafProtectionDisplay } from './http-proxy.utils';
 
+export {
+  policyAttachesToProxy,
+  selectPolicyForProxy,
+  targetRefAttachesToProxy,
+} from './http-proxy.waf-attach';
+
 // Condition constants and helpers for TLS/certificate status (network-services-operator)
 export {
   HTTP_PROXY_CONDITION_CERTIFICATES_READY,
