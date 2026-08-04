@@ -12,9 +12,7 @@ describe('policyAttachesToProxy', () => {
         {
           metadata: { name: 'nowaf-test' },
           spec: {
-            targetRefs: [
-              { group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' },
-            ],
+            targetRefs: [{ group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' }],
           },
         },
         'ws-test'
@@ -26,9 +24,7 @@ describe('policyAttachesToProxy', () => {
         {
           metadata: { name: 'nowaf-test' },
           spec: {
-            targetRefs: [
-              { group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' },
-            ],
+            targetRefs: [{ group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' }],
           },
         },
         'nowaf-test'
@@ -55,18 +51,14 @@ describe('selectPolicyForProxy', () => {
           metadata: { name: 'other' },
           spec: {
             mode: 'Observe',
-            targetRefs: [
-              { group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' },
-            ],
+            targetRefs: [{ group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' }],
           },
         },
         {
           metadata: { name: 'ws-test' },
           spec: {
             mode: 'Enforce',
-            targetRefs: [
-              { group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' },
-            ],
+            targetRefs: [{ group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' }],
           },
         },
       ],
@@ -84,9 +76,7 @@ describe('buildAttachmentMapsFromPolicies', () => {
           metadata: { name: 'nowaf-test' },
           spec: {
             mode: 'Enforce',
-            targetRefs: [
-              { group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' },
-            ],
+            targetRefs: [{ group: 'gateway.networking.k8s.io', kind: 'Gateway', name: 'ws-test' }],
           },
         },
       ],

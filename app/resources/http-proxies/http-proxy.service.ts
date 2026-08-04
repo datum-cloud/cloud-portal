@@ -13,7 +13,6 @@ import {
   toTrafficProtectionModeMap,
   toParanoiaLevelsMap,
 } from './http-proxy.adapter';
-import { policyAttachesToProxy, selectPolicyForProxy } from './http-proxy.waf-attach';
 import type {
   HttpProxy,
   CreateHttpProxyInput,
@@ -21,6 +20,7 @@ import type {
   TrafficProtectionMode,
   BasicAuthUser,
 } from './http-proxy.schema';
+import { policyAttachesToProxy, selectPolicyForProxy } from './http-proxy.waf-attach';
 import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
