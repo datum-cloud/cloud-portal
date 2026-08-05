@@ -21,6 +21,7 @@ function toTrafficProtectionView(
   return {
     mode: getTrafficProtectionMode(raw),
     paranoiaLevels: getParanoiaLevels(raw),
+    policyName: raw.metadata?.name,
     programmed: isTrafficProtectionProgrammed(raw?.status),
     programmedMessage: getTrafficProtectionProgrammedMessage(raw?.status),
     programmedReason: getTrafficProtectionProgrammedReason(raw?.status),
