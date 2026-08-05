@@ -3,6 +3,7 @@ import {
   toHttpProxyList,
   toCreateHttpProxyPayload,
   toUpdateHttpProxyPayload,
+  httpProxyPatchTouchesResource,
   toTrafficProtectionPolicyPayload,
   toSecurityPolicyPayload,
   getTrafficProtectionMode,
@@ -671,30 +672,45 @@ export function createHttpProxyService() {
 
       try {
         const payload = toUpdateHttpProxyPayload(input, options?.currentProxy);
+        const touchesProxy = httpProxyPatchTouchesResource(payload);
+        const touchesWaf =
+          !!input.removeTrafficProtection ||
+          input.trafficProtectionMode !== undefined ||
+          input.paranoiaLevels !== undefined;
 
-        const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
-          baseURL: getProjectScopedBase(projectId),
-          path: { namespace: 'default', name },
-          body: payload,
-          query: {
-            ...(options?.dryRun ? { dryRun: 'All' } : {}),
-            fieldManager: 'datum-cloud-portal',
-          },
-          headers: { 'Content-Type': 'application/merge-patch+json' },
-        });
+        let httpProxy: HttpProxy;
 
-        const data = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+        if (touchesProxy) {
+          const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+            baseURL: getProjectScopedBase(projectId),
+            path: { namespace: 'default', name },
+            body: payload,
+            query: {
+              ...(options?.dryRun ? { dryRun: 'All' } : {}),
+              fieldManager: 'datum-cloud-portal',
+            },
+            headers: { 'Content-Type': 'application/merge-patch+json' },
+          });
 
-        if (!data) {
-          throw new Error('Failed to update HTTP proxy');
+          const data = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+
+          if (!data) {
+            throw new Error('Failed to update HTTP proxy');
+          }
+
+          if (options?.dryRun) {
+            return data;
+          }
+
+          httpProxy = toHttpProxy(data);
+        } else {
+          // Protection / basic-auth only: skip the empty HTTPProxy merge-patch
+          // ({apiVersion,kind}) that otherwise returns 200 with no object change.
+          httpProxy = options?.currentProxy ?? (await this.fetchOne(projectId, name));
+          if (options?.dryRun) {
+            return httpProxy;
+          }
         }
-
-        // Return raw response for dryRun
-        if (options?.dryRun) {
-          return data;
-        }
-
-        const httpProxy = toHttpProxy(data);
 
         // If WAF should be removed, delete the TrafficProtectionPolicy.
         // Must complete before returning so onSuccess/refetch doesn't race with stale data.
@@ -726,7 +742,11 @@ export function createHttpProxyService() {
               `${SERVICE_NAME}.updateTrafficProtectionPolicyMode failed`,
               policyError as Error
             );
-            // Don't fail the proxy update if WAF update fails
+            // When the only write was WAF, surface the failure. If the proxy
+            // patch already succeeded, keep the prior soft-fail behavior.
+            if (!touchesProxy && touchesWaf) {
+              throw mapApiError(policyError);
+            }
           }
         }
 

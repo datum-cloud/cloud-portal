@@ -645,6 +645,21 @@ type BackendRule = {
   }>;
 };
 
+export type HttpProxyUpdatePayload = {
+  kind: string;
+  apiVersion: string;
+  metadata?: { annotations: Record<string, string> };
+  spec?: {
+    hostnames?: string[];
+    rules?: Array<BackendRule | RedirectRule>;
+  };
+};
+
+/** True when the merge-patch would change HTTPProxy metadata or spec. */
+export function httpProxyPatchTouchesResource(payload: HttpProxyUpdatePayload): boolean {
+  return payload.metadata !== undefined || payload.spec !== undefined;
+}
+
 /**
  * Transform UpdateHttpProxyInput to API merge-patch payload.
  *
@@ -656,15 +671,7 @@ type BackendRule = {
 export function toUpdateHttpProxyPayload(
   input: UpdateHttpProxyInput,
   currentProxy?: HttpProxy
-): {
-  kind: string;
-  apiVersion: string;
-  metadata?: { annotations: Record<string, string> };
-  spec?: {
-    hostnames?: string[];
-    rules?: Array<BackendRule | RedirectRule>;
-  };
-} {
+): HttpProxyUpdatePayload {
   const annotations: Record<string, string> = {};
 
   if (input.chosenName !== undefined) {
