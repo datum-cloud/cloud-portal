@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import {
-  DnsRecordAiEdgeCell,
+  DnsRecordAlbCell,
   DnsRecordTable,
   getDnsRecordRowId,
   isEligibleForProtect,
@@ -124,7 +124,7 @@ export default function DnsRecordsPage() {
   // DNS records are a separate, permission-gated resource — a zone viewer may
   // lack dnsrecordsets access. Gate the query/watch behind the SSAR so a
   // missing permission never fires the request. The httpproxies·list check
-  // gates the AI Edge cell enrichment so a viewer without proxy access doesn't
+  // gates the Application Load Balancer cell enrichment so a viewer without proxy access doesn't
   // 403 on the optional `findProxyForRecord` lookup.
   const {
     canList: canListRecords,
@@ -166,7 +166,7 @@ export default function DnsRecordsPage() {
   const isTableLoading =
     isPermissionsLoading || (canListRecords && (isPending || queryData === undefined));
 
-  // AI Edge enrichment is optional — only fetch when the user can list proxies
+  // Application Load Balancer enrichment is optional — only fetch when the user can list proxies
   // (a denied viewer still sees the records table without the linked-proxy cell).
   const { data: proxies = [] } = useHttpProxies(projectId, {
     enabled: canViewProxy,
@@ -183,9 +183,9 @@ export default function DnsRecordsPage() {
       const hasProxyForThisRecord = !!matchingProxy && !record.managedByGateway;
       const linkedProxyId = matchingProxy?.name;
       const lockReason = record.managedByGateway
-        ? 'Managed by AI Edge'
+        ? 'Managed by Application Load Balancer'
         : hasProxyForThisRecord
-          ? 'Protected by AI Edge'
+          ? 'Protected by Application Load Balancer'
           : undefined;
       return {
         ...record,
@@ -245,12 +245,16 @@ export default function DnsRecordsPage() {
         queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
       });
       trackAction(AnalyticsAction.AddProxy);
-      toast.success('AI Edge created', {
+      toast.success('Application Load Balancer created', {
         description: 'DNS will update shortly.',
       });
     },
     onError: (error) =>
-      showMutationErrorToast(error, { fallbackTitle: 'AI Edge', scope: 'project', projectId }),
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const addHostnameToProxyMutation = useMutation({
@@ -283,7 +287,7 @@ export default function DnsRecordsPage() {
         });
       } else {
         trackAction(AnalyticsAction.AddProxy);
-        toast.success('Hostname added to AI Edge', {
+        toast.success('Hostname added to Application Load Balancer', {
           description: variables.hostname
             ? `"${variables.hostname}" was added to an existing proxy. DNS will update shortly.`
             : 'DNS will update shortly.',
@@ -291,7 +295,11 @@ export default function DnsRecordsPage() {
       }
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Failed to add hostname to AI Edge');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Failed to add hostname to Application Load Balancer'
+      );
     },
   });
 
@@ -334,7 +342,7 @@ export default function DnsRecordsPage() {
     // Watch will automatically update the list with real-time changes
   };
 
-  const handleProtectWithEdge = async (record: IFlattenedDnsRecord) => {
+  const handleProtectWithAlb = async (record: IFlattenedDnsRecord) => {
     const hostname = getRecordHostname(record.name ?? '', zoneDomain);
     const backendHost = record.value.replace(/\.$/, '');
     const resourceName = generateId(hostname, {
@@ -357,7 +365,7 @@ export default function DnsRecordsPage() {
         const currentHostnames = existingProxy.hostnames ?? [];
         if (currentHostnames.includes(hostname)) {
           toast.info('Already protected', {
-            description: `"${hostname}" is already on this AI Edge.`,
+            description: `"${hostname}" is already on this Application Load Balancer.`,
           });
           return;
         }
@@ -380,12 +388,13 @@ export default function DnsRecordsPage() {
         });
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to protect with AI Edge';
+      const message =
+        error instanceof Error ? error.message : 'Failed to protect with Application Load Balancer';
       toast.error(message);
     }
   };
 
-  const handleRemoveEdge = async (
+  const handleRemoveAlb = async (
     record: IFlattenedDnsRecord,
     callbacks?: { onMutationStart?: () => void }
   ) => {
@@ -393,12 +402,12 @@ export default function DnsRecordsPage() {
     if (!proxyId) return;
     const hostname = getRecordHostname(record.name ?? '', zoneDomain);
     await confirm({
-      title: 'Remove AI Edge protection',
+      title: 'Remove Application Load Balancer protection',
       description: (
         <span>
-          This will remove <strong>{hostname}</strong> from the AI Edge. Traffic to this hostname
-          will no longer be protected. The AI Edge proxy will be left in place for any other
-          hostnames it serves.
+          This will remove <strong>{hostname}</strong> from the Application Load Balancer. Traffic
+          to this hostname will no longer be protected. The Application Load Balancer proxy will be
+          left in place for any other hostnames it serves.
         </span>
       ),
       submitText: 'Remove',
@@ -418,8 +427,9 @@ export default function DnsRecordsPage() {
           name: proxyId,
           input: { hostnames: newHostnames },
           currentProxy: proxy,
-          removalTitle: 'Hostname removed from AI Edge',
-          removalDescription: 'The AI Edge proxy remains in place. DNS will update shortly.',
+          removalTitle: 'Hostname removed from Application Load Balancer',
+          removalDescription:
+            'The Application Load Balancer proxy remains in place. DNS will update shortly.',
         });
       },
     });
@@ -456,12 +466,12 @@ export default function DnsRecordsPage() {
         projectId={projectId}
         dnsZoneId={dnsZoneId}
         zoneDomain={zoneDomain}
-        renderAiEdgeCell={(record) => (
-          <DnsRecordAiEdgeCell
+        renderAlbCell={(record) => (
+          <DnsRecordAlbCell
             record={record}
             zoneDomain={zoneDomain}
-            onProtect={handleProtectWithEdge}
-            onRemove={handleRemoveEdge}
+            onProtect={handleProtectWithAlb}
+            onRemove={handleRemoveAlb}
             onViewProxy={(proxyId) =>
               navigate(
                 getPathWithParams(paths.project.detail.proxy.detail.root, {
@@ -527,12 +537,12 @@ export default function DnsRecordsPage() {
             projectId={projectId}
             dnsZoneId={dnsZoneId}
             zoneDomain={zoneDomain}
-            renderAiEdgeCell={(record) => (
-              <DnsRecordAiEdgeCell
+            renderAlbCell={(record) => (
+              <DnsRecordAlbCell
                 record={record}
                 zoneDomain={zoneDomain}
-                onProtect={handleProtectWithEdge}
-                onRemove={handleRemoveEdge}
+                onProtect={handleProtectWithAlb}
+                onRemove={handleRemoveAlb}
                 onViewProxy={(proxyId) =>
                   navigate(
                     getPathWithParams(paths.project.detail.proxy.detail.root, {

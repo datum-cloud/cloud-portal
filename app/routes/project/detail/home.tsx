@@ -161,9 +161,11 @@ export default function ProjectHomePage() {
       isLoading: httpProxiesLoading,
       canCreate: canCreateAiEdge,
       illustration: <AIEdgeIllustration variant={hasAiEdge ? 'completed' : 'default'} />,
-      completedTitle: 'AI Edge deployed',
-      pendingTitle: canCreateAiEdge ? 'Deploy an AI Edge' : 'AI Edge',
-      buttonLabel: 'Go to AI Edge',
+      completedTitle: 'Application Load Balancer deployed',
+      pendingTitle: canCreateAiEdge
+        ? 'Deploy an Application Load Balancer'
+        : 'Application Load Balancer',
+      buttonLabel: 'Go to Application Load Balancer',
       viewPath: getPathWithParams(paths.project.detail.proxy.root, { projectId: projectName }),
       createPath: getPathWithParams(
         paths.project.detail.proxy.root,

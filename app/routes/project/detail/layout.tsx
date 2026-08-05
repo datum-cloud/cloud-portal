@@ -148,7 +148,7 @@ function buildProjectNavItems(
         : undefined,
     },
     {
-      title: 'AI Edge',
+      title: 'ALB',
       order: 10,
       href: getPathWithParams(paths.project.detail.proxy.root, { projectId }),
       icon: GaugeIcon,
@@ -343,7 +343,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return new Response(null, { status: 204, headers });
 };
 
-/** Skip re-running the loader when navigating within the same project (e.g. Home → AI Edge → Connectors). */
+/** Skip re-running the loader when navigating within the same project (e.g. Home → Application Load Balancer → Connectors). */
 export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 /**

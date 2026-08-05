@@ -146,7 +146,7 @@ export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
           <div className="flex items-center gap-1.5">
             <span>Default Hostname</span>
             <Tooltip
-              message="The hostname automatically assigned by Datum when your AI Edge is created"
+              message="The hostname automatically assigned by Datum when your Application Load Balancer is created"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon

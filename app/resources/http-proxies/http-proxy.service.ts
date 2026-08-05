@@ -575,7 +575,7 @@ export function createHttpProxyService() {
       const data = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxy;
 
       if (!data) {
-        throw new NotFoundError('AI Edge', name);
+        throw new NotFoundError('Application Load Balancer', name);
       }
 
       const usernames = parseHtpasswdUsernames(secretResponse.data);

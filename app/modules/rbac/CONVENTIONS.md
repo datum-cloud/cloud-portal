@@ -14,7 +14,7 @@ feature code. See `ARCHITECTURE.md` for the underlying model.
 | Conditional render with fallback                                        | `<PermissionGate mode="fallback" fallback={...}>`           | Renders fallback in denied state            |
 | Restricted full page                                                    | `<RestrictedState>` (auto-emitted by `<GuardedPage>` / DSL) | Existing component                          |
 | Restricted section inside an allowed page                               | `<RestrictedOverlay>`                                       | Existing component                          |
-| Restricted column cell (e.g. WAF column)                                | `Tooltip + em-dash badge` per AI Edge listing convention    | Pattern, not a primitive                    |
+| Restricted column cell (e.g. WAF column)                                | `Tooltip + em-dash badge` per Application Load Balancer listing convention    | Pattern, not a primitive                    |
 
 ## Banned patterns
 
@@ -260,7 +260,7 @@ Flag-name rules:
 7. Use `<PermissionButton>` for every button trigger, `<PermissionGate>` for
    every inline edit affordance and conditional render.
 8. Add a Cypress E2E test in `cypress/e2e/rbac/<resource>.cy.ts` pinning the
-   canonical RBAC scenarios (see existing AI Edge / DNS Zones tests in
+   canonical RBAC scenarios (see existing Application Load Balancer / DNS Zones tests in
    sub-projects #2 and #3 for templates).
 
 ## Migrating an existing route

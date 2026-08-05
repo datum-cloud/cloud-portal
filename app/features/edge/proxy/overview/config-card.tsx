@@ -78,7 +78,7 @@ export const HttpProxyConfigCard = ({
                 group="networking.datumapis.com"
                 scope="project"
                 mode="disable"
-                deniedReason="You don't have permission to edit this AI Edge">
+                deniedReason="You don't have permission to edit this Application Load Balancer">
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
@@ -109,7 +109,7 @@ export const HttpProxyConfigCard = ({
                 group="networking.datumapis.com"
                 scope="project"
                 mode="disable"
-                deniedReason="You don't have permission to edit this AI Edge">
+                deniedReason="You don't have permission to edit this Application Load Balancer">
                 <button
                   type="button"
                   className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
@@ -127,7 +127,7 @@ export const HttpProxyConfigCard = ({
           <div className="flex items-center gap-1.5">
             <span>Protection</span>
             <Tooltip
-              message="WAF protection mode and paranoia level applied to this AI Edge"
+              message="WAF protection mode and paranoia level applied to this Application Load Balancer"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon
@@ -225,14 +225,14 @@ export const HttpProxyConfigCard = ({
               group="networking.datumapis.com"
               scope="project"
               mode="disable"
-              deniedReason="You don't have permission to edit this AI Edge">
+              deniedReason="You don't have permission to edit this Application Load Balancer">
               <Switch
                 key={`force-https-${proxy.enableHttpRedirect ?? false}`}
                 checked={proxy.enableHttpRedirect ?? false}
                 disabled={!!proxy.connector}
                 onCheckedChange={(checked) => {
                   if (!checked && proxy.basicAuthEnabled) {
-                    toast.warning('AI Edge', {
+                    toast.warning('Application Load Balancer', {
                       description:
                         'Basic Authentication is enabled. Disabling Force HTTPS will transmit credentials in plaintext.',
                     });
@@ -243,12 +243,12 @@ export const HttpProxyConfigCard = ({
                     },
                     {
                       onSuccess: () => {
-                        toast.success('AI Edge', {
+                        toast.success('Application Load Balancer', {
                           description: `Force HTTPS ${checked ? 'enabled' : 'disabled'}`,
                         });
                       },
                       onError: (error) => {
-                        toast.error('AI Edge', {
+                        toast.error('Application Load Balancer', {
                           description: (error as Error).message || 'Failed to update Force HTTPS',
                         });
                       },
@@ -293,7 +293,7 @@ export const HttpProxyConfigCard = ({
                   group="networking.datumapis.com"
                   scope="project"
                   mode="disable"
-                  deniedReason="You don't have permission to edit this AI Edge">
+                  deniedReason="You don't have permission to edit this Application Load Balancer">
                   <button
                     type="button"
                     className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"

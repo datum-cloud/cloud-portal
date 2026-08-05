@@ -197,7 +197,10 @@ export default route.Page(({ data: loaderData }) => {
         header: 'Requests',
         id: 'requests',
         enableSorting: false,
-        meta: { tooltip: 'Request rate over the last hour (all AI Edges using this connector)' },
+        meta: {
+          tooltip:
+            'Request rate over the last hour (all Application Load Balancers using this connector)',
+        },
         cell: ({ row }) => (
           <ConnectorSparkline
             projectId={projectId}
@@ -207,7 +210,7 @@ export default route.Page(({ data: loaderData }) => {
         ),
       },
       {
-        header: 'AI Edge',
+        header: 'Application Load Balancer',
         id: 'proxies',
         cell: ({ row }) => {
           const proxiesList = row.original.proxies;
@@ -223,7 +226,9 @@ export default route.Page(({ data: loaderData }) => {
                 <PopoverContent
                   align="start"
                   className="max-h-[280px] w-[200px] max-w-[calc(100vw-2rem)] overflow-y-auto p-3">
-                  <p className="text-muted-foreground mb-2 text-xs font-medium">AI Edges</p>
+                  <p className="text-muted-foreground mb-2 text-xs font-medium">
+                    Application Load Balancers
+                  </p>
                   <ul className="space-y-1.5">
                     {proxiesList.map((proxy) => (
                       <li key={proxy.name}>
@@ -264,7 +269,9 @@ export default route.Page(({ data: loaderData }) => {
       {
         header: 'Hostnames',
         id: 'hostnames',
-        meta: { tooltip: 'Verified hostnames configured by AI Edge on this connector' },
+        meta: {
+          tooltip: 'Verified hostnames configured by Application Load Balancer on this connector',
+        },
         cell: ({ row }) => {
           const hostnames = [
             ...new Set(row.original.proxies.flatMap((p) => p.status?.hostnames ?? [])),

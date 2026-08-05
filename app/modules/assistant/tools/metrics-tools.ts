@@ -13,7 +13,7 @@ export function createMetricsTools({ accessToken }: MetricsToolDeps) {
       description:
         'Get live traffic metrics: request rate, error rate, p95 latency, and status-code breakdown.' +
         ' When edgeName is omitted, returns project-wide aggregates plus a per-AI-Edge summary.' +
-        ' When edgeName is provided, returns metrics for that single AI Edge resource.' +
+        ' When edgeName is provided, returns metrics for that single Application Load Balancer resource.' +
         ' Call this when the user asks about traffic, requests, errors, latency, or performance.',
       inputSchema: z.object({
         projectId: z.string().describe('The project k8s name (e.g. "my-project-abc123")'),
@@ -21,7 +21,7 @@ export function createMetricsTools({ accessToken }: MetricsToolDeps) {
           .string()
           .optional()
           .describe(
-            'Optional AI Edge gateway_name to scope metrics to a single resource. Omit for project-wide.'
+            'Optional Application Load Balancer gateway_name to scope metrics to a single resource. Omit for project-wide.'
           ),
         windowMinutes: z
           .number()
@@ -203,7 +203,7 @@ export function createMetricsTools({ accessToken }: MetricsToolDeps) {
           },
           note:
             totalRps === 0
-              ? 'No traffic detected in the selected window — the project may have no active AI Edge traffic.'
+              ? 'No traffic detected in the selected window — the project may have no active Application Load Balancer traffic.'
               : undefined,
         };
 
@@ -265,7 +265,9 @@ export function createMetricsTools({ accessToken }: MetricsToolDeps) {
         edgeName: z
           .string()
           .optional()
-          .describe('Optional AI Edge gateway_name to scope to a single resource.'),
+          .describe(
+            'Optional Application Load Balancer gateway_name to scope to a single resource.'
+          ),
         windowMinutes: z
           .number()
           .int()
@@ -419,8 +421,7 @@ export function createMetricsTools({ accessToken }: MetricsToolDeps) {
 
         // --- Per-edge (project-wide only) ---
         let perEdge:
-          | Array<{ edgeName: string; total: number; outcomes: Record<string, number> }>
-          | undefined;
+          Array<{ edgeName: string; total: number; outcomes: Record<string, number> }> | undefined;
         if (!edgeName) {
           const edgeMap: Record<string, Record<string, number>> = {};
           for (const r of parseInstant(results[6])) {

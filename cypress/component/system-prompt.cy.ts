@@ -77,7 +77,7 @@ describe('buildSystemPrompt', () => {
     const [, dynamic] = buildSystemPrompt('proj-123');
     expect(dynamic.content).to.include('/project/proj-123/domains?action=create');
     expect(dynamic.content).to.include('/project/proj-123/dns-zones?action=create');
-    expect(dynamic.content).to.include('/project/proj-123/edge?action=create');
+    expect(dynamic.content).to.include('/project/proj-123/alb?action=create');
     expect(dynamic.content).to.include('/project/proj-123/secrets');
     expect(dynamic.content).to.include('/project/proj-123/connectors');
     expect(dynamic.content).to.include('/project/proj-123/billing');

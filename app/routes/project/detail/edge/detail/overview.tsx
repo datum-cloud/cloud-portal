@@ -101,7 +101,7 @@ export default function HttpProxyOverviewPage() {
     },
   });
 
-  if (!effectiveProxy) throw new NotFoundError('AI Edge', proxyId);
+  if (!effectiveProxy) throw new NotFoundError('Application Load Balancer', proxyId);
 
   return (
     <MetricsProvider>
@@ -149,18 +149,18 @@ export default function HttpProxyOverviewPage() {
           </Card>
         </Col>
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete AI Edge</h3>
+          <h3 className="mb-4 text-base font-medium">Delete Application Load Balancer</h3>
           <DangerCard
-            deleteText="Delete AI Edge"
+            deleteText="Delete Application Load Balancer"
             loading={isDeleting}
             onDelete={() => confirmDelete(effectiveProxy)}
-            data-e2e="delete-ai-edge-button"
+            data-e2e="delete-alb-button"
             actionHidden={deleteLoading || !canDelete}>
             {deleteLoading ? (
               <LoaderOverlay />
             ) : (
               !canDelete && (
-                <RestrictedOverlay message="You don't have permission to delete this AI Edge" />
+                <RestrictedOverlay message="You don't have permission to delete this Application Load Balancer" />
               )
             )}
           </DangerCard>

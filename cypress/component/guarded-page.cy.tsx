@@ -18,14 +18,16 @@ describe('GuardedPage', () => {
         <GuardedPage
           loaderData={{ restricted: true }}
           restrictedTitle="Access restricted"
-          restrictedMessage="You don't have permission to view this AI Edge.">
+          restrictedMessage="You don't have permission to view this Application Load Balancer.">
           {() => <div data-cy="content">should not render</div>}
         </GuardedPage>
       )
     );
 
     cy.contains('Access restricted').should('be.visible');
-    cy.contains("You don't have permission to view this AI Edge.").should('be.visible');
+    cy.contains("You don't have permission to view this Application Load Balancer.").should(
+      'be.visible'
+    );
     cy.get('[data-cy=content]').should('not.exist');
   });
 

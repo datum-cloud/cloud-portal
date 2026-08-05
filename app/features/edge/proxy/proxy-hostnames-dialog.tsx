@@ -73,13 +73,13 @@ export const ProxyHostnamesConfigDialog = forwardRef<
         // Always send a string: '' clears TLS; omitting would leave the old value.
         tlsHostname: (data.tlsHostname ?? '').trim(),
       });
-      toast.success('AI Edge', {
+      toast.success('Application Load Balancer', {
         description: 'Hostnames and TLS settings have been updated successfully',
       });
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      toast.error('AI Edge', {
+      toast.error('Application Load Balancer', {
         description: (error as Error).message || 'Failed to update hostnames and TLS settings',
       });
       onError?.(error as Error);
@@ -90,8 +90,8 @@ export const ProxyHostnamesConfigDialog = forwardRef<
     <Form.Dialog
       open={open}
       onOpenChange={setOpen}
-      title="Edit AI Edge Hostnames and TLS"
-      description="Configure hostnames and TLS settings for your AI Edge."
+      title="Edit Application Load Balancer Hostnames and TLS"
+      description="Configure hostnames and TLS settings for your Application Load Balancer."
       schema={hostnamesConfigSchema}
       defaultValues={defaultValues}
       onSubmit={handleSubmit}

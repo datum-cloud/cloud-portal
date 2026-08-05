@@ -11,7 +11,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { extractValue } from '@/utils/helpers/dns/flatten.helper';
 import { getDnsRecordTypePriority } from '@/utils/helpers/dns/record-type.helper';
 
-/** Labels set by the Gateway controller when a DNSRecordSet is created for AI Edge (proxy) */
+/** Labels set by the Gateway controller when a DNSRecordSet is created for Application Load Balancer (proxy) */
 const DNS_SOURCE_KIND_LABEL = 'dns.datumapis.com/source-kind';
 const DNS_SOURCE_NAME_LABEL = 'dns.datumapis.com/source-name';
 

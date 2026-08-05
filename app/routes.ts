@@ -125,8 +125,8 @@ export default [
           route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
 
-        // AI Edge
-        route('edge', 'routes/project/detail/edge/layout.tsx', [
+        // Application Load Balancer
+        route('alb', 'routes/project/detail/edge/layout.tsx', [
           index('routes/project/detail/edge/index.tsx'),
 
           route(
@@ -140,6 +140,12 @@ export default [
             ]
           ),
         ]),
+
+        // Legacy /edge → /alb redirects
+        route('edge/*', 'routes/project/detail/alb-legacy-redirect.tsx'),
+        route('edge', 'routes/project/detail/alb-legacy-redirect.tsx', {
+          id: 'alb-legacy-redirect-exact',
+        }),
 
         // Connectors
         route('connectors', 'routes/project/detail/connectors/layout.tsx', [
