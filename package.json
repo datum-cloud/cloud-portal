@@ -91,7 +91,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.21.0",
     "monaco-editor": "^0.56.0",
-    "motion": "^12.40.0",
+    "motion": "^13.0.0",
     "nprogress": "^0.2.0",
     "nuqs": "^2.9.4",
     "prom-client": "^15.1.3",
