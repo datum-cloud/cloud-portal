@@ -26,7 +26,7 @@ export function useDeleteProxy(
       const displayLabel = httpProxy.chosenName || httpProxy.name;
 
       await confirm({
-        title: 'Delete AI Edge',
+        title: 'Delete Application Load Balancer',
         description: (
           <span>
             Are you sure you want to delete&nbsp;
@@ -42,7 +42,7 @@ export function useDeleteProxy(
         alertVariant: 'destructive',
         alertTitle: 'DNS records will be removed',
         alertDescription:
-          'Any DNS records automatically created for this AI Edge will be deleted. If you want to keep them, remove the hostnames from this AI Edge first.',
+          'Any DNS records automatically created for this Application Load Balancer will be deleted. If you want to keep them, remove the hostnames from this Application Load Balancer first.',
         onSubmit: async () => {
           await deleteMutation.mutateAsync(httpProxy.name ?? '');
         },

@@ -47,13 +47,13 @@ export function ProxyHeaderActions({ projectId, proxy }: ProxyHeaderActionsProps
         group="networking.datumapis.com"
         namespace="default"
         scope="project"
-        deniedReason="You don't have permission to delete this AI Edge"
+        deniedReason="You don't have permission to delete this Application Load Balancer"
         type="danger"
         theme="outline"
         size="small"
         loading={isDeleting}
         onClick={() => confirmDelete(effectiveProxy)}
-        aria-label="Delete AI Edge">
+        aria-label="Delete Application Load Balancer">
         <Icon icon={Trash2Icon} size={14} />
         <span className="hidden sm:inline">Delete</span>
       </PermissionButton>

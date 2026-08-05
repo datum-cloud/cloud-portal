@@ -74,13 +74,13 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
           // Always send a string: '' clears TLS; omitting would leave the old value.
           tlsHostname: (data.tlsHostname ?? '').trim(),
         });
-        toast.success('AI Edge', {
+        toast.success('Application Load Balancer', {
           description: 'Origin has been updated successfully',
         });
         setOpen(false);
         onSuccess?.();
       } catch (error) {
-        toast.error('AI Edge', {
+        toast.error('Application Load Balancer', {
           description: (error as Error).message || 'Failed to update origin',
         });
         onError?.(error as Error);
@@ -91,7 +91,7 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
       <Form.Dialog
         open={open}
         onOpenChange={setOpen}
-        title="Edit AI Edge Origin"
+        title="Edit Application Load Balancer Origin"
         description="Update the origin endpoint where your service is running."
         schema={originsConfigSchema}
         defaultValues={defaultValues}

@@ -1,4 +1,4 @@
-export { DnsRecordAiEdgeCell } from './dns-record-ai-edge-cell';
+export { DnsRecordAlbCell } from './dns-record-alb-cell';
 export { DnsRecordTable, getDnsRecordRowId } from './dns-record-table';
 export type { DnsRecordTableProps } from './dns-record-table';
 export { DnsRecordCard } from './dns-record-card';

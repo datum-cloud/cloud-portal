@@ -40,7 +40,7 @@ export function createResourceTools() {
     }),
 
     listHttpProxies: tool({
-      description: 'List all AI edge / HTTP proxy resources in a project',
+      description: 'List all Application Load Balancer / HTTP proxy resources in a project',
       inputSchema: projectIdParam,
       execute: async ({ projectId }: { projectId: string }) => {
         const items = await createHttpProxyService().list(projectId);
@@ -48,7 +48,7 @@ export function createResourceTools() {
           ...rest,
           hostnames: rest.hostnames,
           status: transformControlPlaneStatus(rest.status),
-          url: `/project/${projectId}/edge/${rest.name}`,
+          url: `/project/${projectId}/alb/${rest.name}`,
         }));
       },
     }),
@@ -132,7 +132,7 @@ export function createResourceTools() {
 
     getHttpProxy: tool({
       description:
-        'Get detailed information about a single AI Edge / HTTP proxy including hostnames,' +
+        'Get detailed information about a single Application Load Balancer / HTTP proxy including hostnames,' +
         ' origins, WAF mode, basic auth, and per-hostname status.',
       inputSchema: z.object({
         projectId: z.string().describe('The project k8s name'),
@@ -144,7 +144,7 @@ export function createResourceTools() {
         return {
           ...rest,
           status: transformControlPlaneStatus(rest.status),
-          url: `/project/${projectId}/edge/${rest.name}`,
+          url: `/project/${projectId}/alb/${rest.name}`,
         };
       },
     }),

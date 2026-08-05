@@ -39,7 +39,7 @@ type Case = {
 
 const cases: Case[] = [
   {
-    resource: 'AI Edge',
+    resource: 'Application Load Balancer',
     pathOf: (projectId) =>
       getPathWithParams(paths.project.detail.proxy.detail.root, {
         projectId,

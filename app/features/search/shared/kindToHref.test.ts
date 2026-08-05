@@ -47,7 +47,7 @@ describe('kindToHref', () => {
     const href = kindToHref(hit('HTTPProxy', 'jinja-resource', 'acme-prod'));
     expect(href).not.toBeNull();
     expect(href).toContain('jinja-resource');
-    expect(href).toContain('edge');
+    expect(href).toContain('alb');
   });
 
   it('returns ExportPolicy URL for ExportPolicy kind', () => {

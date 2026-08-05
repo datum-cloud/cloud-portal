@@ -55,7 +55,7 @@ export function kindDisplayName(kind: string): string {
     DNSZone: 'DNS',
     // Labels mirror the project sidebar nav titles so search group headers
     // feel consistent with the rest of the chrome.
-    HTTPProxy: 'AI Edge',
+    HTTPProxy: 'Application Load Balancer',
     ExportPolicy: 'Metrics',
   };
   return map[kind] ?? kind;

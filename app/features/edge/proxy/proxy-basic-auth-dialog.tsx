@@ -103,13 +103,13 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
       try {
         const users: BasicAuthUser[] | undefined = data.enabled ? data.users : undefined;
         await updateMutation.mutateAsync({ basicAuth: { users } });
-        toast.success('AI Edge', {
+        toast.success('Application Load Balancer', {
           description: 'Basic Authentication updated successfully',
         });
         setOpen(false);
         onSuccess?.();
       } catch (error) {
-        toast.error('AI Edge', {
+        toast.error('Application Load Balancer', {
           description: (error as Error).message || 'Failed to update Basic Authentication',
         });
         onError?.(error as Error);
