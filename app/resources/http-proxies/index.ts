@@ -55,10 +55,19 @@ export {
 } from './http-proxy.queries';
 
 // Watch hooks exports
-export { useHttpProxiesWatch, useHttpProxyWatch, waitForHttpProxyReady } from './http-proxy.watch';
+export {
+  useHttpProxiesWatch,
+  useHttpProxyWatch,
+  useTrafficProtectionPolicyWatch,
+  waitForHttpProxyReady,
+} from './http-proxy.watch';
 
 // Utility exports
-export { getParanoiaLevelLabel, formatWafProtectionDisplay } from './http-proxy.utils';
+export {
+  getParanoiaLevelLabel,
+  formatWafProtectionDisplay,
+  formatWafProtectionStatusDisplay,
+} from './http-proxy.utils';
 
 export {
   policyAttachesToProxy,
@@ -66,6 +75,14 @@ export {
   targetRefAttachesToProxy,
 } from './http-proxy.waf-attach';
 
+export {
+  getWafProtectionState,
+  isTrafficProtectionProgrammed,
+  getTrafficProtectionProgrammedMessage,
+  getTrafficProtectionProgrammedReason,
+  formatWafProtectionStatusTooltip,
+  type WafProtectionState,
+} from './http-proxy.waf-status';
 // Condition constants and helpers for TLS/certificate status (network-services-operator)
 export {
   HTTP_PROXY_CONDITION_CERTIFICATES_READY,

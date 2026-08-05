@@ -22,6 +22,11 @@ import type {
 } from './http-proxy.schema';
 import { policyAttachesToProxy, selectPolicyForProxy } from './http-proxy.waf-attach';
 import {
+  getTrafficProtectionProgrammedMessage,
+  getTrafficProtectionProgrammedReason,
+  isTrafficProtectionProgrammed,
+} from './http-proxy.waf-status';
+import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
   readNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
@@ -65,6 +70,12 @@ export interface TrafficProtectionView {
   paranoiaLevels?: { blocking?: number; detection?: number };
   /** Actual policy object name when it differs from the proxy name. */
   policyName?: string;
+  /** True when all ancestors report Accepted+Programmed for the current generation. */
+  programmed?: boolean;
+  /** Programmed condition message while converging (e.g. M/N edges). */
+  programmedMessage?: string;
+  /** Programmed condition reason while not True (Pending / PartialFailure). */
+  programmedReason?: string;
 }
 export interface TrafficProtectionMaps {
   modeByName: Map<string, TrafficProtectionMode>;
@@ -227,6 +238,9 @@ export function createHttpProxyService() {
           mode: getTrafficProtectionMode(policy),
           paranoiaLevels: getParanoiaLevels(policy),
           policyName: policy.metadata?.name,
+          programmed: isTrafficProtectionProgrammed(policy.status),
+          programmedMessage: getTrafficProtectionProgrammedMessage(policy.status),
+          programmedReason: getTrafficProtectionProgrammedReason(policy.status),
         };
       } catch (error) {
         logger.error(`${SERVICE_NAME}.getTrafficProtectionPolicy failed`, error as Error);

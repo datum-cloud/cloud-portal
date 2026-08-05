@@ -15,6 +15,7 @@ import {
   useHttpProxy,
   useHttpProxyWatch,
   useTrafficProtectionPolicy,
+  useTrafficProtectionPolicyWatch,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -78,10 +79,14 @@ export default function HttpProxyOverviewPage() {
     retry: false,
   });
 
-  // Still resolving permission or WAF data (including mount re-validation) — let
-  // the card show a skeleton instead of a possibly-stale verdict.
+  useTrafficProtectionPolicyWatch(projectId, proxyId, { enabled: canViewWaf });
+
+  // Skeleton only while permission or the first WAF fetch is unresolved. Watch
+  // / background refetches update the cache in place and must not flash.
   const wafPending =
-    wafPermLoading || wafPermFetching || (canViewWaf && (wafDataLoading || wafDataFetching));
+    wafPermLoading ||
+    wafPermFetching ||
+    (canViewWaf && waf === undefined && (wafDataLoading || wafDataFetching));
 
   const baseProxy = httpProxy ?? proxy;
   const effectiveProxy = useMemo<HttpProxy | undefined>(
@@ -115,6 +120,9 @@ export default function HttpProxyOverviewPage() {
             projectId={projectId}
             canViewWaf={canViewWaf && !wafError}
             wafPending={wafPending}
+            wafProgrammed={waf?.programmed}
+            wafProgrammedMessage={waf?.programmedMessage}
+            wafProgrammedReason={waf?.programmedReason}
           />
         </Col>
         <Col span={24} lg={12}>
