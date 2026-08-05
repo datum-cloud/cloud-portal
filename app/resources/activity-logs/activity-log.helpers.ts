@@ -163,7 +163,7 @@ function indefiniteArticle(label: string): 'a' | 'an' {
  * @example
  * humanizeAction('create', 'domains') // "Added a Domain"
  * humanizeAction('delete', 'dnszones') // "Deleted a DNS Zone"
- * humanizeAction('create', 'httpproxies') // "Added an AI Edge"
+ * humanizeAction('create', 'httpproxies') // "Added an Application Load Balancer"
  */
 export function humanizeAction(verb: string, resource: string): string {
   const verbText = VERB_PAST_TENSE[verb] || verb.charAt(0).toUpperCase() + verb.slice(1);

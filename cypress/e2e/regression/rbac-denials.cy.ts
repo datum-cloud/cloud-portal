@@ -2,7 +2,7 @@
 
 /**
  * RBAC denial regression — pins deny-side behavior for the three migrated
- * project routes (AI Edge, DNS Zones, Connectors) after the Phase 1
+ * project routes (Application Load Balancer, DNS Zones, Connectors) after the Phase 1
  * `defineResourceRoute` + `useResourcePermissions` + `<PermissionGate>` /
  * `<PermissionButton>` migration.
  *
@@ -98,9 +98,9 @@ const ZONE = 'rbac-denials-zone';
 const PROXY = 'rbac-denials-proxy';
 
 // ---------------------------------------------------------------------------
-// AI Edge
+// Application Load Balancer
 // ---------------------------------------------------------------------------
-describe('RBAC denials — AI Edge', () => {
+describe('RBAC denials — Application Load Balancer', () => {
   beforeEach(() => {
     cy.login();
   });
@@ -111,33 +111,37 @@ describe('RBAC denials — AI Edge', () => {
   // fixture user is wired in CI. See file header.
   it.skip('listing renders RestrictedState when httpproxies:list denied (server-side gate)', () => {
     interceptSSAR(['httpproxies:list']);
-    cy.visit(`/project/${PROJECT}/edge`);
+    cy.visit(`/project/${PROJECT}/alb`);
     cy.contains('Access restricted').should('be.visible');
-    cy.contains("You don't have permission to view AI Edge.").should('be.visible');
+    cy.contains("You don't have permission to view Application Load Balancer.").should(
+      'be.visible'
+    );
   });
 
   // Skipped: depends on a seeded project named `${PROJECT}` (currently a
   // placeholder ID). The project-detail layout loader fetches the project
   // upstream — a real 404 renders the route error boundary (now correctly
   // 404 thanks to `runDetailLoader`'s AppError → Response mapping) and the
-  // AI Edge listing never mounts on the client, so `bulk-check` is never
+  // Application Load Balancer listing never mounts on the client, so `bulk-check` is never
   // fired. Unskip once CI seeds a denied-scope fixture user + project.
   // See file header.
   it.skip('listing disables "New" button when httpproxies:create denied (requires seed project)', () => {
     interceptSSAR(['httpproxies:create']);
-    cy.visit(`/project/${PROJECT}/edge`, { failOnStatusCode: false });
+    cy.visit(`/project/${PROJECT}/alb`, { failOnStatusCode: false });
     cy.wait('@bulkCheck');
-    cy.get('[data-e2e="create-ai-edge-button"]', { timeout: 10000 }).should('be.disabled');
+    cy.get('[data-e2e="create-alb-button"]', { timeout: 10000 }).should('be.disabled');
   });
 
   // SERVER-side gate (detail layout). Skipped — see file header.
   it.skip('detail direct-link renders RestrictedState when httpproxies:get denied (server-side gate)', () => {
     interceptSSAR(['httpproxies:get']);
-    cy.visit(`/project/${PROJECT}/edge/${PROXY}/overview`, { failOnStatusCode: false });
-    cy.contains("You don't have permission to view this AI Edge.").should('be.visible');
+    cy.visit(`/project/${PROJECT}/alb/${PROXY}/overview`, { failOnStatusCode: false });
+    cy.contains("You don't have permission to view this Application Load Balancer.").should(
+      'be.visible'
+    );
   });
 
-  // The row Delete action only renders when there is at least one AI Edge in
+  // The row Delete action only renders when there is at least one Application Load Balancer in
   // the project AND the listing's server-side `httpproxies:list` is allowed.
   // It is hidden via `hidden: () => !canDelete` against the client-side
   // `httpproxies:delete` check. Skipped until the regression seed has a proxy
@@ -145,8 +149,8 @@ describe('RBAC denials — AI Edge', () => {
   // shared project).
   it.skip('row Delete action hidden when httpproxies:delete denied (requires seed proxy)', () => {
     interceptSSAR(['httpproxies:delete']);
-    cy.visit(`/project/${PROJECT}/edge`, { failOnStatusCode: false });
-    cy.get('[data-e2e="ai-edge-card"]')
+    cy.visit(`/project/${PROJECT}/alb`, { failOnStatusCode: false });
+    cy.get('[data-e2e="alb-card"]')
       .first()
       .within(() => {
         cy.get('[role="menuitem"]').contains('Delete').should('not.exist');
@@ -169,7 +173,7 @@ describe('RBAC denials — DNS Zones', () => {
     cy.contains("You don't have permission to view DNS.").should('be.visible');
   });
 
-  // Skipped for the same reason as the AI Edge sibling above — see comment
+  // Skipped for the same reason as the Application Load Balancer sibling above — see comment
   // there. Project-detail loader 404 prevents the DNS Zones listing from
   // mounting, so the client-side `bulk-check` is never fired.
   it.skip('listing disables "Add zone" button when dnszones:create denied (requires seed project)', () => {
@@ -193,17 +197,17 @@ describe('RBAC denials — DNS Zones', () => {
     cy.contains("You don't have permission to view this DNS zone.").should('be.visible');
   });
 
-  // CLIENT-side cross-resource gate. The "Protect with AI Edge" button only
+  // CLIENT-side cross-resource gate. The "Protect with ALB" button only
   // renders for rows whose record type is eligible (A/AAAA/CNAME) AND that
   // are not already protected. The shared regression project starts empty,
   // so the row-level button doesn't exist. Skipped until the regression seed
   // creates an eligible DNS record. The cross-resource gate (`httpproxies:create`
-  // checked from inside the dns-records page) is exercised by the AI Edge
+  // checked from inside the dns-records page) is exercised by the Application Load Balancer
   // listing test above against the same verb.
-  it.skip('dns-records "Protect with AI Edge" disabled when httpproxies:create denied (requires seed eligible record)', () => {
+  it.skip('dns-records "Protect with ALB" disabled when httpproxies:create denied (requires seed eligible record)', () => {
     interceptSSAR(['httpproxies:create']);
     cy.visit(`/project/${PROJECT}/dns-zones/${ZONE}/dns-records`, { failOnStatusCode: false });
-    cy.contains('button', 'Protect with AI Edge').should('be.disabled');
+    cy.contains('button', 'Protect with ALB').should('be.disabled');
   });
 
   // CLIENT-side gate (`<PermissionGate mode="disable">` wraps the button).

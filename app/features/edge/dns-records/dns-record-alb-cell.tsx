@@ -8,31 +8,31 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { EyeIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useState } from 'react';
 
-export interface RemoveEdgeCallbacks {
+export interface RemoveAlbCallbacks {
   /** Called when the user confirms in the dialog (before the mutation runs). Used to disable the button only after confirm. */
   onMutationStart?: () => void;
 }
 
-export interface DnsRecordAiEdgeCellProps {
+export interface DnsRecordAlbCellProps {
   record: IFlattenedDnsRecord;
   zoneDomain: string;
 
   onProtect: (record: IFlattenedDnsRecord) => Promise<void>;
-  onRemove: (record: IFlattenedDnsRecord, callbacks?: RemoveEdgeCallbacks) => Promise<void>;
+  onRemove: (record: IFlattenedDnsRecord, callbacks?: RemoveAlbCallbacks) => Promise<void>;
   onViewProxy: (proxyId: string) => void;
 }
 
 /**
- * Renders the AI Edge column cell: Protect / Remove / View button or "DNS only".
+ * Renders the ALB column cell: Protect / Remove / View button or "DNS only".
  * Buttons are disabled (no loading spinner) while the action is in progress to avoid layout shift.
  */
-export function DnsRecordAiEdgeCell({
+export function DnsRecordAlbCell({
   record,
   zoneDomain: _zoneDomain,
   onProtect,
   onRemove,
   onViewProxy,
-}: DnsRecordAiEdgeCellProps) {
+}: DnsRecordAlbCellProps) {
   const [isProtecting, setIsProtecting] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
 
@@ -79,8 +79,8 @@ export function DnsRecordAiEdgeCell({
           onClick={handleProtect}
           icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
           iconPosition="left"
-          deniedReason="You don't have permission to create AI Edge">
-          Protect with AI Edge
+          deniedReason="You don't have permission to create an Application Load Balancer">
+          Protect with ALB
         </PermissionButton>
       </QuotaGuard>
     );
@@ -111,8 +111,8 @@ export function DnsRecordAiEdgeCell({
         onClick={handleRemove}
         icon={<Icon icon={ShieldOffIcon} className="size-3.5 shrink-0" />}
         iconPosition="left"
-        deniedReason="You don't have permission to edit AI Edge">
-        Remove AI Edge
+        deniedReason="You don't have permission to edit Application Load Balancer">
+        Remove ALB
       </PermissionButton>
     );
   }
@@ -127,7 +127,7 @@ export function DnsRecordAiEdgeCell({
         onClick={() => onViewProxy(record.gatewaySourceName!)}
         icon={<Icon icon={EyeIcon} className="size-3.5 shrink-0" />}
         iconPosition="left">
-        View AI Edge
+        View ALB
       </Button>
     );
   }

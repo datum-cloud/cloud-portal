@@ -14,10 +14,10 @@ const route = defineResourceRoute<HttpProxy>({
   type: 'detail',
   resource: 'httpproxies',
   paramName: 'proxyId',
-  notFoundLabel: 'AI Edge',
+  notFoundLabel: 'Application Load Balancer',
   restrictedTitle: 'Access restricted',
-  restrictedMessage: "You don't have permission to view this AI Edge.",
-  breadcrumb: ({ data }) => <span>{data?.name ?? 'AI Edge'}</span>,
+  restrictedMessage: "You don't have permission to view this Application Load Balancer.",
+  breadcrumb: ({ data }) => <span>{data?.name ?? 'ALB'}</span>,
   metaTitle: ({ data }) => data?.name ?? 'Proxy',
   seedCache: ({ data, projectId, id }) => [[httpProxyKeys.detail(projectId, id), data]] as never,
 });
@@ -28,7 +28,7 @@ export const loader = (args: LoaderFunctionArgs) =>
     group: 'networking.datumapis.com',
     scope: 'project',
     paramName: 'proxyId',
-    notFoundLabel: 'AI Edge',
+    notFoundLabel: 'Application Load Balancer',
     fetch: ({ projectId, id }) => createHttpProxyService().get(projectId!, id),
   });
 export const handle = route.handle;

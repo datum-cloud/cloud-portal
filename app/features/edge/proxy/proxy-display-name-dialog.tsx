@@ -53,13 +53,13 @@ export const ProxyDisplayNameDialog = forwardRef<
       await updateMutation.mutateAsync({
         chosenName: data.chosenName,
       });
-      toast.success('AI Edge', {
+      toast.success('Application Load Balancer', {
         description: 'Name has been updated successfully',
       });
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      toast.error('AI Edge', {
+      toast.error('Application Load Balancer', {
         description: (error as Error).message || 'Failed to update name',
       });
       onError?.(error as Error);
@@ -71,7 +71,7 @@ export const ProxyDisplayNameDialog = forwardRef<
       open={open}
       onOpenChange={setOpen}
       title="Edit Display Name"
-      description="Update the name shown for this AI Edge."
+      description="Update the name shown for this Application Load Balancer."
       schema={displayNameSchema}
       defaultValues={defaultValues}
       onSubmit={handleSubmit}

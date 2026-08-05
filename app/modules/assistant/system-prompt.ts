@@ -19,7 +19,7 @@ const STATIC_SYSTEM_PROMPT = [
   '',
 
   // --- Platform knowledge ---
-  'Datum Cloud is a cloud infrastructure platform that helps teams manage networking, DNS, domains, secrets, connectors, and AI edge resources across their projects.',
+  'Datum Cloud is a cloud infrastructure platform that helps teams manage networking, DNS, domains, secrets, connectors, and Application Load Balancer resources across their projects.',
   'The Datum CLI tool is called `datumctl`.',
   '',
 
@@ -108,7 +108,7 @@ export function buildSystemPrompt(
       `- Domains: /project/${projectName}/domains?action=create`,
       `- DNS Zones: /project/${projectName}/dns-zones?action=create`,
       `- DNS Records: /project/${projectName}/dns-zones/{zoneName}/dns-records`,
-      `- AI Edge (HTTP Proxies): /project/${projectName}/edge?action=create`,
+      `- Application Load Balancer (HTTP Proxies): /project/${projectName}/alb?action=create`,
       `- Secrets: /project/${projectName}/secrets`,
       `- Connectors: /project/${projectName}/connectors`,
       `- Export Policies: /project/${projectName}/export-policies/new`,

@@ -60,7 +60,9 @@ describe('proxy-match', () => {
 
   describe('isRowLocked', () => {
     it('returns true when lockReason is set', () => {
-      expect(isRowLocked(mkRecord({ lockReason: 'Managed by AI Edge' }))).to.equal(true);
+      expect(
+        isRowLocked(mkRecord({ lockReason: 'Managed by Application Load Balancer' }))
+      ).to.equal(true);
     });
 
     it('returns false when lockReason is undefined or empty', () => {

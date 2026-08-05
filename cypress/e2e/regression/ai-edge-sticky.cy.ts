@@ -2,7 +2,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 
 /**
- * Debug spec for the sticky actions column on the AI Edge page.
+ * Debug spec for the sticky actions column on the Application Load Balancer page.
  * Logs computed position/right/z-index/background on the last <th>
  * and last <td> in the first row, then scrolls horizontally and checks
  * the cell's bounding rect stays pinned to the right edge.
@@ -10,7 +10,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Narrow viewport (900px) forces the wide table into horizontal overflow
  * so sticky has a reason to engage.
  */
-describe('AI Edge sticky actions column', () => {
+describe('Application Load Balancer sticky actions column', () => {
   beforeEach(() => {
     cy.viewport(900, 800);
     cy.login();
@@ -20,7 +20,7 @@ describe('AI Edge sticky actions column', () => {
     cy.getProjectId().then((projectId) => {
       cy.visit(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     });
-    cy.get('[data-e2e="ai-edge-card"]').should('have.length.at.least', 1);
+    cy.get('[data-e2e="alb-card"]').should('have.length.at.least', 1);
 
     cy.get('.datum-ui-data-table thead tr th:last-child').then(($th) => {
       const el = $th[0];

@@ -64,11 +64,13 @@ export const ProxyHostHeaderDialog = forwardRef<
   const handleSubmit = async (data: HostHeaderSchema) => {
     try {
       await updateMutation.mutateAsync({ hostHeader: data.hostHeader ?? '' });
-      toast.success('AI Edge', { description: 'Host header updated successfully' });
+      toast.success('Application Load Balancer', {
+        description: 'Host header updated successfully',
+      });
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      toast.error('AI Edge', {
+      toast.error('Application Load Balancer', {
         description: (error as Error).message || 'Failed to update Host header',
       });
       onError?.(error as Error);
