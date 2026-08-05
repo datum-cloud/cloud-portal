@@ -6,6 +6,7 @@ import type {
   BasicAuthUser,
 } from './http-proxy.schema';
 import type { TrafficProtectionMode } from './http-proxy.schema';
+import { buildAttachmentMapsFromPolicies } from './http-proxy.waf-attach';
 import {
   type ComDatumapisNetworkingV1AlphaHttpProxy,
   type ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy,
@@ -270,12 +271,14 @@ export function getBasicAuthState(
 
 /**
  * Build a TrafficProtectionPolicy that targets the Gateway backing the HTTP proxy.
- * Uses OWASP Core Rule Set in Enforce mode. Policy name matches the proxy name for 1:1 lifecycle.
+ * Default policy name matches the proxy name for 1:1 lifecycle; override when that
+ * name is already taken by a policy attached elsewhere.
  */
 export function toTrafficProtectionPolicyPayload(
   httpProxyName: string,
   mode: 'Enforce' | 'Observe' | 'Disabled' = 'Enforce',
-  paranoiaLevels?: { blocking?: number; detection?: number }
+  paranoiaLevels?: { blocking?: number; detection?: number },
+  policyName: string = httpProxyName
 ): ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy {
   const ruleSet: {
     type: 'OWASPCoreRuleSet';
@@ -305,7 +308,7 @@ export function toTrafficProtectionPolicyPayload(
     apiVersion: 'networking.datumapis.com/v1alpha',
     kind: 'TrafficProtectionPolicy',
     metadata: {
-      name: httpProxyName,
+      name: policyName,
     },
     spec: {
       mode: mode,
@@ -446,35 +449,30 @@ export function toHttpProxy(
 }
 
 /**
- * Build a map of proxy name -> WAF mode from a list of TrafficProtectionPolicies.
+ * Build a map of proxy name -> WAF mode from TrafficProtectionPolicy targetRefs.
+ * Policy metadata.name is not used as the map key.
  */
 export function toTrafficProtectionModeMap(
   list: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicyList | null | undefined
 ): Map<string, TrafficProtectionMode> {
-  const map = new Map<string, TrafficProtectionMode>();
-  const items = list?.items ?? [];
-  for (const policy of items) {
-    const name = policy.metadata?.name;
-    const mode = getTrafficProtectionMode(policy);
-    if (name && mode) map.set(name, mode);
-  }
-  return map;
+  return buildAttachmentMapsFromPolicies(
+    list?.items ?? [],
+    getTrafficProtectionMode,
+    getParanoiaLevels
+  ).modeByName;
 }
 
 /**
- * Build a map of proxy name -> paranoia levels from a list of TrafficProtectionPolicies.
+ * Build a map of proxy name -> paranoia levels from TrafficProtectionPolicy targetRefs.
  */
 export function toParanoiaLevelsMap(
   list: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicyList | null | undefined
 ): Map<string, { blocking?: number; detection?: number }> {
-  const map = new Map<string, { blocking?: number; detection?: number }>();
-  const items = list?.items ?? [];
-  for (const policy of items) {
-    const name = policy.metadata?.name;
-    const paranoiaLevels = getParanoiaLevels(policy);
-    if (name && paranoiaLevels) map.set(name, paranoiaLevels);
-  }
-  return map;
+  return buildAttachmentMapsFromPolicies(
+    list?.items ?? [],
+    getTrafficProtectionMode,
+    getParanoiaLevels
+  ).paranoiaByName;
 }
 
 /**

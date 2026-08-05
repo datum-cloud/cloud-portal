@@ -68,6 +68,13 @@ export {
   formatWafProtectionDisplay,
   formatWafProtectionStatusDisplay,
 } from './http-proxy.utils';
+
+export {
+  policyAttachesToProxy,
+  selectPolicyForProxy,
+  targetRefAttachesToProxy,
+} from './http-proxy.waf-attach';
+
 export {
   getWafProtectionState,
   isTrafficProtectionProgrammed,
