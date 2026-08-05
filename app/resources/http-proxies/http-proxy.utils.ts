@@ -1,4 +1,10 @@
 import type { HttpProxy } from './http-proxy.schema';
+import {
+  formatWafProtectionStateLabel,
+  formatWafProtectionStatusTooltip,
+  getWafProtectionState,
+  type WafProtectionState,
+} from './http-proxy.waf-status';
 
 /**
  * Get a human-readable label for a paranoia level number.
@@ -28,4 +34,30 @@ export function formatWafProtectionDisplay(httpProxy: HttpProxy): string {
   const blocking = httpProxy.paranoiaLevels?.blocking ?? 1;
   const levelLabel = getParanoiaLevelLabel(blocking);
   return `${mode} · ${levelLabel}`;
+}
+
+/**
+ * Format Protection for the detail card: readiness state for the in-pill icon,
+ * plus the mode · paranoia config label.
+ */
+export function formatWafProtectionStatusDisplay(
+  httpProxy: HttpProxy,
+  programmed?: boolean,
+  programmedReason?: string,
+  programmedMessage?: string
+): {
+  state: WafProtectionState;
+  statusLabel: string;
+  configLabel: string;
+  statusTooltip?: string;
+} {
+  const mode = httpProxy.trafficProtectionMode || 'Disabled';
+  const state = getWafProtectionState(mode, programmed === true, programmedReason);
+  const configLabel = formatWafProtectionDisplay(httpProxy);
+  return {
+    state,
+    statusLabel: formatWafProtectionStateLabel(state),
+    configLabel,
+    statusTooltip: formatWafProtectionStatusTooltip(state, programmedMessage),
+  };
 }

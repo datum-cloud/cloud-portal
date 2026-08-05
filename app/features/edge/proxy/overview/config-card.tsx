@@ -19,31 +19,62 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
 import {
   type HttpProxy,
-  formatWafProtectionDisplay,
+  formatWafProtectionStatusDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Switch } from '@datum-cloud/datum-ui/switch';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { CircleHelp, PencilIcon, SettingsIcon } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import {
+  CircleCheckIcon,
+  CircleHelp,
+  PencilIcon,
+  SettingsIcon,
+  TriangleAlertIcon,
+} from 'lucide-react';
+import { useMemo, useRef, type ReactNode } from 'react';
+
+function wafStatusIcon(state: 'pending' | 'error' | 'monitoring' | 'protected'): ReactNode {
+  switch (state) {
+    case 'pending':
+      return (
+        <SpinnerIcon
+          size="xs"
+          aria-hidden="true"
+          indicatorClassName="text-primary"
+          trackClassName="text-muted-foreground/30"
+        />
+      );
+    case 'error':
+      return <Icon icon={TriangleAlertIcon} size={12} className="text-destructive shrink-0" />;
+    case 'monitoring':
+    case 'protected':
+      return <Icon icon={CircleCheckIcon} size={12} className="text-badge-success shrink-0" />;
+  }
+}
 
 export const HttpProxyConfigCard = ({
   proxy,
   projectId,
   canViewWaf = true,
   wafPending = false,
+  wafProgrammed,
+  wafProgrammedMessage,
+  wafProgrammedReason,
 }: {
   proxy: HttpProxy;
   projectId?: string;
   canViewWaf?: boolean;
   wafPending?: boolean;
+  wafProgrammed?: boolean;
+  wafProgrammedMessage?: string;
+  wafProgrammedReason?: string;
 }) => {
   const displayNameDialogRef = useRef<ProxyDisplayNameDialogRef>(null);
   const wafDialogRef = useRef<ProxyWafDialogRef>(null);
@@ -148,52 +179,51 @@ export const HttpProxyConfigCard = ({
               &mdash;
             </Badge>
           </Tooltip>
-        ) : proxy.trafficProtectionMode !== 'Disabled' ||
-          proxy.paranoiaLevels?.blocking !== undefined ||
-          proxy.paranoiaLevels?.detection !== undefined ? (
-          <div className="flex items-center gap-1.5">
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-              {formatWafProtectionDisplay(proxy)}
-            </Badge>
-            {projectId && (
-              <PermissionGate
-                resource="trafficprotectionpolicies"
-                verb="patch"
-                group="networking.datumapis.com"
-                scope="project"
-                mode="disable"
-                deniedReason="You don't have permission to edit WAF protection">
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => wafDialogRef.current?.show(proxy)}>
-                  <Icon icon={PencilIcon} size={12} />
-                </button>
-              </PermissionGate>
-            )}
-          </div>
         ) : (
-          <div className="flex items-center gap-1.5">
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-              Disabled
-            </Badge>
-            {projectId && (
-              <PermissionGate
-                resource="trafficprotectionpolicies"
-                verb="patch"
-                group="networking.datumapis.com"
-                scope="project"
-                mode="disable"
-                deniedReason="You don't have permission to edit WAF protection">
-                <button
-                  type="button"
-                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                  onClick={() => wafDialogRef.current?.show(proxy)}>
-                  <Icon icon={PencilIcon} size={12} />
-                </button>
-              </PermissionGate>
-            )}
-          </div>
+          (() => {
+            const { state, statusLabel, configLabel, statusTooltip } =
+              formatWafProtectionStatusDisplay(
+                proxy,
+                wafProgrammed,
+                wafProgrammedReason,
+                wafProgrammedMessage
+              );
+            const statusIcon =
+              state === 'disabled' ? null : (
+                <Tooltip message={statusTooltip || statusLabel} side="bottom">
+                  <span className="inline-flex shrink-0" aria-label={statusLabel}>
+                    {wafStatusIcon(state)}
+                  </span>
+                </Tooltip>
+              );
+            return (
+              <div className="flex items-center gap-1.5">
+                <Badge
+                  type="quaternary"
+                  theme="outline"
+                  className="inline-flex items-center gap-1.5 rounded-xl text-xs font-normal">
+                  {statusIcon}
+                  {configLabel}
+                </Badge>
+                {projectId && (
+                  <PermissionGate
+                    resource="trafficprotectionpolicies"
+                    verb="patch"
+                    group="networking.datumapis.com"
+                    scope="project"
+                    mode="disable"
+                    deniedReason="You don't have permission to edit WAF protection">
+                    <button
+                      type="button"
+                      className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => wafDialogRef.current?.show(proxy)}>
+                      <Icon icon={PencilIcon} size={12} />
+                    </button>
+                  </PermissionGate>
+                )}
+              </div>
+            );
+          })()
         ),
       },
       {
@@ -306,7 +336,16 @@ export const HttpProxyConfigCard = ({
           ),
       },
     ];
-  }, [proxy, projectId, updateMutation, canViewWaf, wafPending]);
+  }, [
+    proxy,
+    projectId,
+    updateMutation,
+    canViewWaf,
+    wafPending,
+    wafProgrammed,
+    wafProgrammedMessage,
+    wafProgrammedReason,
+  ]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy.connector) return null;

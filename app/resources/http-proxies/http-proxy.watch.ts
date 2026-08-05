@@ -1,11 +1,31 @@
-import { toHttpProxy } from './http-proxy.adapter';
+import { getParanoiaLevels, getTrafficProtectionMode, toHttpProxy } from './http-proxy.adapter';
 import type { HttpProxy } from './http-proxy.schema';
-import { httpProxyKeys } from './http-proxy.service';
-import type { ComDatumapisNetworkingV1AlphaHttpProxy } from '@/modules/control-plane/networking';
+import { httpProxyKeys, type TrafficProtectionView } from './http-proxy.service';
+import {
+  getTrafficProtectionProgrammedMessage,
+  getTrafficProtectionProgrammedReason,
+  isTrafficProtectionProgrammed,
+} from './http-proxy.waf-status';
+import type {
+  ComDatumapisNetworkingV1AlphaHttpProxy,
+  ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy,
+} from '@/modules/control-plane/networking';
 import { useResourceWatch } from '@/modules/watch';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+
+function toTrafficProtectionView(
+  raw: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy
+): TrafficProtectionView {
+  return {
+    mode: getTrafficProtectionMode(raw),
+    paranoiaLevels: getParanoiaLevels(raw),
+    programmed: isTrafficProtectionProgrammed(raw?.status),
+    programmedMessage: getTrafficProtectionProgrammedMessage(raw?.status),
+    programmedReason: getTrafficProtectionProgrammedReason(raw?.status),
+  };
+}
 
 /**
  * Watch HTTP proxies list for real-time updates.
@@ -92,6 +112,30 @@ export function useHttpProxyWatch(
           }),
       };
     },
+  });
+}
+
+/**
+ * Watch a proxy's TrafficProtectionPolicy for live mode/Programmed updates.
+ * Updates the permission-gated WAF detail query cache (same key as
+ * useTrafficProtectionPolicy).
+ */
+export function useTrafficProtectionPolicyWatch(
+  projectId: string,
+  name: string,
+  options?: { enabled?: boolean }
+) {
+  const queryKey = httpProxyKeys.wafDetail(projectId, name);
+
+  useResourceWatch<TrafficProtectionView>({
+    resourceType: 'apis/networking.datumapis.com/v1alpha/trafficprotectionpolicies',
+    projectId,
+    namespace: 'default',
+    name,
+    queryKey,
+    transform: (item) =>
+      toTrafficProtectionView(item as ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy),
+    enabled: (options?.enabled ?? true) && !!projectId && !!name,
   });
 }
 

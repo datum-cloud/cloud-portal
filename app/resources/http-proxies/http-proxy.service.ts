@@ -21,6 +21,11 @@ import type {
   BasicAuthUser,
 } from './http-proxy.schema';
 import {
+  getTrafficProtectionProgrammedMessage,
+  getTrafficProtectionProgrammedReason,
+  isTrafficProtectionProgrammed,
+} from './http-proxy.waf-status';
+import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
   readNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
@@ -61,6 +66,12 @@ export const httpProxyKeys = {
 export interface TrafficProtectionView {
   mode?: TrafficProtectionMode;
   paranoiaLevels?: { blocking?: number; detection?: number };
+  /** True when all ancestors report Accepted+Programmed for the current generation. */
+  programmed?: boolean;
+  /** Programmed condition message while converging (e.g. M/N edges). */
+  programmedMessage?: string;
+  /** Programmed condition reason while not True (Pending / PartialFailure). */
+  programmedReason?: string;
 }
 export interface TrafficProtectionMaps {
   modeByName: Map<string, TrafficProtectionMode>;
@@ -178,9 +189,13 @@ export function createHttpProxyService() {
           baseURL,
           path: { namespace: 'default', name },
         });
+        const data = response.data;
         return {
-          mode: getTrafficProtectionMode(response.data),
-          paranoiaLevels: getParanoiaLevels(response.data),
+          mode: getTrafficProtectionMode(data),
+          paranoiaLevels: getParanoiaLevels(data),
+          programmed: isTrafficProtectionProgrammed(data?.status),
+          programmedMessage: getTrafficProtectionProgrammedMessage(data?.status),
+          programmedReason: getTrafficProtectionProgrammedReason(data?.status),
         };
       } catch (error) {
         // No policy for this proxy is a normal "WAF disabled" state, not an error.
