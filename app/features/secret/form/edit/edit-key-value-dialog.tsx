@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import { useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
@@ -39,11 +40,13 @@ export const EditKeyValueDialog = ({
         description: `Key "${keyId}" has been updated successfully`,
       });
     },
-    onError: (error) => {
-      toast.error('Key', {
-        description: error.message ?? 'An error occurred while updating the key-value pair',
-      });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Key',
+        fallbackDescription: error.message || 'An error occurred while updating the key-value pair',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   useImperativeHandle(ref, () => ({

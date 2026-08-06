@@ -15,7 +15,11 @@ import {
   TXTRecordField,
 } from './types';
 import { usePreserveTouchedOnSubmit } from '@/components/form/use-preserve-touched-on-submit';
-import { classifyQuotaError, showQuotaExceededToast } from '@/modules/quota';
+import {
+  classifyQuotaError,
+  showMutationErrorToast,
+  showQuotaExceededToast,
+} from '@/modules/quota';
 import {
   CreateDnsRecordSchema,
   createDnsRecordSchema,
@@ -24,13 +28,12 @@ import {
   useCreateDnsRecord,
   useUpdateDnsRecord,
 } from '@/resources/dns-records';
-import { getNameEndsWithZoneWarning } from '@/utils/helpers/dns';
-import { formatDnsError, getDnsRecordTypeSelectOptions } from '@/utils/helpers/dns-record.helper';
+import { formatDnsError, getNameEndsWithZoneWarning } from '@/utils/helpers/dns';
+import { getDnsRecordTypeSelectOptions } from '@/utils/helpers/dns-record.helper';
 import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Form, useWatch } from '@datum-cloud/datum-ui/form';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
-import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Form as RouterForm } from 'react-router';
 
@@ -154,14 +157,20 @@ export function DnsRecordForm({
       onClose();
     } catch (error: unknown) {
       // Quota 403s get the quota-aware toast (View quotas / Request increase);
-      // everything else keeps the DNS-specific error formatting.
+      // everything else routes through showMutationErrorToast, which also
+      // recognizes ProjectReadOnlyError / ProjectSuspendedError and dedupes
+      // onto the suspension gate's stable-id toast.
       if (classifyQuotaError(error) === 'denied') {
         showQuotaExceededToast(error, { scope: 'project', projectId });
         return;
       }
-      const message = error instanceof Error ? error.message : String(error);
-      toast.error('DNS Record', {
-        description: formatDnsError(message) || `Failed to ${mode} DNS record`,
+      showMutationErrorToast(error, {
+        fallbackTitle: 'DNS Record',
+        scope: 'project',
+        projectId,
+        // Preserve DNS-specific message formatting for ordinary failures;
+        // suspension and quota branches above own their own copy.
+        fallbackDescription: error instanceof Error ? formatDnsError(error.message) : undefined,
       });
     }
   };

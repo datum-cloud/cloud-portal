@@ -1,3 +1,5 @@
+import { ReadOnlyGuard } from '@/features/project/read-only';
+import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionGate } from '@/modules/rbac';
 import type { DnsZone } from '@/resources/dns-zones';
 import { createDnsZoneSchema, useUpdateDnsZone } from '@/resources/dns-zones';
@@ -26,9 +28,7 @@ export const DescriptionFormCard = ({
       });
     },
     onError: (error: Error) => {
-      toast.error('Error', {
-        description: error.message ?? 'An error occurred while updating the DNS Zone description',
-      });
+      showMutationErrorToast(error, { fallbackTitle: 'Error', scope: 'project', projectId });
     },
   });
 
@@ -79,6 +79,12 @@ export const DescriptionFormCard = ({
                 }}>
                 Cancel
               </Button>
+              {/* PermissionGate outside, ReadOnlyGuard inside: PermissionGate
+                  drops any `disabled` cloned onto it, so the read-only guard has
+                  to sit adjacent to the leaf to genuinely disable Save. Both
+                  gates forward `disabled` down, so either denial reaches
+                  Form.Submit; when both apply the inner read-only tooltip is the
+                  innermost hover target and still wins. */}
               <PermissionGate
                 resource="dnszones"
                 verb="patch"
@@ -86,9 +92,11 @@ export const DescriptionFormCard = ({
                 scope="project"
                 mode="disable"
                 deniedReason="You don't have permission to edit this DNS zone">
-                <Form.Submit size="xs" className="w-full sm:w-auto" loadingText="Saving">
-                  Save
-                </Form.Submit>
+                <ReadOnlyGuard>
+                  <Form.Submit size="xs" className="w-full sm:w-auto" loadingText="Saving">
+                    Save
+                  </Form.Submit>
+                </ReadOnlyGuard>
               </PermissionGate>
             </CardFooter>
           </>

@@ -1,8 +1,8 @@
 import type { DnsZoneDiscovery } from './dns-zone-discovery.schema';
 import { createDnsZoneDiscoveryService, dnsZoneDiscoveryKeys } from './dns-zone-discovery.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -40,7 +40,8 @@ export function useCreateDnsZoneDiscovery(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (dnsZoneId: string) =>
       createDnsZoneDiscoveryService().create(projectId, dnsZoneId) as Promise<DnsZoneDiscovery>,
     ...options,

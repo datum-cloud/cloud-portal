@@ -2,9 +2,15 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
+import {
+  deriveGuardedAction,
+  GuardedWriteButton,
+  useProjectMode,
+} from '@/features/project/read-only';
 import { ServiceAccountFormDialog } from '@/features/service-account/form/service-account-form-dialog';
 import type { ServiceAccountFormDialogRef } from '@/features/service-account/form/service-account-form-dialog';
-import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { showMutationErrorToast } from '@/modules/quota';
+import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import {
@@ -95,6 +101,8 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
     verbs: ['create', 'update', 'delete'],
   });
 
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
+
   const deleteMutation = useDeleteServiceAccount(projectId ?? '', {
     onSuccess: () => {
       toast.success('Service account deleted', {
@@ -110,9 +118,12 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
     onSuccess: () => {
       toast.success('Service account updated');
     },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Service account',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const deleteAccount = useCallback(
@@ -182,17 +193,23 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
         {
           label: 'Edit',
           hidden: () => !canUpdate,
+          disabled: () => isReadOnly,
+          tooltip: () => (isReadOnly ? (readOnlyReason ?? '') : ''),
           onClick: (row) => formDialogRef.current?.show(row),
         },
         {
           label: 'Disable',
           onClick: (row) => toggleAccount(row),
           hidden: (row: ServiceAccount) => !canUpdate || row.status === 'Disabled',
+          disabled: () => isReadOnly,
+          tooltip: () => (isReadOnly ? (readOnlyReason ?? '') : ''),
         },
         {
           label: 'Enable',
           onClick: (row) => toggleAccount(row),
           hidden: (row: ServiceAccount) => !canUpdate || row.status === 'Active',
+          disabled: () => isReadOnly,
+          tooltip: () => (isReadOnly ? (readOnlyReason ?? '') : ''),
         },
         {
           label: 'Delete',
@@ -202,7 +219,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
         },
       ]),
     ],
-    [projectId, deleteAccount, toggleAccount, canUpdate, canDelete]
+    [projectId, deleteAccount, toggleAccount, canUpdate, canDelete, isReadOnly, readOnlyReason]
   );
 
   return (
@@ -221,7 +238,9 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
           )
         }
         actions={[
-          <PermissionButton
+          // No `quota` — serviceaccounts has no live registration, so the quota
+          // layer is skipped rather than mounting a guard that can only no-op.
+          <GuardedWriteButton
             key="create"
             resource="serviceaccounts"
             verb="create"
@@ -237,7 +256,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
             }>
             <Icon icon={PlusIcon} className="size-4" />
             Create a Service Account
-          </PermissionButton>,
+          </GuardedWriteButton>,
         ]}
         empty={{
           // Title stays constant; the action is shown disabled with an RBAC
@@ -253,10 +272,12 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
                 navigate(
                   getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId })
                 ),
-              disabled: !canCreate,
-              tooltip: !canCreate
-                ? "You don't have permission to create a service account"
-                : undefined,
+              ...deriveGuardedAction({
+                isReadOnly,
+                readOnlyReason,
+                hasPermission: canCreate,
+                permissionReason: "You don't have permission to create a service account",
+              }),
             },
           ],
         }}

@@ -5,10 +5,10 @@ import {
   type TrafficProtectionMaps,
   type TrafficProtectionView,
 } from './http-proxy.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -98,7 +98,8 @@ export function useCreateHttpProxy(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateHttpProxyInput) =>
       createHttpProxyService().create(projectId, input) as Promise<HttpProxy>,
     ...options,
@@ -130,7 +131,13 @@ export function useUpdateHttpProxy(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    // Deliberately 'write', even though the service issues HTTP DELETEs on
+    // sub-resources (traffic-protection / basic-auth teardown). Those are
+    // configuration edits to a proxy the user is keeping, not offboarding —
+    // that goes through useDeleteHttpProxy, which is 'delete' and stays
+    // ungated. Gating this does not gate any user-visible delete.
+    operation: 'write',
     mutationFn: (input: UpdateHttpProxyInput) => {
       const currentProxy = queryClient.getQueryData<HttpProxy>(
         httpProxyKeys.detail(projectId, name)
@@ -218,7 +225,8 @@ export function useDeleteHttpProxy(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createHttpProxyService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {

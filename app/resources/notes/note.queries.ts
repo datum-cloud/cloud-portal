@@ -1,8 +1,8 @@
 import type { Note, SubjectRef } from './note.schema';
 import { createNoteService, noteKeys } from './note.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -31,7 +31,8 @@ export function useCreateNote(
   options?: UseMutationOptions<Note, Error, string>
 ) {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (content: string) => createNoteService().create(projectId, subjectRef, content),
     ...options,
     onSuccess: (...args) => {
@@ -47,7 +48,8 @@ export function useUpdateNote(
   options?: UseMutationOptions<Note, Error, { noteName: string; content: string }>
 ) {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: ({ noteName, content }: { noteName: string; content: string }) =>
       createNoteService().update(projectId, noteName, content),
     ...options,
@@ -64,7 +66,8 @@ export function useDeleteNote(
   options?: UseMutationOptions<void, Error, string>
 ) {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (noteName: string) => createNoteService().delete(projectId, noteName),
     ...options,
     onSuccess: (...args) => {

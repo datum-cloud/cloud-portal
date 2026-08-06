@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { showMutationErrorToast } from '@/modules/quota';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Switch } from '@datum-cloud/datum-ui/switch';
@@ -74,8 +75,12 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
         setOpen(false);
         onSuccess?.();
       } catch (error) {
-        toast.error('Application Load Balancer', {
-          description: (error as Error).message || 'Failed to update Protection configuration',
+        showMutationErrorToast(error, {
+          fallbackTitle: 'Application Load Balancer',
+          fallbackDescription:
+            (error as Error).message || 'Failed to update Protection configuration',
+          scope: 'project',
+          projectId,
         });
         onError?.(error as Error);
       }
@@ -102,13 +107,16 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
           onSuccess?.();
         }
       } catch (error) {
-        toast.error('Application Load Balancer', {
-          description: (error as Error).message || 'Failed to remove protection',
+        showMutationErrorToast(error, {
+          fallbackTitle: 'Application Load Balancer',
+          fallbackDescription: (error as Error).message || 'Failed to remove protection',
+          scope: 'project',
+          projectId,
         });
         onError?.(error as Error);
         setOpen(false);
       }
-    }, [confirm, updateMutation, onSuccess, onError]);
+    }, [confirm, updateMutation, onSuccess, onError, projectId]);
 
     return (
       <Form.Dialog

@@ -2,11 +2,11 @@ import { toFlattenedDnsRecords } from './dns-record.adapter';
 import { createDnsRecordManager, type ImportResult } from './dns-record.manager';
 import type { DnsRecordSet, FlattenedDnsRecord, CreateDnsRecordSchema } from './dns-record.schema';
 import { createDnsRecordService, dnsRecordKeys } from './dns-record.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import { IDnsZoneDiscoveryRecordSet } from '@/resources/dns-zone-discoveries';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -57,7 +57,8 @@ export function useCreateDnsRecord(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (formData: CreateDnsRecordSchema) =>
       createDnsRecordManager()
         .addRecord(projectId, dnsZoneId, formData)
@@ -98,7 +99,8 @@ export function useUpdateDnsRecord(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: async (input: UpdateDnsRecordInput) => {
       const { recordName, oldValue, oldTTL, ...formData } = input;
 
@@ -149,7 +151,8 @@ export function useDeleteDnsRecord(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (input: DeleteDnsRecordInput) =>
       createDnsRecordManager()
         .removeRecord(projectId, input)
@@ -229,7 +232,8 @@ export function useBulkImportDnsRecords(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: ({ discoveryRecordSets, importOptions }: BulkImportInput) =>
       createDnsRecordManager().bulkImport(projectId, dnsZoneId, discoveryRecordSets, importOptions),
     ...options,

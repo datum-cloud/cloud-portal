@@ -2,6 +2,7 @@ import { SinksForm } from './sink/sinks-form';
 import { SourcesForm } from './source/sources-form';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { MetadataForm } from '@/components/metadata/metadata-form';
+import { showMutationErrorToast } from '@/modules/quota';
 import {
   ExportPolicyAuthenticationType,
   ExportPolicySinkTypeEnum,
@@ -77,11 +78,13 @@ export const ExportPolicyUpdateForm = ({
         })
       );
     },
-    onError: (error) => {
-      toast.error('Error', {
-        description: error.message || 'Failed to update export policy',
-      });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Export policy',
+        fallbackDescription: error.message || 'Failed to update export policy',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const deleteMutation = useDeleteExportPolicy(projectId ?? '', {

@@ -1,10 +1,10 @@
 import type { Domain, CreateDomainInput, UpdateDomainInput } from './domain.schema';
 import { createDomainService, domainKeys } from './domain.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import { dnsZoneKeys } from '@/resources/dns-zones/dns-zone.service';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -41,7 +41,8 @@ export function useCreateDomain(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateDomainInput) => createDomainService().create(projectId, input),
     ...options,
     onSuccess: (...args) => {
@@ -63,7 +64,8 @@ export function useUpdateDomain(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdateDomainInput) => createDomainService().update(projectId, name, input),
     ...options,
     onSuccess: (...args) => {
@@ -83,7 +85,8 @@ export function useDeleteDomain(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createDomainService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {
@@ -107,7 +110,8 @@ export function useBulkCreateDomains(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (domains: string[]) => createDomainService().bulkCreate(projectId, domains),
     ...options,
     onSuccess: (...args) => {
@@ -128,7 +132,8 @@ export function useRefreshDomainRegistration(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (name: string) => createDomainService().refreshRegistration(projectId, name),
     ...options,
     onSuccess: (...args) => {

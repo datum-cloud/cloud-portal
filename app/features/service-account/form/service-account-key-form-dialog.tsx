@@ -1,4 +1,5 @@
 import { SingleDatePicker } from '@/components/date-picker/single-date-picker';
+import { showMutationErrorToast } from '@/modules/quota';
 import {
   serviceAccountKeyCreateSchema,
   useCreateServiceAccountKey,
@@ -87,9 +88,12 @@ export const ServiceAccountKeyFormDialog = forwardRef<
         setOpen(false);
         onKeyCreated?.(response);
       },
-      onError: (error) => {
-        toast.error('Error', { description: error.message });
-      },
+      onError: (error) =>
+        showMutationErrorToast(error, {
+          fallbackTitle: 'Service account key',
+          scope: 'project',
+          projectId,
+        }),
     }
   );
 

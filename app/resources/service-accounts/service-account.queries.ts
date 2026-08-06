@@ -7,9 +7,9 @@ import type {
   CreateServiceAccountKeyInput,
   CreateServiceAccountKeyResponse,
 } from './types';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -46,7 +46,8 @@ export function useCreateServiceAccount(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateServiceAccountInput) =>
       createServiceAccountService().create(projectId, input),
     ...options,
@@ -66,7 +67,8 @@ export function useUpdateServiceAccount(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdateServiceAccountInput) =>
       createServiceAccountService().update(projectId, name, input),
     ...options,
@@ -89,7 +91,8 @@ export function useToggleServiceAccount(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: ({ name, status }: { name: string; status: 'Active' | 'Disabled' }) =>
       createServiceAccountService().update(projectId, name, { status }),
     ...options,
@@ -108,7 +111,8 @@ export function useDeleteServiceAccount(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createServiceAccountService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {
@@ -145,7 +149,8 @@ export function useCreateServiceAccountKey(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateServiceAccountKeyInput) =>
       createServiceAccountService().createKey(projectId, serviceAccountEmail, input),
     ...options,
@@ -168,7 +173,11 @@ export function useRevokeServiceAccountKey(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  // DELETE, not a write: service-account.service.ts calls
+  // deleteIdentityMiloapisComV1Alpha1ServiceAccountKey (HTTP DELETE).
+  // Key revocation must keep working during suspension (offboarding).
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (keyName: string) =>
       createServiceAccountService().revokeKey(projectId, serviceAccountName, keyName),
     ...options,

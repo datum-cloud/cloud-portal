@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import {
   serviceAccountCreateSchema,
   serviceAccountUpdateSchema,
@@ -58,9 +59,12 @@ export const ServiceAccountFormDialog = forwardRef<
       setOpen(false);
       onCreated?.(newAccount);
     },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Service account',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const updateMutation = useUpdateServiceAccount(projectId, editName, {
@@ -70,9 +74,12 @@ export const ServiceAccountFormDialog = forwardRef<
       });
       setOpen(false);
     },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Service account',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const show = useCallback((initialValues?: ServiceAccount) => {

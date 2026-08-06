@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import {
   serviceAccountUpdateSchema,
   useUpdateServiceAccount,
@@ -27,11 +28,13 @@ export const DisplayNameFormCard = ({
         description: 'Display name updated successfully.',
       });
     },
-    onError: (error: Error) => {
-      toast.error('Error', {
-        description: error.message ?? 'An error occurred while updating the display name.',
-      });
-    },
+    onError: (error: Error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Service Account',
+        fallbackDescription: error.message || 'An error occurred while updating the display name.',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   return (

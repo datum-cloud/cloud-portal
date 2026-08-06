@@ -7,8 +7,13 @@ import {
   DnsZoneFormDialog,
   type DnsZoneFormDialogRef,
 } from '@/features/edge/dns-zone/dns-zone-form-dialog';
-import { QuotaGuard, useResourceQuota } from '@/modules/quota';
-import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import {
+  deriveGuardedAction,
+  GuardedWriteButton,
+  useProjectMode,
+} from '@/features/project/read-only';
+import { useResourceQuota } from '@/modules/quota';
+import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { IExtendedControlPlaneStatus } from '@/resources/base';
@@ -94,7 +99,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
     ],
   });
 
-  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  // Quota verdict for the empty-state action (header button carries its own guards).
   const zoneQuota = useResourceQuota({
     resource: 'dnszones',
     group: 'dns.networking.miloapis.com',
@@ -102,6 +107,9 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
   });
   const zoneQuotaDenied = zoneQuota.denied;
   const zoneQuotaReason = zoneQuota.deniedReason;
+
+  // Read-only verdict for the empty-state and row actions (header button carries its own guards).
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
 
   // Subscribe to watch for real-time updates
   useDnsZonesWatch(projectId);
@@ -337,6 +345,8 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         {
           label: 'Refresh nameservers',
           hidden: (row) => !canEditDomain || !row.status?.domainRef?.name,
+          disabled: () => isReadOnly,
+          tooltip: () => (isReadOnly ? (readOnlyReason ?? '') : ''),
           onClick: (row) => refreshDomain(row),
         },
         {
@@ -347,7 +357,16 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         },
       ]),
     ],
-    [projectId, navigate, refreshDomain, deleteDnsZone, canEditDomain, canDelete]
+    [
+      projectId,
+      navigate,
+      refreshDomain,
+      deleteDnsZone,
+      canEditDomain,
+      canDelete,
+      isReadOnly,
+      readOnlyReason,
+    ]
   );
 
   return (
@@ -375,38 +394,39 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
               label: 'Add zone',
               onClick: () => dialogRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              disabled: !canCreate || zoneQuotaDenied,
-              // Dual denial: the quota message wins over the permission message.
-              tooltip: zoneQuotaDenied
-                ? zoneQuotaReason
-                : !canCreate
-                  ? "You don't have permission to add a DNS zone"
-                  : undefined,
+              ...deriveGuardedAction({
+                isReadOnly,
+                readOnlyReason,
+                quotaDenied: zoneQuotaDenied,
+                quotaReason: zoneQuotaReason,
+                hasPermission: canCreate,
+                permissionReason: "You don't have permission to add a DNS zone",
+              }),
             },
           ],
         }}
         actions={[
-          <QuotaGuard
+          <GuardedWriteButton
             key="add-zone"
+            quota={{
+              resource: 'dnszones',
+              group: 'dns.networking.miloapis.com',
+              scope: 'project',
+            }}
             resource="dnszones"
+            verb="create"
             group="dns.networking.miloapis.com"
-            scope="project">
-            <PermissionButton
-              resource="dnszones"
-              verb="create"
-              group="dns.networking.miloapis.com"
-              scope="project"
-              deniedReason="You don't have permission to add a DNS zone"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-dns-zone-button"
-              onClick={() => dialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add zone
-            </PermissionButton>
-          </QuotaGuard>,
+            scope="project"
+            deniedReason="You don't have permission to add a DNS zone"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-dns-zone-button"
+            onClick={() => dialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add zone
+          </GuardedWriteButton>,
         ]}
       />
     </>

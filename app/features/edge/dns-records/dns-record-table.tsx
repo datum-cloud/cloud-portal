@@ -75,10 +75,16 @@ interface DnsRecordTableFullProps extends DnsRecordTableBaseProps {
   onOpenEdit: (record: IFlattenedDnsRecord) => void;
   /**
    * Whether the current user can edit DNS records. When `false`, the built-in
-   * Edit row action is disabled with a permission tooltip instead of firing
-   * `onOpenEdit`. Defaults to `true` (caller is responsible for SSAR gating).
+   * Edit row action is disabled with a tooltip instead of firing `onOpenEdit`.
+   * Defaults to `true` (caller is responsible for SSAR gating).
    */
   canEdit?: boolean;
+  /**
+   * Tooltip shown when `canEdit` is false. Defaults to the RBAC copy — pass
+   * this when edit is blocked for a non-permission reason (e.g. read-only
+   * project) so the user is told the true reason.
+   */
+  editDisabledReason?: string;
   /** Optional additional row actions appended after the built-in Edit action */
   extraRowActions?: ActionItem<IFlattenedDnsRecord>[];
   /** Called after a successful inline create/edit submit */
@@ -367,6 +373,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     onInlineClose,
     onOpenEdit,
     canEdit = true,
+    editDisabledReason,
     extraRowActions = [],
     onFormSuccess,
   } = props as DnsRecordTableFullProps;
@@ -376,7 +383,8 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
       label: 'Edit',
       onClick: (record) => onOpenEdit(record),
       disabled: () => !canEdit,
-      tooltip: () => (!canEdit ? "You don't have permission to edit DNS records" : ''),
+      tooltip: () =>
+        !canEdit ? (editDisabledReason ?? "You don't have permission to edit DNS records") : '',
     },
     ...extraRowActions,
   ];

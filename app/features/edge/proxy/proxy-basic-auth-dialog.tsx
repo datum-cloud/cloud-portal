@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import {
   basicAuthSchema,
   type BasicAuthSchema,
@@ -109,8 +110,11 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
         setOpen(false);
         onSuccess?.();
       } catch (error) {
-        toast.error('Application Load Balancer', {
-          description: (error as Error).message || 'Failed to update Basic Authentication',
+        showMutationErrorToast(error, {
+          fallbackTitle: 'Application Load Balancer',
+          fallbackDescription: (error as Error).message || 'Failed to update Basic Authentication',
+          scope: 'project',
+          projectId,
         });
         onError?.(error as Error);
       }

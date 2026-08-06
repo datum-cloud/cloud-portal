@@ -1,4 +1,5 @@
 import { NoteMeta } from './note-meta';
+import { showMutationErrorToast } from '@/modules/quota';
 import { useCreateNote, useUpdateNote } from '@/resources/notes/note.queries';
 import type { Note, SubjectRef } from '@/resources/notes/note.schema';
 import {
@@ -36,9 +37,8 @@ export function NoteFormDialog({
       toast.success('Note', { description: 'Note created successfully' });
       onOpenChange(false);
     },
-    onError: (error) => {
-      toast.error('Note', { description: error.message });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, { fallbackTitle: 'Note', scope: 'project', projectId }),
   });
 
   const updateNote = useUpdateNote(projectId, subjectRef, {
@@ -54,7 +54,7 @@ export function NoteFormDialog({
         onOpenChange(false);
         return;
       }
-      toast.error('Note', { description: error.message });
+      showMutationErrorToast(error, { fallbackTitle: 'Note', scope: 'project', projectId });
     },
   });
 

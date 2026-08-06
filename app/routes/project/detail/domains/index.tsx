@@ -6,8 +6,13 @@ import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { useDomainExport } from '@/features/edge/domain/export';
 import { DomainStatus } from '@/features/edge/domain/status';
-import { QuotaGuard, useResourceQuota } from '@/modules/quota';
-import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import {
+  deriveGuardedAction,
+  GuardedWriteButton,
+  useProjectMode,
+} from '@/features/project/read-only';
+import { useResourceQuota } from '@/modules/quota';
+import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { useApp } from '@/providers/app.provider';
@@ -149,7 +154,7 @@ function DomainsInner({
     ],
   });
 
-  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  // Quota verdict for the empty-state action (header button carries its own guards).
   const domainQuota = useResourceQuota({
     resource: 'domains',
     group: 'networking.datumapis.com',
@@ -157,6 +162,9 @@ function DomainsInner({
   });
   const domainQuotaDenied = domainQuota.denied;
   const domainQuotaReason = domainQuota.deniedReason;
+
+  // Read-only verdict for the empty-state action (header button carries its own guards).
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
 
   // Read from React Query cache (seeded synchronously from SSR loader data)
   const { data: domainsData } = useDomains(projectId ?? '', {
@@ -442,6 +450,8 @@ function DomainsInner({
         {
           label: 'Refresh',
           hidden: () => !canUpdate,
+          disabled: () => isReadOnly,
+          tooltip: () => (isReadOnly ? (readOnlyReason ?? '') : ''),
           onClick: (row) => handleRefreshDomain(row),
         },
         {
@@ -466,6 +476,8 @@ function DomainsInner({
       canUpdate,
       canViewDnsZones,
       canDelete,
+      isReadOnly,
+      readOnlyReason,
     ]
   );
 
@@ -572,27 +584,27 @@ function DomainsInner({
             </Button>
           ) : null,
           canCreate ? (
-            <QuotaGuard
+            <GuardedWriteButton
               key="add"
+              quota={{
+                resource: 'domains',
+                group: 'networking.datumapis.com',
+                scope: 'project',
+              }}
               resource="domains"
+              verb="create"
               group="networking.datumapis.com"
-              scope="project">
-              <PermissionButton
-                resource="domains"
-                verb="create"
-                group="networking.datumapis.com"
-                scope="project"
-                deniedReason="You don't have permission to add a domain"
-                type="primary"
-                theme="solid"
-                size="small"
-                className="w-full sm:w-auto"
-                data-e2e="create-domain-button"
-                onClick={() => setAddOpen(true)}>
-                <Icon icon={PlusIcon} className="size-4" />
-                Add domains
-              </PermissionButton>
-            </QuotaGuard>
+              scope="project"
+              deniedReason="You don't have permission to add a domain"
+              type="primary"
+              theme="solid"
+              size="small"
+              className="w-full sm:w-auto"
+              data-e2e="create-domain-button"
+              onClick={() => setAddOpen(true)}>
+              <Icon icon={PlusIcon} className="size-4" />
+              Add domains
+            </GuardedWriteButton>
           ) : null,
         ].filter(Boolean)}
         multiActions={
@@ -621,13 +633,14 @@ function DomainsInner({
               type: 'button',
               icon: <Icon icon={PlusIcon} className="size-3" />,
               onClick: () => setAddOpen(true),
-              disabled: !canCreate || domainQuotaDenied,
-              // Dual denial: the quota message wins over the permission message.
-              tooltip: domainQuotaDenied
-                ? domainQuotaReason
-                : !canCreate
-                  ? "You don't have permission to add a domain"
-                  : undefined,
+              ...deriveGuardedAction({
+                isReadOnly,
+                readOnlyReason,
+                quotaDenied: domainQuotaDenied,
+                quotaReason: domainQuotaReason,
+                hasPermission: canCreate,
+                permissionReason: "You don't have permission to add a domain",
+              }),
             },
           ],
         }}

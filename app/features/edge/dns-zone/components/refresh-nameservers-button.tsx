@@ -1,3 +1,5 @@
+import { ReadOnlyGuard } from '@/features/project/read-only';
+import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionGate } from '@/modules/rbac';
 import { useRefreshDomainRegistration } from '@/resources/domains';
 import { Button, ButtonProps } from '@datum-cloud/datum-ui/button';
@@ -101,8 +103,10 @@ export const RefreshNameserversButton = ({
       });
     },
     onError: (error) => {
-      toast.error(errorMessage.title, {
-        description: error.message || errorMessage.description,
+      showMutationErrorToast(error, {
+        fallbackTitle: errorMessage.title,
+        scope: 'project',
+        projectId,
       });
     },
   });
@@ -129,18 +133,20 @@ export const RefreshNameserversButton = ({
         scope="project"
         mode="disable"
         deniedReason="You don't have permission to refresh nameservers">
-        <Button
-          type={type}
-          theme={theme}
-          size={size}
-          icon={icon}
-          onClick={handleRefresh}
-          disabled={disabled || refreshMutation.isPending || isOnCooldown}
-          loading={refreshMutation.isPending}
-          className={cn('font-semibold', buttonProps.className)}
-          {...buttonProps}>
-          {label}
-        </Button>
+        <ReadOnlyGuard>
+          <Button
+            type={type}
+            theme={theme}
+            size={size}
+            icon={icon}
+            onClick={handleRefresh}
+            disabled={disabled || refreshMutation.isPending || isOnCooldown}
+            loading={refreshMutation.isPending}
+            className={cn('font-semibold', buttonProps.className)}
+            {...buttonProps}>
+            {label}
+          </Button>
+        </ReadOnlyGuard>
       </PermissionGate>
     </div>
   );
