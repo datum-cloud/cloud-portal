@@ -116,4 +116,31 @@ describe('legacy-setup gate unchanged when the dev bypass is off (prod behavior)
     expect(res).toBe(NEXT);
     expect(isOrgSetupComplete).not.toHaveBeenCalled();
   });
+
+  it('org gate still exempts setup-required on single-fetch .data URLs', async () => {
+    bypass = false;
+    orgComplete = false;
+
+    const res = await orgLegacySetupMiddleware(
+      ctx('http://localhost/org/acme/setup-required.data'),
+      next
+    );
+
+    expect(res).toBe(NEXT);
+    expect(isOrgSetupComplete).not.toHaveBeenCalled();
+  });
+
+  it('org gate still redirects incomplete orgs on single-fetch .data URLs', async () => {
+    bypass = false;
+    orgComplete = false;
+    isOwner = true;
+
+    const res = await orgLegacySetupMiddleware(
+      ctx('http://localhost/org/acme/projects.data'),
+      next
+    );
+
+    expect(res.status).toBe(302);
+    expect(res.headers.get('Location')).toContain(paths.onboarding.billing);
+  });
 });

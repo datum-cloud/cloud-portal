@@ -2,6 +2,7 @@ import {
   evaluateOrgSetupComplete,
   hasActivePaymentMethodForAccount,
   isOrgContactSetupComplete,
+  isOrgSetupCompleteFromLoadResult,
 } from './org-setup-status';
 import { describe, expect, it } from 'bun:test';
 
@@ -99,5 +100,41 @@ describe('evaluateOrgSetupComplete', () => {
         ] as never,
       })
     ).toBe(true);
+  });
+});
+
+describe('isOrgSetupCompleteFromLoadResult', () => {
+  it('treats missing contact as incomplete even when billing listing is indeterminate', () => {
+    // Ryan-shaped: org.get succeeds with empty contact, billing/payment list 403s.
+    // Previously fail-open treated the whole check as complete and skipped the
+    // /onboarding/billing redirect when clicking the org from the list.
+    expect(
+      isOrgSetupCompleteFromLoadResult({
+        status: 'billing-indeterminate',
+        org: { contactInfo: undefined },
+      })
+    ).toBe(false);
+  });
+
+  it('fails open when contact is complete but billing listing is indeterminate', () => {
+    expect(
+      isOrgSetupCompleteFromLoadResult({
+        status: 'billing-indeterminate',
+        org: { contactInfo: { email: 'a@b.com', name: 'Jane' } } as never,
+      })
+    ).toBe(true);
+  });
+
+  it('delegates ready inputs to evaluateOrgSetupComplete', () => {
+    expect(
+      isOrgSetupCompleteFromLoadResult({
+        status: 'ready',
+        input: {
+          org: { contactInfo: undefined },
+          billingAccounts: [],
+          paymentMethods: [],
+        },
+      })
+    ).toBe(false);
   });
 });

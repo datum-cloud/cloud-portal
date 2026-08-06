@@ -23,6 +23,24 @@ export function getDomainPathname(request: Request): string | null {
 }
 
 /**
+ * Document pathname for route comparisons in loaders/middleware.
+ *
+ * React Router single-fetch requests hit `*.data` / `/_.data`, but
+ * `request.url` keeps that suffix — only match location uses the stripped
+ * path. Comparing `url.pathname === '/onboarding/billing'` against
+ * `/onboarding/billing.data` fails and can bounce users off onboarding.
+ */
+export function getDocumentPathname(request: Request): string {
+  let pathname = new URL(request.url).pathname;
+  if (pathname.endsWith('/_.data')) {
+    pathname = pathname.replace(/_\.data$/, '');
+  } else {
+    pathname = pathname.replace(/\.data$/, '');
+  }
+  return pathname || '/';
+}
+
+/**
  * Combines multiple header objects into one (Headers are appended not overwritten)
  * @param headers - Array of header objects to combine
  * @returns Combined Headers object
