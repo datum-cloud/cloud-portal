@@ -33,7 +33,7 @@ export function mapApiError(error: unknown, requestId?: string): AppError {
       case 401:
         return new AuthenticationError(message, requestId);
       case 403:
-        return new AuthorizationError(message, requestId);
+        return new AuthorizationError(message, requestId, { details: data?.details });
       case 404:
         return new NotFoundError('Resource', undefined, requestId);
       case 409:

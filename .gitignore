@@ -40,3 +40,6 @@ cypress/results
 examples/sample-plugin/dist/
 examples/sample-plugin/node_modules/
 .vite/
+
+# Locally generated dev CA certificate
+dev-ca.crt

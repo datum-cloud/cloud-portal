@@ -4,6 +4,32 @@ import { z } from 'zod';
 export const projectStatusSchema = z.enum(['Active', 'Pending', 'Deleting', 'Failed']);
 export type ProjectStatus = z.infer<typeof projectStatusSchema>;
 
+// Consumer-safe suspension projection — milo copies exactly these three fields
+// from ProjectSuspension onto Project.status.suspensions[]; requestedBy and
+// description (operator identity / case notes) are omitted at the API layer.
+export const projectSuspensionReasonSchema = z.enum([
+  'Fraud',
+  'Abuse',
+  'Billing',
+  'Compliance',
+  'Administrative',
+]);
+export type ProjectSuspensionReason = z.infer<typeof projectSuspensionReasonSchema>;
+
+export const projectSuspensionInfoSchema = z.object({
+  /**
+   * `.catch` so a reason milo adds later does not invalidate the whole entry —
+   * dropping it would discard the authoritative `reinstateAuthority` alongside
+   * it and misreport the suspension tier (see deriveSuspensionVerdict). The
+   * unrecognized value is REPLACED, never retained, so it can never be
+   * rendered; 'Administrative' maps to neutral copy in REASON_COPY.
+   */
+  reason: projectSuspensionReasonSchema.catch('Administrative'),
+  suspendedAt: z.string(),
+  reinstateAuthority: z.enum(['Operator', 'Consumer']),
+});
+export type ProjectSuspensionInfo = z.infer<typeof projectSuspensionInfoSchema>;
+
 export const projectSchema = resourceMetadataSchema.extend({
   organizationId: z.string(),
   status: z.any(), // Raw status object from API

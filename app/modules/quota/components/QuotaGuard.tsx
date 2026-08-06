@@ -14,6 +14,13 @@ export interface QuotaGuardProps {
   mode?: QuotaGuardMode;
   /** Overrides the auto-derived tooltip copy. */
   reason?: string;
+  /**
+   * Forwarded onto the child control even when quota allows. An outer guard
+   * (e.g. ReadOnlyGuard) clones `disabled` onto this wrapper; without the
+   * pass-through the prop would be silently dropped and the leaf button would
+   * stay enabled and keyboard-operable while suspended.
+   */
+  disabled?: boolean;
   fallback?: ReactNode;
   children: ReactNode;
 }
@@ -24,6 +31,7 @@ export function QuotaGuard({
   scope,
   mode = 'disable',
   reason,
+  disabled,
   fallback = null,
   children,
 }: QuotaGuardProps) {
@@ -43,7 +51,14 @@ export function QuotaGuard({
     }
   }, [denied, group, resource, scope, verdict.allocated, verdict.limit]);
 
-  if (!denied) return <>{children}</>;
+  if (!denied) {
+    // Cloning (not wrapping) keeps the element type stable, so the common path
+    // still never remounts; `disabled` stays undefined unless an outer guard set it.
+    if (disabled !== undefined && isValidElement(children)) {
+      return cloneElement(children as React.ReactElement<{ disabled?: boolean }>, { disabled });
+    }
+    return <>{children}</>;
+  }
   if (mode === 'hide' || mode === 'fallback') return <>{fallback}</>;
 
   const message = reason ?? verdict.deniedReason ?? '';

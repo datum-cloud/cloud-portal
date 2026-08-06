@@ -150,6 +150,13 @@ export class AuthorizationError extends AppError {
     requestId?: string,
     options: {
       code?: string;
+      /**
+       * K8s Status.details.causes[] mapped to ErrorDetail[]. Load-bearing for
+       * 403s: `isProjectSuspendedError` matches on `details[].code`, so dropping
+       * this here would silently defeat the suspension redaction funnel for any
+       * 403 that does not travel the verbatim BFF pass-through.
+       */
+      details?: ErrorDetail[];
       originalMessage?: string;
       k8sReason?: string;
       k8sDetails?: K8sErrorDetails;
@@ -159,6 +166,7 @@ export class AuthorizationError extends AppError {
       code: options.code ?? 'AUTHORIZATION_ERROR',
       status: 403,
       requestId,
+      details: options.details,
       originalMessage: options.originalMessage,
       k8sReason: options.k8sReason,
       k8sDetails: options.k8sDetails,
