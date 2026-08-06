@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
 import { NoteCard } from '@/components/note-card/note-card';
+import { ProjectStatus } from '@/features/project/status';
 import {
   QuotaGuard,
   classifyQuotaError,
@@ -310,6 +311,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   <div className="flex items-center gap-5">
                     <Icon icon={FolderRoot} className="text-icon-primary size-4" />
                     <span>{project.displayName}</span>
+                    <ProjectStatus project={project} hideActive />
                   </div>
                   <div className="flex w-full flex-col items-start justify-between gap-4 md:w-auto md:flex-row md:items-center md:gap-6">
                     <BadgeCopy

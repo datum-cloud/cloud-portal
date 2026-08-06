@@ -1,3 +1,5 @@
+import { BadgeStatus } from '@/components/badge/badge-status';
+import { deriveSuspensionVerdict } from '@/features/project/suspension';
 import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
@@ -21,10 +23,20 @@ import { CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 
+/** Compact "Suspended" pill, shared by the switcher trigger and its dropdown rows. */
+const SuspendedBadge = () => (
+  <BadgeStatus status="suspended" showTooltip={false} className="shrink-0 px-1 py-0" />
+);
+
 const ProjectItem = ({ project }: { project: Project }) => {
+  const isSuspended = useMemo(
+    () => deriveSuspensionVerdict(project.status).isSuspended,
+    [project.status]
+  );
   return (
     <div className="flex w-full items-center gap-3">
       <span className="truncate text-xs font-medium">{project?.displayName}</span>
+      {isSuspended && <SuspendedBadge />}
     </div>
   );
 };
@@ -39,6 +51,10 @@ export const ProjectSwitcher = ({
   const { orgId } = useApp();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const isCurrentSuspended = useMemo(
+    () => deriveSuspensionVerdict(currentProject?.status).isSuspended,
+    [currentProject?.status]
+  );
 
   const { canCreate: canCreateProject } = useResourcePermissions({
     resource: 'projects',
@@ -77,6 +93,7 @@ export const ProjectSwitcher = ({
             <span className="truncate text-left text-xs leading-3.5 sm:max-w-36 md:max-w-none">
               {currentProject?.displayName}
             </span>
+            {isCurrentSuspended && <SuspendedBadge />}
             <Icon
               icon={ChevronDown}
               className={cn(

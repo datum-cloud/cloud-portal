@@ -65,6 +65,7 @@ export function DashboardLayout({
   sidebarLoading = false,
   switcherLoading = false,
   bottomBar,
+  banner,
   defaultSidebarOpen,
   headerContent,
 }: {
@@ -85,6 +86,15 @@ export function DashboardLayout({
   switcherLoading?: boolean;
   /** Optional bar rendered at the bottom of the layout */
   bottomBar?: React.ReactNode;
+  /**
+   * Optional full-width bar rendered inside the content column, above the
+   * scrollable area — structurally pinned under the header (the scroll
+   * container is DashboardContent, so this never scrolls away). Used for
+   * project-state notices (e.g. suspension); reusable for other project-state
+   * notices. Note: renders inside the content column's <main> (right of the
+   * sidebar), not viewport-full-bleed.
+   */
+  banner?: React.ReactNode;
   /** Initial sidebar state. Falls back to expanded on desktop, collapsed on tablet. */
   defaultSidebarOpen?: boolean;
   /** Optional content rendered between the org/project switcher and the global search entry in the header. */
@@ -134,6 +144,7 @@ export function DashboardLayout({
           />
         )}
         <SidebarInset className="flex min-h-0 flex-col">
+          {banner}
           <DashboardContent
             containerClassName={containerClassName}
             contentClassName={contentClassName}>
