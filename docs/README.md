@@ -78,13 +78,25 @@ Deployment and monitoring:
 
 How-to guides for common tasks:
 
-| Document                                                   | Description                    |
-| ---------------------------------------------------------- | ------------------------------ |
-| [Adding a New Page](./guides/adding-new-page.md)           | Create routes and pages        |
-| [Adding a New Resource](./guides/adding-new-resource.md)   | K8s resource integration       |
-| [Adding a New Module](./guides/adding-new-module.md)       | Feature module structure       |
-| [Adding a New Component](./guides/adding-new-component.md) | Component creation patterns    |
-| [Debugging Guide](./guides/debugging-guide.md)             | Debugging tools and techniques |
+| Document                                                   | Description                                                       |
+| ---------------------------------------------------------- | ----------------------------------------------------------------- |
+| [Adding a New Page](./guides/adding-new-page.md)           | Create routes and pages                                           |
+| [Adding a New Resource](./guides/adding-new-resource.md)   | K8s resource integration                                          |
+| [Adding a New Module](./guides/adding-new-module.md)       | Feature module structure                                          |
+| [Adding a New Component](./guides/adding-new-component.md) | Component creation patterns                                       |
+| [Gating Write Actions](./guides/gating-write-actions.md)   | RBAC, quota, and read-only gating for mutations and write buttons |
+| [Debugging Guide](./guides/debugging-guide.md)             | Debugging tools and techniques                                    |
+
+### 🧭 Enhancements
+
+Long-form design records for features and capabilities:
+
+| Document                                                                                  | Status      | Description                                                |
+| ----------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------- |
+| [Overview](./enhancements/)                                                               | —           | What an enhancement doc is, and how it differs from an ADR |
+| [Portal Plugin System](./enhancements/portal-plugin-system.md)                            | Proposed    | Service-declared UI plugins as `PortalPlugin` resources    |
+| [Quota-Aware UI Gating](./enhancements/quota-aware-ui-gating.md)                          | Implemented | Gating create surfaces on quota headroom                   |
+| [Project Suspension & Read-Only Mode](./enhancements/project-suspension-readonly-mode.md) | Implemented | Systematic write gating for suspended projects             |
 
 ---
 
@@ -173,12 +185,12 @@ watchResources({
 
 Important architectural decisions are documented as ADRs:
 
-| ADR                                                                      | Title                          |
-| ------------------------------------------------------------------------ | ------------------------------ |
-| [ADR-001](./architecture/adrs/adr-001-domain-driven-resource-modules.md) | Domain-Driven Resource Modules |
-| [ADR-002](./architecture/adrs/adr-002-service-adapter-pattern.md)        | Service Adapter Pattern        |
-| [ADR-003](./architecture/adrs/adr-003-query-factory-pattern.md)          | Query Factory Pattern          |
-| [ADR-004](./architecture/adrs/adr-004-watch-api-pattern.md)              | Watch API Pattern              |
+| ADR                                                                  | Title                             |
+| -------------------------------------------------------------------- | --------------------------------- |
+| [ADR-001](./architecture/adrs/001-express-to-hono-migration.md)      | Express to Hono Migration         |
+| [ADR-002](./architecture/adrs/002-domain-driven-resource-modules.md) | Domain-Driven Resource Modules    |
+| [ADR-003](./architecture/adrs/003-k8s-watch-api-integration.md)      | K8s Watch API Integration         |
+| [ADR-009](./architecture/adrs/009-task-queue-k8s-integration.md)     | Task Queue + K8s Async Operations |
 
 → [All ADRs](./architecture/adrs/)
 
