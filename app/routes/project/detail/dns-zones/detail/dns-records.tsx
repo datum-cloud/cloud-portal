@@ -15,6 +15,7 @@ import {
   findProxyForRecord,
   isRowLocked,
 } from '@/features/edge/dns-records/utils';
+import { ReadOnlyGuard, useGuardedMutation, useProjectMode } from '@/features/project/read-only';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { QuotaGuard, showMutationErrorToast } from '@/modules/quota';
 import {
@@ -55,7 +56,7 @@ import {
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ClientOnly } from '@datum-cloud/datum-ui/theme';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
@@ -89,23 +90,25 @@ function AddDnsRecordButton({ onClick }: { onClick: () => void }) {
   };
 
   return (
-    <QuotaGuard resource="dnsrecordsets" group="dns.networking.miloapis.com" scope="project">
-      <PermissionButton
-        resource="dnsrecordsets"
-        verb="create"
-        group="dns.networking.miloapis.com"
-        scope="project"
-        deniedReason="You don't have permission to add a DNS record"
-        htmlType="button"
-        type="primary"
-        theme="solid"
-        size="small"
-        className="min-w-0 flex-1 sm:flex-initial"
-        onClick={handleClick}>
-        <Icon icon={PlusIcon} className="size-4" />
-        Add record
-      </PermissionButton>
-    </QuotaGuard>
+    <ReadOnlyGuard>
+      <QuotaGuard resource="dnsrecordsets" group="dns.networking.miloapis.com" scope="project">
+        <PermissionButton
+          resource="dnsrecordsets"
+          verb="create"
+          group="dns.networking.miloapis.com"
+          scope="project"
+          deniedReason="You don't have permission to add a DNS record"
+          htmlType="button"
+          type="primary"
+          theme="solid"
+          size="small"
+          className="min-w-0 flex-1 sm:flex-initial"
+          onClick={handleClick}>
+          <Icon icon={PlusIcon} className="size-4" />
+          Add record
+        </PermissionButton>
+      </QuotaGuard>
+    </ReadOnlyGuard>
   );
 }
 
@@ -233,6 +236,7 @@ export default function DnsRecordsPage() {
   const { trackAction } = useAnalytics();
 
   const { confirm } = useConfirmationDialog();
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
   const deleteMutation = useDeleteDnsRecord(projectId, dnsZoneId, {
     onError: (error) => {
       toast.error(error.message || 'Failed to delete DNS record');
@@ -257,7 +261,8 @@ export default function DnsRecordsPage() {
       }),
   });
 
-  const addHostnameToProxyMutation = useMutation({
+  const addHostnameToProxyMutation = useGuardedMutation({
+    operation: 'write',
     mutationFn: ({
       name,
       input,
@@ -294,13 +299,16 @@ export default function DnsRecordsPage() {
         });
       }
     },
-    onError: (error) => {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to add hostname to Application Load Balancer'
-      );
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        fallbackDescription:
+          error instanceof Error
+            ? error.message
+            : 'Failed to add hostname to Application Load Balancer',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const handleDelete = async (record: IFlattenedDnsRecord) => {
@@ -388,9 +396,18 @@ export default function DnsRecordsPage() {
         });
       }
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Failed to protect with Application Load Balancer';
-      toast.error(message);
+      // Routed through the shared helper so a read-only rejection collapses onto
+      // the gate's stable-id toast instead of stacking a second one on top of
+      // the mutation's own onError.
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        fallbackDescription:
+          error instanceof Error
+            ? error.message
+            : 'Failed to protect with Application Load Balancer',
+        scope: 'project',
+        projectId,
+      });
     }
   };
 
@@ -485,6 +502,12 @@ export default function DnsRecordsPage() {
         tableTitle={{
           actions: (
             <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+              {/* No ReadOnlyGuard here: this dropdown houses Export (a pure
+                  client-side read) alongside Import, and guarding the whole
+                  component would disable its trigger and take Export with it.
+                  The import write is gated at the mutation layer
+                  (useBulkImportDnsRecords), and the component gates its own
+                  Import half on read-only. */}
               <PermissionGate
                 resource="dnsrecordsets"
                 verb="create"
@@ -512,7 +535,8 @@ export default function DnsRecordsPage() {
         onOpenCreate={handleOpenCreate}
         onOpenEdit={handleOpenEdit}
         onFormSuccess={handleOnSuccess}
-        canEdit={canPatchRecord}
+        canEdit={canPatchRecord && !isReadOnly}
+        editDisabledReason={isReadOnly ? readOnlyReason : undefined}
         extraRowActions={extraRowActions}
       />
     </>
@@ -556,6 +580,9 @@ export default function DnsRecordsPage() {
             tableTitle={{
               actions: (
                 <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+                  {/* See the desktop mount: guarding this whole component would
+                      disable the dropdown trigger and take Export — a pure
+                      client-side read — down with the Import write. */}
                   <PermissionGate
                     resource="dnsrecordsets"
                     verb="create"
@@ -572,26 +599,28 @@ export default function DnsRecordsPage() {
                       }}
                     />
                   </PermissionGate>
-                  <QuotaGuard
-                    resource="dnsrecordsets"
-                    group="dns.networking.miloapis.com"
-                    scope="project">
-                    <PermissionButton
+                  <ReadOnlyGuard>
+                    <QuotaGuard
                       resource="dnsrecordsets"
-                      verb="create"
                       group="dns.networking.miloapis.com"
-                      scope="project"
-                      deniedReason="You don't have permission to add a DNS record"
-                      htmlType="button"
-                      type="primary"
-                      theme="solid"
-                      size="small"
-                      className="min-w-0 flex-1 sm:flex-initial"
-                      onClick={() => dnsRecordModalFormRef.current?.show('create')}>
-                      <Icon icon={PlusIcon} className="size-4" />
-                      Add record
-                    </PermissionButton>
-                  </QuotaGuard>
+                      scope="project">
+                      <PermissionButton
+                        resource="dnsrecordsets"
+                        verb="create"
+                        group="dns.networking.miloapis.com"
+                        scope="project"
+                        deniedReason="You don't have permission to add a DNS record"
+                        htmlType="button"
+                        type="primary"
+                        theme="solid"
+                        size="small"
+                        className="min-w-0 flex-1 sm:flex-initial"
+                        onClick={() => dnsRecordModalFormRef.current?.show('create')}>
+                        <Icon icon={PlusIcon} className="size-4" />
+                        Add record
+                      </PermissionButton>
+                    </QuotaGuard>
+                  </ReadOnlyGuard>
                 </div>
               ),
             }}
@@ -602,7 +631,8 @@ export default function DnsRecordsPage() {
             onOpenCreate={handleOpenCreate}
             onOpenEdit={handleOpenEditMobile}
             onFormSuccess={handleOnSuccess}
-            canEdit={canPatchRecord}
+            canEdit={canPatchRecord && !isReadOnly}
+            editDisabledReason={isReadOnly ? readOnlyReason : undefined}
             extraRowActions={extraRowActions}
           />
         </>

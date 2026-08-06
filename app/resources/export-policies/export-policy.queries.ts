@@ -4,9 +4,9 @@ import type {
   UpdateExportPolicyInput,
 } from './export-policy.schema';
 import { createExportPolicyService, exportPolicyKeys } from './export-policy.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -43,7 +43,8 @@ export function useCreateExportPolicy(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateExportPolicyInput) =>
       createExportPolicyService().create(projectId, input) as Promise<ExportPolicy>,
     ...options,
@@ -64,7 +65,8 @@ export function useUpdateExportPolicy(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdateExportPolicyInput) =>
       createExportPolicyService().update(projectId, name, input) as Promise<ExportPolicy>,
     ...options,
@@ -84,7 +86,8 @@ export function useDeleteExportPolicy(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createExportPolicyService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {

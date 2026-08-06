@@ -8,6 +8,7 @@ import {
   createProjectPolicyBindingService,
   policyBindingKeys,
 } from './policy-binding.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   useQuery,
   useMutation,
@@ -105,7 +106,8 @@ export function useCreateProjectPolicyBinding(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreatePolicyBindingInput) =>
       createProjectPolicyBindingService().create(projectId, input) as Promise<PolicyBinding>,
     ...options,
@@ -123,7 +125,8 @@ export function useUpdateProjectPolicyBinding(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdatePolicyBindingInput) =>
       createProjectPolicyBindingService().update(projectId, name, input) as Promise<PolicyBinding>,
     ...options,
@@ -140,7 +143,8 @@ export function useDeleteProjectPolicyBinding(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createProjectPolicyBindingService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {

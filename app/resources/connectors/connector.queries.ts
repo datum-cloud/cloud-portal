@@ -1,8 +1,8 @@
 import type { Connector } from './connector.schema';
 import { createConnectorService, connectorKeys } from './connector.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -39,7 +39,8 @@ export function useDeleteConnector(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createConnectorService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {

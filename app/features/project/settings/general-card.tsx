@@ -1,3 +1,5 @@
+import { ReadOnlyGuard } from '@/features/project/read-only';
+import { showMutationErrorToast } from '@/modules/quota';
 import { useApp } from '@/providers/app.provider';
 import type { Project } from '@/resources/projects';
 import { projectKeys, updateProjectSchema, useUpdateProject } from '@/resources/projects';
@@ -29,8 +31,12 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
       }
     },
     onError: (error) => {
-      toast.error('Project', {
-        description: error.message || 'Failed to update project',
+      // Routes suspension/quota 403s to their sanitized toasts instead of
+      // rendering the raw admission message (which may embed resource names).
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Project',
+        scope: 'project',
+        projectId: project?.name,
       });
     },
   });
@@ -85,9 +91,11 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                 }}>
                 Cancel
               </Button>
-              <Form.Submit size="xs" loadingText="Saving" data-e2e="edit-project-save">
-                Save
-              </Form.Submit>
+              <ReadOnlyGuard>
+                <Form.Submit size="xs" loadingText="Saving" data-e2e="edit-project-save">
+                  Save
+                </Form.Submit>
+              </ReadOnlyGuard>
             </CardFooter>
           </>
         )}

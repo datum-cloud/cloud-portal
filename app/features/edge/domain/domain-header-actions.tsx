@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { type DnsZone } from '@/resources/dns-zones';
 import {
@@ -47,7 +48,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
       );
     },
     onError: (error) => {
-      toast.error('Domain', { description: error.message || 'Failed to delete domain' });
+      showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
     },
   });
 
@@ -58,9 +59,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
       });
     },
     onError: (error) => {
-      toast.error('Domain', {
-        description: error.message || 'Failed to refresh domain',
-      });
+      showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
     },
   });
 

@@ -4,6 +4,7 @@ import {
   KeysFormDialog,
   VariablesFormDialogRef,
 } from '@/features/secret/form/keys/keys-form-dialog';
+import { showMutationErrorToast } from '@/modules/quota';
 import { type Secret, useUpdateSecret } from '@/resources/secrets';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
@@ -41,11 +42,13 @@ export const EditSecretKeys = ({
         description: 'Key has been deleted successfully',
       });
     },
-    onError: (error) => {
-      toast.error('Key', {
-        description: error.message ?? 'An error occurred while deleting the key',
-      });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Key',
+        fallbackDescription: error.message || 'An error occurred while deleting the key',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const deleteSecret = async (variable: string) => {

@@ -1,4 +1,5 @@
 import { KeyValueFieldArray } from '@/features/secret/form/key-value-field-array';
+import { showMutationErrorToast } from '@/modules/quota';
 import type { SecretVariablesSchema } from '@/resources/secrets';
 import { secretVariablesSchema, useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
@@ -41,11 +42,13 @@ export const KeysFormDialog = ({
       });
       onSuccess?.();
     },
-    onError: (error) => {
-      toast.error('Key', {
-        description: error.message ?? 'An error occurred while updating the key-value pair',
-      });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Key',
+        fallbackDescription: error.message || 'An error occurred while updating the key-value pair',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   useImperativeHandle(ref, () => ({

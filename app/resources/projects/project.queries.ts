@@ -5,6 +5,7 @@ import type {
   UpdateProjectInput,
 } from './project.schema';
 import { createProjectService, projectKeys } from './project.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
@@ -63,7 +64,12 @@ export function useUpdateProject(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  // The project settings "Save". Only call site is the general settings card,
+  // rendered inside ProjectProvider — defense in depth behind the guard on that
+  // button. useCreateProject / useDeleteProject stay raw: creation takes no
+  // project argument, and deletes are never gated.
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdateProjectInput) => createProjectService().update(name, input),
     ...options,
     onSuccess: (...args) => {

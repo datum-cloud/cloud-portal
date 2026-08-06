@@ -1,6 +1,5 @@
 import { isEligibleForProtect } from './utils';
-import { QuotaGuard } from '@/modules/quota';
-import { PermissionButton } from '@/modules/rbac';
+import { GuardedWriteButton } from '@/features/project/read-only';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -65,24 +64,23 @@ export function DnsRecordAlbCell({
     // Cross-resource action: protecting creates an HTTPProxy, so gate by the
     // CREATED type (httpproxies), not the DNS record the button lives on.
     const protectButton = (
-      <QuotaGuard resource="httpproxies" group="networking.datumapis.com" scope="project">
-        <PermissionButton
-          resource="httpproxies"
-          verb="create"
-          group="networking.datumapis.com"
-          scope="project"
-          type="secondary"
-          theme="outline"
-          size="xs"
-          className="shrink-0"
-          disabled={isProtecting}
-          onClick={handleProtect}
-          icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
-          iconPosition="left"
-          deniedReason="You don't have permission to create an Application Load Balancer">
-          Protect with ALB
-        </PermissionButton>
-      </QuotaGuard>
+      <GuardedWriteButton
+        quota={{ resource: 'httpproxies', group: 'networking.datumapis.com', scope: 'project' }}
+        resource="httpproxies"
+        verb="create"
+        group="networking.datumapis.com"
+        scope="project"
+        type="secondary"
+        theme="outline"
+        size="xs"
+        className="shrink-0"
+        disabled={isProtecting}
+        onClick={handleProtect}
+        icon={<Icon icon={ShieldCheckIcon} className="text-primary size-3.5 shrink-0" />}
+        iconPosition="left"
+        deniedReason="You don't have permission to create an Application Load Balancer">
+        Protect with ALB
+      </GuardedWriteButton>
     );
     if (isIpOrigin) {
       return (
@@ -98,7 +96,8 @@ export function DnsRecordAlbCell({
 
   if (showRemove) {
     return (
-      <PermissionButton
+      // No `quota` — this patches an existing proxy rather than creating one.
+      <GuardedWriteButton
         resource="httpproxies"
         verb="patch"
         group="networking.datumapis.com"
@@ -113,7 +112,7 @@ export function DnsRecordAlbCell({
         iconPosition="left"
         deniedReason="You don't have permission to edit Application Load Balancer">
         Remove ALB
-      </PermissionButton>
+      </GuardedWriteButton>
     );
   }
 

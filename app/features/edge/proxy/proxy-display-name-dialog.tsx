@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -59,8 +60,11 @@ export const ProxyDisplayNameDialog = forwardRef<
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      toast.error('Application Load Balancer', {
-        description: (error as Error).message || 'Failed to update name',
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        fallbackDescription: (error as Error).message || 'Failed to update name',
+        scope: 'project',
+        projectId,
       });
       onError?.(error as Error);
     }

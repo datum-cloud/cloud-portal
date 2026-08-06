@@ -8,8 +8,13 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
-import { QuotaGuard, useResourceQuota } from '@/modules/quota';
-import { useResourcePermissions, usePermission, PermissionButton } from '@/modules/rbac';
+import {
+  deriveGuardedAction,
+  GuardedWriteButton,
+  useProjectMode,
+} from '@/features/project/read-only';
+import { useResourceQuota } from '@/modules/quota';
+import { useResourcePermissions, usePermission } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { ControlPlaneStatus } from '@/resources/base';
@@ -96,7 +101,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
     refetchOnMount: 'always',
   });
 
-  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  // Quota verdict for the empty-state action (header button carries its own guards).
   const proxyQuota = useResourceQuota({
     resource: 'httpproxies',
     group: 'networking.datumapis.com',
@@ -104,6 +109,9 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
   });
   const proxyQuotaDenied = proxyQuota.denied;
   const proxyQuotaReason = proxyQuota.deniedReason;
+
+  // Read-only verdict for the empty-state action (header button carries its own guards).
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
 
   useHttpProxiesWatch(projectId);
 
@@ -363,39 +371,41 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
               label: 'New',
               onClick: () => proxyFormRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              disabled: !canCreate || proxyQuotaDenied,
-              // Dual denial: the quota message wins over the permission message.
-              tooltip: proxyQuotaDenied
-                ? proxyQuotaReason
-                : !canCreate
-                  ? "You don't have permission to create an Application Load Balancer"
-                  : undefined,
+              ...deriveGuardedAction({
+                isReadOnly,
+                readOnlyReason,
+                quotaDenied: proxyQuotaDenied,
+                quotaReason: proxyQuotaReason,
+                hasPermission: canCreate,
+                permissionReason:
+                  "You don't have permission to create an Application Load Balancer",
+              }),
             },
           ],
         }}
         actions={[
-          <QuotaGuard
+          <GuardedWriteButton
             key="create-edge"
+            quota={{
+              resource: 'httpproxies',
+              group: 'networking.datumapis.com',
+              scope: 'project',
+            }}
             resource="httpproxies"
+            verb="create"
             group="networking.datumapis.com"
-            scope="project">
-            <PermissionButton
-              resource="httpproxies"
-              verb="create"
-              group="networking.datumapis.com"
-              namespace="default"
-              scope="project"
-              deniedReason="You don't have permission to create an Application Load Balancer"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-alb-button"
-              onClick={() => proxyFormRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              New
-            </PermissionButton>
-          </QuotaGuard>,
+            namespace="default"
+            scope="project"
+            deniedReason="You don't have permission to create an Application Load Balancer"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-alb-button"
+            onClick={() => proxyFormRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            New
+          </GuardedWriteButton>,
         ]}
       />
 

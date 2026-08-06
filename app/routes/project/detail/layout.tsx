@@ -1,5 +1,6 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { ProjectBottomBar } from '@/features/project-bottom-bar';
+import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
@@ -506,6 +507,7 @@ function ProjectDetailLayoutContent({
         sidebarLoading={projectLoading}
         switcherLoading={projectLoading || orgLoading}
         bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}
+        banner={<SuspensionBar />}
         headerContent={
           <div
             className={cn('flex h-full items-center justify-end border-l px-4', {

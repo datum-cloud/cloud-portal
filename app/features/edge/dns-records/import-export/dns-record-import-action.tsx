@@ -1,6 +1,7 @@
 import { DropzoneStateContent, ImportResultTable } from './components';
 import { useDnsRecordExport, useDnsRecordImport } from './hooks';
 import { DnsRecordTable } from '@/features/edge/dns-records';
+import { useProjectMode } from '@/features/project/read-only';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { getImportResultStatus } from '@/utils/helpers/dns-record.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
@@ -49,6 +50,13 @@ export const DnsRecordImportAction = ({
 }: DnsRecordImportExportProps) => {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [selectedRecords, setSelectedRecords] = useState<IFlattenedDnsRecord[]>([]);
+
+  // Read-only gates the Import half only. Export is a pure client-side read
+  // (transform + download, zero network writes), and a read-only project is
+  // exactly when a customer needs their zone file most — so the guard lives
+  // here rather than around this whole component, which would disable the
+  // dropdown trigger and take Export down with it.
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
 
   // Import hook
   const {
@@ -116,32 +124,39 @@ export const DnsRecordImportAction = ({
           <div className="space-y-4">
             <h2 className="text-sm font-semibold">Import DNS Records</h2>
 
-            <Dropzone
-              accept={ACCEPTED_FILE_TYPES}
-              maxFiles={1}
-              maxSize={MAX_FILE_SIZE}
-              onDrop={handleDropWithClose}
-              onError={handleDropError}
-              src={files}
-              disabled={dropzoneState === 'loading'}
-              className="hover:border-primary w-full hover:bg-transparent">
-              <DropzoneEmptyState
-                icon={
-                  <Icon
-                    icon={FileTextIcon}
-                    className="text-primary mb-3 size-9! stroke-1"
-                    size={36}
-                  />
-                }
-                description={
-                  <p className="text-foreground text-xs font-normal">
-                    <span className="underline">Select a file</span> or drag it here <br /> (BIND
-                    format only)
-                  </p>
-                }
-              />
-              <DropzoneStateContent state={dropzoneState} errorMessage={errorMessage} />
-            </Dropzone>
+            {isReadOnly ? (
+              <Alert variant="info">
+                <Icon icon={Info} className="size-4" />
+                <AlertDescription>{readOnlyReason}</AlertDescription>
+              </Alert>
+            ) : (
+              <Dropzone
+                accept={ACCEPTED_FILE_TYPES}
+                maxFiles={1}
+                maxSize={MAX_FILE_SIZE}
+                onDrop={handleDropWithClose}
+                onError={handleDropError}
+                src={files}
+                disabled={dropzoneState === 'loading'}
+                className="hover:border-primary w-full hover:bg-transparent">
+                <DropzoneEmptyState
+                  icon={
+                    <Icon
+                      icon={FileTextIcon}
+                      className="text-primary mb-3 size-9! stroke-1"
+                      size={36}
+                    />
+                  }
+                  description={
+                    <p className="text-foreground text-xs font-normal">
+                      <span className="underline">Select a file</span> or drag it here <br /> (BIND
+                      format only)
+                    </p>
+                  }
+                />
+                <DropzoneStateContent state={dropzoneState} errorMessage={errorMessage} />
+              </Dropzone>
+            )}
           </div>
 
           {/* Export Section */}

@@ -1,4 +1,5 @@
 import { HostHeaderField } from '@/features/edge/proxy/form/host-header-field';
+import { showMutationErrorToast } from '@/modules/quota';
 import { type HttpProxy, useUpdateHttpProxy, validateHostHeader } from '@/resources/http-proxies';
 import { Alert, AlertDescription } from '@datum-cloud/datum-ui/alert';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -70,8 +71,11 @@ export const ProxyHostHeaderDialog = forwardRef<
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      toast.error('Application Load Balancer', {
-        description: (error as Error).message || 'Failed to update Host header',
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        fallbackDescription: (error as Error).message || 'Failed to update Host header',
+        scope: 'project',
+        projectId,
       });
       onError?.(error as Error);
     }

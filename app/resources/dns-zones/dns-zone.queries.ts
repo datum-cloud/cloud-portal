@@ -1,10 +1,10 @@
 import type { DnsZone, CreateDnsZoneInput, UpdateDnsZoneInput } from './dns-zone.schema';
 import { createDnsZoneService, dnsZoneKeys } from './dns-zone.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -55,7 +55,8 @@ export function useCreateDnsZone(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateDnsZoneInput) => createDnsZoneService().create(projectId, input),
     ...options,
     onSuccess: (...args) => {
@@ -76,7 +77,8 @@ export function useUpdateDnsZone(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdateDnsZoneInput) =>
       createDnsZoneService().update(projectId, name, input),
     ...options,
@@ -96,7 +98,8 @@ export function useDeleteDnsZone(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createDnsZoneService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {

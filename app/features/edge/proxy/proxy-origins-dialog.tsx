@@ -1,5 +1,6 @@
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { showMutationErrorToast } from '@/modules/quota';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { parseEndpoint } from '@/utils/helpers/url.helper';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
@@ -80,8 +81,11 @@ export const ProxyOriginsDialog = forwardRef<ProxyOriginsDialogRef, ProxyOrigins
         setOpen(false);
         onSuccess?.();
       } catch (error) {
-        toast.error('Application Load Balancer', {
-          description: (error as Error).message || 'Failed to update origin',
+        showMutationErrorToast(error, {
+          fallbackTitle: 'Application Load Balancer',
+          fallbackDescription: (error as Error).message || 'Failed to update origin',
+          scope: 'project',
+          projectId,
         });
         onError?.(error as Error);
       }

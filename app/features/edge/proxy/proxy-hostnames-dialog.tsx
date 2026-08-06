@@ -1,5 +1,6 @@
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { showMutationErrorToast } from '@/modules/quota';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { httpProxyHostnameSchema } from '@/resources/http-proxies/http-proxy.schema';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
@@ -79,8 +80,12 @@ export const ProxyHostnamesConfigDialog = forwardRef<
       setOpen(false);
       onSuccess?.();
     } catch (error) {
-      toast.error('Application Load Balancer', {
-        description: (error as Error).message || 'Failed to update hostnames and TLS settings',
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        fallbackDescription:
+          (error as Error).message || 'Failed to update hostnames and TLS settings',
+        scope: 'project',
+        projectId,
       });
       onError?.(error as Error);
     }

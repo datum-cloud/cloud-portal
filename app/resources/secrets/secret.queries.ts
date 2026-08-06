@@ -1,9 +1,9 @@
 import type { Secret, CreateSecretInput, UpdateSecretInput } from './secret.schema';
 import { createSecretService, secretKeys } from './secret.service';
+import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
 import {
   useQuery,
-  useMutation,
   useQueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
@@ -40,7 +40,8 @@ export function useCreateSecret(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: CreateSecretInput) =>
       createSecretService().create(projectId, input) as Promise<Secret>,
     ...options,
@@ -62,7 +63,8 @@ export function useUpdateSecret(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'write',
     mutationFn: (input: UpdateSecretInput) =>
       createSecretService().update(projectId, name, input) as Promise<Secret>,
     ...options,
@@ -82,7 +84,8 @@ export function useDeleteSecret(
 ) {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useGuardedMutation({
+    operation: 'delete',
     mutationFn: (name: string) => createSecretService().delete(projectId, name),
     ...options,
     onSuccess: async (...args) => {

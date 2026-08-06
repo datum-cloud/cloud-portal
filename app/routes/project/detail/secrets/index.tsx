@@ -2,10 +2,15 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { DateTime } from '@/components/date-time';
 import { createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
+import {
+  deriveGuardedAction,
+  GuardedWriteButton,
+  useProjectMode,
+} from '@/features/project/read-only';
 import { SECRET_TYPES } from '@/features/secret/constants';
 import { SecretFormDialog, SecretFormDialogRef } from '@/features/secret/form/secret-form-dialog';
-import { QuotaGuard, useResourceQuota } from '@/modules/quota';
-import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
+import { useResourceQuota } from '@/modules/quota';
+import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import {
@@ -86,7 +91,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
     verbs: ['create', 'delete'],
   });
 
-  // Quota verdict for the empty-state action (header button is wrapped in QuotaGuard).
+  // Quota verdict for the empty-state action (header button carries its own guards).
   // Note: the RBAC group for core secrets is '' but the quota resourceType is
   // core.miloapis.com/secrets — the two gates intentionally use different groups.
   const secretQuota = useResourceQuota({
@@ -94,6 +99,9 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
     group: 'core.miloapis.com',
     scope: 'project',
   });
+
+  // Read-only verdict for the empty-state action (header button carries its own guards).
+  const { isReadOnly, reason: readOnlyReason } = useProjectMode();
 
   const deleteSecretMutation = useDeleteSecret(projectId ?? '', {
     onError: (error) => {
@@ -208,34 +216,36 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
               label: 'Add secret',
               onClick: () => secretFormDialogRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
-              disabled: !canCreate || secretQuota.denied,
-              // Dual denial: the quota message wins over the permission message.
-              tooltip: secretQuota.denied
-                ? secretQuota.deniedReason
-                : !canCreate
-                  ? "You don't have permission to create a secret"
-                  : undefined,
+              ...deriveGuardedAction({
+                isReadOnly,
+                readOnlyReason,
+                quotaDenied: secretQuota.denied,
+                quotaReason: secretQuota.deniedReason,
+                hasPermission: canCreate,
+                permissionReason: "You don't have permission to create a secret",
+              }),
             },
           ],
         }}
         actions={[
-          <QuotaGuard key="add-secret" resource="secrets" group="core.miloapis.com" scope="project">
-            <PermissionButton
-              resource="secrets"
-              verb="create"
-              group=""
-              scope="project"
-              deniedReason="You don't have permission to create a secret"
-              type="primary"
-              theme="solid"
-              size="small"
-              className="w-full sm:w-auto"
-              data-e2e="create-secret-button"
-              onClick={() => secretFormDialogRef.current?.show()}>
-              <Icon icon={PlusIcon} className="size-4" />
-              Add secret
-            </PermissionButton>
-          </QuotaGuard>,
+          <GuardedWriteButton
+            key="add-secret"
+            // RBAC group is '' for core secrets; the quota group differs.
+            quota={{ resource: 'secrets', group: 'core.miloapis.com', scope: 'project' }}
+            resource="secrets"
+            verb="create"
+            group=""
+            scope="project"
+            deniedReason="You don't have permission to create a secret"
+            type="primary"
+            theme="solid"
+            size="small"
+            className="w-full sm:w-auto"
+            data-e2e="create-secret-button"
+            onClick={() => secretFormDialogRef.current?.show()}>
+            <Icon icon={PlusIcon} className="size-4" />
+            Add secret
+          </GuardedWriteButton>,
         ]}
       />
       <SecretFormDialog ref={secretFormDialogRef} />

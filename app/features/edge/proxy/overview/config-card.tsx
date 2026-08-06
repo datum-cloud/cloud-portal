@@ -14,6 +14,7 @@ import {
   type ProxyHostHeaderDialogRef,
 } from '@/features/edge/proxy/proxy-host-header-dialog';
 import { ProxyWafDialog, type ProxyWafDialogRef } from '@/features/edge/proxy/proxy-waf-dialog';
+import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionGate } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
@@ -278,8 +279,12 @@ export const HttpProxyConfigCard = ({
                         });
                       },
                       onError: (error) => {
-                        toast.error('Application Load Balancer', {
-                          description: (error as Error).message || 'Failed to update Force HTTPS',
+                        showMutationErrorToast(error, {
+                          fallbackTitle: 'Application Load Balancer',
+                          fallbackDescription:
+                            (error as Error).message || 'Failed to update Force HTTPS',
+                          scope: 'project',
+                          projectId,
                         });
                       },
                     }

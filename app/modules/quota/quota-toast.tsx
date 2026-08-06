@@ -1,4 +1,7 @@
 import { classifyQuotaError, parseQuotaError } from './quota-error';
+import { isProjectReadOnlyError } from '@/features/project/read-only/project-read-only-error';
+import { isProjectSuspendedError } from '@/features/project/suspension/classify-suspension-error';
+import { showProjectSuspendedToast } from '@/features/project/suspension/suspension-toast';
 import { buildQuotaIncreaseRequest } from '@/features/quotas/build-quota-increase-request';
 import { logger } from '@/modules/logger';
 import { paths } from '@/utils/config/paths.config';
@@ -57,11 +60,28 @@ export function showQuotaExceededToast(error: unknown, opts: QuotaToastContext):
   });
 }
 
-/** Drop-in replacement for `toast.error(title, { description: error.message })` in mutation onError. */
+/**
+ * Drop-in replacement for `toast.error(title, { description: error.message })` in mutation onError.
+ *
+ * `fallbackDescription` lets a caller keep its own domain-specific formatting
+ * for the generic branch without losing the suspension/quota handling above it
+ * (e.g. the DNS record form's `formatDnsError`). Only the generic branch uses
+ * it — suspension and quota own their copy.
+ */
 export function showMutationErrorToast(
   error: unknown,
-  opts: QuotaToastContext & { fallbackTitle: string }
+  opts: QuotaToastContext & { fallbackTitle: string; fallbackDescription?: string }
 ): void {
+  // Suspension outranks quota: a suspended project's writes 403 with
+  // ProjectSuspended regardless of quota headroom. ProjectReadOnlyError is the
+  // client-side equivalent from useGuardedMutation — it never reaches the
+  // server, so it carries no K8s Status and isProjectSuspendedError cannot see
+  // it. Both render the same toast, which dedupes on a stable id, so a caller
+  // reaching here after the gate already toasted updates that one toast.
+  if (isProjectReadOnlyError(error) || isProjectSuspendedError(error)) {
+    showProjectSuspendedToast({ projectName: opts.projectId });
+    return;
+  }
   if (classifyQuotaError(error) === 'denied') {
     logger.warn('[Quota] quota 403 detected', {
       resourceType: parseQuotaError(error).resourceType,
@@ -70,6 +90,7 @@ export function showMutationErrorToast(
     return;
   }
   toast.error(opts.fallbackTitle, {
-    description: error instanceof Error ? error.message : 'Something went wrong',
+    description:
+      opts.fallbackDescription ?? (error instanceof Error ? error.message : 'Something went wrong'),
   });
 }

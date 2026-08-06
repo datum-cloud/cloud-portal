@@ -1,4 +1,5 @@
 import { DnsRecordTable } from '@/features/edge/dns-records';
+import { showMutationErrorToast } from '@/modules/quota';
 import { type IFlattenedDnsRecord, useBulkImportDnsRecords } from '@/resources/dns-records';
 import { useCreateDnsZoneDiscovery, useDnsZoneDiscovery } from '@/resources/dns-zone-discoveries';
 import { paths } from '@/utils/config/paths.config';
@@ -48,9 +49,7 @@ export const DnsZoneDiscoveryPreview = ({
       setShouldPoll(true);
     },
     onError: (error) => {
-      toast.error('DNS', {
-        description: error.message || 'Failed to create DNS zone discovery',
-      });
+      showMutationErrorToast(error, { fallbackTitle: 'DNS', scope: 'project', projectId });
       setIsLoading(false);
       setShowEmpty(true);
     },
@@ -102,9 +101,7 @@ export const DnsZoneDiscoveryPreview = ({
       navigateToZoneDetails();
     },
     onError: (error: Error) => {
-      toast.error('DNS records', {
-        description: error.message || 'An unexpected error occurred',
-      });
+      showMutationErrorToast(error, { fallbackTitle: 'DNS records', scope: 'project', projectId });
     },
   });
 

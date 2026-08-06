@@ -1,3 +1,4 @@
+import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionButton } from '@/modules/rbac';
 import { useUpdateServiceAccount, type ServiceAccount } from '@/resources/service-accounts';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -19,9 +20,12 @@ export function ServiceAccountHeaderActions({
     onSuccess: () => {
       toast.success('Service account updated');
     },
-    onError: (error) => {
-      toast.error('Error', { description: error.message });
-    },
+    onError: (error) =>
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Service account',
+        scope: 'project',
+        projectId,
+      }),
   });
 
   const isActive = account.status === 'Active';

@@ -190,6 +190,7 @@ const onResponseError = (error: AxiosError): Promise<never> => {
       if (parsed) {
         throw new AuthorizationError(message, requestId, {
           code: parsed.code,
+          details: parsed.details,
           originalMessage: parsed.originalMessage,
           k8sReason: parsed.k8sReason,
           k8sDetails: parsed.k8sDetails,

@@ -67,6 +67,11 @@ const STATUS_CONFIG: Record<string, StatusConfig> = {
     badgeTheme: 'light',
     defaultLabel: 'Ready',
   },
+  suspended: {
+    badgeType: 'warning',
+    badgeTheme: 'light',
+    defaultLabel: 'Suspended',
+  },
 };
 
 // Helper to map ControlPlaneStatus to BadgeStatusStatus
