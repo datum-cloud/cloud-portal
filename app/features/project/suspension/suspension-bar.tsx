@@ -3,6 +3,7 @@ import { joinReasonPhrases } from './suspension-copy';
 import { SuspensionCta } from './suspension-cta';
 import { getSuspensionTier, SuspensionTierKeyLine, type SuspensionTier } from './suspension-tier';
 import { useProjectSuspension } from './use-project-suspension';
+import { DateTime } from '@/components/date-time';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { TriangleAlertIcon } from 'lucide-react';
@@ -22,11 +23,6 @@ const TIER_BAR_CLASSES: Record<SuspensionTier, string> = {
   remediable: 'border-b border-card-warning-foreground/20',
   operatorGated: 'border-b-2 border-card-warning-foreground/45',
 };
-
-/** "Aug 5, 2026" — matches the spec's target format. */
-function formatSince(date: Date): string {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
 
 /**
  * The single suspension surface: a full-width band under the header on every
@@ -59,7 +55,11 @@ export function SuspensionBar() {
         <p role="status" className="text-1xs leading-relaxed">
           <span className="text-sm font-semibold">This project is suspended</span>
           {phrases ? <> — {phrases}</> : null}
-          {since ? <>, since {formatSince(since)}</> : null}
+          {since ? (
+            <>
+              , since <DateTime date={since} format="MMM d, yyyy" className="font-medium" />
+            </>
+          ) : null}
           {'. '}
           {tier === 'operatorGated' ? 'Running work is paused; nothing is deleted. ' : null}
           <SuspensionTierKeyLine tier={tier} />
