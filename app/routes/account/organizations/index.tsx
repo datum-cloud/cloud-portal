@@ -51,6 +51,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     // A user with no orgs belongs in onboarding. This guard handles
     // client-side navigation that bypasses the middleware redirect.
+    // Incomplete billing setup is gated when entering a specific org
+    // (orgLegacySetupMiddleware), not on this list — users should always
+    // see their organizations here.
     if (orgs.items.length === 0) {
       return redirect(onboardingEntryPath(user));
     }

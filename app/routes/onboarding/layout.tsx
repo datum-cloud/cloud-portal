@@ -1,4 +1,5 @@
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
+import { resolveOnboardingLayoutRedirect } from '@/features/onboarding/onboarding-layout-redirect';
 import { useNonce } from '@/hooks/useNonce';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { RybbitProvider } from '@/modules/rybbit';
@@ -10,7 +11,7 @@ import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
 import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { getDocumentPathname } from '@/utils/helpers/path.helper';
 import { resolveUserFraudRedirectPath } from '@/utils/middlewares/fraud-redirect';
 import { createHmac } from 'crypto';
 import type { ReactNode } from 'react';
@@ -41,7 +42,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const redirectWithCookies = (path: string) => redirect(path, { headers: responseHeaders });
 
   const url = new URL(request.url);
-  const pathname = url.pathname;
+  // Soft navigations request `*.data`; compare against the document path.
+  const pathname = getDocumentPathname(request);
   const fraudRedirect = resolveUserFraudRedirectPath(user, pathname);
   if (fraudRedirect) {
     return redirectWithCookies(fraudRedirect);
@@ -57,33 +59,18 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (!devBypass) {
       const finishingOnboarding =
         pathname === paths.onboarding.billing || pathname === paths.onboarding.provisioning;
+      const isOwnerOfRequestedOrg =
+        finishingOnboarding && requestedOrgId ? await isUserOrgOwner(requestedOrgId) : true;
 
-      if (!hasExistingOrgs) {
-        if (user.nameReviewRequired) {
-          if (pathname !== paths.onboarding.profile) {
-            return redirectWithCookies(paths.onboarding.profile);
-          }
-        } else if (pathname === paths.onboarding.profile) {
-          return redirectWithCookies(paths.onboarding.account);
-        }
-      } else if (user.nameReviewRequired) {
-        if (pathname !== paths.onboarding.profile) {
-          return redirectWithCookies(paths.onboarding.profile);
-        }
-      } else if (finishingOnboarding) {
-        // Finishing setup for a specific org: only its owners may do so.
-        if (requestedOrgId) {
-          if (!(await isUserOrgOwner(requestedOrgId))) {
-            return redirectWithCookies(
-              getPathWithParams(paths.org.detail.setupRequired, { orgId: requestedOrgId })
-            );
-          }
-        } else if (pathname === paths.onboarding.billing) {
-          // Existing-org user hit billing with no target org — nothing to set up.
-          return redirectWithCookies(paths.home);
-        }
-      } else {
-        return redirectWithCookies(paths.home);
+      const layoutRedirect = resolveOnboardingLayoutRedirect({
+        pathname,
+        hasExistingOrgs,
+        nameReviewRequired: Boolean(user.nameReviewRequired),
+        requestedOrgId,
+        isOwnerOfRequestedOrg,
+      });
+      if (layoutRedirect) {
+        return redirectWithCookies(layoutRedirect);
       }
     }
 

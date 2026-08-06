@@ -4,7 +4,7 @@ import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-d
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createProjectService } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { getDocumentPathname, getPathWithParams } from '@/utils/helpers/path.helper';
 import { redirect } from 'react-router';
 
 /** `/org/{orgId}/...` — the org detail layout param. */
@@ -57,7 +57,8 @@ export async function orgLegacySetupMiddleware(
     return next();
   }
 
-  const pathname = new URL(ctx.request.url).pathname;
+  // Soft navigations use `*.data` URLs; exemptions must match the document path.
+  const pathname = getDocumentPathname(ctx.request);
   const orgId = orgIdFromPathname(pathname);
   if (!orgId) {
     return next();
@@ -102,7 +103,7 @@ export async function projectLegacySetupMiddleware(
     return next();
   }
 
-  const pathname = new URL(ctx.request.url).pathname;
+  const pathname = getDocumentPathname(ctx.request);
   const projectId = projectIdFromPathname(pathname);
   if (!projectId) {
     return next();
