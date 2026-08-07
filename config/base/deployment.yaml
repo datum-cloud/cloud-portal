@@ -50,15 +50,9 @@ spec:
               value: http://vmsingle-datum-resource-metrics.datum-system.svc.cluster.local:8429
             - name: SENTRY_DSN
               value: https://5577e0a8a54d023d2c51092ee68041b3@sentry.prod.env.datum.net/5
-            - name: PLATFORM_REGISTRY_KUBECONFIG
-              value: /etc/milo/plugin-reader/kubeconfig
           envFrom:
             - secretRef:
                 name: cloud-portal
-          volumeMounts:
-            - name: milo-plugin-reader-kubeconfig
-              mountPath: /etc/milo/plugin-reader
-              readOnly: true
           resources:
             # TODO: Specify resource requests
             limits:
@@ -85,7 +79,3 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
-      volumes:
-        - name: milo-plugin-reader-kubeconfig
-          secret:
-            secretName: consumer-portal-plugin-reader-kubeconfig
