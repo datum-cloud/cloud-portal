@@ -7,6 +7,9 @@ import {
   type ExecAuth,
 } from './kubeconfig';
 import { describe, expect, mock, test } from 'bun:test';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const INSECURE_LOOPBACK = `
 apiVersion: v1
@@ -104,6 +107,49 @@ describe('resolveKubeContext', () => {
 
   test('parseKubeconfig throws on non-mapping YAML', () => {
     expect(() => parseKubeconfig('- just\n- a\n- list')).toThrow();
+  });
+
+  // Regression: a cert-manager CSI-mounted client cert is referenced by file
+  // path (client-certificate/client-key/certificate-authority), not inline
+  // base64 (client-certificate-data/client-key-data). Silently dropping the
+  // file-path form means the client connects with no client cert at all —
+  // TLS still completes (if the server allows optional client certs), but
+  // every request authenticates as anonymous instead of the intended
+  // identity, surfacing as a confusing 403 rather than a connection error.
+  test('resolves client-certificate/client-key/certificate-authority given as file paths', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'kubeconfig-test-'));
+    const caPath = join(dir, 'ca.crt');
+    const certPath = join(dir, 'tls.crt');
+    const keyPath = join(dir, 'tls.key');
+    writeFileSync(caPath, 'fake-ca-pem');
+    writeFileSync(certPath, 'fake-cert-pem');
+    writeFileSync(keyPath, 'fake-key-pem');
+
+    const kubeconfig = `
+apiVersion: v1
+kind: Config
+current-context: milo
+clusters:
+- name: milo-cluster
+  cluster:
+    server: https://milo-apiserver.datum-system.svc.cluster.local:6443
+    certificate-authority: ${caPath}
+contexts:
+- name: milo
+  context:
+    cluster: milo-cluster
+    user: plugin-reader
+users:
+- name: plugin-reader
+  user:
+    client-certificate: ${certPath}
+    client-key: ${keyPath}
+`;
+
+    const ctx = resolveKubeContext(parseKubeconfig(kubeconfig));
+    expect(ctx.tls.caPem).toBe('fake-ca-pem');
+    expect(ctx.tls.clientCertPem).toBe('fake-cert-pem');
+    expect(ctx.tls.clientKeyPem).toBe('fake-key-pem');
   });
 });
 
