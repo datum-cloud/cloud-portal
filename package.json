@@ -59,7 +59,7 @@
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.1",
     "@tanstack/react-query": "^5.101.0",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "^9.0.0",
     "@tanstack/react-virtual": "^3.14.3",
     "@tiptap/extension-character-count": "^3.27.1",
     "@tiptap/extension-link": "^3.27.1",
