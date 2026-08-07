@@ -1,16 +1,17 @@
 /**
  * Server-side plugin registry singleton + wiring.
  *
- * The registry is instantiated once with the server and populated by
- * development-only sources (static + kubeconfig). Loaders and routes read it
- * through {@link getPlugins} / {@link getPlugin}. The `platform` source
- * (production watch of the control plane) is intentionally out of scope for v1;
- * its precedence slot exists in {@link PluginRegistry}.
+ * The registry is instantiated once with the server and populated from up to
+ * three sources: development-only static + kubeconfig sources, and the
+ * `platform` source (watches ConsumerPortalPlugin on milo's control plane —
+ * the real path for staging/production). Loaders and routes read the
+ * registry through {@link getPlugins} / {@link getPlugin}.
  */
 import type { PluginRegistryEntry } from '../types';
 import { planDevSources } from './dev-sources';
 import { KubeClient, parseKubeconfig, resolveKubeContext } from './kubeconfig';
 import { KubeconfigSource } from './kubeconfig-source';
+import { PlatformSource } from './platform-source';
 import { PluginRegistry } from './registry';
 import { StaticSource } from './static-source';
 import { env } from '@/utils/env/env.server';
@@ -61,7 +62,6 @@ export function initPluginRegistry(): void {
       '[plugins] PORTAL_PLUGINS / PORTAL_PLUGINS_JSON / PLUGIN_REGISTRY_KUBECONFIG are dev-only ' +
         'registry sources and are ignored outside NODE_ENV=development'
     );
-    return;
   }
 
   if (plan.static) {
@@ -77,6 +77,22 @@ export function initPluginRegistry(): void {
       console.info(`[plugins] kubeconfig source watching ${context.server}`);
     } catch (err) {
       console.error(`[plugins] failed to start kubeconfig source: ${String(err)}`);
+    }
+  }
+
+  // Platform source: not dev-gated (the opposite — meant for real
+  // deployments). Independent of planDevSources, which only governs the two
+  // dev-only sources above.
+  const platformKubeconfigPath = env.server.platformRegistryKubeconfig;
+  if (platformKubeconfigPath) {
+    try {
+      const config = parseKubeconfig(readFileSync(platformKubeconfigPath, 'utf8'));
+      const context = resolveKubeContext(config);
+      const client = new KubeClient(context);
+      new PlatformSource(pluginRegistry, client).start();
+      console.info(`[plugins] platform source watching ${context.server}`);
+    } catch (err) {
+      console.error(`[plugins] failed to start platform source: ${String(err)}`);
     }
   }
 }
