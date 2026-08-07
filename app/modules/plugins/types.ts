@@ -20,6 +20,16 @@ export const PORTAL_PLUGIN_VERSION = 'v1alpha1';
 /** Plural resource name used in the Kubernetes REST path. */
 export const PORTAL_PLUGIN_PLURAL = 'portalplugins';
 
+/**
+ * The real, shipped CRD (cloud-portal repo, config/crd/consumerportalplugin.yaml)
+ * that the `platform` registry source watches. Distinct from `PORTAL_PLUGIN_*`
+ * above, which is the generic `PortalPlugin` Kind the dev-only `kubeconfig`
+ * source still targets (pre-dates the Consumer/Provider split).
+ */
+export const CONSUMER_PORTAL_PLUGIN_GROUP = 'portal.miloapis.com';
+export const CONSUMER_PORTAL_PLUGIN_VERSION = 'v1alpha1';
+export const CONSUMER_PORTAL_PLUGIN_PLURAL = 'consumerportalplugins';
+
 /** Default manifest path appended to `assets.baseURL` when none is declared. */
 export const DEFAULT_MANIFEST_PATH = '/plugin-manifest.json';
 

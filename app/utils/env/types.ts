@@ -111,6 +111,13 @@ export interface ServerEnv {
   portalPluginsJson?: string;
   pluginRegistryKubeconfig?: string;
   authDevTokenExchange?: string;
+
+  // Optional: Portal Plugin System (platform registry source)
+  // platformRegistryKubeconfig: path to the mounted consumer-portal-plugin-reader
+  //   kubeconfig used to watch ConsumerPortalPlugin on milo's control plane at
+  //   boot. Unlike the dev-only vars above, this one is meant to be set in
+  //   real deployments and carries no NODE_ENV gating.
+  platformRegistryKubeconfig?: string;
 }
 
 /**

@@ -190,6 +190,16 @@ const serverSchema = z.object({
   PORTAL_PLUGINS_JSON: z.string().optional(),
   PLUGIN_REGISTRY_KUBECONFIG: z.string().optional(),
   AUTH_DEV_TOKEN_EXCHANGE: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Portal Plugin System (platform registry source)
+  //
+  // PLATFORM_REGISTRY_KUBECONFIG: path to the mounted
+  // consumer-portal-plugin-reader kubeconfig used to watch
+  // ConsumerPortalPlugin on milo's control plane at boot. Meant for real
+  // deployments — no NODE_ENV gating, unlike the dev-only vars above.
+  // ─────────────────────────────────────────────────────────
+  PLATFORM_REGISTRY_KUBECONFIG: z.string().optional(),
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -275,6 +285,7 @@ export const env: Env = {
     portalPluginsJson: data.PORTAL_PLUGINS_JSON,
     pluginRegistryKubeconfig: data.PLUGIN_REGISTRY_KUBECONFIG,
     authDevTokenExchange: data.AUTH_DEV_TOKEN_EXCHANGE,
+    platformRegistryKubeconfig: data.PLATFORM_REGISTRY_KUBECONFIG,
   },
   isProd: data.NODE_ENV === 'production',
   isDev: data.NODE_ENV === 'development',

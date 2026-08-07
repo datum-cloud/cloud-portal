@@ -1,0 +1,40 @@
+# Grants the consumer-portal-plugin-reader credential (see
+# infra/apps/cloud-portal/base/milo-plugin-reader-certificate.yaml) read-only
+# access to ConsumerPortalPlugin on milo's control plane. Bound to a
+# dedicated group rather than system:masters/system:datum-cloud — this
+# credential is mounted into the live, internet-facing cloud-portal app
+# pod, not just wielded by Flux, so it carries the least privilege that
+# platform-source.ts actually needs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: consumer-portal-plugin-reader
+rules:
+  - apiGroups:
+      - portal.miloapis.com
+    resources:
+      - consumerportalplugins
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - portal.miloapis.com
+    resources:
+      - consumerportalplugins/status
+    verbs:
+      - get
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: consumer-portal-plugin-reader
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: consumer-portal-plugin-reader
+subjects:
+  - kind: Group
+    name: datum:consumer-portal-plugin-reader
+    apiGroup: rbac.authorization.k8s.io
