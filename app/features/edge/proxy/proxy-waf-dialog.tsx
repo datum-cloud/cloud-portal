@@ -8,6 +8,10 @@ import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
 
 const wafConfigSchema = z.object({
+  enabled: z.preprocess((val) => {
+    if (typeof val === 'boolean') return val;
+    return val === 'true' || val === 'on';
+  }, z.boolean().default(false)),
   trafficProtectionMode: z.enum(['Observe', 'Enforce']).default('Enforce'),
   paranoiaLevelBlocking: z.preprocess((val) => {
     if (val === undefined || val === null || val === '') return undefined;
@@ -17,6 +21,18 @@ const wafConfigSchema = z.object({
 });
 
 type WafConfigSchema = z.infer<typeof wafConfigSchema>;
+
+export function getWafDialogDefaults(
+  proxy: Pick<HttpProxy, 'trafficProtectionMode' | 'paranoiaLevels'>
+): WafConfigSchema {
+  const mode = proxy.trafficProtectionMode;
+  const enabled = mode === 'Observe' || mode === 'Enforce';
+  return {
+    enabled,
+    trafficProtectionMode: enabled ? mode : 'Enforce',
+    paranoiaLevelBlocking: proxy.paranoiaLevels?.blocking ?? 1,
+  };
+}
 
 export interface ProxyWafDialogRef {
   show: (proxy: HttpProxy) => void;
@@ -34,23 +50,18 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
     const [open, setOpen] = useState(false);
     const [proxyName, setProxyName] = useState('');
     const [defaultValues, setDefaultValues] = useState<Partial<WafConfigSchema>>();
+    const [enabled, setEnabled] = useState(false);
     const [hasActiveWaf, setHasActiveWaf] = useState(false);
     const { confirm } = useConfirmationDialog();
 
     const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
     const show = useCallback((proxy: HttpProxy) => {
+      const defaults = getWafDialogDefaults(proxy);
       setProxyName(proxy.name);
-      setDefaultValues({
-        trafficProtectionMode:
-          proxy.trafficProtectionMode === 'Disabled'
-            ? 'Enforce'
-            : (proxy.trafficProtectionMode ?? 'Enforce'),
-        paranoiaLevelBlocking: proxy.paranoiaLevels?.blocking ?? 1,
-      });
-      setHasActiveWaf(
-        proxy.trafficProtectionMode === 'Observe' || proxy.trafficProtectionMode === 'Enforce'
-      );
+      setEnabled(defaults.enabled);
+      setDefaultValues(defaults);
+      setHasActiveWaf(defaults.enabled);
       setOpen(true);
     }, []);
 
@@ -60,8 +71,39 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
 
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
+    const removeProtection = useCallback(async () => {
+      const confirmed = await confirm({
+        title: 'Remove protection',
+        description:
+          'This will remove WAF protection from this Application Load Balancer. Traffic will no longer be inspected for common web attacks.',
+        submitText: 'Remove',
+        cancelText: 'Cancel',
+        variant: 'destructive',
+        onSubmit: async () => {
+          await updateMutation.mutateAsync({ removeTrafficProtection: true });
+        },
+      });
+      if (confirmed) {
+        toast.success('Application Load Balancer', {
+          description: 'Protection has been removed',
+        });
+        setOpen(false);
+        onSuccess?.();
+      }
+      return confirmed;
+    }, [confirm, updateMutation, onSuccess]);
+
     const handleSubmit = async (data: WafConfigSchema) => {
       try {
+        if (!data.enabled) {
+          if (!hasActiveWaf) {
+            setOpen(false);
+            return;
+          }
+          await removeProtection();
+          return;
+        }
+
         await updateMutation.mutateAsync({
           trafficProtectionMode: data.trafficProtectionMode,
           // CRS requires detection >= blocking; keep them locked together.
@@ -88,24 +130,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
 
     const handleRemove = useCallback(async () => {
       try {
-        const confirmed = await confirm({
-          title: 'Remove protection',
-          description:
-            'This will remove WAF protection from this Application Load Balancer. Traffic will no longer be inspected for common web attacks.',
-          submitText: 'Remove',
-          cancelText: 'Cancel',
-          variant: 'destructive',
-          onSubmit: async () => {
-            await updateMutation.mutateAsync({ removeTrafficProtection: true });
-          },
-        });
-        if (confirmed) {
-          toast.success('Application Load Balancer', {
-            description: 'Protection has been removed',
-          });
-          setOpen(false);
-          onSuccess?.();
-        }
+        await removeProtection();
       } catch (error) {
         showMutationErrorToast(error, {
           fallbackTitle: 'Application Load Balancer',
@@ -116,7 +141,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
         onError?.(error as Error);
         setOpen(false);
       }
-    }, [confirm, updateMutation, onSuccess, onError, projectId]);
+    }, [removeProtection, onError, projectId]);
 
     return (
       <Form.Dialog
@@ -132,36 +157,61 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
         className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
         <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
           <Form.Field
-            name="trafficProtectionMode"
+            name="enabled"
             label="Enable Protection?"
             tooltip="With protection enabled, the WAF will block common threats like SQL injection, Cross-Site Scripting (XSS), and malicious bots."
             required>
-            {({ control }) => {
-              const isEnforce = control.value === 'Enforce';
-              return (
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={isEnforce}
-                    onCheckedChange={(checked) => control.change(checked ? 'Enforce' : 'Observe')}
-                  />
-                  <span className="text-sm">
-                    {isEnforce ? 'Enforce — blocking enabled' : 'Observe — detect only'}
-                  </span>
-                </div>
-              );
-            }}
+            {({ control }) => (
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={enabled}
+                  onCheckedChange={(checked) => {
+                    control.change(String(checked));
+                    setEnabled(checked);
+                  }}
+                />
+                <span className="text-sm">{enabled ? 'Enabled' : 'Disabled'}</span>
+              </div>
+            )}
           </Form.Field>
 
-          <Form.Field
-            name="paranoiaLevelBlocking"
-            label="Paranoia Level"
-            tooltip="Higher levels provide stronger protection but may result in false positives."
-            required>
-            <Form.Select placeholder="Select paranoia level" className="w-full sm:w-1/2">
-              <Form.SelectItem value="1">Level 1 — Relaxed (Recommended)</Form.SelectItem>
-              <Form.SelectItem value="2">Level 2 — Balanced</Form.SelectItem>
-            </Form.Select>
-          </Form.Field>
+          {enabled && (
+            <>
+              <Form.Field
+                name="trafficProtectionMode"
+                label="Blocking mode"
+                tooltip="Enforce blocks matching requests. Observe logs matches without blocking."
+                required>
+                {({ control }) => {
+                  const isEnforce = control.value === 'Enforce';
+                  return (
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={isEnforce}
+                        onCheckedChange={(checked) =>
+                          control.change(checked ? 'Enforce' : 'Observe')
+                        }
+                      />
+                      <span className="text-sm">
+                        {isEnforce ? 'Enforce — blocking enabled' : 'Observe — detect only'}
+                      </span>
+                    </div>
+                  );
+                }}
+              </Form.Field>
+
+              <Form.Field
+                name="paranoiaLevelBlocking"
+                label="Paranoia Level"
+                tooltip="Higher levels provide stronger protection but may result in false positives."
+                required>
+                <Form.Select placeholder="Select paranoia level" className="w-full sm:w-1/2">
+                  <Form.SelectItem value="1">Level 1 — Relaxed (Recommended)</Form.SelectItem>
+                  <Form.SelectItem value="2">Level 2 — Balanced</Form.SelectItem>
+                </Form.Select>
+              </Form.Field>
+            </>
+          )}
 
           {hasActiveWaf && (
             <div className="flex pt-2">
