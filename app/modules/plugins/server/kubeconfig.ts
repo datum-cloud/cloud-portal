@@ -31,6 +31,8 @@ interface RawUser {
   exec?: RawExec;
   'client-certificate-data'?: string;
   'client-key-data'?: string;
+  'client-certificate'?: string;
+  'client-key'?: string;
 }
 
 interface RawCluster {
@@ -120,9 +122,13 @@ export function resolveKubeContext(
   }
   if (user['client-certificate-data']) {
     tls.clientCertPem = decodeBase64(user['client-certificate-data']);
+  } else if (user['client-certificate']) {
+    tls.clientCertPem = readFileSync(user['client-certificate'], 'utf8');
   }
   if (user['client-key-data']) {
     tls.clientKeyPem = decodeBase64(user['client-key-data']);
+  } else if (user['client-key']) {
+    tls.clientKeyPem = readFileSync(user['client-key'], 'utf8');
   }
 
   return {
