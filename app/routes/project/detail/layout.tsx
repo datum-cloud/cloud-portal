@@ -23,7 +23,14 @@ import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
 import { useOrganization } from '@/resources/organizations';
-import { createProjectService, isProjectDeleting, isSelfDeleteNavigation, useProject, useProjectWatch, type Project } from '@/resources/projects';
+import {
+  createProjectService,
+  isProjectDeleting,
+  isSelfDeleteNavigation,
+  useProject,
+  useProjectWatch,
+  type Project,
+} from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
