@@ -128,21 +128,6 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
       }
     };
 
-    const handleRemove = useCallback(async () => {
-      try {
-        await removeProtection();
-      } catch (error) {
-        showMutationErrorToast(error, {
-          fallbackTitle: 'Application Load Balancer',
-          fallbackDescription: (error as Error).message || 'Failed to remove protection',
-          scope: 'project',
-          projectId,
-        });
-        onError?.(error as Error);
-        setOpen(false);
-      }
-    }, [removeProtection, onError, projectId]);
-
     return (
       <Form.Dialog
         open={open}
@@ -211,17 +196,6 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
                 </Form.Select>
               </Form.Field>
             </>
-          )}
-
-          {hasActiveWaf && (
-            <div className="flex pt-2">
-              <button
-                type="button"
-                className="text-destructive hover:text-destructive/80 text-sm underline"
-                onClick={handleRemove}>
-                Remove protection
-              </button>
-            </div>
           )}
         </div>
       </Form.Dialog>
