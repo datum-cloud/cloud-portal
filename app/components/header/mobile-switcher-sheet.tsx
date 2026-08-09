@@ -3,6 +3,7 @@ import { useResourcePermissions } from '@/modules/rbac';
 import { useApp } from '@/providers/app.provider';
 import { type Organization, useOrganizationsGql } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
+import { filterActiveProjects } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -147,7 +148,7 @@ function ProjectSwitcherSheet({
   });
 
   const projects = useMemo(() => {
-    const items = data?.items ?? [];
+    const items = filterActiveProjects(data?.items ?? []);
     return [...items].sort((a, b) => {
       if (a.uid === currentProject?.uid) return -1;
       if (b.uid === currentProject?.uid) return 1;

@@ -1,3 +1,4 @@
+import { patchProjectListDeleting, markSelfDeleteNavigation } from './project.helpers';
 import type {
   Project,
   ProjectList,
@@ -105,14 +106,24 @@ export function useDeleteProject(options?: UseMutationOptions<void, Error, strin
     ...options,
     onSuccess: async (...args) => {
       const [, name] = args;
-      // Cancel in-flight queries - Watch handles list update
       await queryClient.cancelQueries({ queryKey: projectKeys.detail(name) });
 
+      const project = queryClient.getQueryData<Project>(projectKeys.detail(name));
+      const deletedAt = new Date();
+
+      // Navigate before list patch so the layout deleting-redirect does not race
+      // self-delete. Skip marking detail cache deleting — watch/refetch owns that.
+      markSelfDeleteNavigation(name);
       options?.onSuccess?.(...args);
+
+      queryClient.setQueriesData<ProjectList>({ queryKey: projectKeys.lists() }, (old) =>
+        patchProjectListDeleting(old, name, project, deletedAt)
+      );
+
+      void queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       void invalidateAllowanceBuckets(queryClient);
     },
     onSettled: (...args) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       options?.onSettled?.(...args);
     },
   });

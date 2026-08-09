@@ -3,7 +3,7 @@ import { deriveSuspensionVerdict, reasonSummary } from '@/features/project/suspe
 import { useApp } from '@/providers/app.provider';
 import { ControlPlaneStatus, IControlPlaneStatus } from '@/resources/base';
 import type { Project } from '@/resources/projects';
-import { useProject } from '@/resources/projects';
+import { isProjectDeleting, useProject } from '@/resources/projects';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useMemo } from 'react';
 
@@ -41,7 +41,9 @@ export const ProjectStatus = ({
     refetchInterval: shouldWatch ? 10000 : false,
   });
 
-  const rawStatus = project?.status ?? fetchedProject?.status;
+  const resolvedProject = project ?? fetchedProject;
+  const rawStatus = resolvedProject?.status;
+  const deleting = resolvedProject != null && isProjectDeleting(resolvedProject);
 
   // Suspension wins over Ready-derived state (suspension never flips Ready,
   // so without this a suspended project reads as "Active").
@@ -61,6 +63,19 @@ export const ProjectStatus = ({
     }
     return undefined;
   }, [status]);
+
+  if (deleting) {
+    return (
+      <BadgeStatus
+        status="pending"
+        label={label ?? 'Deleting'}
+        showIcon
+        showTooltip={showTooltip}
+        tooltipText="This project is being deleted"
+        className={className}
+      />
+    );
+  }
 
   if (verdict.isSuspended) {
     return (

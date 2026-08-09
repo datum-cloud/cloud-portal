@@ -33,6 +33,7 @@ export type ProjectSuspensionInfo = z.infer<typeof projectSuspensionInfoSchema>;
 export const projectSchema = resourceMetadataSchema.extend({
   organizationId: z.string(),
   status: z.any(), // Raw status object from API
+  deletionTimestamp: z.coerce.date().optional(),
   labels: z.record(z.string(), z.string()).optional(),
   annotations: z.record(z.string(), z.string()).optional(),
 });

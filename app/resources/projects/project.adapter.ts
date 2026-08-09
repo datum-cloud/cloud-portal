@@ -30,6 +30,7 @@ export function toProject(raw: ComMiloapisResourcemanagerV1Alpha1Project): Proje
     updatedAt: raw.metadata?.creationTimestamp,
     organizationId: raw.spec?.ownerRef?.name ?? '',
     status: raw.status ?? {},
+    deletionTimestamp: raw.metadata?.deletionTimestamp,
     labels: filterLabels(raw.metadata?.labels ?? {}, ['resourcemanager']),
     annotations: raw.metadata?.annotations ?? {},
   };
@@ -39,8 +40,6 @@ export function toProject(raw: ComMiloapisResourcemanagerV1Alpha1Project): Proje
 
 export function toProjectList(raw: ComMiloapisResourcemanagerV1Alpha1ProjectList): ProjectList {
   const items = (raw.items ?? [])
-    // Only include projects that are not being deleted
-    .filter((p) => !p.metadata?.deletionTimestamp)
     .filter((p) => {
       // Only include projects that are ready
       const status = transformControlPlaneStatus(p.status);

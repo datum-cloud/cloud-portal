@@ -23,7 +23,7 @@ import { createDomainService, domainKeys } from '@/resources/domains';
 import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
 import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
 import { useOrganization } from '@/resources/organizations';
-import { createProjectService, useProject, type Project } from '@/resources/projects';
+import { createProjectService, isProjectDeleting, isSelfDeleteNavigation, useProject, useProjectWatch, type Project } from '@/resources/projects';
 import { createSecretService, secretKeys } from '@/resources/secrets';
 import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
 import { paths } from '@/utils/config/paths.config';
@@ -297,6 +297,21 @@ export const loader = withMiddleware(
       paramName: 'projectId',
       notFoundLabel: 'Project',
       fetch: ({ id }) => createProjectService().get(id),
+      redirectIfDeleting: ({ data }) =>
+        data.deletionTimestamp
+          ? {
+              to: data.organizationId
+                ? getPathWithParams(paths.org.detail.projects.root, {
+                    orgId: data.organizationId,
+                  })
+                : paths.account.organizations.root,
+              toast: {
+                title: 'Project is being deleted',
+                description: 'This project is currently being deleted and is no longer accessible',
+                type: 'message',
+              },
+            }
+          : null,
       companions: {
         billingEnabled: {
           resource: 'projects',
@@ -420,6 +435,38 @@ function ProjectDetailLayoutContent({
     staleTime: QUERY_STALE_TIME,
     refetchOnMount: false,
   });
+
+  useProjectWatch(orgId, projectId ?? '', { enabled: !!orgId && !!projectId });
+
+  const deletingRedirectRef = useRef(false);
+
+  // Redirect when the project enters deletion while the user is still inside it
+  // (another tab/user deleted it; loader redirect only runs on entry).
+  useEffect(() => {
+    if (
+      !project ||
+      !projectId ||
+      !isProjectDeleting(project) ||
+      deletingRedirectRef.current ||
+      isSelfDeleteNavigation(projectId)
+    ) {
+      return;
+    }
+
+    deletingRedirectRef.current = true;
+
+    toast.message('Project is being deleted', {
+      description: 'This project is currently being deleted and is no longer accessible',
+    });
+
+    const redirectPath = project.organizationId
+      ? getPathWithParams(paths.org.detail.projects.root, { orgId: project.organizationId })
+      : appOrg?.name
+        ? getPathWithParams(paths.org.detail.projects.root, { orgId: appOrg.name })
+        : paths.account.organizations.root;
+
+    navigate(redirectPath);
+  }, [project, projectId, appOrg?.name, navigate]);
 
   // Redirect on error (invalid project, not found, etc.)
   useEffect(() => {

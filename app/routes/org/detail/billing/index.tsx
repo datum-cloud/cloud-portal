@@ -30,7 +30,12 @@ import {
   useCreateBillingAccount,
 } from '@/resources/billing-accounts';
 import { newBindingName } from '@/resources/billing/_naming';
-import { useProjects, useProjectsWatch, type ProjectList } from '@/resources/projects';
+import {
+  filterActiveProjects,
+  useProjects,
+  useProjectsWatch,
+  type ProjectList,
+} from '@/resources/projects';
 import { createProjectService } from '@/resources/projects/project.service';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
@@ -219,7 +224,7 @@ export default function OrgBillingSwitcherPage() {
 
   const rows: SwitcherRow[] = useMemo(
     () =>
-      projects.items.map((project) => {
+      filterActiveProjects(projects.items).map((project) => {
         const binding = activeBindingByProject.get(project.name);
         const establishedAt =
           binding?.status?.billingResponsibility?.establishedAt ??
