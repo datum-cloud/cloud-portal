@@ -1,5 +1,6 @@
 import { checkPermissionsBulkAPI } from '../client/rbac-api';
 import type { PermissionCheckScope, PermissionVerb } from '../types';
+import { hasUnresolvedProjectScope } from './project-scope-guard';
 import { usePermissions } from './usePermissions';
 import { useQuery } from '@tanstack/react-query';
 
@@ -44,7 +45,12 @@ export function usePermissionCheck(checks: PermissionCheckInput[]) {
       }
       return checkPermissionsBulkAPI(organizationId, normalizedChecks);
     },
-    enabled: !!organizationId && checks.length > 0,
+    // Project-scoped checks stay disabled until the project context resolves
+    // (projectId flows in via layout effects) — firing early would violate the
+    // server-side projectId invariant. projectId is in the queryKey, so the
+    // query fires with the correct key once the context lands.
+    enabled:
+      !!organizationId && checks.length > 0 && !hasUnresolvedProjectScope(checks, projectId),
     staleTime: STALE_TIME,
     retry: 1,
   });
