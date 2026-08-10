@@ -41,6 +41,24 @@ function resolveCause(error: unknown): unknown {
   return undefined;
 }
 
+/**
+ * Walk the `cause` chain (bounded — wrappers may nest, e.g. a route-level
+ * AppError wrapping the interceptor's AppError wrapping the AxiosError)
+ * looking for a no-response AxiosError. Stops at the first AxiosError found:
+ * one WITH a response is a real upstream reply, so the wrapper's own status
+ * decides the class.
+ */
+const MAX_CAUSE_DEPTH = 4;
+
+function hasNoResponseAxiosCause(error: unknown): boolean {
+  let current = resolveCause(error);
+  for (let depth = 0; depth < MAX_CAUSE_DEPTH && current != null; depth++) {
+    if (isAxiosError(current)) return !current.response;
+    current = resolveCause(current);
+  }
+  return false;
+}
+
 export function classifyError(error: unknown): ErrorClass {
   if (isAxiosError(error)) {
     // No response: request never completed (network/timeout/DNS).
@@ -48,9 +66,8 @@ export function classifyError(error: unknown): ErrorClass {
     return classifyStatus(error.response.status);
   }
   // Interceptor-wrapped network failure: AppError carries a fallback 500
-  // status but the original no-response AxiosError in `cause`.
-  const cause = resolveCause(error);
-  if (isAxiosError(cause) && !cause.response) return 'network-failure';
+  // status but the original no-response AxiosError somewhere in `cause`.
+  if (hasNoResponseAxiosCause(error)) return 'network-failure';
   return classifyStatus(resolveStatus(error));
 }
 

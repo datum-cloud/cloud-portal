@@ -2,6 +2,7 @@ import { checkPermissionsBulkAPI } from '../client/rbac-api';
 import type { PermissionCheckScope, PermissionVerb } from '../types';
 import { hasUnresolvedProjectScope } from './project-scope-guard';
 import { usePermissions } from './usePermissions';
+import { shouldRetryQuery } from '@/modules/tanstack/query';
 import { useQuery } from '@tanstack/react-query';
 
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
@@ -51,7 +52,7 @@ export function usePermissionCheck(checks: PermissionCheckInput[]) {
     // query fires with the correct key once the context lands.
     enabled: !!organizationId && checks.length > 0 && !hasUnresolvedProjectScope(checks, projectId),
     staleTime: STALE_TIME,
-    retry: 1,
+    retry: shouldRetryQuery,
   });
 
   // Prefer isPending over isLoading: while the query is disabled (e.g. org

@@ -90,10 +90,10 @@ export const handleError: HandleErrorFunction = (error, { request }) => {
 
   if (isRouteErrorResponse(error) && error.status >= 400 && error.status < 500) return;
 
+  // Raw pathnames embed resource ids (unbounded tag cardinality), so the path
+  // travels as unindexed extra; the transaction already names the route.
   Sentry.captureException(error, {
-    tags: {
-      code: resolveErrorCode(error),
-      route: new URL(request.url).pathname,
-    },
+    tags: { code: resolveErrorCode(error) },
+    extra: { path: new URL(request.url).pathname },
   });
 };

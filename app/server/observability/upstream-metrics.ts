@@ -46,7 +46,7 @@ export function recordUpstreamResponse({ method, url, status }: UpstreamResponse
       status: String(status),
       api_group: resource?.apiGroup ?? 'unknown',
       resource_type: resource?.resourceType ?? 'unknown',
-      method: method?.toUpperCase() ?? 'GET',
+      method: method?.toUpperCase() ?? 'UNKNOWN',
     });
   } catch {
     // Metrics must never fail the request path.

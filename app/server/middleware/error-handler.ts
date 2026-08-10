@@ -104,7 +104,6 @@ export const errorHandler: HonoErrorHandler<{ Variables: Variables }> = (
     tags: {
       request_id: requestId,
       code: resolveErrorCode(error),
-      route: c.req.path,
     },
     extra: {
       path: c.req.path,

@@ -77,8 +77,10 @@ export function isRouteMethodNotAllowedEvent(event: Event): boolean {
   return false;
 }
 
-function leakDetail(error: unknown): string {
-  if (typeof error !== 'object' || error === null) return String(error);
+function leakParts(error: unknown): { signature: string; message: string } {
+  if (typeof error !== 'object' || error === null) {
+    return { signature: String(error), message: '' };
+  }
   const source = error as {
     name?: unknown;
     message?: unknown;
@@ -88,8 +90,13 @@ function leakDetail(error: unknown): string {
   const status = source.status ?? source.response?.status;
   const name = typeof source.name === 'string' ? source.name : 'Error';
   const message = typeof source.message === 'string' ? source.message : '';
-  return `${name}(status=${String(status)}) ${message}`.trim();
+  return { signature: `${name}(status=${String(status)})`, message };
 }
+
+// One warning per unique error signature (name + status), so a leaking hot
+// path doesn't flood the console; bounded so the set can't grow unchecked.
+const warnedLeakSignatures = new Set<string>();
+const MAX_WARNED_LEAK_SIGNATURES = 100;
 
 /**
  * Backstop for expected user-state errors (401/403/404/429) that leak past
@@ -105,10 +112,17 @@ function isLeakedExpectedError(hint: EventHint | undefined): boolean {
 
   const isProductionTelemetry = env.isProd && env.public.sentryEnv === 'production';
   if (!isProductionTelemetry) {
-    console.warn(
-      '[sentry-policy] dropped leaked expected error — fix the capture site',
-      leakDetail(original)
-    );
+    const { signature, message } = leakParts(original);
+    if (!warnedLeakSignatures.has(signature)) {
+      if (warnedLeakSignatures.size >= MAX_WARNED_LEAK_SIGNATURES) {
+        warnedLeakSignatures.clear();
+      }
+      warnedLeakSignatures.add(signature);
+      console.warn(
+        '[sentry-policy] dropped leaked expected error — fix the capture site',
+        `${signature} ${message}`.trim()
+      );
+    }
   }
   return true;
 }
