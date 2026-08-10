@@ -8,6 +8,7 @@
  *
  * Create dialog
  * input[name="name"]                     Resource name input (InputName)
+ * [role="checkbox"]                      Auto-generate toggle — must uncheck before typing a custom name
  * [role="combobox"]                      Type select trigger
  * [role="option"]                        Type select option
  * input[placeholder="e.g. username"]     Key input (first variable)
@@ -52,7 +53,9 @@
 //       }
 //     });
 
-//     // Resource name — InputName renders a plain input with name="name"
+//     // Resource name — InputName auto-generates a name by default; uncheck
+//     // "Auto-generate" to type our own instead
+//     cy.get('[role="checkbox"]').click();
 //     cy.get('input[name="name"]').type(secretName);
 
 //     // Type — Form.Select is a Radix combobox; open then pick the first option (Opaque)
