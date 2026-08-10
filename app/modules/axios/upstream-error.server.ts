@@ -64,7 +64,7 @@ export function createUpstreamErrorHandler(): UpstreamErrorHandler {
 
     // No-response failures (timeout/DNS/refused) are not upstream responses:
     // label them "network" so they never masquerade as real upstream 500s in
-    // portal_upstream_responses_total (see observability/alerts/*.rules.yml).
+    // portal_upstream_responses_total.
     recordUpstreamResponse({ method, url, status: error.response ? httpStatus : 'network' });
 
     // Parse K8s Status for user-friendly message
