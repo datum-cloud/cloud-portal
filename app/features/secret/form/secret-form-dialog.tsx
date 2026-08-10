@@ -8,16 +8,47 @@ import {
   type CreateSecretInput,
   secretCreateSchema,
   useCreateSecret,
+  SecretType,
 } from '@/resources/secrets';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Form } from '@datum-cloud/datum-ui/form';
+import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 
 export interface SecretFormDialogRef {
   show: () => void;
   hide: () => void;
+}
+
+/**
+ * Auto-generated resource name field. Watches the sibling `type` select and
+ * asks <InputName> to derive a kebab-cased identifier from that type's label
+ * (e.g. "TLS" -> tls-secret-8f2a91) plus a random suffix, so names stay
+ * unique across the many secrets a project can hold. Falls back to a plain
+ * "Secret" base if `type` is ever empty. The user can uncheck "Auto-generate"
+ * to type their own name.
+ *
+ * <Form.Field> wraps this component (in SecretFormDialog below) so Zod
+ * validation errors render automatically; <InputName> alone only colors the
+ * label red and would not show the error message text.
+ */
+function SecretNameInput({ field }: { field: NormalizedFieldState }) {
+  const type = useWatch('type') as string | undefined;
+  const baseName = type
+    ? `${SECRET_TYPES[type as keyof typeof SECRET_TYPES]?.label ?? 'Secret'} Secret`
+    : 'Secret';
+
+  return (
+    <InputName
+      label="Resource Name"
+      description="This unique resource name will be used to identify your secret and cannot be changed."
+      field={field}
+      baseName={baseName}
+      showTooltip={false}
+      autoFocus
+    />
+  );
 }
 
 export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) => {
@@ -64,6 +95,7 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
       description="Create a new secret to store sensitive key-value pairs. Values will be base64-encoded automatically."
       schema={secretCreateSchema}
       defaultValues={{
+        type: SecretType.OPAQUE,
         variables: [{ key: '', value: '' }],
       }}
       onSubmit={handleSubmit}
@@ -74,15 +106,7 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
       <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
           <Form.Field name="name" className="w-full sm:w-1/2" required>
-            {({ field }) => (
-              <InputName
-                label="Resource Name"
-                description="This unique resource name will be used to identify your secret and cannot be changed."
-                field={field}
-                autoGenerate={false}
-                autoFocus
-              />
-            )}
+            {({ field }) => <SecretNameInput field={field} />}
           </Form.Field>
 
           <Form.Field name="type" label="Type" className="w-full sm:w-1/2" required>
