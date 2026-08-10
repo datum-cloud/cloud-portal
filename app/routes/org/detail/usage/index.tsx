@@ -7,7 +7,7 @@ import { toUsageView } from './usage.view';
 import { useOrgUsageDashboard } from '@/modules/billing/usage.queries';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { useProjects } from '@/resources/projects';
+import { useProjects, filterActiveProjects } from '@/resources/projects';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -113,7 +113,7 @@ export default function OrgUsagePage() {
 
   const projects: UsageProjectOption[] = useMemo(
     () =>
-      (projectsQuery.data?.items ?? []).map((project) => ({
+      filterActiveProjects(projectsQuery.data?.items ?? []).map((project) => ({
         name: project.name,
         displayName: project.displayName,
       })),

@@ -1,3 +1,4 @@
+import { filterActiveProjects } from '@/resources/projects';
 import { useProjects } from '@/resources/projects/project.queries';
 import type { Project } from '@/resources/projects/project.schema';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
@@ -24,7 +25,7 @@ export const SelectProject = ({
   disabled?: boolean;
 }) => {
   const { data, isLoading, error } = useProjects(orgId);
-  const projects = data?.items ?? [];
+  const projects = filterActiveProjects(data?.items ?? []);
 
   useEffect(() => {
     if (error) {

@@ -35,10 +35,12 @@ export {
   useDeleteProject,
 } from './project.queries';
 
-// Watch hook exports (only list watch - single project watch not supported for cluster-scoped resources)
-export { useProjectsWatch, inspectProjectReady } from './project.watch';
+// Watch hook exports
+export { useProjectsWatch, useProjectWatch, inspectProjectReady } from './project.watch';
 
 export { createProjectWithBillingBind } from './create-project-with-billing';
+
+export { isProjectDeleting, filterActiveProjects, isSelfDeleteNavigation } from './project.helpers';
 
 export {
   waitForProjectAccessReady,

@@ -22,8 +22,10 @@ import {
   createProjectService,
   projectFormSchema,
   projectKeys,
+  isProjectDeleting,
   useCreateProject,
   useProjects,
+  useProjectsWatch,
   type Project,
   type ProjectList,
 } from '@/resources/projects';
@@ -111,6 +113,8 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
     }
   );
   const projects = queryData?.items ?? [];
+
+  useProjectsWatch(orgId);
 
   const navigate = useNavigate();
   const revalidator = useRevalidator();
@@ -330,9 +334,36 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   </div>
                 </div>
               )}
-              onSelect={(project) =>
-                navigate(getPathWithParams(paths.project.detail.root, { projectId: project.name }))
+              cardClassName={(project) =>
+                isProjectDeleting(project) ? 'cursor-default opacity-60 hover:bg-card' : undefined
               }
+              cardProps={(project) => {
+                if (isProjectDeleting(project)) {
+                  return {
+                    'aria-disabled': true,
+                    'aria-label': `${project.displayName} (deleting)`,
+                    tabIndex: -1,
+                  };
+                }
+
+                const projectDetailPath = getPathWithParams(paths.project.detail.root, {
+                  projectId: project.name,
+                });
+
+                return {
+                  role: 'button',
+                  tabIndex: 0,
+                  className:
+                    'cursor-pointer focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+                  onClick: () => navigate(projectDetailPath),
+                  onKeyDown: (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      navigate(projectDetailPath);
+                    }
+                  },
+                };
+              }}
             />
             <CardList.Empty
               title={canCreateProject ? "Let's create your first project!" : 'No projects yet'}

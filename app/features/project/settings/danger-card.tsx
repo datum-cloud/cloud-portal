@@ -29,7 +29,8 @@ export const ProjectDangerCard = ({ project }: { project: Project }) => {
       navigate(
         getPathWithParams(paths.org.detail.projects.root, {
           orgId: project.organizationId,
-        })
+        }),
+        { state: { skipDeletingRedirect: true } }
       );
     },
     onError: (error) => {

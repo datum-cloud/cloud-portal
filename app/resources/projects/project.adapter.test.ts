@@ -40,10 +40,24 @@ describe('toProject', () => {
     expect(toProject(raw as never).displayName).toBe('no-desc');
     expect(toProject(raw as never).description).toBeUndefined();
   });
+
+  it('maps deletionTimestamp from metadata', () => {
+    const raw = {
+      metadata: rawMetadata({
+        name: 'deleting',
+        deletionTimestamp: '2024-02-02T00:00:00Z',
+      }),
+      spec: { ownerRef: { name: 'acme' } },
+      status: readyStatus(),
+    };
+    const project = toProject(raw as never);
+
+    expect(project.deletionTimestamp).toEqual(new Date('2024-02-02T00:00:00Z'));
+  });
 });
 
 describe('toProjectList', () => {
-  it('includes only ready projects and drops deleting / pending ones', () => {
+  it('includes ready projects and deleting ones, but drops pending ones', () => {
     const items = [
       {
         metadata: rawMetadata({ name: 'ready' }),
@@ -63,7 +77,10 @@ describe('toProjectList', () => {
     ];
     const list = toProjectList({ items, metadata: { continue: 'tok' } } as never);
 
-    expect(list.items.map((p) => p.name)).toEqual(['ready']);
+    expect(list.items.map((p) => p.name)).toEqual(['ready', 'deleting']);
+    expect(list.items.find((p) => p.name === 'deleting')?.deletionTimestamp).toEqual(
+      new Date('2024-02-02T00:00:00Z')
+    );
     expect(list.nextCursor).toBe('tok');
     expect(list.hasMore).toBe(true);
   });
@@ -77,6 +94,24 @@ describe('toProjectList', () => {
 });
 
 describe('toProjectListAll', () => {
+  it('excludes deleting projects for idempotent setup guards', () => {
+    const items = [
+      {
+        metadata: rawMetadata({ name: 'ready' }),
+        spec: { ownerRef: { name: 'acme' } },
+        status: readyStatus(),
+      },
+      {
+        metadata: rawMetadata({ name: 'deleting', deletionTimestamp: '2024-02-02T00:00:00Z' }),
+        spec: { ownerRef: { name: 'acme' } },
+        status: readyStatus(),
+      },
+    ];
+    const list = toProjectListAll({ items } as never);
+
+    expect(list.items.map((p) => p.name)).toEqual(['ready']);
+  });
+
   it('includes pending projects for idempotent setup guards', () => {
     const items = [
       {
