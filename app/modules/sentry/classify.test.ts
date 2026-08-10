@@ -2,8 +2,7 @@ import { classifyError, isExpectedUserError } from './classify';
 import { AppError } from '@/utils/errors/app-error';
 import { describe, expect, test } from 'bun:test';
 
-const appError = (status: number) =>
-  new AppError('boom', { status, captureToSentry: false });
+const appError = (status: number) => new AppError('boom', { status, captureToSentry: false });
 
 const axiosErrorWithStatus = (status: number) => ({
   isAxiosError: true,

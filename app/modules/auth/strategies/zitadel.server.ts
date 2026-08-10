@@ -2,8 +2,8 @@ import type { IAuthSession } from '@/utils/auth';
 import { paths } from '@/utils/config/paths.config';
 import { env } from '@/utils/env/env.server';
 import { AuthenticationError } from '@/utils/errors';
-import { Strategy } from 'remix-auth/strategy';
 import { OAuth2Strategy as OAuth2 } from 'remix-auth-oauth2';
+import { Strategy } from 'remix-auth/strategy';
 
 export const zitadelIssuer = env.public.authOidcIssuer ?? 'http://localhost:3000';
 

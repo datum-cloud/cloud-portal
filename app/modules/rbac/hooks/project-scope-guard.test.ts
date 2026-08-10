@@ -6,10 +6,7 @@ describe('hasUnresolvedProjectScope', () => {
   test('flags a project-scoped batch while projectId is unresolved', () => {
     // Regression: the org→project navigation window (orgId set, project not
     // yet) used to fire this exact batch and trip the server invariant.
-    const checks = [
-      { scope: 'project' as const },
-      { scope: 'project' as const },
-    ];
+    const checks = [{ scope: 'project' as const }, { scope: 'project' as const }];
     expect(hasUnresolvedProjectScope(checks, undefined)).toBe(true);
   });
 

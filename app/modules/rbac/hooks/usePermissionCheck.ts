@@ -49,8 +49,7 @@ export function usePermissionCheck(checks: PermissionCheckInput[]) {
     // (projectId flows in via layout effects) — firing early would violate the
     // server-side projectId invariant. projectId is in the queryKey, so the
     // query fires with the correct key once the context lands.
-    enabled:
-      !!organizationId && checks.length > 0 && !hasUnresolvedProjectScope(checks, projectId),
+    enabled: !!organizationId && checks.length > 0 && !hasUnresolvedProjectScope(checks, projectId),
     staleTime: STALE_TIME,
     retry: 1,
   });
