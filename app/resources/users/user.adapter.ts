@@ -48,6 +48,7 @@ export interface ComMiloapisIamV1Alpha1User {
     state: string;
     avatarUrl?: string;
     lastLoginProvider?: 'google' | 'github';
+    emailVerified?: boolean;
   };
 }
 
@@ -85,6 +86,16 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
         ? (status.lastLoginProvider as LastLoginProviderValue)
         : undefined,
     nameReviewRequired: metadata?.annotations?.[USER_NAME_REVIEW_REQUIRED_ANNOTATION] === 'true',
+    // Fails CLOSED: only a literal `true` counts as verified. Anything else —
+    // absent (every pre-Phase-B User CR), null, or a non-boolean a future milo
+    // might send — maps to false.
+    //
+    // This coercion is what lets the redirect cascade be written as the spec
+    // phrases it (`emailVerified === false`) while behaving as the spec
+    // intends ("absent reads as false → naturally fail-closed"). Without it
+    // those two sentences disagree, because `undefined === false` is false.
+    // Same shape and same reasoning as toPasskey's state mapping below.
+    emailVerified: status?.emailVerified === true,
     country: metadata?.annotations?.[USER_PROFILE_COUNTRY_ANNOTATION],
   };
 }

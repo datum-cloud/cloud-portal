@@ -46,6 +46,39 @@ describe('toUser', () => {
     expect(user.country).toBe('US');
   });
 
+  it('maps status.emailVerified when milo reports it true', () => {
+    const raw = {
+      metadata: { name: 'user-3', annotations: {} },
+      spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
+      status: { platformAccess: 'Approved', state: 'Active', emailVerified: true },
+    };
+
+    expect(toUser(raw as never).emailVerified).toBe(true);
+  });
+
+  it('fails CLOSED when status.emailVerified is absent', () => {
+    const raw = {
+      metadata: { name: 'user-4', annotations: {} },
+      spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
+      status: { platformAccess: 'Approved', state: 'Active' },
+    };
+
+    // Every pre-Phase-B User CR looks exactly like this. `undefined` here would
+    // make `emailVerified === false` in the cascade read as VERIFIED, which is
+    // the opposite of what the spec asks for.
+    expect(toUser(raw as never).emailVerified).toBe(false);
+  });
+
+  it('fails CLOSED on a non-boolean value from a future milo', () => {
+    const raw = {
+      metadata: { name: 'user-5', annotations: {} },
+      spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
+      status: { platformAccess: 'Approved', state: 'Active', emailVerified: 'true' },
+    };
+
+    expect(toUser(raw as never).emailVerified).toBe(false);
+  });
+
   it('applies preference defaults and leaves status-derived fields undefined', () => {
     const raw = {
       metadata: { name: 'user-2', annotations: {} },
