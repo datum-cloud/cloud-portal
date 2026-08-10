@@ -1,4 +1,6 @@
-import type { Event } from '@sentry/react-router';
+import { classifyError } from './classify';
+import { env } from '@/utils/env';
+import type { Event, EventHint } from '@sentry/react-router';
 
 /**
  * Known system-level actors whose events are suppressed in Sentry.
@@ -75,12 +77,64 @@ export function isRouteMethodNotAllowedEvent(event: Event): boolean {
   return false;
 }
 
+function leakDetail(error: unknown): string {
+  if (typeof error !== 'object' || error === null) return String(error);
+  const source = error as {
+    name?: unknown;
+    message?: unknown;
+    status?: unknown;
+    response?: { status?: unknown };
+  };
+  const status = source.status ?? source.response?.status;
+  const name = typeof source.name === 'string' ? source.name : 'Error';
+  const message = typeof source.message === 'string' ? source.message : '';
+  return `${name}(status=${String(status)}) ${message}`.trim();
+}
+
+/**
+ * Backstop for expected user-state errors (401/403/404/429) that leak past
+ * their capture sites. The primary policy lives at the capture sites (axios
+ * interceptors, framework error handlers) — this filter should almost never
+ * fire. Outside production telemetry it logs a loud warning so the leaking
+ * capture site gets fixed, rather than this becoming a second policy layer.
+ */
+function isLeakedExpectedError(hint: EventHint | undefined): boolean {
+  const original = hint?.originalException;
+  if (original === undefined || original === null) return false;
+  if (classifyError(original) !== 'expected-user-state') return false;
+
+  const isProductionTelemetry = env.isProd && env.public.sentryEnv === 'production';
+  if (!isProductionTelemetry) {
+    console.warn(
+      '[sentry-policy] dropped leaked expected error — fix the capture site',
+      leakDetail(original)
+    );
+  }
+  return true;
+}
+
 /**
  * Master filter for `beforeSend`. Returns true if the event should be
  * dropped (not sent to Sentry). Combines every individual filter so
  * the two `beforeSend` call sites (client + server) stay in sync via
  * a single import.
+ *
+ * Layer split: this base filter (used by the server in
+ * `observability/providers/sentry.ts`) drops system-actor events, bot 405s,
+ * and leaked 'expected-user-state' errors. Server-side 'network-failure'
+ * (upstream connection errors) stays captured — it is an infra signal.
  */
-export function shouldDropSentryEvent(event: Event): boolean {
-  return isKnownSystemEvent(event) || isRouteMethodNotAllowedEvent(event);
+export function shouldDropSentryEvent(event: Event, hint?: EventHint): boolean {
+  if (isKnownSystemEvent(event) || isRouteMethodNotAllowedEvent(event)) return true;
+  return isLeakedExpectedError(hint);
+}
+
+/**
+ * Client-side variant used by `app/entry.client.tsx`: everything the base
+ * filter drops, plus 'network-failure' — in the browser a failed/timed-out
+ * request is user connectivity (flaky wifi, ad-blockers), not a bug.
+ */
+export function shouldDropSentryEventClient(event: Event, hint?: EventHint): boolean {
+  if (shouldDropSentryEvent(event, hint)) return true;
+  return classifyError(hint?.originalException) === 'network-failure';
 }

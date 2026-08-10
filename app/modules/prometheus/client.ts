@@ -9,9 +9,13 @@ import type {
   PrometheusInstantResponse,
   PrometheusRangeResponse,
 } from './types';
+import {
+  attachUpstreamErrorHandlingIfAvailable,
+  unwrapUpstreamError,
+} from '@/modules/axios/upstream-error-bridge';
 import { logger } from '@/modules/logger';
 import { isDev } from '@/utils/env';
-import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
+import axios, { isAxiosError, type AxiosInstance, type AxiosResponse } from 'axios';
 
 export const PROMETHEUS_CONFIG: PrometheusConfig = {
   baseURL: '',
@@ -38,6 +42,12 @@ export function createPrometheusClient(config?: Partial<PrometheusConfig>): Axio
       ...mergedConfig.headers, // Merge custom headers from config
     },
   });
+
+  // Shared upstream accounting + typed AppError transform (server runtime
+  // only; no-op in the browser). Attached FIRST so it observes the raw
+  // AxiosError; the transform below unwraps the original failure to keep the
+  // PrometheusError contract for existing callers.
+  attachUpstreamErrorHandlingIfAvailable(client);
 
   // Request interceptor for logging
   client.interceptors.request.use(
@@ -67,34 +77,41 @@ export function createPrometheusClient(config?: Partial<PrometheusConfig>): Axio
     (response: AxiosResponse) => {
       return response;
     },
-    (error) => {
+    (error: unknown) => {
+      const original = unwrapUpstreamError(error);
+      const axiosOriginal = isAxiosError(original) ? original : undefined;
+      const responseData = axiosOriginal?.response?.data as
+        | { error?: string; errorType?: string }
+        | undefined;
+
       logger.error(
         'Prometheus response error',
-        error instanceof Error ? error : new Error(String(error)),
+        original instanceof Error ? original : new Error(String(original)),
         {
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-          errorType: error.response?.data?.errorType,
+          status: axiosOriginal?.response?.status,
+          statusText: axiosOriginal?.response?.statusText,
+          errorType: responseData?.errorType,
         }
       );
 
-      if (error.response) {
+      if (axiosOriginal?.response) {
         // Server responded with error status
-        const { status, data } = error.response;
         throw PrometheusError.network(
-          data?.error || `HTTP ${status} error`,
-          status,
-          data?.errorType
+          responseData?.error || `HTTP ${axiosOriginal.response.status} error`,
+          axiosOriginal.response.status,
+          responseData?.errorType
         );
-      } else if (error.request) {
+      } else if (axiosOriginal?.request) {
         // Request was made but no response received
-        if (error.code === 'ECONNABORTED') {
+        if (axiosOriginal.code === 'ECONNABORTED') {
           throw PrometheusError.timeout('Request timeout');
         }
         throw PrometheusError.network('Network error - no response received');
       } else {
         // Something else happened
-        throw PrometheusError.unknown(error.message);
+        throw PrometheusError.unknown(
+          original instanceof Error ? original.message : String(original)
+        );
       }
     }
   );

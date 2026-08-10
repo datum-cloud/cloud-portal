@@ -5,7 +5,7 @@ import {
   clearSentryResourceContext,
   captureApiError,
 } from '@/modules/sentry';
-import { AppError } from '@/utils/errors/app-error';
+import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
@@ -173,15 +173,19 @@ const onResponseError = (error: AxiosError): Promise<never> => {
       ? appErrorFromSerialized(responseData, error)
       : appErrorFromRaw(error, httpStatus);
 
-  // Capture to Sentry
-  captureApiError({
-    error,
-    method: error.config?.method,
-    url: error.config?.url,
-    status: error.response?.status ?? 'network',
-    message: appError.originalMessage ?? appError.message,
-    requestId: appError.requestId,
-  });
+  // Capture only unexpected failures. Expected user-facing statuses
+  // (401/403/404/429) and no-response network failures (user connectivity)
+  // are skipped — API breadcrumbs still give context to the next real error.
+  if (error.response && !isUserFacingErrorStatus(error.response.status)) {
+    captureApiError({
+      error,
+      method: error.config?.method,
+      url: error.config?.url,
+      status: error.response.status,
+      message: appError.originalMessage ?? appError.message,
+      requestId: appError.requestId,
+    });
+  }
 
   return Promise.reject(appError);
 };

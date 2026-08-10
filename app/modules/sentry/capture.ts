@@ -77,6 +77,19 @@ export function captureMessage(
 }
 
 /**
+ * Resolve a searchable `code` tag for framework-handler captures: the
+ * error's own string `code` (AppError, AxiosError) when present, falling
+ * back to the error name.
+ */
+export function resolveErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const source = error as { code?: unknown; name?: unknown };
+  if (typeof source.code === 'string' && source.code.length > 0) return source.code;
+  if (typeof source.name === 'string' && source.name.length > 0) return source.name;
+  return undefined;
+}
+
+/**
  * Set a custom tag in Sentry.
  */
 export function setTag(key: string, value: string | number | boolean | undefined): void {

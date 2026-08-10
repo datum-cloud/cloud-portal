@@ -155,20 +155,21 @@ export class SentryProvider extends BaseProvider {
   }
 
   private getTracesSampleRate(): number {
-    return 1.0;
+    return env.public.sentryEnv === 'production' ? 0.1 : 1.0;
   }
 
   private createBeforeSendHandler() {
-    return (event: any, _hint: any) => {
+    return (event: any, hint: any) => {
       if (this.circuitBreakerOpen) {
         console.warn('⚠️ Sentry circuit breaker open, skipping event');
         return null;
       }
 
-      // Drop events that aren't actionable: known system actors and
-      // bot-driven React Router 405s. Keeps Sentry focused on real
-      // user-facing errors.
-      if (shouldDropSentryEvent(event)) {
+      // Drop events that aren't actionable: known system actors,
+      // bot-driven React Router 405s, and expected user-state 4xx that
+      // leaked past their capture sites (hint-aware backstop). Server-side
+      // network failures stay captured — they are infra signals.
+      if (shouldDropSentryEvent(event, hint)) {
         return null;
       }
 

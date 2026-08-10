@@ -1,6 +1,10 @@
 /**
  * CloudValid HTTP Client
  */
+import {
+  attachUpstreamErrorHandlingIfAvailable,
+  unwrapUpstreamError,
+} from '@/modules/axios/upstream-error-bridge';
 import axios, { type AxiosInstance, type AxiosError } from 'axios';
 
 interface CloudValidErrorResponse {
@@ -38,11 +42,17 @@ export class CloudValidClient {
       },
     });
 
+    // Shared upstream accounting + typed AppError transform (server runtime
+    // only; no-op in the browser). Attached FIRST so it observes the raw
+    // AxiosError; handleError below unwraps the original failure to keep the
+    // CloudValidError contract for existing callers.
+    attachUpstreamErrorHandlingIfAvailable(this.client);
+
     // Add response interceptor for error handling
     this.client.interceptors.response.use(
       (response) => response,
-      (error: AxiosError<CloudValidErrorResponse>) => {
-        throw this.handleError(error);
+      (error: unknown) => {
+        throw this.handleError(unwrapUpstreamError(error) as AxiosError<CloudValidErrorResponse>);
       }
     );
   }

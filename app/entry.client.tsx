@@ -1,5 +1,5 @@
 import { configureBrowserClient } from '@/modules/control-plane/setup.client';
-import { shouldDropSentryEvent } from '@/modules/sentry/filters';
+import { shouldDropSentryEventClient } from '@/modules/sentry/filters';
 import { env } from '@/utils/env';
 import * as Sentry from '@sentry/react-router';
 import { StrictMode, startTransition } from 'react';
@@ -58,18 +58,37 @@ Sentry.init({
   // Set `tracePropagationTargets` to declare which URL(s) should have trace propagation enabled
   tracePropagationTargets: [/^\//, new RegExp(window.location.origin)],
 
-  // Capture Replay for 50% of all sessions for proactive UX monitoring,
-  // plus 100% of sessions with an error
-  replaysSessionSampleRate: 0.5,
+  // Error-focused replay budget: 1% of ambient sessions for baseline UX
+  // signal, 100% of sessions that hit an error.
+  replaysSessionSampleRate: 0.01,
   replaysOnErrorSampleRate: 1.0,
 
   // Release name
   release: env.public.version || 'dev',
 
-  beforeSend: (event) => {
-    if (shouldDropSentryEvent(event)) return null;
-    return event;
-  },
+  // Browser noise that is never actionable. Hydration errors are
+  // intentionally NOT ignored — they are real bugs. Chunk-load errors are
+  // self-healed by the reload handler below in this file.
+  ignoreErrors: [
+    'ResizeObserver loop limit exceeded',
+    'ResizeObserver loop completed with undelivered notifications',
+    /AbortError/,
+    /Importing a module script failed/,
+    /Failed to fetch dynamically imported module/,
+  ],
+  denyUrls: [
+    /extensions\//,
+    /^chrome:\/\//,
+    /^chrome-extension:\/\//,
+    /^moz-extension:\/\//,
+    /^safari-(web-)?extension:\/\//,
+  ],
+
+  // Client policy: drop expected user-state 4xx AND network failures (user
+  // connectivity is not a bug). The server beforeSend
+  // (observability/providers/sentry.ts) uses the base filter, which keeps
+  // network failures — upstream connection errors are infra signals.
+  beforeSend: (event, hint) => (shouldDropSentryEventClient(event, hint) ? null : event),
 });
 
 // Global handler for chunk load failures (stale deployments).

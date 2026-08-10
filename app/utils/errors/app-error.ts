@@ -2,15 +2,16 @@ import * as Sentry from '@sentry/react-router';
 
 /**
  * HTTP status codes that represent expected user-facing states
- * (e.g. resource not found, permission denied, session expired).
+ * (e.g. resource not found, permission denied, session expired, rate limited).
  *
  * Errors with these statuses are not captured to Sentry and are rendered
  * with a user-friendly message rather than "our team has been notified".
+ * Rate limits (429) are expected operational states surfaced to users.
  *
- * Other 4xx codes (400, 409, 429, ...) reaching the route error boundary
+ * Other 4xx codes (400, 409, 422, ...) reaching the route error boundary
  * usually indicate a bug — those are still captured.
  */
-export const USER_FACING_ERROR_STATUSES: ReadonlySet<number> = new Set([401, 403, 404]);
+export const USER_FACING_ERROR_STATUSES: ReadonlySet<number> = new Set([401, 403, 404, 429]);
 
 export function isUserFacingErrorStatus(status: number | undefined): boolean {
   return typeof status === 'number' && USER_FACING_ERROR_STATUSES.has(status);

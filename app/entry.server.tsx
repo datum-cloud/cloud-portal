@@ -1,6 +1,6 @@
 import { NonceProvider } from '@/hooks/useNonce';
+import { isExpectedUserError, resolveErrorCode } from '@/modules/sentry';
 import { cspNonceContext } from '@/server/context';
-import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import * as Sentry from '@sentry/react-router';
 import { isbot } from 'isbot';
@@ -71,9 +71,12 @@ async function handleRequest(
 export default Sentry.wrapSentryHandleRequest(handleRequest);
 
 // Export handleError for Sentry error capture.
-// Skip expected user-facing statuses (401/403/404) and aborted requests — these are
-// not bugs. Other 4xx codes (400/409/429/...) reaching this handler usually indicate
-// a code path that forgot to catch an error inline, so we still want them captured.
+// Skip aborted requests, and skip ANY error shape carrying an expected user-facing
+// status (401/403/404/429) — AppError, raw AxiosError from clients outside the
+// shared interceptors, or serialized objects with a numeric `status`. These are
+// expected user states, not bugs. Other 4xx codes (400/409/...) reaching this
+// handler usually indicate a code path that forgot to catch an error inline, so
+// we still want them captured.
 //
 // React Router's own `ErrorResponse`s (thrown by the router for things like a
 // POST to a route without an `action`, or a path that matches no routes) are
@@ -83,9 +86,14 @@ export default Sentry.wrapSentryHandleRequest(handleRequest);
 export const handleError: HandleErrorFunction = (error, { request }) => {
   if (request.signal.aborted) return;
 
-  if (error instanceof AppError && isUserFacingErrorStatus(error.status)) return;
+  if (isExpectedUserError(error)) return;
 
   if (isRouteErrorResponse(error) && error.status >= 400 && error.status < 500) return;
 
-  Sentry.captureException(error);
+  Sentry.captureException(error, {
+    tags: {
+      code: resolveErrorCode(error),
+      route: new URL(request.url).pathname,
+    },
+  });
 };

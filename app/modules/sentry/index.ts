@@ -13,6 +13,10 @@
  * - trackFormSubmit / trackFormSuccess / trackFormError - Form interactions
  * - trackApiCall / trackApiError - API calls
  *
+ * ## Classification (capture policy)
+ * - classifyError - Resolve any error shape to an ErrorClass
+ * - isExpectedUserError - True for expected user-facing states (401/403/404/429)
+ *
  * ## Capture (error reporting)
  * - captureError - Capture errors with context
  * - captureApiError - Capture API errors with resource context and fingerprinting
@@ -48,6 +52,9 @@ export {
   type UrlResourceInfo,
 } from './context';
 
+// Classification - capture policy
+export { classifyError, isExpectedUserError, type ErrorClass } from './classify';
+
 // Breadcrumbs - user journey tracking
 export {
   // Form
@@ -68,6 +75,7 @@ export {
   captureError,
   captureApiError,
   captureMessage,
+  resolveErrorCode,
   setTag,
   setContext,
   type LogLevel,

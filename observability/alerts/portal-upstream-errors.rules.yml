@@ -1,0 +1,169 @@
+# Alerting rules for the portal_upstream_responses_total counter emitted by the
+# cloud-portal server-side axios layer (see docs/superpowers/specs/
+# 2026-08-10-sentry-enterprise-error-recording-design.md, Section 5).
+#
+# Metric contract:
+#   portal_upstream_responses_total{status, api_group, resource_type, method}
+#   - incremented for EVERY upstream request outcome: each HTTP response
+#     (successes and errors) plus connection-level failures, so ratios always
+#     have a full-traffic denominator
+#   - status is the upstream HTTP status as a string (e.g. "404"), or "network"
+#     for connection-level failures (timeout/DNS/refused) where no HTTP
+#     response was received — these are never labeled as a fabricated "500"
+#   - api_group / resource_type fall back to "unknown" when the URL is unparseable
+#   - resource names and namespaces are never labels (cardinality control)
+#
+# These rules are Prometheus- and VictoriaMetrics(vmalert)-compatible. This file
+# is the source of truth; deployment wiring lives in the infra repo (see
+# observability/alerts/README.md).
+
+groups:
+  - name: portal-upstream-errors
+    interval: 1m
+    rules:
+      # Intent: fire when the 404 rate for a (resource_type, api_group) pair has
+      # been sustained above 5x its trailing 7-day baseline for 30 minutes.
+      #
+      # Expression breakdown:
+      #   - Left side: the 404 throughput over the last 30m per pair.
+      #   - Right side: 5 * rate(...[7d] offset 30m) — the average 404 throughput
+      #     across the trailing week (rate over a 7d window IS the 7d average of
+      #     the instantaneous rate, i.e. an avg_over_time-style baseline without
+      #     needing a recording rule). The 30m offset keeps the current spike from
+      #     inflating its own baseline.
+      #   - The trailing "and ... > 0.02" clause is an absolute floor (~1.2 req/min)
+      #     so that 5x of a near-zero baseline cannot page on a handful of requests.
+      #
+      # Known gap: a brand-new resource_type has no 7d baseline series, so the
+      # vector match drops it and this alert stays silent for its first week —
+      # PortalUpstream403Spike / PortalUpstream5xxElevated still cover it.
+      - alert: PortalUpstream404Anomaly
+        expr: |
+          (
+              sum by (resource_type, api_group) (
+                rate(portal_upstream_responses_total{status="404"}[30m])
+              )
+            > 5 *
+              sum by (resource_type, api_group) (
+                rate(portal_upstream_responses_total{status="404"}[7d] offset 30m)
+              )
+          )
+          and
+            sum by (resource_type, api_group) (
+              rate(portal_upstream_responses_total{status="404"}[30m])
+            ) > 0.02
+        for: 30m
+        labels:
+          severity: warning
+          service: cloud-portal
+        annotations:
+          summary: >-
+            404 anomaly for {{ $labels.resource_type }} ({{ $labels.api_group }})
+          description: >-
+            The upstream 404 rate for resource_type={{ $labels.resource_type }}
+            api_group={{ $labels.api_group }} has exceeded 5x its 7-day baseline
+            for 30 minutes (current: {{ $value | humanize }} req/s). A sustained
+            404 storm on one resource type usually means a portal page is
+            requesting a resource path that no longer exists upstream (the
+            issue #1378 HTTPProxy failure mode) or a release regressed an API
+            path.
+          runbook_url: https://github.com/datum-cloud/cloud-portal/blob/main/observability/alerts/README.md#portalupstream404anomaly
+
+      # Intent: fire when more than 10% of all upstream responses for a
+      # resource_type are 403s, sustained for 30 minutes. The denominator is
+      # total responses (all statuses) for the same resource_type; the trailing
+      # "and ... > 0.05" clause requires meaningful traffic (~3 req/min) so a
+      # single denied request among a handful cannot trip the ratio.
+      - alert: PortalUpstream403Spike
+        expr: |
+          (
+              sum by (resource_type) (
+                rate(portal_upstream_responses_total{status="403"}[15m])
+              )
+            /
+              sum by (resource_type) (
+                rate(portal_upstream_responses_total[15m])
+              )
+          ) > 0.10
+          and
+            sum by (resource_type) (
+              rate(portal_upstream_responses_total[15m])
+            ) > 0.05
+        for: 30m
+        labels:
+          severity: warning
+          service: cloud-portal
+        annotations:
+          summary: >-
+            403 ratio above 10% for {{ $labels.resource_type }}
+          description: >-
+            More than 10% of upstream responses for
+            resource_type={{ $labels.resource_type }} were 403s for 30 minutes
+            (current ratio: {{ $value | humanizePercentage }}). Expected
+            per-user permission denials are spread thin; a concentrated spike
+            on one resource type points at an RBAC/policy regression or a
+            portal page fetching resources its users are not entitled to.
+          runbook_url: https://github.com/datum-cloud/cloud-portal/blob/main/observability/alerts/README.md#portalupstream403spike
+
+      # Intent: page when the portal-wide upstream 5xx ratio exceeds 2% for 10
+      # minutes. Aggregated across all labels: 5xx is an upstream/infra failure
+      # signal, and a fleet-wide ratio pages faster and more reliably than
+      # per-resource slices. Short 5m rate window for fast detection; the
+      # "and ... > 0.1" clause (~6 req/min total) guards quiet periods.
+      # Connection-level failures carry status="network" and are covered by
+      # PortalUpstreamNetworkFailuresElevated below, so this ratio only counts
+      # genuine upstream 5xx responses.
+      - alert: PortalUpstream5xxElevated
+        expr: |
+          (
+              sum(rate(portal_upstream_responses_total{status=~"5.."}[5m]))
+            /
+              sum(rate(portal_upstream_responses_total[5m]))
+          ) > 0.02
+          and
+            sum(rate(portal_upstream_responses_total[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          service: cloud-portal
+        annotations:
+          summary: >-
+            Upstream 5xx ratio above 2% portal-wide
+          description: >-
+            More than 2% of all upstream responses through the cloud-portal
+            server were 5xx for 10 minutes (current ratio:
+            {{ $value | humanizePercentage }}). Upstream APIs are failing or the
+            portal is sending malformed requests at scale; user-visible breakage
+            is likely.
+          runbook_url: https://github.com/datum-cloud/cloud-portal/blob/main/observability/alerts/README.md#portalupstream5xxelevated
+
+      # Intent: page when connection-level failures (status="network": timeout,
+      # DNS, connection refused — no HTTP response received) exceed 2% of all
+      # upstream request outcomes for 10 minutes. Kept separate from
+      # PortalUpstream5xxElevated so a degraded network path between the portal
+      # and upstream APIs is never conflated with the upstream itself returning
+      # 5xx — the two conditions have different owners and different fixes.
+      - alert: PortalUpstreamNetworkFailuresElevated
+        expr: |
+          (
+              sum(rate(portal_upstream_responses_total{status="network"}[5m]))
+            /
+              sum(rate(portal_upstream_responses_total[5m]))
+          ) > 0.02
+          and
+            sum(rate(portal_upstream_responses_total[5m])) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          service: cloud-portal
+        annotations:
+          summary: >-
+            Upstream network-failure ratio above 2% portal-wide
+          description: >-
+            More than 2% of upstream requests from the cloud-portal server
+            failed at the connection level (timeout/DNS/refused, recorded as
+            status="network") for 10 minutes (current ratio:
+            {{ $value | humanizePercentage }}). The network path between the
+            portal and upstream APIs is degraded; user-visible breakage is
+            likely.
+          runbook_url: https://github.com/datum-cloud/cloud-portal/blob/main/observability/alerts/README.md#portalupstreamnetworkfailureselevated
