@@ -79,6 +79,7 @@ const shouldSkipOnboardingRedirect = (pathname: string): boolean => {
   if (pathname === paths.fraud.verifying) return true;
   if (pathname === paths.fraud.accountUnderReview) return true;
   if (pathname === paths.fraud.accountSuspended) return true;
+  if (pathname === paths.fraud.verifyEmail) return true;
   if (/^\/invitation\/[^/]+\/accept$/.test(pathname)) return true;
   // Account settings are user-level and org-independent — always reachable.
   if (ACCOUNT_SETTINGS_PATHS.has(pathname)) return true;

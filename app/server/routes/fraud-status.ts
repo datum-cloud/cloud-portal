@@ -19,7 +19,13 @@ fraudStatus.get('/', async (c) => {
   });
 
   if ('error' in access) {
-    return c.json({ status: 'pending' as const });
+    // Unreadable user (404/403 during propagation, or an upstream failure).
+    // Deliberately NOT 'email-unverified': /verify-email would hold them here
+    // indefinitely on an error that has nothing to do with their address. As
+    // 'fraud-review' the page hands control back to the server, and
+    // fraudStatusMiddleware routes them to /verifying, which is exactly
+    // what an unreadable user got before Phase B.
+    return c.json({ status: 'pending' as const, reason: 'fraud-review' as const });
   }
 
   const { user, refreshedHeaders } = access;
