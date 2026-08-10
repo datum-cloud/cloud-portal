@@ -371,7 +371,7 @@ export function toHttpProxy(
   options?: {
     trafficProtectionMode?: TrafficProtectionMode;
     paranoiaLevels?: { blocking?: number; detection?: number };
-    basicAuth?: { enabled: boolean; userCount: number; usernames: string[] };
+    basicAuth?: { enabled: boolean; userCount: number; usernames: string[]; forbidden?: boolean };
   }
 ): HttpProxy {
   // Find the backend rule (skip redirect rules which have no backends)
@@ -444,6 +444,7 @@ export function toHttpProxy(
       basicAuthEnabled: options.basicAuth.enabled,
       basicAuthUserCount: options.basicAuth.userCount,
       basicAuthUsernames: options.basicAuth.usernames,
+      ...(options.basicAuth.forbidden && { basicAuthForbidden: true }),
     }),
   };
 }

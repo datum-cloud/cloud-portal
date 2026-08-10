@@ -118,7 +118,8 @@ export default function HttpProxyOverviewPage() {
           <HttpProxyConfigCard
             proxy={effectiveProxy}
             projectId={projectId}
-            canViewWaf={canViewWaf && !wafError}
+            canViewWaf={canViewWaf && !waf?.forbidden}
+            wafUnavailable={wafError}
             wafPending={wafPending}
             wafProgrammed={waf?.programmed}
             wafProgrammedMessage={waf?.programmedMessage}

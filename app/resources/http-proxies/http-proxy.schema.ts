@@ -97,6 +97,12 @@ export const httpProxyResourceSchema = z.object({
   /** Usernames visible to the UI (never passwords) */
   basicAuthUsernames: z.array(z.string()).optional(),
   /**
+   * True when the basic-auth reads (SecurityPolicy / htpasswd Secret) were
+   * denied (403) — the card renders an insufficient-permissions state instead
+   * of "Disabled" (#1378).
+   */
+  basicAuthForbidden: z.boolean().optional(),
+  /**
    * Optional upstream Host header override.
    * Maps to spec.rules[backendRule].filters[].requestHeaderModifier.set[name=Host].value.
    * Empty / undefined means "no override" (forward the incoming Host unchanged).
