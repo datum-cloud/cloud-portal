@@ -271,6 +271,8 @@ export default [
   route('verifying', 'routes/fraud/verifying.tsx'),
   route('account-under-review', 'routes/fraud/account-under-review.tsx'),
   route('account-suspended', 'routes/fraud/account-suspended.tsx'),
+  // Phase B email-verification gate. Same placement rule as its three siblings.
+  route('verify-email', 'routes/fraud/verify-email.tsx'),
   // Global Routes
   route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
 
