@@ -344,9 +344,16 @@ jobs:
   # ─── PR Comment ─────────────────────────────────────────────
   pr-comment:
     name: PR Test Summary
-    needs: [bun-tests, unit-tests, e2e-smoke]
+    # Must depend on EVERY test job it reports on — otherwise it fires as soon
+    # as the fast jobs finish and snapshots the slow ones (the e2e-regression
+    # shards) while they're still running, so they show up as "pending" and a
+    # real failure would be masked as "pending" too.
+    needs: [bun-tests, unit-tests, e2e-smoke, e2e-regression]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    # `always()` so the summary still posts when a test job fails — that's when
+    # the artifact links matter most. Without it, a failed dependency would
+    # skip this job and leave the PR with no comment at all.
+    if: always() && github.event_name == 'pull_request'
     permissions:
       contents: read
       pull-requests: write
@@ -371,35 +378,45 @@ jobs:
               j.name === 'Bun Unit Tests' || j.name === 'Unit Tests' || j.name.startsWith('E2E')
             );
 
+            // A job that hasn't finished has a null `conclusion` (distinct from
+            // "skipped"). With this job now depending on every test job it
+            // reports on, null should not occur — but label it honestly if it
+            // ever does, rather than collapsing it into the "skipped" emoji.
             const statusEmoji = (conclusion) => {
-              if (!conclusion || conclusion === 'skipped') return '⏭️';
               if (conclusion === 'success') return '✅';
               if (conclusion === 'failure') return '❌';
               if (conclusion === 'cancelled') return '🚫';
+              if (conclusion === 'skipped') return '⏭️';
+              if (!conclusion) return '⏳';
               return '❓';
             };
 
             let table = '| Job | Status |\n|-----|--------|\n';
             for (const job of testJobs.sort((a, b) => a.name.localeCompare(b.name))) {
-              table += `| ${job.name} | ${statusEmoji(job.conclusion)} ${job.conclusion || 'pending'} |\n`;
+              table += `| ${job.name} | ${statusEmoji(job.conclusion)} ${job.conclusion || 'in progress'} |\n`;
             }
-
-            const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: runId,
-            });
 
             let body = `## 🧪 Test Summary\n\n${table}\n\n`;
             body += `[View workflow run](${runUrl})`;
-            body += `\n\n### 📎 Artifacts\n\n`;
-            if (artifacts.artifacts.length > 0) {
-              body += `Videos and screenshots from failed E2E tests:\n\n`;
-              for (const a of artifacts.artifacts) {
-                body += `- **${a.name}** – [Download](${runUrl})\n`;
+
+            // Only surface debugging artifacts when a test actually failed. On a
+            // green run the coverage/build artifacts still exist, so listing
+            // them here would wrongly imply a failure. E2E failure artifacts are
+            // named `e2e-*` (see the upload steps); coverage/build are not.
+            const anyFailed = testJobs.some(j => j.conclusion === 'failure');
+            if (anyFailed) {
+              const { data: artifacts } = await github.rest.actions.listWorkflowRunArtifacts({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: runId,
+              });
+              const e2eArtifacts = artifacts.artifacts.filter(a => a.name.startsWith('e2e-'));
+              if (e2eArtifacts.length > 0) {
+                body += `\n\n### 📎 Failure artifacts\n\nVideos and screenshots from failed E2E tests:\n\n`;
+                for (const a of e2eArtifacts) {
+                  body += `- **${a.name}** – [Download](${runUrl})\n`;
+                }
               }
-            } else {
-              body += `No artifacts (all tests passed).\n`;
             }
 
             fs.writeFileSync('pr-summary.md', body);
