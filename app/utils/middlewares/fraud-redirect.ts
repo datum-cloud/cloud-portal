@@ -3,6 +3,7 @@ import type { User } from '@/resources/users';
 import { PlatformAccess } from '@/resources/users/user.schema';
 import { isEmailVerificationGateEnabled } from '@/utils/config/email-verification-gate';
 import { paths } from '@/utils/config/paths.config';
+import { redirect } from 'react-router';
 
 export type FraudPollResult =
   | {
@@ -27,20 +28,40 @@ export const onboardingEntryPath = (user: User): string =>
   user.nameReviewRequired ? paths.onboarding.profile : paths.onboarding.account;
 
 /**
- * Whether Phase B's email-verification gate should hold this user.
+ * Whether the email-verification gate should hold this user.
  *
- * Reads ABSENT as unverified. `emailVerified` is optional on the domain User
- * and no pre-Phase-B `User` CR carries it, so `!== true` is the fail-closed
- * reading the spec asks for. `toUser` (user.adapter.ts) already coerces the
- * wire value to a boolean, but this predicate does not lean on that — a User
- * built by hand (buildDevStubUser, fixtures) must not slip the gate simply by
- * omitting the key.
+ * Reads ABSENT as unverified: `emailVerified` is optional on the domain User
+ * and no User record predating the gate carries it, so `!== true` is the
+ * fail-closed reading. `toUser` already coerces the wire value to a boolean,
+ * but this does not lean on that — a User built by hand (buildDevStubUser,
+ * test fixtures) must not slip the gate by omitting the key.
  *
- * Returns false whenever the flag is off. That is the portal half of the
- * two-switch kill, and it is why every branch below can land dark.
+ * Returns false whenever the flag is off, which is what lets every branch
+ * below ship dark.
  */
 function isBlockedOnEmailVerification(user: User): boolean {
   return isEmailVerificationGateEnabled() && user.emailVerified !== true;
+}
+
+/**
+ * The redirect to issue when a caller could not DETERMINE the user's state, or
+ * undefined to let the request proceed.
+ *
+ * Admitting on "we don't know" is a fail-open, and it fails open on exactly the
+ * population this gate exists to catch. Shared by the two middlewares so the
+ * indeterminate case is answered the same way in both.
+ *
+ * Keyed on the flag deliberately: with the gate off this returns undefined and
+ * every caller behaves exactly as it did before. Denying unconditionally would
+ * turn a transient upstream failure into a portal-wide outage before the gate
+ * is even on.
+ *
+ * /verifying is safe as the destination — it sits outside the private layout
+ * (blocking-page invariant, routes.ts) so it cannot loop, and it self-heals:
+ * the page polls and releases the user once the upstream answers again.
+ */
+export function denyIfEmailGateEnabled(): Response | undefined {
+  return isEmailVerificationGateEnabled() ? redirect(paths.fraud.verifying) : undefined;
 }
 
 /**
@@ -58,14 +79,11 @@ export function isAwaitingEmailVerification(result: FraudPollResult): boolean {
  *
  * Pass `null` for `user` when the user could not be read — that renders the
  * page. Fail-CLOSED: this page is the block, so an upstream outage must not
- * become a way past it. (account-under-review.tsx calls the same behaviour
- * "fail-open"; on a blocking page the two words describe the same safe
- * outcome — keep showing it.)
+ * become a way past it.
  *
- * The flag-off branch is the DISABLE direction of the kill switch: the instant
- * infra rolls EMAIL_VERIFICATION_GATE back off, anyone parked here is released
- * on their next navigation rather than stranded on a page nothing moves them
- * past.
+ * The flag-off branch is the disable direction of the kill switch: the instant
+ * EMAIL_VERIFICATION_GATE is rolled back off, anyone parked here is released on
+ * their next navigation rather than stranded on a page nothing moves them past.
  */
 export function resolveVerifyEmailPageRedirect(
   user: Pick<User, 'emailVerified'> | null
@@ -84,11 +102,11 @@ export function resolveFraudPollResult(user: User): FraudPollResult {
     return { status: 'completed', decision: 'DEACTIVATE' };
   }
 
-  // POSITION 2 — the same rank this branch holds in resolveUserFraudRedirectPath
-  // below, and it has to be. If this returned ACCEPTED for an Approved-but-
+  // Position 2, the same rank this branch holds in resolveUserFraudRedirectPath
+  // below — and it has to be. If this returned ACCEPTED for an approved but
   // unverified user, /verify-email would poll, be told to proceed, navigate,
-  // and be bounced straight back by the redirect cascade. That is a loop, not
-  // a funnel. The two functions move together or not at all.
+  // and be bounced straight back by the cascade. That is a loop, not a funnel.
+  // The two functions move together or not at all.
   if (isBlockedOnEmailVerification(user)) {
     return { status: 'pending', reason: 'email-unverified' };
   }
@@ -123,23 +141,15 @@ export function resolveUserFraudRedirectPath(
     return paths.fraud.accountSuspended;
   }
 
-  // POSITION 2 — after suspension, before approval.
+  // Position 2 — after suspension, before approval. After suspension because a
+  // suspended user must never see a verify prompt; before approval because
+  // staff should not review an address nobody has proven they own. This is an
+  // ADDITIONAL gate, not a replacement for staff approval: the funnel is
+  // check-your-email → verify → under review → staff approves → in.
   //
-  // After suspension because a suspended user must never see a verify prompt.
-  // Before approval because staff should not review an address nobody has
-  // proven they own. This is an ADDITIONAL gate, not a replacement for staff
-  // approval: the funnel is check-your-email → verify → under review → staff
-  // approves → in.
-  //
-  // Route-level, so it blocks EVERYTHING rather than just mutations — verb-level
-  // gating is not expressible here, and a read-only pass would leave unverified
-  // users in a functional-looking app that fails on every write.
-  //
-  // The self-exclusion mirrors the name-review branch below. It is currently
-  // unreachable — /verify-email is declared outside the private layout, so
-  // none of this function's three callers ever see that pathname — but it
-  // costs one comparison and makes the cascade loop-free by construction
-  // rather than by where a route happens to be mounted.
+  // The self-exclusion mirrors the name-review branch below and relies on the
+  // blocking-page invariant (routes.ts) rather than trusting it — see
+  // routes-layout-invariant.test.ts.
   if (isBlockedOnEmailVerification(user) && pathname !== paths.fraud.verifyEmail) {
     return paths.fraud.verifyEmail;
   }

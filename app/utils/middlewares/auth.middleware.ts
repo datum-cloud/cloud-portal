@@ -1,9 +1,12 @@
-import { onboardingEntryPath, resolveUserFraudRedirectPath } from './fraud-redirect';
+import {
+  denyIfEmailGateEnabled,
+  onboardingEntryPath,
+  resolveUserFraudRedirectPath,
+} from './fraud-redirect';
 import { MiddlewareContext, NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { createOrganizationService } from '@/resources/organizations';
 import { sessionContext } from '@/server/context';
-import { isEmailVerificationGateEnabled } from '@/utils/config/email-verification-gate';
 import { paths } from '@/utils/config/paths.config';
 import { getSession, isAuthenticated } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
@@ -100,16 +103,12 @@ async function redirectToOnboardingIfNoOrgs(
   const access = await getUserWithAccessRetry(userId, cookieHeader);
 
   if ('error' in access) {
-    // E-FC defence in depth. Not load-bearing today — private.layout.tsx runs
-    // authMiddleware BEFORE fraudStatusMiddleware, so a null here falls through
-    // to a middleware that fetches and decides for itself — but nothing
-    // enforces that ordering. Blunter than the sibling: it did not separate
-    // not_found/forbidden (propagation) from 'other' (an incident), so under
-    // the gate only the indeterminate case is denied.
-    if (isEmailVerificationGateEnabled() && access.error === 'other') {
-      return redirect(paths.fraud.verifying);
-    }
-    return null;
+    // Defence in depth, and not load-bearing today: private.layout.tsx runs
+    // authMiddleware BEFORE fraudStatusMiddleware, so returning null here falls
+    // through to a middleware that fetches and decides for itself. Nothing
+    // enforces that ordering, though, so the indeterminate case is answered
+    // here too — via the same helper, so the two cannot drift apart.
+    return denyIfEmailGateEnabled() ?? null;
   }
 
   const { user, refreshedHeaders } = access;
@@ -136,11 +135,8 @@ async function redirectToOnboardingIfNoOrgs(
     appendSetCookieHeaders(headers, refreshedHeaders);
     return redirect(onboardingEntryPath(user), { headers });
   } catch {
-    // E-FC defence in depth, same reasoning as the 'error' branch above:
-    // an org-list or resolver throw means the state is indeterminate.
-    if (isEmailVerificationGateEnabled()) {
-      return redirect(paths.fraud.verifying);
-    }
-    return null;
+    // Same reasoning as the 'error' branch above: an org-list or resolver
+    // throw means the state is indeterminate.
+    return denyIfEmailGateEnabled() ?? null;
   }
 }

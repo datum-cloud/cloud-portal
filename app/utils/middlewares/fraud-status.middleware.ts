@@ -1,30 +1,10 @@
-import { resolveUserFraudRedirectPath } from './fraud-redirect';
+import { denyIfEmailGateEnabled, resolveUserFraudRedirectPath } from './fraud-redirect';
 import { type MiddlewareContext, type NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
-import { isEmailVerificationGateEnabled } from '@/utils/config/email-verification-gate';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
 import { redirect } from 'react-router';
-
-/**
- * E-FC (W0-3). Three of this middleware's six `next()` exits are reached when
- * the user's state could not be DETERMINED — not when it was determined to be
- * fine. Admitting on "we don't know" is a fail-open, and it fails open on
- * exactly the population the Phase B gate exists to catch.
- *
- * Keyed on the gate flag on purpose: with the gate off this returns undefined
- * and every caller behaves byte-identically to pre-Phase-B. Flipping it
- * unconditionally would turn a milo blip into a portal-wide outage before the
- * gate is even on (spec risk #2).
- *
- * /verifying is safe as a destination: routes.ts places it OUTSIDE the
- * private layout, which is this middleware's only registration
- * (private.layout.tsx:96-97), so it cannot loop. It also self-heals — the page
- * polls and releases the user once milo answers again.
- */
-const denyIfGated = (): Response | undefined =>
-  isEmailVerificationGateEnabled() ? redirect(paths.fraud.verifying) : undefined;
 
 /**
  * Fraud status middleware that gates access based on user.status fields set by
@@ -33,7 +13,7 @@ const denyIfGated = (): Response | undefined =>
  *
  * Algorithm:
  * 1. Read session; if no sub, call next() (let authMiddleware handle)
- * 2. Fetch user (or reuse auth middleware cache); if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open with the email gate off, /verifying with it on (E-FC)
+ * 2. Fetch user (or reuse auth middleware cache); if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open with the email gate off, /verifying with it on
  * 3. Cache user in reqCtx to avoid a second upstream call in the layout loader
  * 4. state === 'Inactive' || platformAccess === 'Suspended' → /account-suspended
  * 5. platformAccess === 'Approved'         → if nameReviewRequired and not on onboarding profile → redirect there; else next()
@@ -69,9 +49,9 @@ export async function fraudStatusMiddleware(
           return redirect(paths.fraud.verifying);
         }
         // 'other' = milo 5xx, timeout, reset, decode error — the state could
-        // not be determined. The widest W0-3 fail-open, and the one that fires
-        // in a real incident.
-        return denyIfGated() ?? next();
+        // not be determined. The widest of the three indeterminate exits, and
+        // the one that fires during a real incident.
+        return denyIfEmailGateEnabled() ?? next();
       }
 
       user = access.user;
@@ -79,9 +59,9 @@ export async function fraudStatusMiddleware(
     }
 
     if (!user) {
-      // Unreachable on current types; the guard exists because its author did
-      // not trust that, and an unknown user must not pass a security gate.
-      return denyIfGated() ?? next();
+      // Unreachable on current types. Kept because an unknown user must not
+      // pass a security gate on the strength of a type annotation.
+      return denyIfEmailGateEnabled() ?? next();
     }
 
     const reqCtx = getRequestContext();
@@ -100,9 +80,9 @@ export async function fraudStatusMiddleware(
     return next();
   } catch {
     // Unexpected throw (getSession, the resolver, header handling): fail-open
-    // with the email gate off — byte-identical to pre-Phase-B — and /verifying
-    // with it on (E-FC). The logout short-circuit above runs before this try,
-    // so the escape hatch survives either way.
-    return denyIfGated() ?? next();
+    // with the email gate off — identical to the behaviour that shipped before
+    // it existed — and /verifying with it on. The logout short-circuit above
+    // runs before this try, so the escape hatch survives either way.
+    return denyIfEmailGateEnabled() ?? next();
   }
 }
