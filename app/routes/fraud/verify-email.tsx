@@ -12,6 +12,30 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { useEffect } from 'react';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
+const SUPPORT_EMAIL = 'support@datum.net';
+
+/**
+ * How often to re-check, by how long the page has been open.
+ *
+ * Fast while the user is plausibly clicking the link right now, then slower —
+ * unlike /verifying, which waits on a machine and promises "under 30 seconds",
+ * this page waits on a human finding an email. A flat 4s tick left open for an
+ * hour is ~900 requests that learn nothing.
+ */
+const POLL_SCHEDULE = [
+  { withinMs: 60_000, everyMs: 4_000 },
+  { withinMs: 300_000, everyMs: 15_000 },
+];
+const POLL_FALLBACK_MS = 60_000;
+
+const pollDelayFor = (elapsedMs: number): number =>
+  POLL_SCHEDULE.find((step) => elapsedMs < step.withinMs)?.everyMs ?? POLL_FALLBACK_MS;
+
+// `?refresh=0` — this page can poll for many minutes, and the endpoint's
+// proactive token refresh is meant for the short post-signup wait on
+// /verifying. See app/server/routes/fraud-status.ts.
+const STATUS_URL = `${paths.fraud.statusApi}?refresh=0`;
+
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Verify Your Email');
 });
@@ -40,43 +64,48 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function VerifyEmailPage() {
   useEffect(() => {
     let stopped = false;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+    const startedAt = Date.now();
 
+    // Self-scheduling rather than setInterval: the next tick is only queued
+    // once the previous one has settled, so a slow response cannot stack
+    // requests on top of each other.
     const poll = async () => {
       if (stopped) return;
 
       try {
-        const response = await fetch(paths.fraud.statusApi, { credentials: 'include' });
+        const response = await fetch(STATUS_URL, { credentials: 'include' });
 
-        if (!response.ok) {
-          return;
+        if (response.ok) {
+          const result = (await response.json()) as FraudPollResult;
+
+          // Anything other than "still waiting on the address" means it is
+          // proven. Where to go next is deliberately NOT decided here:
+          // /verifying re-derives its destination client-side because its poll
+          // hands it a `redirectTo`; this page has no such target, and
+          // re-implementing the cascade in the browser is how the two copies
+          // drift. One hop through the server re-runs the redirect cascade and
+          // lands the user wherever it says — /verifying if staff review is
+          // still pending, onboarding if approved.
+          if (!isAwaitingEmailVerification(result)) {
+            window.location.replace(paths.home);
+            return; // navigating away — do not reschedule
+          }
         }
-
-        const result = (await response.json()) as FraudPollResult;
-
-        // Still waiting on the address — keep polling.
-        if (isAwaitingEmailVerification(result)) {
-          return;
-        }
-
-        // Anything else means the address is proven. Where to go next is
-        // deliberately NOT decided here. /verifying re-derives its destination
-        // client-side because its poll hands it a `redirectTo`; this page has no
-        // such target, and re-implementing the cascade in the browser is how the
-        // two copies drift. One hop through the server re-runs
-        // resolveUserFraudRedirectPath and lands the user wherever it says —
-        // /verifying if staff review is still pending, onboarding if approved.
-        window.location.replace(paths.home);
       } catch {
-        // Fail silently — continue polling on network errors
+        // Network error — say nothing and let the next tick retry.
+      }
+
+      if (!stopped) {
+        timerId = setTimeout(poll, pollDelayFor(Date.now() - startedAt));
       }
     };
 
-    poll(); // fire immediately — don't wait 4s if the link was already clicked
-    const intervalId = setInterval(poll, 4000);
+    poll(); // fire immediately — don't wait if the link was already clicked
 
     return () => {
       stopped = true;
-      clearInterval(intervalId);
+      clearTimeout(timerId);
     };
   }, []);
 
@@ -85,9 +114,16 @@ export default function VerifyEmailPage() {
       <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">Check your email</h2>
-          <p className="text-center text-[14px] leading-5 font-normal">
+          <p role="status" className="text-center text-[14px] leading-5 font-normal">
             We sent a verification link to your email address. Open it to continue — this page
             updates on its own once you have.
+          </p>
+          <p className="text-muted-foreground mt-4 text-center text-[13px] leading-5">
+            Didn&apos;t get it? Check your spam folder, or contact{' '}
+            <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
+              {SUPPORT_EMAIL}
+            </a>
+            .
           </p>
           <div className="mt-6 text-center">
             <Link
