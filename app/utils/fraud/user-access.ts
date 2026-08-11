@@ -24,8 +24,8 @@ function buildDevStubUser(userId: string): User {
     state: 'Active',
     nameReviewRequired: false,
     // Fourth gate, same reason as the three above: this principal has no User
-    // CR at all, so there is nothing for zitadel-provider to have marked
-    // verified. Without this the Phase B gate redirects the dev token-exchange
+    // record at all, so there is nothing for zitadel-provider to have marked
+    // verified. Without this the email gate redirects the dev token-exchange
     // session to /verify-email and the plugin e2e suite stops at the door.
     emailVerified: true,
   };

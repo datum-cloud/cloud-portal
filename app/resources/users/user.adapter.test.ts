@@ -63,9 +63,9 @@ describe('toUser', () => {
       status: { platformAccess: 'Approved', state: 'Active' },
     };
 
-    // Every pre-Phase-B User CR looks exactly like this. `undefined` here would
-    // make `emailVerified === false` in the cascade read as VERIFIED, which is
-    // the opposite of what the spec asks for.
+    // Every User record predating the gate looks exactly like this. Leaving it
+    // `undefined` would make an `emailVerified === false` check in the cascade
+    // read as VERIFIED — the opposite of the intended behaviour.
     expect(toUser(raw as never).emailVerified).toBe(false);
   });
 

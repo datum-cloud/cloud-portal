@@ -39,8 +39,8 @@ export const userResourceSchema = z.object({
   avatarUrl: z.string().optional(),
   nameReviewRequired: z.boolean().optional(),
   /**
-   * Milo `User.status.emailVerified` — Phase B's hard-gate signal, written only
-   * by zitadel-provider on the write-restricted status subresource. Optional on
+   * Milo `User.status.emailVerified` — the email gate's signal, written only by
+   * zitadel-provider on the write-restricted status subresource. Optional on
    * the schema because `buildDevStubUser` and every test fixture construct a
    * User by hand; `toUser` itself always emits a boolean, and every consumer
    * treats absent as unverified.

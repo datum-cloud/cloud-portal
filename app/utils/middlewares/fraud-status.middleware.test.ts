@@ -2,9 +2,10 @@ import { fraudStatusMiddleware } from './fraud-status.middleware';
 import type { MiddlewareContext } from './middleware';
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
-// getUserWithAccessRetry is the seam: every W0-3 site is reachable by
-// controlling what it returns or throws. getSession controls the no-session
-// keeper. Mutable per-test behaviour, following legacy-setup.middleware.test.ts.
+// getUserWithAccessRetry is the seam: every indeterminate-state exit is
+// reachable by controlling what it returns or throws. getSession controls the
+// no-session keeper. Mutable per-test behaviour, following
+// legacy-setup.middleware.test.ts.
 type Access = { error: 'not_found' | 'forbidden' | 'other' } | { user: Record<string, unknown> };
 
 let access: Access | (() => never) = { error: 'other' };
@@ -57,7 +58,7 @@ afterEach(() => {
   gateOff();
 });
 
-describe('fraudStatusMiddleware — W0-3 indeterminate exits', () => {
+describe('fraudStatusMiddleware — indeterminate-state exits', () => {
   it("gate OFF: an 'other' error still passes through (today's behaviour, byte-identical)", async () => {
     gateOff();
     const next = mock(async () => new Response('ok'));
