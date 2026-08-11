@@ -1,19 +1,23 @@
 import { paths } from '@/utils/config/paths.config';
 
 /**
- * Email Verification Gate — Phase B (E-GATE / E-B3b)
+ * Email verification gate — both positions of one switch, one spec.
  *
- * Two positions of the same switch, one spec. Run it twice:
- *   bun run test:e2e                                  → gate off (default)
- *   EMAIL_VERIFICATION_GATE=true bun run test:e2e     → gate on
- * The server-side flag is what changes; the spec reads the same variable so it
- * knows which behaviour to assert. A spec that only ever runs in one position
- * is not a kill-switch test.
+ *   bun run test:e2e                                → gate off (default, and
+ *                                                     what CI runs)
+ *   EMAIL_VERIFICATION_GATE=true bun run test:e2e   → gate on
  *
- * NOTE on the on-position: whether the signed-in fixture user reads verified
- * or unverified depends on the environment's milo User CR. Before the A-BF
- * backfill has run anywhere, EVERY user reads unverified, so gate-on holds the
- * fixture at /verify-email — which is exactly the assertion below.
+ * The variable reaches BOTH processes: the server reads it from its own
+ * environment, and cypress.config.ts forwards it into `Cypress.env` so the spec
+ * knows which behaviour to assert. Cypress only auto-imports CYPRESS_-prefixed
+ * variables, so that forwarding is what keeps the two in agreement — without it
+ * the spec asserts the off-position against an on-position server. A spec that
+ * only ever runs in one position is not a kill-switch test.
+ *
+ * NOTE on the on-position: whether the signed-in fixture user reads verified or
+ * unverified depends on the environment's milo User record. Before the backfill
+ * has run anywhere, EVERY user reads unverified, so gate-on holds the fixture
+ * at /verify-email — which is exactly the assertion below.
  */
 const gateOn = Cypress.env('EMAIL_VERIFICATION_GATE') === 'true';
 
@@ -44,12 +48,22 @@ describe('email verification gate', () => {
 
   it('always lets the user log out', () => {
     // The one escape hatch every blocking page keeps (verifying.tsx,
-    // account-under-review.tsx). If the gate ever swallows this, a
-    // mis-flip becomes unrecoverable without an infra roll.
+    // account-under-review.tsx). If the gate ever swallows this, a mis-flip
+    // becomes unrecoverable without an infra roll.
     cy.login();
-    cy.visit(paths.fraud.verifyEmail, { failOnStatusCode: false });
+
     if (gateOn) {
+      cy.visit(paths.fraud.verifyEmail, { failOnStatusCode: false });
       cy.contains('Log out').should('be.visible');
+    } else {
+      // Gate off, so /verify-email is not where the user lands. Assert the
+      // escape hatch still answers on the page they DO get, rather than
+      // asserting nothing at all in the position CI actually runs.
+      cy.visit(paths.account.organizations.root, { failOnStatusCode: false });
+      cy.location('pathname').should('not.eq', paths.fraud.verifyEmail);
+      cy.request({ url: paths.auth.logOut, followRedirect: false })
+        .its('status')
+        .should('be.oneOf', [200, 302]);
     }
   });
 });
