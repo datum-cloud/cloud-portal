@@ -1,7 +1,7 @@
 import type { StripeProviderConfig } from '@/features/billing/types';
 import { listStripeBillingMiloapisComV1Alpha1StripeProviderConfig } from '@/modules/control-plane/stripe';
 import { logger } from '@/modules/logger';
-import { getUserScopedBase } from '@/resources/base/utils';
+import { getUserScopedBase, retryOnTransientAuthError } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 /**
@@ -29,10 +29,27 @@ export function createStripeProviderConfigService() {
     async list(): Promise<StripeProviderConfig[]> {
       const startTime = Date.now();
       try {
-        const resp = await listStripeBillingMiloapisComV1Alpha1StripeProviderConfig({
-          baseURL: getUserScopedBase(),
-        });
-        const items = resp.data?.items ?? [];
+        // A fresh signup's StripeProviderConfig grant travels an async
+        // pipeline (User → org membership → PolicyBinding → OpenFGA
+        // tuple sync) before it's effective, so a list fired in that
+        // window returns 401/403. Retry with backoff so the first page
+        // load after onboarding doesn't surface it as a hard error;
+        // callers that degrade gracefully still get their fallback if
+        // the grant never lands.
+        const items = await retryOnTransientAuthError(
+          async () => {
+            try {
+              const resp = await listStripeBillingMiloapisComV1Alpha1StripeProviderConfig({
+                baseURL: getUserScopedBase(),
+              });
+              return resp.data?.items ?? [];
+            } catch (error) {
+              // Map first so the retry loop can read the HTTP status.
+              throw mapApiError(error);
+            }
+          },
+          { operation: `${SERVICE_NAME}.list` }
+        );
         logger.service(SERVICE_NAME, 'list', { duration: Date.now() - startTime });
         return items;
       } catch (error) {
