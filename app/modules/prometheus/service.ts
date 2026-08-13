@@ -232,6 +232,16 @@ export class PrometheusService {
 }
 
 /**
- * Default Prometheus service instance
+ * Default Prometheus service instance, created lazily on first access.
+ *
+ * Eagerly constructing the singleton at module load would spin up the
+ * axios/OTEL wiring the moment the prometheus module is imported — even for
+ * code paths that never query Prometheus. Deferring creation keeps imports
+ * side-effect-free and avoids ordering surprises at server bootstrap.
  */
-export const prometheusService = new PrometheusService();
+let prometheusServiceInstance: PrometheusService | undefined;
+
+export function getPrometheusService(): PrometheusService {
+  prometheusServiceInstance ??= new PrometheusService();
+  return prometheusServiceInstance;
+}

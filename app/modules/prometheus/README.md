@@ -41,13 +41,15 @@ This library can be used in two primary ways:
 
 ### 1. Direct Library Usage (Server-Side)
 
-Use the `prometheusService` singleton for direct access to the Prometheus API.
+Use `getPrometheusService()` for direct access to the Prometheus API (the
+singleton is created lazily on first use).
 
 #### Querying for Charts
 
 ```typescript
-import { prometheusService } from '@/modules/prometheus';
+import { getPrometheusService } from '@/modules/prometheus';
 
+const prometheusService = getPrometheusService();
 const chartData = await prometheusService.queryForChart({
   query: 'rate(http_requests_total[5m])',
   timeRange: {
@@ -61,8 +63,9 @@ const chartData = await prometheusService.queryForChart({
 #### Querying for Cards
 
 ```typescript
-import { prometheusService } from '@/modules/prometheus';
+import { getPrometheusService } from '@/modules/prometheus';
 
+const prometheusService = getPrometheusService();
 const cardData = await prometheusService.queryForCard({
   query: 'avg(cpu_usage_percent)',
   format: 'percentage',
@@ -80,6 +83,7 @@ const query = new PrometheusQueryBuilder()
   .sumBy(['path', 'status_code'])
   .build(); // "sum(rate(http_requests_total[5m])) by (path, status_code)"
 
+const prometheusService = getPrometheusService();
 const result = await prometheusService.queryInstant({ query });
 ```
 
@@ -93,7 +97,9 @@ This route uses `prometheusService` to securely query the backend and exposes th
 
 ```typescript
 // Example API Route
-import { prometheusService } from '@/modules/prometheus';
+import { getPrometheusService } from '@/modules/prometheus';
+
+const prometheusService = getPrometheusService();
 
 export async function action({ request }: ActionFunctionArgs) {
   const body = await request.json();
@@ -152,14 +158,17 @@ export function MetricChart({ query, timeRange }) {
 
 This section provides more detailed examples for the core functionalities of the library.
 
-### Using `prometheusService`
+### Using `getPrometheusService`
 
-The `prometheusService` is the workhorse for direct, server-side interactions.
+`getPrometheusService()` returns the shared service instance (created lazily on
+first access) for direct, server-side interactions.
 
 #### Example: Checking the status of multiple jobs
 
 ```typescript
-import { prometheusService } from '@/modules/prometheus';
+import { getPrometheusService } from '@/modules/prometheus';
+
+const prometheusService = getPrometheusService();
 
 async function checkJobStatuses() {
   try {
@@ -246,7 +255,7 @@ const userApiLatencyQuery = getLatencyQueryForPath('/api/users');
 
 Key exports from this standalone library:
 
-- `prometheusService`: Singleton service for all query operations.
+- `getPrometheusService`: Lazily-initialized singleton accessor for all query operations.
 - `PrometheusService`: Class for creating custom service instances.
 - `PrometheusQueryBuilder`: Fluent API for building PromQL queries.
 - `usePrometheusQuery`: Core TanStack Query hook for direct client-side queries.

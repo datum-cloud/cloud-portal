@@ -1,4 +1,5 @@
 /// <reference types="bun-types/test" />
+import { partitionPermissionChecks, type PermissionCheckInput } from './hooks/usePermissionCheck';
 import { buildChecks, detectInstanceGrantMisuse, flagNameFor } from './use-resource-permissions';
 import { describe, expect, test } from 'bun:test';
 
@@ -121,5 +122,42 @@ describe('detectInstanceGrantMisuse', () => {
     expect(
       detectInstanceGrantMisuse({ resource: 'secrets', scope: 'project', verbs: ['update'] })
     ).toBeNull();
+  });
+});
+
+describe('partitionPermissionChecks', () => {
+  test('splits project-scoped checks out, preserving original indices', () => {
+    const checks: PermissionCheckInput[] = [
+      { resource: 'dnszones', verb: 'list', scope: 'org' },
+      { resource: 'secrets', verb: 'get', scope: 'project' },
+      { resource: 'clusters', verb: 'list' },
+    ];
+    const { org, project } = partitionPermissionChecks(checks);
+
+    expect(org.map((row) => row.index)).toEqual([0, 2]);
+    expect(project.map((row) => row.index)).toEqual([1]);
+    expect(project[0]?.check.resource).toBe('secrets');
+  });
+
+  test('keeps per-partition order for same-scope checks', () => {
+    const checks: PermissionCheckInput[] = [
+      { resource: 'a', verb: 'list', scope: 'project' },
+      { resource: 'b', verb: 'list', scope: 'project' },
+      { resource: 'c', verb: 'list', scope: 'org' },
+    ];
+    const { org, project } = partitionPermissionChecks(checks);
+
+    expect(project.map((row) => row.index)).toEqual([0, 1]);
+    expect(org.map((row) => row.index)).toEqual([2]);
+  });
+
+  test('handles empty input and default (absent) scope', () => {
+    expect(partitionPermissionChecks([]).org).toEqual([]);
+    expect(partitionPermissionChecks([]).project).toEqual([]);
+
+    const checks: PermissionCheckInput[] = [{ resource: 'dnszones', verb: 'list' }];
+    const { org } = partitionPermissionChecks(checks);
+    expect(org).toHaveLength(1);
+    expect(org[0]?.check.scope).toBeUndefined();
   });
 });

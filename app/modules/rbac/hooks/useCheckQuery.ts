@@ -1,6 +1,8 @@
 import { checkPermissionAPI } from '../client/rbac-api';
 import type { PermissionCheckScope, PermissionVerb } from '../types';
+import { hasUnresolvedProjectScope } from './project-scope-guard';
 import { usePermissions } from './usePermissions';
+import { shouldRetryQuery } from '@/modules/tanstack/query';
 import { useQuery } from '@tanstack/react-query';
 
 const STALE_TIME = 5 * 60 * 1000; // 5 minutes
@@ -72,10 +74,13 @@ export function useCheckQuery(params: CheckQueryParams) {
         projectId,
       });
     },
-    enabled: enabled && !!organizationId,
+    // Same guard as usePermissionCheck: a project-scoped check without a
+    // resolved projectId would violate the server-side invariant — stay
+    // disabled until the project context lands (projectId is in the queryKey).
+    enabled: enabled && !!organizationId && !hasUnresolvedProjectScope([{ scope }], projectId),
     staleTime,
     refetchOnMount,
-    retry: 1,
+    retry: shouldRetryQuery,
   });
 
   return query;

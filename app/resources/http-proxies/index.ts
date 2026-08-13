@@ -75,6 +75,14 @@ export {
   targetRefAttachesToProxy,
 } from './http-proxy.waf-attach';
 
+// Related-resource degradation helper (#1378): 404 -> absent, 403 -> forbidden
+export {
+  resolveRelatedResource,
+  getRelatedResourceErrorStatus,
+  type RelatedResourceResult,
+  type RelatedResourceState,
+} from './related-resource';
+
 export {
   getWafProtectionState,
   isTrafficProtectionProgrammed,

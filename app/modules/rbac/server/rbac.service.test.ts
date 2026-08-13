@@ -71,6 +71,20 @@ describe('RbacService.checkPermission', () => {
       '/apis/resourcemanager.miloapis.com/v1alpha1/projects/proj-1/control-plane'
     );
   });
+
+  test('project-scoped check without projectId enforces the invariant: fails closed, no upstream call', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    const result = await svc.checkPermission('acme', {
+      resource: 'dnszones',
+      verb: 'list',
+      scope: 'project',
+    });
+    expect(result.allowed).toBe(false);
+    expect(result.denied).toBe(true);
+    expect(result.reason).toBe('projectId is required for project-scoped permission checks');
+    expect(fakeAccessReview.create.mock.calls.length).toBe(0);
+  });
 });
 
 describe('RbacService namespace resolution', () => {
@@ -171,5 +185,20 @@ describe('RbacService.checkPermissions (bulk)', () => {
       },
     });
     expect(results[1].allowed).toBe(true);
+  });
+
+  test('project-scoped item without projectId fails closed with the invariant reason, batch continues', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    const results = await svc.checkPermissions('acme', [
+      { resource: 'dnszones', verb: 'list', scope: 'project' },
+      { resource: 'secrets', verb: 'get' },
+    ]);
+    expect(results[0].allowed).toBe(false);
+    expect(results[0].denied).toBe(true);
+    expect(results[0].reason).toBe('projectId is required for project-scoped permission checks');
+    expect(results[1].allowed).toBe(true);
+    // Only the valid item reached the upstream authorizer.
+    expect(fakeAccessReview.create.mock.calls.length).toBe(1);
   });
 });

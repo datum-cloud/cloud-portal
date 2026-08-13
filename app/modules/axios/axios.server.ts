@@ -1,5 +1,5 @@
-import { isK8sStatus, parseK8sStatusError } from './k8s-error';
 import { getRequestContext } from './request-context';
+import { createUpstreamErrorHandler } from './upstream-error.server';
 import { logger } from '@/modules/logger';
 import { generateCurl } from '@/modules/logger/curl.generator';
 import { LOGGER_CONFIG } from '@/modules/logger/logger.config';
@@ -7,17 +7,9 @@ import {
   isKubernetesResource,
   setSentryResourceContext,
   clearSentryResourceContext,
-  captureApiError,
 } from '@/modules/sentry';
+import { recordUpstreamResponse } from '@/server/observability/upstream-metrics';
 import { env } from '@/utils/env/env.server';
-import {
-  AppError,
-  AuthenticationError,
-  AuthorizationError,
-  isUserFacingErrorStatus,
-  NotFoundError,
-  ValidationError,
-} from '@/utils/errors';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
 /**
@@ -117,24 +109,21 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
     setSentryResourceContext(response.data);
   }
 
+  recordUpstreamResponse({
+    method: config?.method,
+    url: config?.url,
+    status: response.status,
+  });
+
   return response;
 };
 
-/** Extract a fallback message from non-K8s response data. */
-function resolveRawMessage(data: unknown, error: AxiosError): string {
-  if (typeof data === 'object' && data !== null) {
-    const obj = data as Record<string, unknown>;
-    if (typeof obj.message === 'string') return obj.message;
-    if (typeof obj.reason === 'string') return obj.reason;
-    if (typeof obj.error === 'string') return obj.error;
-  }
-  return error.message;
-}
+// Shared transform: metrics counting, K8s Status parsing, Sentry capture
+// policy, typed AppError mapping (see upstream-error.server.ts).
+const transformUpstreamError = createUpstreamErrorHandler();
 
 const onResponseError = (error: AxiosError): Promise<never> => {
   const config = error.config as any;
-  const ctx = getRequestContext();
-  const requestId = ctx?.requestId;
 
   // Log API errors if enabled
   if (LOGGER_CONFIG.logApiCalls) {
@@ -151,84 +140,7 @@ const onResponseError = (error: AxiosError): Promise<never> => {
     });
   }
 
-  const responseData = error.response?.data;
-  const httpStatus = error.response?.status ?? 500;
-
-  // Parse K8s Status for user-friendly message
-  const parsed = isK8sStatus(responseData) ? parseK8sStatusError(responseData, httpStatus) : null;
-
-  const message = parsed?.message ?? resolveRawMessage(responseData, error);
-
-  // Capture API error to Sentry with resource context and fingerprinting.
-  // Skip expected user-facing statuses (401/403/404) — these are not bugs and
-  // are surfaced to the user via the route error boundary.
-  if (!isUserFacingErrorStatus(httpStatus)) {
-    captureApiError({
-      error,
-      method: config?.method,
-      url: config?.url,
-      status: httpStatus,
-      message: parsed?.originalMessage ?? message,
-      requestId,
-    });
-  }
-
-  switch (httpStatus) {
-    case 401: {
-      const data = responseData as { error?: string; error_description?: string } | undefined;
-      if (data?.error === 'access_denied' && data?.error_description === 'access token invalid') {
-        throw new AuthenticationError('Session expired', requestId);
-      }
-      throw new AuthenticationError(message || 'Authentication required', requestId);
-    }
-    case 403: {
-      // K8s Status: keep originalMessage/k8sReason/k8sDetails so quota 403s
-      // remain classifiable (parity with the client interceptor), while
-      // preserving AuthorizationError identity — many callers branch on
-      // `instanceof AuthorizationError` (fraud retry, onboarding loaders,
-      // fan-out skipping, billing degradation).
-      if (parsed) {
-        throw new AuthorizationError(message, requestId, {
-          code: parsed.code,
-          details: parsed.details,
-          originalMessage: parsed.originalMessage,
-          k8sReason: parsed.k8sReason,
-          k8sDetails: parsed.k8sDetails,
-        });
-      }
-      throw new AuthorizationError(message || 'Permission denied', requestId);
-    }
-    case 404: {
-      // K8s Status: use AppError with parsed message (e.g., 'DNS Zone "example" not found')
-      // Non-K8s: NotFoundError constructs "Resource not found" from scratch
-      if (parsed) {
-        throw new AppError(message, {
-          code: parsed.code,
-          status: 404,
-          requestId,
-          originalMessage: parsed.originalMessage,
-          k8sReason: parsed.k8sReason,
-          k8sDetails: parsed.k8sDetails,
-          captureToSentry: false,
-        });
-      }
-      throw new NotFoundError('Resource', undefined, requestId);
-    }
-    case 422: {
-      throw new ValidationError(message || 'Validation failed', parsed?.details, requestId);
-    }
-    default: {
-      throw new AppError(message || 'An unexpected error occurred', {
-        code: parsed?.code,
-        status: httpStatus,
-        requestId,
-        originalMessage: parsed?.originalMessage,
-        k8sReason: parsed?.k8sReason,
-        k8sDetails: parsed?.k8sDetails,
-        details: parsed?.details,
-      });
-    }
-  }
+  return transformUpstreamError(error);
 };
 
 http.interceptors.request.use(onRequest, onRequestError);

@@ -1,19 +1,26 @@
 import * as Sentry from '@sentry/react-router';
 
 /**
- * HTTP status codes that represent expected user-facing states
- * (e.g. resource not found, permission denied, session expired).
+ * True for any 4xx — a request the upstream rejected over its content or the
+ * caller's permissions (not found, forbidden, session expired, rate limited,
+ * already exists, validation rejected, ...).
  *
- * Errors with these statuses are not captured to Sentry and are rendered
- * with a user-friendly message rather than "our team has been notified".
+ * These are surfaced to the user as a message they can act on — an error
+ * boundary, a toast, or an inline field error — so they are never captured to
+ * Sentry and never render "our team has been notified". `AppError` already
+ * draws this line internally via `captureToSentry ?? status >= 500`; this
+ * keeps the interceptors and framework handlers consistent with it instead of
+ * maintaining a separate allowlist that has to grow every time a new status
+ * shows up (401/403/404/429 originally, then 409/422, ...).
  *
- * Other 4xx codes (400, 409, 429, ...) reaching the route error boundary
- * usually indicate a bug — those are still captured.
+ * Volume is not lost: `portal_upstream_responses_total` counts every upstream
+ * response by status, so a 4xx caused by OUR bug (e.g. a malformed request
+ * producing 400s) surfaces as a metrics anomaly rather than a Sentry issue.
+ *
+ * 5xx and unhandled throwables mean we broke — those are still captured.
  */
-export const USER_FACING_ERROR_STATUSES: ReadonlySet<number> = new Set([401, 403, 404]);
-
 export function isUserFacingErrorStatus(status: number | undefined): boolean {
-  return typeof status === 'number' && USER_FACING_ERROR_STATUSES.has(status);
+  return typeof status === 'number' && status >= 400 && status < 500;
 }
 
 export interface ErrorDetail {
@@ -62,6 +69,14 @@ export class AppError extends Error {
       originalMessage?: string;
       k8sReason?: string;
       k8sDetails?: K8sErrorDetails;
+      /**
+       * Sentry event id of a capture already performed upstream (e.g. by
+       * `captureApiError` in the axios interceptors). Serialized into the
+       * response body so downstream layers (client interceptors) can skip a
+       * duplicate capture. A fresh capture (status >= 500 with no explicit
+       * `captureToSentry: false`) overwrites it.
+       */
+      sentryEventId?: string;
     } = {}
   ) {
     super(message, { cause: options.cause });
@@ -73,6 +88,7 @@ export class AppError extends Error {
     this.originalMessage = options.originalMessage;
     this.k8sReason = options.k8sReason;
     this.k8sDetails = options.k8sDetails;
+    this.sentryEventId = options.sentryEventId;
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);

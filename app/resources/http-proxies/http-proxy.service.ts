@@ -27,6 +27,7 @@ import {
   getTrafficProtectionProgrammedReason,
   isTrafficProtectionProgrammed,
 } from './http-proxy.waf-status';
+import { getRelatedResourceErrorStatus, resolveRelatedResource } from './related-resource';
 import {
   listNetworkingDatumapisComV1AlphaNamespacedHttpProxy,
   listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy,
@@ -71,6 +72,8 @@ export interface TrafficProtectionView {
   paranoiaLevels?: { blocking?: number; detection?: number };
   /** Actual policy object name when it differs from the proxy name. */
   policyName?: string;
+  /** True when the WAF read was denied (403) — render an insufficient-permissions state. */
+  forbidden?: boolean;
   /** True when all ancestors report Accepted+Programmed for the current generation. */
   programmed?: boolean;
   /** Programmed condition message while converging (e.g. M/N edges). */
@@ -81,6 +84,8 @@ export interface TrafficProtectionView {
 export interface TrafficProtectionMaps {
   modeByName: Map<string, TrafficProtectionMode>;
   paranoiaByName: Map<string, { blocking?: number; detection?: number }>;
+  /** True when the WAF list was denied (403) — render an insufficient-permissions state. */
+  forbidden?: boolean;
 }
 
 const SERVICE_NAME = 'HttpProxyService';
@@ -89,8 +94,7 @@ export function createHttpProxyService() {
   return {
     /** Extract HTTP status from an error (AppError from interceptor, or AxiosError). */
     getErrorStatus(error: unknown): number | undefined {
-      const e = error as { status?: number; response?: { status?: number } };
-      return e?.status ?? e?.response?.status;
+      return getRelatedResourceErrorStatus(error);
     },
 
     /**
@@ -128,9 +132,14 @@ export function createHttpProxyService() {
       // WAF (TrafficProtectionPolicy) is intentionally NOT fetched here — it is
       // loaded by a separate permission-gated query (listTrafficProtectionPolicies)
       // so users without trafficprotectionpolicies access never trigger that request.
-      const [proxyResponse, securityPoliciesResponse] = await Promise.all([
+      // SecurityPolicies are a related resource: 404/403/failed reads degrade to
+      // "no basic auth info", never fail the proxy list (#1378).
+      const [proxyResponse, securityPoliciesResult] = await Promise.all([
         listNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path, query }),
-        this.listSecurityPolicies(baseURL, 'default').catch(() => ({ data: null })),
+        resolveRelatedResource(
+          async () => (await this.listSecurityPolicies(baseURL, 'default')).data,
+          { onUnexpected: 'absorb' }
+        ),
       ]);
 
       const proxyData = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxyList;
@@ -139,8 +148,7 @@ export function createHttpProxyService() {
         string,
         { enabled: boolean; userCount: number; usernames: string[] }
       >();
-      const securityPolicyItems =
-        (securityPoliciesResponse.data as { items?: unknown[] } | null)?.items ?? [];
+      const securityPolicyItems = securityPoliciesResult.data?.items ?? [];
       for (const sp of securityPolicyItems) {
         const spName = (sp as { metadata?: { name?: string } })?.metadata?.name;
         if (spName) {
@@ -156,21 +164,30 @@ export function createHttpProxyService() {
     /**
      * List WAF (TrafficProtectionPolicy) modes for a project, keyed by proxy name.
      * Decoupled from the proxy list so it can be gated behind view permission.
-     * Errors are surfaced (not swallowed) so callers can distinguish "couldn't
-     * read WAF" (show "—") from "no WAF policy" (show "Disabled"). The decoupled
-     * query isolates this failure from the proxy list.
+     * 404 degrades to empty maps ("no WAF policies"); 403 degrades to empty maps
+     * with `forbidden` set so callers render an insufficient-permissions state.
+     * Unexpected errors are surfaced so callers can distinguish "couldn't read
+     * WAF" (show "—") from "no WAF policy" (show "Disabled"). The decoupled
+     * query isolates this failure from the proxy list (#1378).
      */
     async listTrafficProtectionPolicies(projectId: string): Promise<TrafficProtectionMaps> {
       try {
         const baseURL = getProjectScopedBase(projectId);
-        const response = await listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
-          baseURL,
-          path: { namespace: 'default' },
+        const result = await resolveRelatedResource(async () => {
+          const response = await listNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy(
+            {
+              baseURL,
+              path: { namespace: 'default' },
+            }
+          );
+          return response.data;
         });
-        const list = response.data;
+        if (result.state === 'forbidden') {
+          return { modeByName: new Map(), paranoiaByName: new Map(), forbidden: true };
+        }
         return {
-          modeByName: toTrafficProtectionModeMap(list),
-          paranoiaByName: toParanoiaLevelsMap(list),
+          modeByName: toTrafficProtectionModeMap(result.data),
+          paranoiaByName: toParanoiaLevelsMap(result.data),
         };
       } catch (error) {
         logger.error(`${SERVICE_NAME}.listTrafficProtectionPolicies failed`, error as Error);
@@ -223,30 +240,36 @@ export function createHttpProxyService() {
     /**
      * Read a single proxy's WAF (TrafficProtectionPolicy) view. Decoupled from the
      * proxy fetch so it can be gated behind view permission. A genuine miss (no
-     * attaching policy) resolves to an empty view; other errors are surfaced so
-     * callers can distinguish "couldn't read WAF" (show "—") from "no WAF policy".
+     * attaching policy, or a 404 on the read) resolves to an empty view; 403
+     * resolves to an empty view with `forbidden` set so callers render an
+     * insufficient-permissions state. Unexpected errors are surfaced so callers
+     * can distinguish "couldn't read WAF" (show "—") from "no WAF policy" (#1378).
      */
     async getTrafficProtectionPolicy(
       projectId: string,
       name: string
     ): Promise<TrafficProtectionView> {
-      try {
-        const policy = await this.findTrafficProtectionPolicyForProxy(projectId, name);
-        if (!policy) {
-          return { mode: undefined, paranoiaLevels: undefined };
-        }
-        return {
-          mode: getTrafficProtectionMode(policy),
-          paranoiaLevels: getParanoiaLevels(policy),
-          policyName: policy.metadata?.name,
-          programmed: isTrafficProtectionProgrammed(policy.status),
-          programmedMessage: getTrafficProtectionProgrammedMessage(policy.status),
-          programmedReason: getTrafficProtectionProgrammedReason(policy.status),
-        };
-      } catch (error) {
+      const result = await resolveRelatedResource(() =>
+        this.findTrafficProtectionPolicyForProxy(projectId, name)
+      ).catch((error: unknown) => {
         logger.error(`${SERVICE_NAME}.getTrafficProtectionPolicy failed`, error as Error);
         throw mapApiError(error);
+      });
+      if (result.state === 'forbidden') {
+        return { mode: undefined, paranoiaLevels: undefined, forbidden: true };
       }
+      const policy = result.data ?? undefined;
+      if (!policy) {
+        return { mode: undefined, paranoiaLevels: undefined };
+      }
+      return {
+        mode: getTrafficProtectionMode(policy),
+        paranoiaLevels: getParanoiaLevels(policy),
+        policyName: policy.metadata?.name,
+        programmed: isTrafficProtectionProgrammed(policy.status),
+        programmedMessage: getTrafficProtectionProgrammedMessage(policy.status),
+        programmedReason: getTrafficProtectionProgrammedReason(policy.status),
+      };
     },
 
     async createTrafficProtectionPolicy(
@@ -482,10 +505,7 @@ export function createHttpProxyService() {
           path: { namespace: 'default', name: policyName },
         });
       } catch (error: unknown) {
-        const status =
-          (error as { status?: number })?.status ??
-          (error as { response?: { status?: number } })?.response?.status;
-        if (status !== 404) throw error;
+        if (this.getErrorStatus(error) !== 404) throw error;
       }
     },
 
@@ -581,10 +601,19 @@ export function createHttpProxyService() {
 
       // WAF (TrafficProtectionPolicy) is intentionally NOT fetched here — it is
       // loaded by a separate permission-gated query (getTrafficProtectionPolicy).
-      const [proxyResponse, securityPolicyResponse, secretResponse] = await Promise.all([
+      // SecurityPolicy and the htpasswd Secret are related resources: 404 renders
+      // the "not configured" state, 403 an insufficient-permissions state, and no
+      // failure here may take down the proxy page (#1378).
+      const [proxyResponse, securityPolicyResult, secretResult] = await Promise.all([
         readNetworkingDatumapisComV1AlphaNamespacedHttpProxy({ baseURL, path }),
-        this.readSecurityPolicy(baseURL, 'default', name).catch(() => ({ data: null })),
-        this.readBasicAuthSecret(baseURL, 'default', name).catch(() => ({ data: null })),
+        resolveRelatedResource(
+          async () => (await this.readSecurityPolicy(baseURL, 'default', name)).data,
+          { onUnexpected: 'absorb' }
+        ),
+        resolveRelatedResource(
+          async () => (await this.readBasicAuthSecret(baseURL, 'default', name)).data,
+          { onUnexpected: 'absorb' }
+        ),
       ]);
 
       const data = proxyResponse.data as ComDatumapisNetworkingV1AlphaHttpProxy;
@@ -593,9 +622,13 @@ export function createHttpProxyService() {
         throw new NotFoundError('Application Load Balancer', name);
       }
 
-      const usernames = parseHtpasswdUsernames(secretResponse.data);
-      const basicAuth = getBasicAuthState(securityPolicyResponse.data, usernames);
-      return toHttpProxy(data, { basicAuth });
+      const usernames = parseHtpasswdUsernames(secretResult.data);
+      const basicAuth = getBasicAuthState(securityPolicyResult.data, usernames);
+      const basicAuthForbidden =
+        securityPolicyResult.state === 'forbidden' || secretResult.state === 'forbidden';
+      return toHttpProxy(data, {
+        basicAuth: { ...basicAuth, ...(basicAuthForbidden && { forbidden: true }) },
+      });
     },
 
     /**
