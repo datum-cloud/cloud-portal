@@ -77,6 +77,19 @@ export function captureMessage(
 }
 
 /**
+ * Resolve a searchable `code` tag for framework-handler captures: the
+ * error's own string `code` (AppError, AxiosError) when present, falling
+ * back to the error name.
+ */
+export function resolveErrorCode(error: unknown): string | undefined {
+  if (typeof error !== 'object' || error === null) return undefined;
+  const source = error as { code?: unknown; name?: unknown };
+  if (typeof source.code === 'string' && source.code.length > 0) return source.code;
+  if (typeof source.name === 'string' && source.name.length > 0) return source.name;
+  return undefined;
+}
+
+/**
  * Set a custom tag in Sentry.
  */
 export function setTag(key: string, value: string | number | boolean | undefined): void {
@@ -120,6 +133,10 @@ export interface CaptureApiErrorOptions {
  * - Sets resource tags (apiGroup, version, type, name, namespace)
  * - Groups errors by: resource type + API group + status code
  * - Creates descriptive error title (e.g., "API 404: GET dnszones")
+ * - Returns the Sentry event id so upstream capture sites can embed it in
+ *   the serialized error body and downstream layers can skip re-capturing
+ *
+ * @returns The Sentry event id, or undefined if the capture did not run.
  *
  * @example
  * captureApiError({
@@ -130,7 +147,7 @@ export interface CaptureApiErrorOptions {
  *   message: 'Not Found',
  * });
  */
-export function captureApiError(options: CaptureApiErrorOptions): void {
+export function captureApiError(options: CaptureApiErrorOptions): string | undefined {
   const {
     error,
     url,
@@ -169,6 +186,7 @@ export function captureApiError(options: CaptureApiErrorOptions): void {
   const errorMessage = message || error.message || 'Unknown error';
 
   // Capture with custom error name for better Sentry title
+  let eventId: string | undefined;
   Sentry.withScope((scope) => {
     scope.setFingerprint(fingerprint);
     scope.setTag('type', 'api_error');
@@ -201,6 +219,8 @@ export function captureApiError(options: CaptureApiErrorOptions): void {
     apiError.cause = error;
     apiError.stack = error.stack;
 
-    Sentry.captureException(apiError);
+    eventId = Sentry.captureException(apiError);
   });
+
+  return eventId;
 }

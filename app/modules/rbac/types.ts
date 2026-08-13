@@ -39,9 +39,11 @@ export const PermissionVerbSchema = z.enum([
 export const PermissionScopeSchema = z.enum(['org', 'user', 'project']);
 
 /**
- * Base permission check schema
+ * Raw field shape shared by the single and bulk check schemas. Kept unrefined
+ * so `PermissionCheckSchema` can `.extend()` it; the exported schemas below
+ * each re-apply {@link requireProjectIdForProjectScope}.
  */
-export const BasePermissionCheckSchema = z.object({
+const PermissionCheckFieldsSchema = z.object({
   namespace: z.string().optional(),
   verb: PermissionVerbSchema,
   group: z.string().default(''),
@@ -52,11 +54,37 @@ export const BasePermissionCheckSchema = z.object({
 });
 
 /**
+ * A project-scoped check cannot be routed to a control plane without a
+ * projectId (see RbacService.resolveBaseURL). Rejecting it at the BFF
+ * boundary turns a would-be server invariant violation (error-logged and
+ * captured to Sentry) into a 400 that points at the offending caller.
+ */
+const requireProjectIdForProjectScope = (
+  check: { scope?: z.infer<typeof PermissionScopeSchema>; projectId?: string },
+  ctx: z.RefinementCtx
+) => {
+  if (check.scope === 'project' && !check.projectId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['projectId'],
+      message: 'projectId is required when scope is "project"',
+    });
+  }
+};
+
+/**
+ * Base permission check schema
+ */
+export const BasePermissionCheckSchema = PermissionCheckFieldsSchema.superRefine(
+  requireProjectIdForProjectScope
+);
+
+/**
  * Permission check schema with organization ID
  */
-export const PermissionCheckSchema = BasePermissionCheckSchema.extend({
+export const PermissionCheckSchema = PermissionCheckFieldsSchema.extend({
   organizationId: z.string().min(1, 'Organization ID is required'),
-});
+}).superRefine(requireProjectIdForProjectScope);
 
 /**
  * Bulk permission check schema — checks a batch of permissions in one request

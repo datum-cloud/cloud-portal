@@ -65,6 +65,7 @@ export const HttpProxyConfigCard = ({
   projectId,
   canViewWaf = true,
   wafPending = false,
+  wafUnavailable = false,
   wafProgrammed,
   wafProgrammedMessage,
   wafProgrammedReason,
@@ -73,6 +74,8 @@ export const HttpProxyConfigCard = ({
   projectId?: string;
   canViewWaf?: boolean;
   wafPending?: boolean;
+  /** WAF fetch failed for a reason other than permissions — show "—" without a verdict. */
+  wafUnavailable?: boolean;
   wafProgrammed?: boolean;
   wafProgrammedMessage?: string;
   wafProgrammedReason?: string;
@@ -180,6 +183,13 @@ export const HttpProxyConfigCard = ({
               &mdash;
             </Badge>
           </Tooltip>
+        ) : wafUnavailable ? (
+          <Badge
+            type="quaternary"
+            theme="outline"
+            className="text-muted-foreground rounded-xl text-xs font-normal">
+            &mdash;
+          </Badge>
         ) : (
           (() => {
             const { state, statusLabel, configLabel, statusTooltip } =
@@ -309,36 +319,44 @@ export const HttpProxyConfigCard = ({
             </Tooltip>
           </div>
         ),
-        content:
-          proxy.basicAuthEnabled === undefined ? (
-            <Skeleton className="h-5 w-24 rounded-md" />
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
-                {proxy.basicAuthEnabled
-                  ? proxy.basicAuthUserCount
-                    ? `${proxy.basicAuthUserCount} user${proxy.basicAuthUserCount !== 1 ? 's' : ''}`
-                    : 'Enabled'
-                  : 'Disabled'}
-              </Badge>
-              {projectId && (
-                <PermissionGate
-                  resource="httpproxies"
-                  verb="patch"
-                  group="networking.datumapis.com"
-                  scope="project"
-                  mode="disable"
-                  deniedReason="You don't have permission to edit this Application Load Balancer">
-                  <button
-                    type="button"
-                    className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-                    onClick={() => basicAuthDialogRef.current?.show(proxy)}>
-                    <Icon icon={PencilIcon} size={12} />
-                  </button>
-                </PermissionGate>
-              )}
-            </div>
-          ),
+        content: proxy.basicAuthForbidden ? (
+          <Tooltip message="You don't have permission to view Basic Authentication" side="bottom">
+            <Badge
+              type="quaternary"
+              theme="outline"
+              className="text-muted-foreground rounded-xl text-xs font-normal">
+              &mdash;
+            </Badge>
+          </Tooltip>
+        ) : proxy.basicAuthEnabled === undefined ? (
+          <Skeleton className="h-5 w-24 rounded-md" />
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <Badge type="quaternary" theme="outline" className="rounded-xl text-xs font-normal">
+              {proxy.basicAuthEnabled
+                ? proxy.basicAuthUserCount
+                  ? `${proxy.basicAuthUserCount} user${proxy.basicAuthUserCount !== 1 ? 's' : ''}`
+                  : 'Enabled'
+                : 'Disabled'}
+            </Badge>
+            {projectId && (
+              <PermissionGate
+                resource="httpproxies"
+                verb="patch"
+                group="networking.datumapis.com"
+                scope="project"
+                mode="disable"
+                deniedReason="You don't have permission to edit this Application Load Balancer">
+                <button
+                  type="button"
+                  className="text-muted-foreground hover:text-foreground transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => basicAuthDialogRef.current?.show(proxy)}>
+                  <Icon icon={PencilIcon} size={12} />
+                </button>
+              </PermissionGate>
+            )}
+          </div>
+        ),
       },
     ];
   }, [
@@ -347,6 +365,7 @@ export const HttpProxyConfigCard = ({
     updateMutation,
     canViewWaf,
     wafPending,
+    wafUnavailable,
     wafProgrammed,
     wafProgrammedMessage,
     wafProgrammedReason,

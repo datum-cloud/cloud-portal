@@ -60,6 +60,7 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
                       basicAuthEnabled: existingItem.basicAuthEnabled,
                       basicAuthUserCount: existingItem.basicAuthUserCount,
                       basicAuthUsernames: existingItem.basicAuthUsernames,
+                      basicAuthForbidden: existingItem.basicAuthForbidden,
                     }),
                 }
               : item
@@ -110,6 +111,7 @@ export function useHttpProxyWatch(
             basicAuthEnabled: oldData.basicAuthEnabled,
             basicAuthUserCount: oldData.basicAuthUserCount,
             basicAuthUsernames: oldData.basicAuthUsernames,
+            basicAuthForbidden: oldData.basicAuthForbidden,
           }),
       };
     },

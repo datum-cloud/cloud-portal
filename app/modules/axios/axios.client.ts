@@ -5,7 +5,7 @@ import {
   clearSentryResourceContext,
   captureApiError,
 } from '@/modules/sentry';
-import { AppError } from '@/utils/errors/app-error';
+import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
@@ -105,6 +105,8 @@ interface SerializedAppError {
   status: number;
   details?: Array<{ path: string[]; message: string; code?: string }>;
   requestId?: string;
+  /** Owned by a server-side capture (see AppError); presence means skip client re-capture. */
+  sentryEventId?: string;
 }
 
 function isSerializedAppError(data: unknown): data is SerializedAppError {
@@ -138,6 +140,7 @@ function appErrorFromSerialized(data: SerializedAppError, cause: AxiosError): Ap
     status: data.status,
     details: data.details,
     requestId: data.requestId,
+    sentryEventId: data.sentryEventId,
     cause,
     captureToSentry: false,
   });
@@ -173,15 +176,25 @@ const onResponseError = (error: AxiosError): Promise<never> => {
       ? appErrorFromSerialized(responseData, error)
       : appErrorFromRaw(error, httpStatus);
 
-  // Capture to Sentry
-  captureApiError({
-    error,
-    method: error.config?.method,
-    url: error.config?.url,
-    status: error.response?.status ?? 'network',
-    message: appError.originalMessage ?? appError.message,
-    requestId: appError.requestId,
-  });
+  // Capture only unexpected failures. Expected user-facing statuses
+  // (401/403/404/429) and no-response network failures (user connectivity)
+  // are skipped — API breadcrumbs still give context to the next real error.
+  // A serialized AppError carrying a server-captured `sentryEventId` also
+  // skips the client capture — the event already exists server-side.
+  if (
+    error.response &&
+    !isUserFacingErrorStatus(error.response.status) &&
+    !appError.sentryEventId
+  ) {
+    captureApiError({
+      error,
+      method: error.config?.method,
+      url: error.config?.url,
+      status: error.response.status,
+      message: appError.originalMessage ?? appError.message,
+      requestId: appError.requestId,
+    });
+  }
 
   return Promise.reject(appError);
 };

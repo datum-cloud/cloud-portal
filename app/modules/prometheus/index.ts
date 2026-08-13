@@ -58,4 +58,4 @@ export { PrometheusQueryBuilder, PromQLUtils } from './query-builder';
 export { formatForChart, formatForCard, formatValue, transformForRecharts } from './formatter';
 
 // Main service
-export { PrometheusService, prometheusService } from './service';
+export { PrometheusService, getPrometheusService } from './service';

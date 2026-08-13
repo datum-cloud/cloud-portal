@@ -276,7 +276,9 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
               </div>
             );
           }
-          if (!canViewWaf) {
+          // Either the SSAR denied the view, or the list itself came back 403
+          // (degraded by the service instead of hard-failing — #1378).
+          if (!canViewWaf || wafMaps?.forbidden) {
             return (
               <Tooltip message="You don't have permission to view WAF protection">
                 <Badge

@@ -9,7 +9,7 @@ import type {
   ApiLogData,
   ServiceLogData,
 } from './logger.types';
-import { addBreadcrumb, captureError, setTag } from '@/modules/sentry';
+import { addBreadcrumb, captureError, isExpectedUserError, setTag } from '@/modules/sentry';
 
 const LOG_LEVELS: Record<LogLevel, number> = {
   debug: 0,
@@ -87,6 +87,13 @@ export class Logger {
       this.log('error', message, { ...error, ...data });
       errorToCapture = new Error(message);
     }
+
+    // Expected user-state errors (401/403/404/429) are dropped from Sentry at
+    // every capture site by policy; entering them here (e.g. via apiError for
+    // each failed upstream call) would only be rescued by the beforeSend
+    // backstop and drown its leak detection. Console/breadcrumb logging above
+    // is unaffected.
+    if (isExpectedUserError(error)) return;
 
     captureError(errorToCapture, { message, extra: { ...this.context, ...data } });
   }
