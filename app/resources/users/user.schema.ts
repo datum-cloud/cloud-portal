@@ -39,11 +39,10 @@ export const userResourceSchema = z.object({
   avatarUrl: z.string().optional(),
   nameReviewRequired: z.boolean().optional(),
   /**
-   * Milo `User.status.emailVerified` — the email gate's signal, written only by
-   * zitadel-provider on the write-restricted status subresource. Optional on
-   * the schema because `buildDevStubUser` and every test fixture construct a
-   * User by hand; `toUser` itself always emits a boolean, and every consumer
-   * treats absent as unverified.
+   * The email gate's signal. Not a milo field — it comes from the id_token's
+   * `email_verified` claim, overlaid onto the User by `getUserWithAccessRetry`.
+   * Optional because fixtures and `buildDevStubUser` construct a User by hand;
+   * every consumer treats absent as unverified.
    */
   emailVerified: z.boolean().optional(),
   /** ISO 3166-1 alpha-2 code from `metadata.annotations['profile/country']`. */

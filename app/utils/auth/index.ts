@@ -11,6 +11,7 @@ export {
   sessionStorage,
   refreshTokenStorage,
   clearUserPermissionCache,
+  readEmailVerified,
 } from './auth.service';
 export { destroyAllAuthCookies, destroyLocalSessions } from './auth.utils';
 export { sessionManager } from './session-manager';

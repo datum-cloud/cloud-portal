@@ -46,36 +46,28 @@ describe('toUser', () => {
     expect(user.country).toBe('US');
   });
 
-  it('maps status.emailVerified when milo reports it true', () => {
+  it('never reads emailVerified from the resource, even if milo sends one', () => {
     const raw = {
       metadata: { name: 'user-3', annotations: {} },
       spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
       status: { platformAccess: 'Approved', state: 'Active', emailVerified: true },
     };
 
-    expect(toUser(raw as never).emailVerified).toBe(true);
+    // The signal is an id_token claim, overlaid by getUserWithAccessRetry.
+    // Trusting a resource field would let anything able to write User status
+    // grant itself the gate.
+    expect(toUser(raw as never).emailVerified).toBe(false);
   });
 
-  it('fails CLOSED when status.emailVerified is absent', () => {
+  it('fails CLOSED when nothing overlays a value', () => {
     const raw = {
       metadata: { name: 'user-4', annotations: {} },
       spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
       status: { platformAccess: 'Approved', state: 'Active' },
     };
 
-    // Every User record predating the gate looks exactly like this. Leaving it
-    // `undefined` would make an `emailVerified === false` check in the cascade
-    // read as VERIFIED — the opposite of the intended behaviour.
-    expect(toUser(raw as never).emailVerified).toBe(false);
-  });
-
-  it('fails CLOSED on a non-boolean value from a future milo', () => {
-    const raw = {
-      metadata: { name: 'user-5', annotations: {} },
-      spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
-      status: { platformAccess: 'Approved', state: 'Active', emailVerified: 'true' },
-    };
-
+    // Leaving it `undefined` would make an `emailVerified === false` check in
+    // the cascade read as VERIFIED — the opposite of the intended behaviour.
     expect(toUser(raw as never).emailVerified).toBe(false);
   });
 

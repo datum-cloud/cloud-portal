@@ -22,19 +22,21 @@ const SUPPORT_EMAIL = 'support@datum.net';
  * this page waits on a human finding an email. A flat 4s tick left open for an
  * hour is ~900 requests that learn nothing.
  */
+// Wider than /verifying's intervals because each tick now costs a
+// refresh_token grant and a cookie rotation, not just a read.
 const POLL_SCHEDULE = [
-  { withinMs: 60_000, everyMs: 4_000 },
-  { withinMs: 300_000, everyMs: 15_000 },
+  { withinMs: 60_000, everyMs: 10_000 },
+  { withinMs: 300_000, everyMs: 20_000 },
 ];
 const POLL_FALLBACK_MS = 60_000;
 
 const pollDelayFor = (elapsedMs: number): number =>
   POLL_SCHEDULE.find((step) => elapsedMs < step.withinMs)?.everyMs ?? POLL_FALLBACK_MS;
 
-// `?refresh=0` — this page can poll for many minutes, and the endpoint's
-// proactive token refresh is meant for the short post-signup wait on
-// /verifying. See app/server/routes/fraud-status.ts.
-const STATUS_URL = `${paths.fraud.statusApi}?refresh=0`;
+// No `refresh=0` here, deliberately. Verification is an id_token claim, so it
+// only changes when a new token is issued — polling without the refresh
+// re-reads the same stale `false` forever.
+const STATUS_URL = paths.fraud.statusApi;
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Verify Your Email');

@@ -6,8 +6,7 @@ import { AuthService } from '@/utils/auth';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 
 export type UserAccessResult =
-  | { user: User; refreshedHeaders?: Headers }
-  | { error: 'not_found' | 'forbidden' | 'other' };
+  { user: User; refreshedHeaders?: Headers } | { error: 'not_found' | 'forbidden' | 'other' };
 
 /**
  * A service-account principal (e.g. the plugin e2e suite's dev token
@@ -50,7 +49,7 @@ export async function getUserWithAccessRetry(
 
   try {
     const user = await createUserService().get(userId);
-    return { user };
+    return { user: await withSessionEmailVerified(user, cookieHeader) };
   } catch (error) {
     if (error instanceof NotFoundError) {
       if (isOnboardingDevBypassEnabled()) {
@@ -98,10 +97,24 @@ async function retryAfterTokenRefresh(
     }
 
     const user = await createUserService().get(userId);
-    return { user, refreshedHeaders: headers };
+    return {
+      user: { ...user, emailVerified: newSession.emailVerified },
+      refreshedHeaders: headers,
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * Verification lives on the id_token, not on the milo User, so it has to be
+ * overlaid after the fetch. Reading the session rather than the resource is
+ * what makes a stale claim possible — callers waiting on verification must
+ * force a refresh (`refreshBeforeRead`) rather than poll this alone.
+ */
+async function withSessionEmailVerified(user: User, cookieHeader: string | null): Promise<User> {
+  const { session } = await AuthService.getSession(cookieHeader);
+  return { ...user, emailVerified: session?.emailVerified === true };
 }
 
 export function appendSetCookieHeaders(target: Headers, source?: Headers): void {

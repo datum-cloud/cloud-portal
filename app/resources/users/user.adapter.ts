@@ -48,7 +48,6 @@ export interface ComMiloapisIamV1Alpha1User {
     state: string;
     avatarUrl?: string;
     lastLoginProvider?: 'google' | 'github';
-    emailVerified?: boolean;
   };
 }
 
@@ -86,13 +85,10 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
         ? (status.lastLoginProvider as LastLoginProviderValue)
         : undefined,
     nameReviewRequired: metadata?.annotations?.[USER_NAME_REVIEW_REQUIRED_ANNOTATION] === 'true',
-    // Fails CLOSED: only a literal `true` counts as verified. Anything else —
-    // absent (every User record predating the gate), null, or a non-boolean a
-    // future milo might send — maps to false. Without this coercion every call
-    // site would have to spell out the absent case itself, since
-    // `undefined === false` is false. Same shape and reasoning as toPasskey's
-    // state mapping below.
-    emailVerified: status?.emailVerified === true,
+    // milo carries no verification state — the signal is a token claim, and
+    // getUserWithAccessRetry overlays it from the session. False here so a
+    // caller reached without that overlay fails closed.
+    emailVerified: false,
     country: metadata?.annotations?.[USER_PROFILE_COUNTRY_ANNOTATION],
   };
 }

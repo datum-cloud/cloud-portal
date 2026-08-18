@@ -15,12 +15,10 @@ fraudStatus.get('/', async (c) => {
   const session = c.get('session')!;
   const cookieHeader = c.req.header('Cookie') ?? null;
 
-  // The proactive token refresh exists for /verifying, which polls for seconds
-  // immediately after signup while OpenFGA tuples propagate. /verify-email can
-  // poll for as long as it takes someone to open an email, where a refresh per
-  // tick is pure cost — a refresh_token grant and a session-cookie rotation
-  // every few seconds, for minutes. Long-lived callers pass `?refresh=0`; a 403
-  // mid-poll still triggers the reactive refresh inside getUserWithAccessRetry.
+  // The refresh is load-bearing for /verify-email rather than an optimisation:
+  // verification is an id_token claim, so it only changes when a new token is
+  // issued. `?refresh=0` remains for callers that only want a read — they will
+  // not observe a verification change while they use it.
   const refreshBeforeRead = c.req.query('refresh') !== '0';
   const access = await getUserWithAccessRetry(session.sub!, cookieHeader, { refreshBeforeRead });
 
