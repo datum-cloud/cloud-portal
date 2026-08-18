@@ -23,7 +23,12 @@ export const ProxyHostnamesField = forwardRef<HTMLDivElement, ProxyHostnamesFiel
 
     return (
       <div ref={ref} className="flex flex-col gap-2">
-        <span className="text-xs font-semibold">Hostnames</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-xs font-semibold">Hostnames</span>
+          <span className="text-muted-foreground text-xs">
+            The domains that should point to this Application Load Balancer.
+          </span>
+        </div>
 
         <Form.FieldArray name="hostnames">
           {({ fields, append, remove }) => (

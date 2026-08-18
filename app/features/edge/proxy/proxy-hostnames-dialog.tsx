@@ -53,7 +53,7 @@ export const ProxyHostnamesConfigDialog = forwardRef<
     setProxy(proxyData);
     setProxyName(proxyData.name);
     setDefaultValues({
-      hostnames: proxyData.hostnames,
+      hostnames: proxyData.hostnames && proxyData.hostnames.length > 0 ? proxyData.hostnames : [''],
       tlsHostname: proxyData.tlsHostname,
     });
     setOpen(true);
