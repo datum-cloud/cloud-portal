@@ -74,6 +74,19 @@ export function SubdomainHostnameField({
   /** Last (form value, domain list) we derived local UI from — ref avoids an init flag in effect deps / extra render cycle. */
   const lastFormSyncKeyRef = useRef<string | null>(null);
 
+  const syncToForm = useCallback(
+    (newPrefix: string, newDomain: string) => {
+      if (!newDomain) {
+        control.change('');
+        return;
+      }
+      const trimmedPrefix = newPrefix.trim().replace(/\.$/, '');
+      const hostname = trimmedPrefix ? `${trimmedPrefix}.${newDomain}` : newDomain;
+      control.change(hostname);
+    },
+    [control]
+  );
+
   useEffect(() => {
     if (domainNames.length === 0) {
       lastFormSyncKeyRef.current = null;
@@ -89,7 +102,11 @@ export function SubdomainHostnameField({
       setPrefix('');
       setCustomHostname('');
       setIsCustomMode(false);
-      setSelectedDomain(domainNames.length === 1 ? domainNames[0] : '');
+      const autoDomain = domainNames.length === 1 ? domainNames[0] : '';
+      setSelectedDomain(autoDomain);
+      // Auto-selecting the sole domain implies its apex — persist that to the
+      // form now, since the user may never touch the prefix or domain picker.
+      if (autoDomain) syncToForm('', autoDomain);
       return;
     }
 
@@ -102,20 +119,7 @@ export function SubdomainHostnameField({
       setCustomHostname(val);
       setIsCustomMode(true);
     }
-  }, [currentValue, domainNames]);
-
-  const syncToForm = useCallback(
-    (newPrefix: string, newDomain: string) => {
-      if (!newDomain) {
-        control.change('');
-        return;
-      }
-      const trimmedPrefix = newPrefix.trim().replace(/\.$/, '');
-      const hostname = trimmedPrefix ? `${trimmedPrefix}.${newDomain}` : newDomain;
-      control.change(hostname);
-    },
-    [control]
-  );
+  }, [currentValue, domainNames, syncToForm]);
 
   const handlePrefixChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
