@@ -52,7 +52,10 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 
 export const updateProjectSchema = z.object({
   name: z.string().min(1).max(100).optional(),
-  description: z.string().max(500).optional(),
+  // min(1): the settings form binds this to "Project name". Form.Field's
+  // `required` prop only renders an asterisk, so without this an empty name
+  // validated fine and produced a no-op PATCH behind a success toast.
+  description: z.string().min(1, 'Project name is required.').max(500).optional(),
   annotations: z.record(z.string(), z.string()).optional(),
 });
 
