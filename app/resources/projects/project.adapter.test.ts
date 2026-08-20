@@ -41,6 +41,39 @@ describe('toProject', () => {
     expect(toProject(raw as never).description).toBeUndefined();
   });
 
+  it('prefers the display-name annotation over description for displayName', () => {
+    const raw = {
+      metadata: rawMetadata({
+        name: 'proj-abc',
+        annotations: {
+          'kubernetes.io/display-name': 'Renamed Project',
+          'kubernetes.io/description': 'Original Name',
+        },
+      }),
+      spec: { ownerRef: { name: 'acme' } },
+    };
+    const project = toProject(raw as never);
+
+    expect(project.displayName).toBe('Renamed Project');
+    // description stays its own field even when display-name wins the label.
+    expect(project.description).toBe('Original Name');
+  });
+
+  it('falls through an empty display-name annotation instead of blanking the label', () => {
+    const raw = {
+      metadata: rawMetadata({
+        name: 'proj-abc',
+        annotations: {
+          'kubernetes.io/display-name': '',
+          'kubernetes.io/description': 'Web project',
+        },
+      }),
+      spec: { ownerRef: { name: 'acme' } },
+    };
+
+    expect(toProject(raw as never).displayName).toBe('Web project');
+  });
+
   it('maps deletionTimestamp from metadata', () => {
     const raw = {
       metadata: rawMetadata({
@@ -145,6 +178,16 @@ describe('toCreatePayload', () => {
     expect(payload.metadata?.annotations?.['kubernetes.io/description']).toBe('desc');
     expect(payload.spec?.ownerRef).toEqual({ kind: 'Organization', name: 'acme' });
   });
+
+  it('stamps display-name alongside description so the name is renameable later', () => {
+    const payload = toCreatePayload({
+      organizationId: 'acme',
+      description: 'My Project',
+    } as never);
+
+    expect(payload.metadata?.annotations?.['kubernetes.io/display-name']).toBe('My Project');
+    expect(payload.metadata?.annotations?.['kubernetes.io/description']).toBe('My Project');
+  });
 });
 
 describe('toUpdatePayload', () => {
@@ -155,13 +198,51 @@ describe('toUpdatePayload', () => {
     } as never);
 
     expect(payload.metadata?.annotations).toEqual({
+      'kubernetes.io/display-name': 'new desc',
       'kubernetes.io/description': 'new desc',
       'custom/flag': 'on',
     });
   });
 
-  it('omits the description annotation when no description is provided', () => {
+  it('omits the name annotations when no description is provided', () => {
     const payload = toUpdatePayload({ annotations: { a: 'b' } } as never);
     expect(payload.metadata?.annotations).toEqual({ a: 'b' });
+  });
+
+  it('writes an explicitly empty name instead of silently dropping it', () => {
+    const payload = toUpdatePayload({ description: '' } as never);
+
+    expect(payload.metadata?.annotations).toEqual({
+      'kubernetes.io/display-name': '',
+      'kubernetes.io/description': '',
+    });
+  });
+});
+
+// Regression guard for #1440: renaming wrote kubernetes.io/description while
+// toProject read kubernetes.io/display-name first, so any project already
+// carrying display-name silently reverted to its old name after a save.
+describe('rename round-trip', () => {
+  it('resolves to the new name for a project already carrying display-name', () => {
+    const existing = rawMetadata({
+      name: 'proj-abc',
+      annotations: {
+        'kubernetes.io/display-name': 'Old Name',
+        'kubernetes.io/description': 'Old Name',
+      },
+    });
+
+    const patch = toUpdatePayload({ description: 'New Name' } as never);
+
+    // metadata.annotations is a map, so merge-patch merges keys onto the object.
+    const merged = {
+      metadata: {
+        ...existing,
+        annotations: { ...existing.annotations, ...patch.metadata?.annotations },
+      },
+      spec: { ownerRef: { name: 'acme' } },
+    };
+
+    expect(toProject(merged as never).displayName).toBe('New Name');
   });
 });

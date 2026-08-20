@@ -20,9 +20,9 @@ export function toProject(raw: ComMiloapisResourcemanagerV1Alpha1Project): Proje
     name: raw.metadata?.name ?? '',
     namespace: raw.metadata?.namespace ?? '',
     displayName:
-      annotations?.['kubernetes.io/display-name'] ??
-      annotations?.['kubernetes.io/description'] ??
-      raw.metadata?.name ??
+      annotations?.['kubernetes.io/display-name'] ||
+      annotations?.['kubernetes.io/description'] ||
+      raw.metadata?.name ||
       '',
     description: annotations?.['kubernetes.io/description'],
     resourceVersion: raw.metadata?.resourceVersion ?? '',
@@ -73,7 +73,11 @@ export function toCreatePayload(
     kind: 'Project',
     metadata: {
       generateName: 'project-',
+      // Both annotations carry the name: display-name is what the read path
+      // above (and graphql-gateway's Project.displayName) prefers, while
+      // description stays populated for consumers still reading it.
       annotations: {
+        'kubernetes.io/display-name': input.description ?? '',
         'kubernetes.io/description': input.description ?? '',
       },
     },
@@ -94,7 +98,13 @@ export function toUpdatePayload(
     kind: 'Project',
     metadata: {
       annotations: {
-        ...(input.description && { 'kubernetes.io/description': input.description }),
+        // Kept in sync with toCreatePayload — writing only description would
+        // leave a stale display-name winning the read chain, so the rename
+        // would appear to succeed and then revert (#1440).
+        ...(input.description !== undefined && {
+          'kubernetes.io/display-name': input.description,
+          'kubernetes.io/description': input.description,
+        }),
         ...input.annotations,
       },
     },
