@@ -1,4 +1,5 @@
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
+import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { ProvisioningPage } from '@/features/onboarding/provisioning/provisioning-page';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { paths } from '@/utils/config/paths.config';
@@ -6,7 +7,7 @@ import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { type LoaderFunctionArgs, type MetaFunction, redirect } from 'react-router';
+import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Setting up your account');
@@ -26,7 +27,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return redirect(getPathWithParams(paths.org.detail.setupRequired, { orgId: requestedOrgId }));
     }
 
-    return null;
+    return { devBypass: isOnboardingDevBypassEnabled() };
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);
@@ -36,13 +37,15 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function OnboardingProvisioningRoute() {
+  const { devBypass } = useLoaderData<typeof loader>();
+
   return (
     <OnboardingLayout
       width="full"
       splitBackground
       sceneOnTop
       contentClassName="justify-start px-0 py-0 md:px-0 md:py-0 min-h-svh">
-      <ProvisioningPage />
+      <ProvisioningPage devBypass={devBypass} />
     </OnboardingLayout>
   );
 }

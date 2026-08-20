@@ -45,6 +45,11 @@ interface SetupStep {
 
 const STEP_MIN_DURATION_MS = 2_000;
 
+export type ProvisioningPageProps = {
+  /** Local-dev preview: skip the billing-state redirect and play the steps. */
+  devBypass?: boolean;
+};
+
 const buildSteps = (): SetupStep[] => [
   {
     title: `Setting up your organization`,
@@ -60,7 +65,7 @@ const buildSteps = (): SetupStep[] => [
   // },
 ];
 
-export const ProvisioningPage = () => {
+export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const provisioningState = location.state as ProvisioningLocationState | null;
@@ -90,10 +95,11 @@ export const ProvisioningPage = () => {
   } = setupProjectMutation;
 
   useEffect(() => {
+    if (devBypass) return;
     if (!setup && !legacyProjectId) {
       navigate(paths.onboarding.billing, { replace: true });
     }
-  }, [legacyProjectId, navigate, setup]);
+  }, [devBypass, legacyProjectId, navigate, setup]);
 
   useEffect(() => {
     if (!setup || legacyProjectId) return;
@@ -116,8 +122,11 @@ export const ProvisioningPage = () => {
   }, []);
 
   const projectId = projectSetup?.projectId ?? legacyProjectId;
+  const previewWithoutSetup = devBypass && !setup && !legacyProjectId;
   const projectActuallyDone =
-    Boolean(legacyProjectId) || (isProjectSetupSuccess && Boolean(projectId));
+    Boolean(legacyProjectId) ||
+    (isProjectSetupSuccess && Boolean(projectId)) ||
+    previewWithoutSetup;
   const projectStepError = isProjectSetupError;
 
   // Once the project is provisioned (and billing bound), start the minimum
@@ -256,7 +265,7 @@ export const ProvisioningPage = () => {
                   {allComplete && (
                     <motion.div
                       key="provisioning-annotation-complete"
-                      className="pointer-events-none absolute top-full left-1/2 mt-4 hidden -translate-x-1/2 md:flex"
+                      className="pointer-events-none absolute top-full left-1/2 mt-10 hidden -translate-x-1/2 md:flex"
                       variants={onboardingCrossfadeVariants(reducedMotion)}
                       initial="initial"
                       animate="animate"
