@@ -1,14 +1,8 @@
 /**
- * Build sidebar `NavItem`s from plugins' `portal.nav/project` extensions —
- * CLIENT-SAFE. The project-detail layout merges these with its built-in nav
- * items by `order` (see the layout's `navItems` memo and `OrderedNavItem`), so
- * a plugin's declared `order` places it anywhere in the sidebar, not just
- * after every built-in item.
- *
- * Icons resolve from a name (never plugin code), so the sidebar renders even if
- * a plugin's bundle is broken. Hrefs point at the plugin mount
- * (`/project/:projectId/services/<slug>/<navPath>`); navigating there loads the
- * plugin lazily under the catch-all route.
+ * Build sidebar contributions from plugins' `portal.nav/project` extensions.
+ * Prefer {@link mergePluginNavIntoTree} from `@/modules/project-nav` for the
+ * nested category sidebar — this helper remains for callers that only need the
+ * flat contribution list.
  */
 import { resolvePluginIcon } from './icon-map';
 import { getNavExtensions } from './match-extension';
@@ -17,7 +11,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import type { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 
-type OrderedNavItem = NavItem & { order: number };
+type OrderedNavItem = NavItem & { order: number; section?: string };
 
 /** Join the plugin mount root with a mount-relative nav path. */
 function pluginHref(projectId: string, slug: string, navPath: string): string {
@@ -29,20 +23,19 @@ function pluginHref(projectId: string, slug: string, navPath: string): string {
   return rel ? `${root}/${rel}` : root;
 }
 
-/** Nav items contributed by a single plugin, carrying each extension's `order`
- * (missing `order` sorts last, alongside `getNavExtensions`' own default). */
+/** Nav items contributed by a single plugin. */
 function navItemsForPlugin(plugin: PublicPlugin, projectId: string): OrderedNavItem[] {
   return getNavExtensions(plugin.manifest).map((nav) => ({
     title: nav.properties.title,
     href: pluginHref(projectId, plugin.slug, nav.properties.path),
-    type: 'link',
+    type: 'link' as const,
     icon: resolvePluginIcon(nav.properties.icon),
     order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
+    section: nav.properties.section,
   }));
 }
 
-/** Flatten every ready plugin's nav extensions into a single ordered list, for
- * the layout to merge with built-in nav items by `order`. */
+/** Flatten every ready plugin's nav extensions into a single ordered list. */
 export function buildPluginNavItems(plugins: PublicPlugin[], projectId: string): OrderedNavItem[] {
   return plugins.flatMap((plugin) => navItemsForPlugin(plugin, projectId));
 }

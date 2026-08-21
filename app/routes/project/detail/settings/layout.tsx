@@ -54,10 +54,6 @@ export default function ProjectSettingsLayout() {
             },
           ]
         : []),
-      {
-        label: 'Activity',
-        href: getPathWithParams(paths.project.detail.settings.activity, { projectId }),
-      },
     ];
   }, [project, billingEnabled]);
 

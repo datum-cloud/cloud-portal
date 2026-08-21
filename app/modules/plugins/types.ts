@@ -136,6 +136,13 @@ export interface NavProjectProperties {
   icon: string;
   /** Path relative to the plugin's mount point. */
   path: string;
+  /**
+   * Optional host category to nest under (`deliver` | `build` | `connect` |
+   * `observe` | `settings`). When omitted or unknown, the host places the item
+   * under a collapsible group named after the plugin's displayName.
+   */
+  section?: 'deliver' | 'build' | 'connect' | 'observe' | 'settings';
+  /** Order within the section (or within the plugin's own group). */
   order?: number;
 }
 

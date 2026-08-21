@@ -122,8 +122,10 @@ export default [
           route('notifications', 'routes/project/detail/settings/notifications.tsx'),
           route('quotas', 'routes/project/detail/settings/quotas.tsx'),
           route('billing', 'routes/project/detail/settings/billing.tsx'),
-          route('activity', 'routes/project/detail/settings/activity.tsx'),
         ]),
+
+        // Project activity (Observe) — outside settings SubLayout
+        route('activity', 'routes/project/detail/activity.tsx'),
 
         // Application Load Balancer
         route('alb', 'routes/project/detail/edge/layout.tsx', [
