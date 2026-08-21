@@ -41,6 +41,7 @@ const navProjectExtensionSchema = z.object({
     title: z.string().min(1),
     icon: z.string().min(1),
     path: z.string(),
+    section: z.enum(['deliver', 'build', 'connect', 'observe', 'settings']).optional(),
     order: z.number().optional(),
   }),
   requirements: requirementsSchema,

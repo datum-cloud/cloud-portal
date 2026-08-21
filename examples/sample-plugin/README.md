@@ -10,7 +10,8 @@ fixture for the portal repo.
 **Nav + pages:**
 
 - `portal.nav/project` — two sidebar items: **Platform data** (icon `globe`,
-  RBAC-gated) and **Sample Plugin** (icon `puzzle`, the minimal demo).
+  `section: "observe"`, RBAC-gated) nests under Observe; **Sample Plugin**
+  (icon `puzzle`, no `section`) appears in its own collapsible group.
 - `portal.page/project`:
   - `platform` — read-only **DNS zones** for the current project, read from the
     **Milo control plane** through `/api/proxy`. Carries

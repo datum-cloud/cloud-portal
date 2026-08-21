@@ -20,7 +20,8 @@
         "title": "Platform data",
         "icon": "globe",
         "path": "platform",
-        "order": 30
+        "section": "observe",
+        "order": 25
       },
       "requirements": {
         "permissions": [

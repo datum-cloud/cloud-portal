@@ -193,6 +193,7 @@ The portal fetches `{assets.baseURL}{manifestPath}` server-side — never from t
         "title": "Instances",
         "icon": "cpu",
         "path": "instances",
+        "section": "build",
         "order": 30
       },
       "requirements": {
@@ -232,13 +233,14 @@ Contract rules:
 - **`$codeRef`** is a lazy reference into `exposedModules` (`"ModuleName"` or `"ModuleName.exportName"`); no plugin code loads until an extension actually renders.
 - **`icon` is a name, never code** — a lucide icon name resolved by the host. Navigation must render without executing plugin code, so a broken plugin can never take down the sidebar.
 - **`path` is relative to the plugin's mount point.** Plugins cannot address URL space outside `/project/:projectId/services/<slug>/`.
+- **`section` (optional)** places the item under a host category: `deliver` | `build` | `connect` | `observe` | `settings`. When omitted or unknown, the host creates a collapsible group titled with the plugin's `displayName`. `order` sorts within that section or group (not across the whole sidebar).
 - **`requirements.permissions`** are `SelfSubjectAccessReview` checks against the current project's scoped control plane — the same fail-closed gate the portal's built-in pages use. All listed permissions must pass for the extension to appear.
 
 ### Extension points
 
 | Type                                | Status | Renders                                                          | Key properties                                              |
 | ----------------------------------- | ------ | ---------------------------------------------------------------- | ----------------------------------------------------------- |
-| `portal.nav/project`                | **v1** | Item in the project sidebar, grouped under a per-service section | `id`, `title`, `icon` (lucide name), `path`, `order`        |
+| `portal.nav/project`                | **v1** | Item in the project sidebar under a host category or a per-plugin group | `id`, `title`, `icon` (lucide name), `path`, `section?`, `order` |
 | `portal.page/project`               | **v1** | Routed page under `/project/:projectId/services/<slug>/<path>`   | `path` (supports params and nesting), `component: $codeRef` |
 | `portal.card/project-home`          | **v1** | Card on the project home page                                    | `title`, `component: $codeRef`, `order`                     |
 | `portal.nav/org`, `portal.page/org` | v1.x   | Org-scoped nav and pages                                         | same shapes, org-scoped RBAC                                |
