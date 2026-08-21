@@ -377,8 +377,7 @@ export function toHttpProxy(
   // Find the backend rule (skip redirect rules which have no backends)
   const backendRule = raw.spec?.rules?.find((rule) => rule.backends && rule.backends.length > 0);
   const backend = backendRule?.backends?.[0] as
-    | { endpoint?: string; tls?: { hostname?: string }; connector?: { name: string } }
-    | undefined;
+    { endpoint?: string; tls?: { hostname?: string }; connector?: { name: string } } | undefined;
 
   // Extract all origins from all backend rules
   const origins: string[] = [];

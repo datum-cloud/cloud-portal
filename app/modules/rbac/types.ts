@@ -132,8 +132,7 @@ export interface IPermissionResult {
 
 /** Strict envelope returned by every DSL loader. */
 export type DslLoaderData<TData, TCompanions> =
-  | { restricted: true }
-  | { restricted: false; data: TData; companions: TCompanions };
+  { restricted: true } | { restricted: false; data: TData; companions: TCompanions };
 
 /**
  * Envelope returned by `runRouteGate` — the gate-only DSL variant for routes

@@ -589,8 +589,7 @@ export type query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMe
 
 /** The type of organization. */
 export type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type =
-  | 'Personal'
-  | 'Standard';
+  'Personal' | 'Standard';
 
 /** status of the condition, one of True, False, Unknown. */
 export type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_status =

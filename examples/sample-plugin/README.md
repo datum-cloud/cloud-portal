@@ -69,17 +69,17 @@ you want on :7777:
   1, e2e, CI.**
 - **`dev`** (Vite, HMR) — the dev remote entry imports **host-absolute** URLs
   (`/node_modules/.vite/deps/…`, `/@id/…`). Through the proxy those resolve
-  against the portal origin and 404, so the plugin won't render *via the proxy*.
+  against the portal origin and 404, so the plugin won't render _via the proxy_.
   Use `dev` for the **standalone** preview at `http://localhost:7777/` (direct,
   no proxy) and for iterating on components in isolation.
 
 ## What it serves
 
-| Server | Path | What | Who fetches it |
-|--------|------|------|----------------|
-| Vite (:7777) | `/plugin-manifest.json` | The portal plugin contract manifest | Portal server, server-side |
-| Vite (:7777) | `/remoteEntry.js` | The Module Federation remote entry | Portal client, via the asset proxy |
-| Vite (:7777) | `/` | Standalone human preview of the pages + card | Humans only — the portal never loads this |
+| Server       | Path                    | What                                         | Who fetches it                            |
+| ------------ | ----------------------- | -------------------------------------------- | ----------------------------------------- |
+| Vite (:7777) | `/plugin-manifest.json` | The portal plugin contract manifest          | Portal server, server-side                |
+| Vite (:7777) | `/remoteEntry.js`       | The Module Federation remote entry           | Portal client, via the asset proxy        |
+| Vite (:7777) | `/`                     | Standalone human preview of the pages + card | Humans only — the portal never loads this |
 
 The portal never talks to `localhost:7777` from the browser. It fetches the
 manifest server-side and proxies every asset through
@@ -93,15 +93,16 @@ fine.
 
 ```jsonc
 {
-  "name": "sample.miloapis.com",            // MUST equal the MF container name
+  "name": "sample.miloapis.com", // MUST equal the MF container name
   "version": "0.3.0",
   "sdk": { "name": "@datum-cloud/portal-plugin-sdk", "range": "^1.0.0" },
-  "remoteEntry": "remoteEntry.js",          // MUST equal vite.config federation `filename`
-  "exposedModules": {                       // keys are the $codeRef targets
-    "SampleHomeCard": "./src/cards/sample-home-card.tsx"
+  "remoteEntry": "remoteEntry.js", // MUST equal vite.config federation `filename`
+  "exposedModules": {
+    // keys are the $codeRef targets
+    "SampleHomeCard": "./src/cards/sample-home-card.tsx",
     // …SamplePage, SampleDetail, PlatformData
   },
-  "extensions": [ /* 2 nav, 3 page, 1 card */ ]
+  "extensions": [/* 2 nav, 3 page, 1 card */],
 }
 ```
 

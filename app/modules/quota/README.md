@@ -157,14 +157,14 @@ level and pass `disabled={verdict.denied}` with `tooltip={verdict.deniedReason}`
 Only gate resourceTypes with live registrations — do NOT gate unregistered
 surfaces; the guard would no-op but adds noise.
 
-| Surface (create trigger)                                                                                                        | resource / group                                | scope     |
-| ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | --------- |
-| `app/routes/org/detail/projects/index.tsx`                                                                                      | `projects` / `resourcemanager.miloapis.com`     | `org`     |
-| `app/routes/project/detail/dns-zones/index.tsx`                                                                                 | `dnszones` / `dns.networking.miloapis.com`      | `project` |
-| `app/routes/project/detail/dns-zones/detail/dns-records.tsx`                                                                    | `dnsrecordsets` / `dns.networking.miloapis.com` | `project` |
-| `app/routes/project/detail/secrets/index.tsx` (RBAC group is `''` for core secrets; the quota group differs)                    | `secrets` / `core.miloapis.com`                 | `project` |
-| `app/routes/project/detail/domains/index.tsx`                                                                                   | `domains` / `networking.datumapis.com`          | `project` |
-| `app/routes/project/detail/edge/index.tsx`                                                                                      | `httpproxies` / `networking.datumapis.com`      | `project` |
+| Surface (create trigger)                                                                                                | resource / group                                | scope     |
+| ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- | --------- |
+| `app/routes/org/detail/projects/index.tsx`                                                                              | `projects` / `resourcemanager.miloapis.com`     | `org`     |
+| `app/routes/project/detail/dns-zones/index.tsx`                                                                         | `dnszones` / `dns.networking.miloapis.com`      | `project` |
+| `app/routes/project/detail/dns-zones/detail/dns-records.tsx`                                                            | `dnsrecordsets` / `dns.networking.miloapis.com` | `project` |
+| `app/routes/project/detail/secrets/index.tsx` (RBAC group is `''` for core secrets; the quota group differs)            | `secrets` / `core.miloapis.com`                 | `project` |
+| `app/routes/project/detail/domains/index.tsx`                                                                           | `domains` / `networking.datumapis.com`          | `project` |
+| `app/routes/project/detail/edge/index.tsx`                                                                              | `httpproxies` / `networking.datumapis.com`      | `project` |
 | `app/features/edge/dns-records/dns-record-alb-cell.tsx` ("Protect with ALB" — cross-resource: gate by the CREATED type) | `httpproxies` / `networking.datumapis.com`      | `project` |
 
 ### Create-page recipe

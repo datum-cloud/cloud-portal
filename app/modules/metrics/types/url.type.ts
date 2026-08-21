@@ -34,8 +34,7 @@ export interface CustomApiParamsObject {
  * Custom API parameters - can be an object or function
  */
 export type CustomApiParams =
-  | CustomApiParamsObject
-  | ((context: QueryBuilderContext) => CustomApiParamsObject);
+  CustomApiParamsObject | ((context: QueryBuilderContext) => CustomApiParamsObject);
 
 /**
  * Enhanced query builder context with URL state access

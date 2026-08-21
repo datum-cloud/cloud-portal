@@ -6,8 +6,7 @@ import { AuthService } from '@/utils/auth';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 
 export type UserAccessResult =
-  | { user: User; refreshedHeaders?: Headers }
-  | { error: 'not_found' | 'forbidden' | 'other' };
+  { user: User; refreshedHeaders?: Headers } | { error: 'not_found' | 'forbidden' | 'other' };
 
 /**
  * A service-account principal (e.g. the plugin e2e suite's dev token

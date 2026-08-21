@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'bun:test';
 import { getWafDialogDefaults } from './proxy-waf-dialog';
+import { describe, expect, it } from 'bun:test';
 
 describe('getWafDialogDefaults', () => {
   it('opens Disabled protection with the enable switch off', () => {

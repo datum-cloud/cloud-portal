@@ -69,14 +69,14 @@ All other errors propagate through `withLoaderErrors`.
 
 ## Loading-state rules
 
-| Place                                     | Loading behavior                                                      | Reasoning                                    |
-| ----------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------- |
-| Page (loader)                             | n/a — synchronous from user's view                                    | `gateRouteAccess` runs server-side, blocking |
-| `PermissionButton`                        | bare button rendered, toggling only `disabled`                        | Preserves in-flight clicks (#1273)           |
-| `PermissionGate mode="disable"`           | child `disabled` + tooltip "Verifying permissions…"                   |                                              |
-| `PermissionGate mode="hide"`              | renders fallback until check resolves                                 |                                              |
-| Inline perm-driven data (e.g. WAF column) | `<SpinnerIcon size="sm" />` — never show verdict                      | Application Load Balancer `wafPending` pattern                 |
-| `<RestrictedOverlay>` for danger zones    | `<LoaderOverlay />` while loading, then `<RestrictedOverlay>` on deny | Application Load Balancer overview pattern                     |
+| Place                                     | Loading behavior                                                      | Reasoning                                      |
+| ----------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------- |
+| Page (loader)                             | n/a — synchronous from user's view                                    | `gateRouteAccess` runs server-side, blocking   |
+| `PermissionButton`                        | bare button rendered, toggling only `disabled`                        | Preserves in-flight clicks (#1273)             |
+| `PermissionGate mode="disable"`           | child `disabled` + tooltip "Verifying permissions…"                   |                                                |
+| `PermissionGate mode="hide"`              | renders fallback until check resolves                                 |                                                |
+| Inline perm-driven data (e.g. WAF column) | `<SpinnerIcon size="sm" />` — never show verdict                      | Application Load Balancer `wafPending` pattern |
+| `<RestrictedOverlay>` for danger zones    | `<LoaderOverlay />` while loading, then `<RestrictedOverlay>` on deny | Application Load Balancer overview pattern     |
 
 The "never show a verdict before resolution" rule is documented in
 `CONVENTIONS.md` and checked at PR review. Sub-resources with

@@ -9,8 +9,7 @@ import { AuthorizationError } from '@/utils/errors';
 
 function isPolicyBindingReady(binding: PolicyBinding): boolean {
   const conditions = binding.status?.conditions as
-    | Array<{ type?: string; status?: string }>
-    | undefined;
+    Array<{ type?: string; status?: string }> | undefined;
   return (
     conditions?.some((condition) => condition.type === 'Ready' && condition.status === 'True') ??
     false

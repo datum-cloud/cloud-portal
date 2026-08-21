@@ -81,8 +81,7 @@ export function createPrometheusClient(config?: Partial<PrometheusConfig>): Axio
       const original = unwrapUpstreamError(error);
       const axiosOriginal = isAxiosError(original) ? original : undefined;
       const responseData = axiosOriginal?.response?.data as
-        | { error?: string; errorType?: string }
-        | undefined;
+        { error?: string; errorType?: string } | undefined;
 
       logger.error(
         'Prometheus response error',
