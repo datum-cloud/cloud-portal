@@ -4,7 +4,7 @@ import { ConditionalPagination } from './components/pagination';
 import { TablePanel } from './components/panel';
 import { TableToolbar } from './components/toolbar';
 import { useResolvedColumns, useTableUrlAdapter } from './hooks';
-import type { TableServerProps, TableServerRef } from './types';
+import type { RowData, TableServerProps, TableServerRef } from './types';
 import { detectToolbar, toolbarPropsFrom } from './utils';
 import { DataTable, useDataTableLoading } from '@datum-cloud/datum-ui/data-table';
 import { cn } from '@datum-cloud/datum-ui/utils';
@@ -46,7 +46,7 @@ import {
  *   `resolveError` into a `(err, refetch) -> ReactNode` renderer that
  *   TableContent renders when the store has an error.
  */
-function TableServerImpl<TData, TResponse>(
+function TableServerImpl<TData extends RowData, TResponse>(
   props: TableServerProps<TData, TResponse>,
   ref: Ref<TableServerRef>
 ) {
@@ -126,6 +126,9 @@ function ErrorBridge({ onError }: { onError?: (error: Error) => void }) {
 }
 
 // forwardRef with generics requires a type assertion — standard React pattern.
-export const TableServer = forwardRef(TableServerImpl) as <TData, TResponse = unknown>(
+export const TableServer = forwardRef(TableServerImpl) as <
+  TData extends RowData,
+  TResponse = unknown,
+>(
   props: TableServerProps<TData, TResponse> & { ref?: Ref<TableServerRef> }
 ) => ReturnType<typeof TableServerImpl>;

@@ -1,5 +1,12 @@
 import { createActionsColumn, type ActionsColumnOptions } from './columns';
-import type { RowAction, TableClientProps } from './types';
+import type {
+  Column,
+  ColumnDef,
+  HeaderContext,
+  RowAction,
+  RowData,
+  TableClientProps,
+} from './types';
 import {
   useDataTableLoading,
   useNuqsAdapter,
@@ -9,7 +16,6 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import type { Column, ColumnDef, HeaderContext } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 
@@ -81,7 +87,7 @@ export function useTableUrlAdapter(
  * `custom.css`'s `[data-slot='dt-header-cell']:last-child:empty` selector
  * still matches and pins it to the right.
  */
-export function useResolvedColumns<TData>(
+export function useResolvedColumns<TData extends RowData>(
   columns: ColumnDef<TData>[],
   rowActions?: RowAction<TData>[],
   actionsOptions?: ActionsColumnOptions<TData>
@@ -115,7 +121,10 @@ export function useResolvedColumns<TData>(
  * non-string header" errors after `withSortableHeader`/`withSkeletonHeader`
  * replace string headers with function headers.
  */
-function ensureColumnId<TData>(col: ColumnDef<TData>, index: number): ColumnDef<TData> {
+function ensureColumnId<TData extends RowData>(
+  col: ColumnDef<TData>,
+  index: number
+): ColumnDef<TData> {
   if ('id' in col && col.id) return col;
   if ('accessorKey' in col && (col as { accessorKey?: string }).accessorKey) return col;
   const header = col.header;
@@ -145,7 +154,7 @@ function ensureColumnId<TData>(col: ColumnDef<TData>, index: number): ColumnDef<
  * `_actions` column is skipped so the trailing sticky column stays empty
  * during loading — matching custom.css's `:last-child:empty` rule.
  */
-function withSkeletonHeader<TData>(col: ColumnDef<TData>): ColumnDef<TData> {
+function withSkeletonHeader<TData extends RowData>(col: ColumnDef<TData>): ColumnDef<TData> {
   if (col.id === '_actions') return col;
   const originalHeader = col.header;
   return {
@@ -201,7 +210,7 @@ export function useInitialLoading(): boolean {
  * header is a function or ReactNode are returned unchanged so consumers
  * that build their own headers keep full control.
  */
-function withSortableHeader<TData>(col: ColumnDef<TData>): ColumnDef<TData> {
+function withSortableHeader<TData extends RowData>(col: ColumnDef<TData>): ColumnDef<TData> {
   if (col.id === '_actions') return col;
   if (typeof col.header !== 'string') return col;
 
@@ -217,7 +226,7 @@ function withSortableHeader<TData>(col: ColumnDef<TData>): ColumnDef<TData> {
   } as ColumnDef<TData>;
 }
 
-interface SortableHeaderProps<TData> {
+interface SortableHeaderProps<TData extends RowData> {
   column: Column<TData, unknown>;
   title: string;
   tooltip?: ReactNode;
@@ -228,7 +237,11 @@ interface SortableHeaderProps<TData> {
  * fork's `DataTableColumnHeader` — same icon set (ChevronUp/ChevronDown),
  * same 25%/100% opacity treatment, same info-icon classes.
  */
-function SortableHeader<TData>({ column, title, tooltip }: SortableHeaderProps<TData>) {
+function SortableHeader<TData extends RowData>({
+  column,
+  title,
+  tooltip,
+}: SortableHeaderProps<TData>) {
   const canSort = column.getCanSort();
   const sorted = column.getIsSorted();
   const hasTooltip = tooltip !== undefined && tooltip !== null && tooltip !== false;
@@ -301,7 +314,10 @@ function SortableHeader<TData>({ column, title, tooltip }: SortableHeaderProps<T
  * The column must be sortable (an accessor + `enableSorting` not false) for the
  * chevrons to activate.
  */
-export function sortableHeader<TData>(title: string, options?: { tooltip?: ReactNode }) {
+export function sortableHeader<TData extends RowData>(
+  title: string,
+  options?: { tooltip?: ReactNode }
+) {
   return function SortableColumnHeader({ column }: HeaderContext<TData, unknown>) {
     return <SortableHeader column={column} title={title} tooltip={options?.tooltip} />;
   };
@@ -312,7 +328,7 @@ export function sortableHeader<TData>(title: string, options?: { tooltip?: React
  * Table.Client. `inline` wins at render time (onRowClick is wiped before
  * being forwarded to TableContent) — this warning surfaces the conflict.
  */
-export function useInlineConflictWarning<TData>(
+export function useInlineConflictWarning<TData extends RowData>(
   props: Pick<TableClientProps<TData>, 'inline' | 'onRowClick'>
 ): void {
   useEffect(() => {

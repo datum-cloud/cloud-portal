@@ -1,9 +1,8 @@
 import { NameserverChips } from '@/components/nameserver-chips';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Badge } from '@datum-cloud/datum-ui/badge';
-import { ColumnDef } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 

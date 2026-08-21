@@ -1,11 +1,10 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { CloseIcon, Icon } from '@datum-cloud/datum-ui/icons';
-import { ColumnDef } from '@tanstack/react-table';
 import { ThumbsUpIcon, Trash2Icon } from 'lucide-react';
 import { useMemo } from 'react';
 import { MetaFunction } from 'react-router';

@@ -1,7 +1,7 @@
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import {
   deriveGuardedAction,
   GuardedWriteButton,
@@ -30,7 +30,6 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 import { LoaderFunctionArgs, useLocation, useNavigate, useParams } from 'react-router';

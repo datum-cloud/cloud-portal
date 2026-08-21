@@ -1,4 +1,4 @@
-import type { RowAction } from '../types';
+import type { RowAction, RowData } from '../types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
@@ -18,7 +18,7 @@ import { isValidElement, createElement, type ComponentType, type ReactNode } fro
  *   state from their own onClick handler (the wrapper owns `inline`
  *   state via controlled props, not via an internal method).
  */
-export function InlineActions<TData>({
+export function InlineActions<TData extends RowData>({
   row,
   actions,
   disabled = false,
@@ -75,17 +75,23 @@ export function InlineActions<TData>({
   );
 }
 
-function resolveHidden<TData>(hidden: RowAction<TData>['hidden'], row: TData): boolean {
+function resolveHidden<TData extends RowData>(
+  hidden: RowAction<TData>['hidden'],
+  row: TData
+): boolean {
   if (typeof hidden === 'function') return hidden(row);
   return hidden ?? false;
 }
 
-function resolveDisabled<TData>(disabled: RowAction<TData>['disabled'], row: TData): boolean {
+function resolveDisabled<TData extends RowData>(
+  disabled: RowAction<TData>['disabled'],
+  row: TData
+): boolean {
   if (typeof disabled === 'function') return disabled(row);
   return disabled ?? false;
 }
 
-function resolveTooltip<TData>(
+function resolveTooltip<TData extends RowData>(
   tooltip: RowAction<TData>['tooltip'],
   row: TData
 ): ReactNode | undefined {
@@ -95,7 +101,7 @@ function resolveTooltip<TData>(
 }
 
 /** Accept ReactNode OR a ComponentType (for parity with ActionItem.icon). */
-function renderIcon(icon: RowAction<unknown>['icon']): ReactNode {
+function renderIcon(icon: RowAction<RowData>['icon']): ReactNode {
   if (icon === undefined || icon === null) return null;
   if (isValidElement(icon)) return icon;
   if (typeof icon === 'function') {

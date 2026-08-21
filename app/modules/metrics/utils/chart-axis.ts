@@ -1,4 +1,5 @@
 import { formatInTimeZone } from 'date-fns-tz';
+import type { ReactNode } from 'react';
 
 const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 const FORTY_EIGHT_HOURS_MS = 48 * 60 * 60 * 1000;
@@ -57,6 +58,23 @@ export function formatChartTimeTick(timestamp: number, rangeMs: number, timezone
   if (rangeMs < SIX_HOURS_MS) return formatInTimeZone(date, timezone, 'h:mm a');
   if (rangeMs < FORTY_EIGHT_HOURS_MS) return formatInTimeZone(date, timezone, 'MMM d, h:mm a');
   return formatInTimeZone(date, timezone, 'MMM d');
+}
+
+/**
+ * Narrow a Recharts tooltip label to something `<DateTime>` accepts.
+ *
+ * datum-ui types `ChartTooltipContent`'s `labelFormatter` value as `ReactNode`
+ * because Recharts allows any category value on the X axis. These charts all
+ * plot time series keyed by epoch milliseconds, so the label is really a
+ * timestamp — the type just can't say so. Anything that isn't date-like
+ * becomes `''`, which `<DateTime>` treats as an invalid date and renders as
+ * nothing rather than throwing.
+ */
+export function toChartLabelDate(label: ReactNode): string | Date {
+  if (label instanceof Date) return label;
+  if (typeof label === 'number') return new Date(label);
+  if (typeof label === 'string') return label;
+  return '';
 }
 
 type ChartRow = Record<string, number>;

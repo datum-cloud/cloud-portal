@@ -3,7 +3,7 @@ import { formatUsagePair } from '../usage.format';
 import type { UsageSummaryRow } from '../usage.types';
 import { QuotaIndicator } from './quota-ring';
 import { UsageSparkline } from './usage-sparkline';
-import { sortableHeader } from '@/components/table';
+import { type ColumnDef, sortableHeader } from '@/components/table';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
@@ -11,7 +11,6 @@ import { GroupedTable } from '@datum-cloud/datum-ui/grouped-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import type { ColumnDef } from '@tanstack/react-table';
 import { ChevronDownIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 

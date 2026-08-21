@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/date-time';
-import { Table } from '@/components/table';
+import { type ColumnDef, Table } from '@/components/table';
 import {
   CreateBillingAccountDialog,
   type CreateBillingAccountValues,
@@ -54,7 +54,6 @@ import {
 } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowRightIcon, ArrowUpIcon, FolderRoot, PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import {

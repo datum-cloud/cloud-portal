@@ -1,6 +1,6 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { GroupFormDialog, type GroupFormDialogRef } from '@/features/organization/team/groups';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -16,7 +16,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';

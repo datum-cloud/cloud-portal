@@ -1,5 +1,5 @@
 import { mapLegacyVariant } from '../../empty-content-action';
-import type { EmptyContentConfig } from '../types';
+import type { EmptyContentConfig, RowData } from '../types';
 import {
   useDataTableFilters,
   useDataTableLoading,
@@ -115,7 +115,7 @@ export function useIsStandaloneEmpty(): boolean {
  *   message, NOT by this component — so users still see the toolbar with
  *   their filters in place and can adjust them.
  */
-export function TableBodyOrEmpty<TData>({
+export function TableBodyOrEmpty<TData extends RowData>({
   empty,
   children,
 }: {

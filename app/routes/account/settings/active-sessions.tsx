@@ -1,5 +1,5 @@
 import { DateTime } from '@/components/date-time';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { useApp } from '@/providers/app.provider';
 import {
   UserActiveSession,
@@ -13,7 +13,6 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { ColumnDef } from '@tanstack/react-table';
 import { jwtDecode } from 'jwt-decode';
 import { Trash2Icon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';

@@ -1,10 +1,15 @@
+import type { RowData } from '../types';
 import type { ErrorRenderer } from './empty-state';
-import { DataTable, useDataTableLoading, useDataTableRows } from '@datum-cloud/datum-ui/data-table';
+import {
+  DataTable,
+  useDataTableLoading,
+  useDataTableRows,
+  type ContentProps,
+} from '@datum-cloud/datum-ui/data-table';
 import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
-import type { Cell } from '@tanstack/react-table';
 import { useCallback } from 'react';
 
-interface TableContentProps<TData> {
+interface TableContentProps<TData extends RowData> {
   onRowClick?: (row: TData) => void;
   /** Only relevant in server mode. Resolved by resolveError(). */
   errorContent?: ErrorRenderer;
@@ -43,7 +48,7 @@ const STICKY_HEADER_CELL =
  * TableBodyOrEmpty, which replaces the table entirely with a full
  * EmptyContent card.
  */
-export function TableContent<TData>({
+export function TableContent<TData extends RowData>({
   onRowClick,
   errorContent,
   onRefetch,
@@ -52,8 +57,11 @@ export function TableContent<TData>({
   const { rows } = useDataTableRows<TData>();
   const { error } = useDataTableLoading();
 
-  const cellClassName = stickyActionsColumn
-    ? (cell: Cell<unknown, unknown>) => (cell.column.id === '_actions' ? STICKY_BODY_CELL : '')
+  // Typed from datum-ui's own prop: DataTableContent is not generic, so the
+  // cell it hands back carries the erased row shape rather than TData. The
+  // callback only reads `column.id`, so nothing here needs the row type.
+  const cellClassName: ContentProps['cellClassName'] = stickyActionsColumn
+    ? (cell) => (cell.column.id === '_actions' ? STICKY_BODY_CELL : '')
     : undefined;
   const headerCellClassName = stickyActionsColumn ? STICKY_HEADER_CELL : undefined;
 

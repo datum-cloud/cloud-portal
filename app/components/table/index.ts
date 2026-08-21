@@ -10,6 +10,11 @@ export { TimeRangeFilter } from './filters/time-range-filter';
 
 // Types — props and configs
 export type {
+  Cell,
+  ColumnDef,
+  Column,
+  HeaderContext,
+  RowData,
   EmptyContentConfig,
   InlineContentConfig,
   MultiAction,

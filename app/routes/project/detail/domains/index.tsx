@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { useDomainExport } from '@/features/edge/domain/export';
@@ -47,7 +47,6 @@ import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { useQueryClient } from '@tanstack/react-query';
-import { ColumnDef } from '@tanstack/react-table';
 import { DownloadIcon, GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useEffect, useState } from 'react';
 import { LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';

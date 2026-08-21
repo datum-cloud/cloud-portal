@@ -8,6 +8,7 @@ import {
   useMetrics,
   usePrometheusCard,
   type QueryBuilderContext,
+  toChartLabelDate,
 } from '@/modules/metrics';
 import { formatDurationFromMs } from '@/modules/metrics/utils/date-parsers';
 import { formatValue, type ChartSeries } from '@/modules/prometheus';
@@ -169,7 +170,7 @@ export const HttpProxyWafEvents = ({
               active={active}
               payload={filteredPayload}
               label={label}
-              labelFormatter={(value) => <DateTime date={value} />}
+              labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
               formatter={(value, name, item) => (
                 <div className="flex flex-1 items-center justify-between leading-none">
                   <div className="flex items-center gap-1">

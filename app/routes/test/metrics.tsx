@@ -10,6 +10,7 @@ import {
   MetricsToolbar,
   MetricsFilter,
   type QueryBuilderFunction,
+  toChartLabelDate,
 } from '@/modules/metrics';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
@@ -183,7 +184,7 @@ const MetricsContent = () => {
                     active={active}
                     payload={filteredPayload}
                     label={label}
-                    labelFormatter={(value) => <DateTime date={value} />}
+                    labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
                     formatter={(value, name, item) => {
                       const indicatorColor = item.payload.fill || item.color;
                       return (

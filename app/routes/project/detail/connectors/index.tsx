@@ -2,7 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
-import { Table } from '@/components/table';
+import { type ColumnDef, Table } from '@/components/table';
 import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
 import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
 import { useResourcePermissions } from '@/modules/rbac';
@@ -30,7 +30,6 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { ColumnDef } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import {
   ActionFunctionArgs,

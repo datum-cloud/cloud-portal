@@ -5,7 +5,7 @@ import { ConditionalPagination } from './components/pagination';
 import { TablePanel } from './components/panel';
 import { TableToolbar } from './components/toolbar';
 import { useInlineConflictWarning, useResolvedColumns, useTableUrlAdapter } from './hooks';
-import type { TableClientProps } from './types';
+import type { RowData, TableClientProps } from './types';
 import { detectToolbar, toolbarPropsFrom } from './utils';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { DataTable } from '@datum-cloud/datum-ui/data-table';
@@ -41,7 +41,7 @@ import { cn } from '@datum-cloud/datum-ui/utils';
  *   no per-cell className plumbing here.
  * - `urlSync` defaults to true; pass `false` to disable URL state sync.
  */
-export function TableClient<TData>(props: TableClientProps<TData>) {
+export function TableClient<TData extends RowData>(props: TableClientProps<TData>) {
   const stateAdapter = useTableUrlAdapter(props.urlSync ?? true, props.filterParsers);
   const columns = useResolvedColumns(props.columns, props.rowActions, {
     hideRowActions: props.hideRowActions,
