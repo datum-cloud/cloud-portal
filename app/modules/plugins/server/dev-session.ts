@@ -108,6 +108,9 @@ export function createDevSessionRoutes() {
       accessToken,
       expiredAt,
       sub: decoded.sub,
+      // Service-account principal — no email to verify. Matches
+      // buildDevStubUser, without which the e2e suite stops at the gate.
+      emailVerified: true,
     });
     sessionHeaders.forEach((value, key) => {
       if (key.toLowerCase() === 'set-cookie') {

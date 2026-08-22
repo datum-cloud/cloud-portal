@@ -264,13 +264,26 @@ export default [
     ]),
   ]),
 
-  // Fraud / gating routes — outside the private layout because the private layout loader fetches
-  // the user and would throw NotFoundError for brand-new users not yet in Milo.
-  // These pages use BlankLayout and handle their own auth checks.
-  // The /api/fraud-status polling endpoint is handled by the Hono server (app/server/routes/fraud-status.ts).
+  // BLOCKING-PAGE INVARIANT: every page the redirect cascade can send a user TO
+  // must be declared here, outside the private layout.
+  //
+  // Two reasons, and both bite. The private layout loader fetches the user and
+  // would throw NotFoundError for brand-new users not yet in Milo. And the
+  // layout runs the very middleware that redirects — so a blocking page mounted
+  // inside it would redirect to itself forever.
+  //
+  // resolveUserFraudRedirectPath has one branch per page below, and its
+  // self-exclusion guards are written to hold even if this invariant breaks.
+  // routes-layout-invariant.test.ts asserts the placement, so a fifth page
+  // cannot be added in the wrong place quietly.
+  //
+  // These pages use BlankLayout and handle their own auth checks. The
+  // /api/fraud-status polling endpoint is served by Hono
+  // (app/server/routes/fraud-status.ts).
   route('verifying', 'routes/fraud/verifying.tsx'),
   route('account-under-review', 'routes/fraud/account-under-review.tsx'),
   route('account-suspended', 'routes/fraud/account-suspended.tsx'),
+  route('verify-email', 'routes/fraud/verify-email.tsx'),
   // Global Routes
   route('logout', 'routes/auth/logout.tsx', { id: 'logout' }),
 

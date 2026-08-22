@@ -22,6 +22,11 @@ function buildDevStubUser(userId: string): User {
     platformAccess: 'Approved',
     state: 'Active',
     nameReviewRequired: false,
+    // Fourth gate, same reason as the three above: this principal has no User
+    // record at all, so there is nothing for zitadel-provider to have marked
+    // verified. Without this the email gate redirects the dev token-exchange
+    // session to /verify-email and the plugin e2e suite stops at the door.
+    emailVerified: true,
   };
 }
 
@@ -44,7 +49,7 @@ export async function getUserWithAccessRetry(
 
   try {
     const user = await createUserService().get(userId);
-    return { user };
+    return { user: await withSessionEmailVerified(user, cookieHeader) };
   } catch (error) {
     if (error instanceof NotFoundError) {
       if (isOnboardingDevBypassEnabled()) {
@@ -92,10 +97,24 @@ async function retryAfterTokenRefresh(
     }
 
     const user = await createUserService().get(userId);
-    return { user, refreshedHeaders: headers };
+    return {
+      user: { ...user, emailVerified: newSession.emailVerified },
+      refreshedHeaders: headers,
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * Verification lives on the id_token, not on the milo User, so it has to be
+ * overlaid after the fetch. Reading the session rather than the resource is
+ * what makes a stale claim possible — callers waiting on verification must
+ * force a refresh (`refreshBeforeRead`) rather than poll this alone.
+ */
+async function withSessionEmailVerified(user: User, cookieHeader: string | null): Promise<User> {
+  const { session } = await AuthService.getSession(cookieHeader);
+  return { ...user, emailVerified: session?.emailVerified === true };
 }
 
 export function appendSetCookieHeaders(target: Headers, source?: Headers): void {

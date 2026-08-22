@@ -38,6 +38,13 @@ export const userResourceSchema = z.object({
   lastLoginProvider: z.enum(LAST_LOGIN_PROVIDER_VALUES).optional(),
   avatarUrl: z.string().optional(),
   nameReviewRequired: z.boolean().optional(),
+  /**
+   * The email gate's signal. Not a milo field — it comes from the id_token's
+   * `email_verified` claim, overlaid onto the User by `getUserWithAccessRetry`.
+   * Optional because fixtures and `buildDevStubUser` construct a User by hand;
+   * every consumer treats absent as unverified.
+   */
+  emailVerified: z.boolean().optional(),
   /** ISO 3166-1 alpha-2 code from `metadata.annotations['profile/country']`. */
   country: z.string().optional(),
 });

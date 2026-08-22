@@ -1,6 +1,6 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { authenticator } from '@/modules/auth/auth.server';
-import { AUTH_CONFIG, AuthService } from '@/utils/auth';
+import { AUTH_CONFIG, AuthService, readEmailVerified } from '@/utils/auth';
 import type { IAuthSession } from '@/utils/auth';
 import { paths } from '@/utils/config/paths.config';
 import {
@@ -62,6 +62,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       accessToken: rest.accessToken,
       expiredAt: rest.expiredAt,
       sub: decoded.sub,
+      emailVerified: readEmailVerified(idToken),
     });
 
     // Handle refresh token (long-lived cookie) - SEPARATE from session

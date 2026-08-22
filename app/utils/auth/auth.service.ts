@@ -20,6 +20,25 @@ import { jwtDecode } from 'jwt-decode';
 import { createCookieSessionStorage, createCookie } from 'react-router';
 
 /**
+ * Reads `email_verified` off an id_token. Absent, unparseable, or non-boolean
+ * all read as false — an unverified account must never be admitted because a
+ * claim could not be read.
+ *
+ * UNVERIFIED ASSUMPTION: that Zitadel re-issues an id_token carrying this claim
+ * on the refresh_token grant. /verify-email polls by forcing a refresh, so if
+ * it does not, the poll never resolves and a verified user stays blocked.
+ * Confirm against staging before the gate is enabled.
+ */
+export function readEmailVerified(idToken: string | null | undefined): boolean {
+  if (!idToken) return false;
+  try {
+    return jwtDecode<{ email_verified?: unknown }>(idToken).email_verified === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Session cookie configuration
  */
 const sessionCookie = createCookie(AUTH_COOKIE_KEYS.SESSION, {
@@ -224,10 +243,18 @@ export class AuthService {
     // Decode new access token to get sub
     const decoded = jwtDecode<{ sub: string }>(refreshedTokens.accessToken());
 
+    let refreshedIdToken: string | undefined;
+    try {
+      refreshedIdToken = refreshedTokens.idToken();
+    } catch {
+      refreshedIdToken = undefined;
+    }
+
     const newSession: IAccessTokenSession = {
       accessToken: refreshedTokens.accessToken(),
       expiredAt: refreshedTokens.accessTokenExpiresAt(),
       sub: decoded.sub,
+      emailVerified: readEmailVerified(refreshedIdToken),
     };
 
     // Update session cookie

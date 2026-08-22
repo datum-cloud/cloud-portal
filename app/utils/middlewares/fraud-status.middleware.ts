@@ -1,4 +1,4 @@
-import { resolveUserFraudRedirectPath } from './fraud-redirect';
+import { denyIfEmailGateEnabled, resolveUserFraudRedirectPath } from './fraud-redirect';
 import { type MiddlewareContext, type NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { paths } from '@/utils/config/paths.config';
@@ -13,7 +13,7 @@ import { redirect } from 'react-router';
  *
  * Algorithm:
  * 1. Read session; if no sub, call next() (let authMiddleware handle)
- * 2. Fetch user (or reuse auth middleware cache); if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open
+ * 2. Fetch user (or reuse auth middleware cache); if NotFoundError or AuthorizationError → /verifying (not yet provisioned or permissions not yet propagated); other errors → fail-open with the email gate off, /verifying with it on
  * 3. Cache user in reqCtx to avoid a second upstream call in the layout loader
  * 4. state === 'Inactive' || platformAccess === 'Suspended' → /account-suspended
  * 5. platformAccess === 'Approved'         → if nameReviewRequired and not on onboarding profile → redirect there; else next()
@@ -48,7 +48,10 @@ export async function fraudStatusMiddleware(
         if (access.error === 'not_found' || access.error === 'forbidden') {
           return redirect(paths.fraud.verifying);
         }
-        return next();
+        // 'other' = milo 5xx, timeout, reset, decode error — the state could
+        // not be determined. The widest of the three indeterminate exits, and
+        // the one that fires during a real incident.
+        return denyIfEmailGateEnabled() ?? next();
       }
 
       user = access.user;
@@ -56,7 +59,9 @@ export async function fraudStatusMiddleware(
     }
 
     if (!user) {
-      return next();
+      // Unreachable on current types. Kept because an unknown user must not
+      // pass a security gate on the strength of a type annotation.
+      return denyIfEmailGateEnabled() ?? next();
     }
 
     const reqCtx = getRequestContext();
@@ -74,7 +79,10 @@ export async function fraudStatusMiddleware(
 
     return next();
   } catch {
-    // Fail-open on unexpected errors
-    return next();
+    // Unexpected throw (getSession, the resolver, header handling): fail-open
+    // with the email gate off — identical to the behaviour that shipped before
+    // it existed — and /verifying with it on. The logout short-circuit above
+    // runs before this try, so the escape hatch survives either way.
+    return denyIfEmailGateEnabled() ?? next();
   }
 }
