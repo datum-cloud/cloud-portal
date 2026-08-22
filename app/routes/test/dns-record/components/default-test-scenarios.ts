@@ -1,4 +1,8 @@
-import { CreateDnsRecordSchema, DNSRecordType } from '@/resources/dns-records';
+import {
+  CreateDnsRecordSchema,
+  DNSRecordType,
+  TXT_CONTENT_MAX_LENGTH,
+} from '@/resources/dns-records';
 
 export interface TestScenario {
   id: string;
@@ -195,6 +199,21 @@ export const DEFAULT_TEST_SCENARIOS: Record<DNSRecordType, TestScenario[]> = {
       isDefault: true,
     },
     {
+      id: 'txt-dkim',
+      name: 'DKIM Key',
+      recordType: 'TXT',
+      data: {
+        recordType: 'TXT',
+        name: 'google._domainkey',
+        ttl: 3600,
+        // 2048-bit RSA DKIM keys are ~400 chars; well over a single 255-octet TXT string
+        txt: {
+          content: `v=DKIM1; k=rsa; p=${'A'.repeat(392)}`,
+        },
+      },
+      isDefault: true,
+    },
+    {
       id: 'txt-too-long',
       name: 'Invalid Too Long',
       recordType: 'TXT',
@@ -202,7 +221,7 @@ export const DEFAULT_TEST_SCENARIOS: Record<DNSRecordType, TestScenario[]> = {
         recordType: 'TXT',
         name: 'test',
         ttl: null,
-        txt: { content: 'a'.repeat(2049) }, // Exceeds 2048 char limit
+        txt: { content: 'a'.repeat(TXT_CONTENT_MAX_LENGTH + 1) },
       },
       isDefault: true,
     },

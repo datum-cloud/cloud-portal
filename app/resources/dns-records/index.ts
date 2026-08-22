@@ -28,6 +28,7 @@ export {
   aliasRecordDataSchema,
   cnameRecordDataSchema,
   txtRecordDataSchema,
+  TXT_CONTENT_MAX_LENGTH,
   mxRecordDataSchema,
   srvRecordDataSchema,
   caaRecordDataSchema,
