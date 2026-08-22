@@ -128,13 +128,26 @@ export const aliasRecordDataSchema = z.object({
 });
 
 // TXT Record - Text content
-// Cloudflare: max 2,048 chars per record, max 8,192 total for same name
-// Google Cloud: Standard TXT record limits
+// A single DNS TXT string is limited to 255 octets (RFC 1035), but a record
+// may contain multiple concatenated strings. Providers typically allow ~2,048
+// characters per record (Cloudflare: 2,048 per record, 8,192 total per name).
+export const TXT_CONTENT_MAX_LENGTH = 2048;
+
 export const txtRecordDataSchema = z.object({
   content: z
     .string({ error: 'Text content is required.' })
-    .min(1, 'Text content cannot be empty.')
-    .max(2048, 'Text content cannot exceed 2,048 characters per record'),
+    // Line breaks are not meaningful in TXT values and appear when users paste
+    // wrapped DKIM/SPF keys from docs. Strip them so paste is not stored as-is.
+    .transform((val) => val.replace(/[\r\n]/g, ''))
+    .pipe(
+      z
+        .string()
+        .min(1, 'Text content cannot be empty.')
+        .max(
+          TXT_CONTENT_MAX_LENGTH,
+          `Text content cannot exceed ${TXT_CONTENT_MAX_LENGTH.toLocaleString()} characters per record`
+        )
+    ),
 });
 
 // MX Record - Mail exchange
