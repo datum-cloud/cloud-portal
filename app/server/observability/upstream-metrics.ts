@@ -18,8 +18,7 @@ const UPSTREAM_RESPONSES_TOTAL = 'portal_upstream_responses_total';
  */
 export const upstreamResponsesTotal =
   (register.getSingleMetric(UPSTREAM_RESPONSES_TOTAL) as
-    | Counter<'status' | 'api_group' | 'resource_type' | 'method'>
-    | undefined) ??
+    Counter<'status' | 'api_group' | 'resource_type' | 'method'> | undefined) ??
   new Counter({
     name: UPSTREAM_RESPONSES_TOTAL,
     help: 'Count of upstream API responses observed by the server axios layer',

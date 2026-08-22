@@ -5,6 +5,7 @@ import {
   MetricChartTooltipContent,
   buildRateQuery,
   createRegionFilter,
+  toChartLabelDate,
 } from '@/modules/metrics';
 import { ChartSeries } from '@/modules/prometheus';
 import { useState } from 'react';
@@ -53,7 +54,7 @@ export const HttpProxyUpstreamRps = ({
                 active={active}
                 payload={filteredPayload}
                 label={label}
-                labelFormatter={(value) => <DateTime date={value} />}
+                labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
                 formatter={(value, name, item) => {
                   const indicatorColor = item.payload.fill || item.color;
                   return (

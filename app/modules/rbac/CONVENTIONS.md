@@ -5,16 +5,16 @@ feature code. See `ARCHITECTURE.md` for the underlying model.
 
 ## Primitive map (strict 1:1)
 
-| UI pattern                                                              | Canonical primitive                                         | Notes                                       |
-| ----------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------- |
-| Button trigger (header action, toolbar, danger zone, row action button) | `<PermissionButton>`                                        | Existing component                          |
-| Non-button interactive (pencil icon, Switch, custom trigger)            | `<PermissionGate mode="disable">`                           | Wraps child with `disabled=true` + tooltip  |
-| Whole-card / whole-section hide                                         | `<PermissionGate mode="hide">`                              | Renders fallback (default null) when denied |
-| Row action visibility                                                   | `createActionsColumn` item's `hidden: () => !canX`          | Today's table convention; unchanged         |
-| Conditional render with fallback                                        | `<PermissionGate mode="fallback" fallback={...}>`           | Renders fallback in denied state            |
-| Restricted full page                                                    | `<RestrictedState>` (auto-emitted by `<GuardedPage>` / DSL) | Existing component                          |
-| Restricted section inside an allowed page                               | `<RestrictedOverlay>`                                       | Existing component                          |
-| Restricted column cell (e.g. WAF column)                                | `Tooltip + em-dash badge` per Application Load Balancer listing convention    | Pattern, not a primitive                    |
+| UI pattern                                                              | Canonical primitive                                                        | Notes                                       |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------- |
+| Button trigger (header action, toolbar, danger zone, row action button) | `<PermissionButton>`                                                       | Existing component                          |
+| Non-button interactive (pencil icon, Switch, custom trigger)            | `<PermissionGate mode="disable">`                                          | Wraps child with `disabled=true` + tooltip  |
+| Whole-card / whole-section hide                                         | `<PermissionGate mode="hide">`                                             | Renders fallback (default null) when denied |
+| Row action visibility                                                   | `createActionsColumn` item's `hidden: () => !canX`                         | Today's table convention; unchanged         |
+| Conditional render with fallback                                        | `<PermissionGate mode="fallback" fallback={...}>`                          | Renders fallback in denied state            |
+| Restricted full page                                                    | `<RestrictedState>` (auto-emitted by `<GuardedPage>` / DSL)                | Existing component                          |
+| Restricted section inside an allowed page                               | `<RestrictedOverlay>`                                                      | Existing component                          |
+| Restricted column cell (e.g. WAF column)                                | `Tooltip + em-dash badge` per Application Load Balancer listing convention | Pattern, not a primitive                    |
 
 ## Banned patterns
 

@@ -508,10 +508,7 @@ export type IoK8sApiextensionsApiserverPkgApisApiextensionsV1ValidationRule = {
    * - `"FieldValueRequired"` is used to report required values that are not provided (e.g. empty strings, null values, or empty arrays).
    */
   reason?:
-    | 'FieldValueDuplicate'
-    | 'FieldValueForbidden'
-    | 'FieldValueInvalid'
-    | 'FieldValueRequired';
+    'FieldValueDuplicate' | 'FieldValueForbidden' | 'FieldValueInvalid' | 'FieldValueRequired';
   /**
    * Rule represents the expression which will be evaluated by CEL. ref: https://github.com/google/cel-spec The Rule is scoped to the location of the x-kubernetes-validations extension in the schema. The `self` variable in the CEL expression is bound to the scoped value. Example: - Rule scoped to the root of a resource with a status subresource: {"rule": "self.status.actual <= self.spec.maxDesired"}
    *

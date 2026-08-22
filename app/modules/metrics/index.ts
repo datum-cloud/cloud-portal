@@ -48,4 +48,5 @@ export {
   getLinearYDomain,
   padDataToTimeRange,
   sanitizeGradientId,
+  toChartLabelDate,
 } from './utils/chart-axis';

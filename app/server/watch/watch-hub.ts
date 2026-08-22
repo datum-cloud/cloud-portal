@@ -13,7 +13,28 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 /** Base delay for exponential backoff on upstream reconnection (doubles each attempt). */
 const BASE_RECONNECT_DELAY = 1000;
 /** Interval between heartbeat SSE events sent to all connected clients (ms). */
-const HEARTBEAT_INTERVAL_MS = 30000;
+/**
+ * How long a streamed response may sit with no bytes written before the
+ * runtime closes it. Measured at ~12s against this stack (Bun + Hono
+ * `streamSSE`), identically on `react-router-hono-server` v3 and v4, and not
+ * affected by `Bun.serve`'s `idleTimeout`. Treated as an empirical ceiling:
+ * anything the hub does to keep a connection open must happen well inside it.
+ */
+export const SSE_IDLE_TIMEOUT_MS = 12000;
+
+/**
+ * Heartbeat cadence. Keep it at or under half of {@link SSE_IDLE_TIMEOUT_MS}.
+ *
+ * A heartbeat slower than the idle close never fires: the connection drops,
+ * `stream.onAbort` evicts the client, and a `subscribe` arriving before the
+ * browser reconnects fails `isClientOwnedBy` with a 403.
+ *
+ * Measured against a local production build, holding one idle connection:
+ * no writes dropped at 12s, 8000ms still dropped at 24s, while 5000ms and
+ * 3000ms both held for 75s. Sitting just under the ceiling is not enough —
+ * hence the half-interval rule, which `watch-hub.test.ts` enforces.
+ */
+export const HEARTBEAT_INTERVAL_MS = 5000;
 /** Delay before closing an upstream K8s connection after the last subscriber leaves. */
 const UPSTREAM_GRACE_PERIOD_MS = 10000;
 /** Maximum number of concurrent SSE clients the WatchHub will accept. */
@@ -55,7 +76,7 @@ const IDLE_CLIENT_TIMEOUT_MS = 120000;
  *
  * Instantiated as a singleton via {@link watchHub} and shut down on SIGTERM/SIGINT.
  */
-class WatchHub {
+export class WatchHub {
   private clients = new Map<string, WatchClient>();
   private upstreams = new Map<string, UpstreamWatch>();
   /** Maps watchKey → Set of clientIds subscribed to that channel. */

@@ -3,6 +3,7 @@ import {
   MetricChart,
   MetricChartTooltipContent,
   buildHistogramQuantileQuery,
+  toChartLabelDate,
 } from '@/modules/metrics';
 import { formatValue } from '@/modules/prometheus';
 
@@ -47,7 +48,7 @@ export const HttpProxyGlobalUpstreamLatency = ({
               active={active}
               payload={filteredPayload}
               label={label}
-              labelFormatter={(value) => <DateTime date={value} />}
+              labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
               formatter={(value, name, item) => {
                 const indicatorColor = item.payload.fill || item.color;
                 return (

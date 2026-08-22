@@ -135,7 +135,7 @@
 
 | File                                                              | Imports                                                                       |
 | ----------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `dns-records/dns-record-alb-cell.tsx`                         | Button, Tooltip, Icon                                                         |
+| `dns-records/dns-record-alb-cell.tsx`                             | Button, Tooltip, Icon                                                         |
 | `dns-records/dns-record-card.tsx`                                 | Card, CardContent, CardHeader, CardTitle                                      |
 | `dns-records/dns-record-modal-form.tsx`                           | Dialog                                                                        |
 | `dns-records/dns-record-table.tsx`                                | Badge, Icon, Tooltip                                                          |

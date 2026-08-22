@@ -1,7 +1,14 @@
 /* eslint-disable react/prop-types -- TypeScript provides runtime-equivalent guarantees; the rule mis-fires on destructured discriminated-union props. */
 import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
-import { Table, TagFilter, createActionsColumn, tagFilterParser } from '@/components/table';
+import {
+  type ColumnDef,
+  type RowData,
+  Table,
+  TagFilter,
+  createActionsColumn,
+  tagFilterParser,
+} from '@/components/table';
 import { IFlattenedDnsRecord, type SupportedDnsRecordType } from '@/resources/dns-records';
 import { getDnsRecordTypePriority } from '@/utils/helpers/dns';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
@@ -10,7 +17,6 @@ import { DataTable, useDataTableSelection } from '@datum-cloud/datum-ui/data-tab
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { ColumnDef } from '@tanstack/react-table';
 import { InfoIcon, ListFilter, LockIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
@@ -484,7 +490,7 @@ DnsRecordTable.displayName = 'DnsRecordTable';
  * acceptable today — callers relying on object identity after a background
  * refetch would need to derive rows from `selectedIds` themselves.
  */
-function SelectionObserver<TData>({
+function SelectionObserver<TData extends RowData>({
   onChange,
 }: {
   onChange: (selectedIds: string[], selectedRows: TData[]) => void;

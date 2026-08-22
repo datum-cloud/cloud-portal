@@ -14,10 +14,10 @@ the plugin registry and the plugin under development run locally.
 
 ## The two tiers
 
-| Tier | What runs | Discovery source | Use it for |
-|------|-----------|------------------|------------|
-| **Tier 0** — direct override | plugin dev server + portal | `PORTAL_PLUGINS="<slug>=<url>"` — no Kubernetes at all | Fast UI inner loop |
-| **Tier 1** — local registry | kwok + `PortalPlugin` CRD + plugin dev server + portal | `PLUGIN_REGISTRY_KUBECONFIG=<path>` — watches a real kube-apiserver | The CRD registration + discovery path |
+| Tier                         | What runs                                              | Discovery source                                                    | Use it for                            |
+| ---------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------- | ------------------------------------- |
+| **Tier 0** — direct override | plugin dev server + portal                             | `PORTAL_PLUGINS="<slug>=<url>"` — no Kubernetes at all              | Fast UI inner loop                    |
+| **Tier 1** — local registry  | kwok + `PortalPlugin` CRD + plugin dev server + portal | `PLUGIN_REGISTRY_KUBECONFIG=<path>` — watches a real kube-apiserver | The CRD registration + discovery path |
 
 Both feed the **identical** downstream pipeline in the portal (server-side
 manifest fetch, schema + SDK-range validation, asset proxying, module-federated
@@ -92,20 +92,20 @@ against the registry at least once.
 
 ## Task commands
 
-| Command | What it does |
-|---------|--------------|
-| `task devenv:up` | Ensure kwok binaries, create the cluster (idempotent), apply the CRD, write `.devenv/kubeconfig`, print next steps. Alias: `task portal:registry`. |
-| `task devenv:down` | Delete the cluster and remove `.devenv/kubeconfig`. |
-| `task devenv:register` | Apply `manifests/sample-portalplugin.yaml` to the registry and list plugins. |
-| `task devenv:unregister` | Delete the sample PortalPlugin (exercises the portal's unload-on-delete path). |
-| `task devenv:status` | Show chosen runtime, CRD, and registered plugins. |
-| `task devenv:portal` | Run the portal against the local registry (Tier 1). |
-| `task devenv:portal:tier0` | Run the portal in Tier 0 (no Kubernetes) via `PORTAL_PLUGINS`. |
-| `task plugin:dev` | Run the sample plugin: Vite dev server (:7777). Human/standalone loop — see the dev-vs-preview note below. |
-| `task plugin:preview` | Build then serve the STATIC plugin (:7777). **Proxy-safe** — use this for e2e/CI. |
-| `task plugin:build` | Build the sample plugin to a static `dist/`. |
-| `task crds:apply` | (Re)apply the CRD and wait for it to establish. |
-| `task devenv:platform-kubeconfig` | Point the SAME portal knob at a real platform control plane (see below). |
+| Command                           | What it does                                                                                                                                       |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task devenv:up`                  | Ensure kwok binaries, create the cluster (idempotent), apply the CRD, write `.devenv/kubeconfig`, print next steps. Alias: `task portal:registry`. |
+| `task devenv:down`                | Delete the cluster and remove `.devenv/kubeconfig`.                                                                                                |
+| `task devenv:register`            | Apply `manifests/sample-portalplugin.yaml` to the registry and list plugins.                                                                       |
+| `task devenv:unregister`          | Delete the sample PortalPlugin (exercises the portal's unload-on-delete path).                                                                     |
+| `task devenv:status`              | Show chosen runtime, CRD, and registered plugins.                                                                                                  |
+| `task devenv:portal`              | Run the portal against the local registry (Tier 1).                                                                                                |
+| `task devenv:portal:tier0`        | Run the portal in Tier 0 (no Kubernetes) via `PORTAL_PLUGINS`.                                                                                     |
+| `task plugin:dev`                 | Run the sample plugin: Vite dev server (:7777). Human/standalone loop — see the dev-vs-preview note below.                                         |
+| `task plugin:preview`             | Build then serve the STATIC plugin (:7777). **Proxy-safe** — use this for e2e/CI.                                                                  |
+| `task plugin:build`               | Build the sample plugin to a static `dist/`.                                                                                                       |
+| `task crds:apply`                 | (Re)apply the CRD and wait for it to establish.                                                                                                    |
+| `task devenv:platform-kubeconfig` | Point the SAME portal knob at a real platform control plane (see below).                                                                           |
 
 ### `plugin:dev` vs `plugin:preview` (which to serve on :7777)
 
@@ -121,11 +121,11 @@ when the portal loads them through the same-origin asset proxy
 - **`task plugin:dev`** (Vite dev, HMR) — the dev remote entry imports
   **host-absolute** paths (`/node_modules/.vite/deps/…`, `/@id/…`). Loaded through
   the proxy, those resolve against the portal origin (:3000), not :7777, and 404 —
-  so the plugin won't render *through the proxy* from the dev server. `plugin:dev`
+  so the plugin won't render _through the proxy_ from the dev server. `plugin:dev`
   is for the **standalone** human preview at `http://localhost:7777/` (direct,
   no proxy) and for iterating on components in isolation.
 
-Full Vite-dev HMR *through* the portal proxy needs proxy-side support for the dev
+Full Vite-dev HMR _through_ the portal proxy needs proxy-side support for the dev
 module paths + HMR websocket (a portal-server concern, tracked as a follow-up).
 Until then: automated Tier 0 = `plugin:preview`; human component HMR = `plugin:dev`
 standalone.

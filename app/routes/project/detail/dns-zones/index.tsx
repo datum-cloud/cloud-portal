@@ -2,7 +2,7 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import {
   DnsZoneFormDialog,
   type DnsZoneFormDialogRef,
@@ -36,7 +36,6 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import type { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';

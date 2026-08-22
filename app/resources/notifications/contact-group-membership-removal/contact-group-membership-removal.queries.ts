@@ -103,8 +103,7 @@ export function useCreateNotificationContactGroupMembershipRemoval(
 }
 
 export type DeleteNotificationContactGroupMembershipRemovalVariables =
-  | string
-  | { name: string; namespace?: string };
+  string | { name: string; namespace?: string };
 
 export function useDeleteNotificationContactGroupMembershipRemoval(
   scope: NotificationScope,

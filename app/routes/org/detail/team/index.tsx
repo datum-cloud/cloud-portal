@@ -1,7 +1,7 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -22,7 +22,6 @@ import { toTitleCase } from '@/utils/helpers/text.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { ColumnDef } from '@tanstack/react-table';
 import { Redo2Icon, TrashIcon, UserIcon, UserPlusIcon } from 'lucide-react';
 import { useMemo, useCallback } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';

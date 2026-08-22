@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
 import {
@@ -39,7 +39,6 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';

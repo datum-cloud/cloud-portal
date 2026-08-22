@@ -1908,15 +1908,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
          * Support: Extended
          */
         method?:
-          | 'GET'
-          | 'HEAD'
-          | 'POST'
-          | 'PUT'
-          | 'DELETE'
-          | 'CONNECT'
-          | 'OPTIONS'
-          | 'TRACE'
-          | 'PATCH';
+          'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'CONNECT' | 'OPTIONS' | 'TRACE' | 'PATCH';
         /**
          * Path specifies a HTTP request path matcher. If this field is not
          * specified, a default prefix match on the "/" path is provided.

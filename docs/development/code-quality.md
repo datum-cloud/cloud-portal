@@ -152,10 +152,10 @@ This runs:
 
 Two TypeScript packages are installed side by side:
 
-| devDependency      | Resolves to                        | Used for                                                            |
-| ------------------- | ----------------------------------- | --------------------------------------------------------------------- |
-| `typescript`         | real `typescript@^6.0.3` (classic)  | `typescript-eslint` and editor/language-server integrations           |
-| `typescript-native`  | `npm:typescript@^7.0.2` (native, Go) | `bun run typecheck` and the Lefthook pre-commit `typecheck` hook       |
+| devDependency       | Resolves to                          | Used for                                                         |
+| ------------------- | ------------------------------------ | ---------------------------------------------------------------- |
+| `typescript`        | real `typescript@^6.0.3` (classic)   | `typescript-eslint` and editor/language-server integrations      |
+| `typescript-native` | `npm:typescript@^7.0.2` (native, Go) | `bun run typecheck` and the Lefthook pre-commit `typecheck` hook |
 
 `typescript` stays on 6.x deliberately: `typescript-eslint` (and VS Code's
 built-in TypeScript language server) need the classic JS compiler API, which

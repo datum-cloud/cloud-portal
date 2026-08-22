@@ -7,6 +7,7 @@ import {
   buildHistogramQuantileQuery,
   buildPrometheusLabelSelector,
   createRegionFilter,
+  toChartLabelDate,
 } from '@/modules/metrics';
 import { formatValue } from '@/modules/prometheus';
 import type { ChartSeries } from '@/modules/prometheus';
@@ -118,7 +119,7 @@ export const HttpProxyEdgeRequests = ({
                   active={active}
                   payload={filteredPayload}
                   label={label}
-                  labelFormatter={(value) => <DateTime date={value} />}
+                  labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
                   formatter={(value, _name, item) => (
                     <div className="flex flex-1 items-center justify-between leading-none">
                       <div className="flex items-center gap-1">

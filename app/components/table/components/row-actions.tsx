@@ -1,11 +1,14 @@
-import type { RowAction } from '../types';
+import type { RowAction, RowData } from '../types';
 import { InlineActions } from './inline-actions';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { MoreActions } from '@datum-cloud/datum-ui/more-actions';
 
 const MAX_INLINE_ACTIONS_DEFAULT = 3;
 
-function resolveHidden<TData>(hidden: RowAction<TData>['hidden'], row: TData): boolean {
+function resolveHidden<TData extends RowData>(
+  hidden: RowAction<TData>['hidden'],
+  row: TData
+): boolean {
   if (typeof hidden === 'function') return hidden(row);
   return hidden ?? false;
 }
@@ -17,7 +20,7 @@ function resolveHidden<TData>(hidden: RowAction<TData>['hidden'], row: TData): b
  * we coerce: strings pass through, functions are wrapped to stringify their
  * result, anything else is dropped (undefined).
  */
-function toActionItems<TData>(actions: RowAction<TData>[]): ActionItem<TData>[] {
+function toActionItems<TData extends RowData>(actions: RowAction<TData>[]): ActionItem<TData>[] {
   return actions.map((action) => {
     const { tooltip, ...rest } = action;
     if (typeof tooltip === 'string') {
@@ -54,7 +57,7 @@ function toActionItems<TData>(actions: RowAction<TData>[]): ActionItem<TData>[] 
  * - `hideRowActions(row)` — suppresses the entire cell for that row.
  * - `disableRowActions(row)` — disables every action (inline AND dropdown).
  */
-export function RowActions<TData>({
+export function RowActions<TData extends RowData>({
   row,
   actions,
   hideRowActions,

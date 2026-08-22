@@ -11,7 +11,7 @@
 ## Summary
 
 When a project or organization runs out of quota, resource creation fails with an opaque
-403: *"Insufficient quota resources available."* Users don't know which quota they hit,
+403: _"Insufficient quota resources available."_ Users don't know which quota they hit,
 that quotas are listed under Settings → Quotas, or that a "Request Limit" button exists.
 Issue #1365's direction (from Matt): **"expose quotas like we do with permissions — stop
 buttons being clickable with a tooltip if the resource has run out of quota."**
@@ -66,15 +66,15 @@ when quota is exhausted — exactly how `<PermissionButton>` handles missing per
 
 Every resource route operates at four layers (from `ARCHITECTURE.md`):
 
-| Layer | Responsibility | Primitive |
-|---|---|---|
-| 1. Loader gate (server) | Block denied requests before any data is fetched | `gateRouteAccess` via `defineResourceRoute` / `runListLoader` / `runDetailLoader` |
-| 2. Data fetch/watch (client) | Skip fetches when the user lacks the verb | `enabled: canX` on every `useX` / `useXWatch` |
-| 3. UI primitive (client) | Render permission-aware | `<PermissionButton>` / `<PermissionGate>` / `<RestrictedState>` / `<RestrictedOverlay>` |
-| 4. Cross-resource action (client) | Gate buttons against the resource they **mutate**, not the page's primary | `<PermissionButton resource="..." />` |
+| Layer                             | Responsibility                                                            | Primitive                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1. Loader gate (server)           | Block denied requests before any data is fetched                          | `gateRouteAccess` via `defineResourceRoute` / `runListLoader` / `runDetailLoader`       |
+| 2. Data fetch/watch (client)      | Skip fetches when the user lacks the verb                                 | `enabled: canX` on every `useX` / `useXWatch`                                           |
+| 3. UI primitive (client)          | Render permission-aware                                                   | `<PermissionButton>` / `<PermissionGate>` / `<RestrictedState>` / `<RestrictedOverlay>` |
+| 4. Cross-resource action (client) | Gate buttons against the resource they **mutate**, not the page's primary | `<PermissionButton resource="..." />`                                                   |
 
-Posture (verbatim): *"Server gate first. Client UX gate always. API rejection is the
-final backstop. Toast is never used as a gate."*
+Posture (verbatim): _"Server gate first. Client UX gate always. API rejection is the
+final backstop. Toast is never used as a gate."_
 
 ### 1.2 Server flow: SelfSubjectAccessReview
 
@@ -168,14 +168,14 @@ cardinality is deliberate.
 Six resources in `quota.miloapis.com/v1alpha1` (Go types:
 `milo/pkg/apis/quota/v1alpha1/`):
 
-| Resource | Scope | Purpose |
-|---|---|---|
-| `ResourceRegistration` | Cluster | Declares a quota-able resource type (+ display metadata) |
-| `ResourceGrant` | Namespaced | Allocates capacity to a consumer (org/project/user) |
-| `AllowanceBucket` | Namespaced | **Aggregates grants, tracks consumption** (auto-created; the UI's read model) |
-| `ResourceClaim` | Namespaced | A consumption request, evaluated by the controller |
-| `GrantCreationPolicy` | Cluster | Auto-creates grants on lifecycle events (defaults per tier) |
-| `ClaimCreationPolicy` | Cluster | Auto-creates claims during admission (enforcement trigger) |
+| Resource               | Scope      | Purpose                                                                       |
+| ---------------------- | ---------- | ----------------------------------------------------------------------------- |
+| `ResourceRegistration` | Cluster    | Declares a quota-able resource type (+ display metadata)                      |
+| `ResourceGrant`        | Namespaced | Allocates capacity to a consumer (org/project/user)                           |
+| `AllowanceBucket`      | Namespaced | **Aggregates grants, tracks consumption** (auto-created; the UI's read model) |
+| `ResourceClaim`        | Namespaced | A consumption request, evaluated by the controller                            |
+| `GrantCreationPolicy`  | Cluster    | Auto-creates grants on lifecycle events (defaults per tier)                   |
+| `ClaimCreationPolicy`  | Cluster    | Auto-creates claims during admission (enforcement trigger)                    |
 
 Enforcement is an in-process **admission plugin** (`ResourceQuotaEnforcement`,
 `milo/pkg/quota/admission/plugin.go`) — it creates a ResourceClaim and synchronously
@@ -225,10 +225,10 @@ from create-button gating** (already consumed by the OpenFeature provider).
 
 From `milo/internal/quota/controllers/core/bucket.go`:
 
-| Consumer | Control plane | Namespace |
-|---|---|---|
-| Organization (e.g. projects-per-org) | org control plane | `organization-<orgName>` |
-| Project (dnszones, httpproxies, …) | **the project's own control plane** | `milo-system` |
+| Consumer                             | Control plane                       | Namespace                |
+| ------------------------------------ | ----------------------------------- | ------------------------ |
+| Organization (e.g. projects-per-org) | org control plane                   | `organization-<orgName>` |
+| Project (dnszones, httpproxies, …)   | **the project's own control plane** | `milo-system`            |
 
 Effective URLs (both base helpers already exist in `app/resources/base/utils.ts`):
 
@@ -255,13 +255,13 @@ HTTP 403, `reason: "Forbidden"` — **identical to an RBAC denial** at the statu
 `status.details` carries only `{group, kind: <plural resource>, name}` — **no causes, no
 resourceType, no bucket name, no retryAfter**. The message is the only discriminator:
 
-| Failure | Message template | UI treatment |
-|---|---|---|
-| Denied | `You've reached your quota for this resource type (Insufficient quota resources. Contact your account administrator to review quota limits and usage.). Delete unused resources to free up capacity, or contact support to request a higher limit.` | Quota wall: link to quotas + request increase |
-| Timeout | `Your request took too long to be checked against your quota. Please try again in a moment…` | Retryable |
-| Conflict | `We're still cleaning up from a previous attempt to create this resource… Please try again in a few seconds.` | Retryable (denied-claim GC lag) |
-| Misconfigured | `Quota enforcement for this resource type is misconfigured…` | Contact support |
-| Internal | `Something went wrong while checking your quota…` | Retryable |
+| Failure       | Message template                                                                                                                                                                                                                                    | UI treatment                                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Denied        | `You've reached your quota for this resource type (Insufficient quota resources. Contact your account administrator to review quota limits and usage.). Delete unused resources to free up capacity, or contact support to request a higher limit.` | Quota wall: link to quotas + request increase |
+| Timeout       | `Your request took too long to be checked against your quota. Please try again in a moment…`                                                                                                                                                        | Retryable                                     |
+| Conflict      | `We're still cleaning up from a previous attempt to create this resource… Please try again in a few seconds.`                                                                                                                                       | Retryable (denied-claim GC lag)               |
+| Misconfigured | `Quota enforcement for this resource type is misconfigured…`                                                                                                                                                                                        | Contact support                               |
+| Internal      | `Something went wrong while checking your quota…`                                                                                                                                                                                                   | Retryable                                     |
 
 Stable anchors for detection: **`"Insufficient quota resources"`** (claim controller,
 also the string in the issue's older error) and
@@ -304,7 +304,7 @@ issue #1365, and the reason the DNS-zone e2e regression suite is currently disab
 ### 3.1 Quota read path (server-only)
 
 - `app/resources/allowance-buckets/` — service + adapter + schema. `list(namespace:
-  'organization' | 'project', id)` already resolves the correct base URL and namespace
+'organization' | 'project', id)` already resolves the correct base URL and namespace
   (`organization-<id>` vs `milo-system`). **No `queries.ts`, no `watch.ts`** — nothing
   client-side. No single-bucket `get` (SDK has it, unused).
 - `allowance-bucket.schema.ts` types `status` as **`z.any()`** — every consumer
@@ -341,9 +341,9 @@ issue #1365, and the reason the DNS-zone e2e regression suite is currently disab
 
 `app/modules/feature-flags/milo-provider.ts` lists org AllowanceBuckets (5s TTL cache),
 keys them by `spec.resourceType`, and resolves a flag as enabled iff
-`BigInt(status.available) > 0n`. The README states it plainly: *"A feature flag is an
+`BigInt(status.available) > 0n`. The README states it plainly: _"A feature flag is an
 AllowanceBucket with `spec.type=Feature`… enabled when the bucket has
-`status.available > 0`."* Its "resolve in the layout loader, expose via context hook"
+`status.available > 0`."_ Its "resolve in the layout loader, expose via context hook"
 shape (`useFeatureFlag`) is a lighter-weight alternative to RBAC's per-check queries —
 and a better fit for quota, since one LIST yields the whole scope (no N+1 SSAR
 equivalent).
@@ -362,24 +362,24 @@ quota-gate return type.
 ### 3.4 Error surfacing today
 
 - Canonical mutation error path: `mutation.onError → toast.error('DNS', {description:
-  error.message})` — same shape in every form dialog. Errors land in toasts, never form
+error.message})` — same shape in every form dialog. Errors land in toasts, never form
   fields. The toast (sonner) **supports `action: {label, onClick}`** — a "View quotas"
   action needs no design-system change.
 - `AppError` carries `code`, `status`, `originalMessage`, `k8sReason`, `k8sDetails:
-  {kind, name, group}`. `mapK8sReasonToCode('Forbidden', 403)` → `'AUTHORIZATION_ERROR'`
+{kind, name, group}`. `mapK8sReasonToCode('Forbidden', 403)` → `'AUTHORIZATION_ERROR'`
   — **quota and RBAC 403s are currently indistinguishable** except by message text.
 - `parseK8sMessage` (error-parser.ts) deliberately strips the
   `dnszones.dns.networking.miloapis.com "name" is forbidden:` prefix — exactly the
   resource identity needed to map an error to a bucket. It survives in
   `originalMessage` and (as `{group, kind}`) in `k8sDetails`.
-- **Caveat:** the *server* axios interceptor's 403 branch throws a bare
+- **Caveat:** the _server_ axios interceptor's 403 branch throws a bare
   `AuthorizationError` and **drops `k8sReason`/`k8sDetails`/`originalMessage`**
   (`axios.server.ts`); the client interceptor preserves them. Client-side mutations
   (the ones that matter for dialogs) get the rich object — but loader-side creates
   would lose the metadata.
 - One precedent for message-pattern → guidance mapping:
   `app/utils/helpers/dns/dns-zone-error.helper.ts` (matches `/quota|limit (exceeded|
-  reached)|too many/i` on *reconciled status conditions*, not create errors).
+reached)|too many/i` on _reconciled status conditions_, not create errors).
 
 ### 3.5 Watch infrastructure is ready
 
@@ -407,7 +407,7 @@ on `allowancebuckets`.
    `action` both exist; nothing wires them.
 7. **No `(group, kind|plural) → resourceType` mapping** to close the loop from an API
    error (or a create button) to a bucket. Conveniently, `resourceType ≈
-   group + '/' + resource(plural)` — the props RBAC primitives already take.
+group + '/' + resource(plural)` — the props RBAC primitives already take.
 8. **Project quotas route is ungated** while the org route uses the DSL.
 9. **"Request Limit" hidden at `limit: 0`** — the user who just got a quota 403 on a
    zero-quota bucket sees no CTA at all.
@@ -423,27 +423,27 @@ on `allowancebuckets`.
 
 ### 5.1 Design principles (and where quota inverts RBAC)
 
-| Dimension | RBAC | Quota |
-|---|---|---|
-| Nature of check | Point-in-time authorization query (SSAR) | Observable state (`limit/allocated/available`) that changes with every create/delete |
-| Default on unknown/error | **Fail-closed** (deny) | **Fail-open** (allow; the API 403 is the backstop) |
-| Fetch shape | N checks per page (bulk endpoint, max 50) | **1 LIST per scope** (+ optional watch) |
-| What it gates | Read *and* write (pages, buttons, fetches) | **Creation** (and scale-up) only — never viewing |
-| Loader gate (Layer 1) | Required on every route | **Not needed** — quota never restricts a page |
-| Verdict staleness | 5-min staleTime is fine | Short staleTime + invalidate after mutations; watch preferred |
-| Denial UX | "You don't have permission…" tooltip | "Quota reached (10/10)…" tooltip + **recovery CTA** (view quotas / request increase) |
+| Dimension                | RBAC                                       | Quota                                                                                |
+| ------------------------ | ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| Nature of check          | Point-in-time authorization query (SSAR)   | Observable state (`limit/allocated/available`) that changes with every create/delete |
+| Default on unknown/error | **Fail-closed** (deny)                     | **Fail-open** (allow; the API 403 is the backstop)                                   |
+| Fetch shape              | N checks per page (bulk endpoint, max 50)  | **1 LIST per scope** (+ optional watch)                                              |
+| What it gates            | Read _and_ write (pages, buttons, fetches) | **Creation** (and scale-up) only — never viewing                                     |
+| Loader gate (Layer 1)    | Required on every route                    | **Not needed** — quota never restricts a page                                        |
+| Verdict staleness        | 5-min staleTime is fine                    | Short staleTime + invalidate after mutations; watch preferred                        |
+| Denial UX                | "You don't have permission…" tooltip       | "Quota reached (10/10)…" tooltip + **recovery CTA** (view quotas / request increase) |
 
 Shared with RBAC: never show a verdict before resolution; primitives over inline
 conditionals; toast is never a gate; strict conventions doc; metrics on denial.
 
 ### 5.2 Layer mapping
 
-| RBAC layer | Quota analog |
-|---|---|
-| 1. Loader gate | **Skipped.** (Open question: gate-only `/new` routes could show an inline banner, but never `RestrictedState`.) |
-| 2. Data fetch/watch | One `useAllowanceBuckets(scope)` query per scope + optional `useAllowanceBucketsWatch`; individual gates read from it (no per-check fetches) |
-| 3. UI primitive | `<QuotaGuard>` / quota-aware button (see 5.5) |
-| 4. Cross-resource action | Same rule: gate by the **resourceType the button creates** (e.g. "Protect with AI Edge" gates on `networking.datumapis.com/httpproxies`) |
+| RBAC layer               | Quota analog                                                                                                                                 |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Loader gate           | **Skipped.** (Open question: gate-only `/new` routes could show an inline banner, but never `RestrictedState`.)                              |
+| 2. Data fetch/watch      | One `useAllowanceBuckets(scope)` query per scope + optional `useAllowanceBucketsWatch`; individual gates read from it (no per-check fetches) |
+| 3. UI primitive          | `<QuotaGuard>` / quota-aware button (see 5.5)                                                                                                |
+| 4. Cross-resource action | Same rule: gate by the **resourceType the button creates** (e.g. "Protect with AI Edge" gates on `networking.datumapis.com/httpproxies`)     |
 
 ### 5.3 Module layout (mirroring `app/modules/rbac`)
 
@@ -466,18 +466,18 @@ Core verdict shape:
 
 ```ts
 interface QuotaVerdict {
-  hasQuota: boolean;      // false ONLY when bucket exists AND available <= 0
+  hasQuota: boolean; // false ONLY when bucket exists AND available <= 0
   isLoading: boolean;
-  isUnknown: boolean;     // list failed / 403 / no bucket → treat as allowed
+  isUnknown: boolean; // list failed / 403 / no bucket → treat as allowed
   limit?: number;
   allocated?: number;
   available?: number;
-  bucket?: AllowanceBucket;            // for linking to the quotas row
+  bucket?: AllowanceBucket; // for linking to the quotas row
   registration?: ResourceRegistration; // displayName/units for tooltip copy
 }
 
 // Prop-compatible with RBAC primitives: resourceType = `${group}/${resource}`
-useResourceQuota({ resource: 'dnszones', group: 'dns.networking.miloapis.com', scope: 'project' })
+useResourceQuota({ resource: 'dnszones', group: 'dns.networking.miloapis.com', scope: 'project' });
 ```
 
 Data plumbing to add in `app/resources/allowance-buckets/`: `allowance-bucket.queries.ts`
@@ -508,15 +508,15 @@ brainstorm:
   anything, including a `<PermissionButton>`. Two nested primitives per button; zero
   changes to RBAC module. Tooltip precedence: permission denial > quota denial.
 - **B. One combined primitive**: `<ActionButton resource group scope verb="create"
-  checkQuota>` (or `<GatedButton>`) that runs both checks and renders one verdict.
+checkQuota>` (or `<GatedButton>`) that runs both checks and renders one verdict.
   Cleaner call sites; touches the RBAC module's territory.
 - **C. Extend `PermissionButton`** with an opt-in `quota` prop. Smallest API surface;
   couples the modules.
 
 Whatever the shape, it must reproduce the hard-won `PermissionButton` behaviors: bare
 button while loading/allowed (no remount), tooltip only on definitive denial, denied
-tooltip copy like *"You've reached your DNS Zones quota (25/25). Request an increase
-from Settings → Quotas."* — ideally with an inline link/CTA where the surface allows.
+tooltip copy like _"You've reached your DNS Zones quota (25/25). Request an increase
+from Settings → Quotas."_ — ideally with an inline link/CTA where the surface allows.
 
 Also: row-action `hidden`/`disabled` recipes, an empty-state variant, and a
 `QuotaGuard`-style wrapper for non-button affordances, mirroring the CONVENTIONS
@@ -529,12 +529,12 @@ what to do":
 
 1. `isQuotaError(error)`: `status === 403` AND (`originalMessage ?? message`) contains
    `"Insufficient quota resources"` or `"You've reached your quota for this resource
-   type"`. Timeout/conflict/misconfigured messages get retry-flavored handling, not the
+type"`. Timeout/conflict/misconfigured messages get retry-flavored handling, not the
    quota wall.
 2. `parseQuotaError(error)` → `{group, kind}` from `k8sDetails` (fallback: regex the
    `originalMessage` prefix) → `resourceType` → bucket row.
 3. Replace the generic toast in form dialogs with a quota-aware one:
-   *"DNS zone quota reached"* + description + **action: "View quotas"** (navigate to
+   _"DNS zone quota reached"_ + description + **action: "View quotas"** (navigate to
    `paths.project.detail.settings.quotas`) and/or **"Request increase"**
    (`openSupportMessage` with the same prefill the quotas table builds). Possibly a
    dialog instead of a toast for the full CTA pair.
@@ -547,7 +547,7 @@ what to do":
 Generalize `canOrgCreateBillingAccount`'s `{allowed, reason}` shape:
 
 ```ts
-useCreateGate({ resource, group, scope })  // name TBD
+useCreateGate({ resource, group, scope }); // name TBD
 // → { allowed, isLoading, reason?: string, kind?: 'permission' | 'quota' }
 // permission denial wins over quota denial (you can't see quota you can't act on)
 ```

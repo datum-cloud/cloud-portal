@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import {
   deriveGuardedAction,
@@ -29,7 +29,6 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { ColumnDef } from '@tanstack/react-table';
 import { PlusIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import { LoaderFunctionArgs, useNavigate, useParams } from 'react-router';

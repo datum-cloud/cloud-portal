@@ -1,5 +1,5 @@
 import { useInitialLoading } from '../hooks';
-import type { MultiAction } from '../types';
+import type { MultiAction, RowData } from '../types';
 import { useIsStandaloneEmpty } from './empty-state';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
@@ -15,7 +15,7 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search as SearchIconLucide, X as XIconLucide } from 'lucide-react';
 import { Children, type ReactNode } from 'react';
 
-interface TableToolbarProps<TData> {
+interface TableToolbarProps<TData extends RowData> {
   title?: string;
   description?: ReactNode;
   search?: string | true;
@@ -39,7 +39,7 @@ interface TableToolbarProps<TData> {
  *
  * Internal — consumers never render this directly.
  */
-export function TableToolbar<TData>({
+export function TableToolbar<TData extends RowData>({
   title,
   description,
   search,
@@ -79,7 +79,7 @@ export function TableToolbar<TData>({
  * because datum-ui's useDataTableSelection does not expose a
  * clearSelection helper directly. Injected into every multiAction.onClick.
  */
-function TableToolbarTools<TData>({
+function TableToolbarTools<TData extends RowData>({
   search,
   filters,
   actions,

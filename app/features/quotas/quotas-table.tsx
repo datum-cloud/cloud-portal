@@ -1,7 +1,7 @@
 import { buildQuotaIncreaseRequest, isBucketExhausted } from './build-quota-increase-request';
 import { groupQuotas, type QuotaRow } from './quotas-grouping';
 import { resolveResourceDisplayName, resolveServiceDisplayName } from './service-catalog';
-import { sortableHeader, TableSearch } from '@/components/table';
+import { type ColumnDef, sortableHeader, TableSearch } from '@/components/table';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -12,7 +12,6 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import { GroupedTable } from '@datum-cloud/datum-ui/grouped-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import type { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
