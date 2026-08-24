@@ -1,0 +1,54 @@
+# Staging pass-through for the portal assistant. Rates are Anthropic's
+# published list prices for claude-sonnet-4-6, the model staging runs:
+# $3 / $15 per million input / output tokens, cache reads at $0.30,
+# 5-minute cache writes at $3.75. The assistant uses ephemeral prompt
+# cache (5 minute TTL). Match on model so a later model switch does not
+# silently bill at these rates. Do not add an unmatched catch-all;
+# Amberflo cannot represent that beside matched rates. Messages stay
+# unpriced; Anthropic does not bill per message.
+apiVersion: services.miloapis.com/v1alpha1
+kind: ServiceConfiguration
+metadata:
+  name: assistant-miloapis-com
+spec:
+  charges:
+    - name: assistant.miloapis.com/conversation/input-tokens
+      chargeType: Usage
+      currency: USD
+      displayName: Input tokens
+      usage:
+        metricRef: assistant.miloapis.com/conversation/input-tokens
+        pricingUnit: token
+        rates:
+          - match: { dimension: model, value: claude-sonnet-4-6 }
+            flat: "0.000003"
+    - name: assistant.miloapis.com/conversation/output-tokens
+      chargeType: Usage
+      currency: USD
+      displayName: Output tokens
+      usage:
+        metricRef: assistant.miloapis.com/conversation/output-tokens
+        pricingUnit: token
+        rates:
+          - match: { dimension: model, value: claude-sonnet-4-6 }
+            flat: "0.000015"
+    - name: assistant.miloapis.com/conversation/cache-read-tokens
+      chargeType: Usage
+      currency: USD
+      displayName: Cached prompt tokens
+      usage:
+        metricRef: assistant.miloapis.com/conversation/cache-read-tokens
+        pricingUnit: token
+        rates:
+          - match: { dimension: model, value: claude-sonnet-4-6 }
+            flat: "0.0000003"
+    - name: assistant.miloapis.com/conversation/cache-write-tokens
+      chargeType: Usage
+      currency: USD
+      displayName: Prompt cache storage
+      usage:
+        metricRef: assistant.miloapis.com/conversation/cache-write-tokens
+        pricingUnit: token
+        rates:
+          - match: { dimension: model, value: claude-sonnet-4-6 }
+            flat: "0.00000375"
