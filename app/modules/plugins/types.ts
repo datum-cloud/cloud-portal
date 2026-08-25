@@ -198,9 +198,7 @@ export interface UnknownExtension {
 }
 
 export type KnownPluginExtension =
-  | NavProjectExtension
-  | PageProjectExtension
-  | CardProjectHomeExtension;
+  NavProjectExtension | PageProjectExtension | CardProjectHomeExtension;
 
 export type PluginExtension = KnownPluginExtension | UnknownExtension;
 
