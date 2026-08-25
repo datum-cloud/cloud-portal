@@ -1,5 +1,5 @@
-import { resolveComingSoonService } from '@/modules/project-nav/coming-soon';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
+import { resolveComingSoonService } from '@/modules/project-nav/coming-soon';
 import { useApp } from '@/providers/app.provider';
 import { paths } from '@/utils/config/paths.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
