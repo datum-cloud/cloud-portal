@@ -13,6 +13,8 @@ function plugin(partial: {
     path: string;
     section?: 'deliver' | 'build' | 'connect' | 'observe' | 'settings';
     order?: number;
+    comingSoon?: boolean;
+    roadmapUrl?: string;
   }>;
 }): PublicPlugin {
   return {
@@ -35,6 +37,8 @@ function plugin(partial: {
           path: nav.path,
           section: nav.section,
           order: nav.order,
+          comingSoon: nav.comingSoon,
+          roadmapUrl: nav.roadmapUrl,
         },
       })),
     },
@@ -93,5 +97,42 @@ describe('mergePluginNavIntoTree', () => {
     expect(compute?.type).toBe('externalLink');
     expect(compute?.badge?.label).toBe('Coming Soon');
     expect(compute?.href).toMatch(/^https:\/\//);
+  });
+
+  test('plugin comingSoon items nest as external Coming Soon links', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const roadmap = 'https://github.com/datum-cloud/enhancements/issues/1234';
+    const merged = mergePluginNavIntoTree(
+      tree,
+      [
+        plugin({
+          slug: 'compute',
+          displayName: 'Compute',
+          nav: [
+            {
+              id: 'instances',
+              title: 'Instances',
+              path: '',
+              section: 'build',
+              order: 15,
+              comingSoon: true,
+              roadmapUrl: roadmap,
+            },
+          ],
+        }),
+      ],
+      'proj-1'
+    );
+
+    const build = merged.find((item) => item.title === 'Build');
+    const instances = build?.children?.find((c) => c.title === 'Instances');
+    expect(instances?.type).toBe('externalLink');
+    expect(instances?.badge?.label).toBe('Coming Soon');
+    expect(instances?.href).toBe(roadmap);
+    expect(instances?.muted).toBe(true);
+    // Between Compute (10) and Object Storage (20) via order 15.
+    const titles = build?.children?.map((c) => c.title) ?? [];
+    expect(titles.indexOf('Compute')).toBeLessThan(titles.indexOf('Instances'));
+    expect(titles.indexOf('Instances')).toBeLessThan(titles.indexOf('Object Storage'));
   });
 });
