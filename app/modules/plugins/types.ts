@@ -134,16 +134,31 @@ export interface NavProjectProperties {
   title: string;
   /** A lucide icon name, resolved by the host. Never plugin code. */
   icon: string;
-  /** Path relative to the plugin's mount point. */
+  /**
+   * Path relative to the plugin's mount point. Required for live links;
+   * ignored (and may be empty) while `comingSoon` is true.
+   */
   path: string;
   /**
    * Optional host category to nest under (`deliver` | `build` | `connect` |
    * `observe` | `settings`). When omitted or unknown, the host places the item
-   * under a collapsible group named after the plugin's displayName.
+   * under a group named after the plugin's displayName.
    */
   section?: 'deliver' | 'build' | 'connect' | 'observe' | 'settings';
   /** Order within the section (or within the plugin's own group). */
   order?: number;
+  /**
+   * When true, render a Coming Soon placeholder (external link + badge) instead
+   * of a live plugin route. Lets a service ship sidebar presence from its own
+   * manifest before the UI is ready — flip to false / remove and set `path` to
+   * go live without a portal change.
+   */
+  comingSoon?: boolean;
+  /**
+   * External roadmap / enhancement URL used when `comingSoon` is true.
+   * Required whenever `comingSoon` is true.
+   */
+  roadmapUrl?: string;
 }
 
 export interface NavProjectExtension {
@@ -190,9 +205,7 @@ export interface UnknownExtension {
 }
 
 export type KnownPluginExtension =
-  | NavProjectExtension
-  | PageProjectExtension
-  | CardProjectHomeExtension;
+  NavProjectExtension | PageProjectExtension | CardProjectHomeExtension;
 
 export type PluginExtension = KnownPluginExtension | UnknownExtension;
 

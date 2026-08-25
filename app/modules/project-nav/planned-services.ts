@@ -13,6 +13,11 @@ import {
 /**
  * Planned (not-yet-live) services shown in the project sidebar with a
  * Coming Soon badge. Clicking opens the roadmap enhancement URL externally.
+ *
+ * Prefer declaring placeholders on the plugin's own `portal.nav/project`
+ * (`comingSoon` + `roadmapUrl`) once a PortalPlugin is registered — that way
+ * going live is a plugin-manifest change only. Keep entries here for services
+ * that do not yet have a PortalPlugin at all.
  */
 export type PlannedService = {
   id: string;

@@ -2,10 +2,11 @@
  * Merge plugin `portal.nav/project` extensions into the nested project nav tree.
  *
  * - Known `section` → insert as a child of that host category (sorted by `order`)
- * - Missing / unknown `section` → collapsible group titled with plugin displayName
+ * - Missing / unknown `section` → group titled with plugin displayName
+ * - `comingSoon: true` → external roadmap link with Coming Soon badge (path ignored)
  */
 import type { SectionNavItem } from './build-project-nav';
-import { isProjectNavSection, type ProjectNavSection } from './types';
+import { COMING_SOON_BADGE, isProjectNavSection, type ProjectNavSection } from './types';
 import { resolvePluginIcon } from '@/modules/plugins/client/icon-map';
 import { getNavExtensions } from '@/modules/plugins/client/match-extension';
 import type { PublicPlugin } from '@/modules/plugins/types';
@@ -43,16 +44,28 @@ function contributionsForPlugins(
     for (const nav of getNavExtensions(plugin.manifest)) {
       const sectionRaw = nav.properties.section;
       const section = isProjectNavSection(sectionRaw) ? sectionRaw : undefined;
+      const comingSoon = nav.properties.comingSoon === true && !!nav.properties.roadmapUrl;
+
       out.push({
         plugin,
         section,
-        item: {
-          title: nav.properties.title,
-          href: pluginHref(projectId, plugin.slug, nav.properties.path),
-          type: 'link',
-          icon: resolvePluginIcon(nav.properties.icon),
-          order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
-        },
+        item: comingSoon
+          ? {
+              title: nav.properties.title,
+              href: nav.properties.roadmapUrl!,
+              type: 'externalLink',
+              icon: resolvePluginIcon(nav.properties.icon),
+              muted: true,
+              badge: COMING_SOON_BADGE,
+              order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
+            }
+          : {
+              title: nav.properties.title,
+              href: pluginHref(projectId, plugin.slug, nav.properties.path),
+              type: 'link',
+              icon: resolvePluginIcon(nav.properties.icon),
+              order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
+            },
       });
     }
   }

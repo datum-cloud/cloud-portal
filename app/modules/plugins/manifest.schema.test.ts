@@ -121,6 +121,67 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
+  test('accepts comingSoon nav with a roadmapUrl', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute-instances',
+              title: 'Instances',
+              icon: 'cpu',
+              path: '',
+              section: 'build',
+              comingSoon: true,
+              roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/1',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects comingSoon nav without roadmapUrl', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute-instances',
+              title: 'Instances',
+              icon: 'cpu',
+              path: '',
+              comingSoon: true,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects live nav with an empty path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute-instances',
+              title: 'Instances',
+              icon: 'cpu',
+              path: '   ',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a non-object input', () => {
     expect(validateManifest(null).valid).toBe(false);
     expect(validateManifest('nope').valid).toBe(false);
