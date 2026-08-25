@@ -1,7 +1,9 @@
 /**
- * Build the project sidebar as flat service groups (Deliver / Build / Connect /
- * Observe / Project Settings) for enhancement #849 — always-open section
- * headers, not collapsible dropdowns.
+ * Build the project sidebar as collapsible service categories (Deliver / Build /
+ * Connect / Observe / Project Settings) for enhancement #849.
+ *
+ * Category parents keep icons; nested children are text-only (plus optional
+ * Coming Soon badges) so the expanded rail stays scannable.
  */
 import { plannedServicesForSection } from './planned-services';
 import { COMING_SOON_BADGE, type ProjectNavSection } from './types';
@@ -17,19 +19,12 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import type { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import type { QueryClient } from '@tanstack/react-query';
 import {
-  ActivityIcon,
-  BotIcon,
   BoxesIcon,
-  CableIcon,
   ChartSplineIcon,
-  FileLockIcon,
-  GaugeIcon,
   GlobeIcon,
   HomeIcon,
-  LayersIcon,
   NetworkIcon,
   SettingsIcon,
-  SignpostIcon,
 } from 'lucide-react';
 
 export type BuildProjectNavOptions = {
@@ -72,7 +67,7 @@ function category(
   return {
     title,
     href: null,
-    type: 'group',
+    type: 'collapsible',
     icon,
     sectionId,
     children: sortChildren(children),
@@ -130,7 +125,6 @@ export function buildProjectNavTree(
           order: 10,
           href: getPathWithParams(paths.project.detail.domains.root, { projectId }),
           type: 'link',
-          icon: LayersIcon,
           disabled: !isReady,
           onPrefetch: queryClient
             ? () => {
@@ -146,7 +140,6 @@ export function buildProjectNavTree(
           order: 20,
           href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId }),
           type: 'link',
-          icon: SignpostIcon,
           disabled: !isReady,
           onPrefetch: queryClient
             ? () => {
@@ -162,7 +155,6 @@ export function buildProjectNavTree(
           order: 30,
           href: getPathWithParams(paths.project.detail.proxy.root, { projectId }),
           type: 'link',
-          icon: GaugeIcon,
           disabled: !isReady,
           onPrefetch: queryClient
             ? () => {
@@ -185,7 +177,6 @@ export function buildProjectNavTree(
         order: 20,
         href: getPathWithParams(paths.project.detail.connectors.root, { projectId }),
         type: 'link',
-        icon: CableIcon,
         disabled: !isReady,
         onPrefetch: queryClient
           ? () => {
@@ -204,7 +195,6 @@ export function buildProjectNavTree(
         order: 10,
         href: getPathWithParams(paths.project.detail.activity, { projectId }),
         type: 'link',
-        icon: ActivityIcon,
         disabled: !isReady,
       },
       {
@@ -212,7 +202,6 @@ export function buildProjectNavTree(
         order: 20,
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
         type: 'link',
-        icon: ChartSplineIcon,
         disabled: !isReady,
         onPrefetch: queryClient
           ? () => {
@@ -235,7 +224,6 @@ export function buildProjectNavTree(
           order: 10,
           href: settingsGeneral,
           type: 'link',
-          icon: SettingsIcon,
           disabled: !isReady,
           tabChildLinks: [settingsGeneral, settingsNotifications, settingsQuotas, settingsBilling],
         },
@@ -244,7 +232,6 @@ export function buildProjectNavTree(
           order: 20,
           href: getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }),
           type: 'link',
-          icon: BotIcon,
           disabled: !isReady,
           onPrefetch: queryClient
             ? () => {
@@ -260,7 +247,6 @@ export function buildProjectNavTree(
           order: 30,
           href: getPathWithParams(paths.project.detail.secrets.root, { projectId }),
           type: 'link',
-          icon: FileLockIcon,
           disabled: !isReady,
           onPrefetch: queryClient
             ? () => {

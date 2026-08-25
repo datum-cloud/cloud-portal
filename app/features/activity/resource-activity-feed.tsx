@@ -4,6 +4,7 @@ import {
   ActivityFeed,
   type ActivityApiClient,
   type ActivityFeedProps,
+  type ChangeSource,
   type ResourceLinkResolver,
   parseActivityFilters,
   parseTimeRange,
@@ -27,6 +28,12 @@ export interface ResourceActivityFeedProps {
    * filter is hidden from the UI.
    */
   resourceName?: string;
+  /**
+   * Default change-source filter when the URL does not specify one.
+   * `'human'` = user-initiated changes; `'system'` = controllers/operators;
+   * `'all'` = both. Defaults to `'all'`.
+   */
+  changeSource?: ChangeSource | 'all';
   /** Page size for the feed. Defaults to 30. */
   pageSize?: number;
   /** Enable SSE-based live streaming of new activity. Defaults to false (manual refresh). */
@@ -78,6 +85,7 @@ export function ResourceActivityFeed({
   resourceLinkResolver,
   resourceKinds,
   resourceName,
+  changeSource = 'all',
   pageSize = 30,
   enableStreaming = false,
   compact = true,
@@ -96,7 +104,7 @@ export function ResourceActivityFeed({
   const initialFilters = useMemo(() => {
     const fromUrl = effectiveUrlSync ? parseActivityFilters(searchParams) : {};
     return {
-      changeSource: 'all' as const,
+      changeSource,
       ...fromUrl,
       ...(resourceKinds ? { resourceKinds } : {}),
       ...(resourceName ? { resourceName } : {}),

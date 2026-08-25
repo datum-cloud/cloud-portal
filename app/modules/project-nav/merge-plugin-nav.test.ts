@@ -65,9 +65,9 @@ describe('mergePluginNavIntoTree', () => {
     const observe = merged.find((item) => item.title === 'Observe');
     const titles = observe?.children?.map((c) => c.title) ?? [];
     expect(titles).toContain('Platform data');
-    // Built-in orders: Activity 10, Metrics Export 20, Usage 30 — plugin at 25 slots between.
+    // Built-in orders: Activity 10, Metrics Export 20 — plugin at 25 slots after.
     expect(titles.indexOf('Metrics Export')).toBeLessThan(titles.indexOf('Platform data'));
-    expect(titles.indexOf('Platform data')).toBeLessThan(titles.indexOf('Usage'));
+    expect(titles.at(-1)).toBe('Platform data');
     expect(merged.some((item) => item.title === 'Sample')).toBe(false);
   });
 
@@ -86,17 +86,32 @@ describe('mergePluginNavIntoTree', () => {
     );
 
     const group = merged.find((item) => item.title === 'Sample Plugin');
-    expect(group?.type).toBe('group');
+    expect(group?.type).toBe('collapsible');
     expect(group?.children?.some((c) => c.title === 'Home page')).toBe(true);
+    expect(group?.children?.find((c) => c.title === 'Home page')?.icon).toBeUndefined();
   });
 
   test('planned items are external links with Coming Soon badges', () => {
     const tree = buildProjectNavTree('proj-1');
     const build = tree.find((item) => item.sectionId === 'build');
-    const compute = build?.children?.find((c) => c.title === 'Compute');
-    expect(compute?.type).toBe('externalLink');
-    expect(compute?.badge?.label).toBe('Coming Soon');
-    expect(compute?.href).toMatch(/^https:\/\//);
+    expect(build?.type).toBe('collapsible');
+    // Compute is plugin-owned; host Build placeholders start at Object Storage.
+    const objectStorage = build?.children?.find((c) => c.title === 'Object Storage');
+    expect(objectStorage?.type).toBe('externalLink');
+    expect(objectStorage?.badge?.label).toBe('Coming Soon');
+    expect(objectStorage?.href).toMatch(/^https:\/\//);
+    expect(objectStorage?.icon).toBeUndefined();
+    expect(build?.children?.some((c) => c.title === 'Compute')).toBe(false);
+  });
+
+  test('built-in category children omit icons', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const deliver = tree.find((item) => item.sectionId === 'deliver');
+    expect(deliver?.type).toBe('collapsible');
+    expect(deliver?.icon).toBeDefined();
+    for (const child of deliver?.children ?? []) {
+      expect(child.icon).toBeUndefined();
+    }
   });
 
   test('plugin comingSoon items nest as external Coming Soon links', () => {
@@ -114,7 +129,7 @@ describe('mergePluginNavIntoTree', () => {
               title: 'Instances',
               path: '',
               section: 'build',
-              order: 15,
+              order: 25,
               comingSoon: true,
               roadmapUrl: roadmap,
             },
@@ -130,9 +145,10 @@ describe('mergePluginNavIntoTree', () => {
     expect(instances?.badge?.label).toBe('Coming Soon');
     expect(instances?.href).toBe(roadmap);
     expect(instances?.muted).toBe(true);
-    // Between Compute (10) and Object Storage (20) via order 15.
+    // Between Object Storage (20) and Edge Apps (30) via order 25 — Compute is
+    // plugin-owned, so host Build placeholders no longer include it.
     const titles = build?.children?.map((c) => c.title) ?? [];
-    expect(titles.indexOf('Compute')).toBeLessThan(titles.indexOf('Instances'));
-    expect(titles.indexOf('Instances')).toBeLessThan(titles.indexOf('Object Storage'));
+    expect(titles.indexOf('Object Storage')).toBeLessThan(titles.indexOf('Instances'));
+    expect(titles.indexOf('Instances')).toBeLessThan(titles.indexOf('Edge Apps'));
   });
 });

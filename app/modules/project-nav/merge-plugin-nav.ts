@@ -2,12 +2,12 @@
  * Merge plugin `portal.nav/project` extensions into the nested project nav tree.
  *
  * - Known `section` → insert as a child of that host category (sorted by `order`)
- * - Missing / unknown `section` → group titled with plugin displayName
+ * - Missing / unknown `section` → collapsible group titled with plugin displayName
  * - `comingSoon: true` → external roadmap link with Coming Soon badge (path ignored)
+ * - Nested items are text-only (no icons); category / plugin-group parents keep icons
  */
 import type { SectionNavItem } from './build-project-nav';
 import { COMING_SOON_BADGE, isProjectNavSection, type ProjectNavSection } from './types';
-import { resolvePluginIcon } from '@/modules/plugins/client/icon-map';
 import { getNavExtensions } from '@/modules/plugins/client/match-extension';
 import type { PublicPlugin } from '@/modules/plugins/types';
 import { paths } from '@/utils/config/paths.config';
@@ -49,12 +49,12 @@ function contributionsForPlugins(
       out.push({
         plugin,
         section,
+        // Nested under a category or plugin group — text-only (no child icons).
         item: comingSoon
           ? {
               title: nav.properties.title,
               href: nav.properties.roadmapUrl!,
               type: 'externalLink',
-              icon: resolvePluginIcon(nav.properties.icon),
               muted: true,
               badge: COMING_SOON_BADGE,
               order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
@@ -63,7 +63,6 @@ function contributionsForPlugins(
               title: nav.properties.title,
               href: pluginHref(projectId, plugin.slug, nav.properties.path),
               type: 'link',
-              icon: resolvePluginIcon(nav.properties.icon),
               order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
             },
       });
@@ -103,7 +102,7 @@ function ensurePluginGroup(tree: SectionNavItem[], plugin: PublicPlugin): Sectio
   const group: PluginGroupNavItem = {
     title: plugin.displayName || plugin.slug,
     href: null,
-    type: 'group',
+    type: 'collapsible',
     icon: PuzzleIcon,
     children: [],
     pluginSlug: plugin.slug,

@@ -182,9 +182,9 @@ export function ProjectBottomBar() {
         )}
       </AnimatePresence>
 
-      {/* Toolbar — relative + z-50 so it sits above the panel (z-40) during animation */}
-      <div className="bg-background relative z-50 flex h-12 items-center justify-end overflow-hidden border-t">
-        <div className="border-sidebar-border flex h-full items-center gap-1 border-l px-4">
+      {/* Toolbar — same chrome as SidebarFooter (border-t + p-2 + h-8 controls) */}
+      <div className="bg-sidebar border-sidebar-border relative z-50 flex shrink-0 items-center justify-end overflow-hidden border-t p-2">
+        <div className="border-sidebar-border flex h-8 items-center gap-1 border-l pl-4">
           <span className="text-foreground mr-2 text-xs">Developer Tools</span>
           <ToolbarButton
             panel="chat"
