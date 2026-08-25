@@ -134,9 +134,24 @@ export interface NavProjectProperties {
   title: string;
   /** A lucide icon name, resolved by the host. Never plugin code. */
   icon: string;
-  /** Path relative to the plugin's mount point. */
+  /**
+   * Path relative to the plugin's mount point. Required for live links;
+   * ignored (and may be empty) while `comingSoon` is true.
+   */
   path: string;
   order?: number;
+  /**
+   * When true, render a Coming Soon placeholder (external roadmap link)
+   * instead of a live plugin route. Lets a service register a PortalPlugin
+   * early and own its sidebar placeholder; go live by updating the manifest
+   * alone (drop comingSoon / roadmapUrl and set a real path).
+   */
+  comingSoon?: boolean;
+  /**
+   * External roadmap / enhancement URL used when `comingSoon` is true.
+   * Required whenever `comingSoon` is true.
+   */
+  roadmapUrl?: string;
 }
 
 export interface NavProjectExtension {
@@ -183,7 +198,9 @@ export interface UnknownExtension {
 }
 
 export type KnownPluginExtension =
-  NavProjectExtension | PageProjectExtension | CardProjectHomeExtension;
+  | NavProjectExtension
+  | PageProjectExtension
+  | CardProjectHomeExtension;
 
 export type PluginExtension = KnownPluginExtension | UnknownExtension;
 

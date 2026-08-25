@@ -9,8 +9,10 @@ fixture for the portal repo.
 
 **Nav + pages:**
 
-- `portal.nav/project` — two sidebar items: **Platform data** (icon `globe`,
-  RBAC-gated) and **Sample Plugin** (icon `puzzle`, the minimal demo).
+- `portal.nav/project` — three sidebar items: **Platform data** (icon `globe`,
+  RBAC-gated), **Sample Plugin** (icon `puzzle`, the minimal demo), and
+  **Volumes** as a Coming Soon external roadmap link (`comingSoon` +
+  `roadmapUrl`, empty `path`).
 - `portal.page/project`:
   - `platform` — read-only **DNS zones** for the current project, read from the
     **Milo control plane** through `/api/proxy`. Carries

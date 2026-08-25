@@ -39,6 +39,18 @@
       }
     },
     {
+      "type": "portal.nav/project",
+      "properties": {
+        "id": "sample-volumes-soon",
+        "title": "Volumes",
+        "icon": "hard-drive",
+        "path": "",
+        "order": 60,
+        "comingSoon": true,
+        "roadmapUrl": "https://github.com/datum-cloud/enhancements/issues/849"
+      }
+    },
+    {
       "type": "portal.page/project",
       "properties": {
         "path": "platform",
