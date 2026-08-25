@@ -3,15 +3,18 @@
  *
  * - Known `section` → insert as a child of that host category (sorted by `order`)
  * - Missing / unknown `section` → collapsible group titled with plugin displayName
- * - `comingSoon: true` → Coming Soon roadmap link until the project has an Active
- *   ServiceEntitlement for `serviceRef` (defaults to plugin slug); once entitled,
- *   render the live plugin mount `path` with no badge
+ * - `comingSoon: true` → Coming Soon until the project has an Active
+ *   ServiceEntitlement for `serviceRef` (defaults to plugin slug). Destination
+ *   while Coming Soon follows `comingSoonMode` (`holding` default → host page,
+ *   `plugin` → mount path, `external` → roadmapUrl). Once entitled, render the
+ *   live plugin mount `path` with no badge.
  * - Nested items are text-only (no icons); category / plugin-group parents keep icons
  */
 import type { SectionNavItem } from './build-project-nav';
+import { comingSoonHref } from './coming-soon';
 import { COMING_SOON_BADGE, isProjectNavSection, type ProjectNavSection } from './types';
 import { getNavExtensions } from '@/modules/plugins/client/match-extension';
-import type { PublicPlugin } from '@/modules/plugins/types';
+import type { NavProjectProperties, PublicPlugin } from '@/modules/plugins/types';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import type { NavItem } from '@datum-cloud/datum-ui/app-navigation';
@@ -53,6 +56,52 @@ function toEntitlementSet(
   return active instanceof Set ? active : new Set(active);
 }
 
+function comingSoonModeOf(
+  props: NavProjectProperties
+): NonNullable<NavProjectProperties['comingSoonMode']> {
+  return props.comingSoonMode ?? 'holding';
+}
+
+function comingSoonNavItem(
+  projectId: string,
+  plugin: PublicPlugin,
+  nav: { properties: NavProjectProperties }
+): OrderedNavChild {
+  const props = nav.properties;
+  const mode = comingSoonModeOf(props);
+  const roadmapUrl = props.roadmapUrl?.trim() || undefined;
+  const order = props.order ?? Number.MAX_SAFE_INTEGER;
+  const base = {
+    title: props.title,
+    muted: true as const,
+    badge: COMING_SOON_BADGE,
+    order,
+  };
+
+  if (mode === 'plugin') {
+    return {
+      ...base,
+      href: pluginHref(projectId, plugin.slug, props.path),
+      type: 'link',
+    };
+  }
+
+  if (mode === 'external' && roadmapUrl) {
+    return {
+      ...base,
+      href: roadmapUrl,
+      type: 'externalLink',
+    };
+  }
+
+  // Default: host holding page (roadmapUrl is a CTA on that page, not the nav target).
+  return {
+    ...base,
+    href: comingSoonHref(projectId, props.id),
+    type: 'link',
+  };
+}
+
 function contributionsForPlugins(
   plugins: PublicPlugin[],
   projectId: string,
@@ -67,22 +116,14 @@ function contributionsForPlugins(
       const serviceRef = nav.properties.serviceRef?.trim() || plugin.slug;
       const entitled = activeServices.has(serviceRef);
       // Soft-launch: Coming Soon until entitled; live path once Active.
-      const showComingSoon =
-        nav.properties.comingSoon === true && !!nav.properties.roadmapUrl && !entitled;
+      const showComingSoon = nav.properties.comingSoon === true && !entitled;
 
       out.push({
         plugin,
         section,
         // Nested under a category or plugin group — text-only (no child icons).
         item: showComingSoon
-          ? {
-              title: nav.properties.title,
-              href: nav.properties.roadmapUrl!,
-              type: 'externalLink',
-              muted: true,
-              badge: COMING_SOON_BADGE,
-              order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
-            }
+          ? comingSoonNavItem(projectId, plugin, nav)
           : {
               title: nav.properties.title,
               href: pluginHref(projectId, plugin.slug, nav.properties.path),

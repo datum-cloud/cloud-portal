@@ -5,6 +5,7 @@
  * Category parents keep icons; nested children are text-only (plus optional
  * Coming Soon badges) so the expanded rail stays scannable.
  */
+import { comingSoonHref } from './coming-soon';
 import { plannedServicesForSection } from './planned-services';
 import { COMING_SOON_BADGE, type ProjectNavSection } from './types';
 import { connectorKeys, createConnectorService } from '@/resources/connectors';
@@ -41,15 +42,30 @@ export type SectionNavItem = NavItem & {
 
 type OrderedChild = NavItem & { order: number };
 
-function plannedChildren(section: ProjectNavSection): OrderedChild[] {
-  return plannedServicesForSection(section).map((service) => ({
-    title: service.title,
-    href: service.roadmapUrl,
-    type: 'externalLink' as const,
-    muted: true,
-    badge: COMING_SOON_BADGE,
-    order: service.order,
-  }));
+function plannedChildren(projectId: string, section: ProjectNavSection): OrderedChild[] {
+  return plannedServicesForSection(section).map((service) => {
+    const roadmapUrl = service.roadmapUrl?.trim() || undefined;
+    if (!roadmapUrl) {
+      // No destination — Coming Soon badge, but disabled (no click / no pointer).
+      return {
+        title: service.title,
+        href: null,
+        type: 'link' as const,
+        muted: true,
+        disabled: true,
+        badge: COMING_SOON_BADGE,
+        order: service.order,
+      };
+    }
+    return {
+      title: service.title,
+      href: comingSoonHref(projectId, service.id),
+      type: 'link' as const,
+      muted: true,
+      badge: COMING_SOON_BADGE,
+      order: service.order,
+    };
+  });
 }
 
 /** Sort by `order` but keep the field so plugin merge can insert relatively. */
@@ -165,13 +181,13 @@ export function buildProjectNavTree(
               }
             : undefined,
         },
-        ...plannedChildren('deliver'),
+        ...plannedChildren(projectId, 'deliver'),
       ],
       { showSeparatorAbove: true }
     ),
-    category('Build', 'build', BoxesIcon, [...plannedChildren('build')]),
+    category('Build', 'build', BoxesIcon, [...plannedChildren(projectId, 'build')]),
     category('Connect', 'connect', NetworkIcon, [
-      ...plannedChildren('connect').filter((child) => child.order < 20),
+      ...plannedChildren(projectId, 'connect').filter((child) => child.order < 20),
       {
         title: 'Connectors',
         order: 20,
@@ -187,7 +203,7 @@ export function buildProjectNavTree(
             }
           : undefined,
       },
-      ...plannedChildren('connect').filter((child) => child.order > 20),
+      ...plannedChildren(projectId, 'connect').filter((child) => child.order > 20),
     ]),
     category('Observe', 'observe', ChartSplineIcon, [
       {
@@ -212,7 +228,7 @@ export function buildProjectNavTree(
             }
           : undefined,
       },
-      ...plannedChildren('observe'),
+      ...plannedChildren(projectId, 'observe'),
     ]),
     category(
       'Project Settings',

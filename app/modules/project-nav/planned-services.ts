@@ -2,20 +2,22 @@ import type { ProjectNavSection } from './types';
 
 /**
  * Planned (not-yet-live) services shown in the project sidebar with a
- * Coming Soon badge. Clicking opens the roadmap enhancement URL externally.
+ * Coming Soon badge. When `roadmapUrl` is set, clicks open the host holding
+ * page (`/project/:id/coming-soon/:serviceId`) with that URL as the “Learn
+ * more” CTA. When omitted, the row is non-interactive (click does nothing).
  *
  * Prefer declaring placeholders on the plugin's own `portal.nav/project`
- * (`comingSoon` + `roadmapUrl`) once a PortalPlugin is registered — that way
- * going live is a plugin-manifest change only. Keep entries here for services
- * that do not yet have a PortalPlugin at all.
+ * (`comingSoon` + optional `comingSoonMode` / `roadmapUrl`) once a PortalPlugin
+ * is registered — that way going live is a plugin-manifest change only. Keep
+ * entries here for services that do not yet have a PortalPlugin at all.
  */
 export type PlannedService = {
   id: string;
   title: string;
   section: ProjectNavSection;
   description: string;
-  /** GitHub enhancement / roadmap issue URL (opened from the sidebar). */
-  roadmapUrl: string;
+  /** Optional website / enhancement URL; required for a clickable holding page. */
+  roadmapUrl?: string;
   /** Order within the section (alongside live items). */
   order: number;
 };
@@ -26,7 +28,6 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'GSLB',
     section: 'deliver',
     description: 'Global server load balancing across regions and providers.',
-    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/833',
     order: 40,
   },
   {
@@ -34,7 +35,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Object Storage',
     section: 'build',
     description: 'Durable object storage for application data and assets.',
-    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/837',
+    roadmapUrl: '',
     order: 20,
   },
   {
@@ -42,7 +43,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Edge Apps',
     section: 'build',
     description: 'Deploy applications at the edge, close to your users.',
-    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/826',
+    roadmapUrl: '',
     order: 30,
   },
   {
@@ -50,7 +51,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Galactic VPC',
     section: 'connect',
     description: 'Private networking across projects and regions.',
-    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/475',
+    roadmapUrl: '',
     order: 10,
   },
   {
@@ -58,7 +59,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Interconnects',
     section: 'connect',
     description: 'Dedicated connectivity between Datum and your networks.',
-    roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/718',
+    roadmapUrl: '',
     order: 30,
   },
 ];

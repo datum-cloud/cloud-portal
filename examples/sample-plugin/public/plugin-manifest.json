@@ -49,6 +49,7 @@
         "section": "build",
         "order": 35,
         "comingSoon": true,
+        "description": "Block storage volumes for compute workloads.",
         "roadmapUrl": "https://github.com/datum-cloud/enhancements/issues/837"
       }
     },

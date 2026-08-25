@@ -14,6 +14,8 @@ function plugin(partial: {
     section?: 'deliver' | 'build' | 'connect' | 'observe' | 'settings';
     order?: number;
     comingSoon?: boolean;
+    comingSoonMode?: 'holding' | 'plugin' | 'external';
+    description?: string;
     roadmapUrl?: string;
     serviceRef?: string;
   }>;
@@ -39,6 +41,8 @@ function plugin(partial: {
           section: nav.section,
           order: nav.order,
           comingSoon: nav.comingSoon,
+          comingSoonMode: nav.comingSoonMode,
+          description: nav.description,
           roadmapUrl: nav.roadmapUrl,
           serviceRef: nav.serviceRef,
         },
@@ -92,16 +96,27 @@ describe('mergePluginNavIntoTree', () => {
     expect(group?.children?.find((c) => c.title === 'Home page')?.icon).toBeUndefined();
   });
 
-  test('planned items are external links with Coming Soon badges', () => {
+  test('planned items with a roadmapUrl link to the host Coming Soon holding page', () => {
     const tree = buildProjectNavTree('proj-1');
     const build = tree.find((item) => item.sectionId === 'build');
     expect(build?.type).toBe('collapsible');
     const objectStorage = build?.children?.find((c) => c.title === 'Object Storage');
-    expect(objectStorage?.type).toBe('externalLink');
+    expect(objectStorage?.type).toBe('link');
     expect(objectStorage?.badge?.label).toBe('Coming Soon');
-    expect(objectStorage?.href).toMatch(/^https:\/\//);
+    expect(objectStorage?.href).toBe('/project/proj-1/coming-soon/object-storage');
     expect(objectStorage?.icon).toBeUndefined();
     expect(build?.children?.some((c) => c.title === 'Compute')).toBe(false);
+  });
+
+  test('planned items without a roadmapUrl are non-interactive', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const deliver = tree.find((item) => item.sectionId === 'deliver');
+    const gslb = deliver?.children?.find((c) => c.title === 'GSLB');
+    expect(gslb?.type).toBe('link');
+    expect(gslb?.badge?.label).toBe('Coming Soon');
+    expect(gslb?.href).toBeNull();
+    expect(gslb?.disabled).toBe(true);
+    expect(gslb?.muted).toBe(true);
   });
 
   test('built-in category children omit icons', () => {
@@ -114,7 +129,7 @@ describe('mergePluginNavIntoTree', () => {
     }
   });
 
-  test('plugin comingSoon items nest as external Coming Soon links when not entitled', () => {
+  test('plugin comingSoon defaults to the host holding page when not entitled', () => {
     const tree = buildProjectNavTree('proj-1');
     const roadmap = 'https://github.com/datum-cloud/enhancements/issues/1234';
     const merged = mergePluginNavIntoTree(
@@ -131,6 +146,74 @@ describe('mergePluginNavIntoTree', () => {
               section: 'build',
               order: 10,
               comingSoon: true,
+              roadmapUrl: roadmap,
+              serviceRef: 'compute.datumapis.com',
+            },
+          ],
+        }),
+      ],
+      'proj-1'
+    );
+
+    const build = merged.find((item) => item.title === 'Build');
+    const compute = build?.children?.find((c) => c.title === 'Compute');
+    expect(compute?.type).toBe('link');
+    expect(compute?.badge?.label).toBe('Coming Soon');
+    expect(compute?.href).toBe('/project/proj-1/coming-soon/compute');
+    expect(compute?.muted).toBe(true);
+  });
+
+  test('plugin comingSoonMode plugin keeps the mount path while Coming Soon', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const merged = mergePluginNavIntoTree(
+      tree,
+      [
+        plugin({
+          slug: 'workloads',
+          displayName: 'Compute',
+          nav: [
+            {
+              id: 'compute',
+              title: 'Compute',
+              path: 'workloads',
+              section: 'build',
+              order: 10,
+              comingSoon: true,
+              comingSoonMode: 'plugin',
+              serviceRef: 'compute.datumapis.com',
+            },
+          ],
+        }),
+      ],
+      'proj-1'
+    );
+
+    const build = merged.find((item) => item.title === 'Build');
+    const compute = build?.children?.find((c) => c.title === 'Compute');
+    expect(compute?.type).toBe('link');
+    expect(compute?.badge?.label).toBe('Coming Soon');
+    expect(compute?.href).toContain('/project/proj-1/services/workloads/workloads');
+    expect(compute?.muted).toBe(true);
+  });
+
+  test('plugin comingSoonMode external opens the roadmapUrl', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const roadmap = 'https://github.com/datum-cloud/enhancements/issues/1234';
+    const merged = mergePluginNavIntoTree(
+      tree,
+      [
+        plugin({
+          slug: 'workloads',
+          displayName: 'Compute',
+          nav: [
+            {
+              id: 'compute',
+              title: 'Compute',
+              path: 'workloads',
+              section: 'build',
+              order: 10,
+              comingSoon: true,
+              comingSoonMode: 'external',
               roadmapUrl: roadmap,
               serviceRef: 'compute.datumapis.com',
             },
@@ -165,6 +248,7 @@ describe('mergePluginNavIntoTree', () => {
               section: 'build',
               order: 10,
               comingSoon: true,
+              comingSoonMode: 'plugin',
               roadmapUrl: roadmap,
               serviceRef: 'compute.datumapis.com',
             },

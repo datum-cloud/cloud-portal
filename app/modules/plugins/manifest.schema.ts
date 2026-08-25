@@ -45,21 +45,37 @@ const navProjectExtensionSchema = z.object({
       section: z.enum(['deliver', 'build', 'connect', 'observe', 'settings']).optional(),
       order: z.number().optional(),
       comingSoon: z.boolean().optional(),
+      comingSoonMode: z.enum(['holding', 'plugin', 'external']).optional(),
+      description: z.string().optional(),
       roadmapUrl: z.string().url().optional(),
       serviceRef: z.string().min(1).optional(),
     })
     .superRefine((props, ctx) => {
-      if (!props.path.trim()) {
+      if (props.comingSoonMode !== undefined && props.comingSoon !== true) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'path is required',
+          message: 'comingSoonMode requires comingSoon: true',
+          path: ['comingSoonMode'],
+        });
+      }
+
+      const mode = props.comingSoonMode ?? 'holding';
+      const needsLivePath = !props.comingSoon || mode === 'plugin';
+      if (needsLivePath && !props.path.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            mode === 'plugin'
+              ? 'path is required when comingSoonMode is plugin'
+              : 'path is required',
           path: ['path'],
         });
       }
-      if (props.comingSoon && !props.roadmapUrl) {
+
+      if (props.comingSoon && mode === 'external' && !props.roadmapUrl) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'roadmapUrl is required when comingSoon is true',
+          message: 'roadmapUrl is required when comingSoonMode is external',
           path: ['roadmapUrl'],
         });
       }

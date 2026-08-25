@@ -135,9 +135,9 @@ export interface NavProjectProperties {
   /** A lucide icon name, resolved by the host. Never plugin code. */
   icon: string;
   /**
-   * Path relative to the plugin's mount point. Always required (including when
-   * `comingSoon` is true) — Coming Soon is entitlement-gated: entitled projects
-   * use this path as a live link; others see the roadmap placeholder.
+   * Path relative to the plugin's mount point. Required for live nav and when
+   * {@link comingSoonMode} is `plugin`. Optional while `comingSoon` uses the
+   * host holding page or an external bounce.
    */
   path: string;
   /**
@@ -149,16 +149,29 @@ export interface NavProjectProperties {
   /** Order within the section (or within the plugin's own group). */
   order?: number;
   /**
-   * Soft-launch / beta marker for plugins only. When true (and `roadmapUrl` is
-   * set), the host shows a Coming Soon roadmap link until the project has an
-   * Active ServiceEntitlement for {@link serviceRef} (defaults to the plugin
-   * slug). Once entitled, the host uses {@link path} as a normal live link and
-   * drops the badge — no portal PR required to go live for that project.
+   * Soft-launch / beta marker for plugins only. When true, the host shows a
+   * Coming Soon badge until the project has an Active ServiceEntitlement for
+   * {@link serviceRef} (defaults to the plugin slug). Destination while Coming
+   * Soon is controlled by {@link comingSoonMode}. Once entitled, the host uses
+   * {@link path} as a normal live link and drops the badge.
    */
   comingSoon?: boolean;
   /**
-   * External roadmap / enhancement URL used while `comingSoon` is true and the
-   * project is not entitled. Required whenever `comingSoon` is true.
+   * Where Coming Soon clicks go (only when {@link comingSoon} is true):
+   * - `holding` (default) — host `/coming-soon/:id` page; {@link roadmapUrl} is a CTA
+   * - `plugin` — navigate to {@link path} (plugin landing / request-access UI)
+   * - `external` — open {@link roadmapUrl} in a new tab
+   */
+  comingSoonMode?: 'holding' | 'plugin' | 'external';
+  /**
+   * Short body copy for the host holding page when {@link comingSoonMode} is
+   * `holding` (or default).
+   */
+  description?: string;
+  /**
+   * External website / enhancement URL. Used as the holding-page “Learn more”
+   * CTA, or as the bounce target when {@link comingSoonMode} is `external`
+   * (required in that mode).
    */
   roadmapUrl?: string;
   /**

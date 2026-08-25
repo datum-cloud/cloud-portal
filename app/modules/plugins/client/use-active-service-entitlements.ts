@@ -2,8 +2,9 @@
  * List Active ServiceEntitlements for a project — CLIENT-SAFE.
  *
  * Used by the project sidebar to decide whether a plugin's `comingSoon` nav
- * item should render as a live mount link (entitled) or as a roadmap Coming
- * Soon placeholder (not entitled). Host planned-services are unaffected.
+ * item should render as a live mount link (entitled) or soft-launch Coming
+ * Soon (holding page / plugin landing / external). Host planned-services are
+ * unaffected.
  *
  * Matching keys are the service's canonical reverse-DNS id
  * (`status.serviceName`, e.g. `compute.datumapis.com`) plus

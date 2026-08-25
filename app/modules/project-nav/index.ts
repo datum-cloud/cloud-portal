@@ -3,6 +3,11 @@ export {
   type BuildProjectNavOptions,
   type SectionNavItem,
 } from './build-project-nav';
+export {
+  comingSoonHref,
+  resolveComingSoonService,
+  type ComingSoonServiceInfo,
+} from './coming-soon';
 export { mergePluginNavIntoTree, type MergePluginNavOptions } from './merge-plugin-nav';
 export {
   PLANNED_SERVICES,

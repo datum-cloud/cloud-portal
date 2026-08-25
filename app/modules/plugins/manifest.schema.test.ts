@@ -144,7 +144,7 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(true);
   });
 
-  test('rejects comingSoon nav without roadmapUrl', () => {
+  test('accepts comingSoon holding nav without roadmapUrl', () => {
     const result = validateManifest(
       baseManifest({
         extensions: [
@@ -161,10 +161,10 @@ describe('validateManifest', () => {
         ],
       })
     );
-    expect(result.valid).toBe(false);
+    expect(result.valid).toBe(true);
   });
 
-  test('rejects comingSoon nav with empty path', () => {
+  test('accepts comingSoon holding nav with empty path', () => {
     const result = validateManifest(
       baseManifest({
         extensions: [
@@ -176,7 +176,90 @@ describe('validateManifest', () => {
               icon: 'server',
               path: '',
               comingSoon: true,
-              roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/1',
+              description: 'Workloads and instances.',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('accepts comingSoonMode plugin with a path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoon: true,
+              comingSoonMode: 'plugin',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects comingSoonMode plugin with empty path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: '',
+              comingSoon: true,
+              comingSoonMode: 'plugin',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects comingSoonMode external without roadmapUrl', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoon: true,
+              comingSoonMode: 'external',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects comingSoonMode without comingSoon', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoonMode: 'plugin',
             },
           },
         ],

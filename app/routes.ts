@@ -127,6 +127,9 @@ export default [
         // Project activity (Observe) — outside settings SubLayout
         route('activity', 'routes/project/detail/activity.tsx'),
 
+        // Coming Soon holding page for planned / soft-launch services
+        route('coming-soon/:serviceId', 'routes/project/detail/coming-soon.tsx'),
+
         // Application Load Balancer
         route('alb', 'routes/project/detail/edge/layout.tsx', [
           index('routes/project/detail/edge/index.tsx'),
