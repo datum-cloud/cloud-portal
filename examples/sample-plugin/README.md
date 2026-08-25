@@ -12,8 +12,10 @@ fixture for the portal repo.
 - `portal.nav/project` — three sidebar items: **Platform data** (icon `globe`,
   `section: "observe"`, RBAC-gated) nests under Observe; **Sample Plugin**
   (icon `puzzle`, no `section`) appears in its own group; **Volumes**
-  (`comingSoon` + `roadmapUrl`, `section: "build"`) shows a Coming Soon badge
-  and opens the roadmap externally until the plugin flips it to a live `path`.
+  (`comingSoon` + `roadmapUrl` + `path: "volumes"`, `section: "build"`) shows
+  a Coming Soon badge and opens the roadmap until the project has an Active
+  ServiceEntitlement for the service (defaults to the plugin slug); entitled
+  projects get the live path with no badge.
 - `portal.page/project`:
   - `platform` — read-only **DNS zones** for the current project, read from the
     **Milo control plane** through `/api/proxy`. Carries

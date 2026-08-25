@@ -15,6 +15,7 @@ function plugin(partial: {
     order?: number;
     comingSoon?: boolean;
     roadmapUrl?: string;
+    serviceRef?: string;
   }>;
 }): PublicPlugin {
   return {
@@ -39,6 +40,7 @@ function plugin(partial: {
           order: nav.order,
           comingSoon: nav.comingSoon,
           roadmapUrl: nav.roadmapUrl,
+          serviceRef: nav.serviceRef,
         },
       })),
     },
@@ -65,7 +67,6 @@ describe('mergePluginNavIntoTree', () => {
     const observe = merged.find((item) => item.title === 'Observe');
     const titles = observe?.children?.map((c) => c.title) ?? [];
     expect(titles).toContain('Platform data');
-    // Built-in orders: Activity 10, Metrics Export 20 — plugin at 25 slots after.
     expect(titles.indexOf('Metrics Export')).toBeLessThan(titles.indexOf('Platform data'));
     expect(titles.at(-1)).toBe('Platform data');
     expect(merged.some((item) => item.title === 'Sample')).toBe(false);
@@ -95,7 +96,6 @@ describe('mergePluginNavIntoTree', () => {
     const tree = buildProjectNavTree('proj-1');
     const build = tree.find((item) => item.sectionId === 'build');
     expect(build?.type).toBe('collapsible');
-    // Compute is plugin-owned; host Build placeholders start at Object Storage.
     const objectStorage = build?.children?.find((c) => c.title === 'Object Storage');
     expect(objectStorage?.type).toBe('externalLink');
     expect(objectStorage?.badge?.label).toBe('Coming Soon');
@@ -114,24 +114,25 @@ describe('mergePluginNavIntoTree', () => {
     }
   });
 
-  test('plugin comingSoon items nest as external Coming Soon links', () => {
+  test('plugin comingSoon items nest as external Coming Soon links when not entitled', () => {
     const tree = buildProjectNavTree('proj-1');
     const roadmap = 'https://github.com/datum-cloud/enhancements/issues/1234';
     const merged = mergePluginNavIntoTree(
       tree,
       [
         plugin({
-          slug: 'compute',
+          slug: 'workloads',
           displayName: 'Compute',
           nav: [
             {
-              id: 'instances',
-              title: 'Instances',
-              path: '',
+              id: 'compute',
+              title: 'Compute',
+              path: 'workloads',
               section: 'build',
-              order: 25,
+              order: 10,
               comingSoon: true,
               roadmapUrl: roadmap,
+              serviceRef: 'compute.datumapis.com',
             },
           ],
         }),
@@ -140,15 +141,45 @@ describe('mergePluginNavIntoTree', () => {
     );
 
     const build = merged.find((item) => item.title === 'Build');
-    const instances = build?.children?.find((c) => c.title === 'Instances');
-    expect(instances?.type).toBe('externalLink');
-    expect(instances?.badge?.label).toBe('Coming Soon');
-    expect(instances?.href).toBe(roadmap);
-    expect(instances?.muted).toBe(true);
-    // Between Object Storage (20) and Edge Apps (30) via order 25 — Compute is
-    // plugin-owned, so host Build placeholders no longer include it.
-    const titles = build?.children?.map((c) => c.title) ?? [];
-    expect(titles.indexOf('Object Storage')).toBeLessThan(titles.indexOf('Instances'));
-    expect(titles.indexOf('Instances')).toBeLessThan(titles.indexOf('Edge Apps'));
+    const compute = build?.children?.find((c) => c.title === 'Compute');
+    expect(compute?.type).toBe('externalLink');
+    expect(compute?.badge?.label).toBe('Coming Soon');
+    expect(compute?.href).toBe(roadmap);
+    expect(compute?.muted).toBe(true);
+  });
+
+  test('plugin comingSoon items go live when the service entitlement is Active', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const roadmap = 'https://github.com/datum-cloud/enhancements/issues/1234';
+    const merged = mergePluginNavIntoTree(
+      tree,
+      [
+        plugin({
+          slug: 'workloads',
+          displayName: 'Compute',
+          nav: [
+            {
+              id: 'compute',
+              title: 'Compute',
+              path: 'workloads',
+              section: 'build',
+              order: 10,
+              comingSoon: true,
+              roadmapUrl: roadmap,
+              serviceRef: 'compute.datumapis.com',
+            },
+          ],
+        }),
+      ],
+      'proj-1',
+      { activeServiceEntitlements: ['compute.datumapis.com'] }
+    );
+
+    const build = merged.find((item) => item.title === 'Build');
+    const compute = build?.children?.find((c) => c.title === 'Compute');
+    expect(compute?.type).toBe('link');
+    expect(compute?.badge).toBeUndefined();
+    expect(compute?.href).toContain('/project/proj-1/services/workloads/workloads');
+    expect(compute?.muted).toBeUndefined();
   });
 });

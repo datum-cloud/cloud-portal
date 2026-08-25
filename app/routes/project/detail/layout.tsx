@@ -7,6 +7,7 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { useActiveServiceEntitlements } from '@/modules/plugins/client/use-active-service-entitlements';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
 import { buildProjectNavTree, mergePluginNavIntoTree } from '@/modules/project-nav';
 import { QuotaWatchBridge } from '@/modules/quota';
@@ -241,6 +242,9 @@ function ProjectDetailLayoutContent({
   );
 
   const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name });
+  const { data: activeServiceEntitlements } = useActiveServiceEntitlements(project?.name, {
+    enabled: !!project?.name,
+  });
 
   const navItems: NavItem[] = useMemo(() => {
     if (!project?.name) return [];
@@ -248,8 +252,10 @@ function ProjectDetailLayoutContent({
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
     const builtInTree = buildProjectNavTree(project.name, { isReady, queryClient });
-    return mergePluginNavIntoTree(builtInTree, plugins ?? [], project.name);
-  }, [project, queryClient, plugins]);
+    return mergePluginNavIntoTree(builtInTree, plugins ?? [], project.name, {
+      activeServiceEntitlements,
+    });
+  }, [project, queryClient, plugins, activeServiceEntitlements]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;

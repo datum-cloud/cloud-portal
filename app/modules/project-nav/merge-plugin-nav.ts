@@ -3,7 +3,9 @@
  *
  * - Known `section` → insert as a child of that host category (sorted by `order`)
  * - Missing / unknown `section` → collapsible group titled with plugin displayName
- * - `comingSoon: true` → external roadmap link with Coming Soon badge (path ignored)
+ * - `comingSoon: true` → Coming Soon roadmap link until the project has an Active
+ *   ServiceEntitlement for `serviceRef` (defaults to plugin slug); once entitled,
+ *   render the live plugin mount `path` with no badge
  * - Nested items are text-only (no icons); category / plugin-group parents keep icons
  */
 import type { SectionNavItem } from './build-project-nav';
@@ -25,6 +27,16 @@ type PluginNavContribution = {
   section?: ProjectNavSection;
 };
 
+export type MergePluginNavOptions = {
+  /**
+   * Active ServiceEntitlement service ids for the current project (canonical
+   * `status.serviceName` values, e.g. `compute.datumapis.com`). Plugin nav items
+   * with `comingSoon` render live when their `serviceRef` (or plugin slug) is
+   * in this set.
+   */
+  activeServiceEntitlements?: ReadonlySet<string> | readonly string[];
+};
+
 function pluginHref(projectId: string, slug: string, navPath: string): string {
   const root = getPathWithParams(paths.project.detail.services.plugin, {
     projectId,
@@ -34,9 +46,17 @@ function pluginHref(projectId: string, slug: string, navPath: string): string {
   return rel ? `${root}/${rel}` : root;
 }
 
+function toEntitlementSet(
+  active: MergePluginNavOptions['activeServiceEntitlements']
+): ReadonlySet<string> {
+  if (!active) return new Set();
+  return active instanceof Set ? active : new Set(active);
+}
+
 function contributionsForPlugins(
   plugins: PublicPlugin[],
-  projectId: string
+  projectId: string,
+  activeServices: ReadonlySet<string>
 ): PluginNavContribution[] {
   const out: PluginNavContribution[] = [];
 
@@ -44,13 +64,17 @@ function contributionsForPlugins(
     for (const nav of getNavExtensions(plugin.manifest)) {
       const sectionRaw = nav.properties.section;
       const section = isProjectNavSection(sectionRaw) ? sectionRaw : undefined;
-      const comingSoon = nav.properties.comingSoon === true && !!nav.properties.roadmapUrl;
+      const serviceRef = nav.properties.serviceRef?.trim() || plugin.slug;
+      const entitled = activeServices.has(serviceRef);
+      // Soft-launch: Coming Soon until entitled; live path once Active.
+      const showComingSoon =
+        nav.properties.comingSoon === true && !!nav.properties.roadmapUrl && !entitled;
 
       out.push({
         plugin,
         section,
         // Nested under a category or plugin group — text-only (no child icons).
-        item: comingSoon
+        item: showComingSoon
           ? {
               title: nav.properties.title,
               href: nav.properties.roadmapUrl!,
@@ -142,14 +166,20 @@ function stripHostMeta(item: SectionNavItem): NavItem {
 export function mergePluginNavIntoTree(
   builtInTree: SectionNavItem[],
   plugins: PublicPlugin[],
-  projectId: string
+  projectId: string,
+  options: MergePluginNavOptions = {}
 ): NavItem[] {
   const tree: SectionNavItem[] = builtInTree.map((item) => ({
     ...item,
     children: item.children ? [...item.children] : undefined,
   }));
+  const activeServices = toEntitlementSet(options.activeServiceEntitlements);
 
-  for (const { plugin, section, item } of contributionsForPlugins(plugins, projectId)) {
+  for (const { plugin, section, item } of contributionsForPlugins(
+    plugins,
+    projectId,
+    activeServices
+  )) {
     if (section) {
       const parent = findSection(tree, section);
       if (parent) {

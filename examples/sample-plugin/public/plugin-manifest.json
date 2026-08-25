@@ -45,7 +45,7 @@
         "id": "sample-volumes",
         "title": "Volumes",
         "icon": "hard-drive",
-        "path": "",
+        "path": "volumes",
         "section": "build",
         "order": 35,
         "comingSoon": true,

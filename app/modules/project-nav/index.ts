@@ -3,7 +3,7 @@ export {
   type BuildProjectNavOptions,
   type SectionNavItem,
 } from './build-project-nav';
-export { mergePluginNavIntoTree } from './merge-plugin-nav';
+export { mergePluginNavIntoTree, type MergePluginNavOptions } from './merge-plugin-nav';
 export {
   PLANNED_SERVICES,
   plannedServicesForSection,

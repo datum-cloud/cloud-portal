@@ -135,8 +135,9 @@ export interface NavProjectProperties {
   /** A lucide icon name, resolved by the host. Never plugin code. */
   icon: string;
   /**
-   * Path relative to the plugin's mount point. Required for live links;
-   * ignored (and may be empty) while `comingSoon` is true.
+   * Path relative to the plugin's mount point. Always required (including when
+   * `comingSoon` is true) — Coming Soon is entitlement-gated: entitled projects
+   * use this path as a live link; others see the roadmap placeholder.
    */
   path: string;
   /**
@@ -148,17 +149,26 @@ export interface NavProjectProperties {
   /** Order within the section (or within the plugin's own group). */
   order?: number;
   /**
-   * When true, render a Coming Soon placeholder (external link + badge) instead
-   * of a live plugin route. Lets a service ship sidebar presence from its own
-   * manifest before the UI is ready — flip to false / remove and set `path` to
-   * go live without a portal change.
+   * Soft-launch / beta marker for plugins only. When true (and `roadmapUrl` is
+   * set), the host shows a Coming Soon roadmap link until the project has an
+   * Active ServiceEntitlement for {@link serviceRef} (defaults to the plugin
+   * slug). Once entitled, the host uses {@link path} as a normal live link and
+   * drops the badge — no portal PR required to go live for that project.
    */
   comingSoon?: boolean;
   /**
-   * External roadmap / enhancement URL used when `comingSoon` is true.
-   * Required whenever `comingSoon` is true.
+   * External roadmap / enhancement URL used while `comingSoon` is true and the
+   * project is not entitled. Required whenever `comingSoon` is true.
    */
   roadmapUrl?: string;
+  /**
+   * Canonical service id (`Service.spec.serviceName`, e.g.
+   * `compute.datumapis.com`) whose Active ServiceEntitlement unlocks the live
+   * path. Matched against entitlement `status.serviceName` (and
+   * `spec.serviceRef.name` as a fallback). Defaults to the plugin slug when
+   * omitted.
+   */
+  serviceRef?: string;
 }
 
 export interface NavProjectExtension {

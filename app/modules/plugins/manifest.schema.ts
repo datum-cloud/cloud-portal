@@ -46,23 +46,21 @@ const navProjectExtensionSchema = z.object({
       order: z.number().optional(),
       comingSoon: z.boolean().optional(),
       roadmapUrl: z.string().url().optional(),
+      serviceRef: z.string().min(1).optional(),
     })
     .superRefine((props, ctx) => {
-      if (props.comingSoon) {
-        if (!props.roadmapUrl) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: 'roadmapUrl is required when comingSoon is true',
-            path: ['roadmapUrl'],
-          });
-        }
-        return;
-      }
       if (!props.path.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'path is required when comingSoon is not true',
+          message: 'path is required',
           path: ['path'],
+        });
+      }
+      if (props.comingSoon && !props.roadmapUrl) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'roadmapUrl is required when comingSoon is true',
+          path: ['roadmapUrl'],
         });
       }
     }),

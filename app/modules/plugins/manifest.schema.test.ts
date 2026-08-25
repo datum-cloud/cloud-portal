@@ -121,20 +121,21 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
-  test('accepts comingSoon nav with a roadmapUrl', () => {
+  test('accepts comingSoon nav with a roadmapUrl and live path', () => {
     const result = validateManifest(
       baseManifest({
         extensions: [
           {
             type: 'portal.nav/project',
             properties: {
-              id: 'compute-instances',
-              title: 'Instances',
-              icon: 'cpu',
-              path: '',
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
               section: 'build',
               comingSoon: true,
               roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/1',
+              serviceRef: 'compute.datumapis.com',
             },
           },
         ],
@@ -150,11 +151,32 @@ describe('validateManifest', () => {
           {
             type: 'portal.nav/project',
             properties: {
-              id: 'compute-instances',
-              title: 'Instances',
-              icon: 'cpu',
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoon: true,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects comingSoon nav with empty path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
               path: '',
               comingSoon: true,
+              roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/1',
             },
           },
         ],

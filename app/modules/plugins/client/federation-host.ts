@@ -19,6 +19,7 @@ import * as DatumUiButton from '@datum-cloud/datum-ui/button';
 import * as DatumUiCard from '@datum-cloud/datum-ui/card';
 import * as DatumUiEmptyContent from '@datum-cloud/datum-ui/empty-content';
 import * as DatumUiIcons from '@datum-cloud/datum-ui/icons';
+import * as DatumUiLogs from '@datum-cloud/datum-ui/logs';
 import * as DatumUiSeparator from '@datum-cloud/datum-ui/separator';
 import * as DatumUiSkeleton from '@datum-cloud/datum-ui/skeleton';
 import * as DatumUiTable from '@datum-cloud/datum-ui/table';
@@ -52,6 +53,7 @@ const DATUM_UI_SHARED: Record<string, unknown> = {
   '@datum-cloud/datum-ui/card': DatumUiCard,
   '@datum-cloud/datum-ui/empty-content': DatumUiEmptyContent,
   '@datum-cloud/datum-ui/icons': DatumUiIcons,
+  '@datum-cloud/datum-ui/logs': DatumUiLogs,
   '@datum-cloud/datum-ui/separator': DatumUiSeparator,
   '@datum-cloud/datum-ui/skeleton': DatumUiSkeleton,
   '@datum-cloud/datum-ui/table': DatumUiTable,

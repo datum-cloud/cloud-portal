@@ -234,14 +234,14 @@ Contract rules:
 - **`icon` is a name, never code** — a lucide icon name resolved by the host. Navigation must render without executing plugin code, so a broken plugin can never take down the sidebar.
 - **`path` is relative to the plugin's mount point.** Plugins cannot address URL space outside `/project/:projectId/services/<slug>/`.
 - **`section` (optional)** places the item under a host category: `deliver` | `build` | `connect` | `observe` | `settings`. When omitted or unknown, the host creates a group titled with the plugin's `displayName`. `order` sorts within that section or group (not across the whole sidebar).
-- **`comingSoon` + `roadmapUrl`** — when `comingSoon` is true, the host renders a Coming Soon badge and opens `roadmapUrl` externally instead of the plugin mount. `path` may be empty in that case and is ignored until you drop the placeholder and ship the live route. `roadmapUrl` is required whenever `comingSoon` is true; a non-empty `path` is required whenever it is not. This lets a service register a `PortalPlugin` early and own its own sidebar placeholder without a portal nav PR; go live by updating the plugin manifest only.
+- **`comingSoon` + `roadmapUrl`** — when `comingSoon` is true, the host shows a Coming Soon badge and opens `roadmapUrl` until the project has an Active `ServiceEntitlement` whose `status.serviceName` matches `serviceRef` (canonical reverse-DNS, e.g. `compute.datumapis.com`; defaults to the plugin slug). Once entitled, the host uses `path` (always required) and drops the badge — no portal nav PR. Host-owned planned items (no plugin) stay Coming Soon until they ship a plugin.
 - **`requirements.permissions`** are `SelfSubjectAccessReview` checks against the current project's scoped control plane — the same fail-closed gate the portal's built-in pages use. All listed permissions must pass for the extension to appear.
 
 ### Extension points
 
 | Type                                | Status | Renders                                                          | Key properties                                              |
 | ----------------------------------- | ------ | ---------------------------------------------------------------- | ----------------------------------------------------------- |
-| `portal.nav/project`                | **v1** | Item in the project sidebar under a host category or a per-plugin group | `id`, `title`, `icon` (lucide name), `path`, `section?`, `order?`, `comingSoon?`, `roadmapUrl?` |
+| `portal.nav/project`                | **v1** | Item in the project sidebar under a host category or a per-plugin group | `id`, `title`, `icon` (lucide name), `path`, `section?`, `order?`, `comingSoon?`, `roadmapUrl?`, `serviceRef?` |
 | `portal.page/project`               | **v1** | Routed page under `/project/:projectId/services/<slug>/<path>`   | `path` (supports params and nesting), `component: $codeRef` |
 | `portal.card/project-home`          | **v1** | Card on the project home page                                    | `title`, `component: $codeRef`, `order`                     |
 | `portal.nav/org`, `portal.page/org` | v1.x   | Org-scoped nav and pages                                         | same shapes, org-scoped RBAC                                |
