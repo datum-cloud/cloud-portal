@@ -106,17 +106,13 @@ describe('mergePluginNavIntoTree', () => {
     expect(objectStorage?.href).toBe('/project/proj-1/coming-soon/object-storage');
     expect(objectStorage?.icon).toBeUndefined();
     expect(build?.children?.some((c) => c.title === 'Compute')).toBe(false);
-  });
 
-  test('planned items without a roadmapUrl are non-interactive', () => {
-    const tree = buildProjectNavTree('proj-1');
     const deliver = tree.find((item) => item.sectionId === 'deliver');
     const gslb = deliver?.children?.find((c) => c.title === 'GSLB');
     expect(gslb?.type).toBe('link');
     expect(gslb?.badge?.label).toBe('Coming Soon');
-    expect(gslb?.href).toBeNull();
-    expect(gslb?.disabled).toBe(true);
-    expect(gslb?.muted).toBe(true);
+    expect(gslb?.href).toBe('/project/proj-1/coming-soon/gslb');
+    expect(gslb?.disabled).not.toBe(true);
   });
 
   test('built-in category children omit icons', () => {

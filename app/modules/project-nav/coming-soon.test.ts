@@ -16,7 +16,19 @@ describe('resolveComingSoonService', () => {
     const service = resolveComingSoonService('object-storage');
     expect(service?.title).toBe('Object Storage');
     expect(service?.description).toContain('object storage');
-    expect(service?.roadmapUrl).toMatch(/^https:\/\//);
+    expect(service?.roadmapUrl).toBe('https://www.datum.net/platform/build#object-storage');
+  });
+
+  test('resolves deliver / connect platform anchors', () => {
+    expect(resolveComingSoonService('gslb')?.roadmapUrl).toBe(
+      'https://www.datum.net/platform/deliver#global-load-balancer'
+    );
+    expect(resolveComingSoonService('galactic-vpc')?.roadmapUrl).toBe(
+      'https://www.datum.net/platform/connect#galactic-vpc'
+    );
+    expect(resolveComingSoonService('interconnects')?.roadmapUrl).toBe(
+      'https://www.datum.net/platform/connect#interconnect'
+    );
   });
 
   test('resolves plugin nav entries by id', () => {

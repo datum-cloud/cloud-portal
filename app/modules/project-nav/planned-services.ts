@@ -10,6 +10,9 @@ import type { ProjectNavSection } from './types';
  * (`comingSoon` + optional `comingSoonMode` / `roadmapUrl`) once a PortalPlugin
  * is registered — that way going live is a plugin-manifest change only. Keep
  * entries here for services that do not yet have a PortalPlugin at all.
+ *
+ * Marketing deep-links use the `feature-section` anchors on
+ * https://www.datum.net/platform/{deliver,build,connect}.
  */
 export type PlannedService = {
   id: string;
@@ -28,6 +31,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'GSLB',
     section: 'deliver',
     description: 'Global server load balancing across regions and providers.',
+    roadmapUrl: 'https://www.datum.net/platform/deliver#global-load-balancer',
     order: 40,
   },
   {
@@ -35,7 +39,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Object Storage',
     section: 'build',
     description: 'Durable object storage for application data and assets.',
-    roadmapUrl: '',
+    roadmapUrl: 'https://www.datum.net/platform/build#object-storage',
     order: 20,
   },
   {
@@ -43,7 +47,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Edge Apps',
     section: 'build',
     description: 'Deploy applications at the edge, close to your users.',
-    roadmapUrl: '',
+    roadmapUrl: 'https://www.datum.net/platform/build#edge-apps',
     order: 30,
   },
   {
@@ -51,7 +55,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Galactic VPC',
     section: 'connect',
     description: 'Private networking across projects and regions.',
-    roadmapUrl: '',
+    roadmapUrl: 'https://www.datum.net/platform/connect#galactic-vpc',
     order: 10,
   },
   {
@@ -59,7 +63,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     title: 'Interconnects',
     section: 'connect',
     description: 'Dedicated connectivity between Datum and your networks.',
-    roadmapUrl: '',
+    roadmapUrl: 'https://www.datum.net/platform/connect#interconnect',
     order: 30,
   },
 ];
