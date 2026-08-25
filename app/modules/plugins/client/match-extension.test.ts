@@ -136,6 +136,31 @@ describe('matchPluginPage', () => {
     expect(match?.page.properties.path).toBe('instances/:instanceName/logs');
     expect(match?.params.instanceName).toBe('web-1');
   });
+
+  it('matches a splat layout for both index and nested segments', () => {
+    const layoutPages = pages('workloads/:workloadName/instances/:instanceName/*');
+    const overview = matchPluginPage(
+      layoutPages,
+      'workloads/wl-1/instances/web-1'
+    );
+    expect(overview?.page.properties.path).toBe(
+      'workloads/:workloadName/instances/:instanceName/*'
+    );
+    expect(overview?.params).toMatchObject({
+      workloadName: 'wl-1',
+      instanceName: 'web-1',
+    });
+
+    const logs = matchPluginPage(layoutPages, 'workloads/wl-1/instances/web-1/logs');
+    expect(logs?.page.properties.path).toBe(
+      'workloads/:workloadName/instances/:instanceName/*'
+    );
+    expect(logs?.params).toMatchObject({
+      workloadName: 'wl-1',
+      instanceName: 'web-1',
+      '*': 'logs',
+    });
+  });
 });
 
 describe('normalizePagePath', () => {
