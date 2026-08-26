@@ -121,6 +121,172 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
+  test('accepts comingSoon nav with a roadmapUrl and live path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              section: 'build',
+              comingSoon: true,
+              roadmapUrl: 'https://github.com/datum-cloud/enhancements/issues/1',
+              serviceRef: 'compute.datumapis.com',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('accepts comingSoon holding nav without roadmapUrl', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoon: true,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('accepts comingSoon holding nav with empty path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: '',
+              comingSoon: true,
+              description: 'Workloads and instances.',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('accepts comingSoonMode plugin with a path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoon: true,
+              comingSoonMode: 'plugin',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects comingSoonMode plugin with empty path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: '',
+              comingSoon: true,
+              comingSoonMode: 'plugin',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects comingSoonMode external without roadmapUrl', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoon: true,
+              comingSoonMode: 'external',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects comingSoonMode without comingSoon', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: 'workloads',
+              comingSoonMode: 'plugin',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects live nav with an empty path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute-instances',
+              title: 'Instances',
+              icon: 'cpu',
+              path: '   ',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a non-object input', () => {
     expect(validateManifest(null).valid).toBe(false);
     expect(validateManifest('nope').valid).toBe(false);

@@ -134,9 +134,54 @@ export interface NavProjectProperties {
   title: string;
   /** A lucide icon name, resolved by the host. Never plugin code. */
   icon: string;
-  /** Path relative to the plugin's mount point. */
+  /**
+   * Path relative to the plugin's mount point. Required for live nav and when
+   * {@link comingSoonMode} is `plugin`. Optional while `comingSoon` uses the
+   * host holding page or an external bounce.
+   */
   path: string;
+  /**
+   * Optional host category to nest under (`deliver` | `build` | `connect` |
+   * `observe` | `settings`). When omitted or unknown, the host places the item
+   * under a group named after the plugin's displayName.
+   */
+  section?: 'deliver' | 'build' | 'connect' | 'observe' | 'settings';
+  /** Order within the section (or within the plugin's own group). */
   order?: number;
+  /**
+   * Soft-launch / beta marker for plugins only. When true, the host shows a
+   * Coming Soon badge until the project has an Active ServiceEntitlement for
+   * {@link serviceRef} (defaults to the plugin slug). Destination while Coming
+   * Soon is controlled by {@link comingSoonMode}. Once entitled, the host uses
+   * {@link path} as a normal live link and drops the badge.
+   */
+  comingSoon?: boolean;
+  /**
+   * Where Coming Soon clicks go (only when {@link comingSoon} is true):
+   * - `holding` (default) — host `/coming-soon/:id` page; {@link roadmapUrl} is a CTA
+   * - `plugin` — navigate to {@link path} (plugin landing / request-access UI)
+   * - `external` — open {@link roadmapUrl} in a new tab
+   */
+  comingSoonMode?: 'holding' | 'plugin' | 'external';
+  /**
+   * Short body copy for the host holding page when {@link comingSoonMode} is
+   * `holding` (or default).
+   */
+  description?: string;
+  /**
+   * External website / enhancement URL. Used as the holding-page “Learn more”
+   * CTA, or as the bounce target when {@link comingSoonMode} is `external`
+   * (required in that mode).
+   */
+  roadmapUrl?: string;
+  /**
+   * Canonical service id (`Service.spec.serviceName`, e.g.
+   * `compute.datumapis.com`) whose Active ServiceEntitlement unlocks the live
+   * path. Matched against entitlement `status.serviceName` (and
+   * `spec.serviceRef.name` as a fallback). Defaults to the plugin slug when
+   * omitted.
+   */
+  serviceRef?: string;
 }
 
 export interface NavProjectExtension {

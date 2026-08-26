@@ -156,6 +156,8 @@ export const paths = {
         },
       },
       activity: '/project/[projectId]/activity',
+      // Host Coming Soon holding page for planned / soft-launch services.
+      comingSoon: '/project/[projectId]/coming-soon/[serviceId]',
       quotas: '/project/[projectId]/quotas',
       settings: {
         general: '/project/[projectId]/general',

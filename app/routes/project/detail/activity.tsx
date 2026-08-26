@@ -1,5 +1,6 @@
 import { ResourceActivityFeed, useProjectActivityClient } from '@/features/activity';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import type { MetaFunction } from 'react-router';
 
 export const handle = {
@@ -12,10 +13,13 @@ export default function ProjectActivityLogsPage() {
   const { client, resourceLinkResolver } = useProjectActivityClient();
 
   return (
-    <ResourceActivityFeed
-      client={client}
-      resourceLinkResolver={resourceLinkResolver}
-      compact={false}
-    />
+    <div className="flex flex-col gap-6">
+      <PageTitle title="Activity" titleClassName="text-3xl" />
+      <ResourceActivityFeed
+        client={client}
+        resourceLinkResolver={resourceLinkResolver}
+        changeSource="human"
+      />
+    </div>
   );
 }

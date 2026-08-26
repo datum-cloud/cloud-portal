@@ -20,7 +20,8 @@
         "title": "Platform data",
         "icon": "globe",
         "path": "platform",
-        "order": 30
+        "section": "observe",
+        "order": 25
       },
       "requirements": {
         "permissions": [
@@ -36,6 +37,20 @@
         "icon": "puzzle",
         "path": "home",
         "order": 50
+      }
+    },
+    {
+      "type": "portal.nav/project",
+      "properties": {
+        "id": "sample-volumes",
+        "title": "Volumes",
+        "icon": "hard-drive",
+        "path": "volumes",
+        "section": "build",
+        "order": 35,
+        "comingSoon": true,
+        "description": "Block storage volumes for compute workloads.",
+        "roadmapUrl": "https://github.com/datum-cloud/enhancements/issues/837"
       }
     },
     {

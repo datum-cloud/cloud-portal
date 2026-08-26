@@ -119,13 +119,14 @@ export function DashboardLayout({
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
       <SidebarProvider
         defaultOpen={defaultSidebarOpen ?? !isTablet}
-        expandOnHover={isTablet}
+        // Expand the icon rail on hover (desktop + tablet) so labels are readable without pinning open.
+        expandOnHover={sidebarCollapsible === 'icon'}
         expandBehavior={expandBehavior}
         showBackdrop={showBackdrop}
         className="flex min-h-0 flex-1 overflow-hidden"
         style={
           {
-            '--sidebar-width': '12.75rem',
+            '--sidebar-width': '16.5rem',
             '--sidebar-width-icon': '3rem',
             '--sidebar-width-mobile': '18.75rem',
           } as React.CSSProperties

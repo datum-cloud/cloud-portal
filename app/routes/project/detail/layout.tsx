@@ -7,8 +7,9 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { buildPluginNavItems } from '@/modules/plugins/client/plugin-nav';
+import { useActiveServiceEntitlements } from '@/modules/plugins/client/use-active-service-entitlements';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
+import { buildProjectNavTree, mergePluginNavIntoTree } from '@/modules/project-nav';
 import { QuotaWatchBridge } from '@/modules/quota';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
@@ -17,22 +18,8 @@ import { setSentryOrgContext, setSentryProjectContext } from '@/modules/sentry';
 import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
 import { ControlPlaneStatus } from '@/resources/base';
-import { connectorKeys, createConnectorService } from '@/resources/connectors';
-import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
-import { createDomainService, domainKeys } from '@/resources/domains';
-import { createExportPolicyService, exportPolicyKeys } from '@/resources/export-policies';
-import { createHttpProxyService, httpProxyKeys } from '@/resources/http-proxies';
 import { useOrganization } from '@/resources/organizations';
-import {
-  createProjectService,
-  isProjectDeleting,
-  isSelfDeleteNavigation,
-  useProject,
-  useProjectWatch,
-  type Project,
-} from '@/resources/projects';
-import { createSecretService, secretKeys } from '@/resources/secrets';
-import { createServiceAccountService, serviceAccountKeys } from '@/resources/service-accounts';
+import { createProjectService, useProject, type Project } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
@@ -45,17 +32,6 @@ import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  BotIcon,
-  CableIcon,
-  ChartSplineIcon,
-  FileLockIcon,
-  GaugeIcon,
-  HomeIcon,
-  LayersIcon,
-  SettingsIcon,
-  SignpostIcon,
-} from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import {
   type ActionFunctionArgs,
@@ -87,6 +63,7 @@ function ProjectBreadcrumbLabel({
     </span>
   );
 }
+
 /**
  * Companion data attached to the project-detail loader envelope. Both companions
  * are tolerant of permission/fetch failures — denial leaves the flags at safe
@@ -99,188 +76,6 @@ type ProjectLayoutCompanions = {
 
 const RESTRICTED_TITLE = 'Access restricted';
 const RESTRICTED_MESSAGE = "You don't have permission to view this project.";
-
-type BuildProjectNavOptions = {
-  /** When false, non-Home links are disabled (project control-plane not Ready). */
-  isReady?: boolean;
-  /**
-   * Optional React Query client for sidebar prefetch. Omitted on the
-   * restricted shell — those fetches would just 403.
-   */
-  queryClient?: ReturnType<typeof useQueryClient>;
-};
-
-/**
- * A built-in or plugin-contributed nav item plus its position in the single
- * global ordering both are merged and sorted by (see the `navItems` memo).
- * Spaced by 10 so plugin nav (declared via `portal.nav/project`'s `order`)
- * can be interleaved between any two built-ins without renumbering them.
- */
-type OrderedNavItem = NavItem & { order: number };
-
-function buildProjectNavItems(
-  projectId: string,
-  { isReady = true, queryClient }: BuildProjectNavOptions = {}
-): OrderedNavItem[] {
-  const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
-    projectId,
-  });
-  const settingsActivity = getPathWithParams(paths.project.detail.settings.activity, {
-    projectId,
-  });
-  const settingsNotifications = getPathWithParams(paths.project.detail.settings.notifications, {
-    projectId,
-  });
-  const settingsQuotas = getPathWithParams(paths.project.detail.settings.quotas, {
-    projectId,
-  });
-
-  return [
-    {
-      title: 'Home',
-      order: 0,
-      href: getPathWithParams(paths.project.detail.home, { projectId }),
-      type: 'link',
-      icon: HomeIcon,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: domainKeys.list(projectId),
-              queryFn: () => createDomainService().list(projectId),
-            });
-            void queryClient.prefetchQuery({
-              queryKey: exportPolicyKeys.list(projectId),
-              queryFn: () => createExportPolicyService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'ALB',
-      order: 10,
-      href: getPathWithParams(paths.project.detail.proxy.root, { projectId }),
-      icon: GaugeIcon,
-      disabled: !isReady,
-      type: 'link',
-      showSeparatorAbove: true,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: httpProxyKeys.list(projectId),
-              queryFn: () => createHttpProxyService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'Connectors',
-      order: 20,
-      href: getPathWithParams(paths.project.detail.connectors.root, { projectId }),
-      type: 'link',
-      icon: CableIcon,
-      disabled: !isReady,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: connectorKeys.list(projectId),
-              queryFn: () => createConnectorService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'DNS',
-      order: 30,
-      href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId }),
-      icon: SignpostIcon,
-      disabled: !isReady,
-      type: 'link',
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: dnsZoneKeys.list(projectId),
-              queryFn: () => createDnsZoneService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'Domains',
-      order: 40,
-      href: getPathWithParams(paths.project.detail.domains.root, { projectId }),
-      type: 'link',
-      icon: LayersIcon,
-      disabled: !isReady,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: domainKeys.list(projectId),
-              queryFn: () => createDomainService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'Metrics',
-      order: 50,
-      href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
-      type: 'link',
-      icon: ChartSplineIcon,
-      disabled: !isReady,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: exportPolicyKeys.list(projectId),
-              queryFn: () => createExportPolicyService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'Secrets',
-      order: 60,
-      href: getPathWithParams(paths.project.detail.secrets.root, { projectId }),
-      type: 'link',
-      icon: FileLockIcon,
-      disabled: !isReady,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: secretKeys.list(projectId),
-              queryFn: () => createSecretService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'Service Accounts',
-      order: 70,
-      href: getPathWithParams(paths.project.detail.serviceAccounts.root, { projectId }),
-      type: 'link',
-      icon: BotIcon,
-      disabled: !isReady,
-      onPrefetch: queryClient
-        ? () => {
-            void queryClient.prefetchQuery({
-              queryKey: serviceAccountKeys.list(projectId),
-              queryFn: () => createServiceAccountService().list(projectId),
-            });
-          }
-        : undefined,
-    },
-    {
-      title: 'Project Settings',
-      order: 100,
-      href: getPathWithParams(paths.project.detail.settings.general, { projectId }),
-      type: 'link',
-      disabled: !isReady,
-      icon: SettingsIcon,
-      showSeparatorAbove: true,
-      showSeparatorBelow: true,
-      tabChildLinks: [settingsGeneral, settingsActivity, settingsQuotas, settingsNotifications],
-    },
-  ];
-}
 
 const route = defineResourceRoute<Project, ProjectLayoutCompanions>({
   type: 'detail',
@@ -304,21 +99,6 @@ export const loader = withMiddleware(
       paramName: 'projectId',
       notFoundLabel: 'Project',
       fetch: ({ id }) => createProjectService().get(id),
-      redirectIfDeleting: ({ data }) =>
-        data.deletionTimestamp
-          ? {
-              to: data.organizationId
-                ? getPathWithParams(paths.org.detail.projects.root, {
-                    orgId: data.organizationId,
-                  })
-                : paths.account.organizations.root,
-              toast: {
-                title: 'Project is being deleted',
-                description: 'This project is currently being deleted and is no longer accessible',
-                type: 'message',
-              },
-            }
-          : null,
       companions: {
         billingEnabled: {
           resource: 'projects',
@@ -366,7 +146,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return new Response(null, { status: 204, headers });
 };
 
-/** Skip re-running the loader when navigating within the same project (e.g. Home → Application Load Balancer → Connectors). */
+/** Skip re-running the loader when navigating within the same project. */
 export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 /**
@@ -380,7 +160,7 @@ export default function ProjectDetailLayout() {
   const { organization: appOrg } = useApp();
 
   const restrictedNavItems = useMemo(
-    () => (projectId ? buildProjectNavItems(projectId) : []),
+    () => (projectId ? buildProjectNavTree(projectId) : []),
     [projectId]
   );
 
@@ -432,10 +212,6 @@ function ProjectDetailLayoutContent({
     initialData: fromOnboarding ? undefined : initialProject,
   });
 
-  // Fire in parallel with the project query: seed orgId from the loader's
-  // companion (project.organizationId) first, then fall back to AppProvider
-  // (set when the user was on an org route). This lets useOrganization start
-  // immediately without waiting for useProject to refine its query key.
   const orgId = project?.organizationId ?? seededOrgId ?? appOrg?.name ?? '';
   const { data: org, isLoading: orgLoading } = useOrganization(orgId, {
     enabled: !!orgId,
@@ -443,39 +219,6 @@ function ProjectDetailLayoutContent({
     refetchOnMount: false,
   });
 
-  useProjectWatch(orgId, projectId ?? '', { enabled: !!orgId && !!projectId });
-
-  const deletingRedirectRef = useRef(false);
-
-  // Redirect when the project enters deletion while the user is still inside it
-  // (another tab/user deleted it; loader redirect only runs on entry).
-  useEffect(() => {
-    if (
-      !project ||
-      !projectId ||
-      !isProjectDeleting(project) ||
-      deletingRedirectRef.current ||
-      isSelfDeleteNavigation(projectId)
-    ) {
-      return;
-    }
-
-    deletingRedirectRef.current = true;
-
-    toast.message('Project is being deleted', {
-      description: 'This project is currently being deleted and is no longer accessible',
-    });
-
-    const redirectPath = project.organizationId
-      ? getPathWithParams(paths.org.detail.projects.root, { orgId: project.organizationId })
-      : appOrg?.name
-        ? getPathWithParams(paths.org.detail.projects.root, { orgId: appOrg.name })
-        : paths.account.organizations.root;
-
-    navigate(redirectPath);
-  }, [project, projectId, appOrg?.name, navigate]);
-
-  // Redirect on error (invalid project, not found, etc.)
   useEffect(() => {
     if (projectError && projectId) {
       toast.error('Project unavailable', {
@@ -498,23 +241,21 @@ function ProjectDetailLayoutContent({
     [project, org, projectLoading, projectError, projectErrorDetail]
   );
 
-  // Ready + entitled plugins for this project. Best-effort: a failed fetch
-  // resolves to no plugin nav rather than blocking the sidebar.
   const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name });
+  const { data: activeServiceEntitlements } = useActiveServiceEntitlements(project?.name, {
+    enabled: !!project?.name,
+  });
 
   const navItems: NavItem[] = useMemo(() => {
     if (!project?.name) return [];
 
     const currentStatus = transformControlPlaneStatus(project.status);
     const isReady = currentStatus.status === ControlPlaneStatus.Success;
-    const builtInItems = buildProjectNavItems(project.name, { isReady, queryClient });
-    // Plugin nav items are interleaved with built-ins by a single global
-    // `order` (see `OrderedNavItem`), so a plugin can declare a nav position
-    // anywhere in the sidebar — not just appended after every built-in item.
-    // `sort` is stable, so equal orders keep built-ins ahead of plugin items.
-    const pluginItems = plugins ? buildPluginNavItems(plugins, project.name) : [];
-    return [...builtInItems, ...pluginItems].sort((a, b) => a.order - b.order);
-  }, [project, queryClient, plugins]);
+    const builtInTree = buildProjectNavTree(project.name, { isReady, queryClient });
+    return mergePluginNavIntoTree(builtInTree, plugins ?? [], project.name, {
+      activeServiceEntitlements,
+    });
+  }, [project, queryClient, plugins, activeServiceEntitlements]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;
@@ -531,7 +272,6 @@ function ProjectDetailLayoutContent({
     }
   }, [project, setProject]);
 
-  // Set org/project session cookies when project loads - enables "return to last project" on next visit
   useEffect(() => {
     const oid = org?.name ?? appOrg?.name;
     if (project?.name && oid && lastSessionProjectRef.current !== project.name) {
@@ -540,7 +280,6 @@ function ProjectDetailLayoutContent({
     }
   }, [project?.name, org?.name, appOrg?.name, sessionFetcher]);
 
-  // Don't render content while redirecting on error
   if (projectError && projectId) {
     return null;
   }
