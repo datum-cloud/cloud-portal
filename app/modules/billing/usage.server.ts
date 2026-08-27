@@ -1,3 +1,5 @@
+import { loadCatalogUsagePricing } from './usage-pricing.server';
+import { enrichMetersWithCatalogSpend } from './usage-spend';
 import type {
   MeterBreakdownSeries,
   MeterDefinition,
@@ -15,7 +17,6 @@ import {
 import { client } from '@/modules/control-plane/shared/client.gen';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
-import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
 import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { env } from '@/utils/env/env.server';
@@ -340,56 +341,6 @@ export async function fetchUsageForCustomerIds({
   );
 }
 
-/** Coerce a quota status amount (bigint | number | string) to a number. */
-function toQuotaNumber(value: unknown): number | undefined {
-  if (typeof value === 'bigint') return Number(value);
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value);
-    return Number.isNaN(parsed) ? undefined : parsed;
-  }
-  return undefined;
-}
-
-const normalizeJoinKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]/g, '');
-
-/**
- * Best-effort join from a usage meter to a quota AllowanceBucket. The
- * platform has no canonical meter↔quota mapping today, so we match on a
- * normalized substring of the bucket's `resourceType` against the meter
- * name / its monitored resource types. Meters with no match render
- * without a quota ring rather than showing a fabricated ceiling.
- */
-function matchBucketForMeter(
-  meter: MeterSeries,
-  buckets: AllowanceBucket[]
-): AllowanceBucket | undefined {
-  const haystacks = [meter.meterName ?? meter.meterApiName, ...(meter.dimensions ?? [])].map(
-    normalizeJoinKey
-  );
-  return buckets.find((bucket) => {
-    const needle = normalizeJoinKey(bucket.resourceType);
-    if (!needle) return false;
-    return haystacks.some((h) => h.includes(needle) || needle.includes(h));
-  });
-}
-
-function attachQuotaLimits(meters: MeterSeries[], buckets: AllowanceBucket[]): MeterSeries[] {
-  if (buckets.length === 0) return meters;
-  return meters.map((meter) => {
-    const bucket = matchBucketForMeter(meter, buckets);
-    const status = bucket?.status as { allocated?: unknown; limit?: unknown } | undefined;
-    if (!status) return meter;
-    const limit = toQuotaNumber(status.limit);
-    const used = toQuotaNumber(status.allocated);
-    return {
-      ...meter,
-      ...(limit !== undefined ? { limit } : {}),
-      ...(used !== undefined ? { used } : {}),
-    };
-  });
-}
-
 /** Bucket meters by owning service group, preserving first-seen order. */
 function buildUsageGroups(meters: MeterSeries[]): UsageGroup[] {
   const byId = new Map<string, UsageGroup>();
@@ -504,20 +455,42 @@ export async function fetchOrgUsage(
   }
 
   const meters = await fetchUsageForCustomerIds({ customerIds, days, range, projectId });
-  const buckets = projectId
-    ? await createAllowanceBucketService()
-        .list('project', projectId)
-        .catch(() => [] as AllowanceBucket[])
-    : await createAllowanceBucketService()
-        .list('organization', orgId)
-        .catch(() => [] as AllowanceBucket[]);
-  const enriched = attachQuotaLimits(meters, buckets);
+
+  const scopedAccount = await resolveBillingAccountForUsageScope(orgId, projectId ?? 'all').catch(
+    () => null
+  );
+  const meterDefs: MeterDefinition[] = meters
+    .filter((meter): meter is MeterSeries & { meterName: string } => Boolean(meter.meterName))
+    .map((meter) => ({
+      meterApiName: meter.meterApiName,
+      meterName: meter.meterName,
+      displayName: meter.label,
+    }));
+  const catalogPricing = await loadCatalogUsagePricing(orgId, {
+    billingAccountName: scopedAccount?.metadata?.name,
+    meterDefs,
+  });
+  const {
+    meters: metersWithCost,
+    totalSpend,
+    currencyCode,
+    offerName,
+  } = enrichMetersWithCatalogSpend(
+    meters,
+    catalogPricing.byMetric,
+    catalogPricing.meterNameByApiName,
+    catalogPricing.offerName
+  );
+
   return {
     status: 'ok',
-    meters: enriched,
-    groups: buildUsageGroups(enriched),
+    meters: metersWithCost,
+    groups: buildUsageGroups(metersWithCost),
     days: resolvedDays,
     projectId,
+    totalSpend,
+    currencyCode,
+    pricingOfferName: offerName,
   };
 }
 

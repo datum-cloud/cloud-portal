@@ -263,3 +263,24 @@ describe('mergePluginNavIntoTree', () => {
     expect(compute?.muted).toBeUndefined();
   });
 });
+
+describe('buildProjectNavTree usage item', () => {
+  test('omits Usage under Observe when metering is disabled', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const observe = tree.find((item) => item.title === 'Observe');
+    const titles = observe?.children?.map((c) => c.title) ?? [];
+    expect(titles).not.toContain('Usage');
+  });
+
+  test('places Usage between Activity and Metrics Export when metering is enabled', () => {
+    const tree = buildProjectNavTree('proj-1', { usageMeteringEnabled: true });
+    const observe = tree.find((item) => item.title === 'Observe');
+    const titles = observe?.children?.map((c) => c.title) ?? [];
+    expect(titles).toContain('Usage');
+    expect(titles.indexOf('Activity')).toBeLessThan(titles.indexOf('Usage'));
+    expect(titles.indexOf('Usage')).toBeLessThan(titles.indexOf('Metrics Export'));
+    const usage = observe?.children?.find((c) => c.title === 'Usage');
+    expect(usage?.href).toBe('/project/proj-1/usage');
+    expect(usage?.icon).toBeUndefined();
+  });
+});

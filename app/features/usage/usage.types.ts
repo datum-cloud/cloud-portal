@@ -8,12 +8,22 @@ export interface MeterPoint {
 }
 
 export interface UsageMeter {
+  /** Amberflo meter uid — unique even when `apiName` (meterName) collides. */
+  id: string;
   apiName: string;
   label: string;
   description: string;
   unit: MeterUnit;
   used: number;
   limit: number;
+  /** Period spend estimated from catalog Offer rates × usage. */
+  spend?: number;
+  /** Catalog list price per pricingUnit (not per meter-native unit). */
+  unitRate?: number;
+  /** Billing pricing unit label from the Offer, e.g. `token`, `request`, `GB`. */
+  pricingUnit?: string;
+  /** ISO 4217 currency for spend/rate display. */
+  currencyCode?: string;
   /** Breakdown tabs shown above the chart. The first entry is the default. */
   tabs: string[];
   series: MeterPoint[];
@@ -28,11 +38,18 @@ export interface UsageGroupSection {
 }
 
 export interface UsageSummaryRow {
+  /** Amberflo meter uid — table row identity. */
+  id: string;
   apiName: string;
   label: string;
   unit: MeterUnit;
   used: number;
   limit: number;
+  spend?: number;
+  unitRate?: number;
+  /** Billing pricing unit label from the Offer, e.g. `token`, `request`, `GB`. */
+  pricingUnit?: string;
+  currencyCode?: string;
   /** Daily aggregate series for inline spark charts. */
   series: MeterPoint[];
   /** Human-readable service group, e.g. `Compute`, `AI Assistant`. */

@@ -16,6 +16,8 @@ interface UsageToolbarProps {
   isLoading?: boolean;
   /** Renders disabled selects with the same trigger chrome as the loaded toolbar. */
   isPlaceholder?: boolean;
+  /** Hide the project picker (project-scoped usage page). */
+  hideProjectSelect?: boolean;
 }
 
 const BILLING_CYCLE_TRIGGER_CLASS = 'h-9 min-h-9 w-full text-sm sm:w-[350px]';
@@ -58,6 +60,7 @@ export function UsageToolbar({
   billingCycles,
   isLoading = false,
   isPlaceholder = false,
+  hideProjectSelect = false,
 }: UsageToolbarProps) {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -65,7 +68,7 @@ export function UsageToolbar({
     return (
       <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <ToolbarSelectPlaceholder className={BILLING_CYCLE_TRIGGER_CLASS} />
-        <ToolbarSelectPlaceholder className={PROJECT_TRIGGER_CLASS} />
+        {hideProjectSelect ? null : <ToolbarSelectPlaceholder className={PROJECT_TRIGGER_CLASS} />}
       </div>
     );
   }
@@ -116,19 +119,21 @@ export function UsageToolbar({
           ))}
         </SelectContent>
       </Select>
-      <Select value={selectedProject} onValueChange={handleProjectChange}>
-        <SelectTrigger className={PROJECT_TRIGGER_CLASS}>
-          <SelectValue placeholder="Select project" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All projects</SelectItem>
-          {projects.map((project) => (
-            <SelectItem key={project.name} value={project.name}>
-              {project.displayName || project.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {hideProjectSelect ? null : (
+        <Select value={selectedProject} onValueChange={handleProjectChange}>
+          <SelectTrigger className={PROJECT_TRIGGER_CLASS}>
+            <SelectValue placeholder="Select project" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All projects</SelectItem>
+            {projects.map((project) => (
+              <SelectItem key={project.name} value={project.name}>
+                {project.displayName || project.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
     </div>
   );
 }

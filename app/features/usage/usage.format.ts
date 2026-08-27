@@ -64,3 +64,31 @@ export function formatUsagePair(unit: MeterUnit, used: number, limit: number): s
   if (limit <= 0) return formatByUnit(unit, used);
   return `${formatByUnit(unit, used)} / ${formatByUnit(unit, limit)}`;
 }
+
+export function formatCurrency(amount: number | undefined, currencyCode = 'USD'): string {
+  if (amount === undefined || Number.isNaN(amount)) return '—';
+  try {
+    const isZero = amount === 0;
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: isZero ? 0 : amount >= 1 ? 2 : 4,
+      maximumFractionDigits: isZero ? 0 : amount >= 1 ? 2 : 6,
+    }).format(amount);
+  } catch {
+    return amount === 0 ? `0 ${currencyCode}` : `${amount.toFixed(4)} ${currencyCode}`;
+  }
+}
+
+/** e.g. `$0.000003 / token`, `$0.09 / GB` — `unitRate` is per pricingUnit. */
+export function formatUnitRate(
+  unitRate: number | undefined,
+  unit: MeterUnit,
+  currencyCode = 'USD',
+  pricingUnit?: string
+): string {
+  if (unitRate === undefined || Number.isNaN(unitRate) || unitRate < 0) return '—';
+  const unitLabel =
+    pricingUnit?.trim() || (unit === 'bytes' ? 'byte' : unit === 'duration' ? 'second' : 'unit');
+  return `${formatCurrency(unitRate, currencyCode)} / ${unitLabel}`;
+}
