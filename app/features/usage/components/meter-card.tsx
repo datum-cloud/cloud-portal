@@ -1,4 +1,4 @@
-import { formatByUnit, formatUsagePair } from '../usage.format';
+import { formatByUnit, formatCurrency, formatUnitRate, formatUsagePair } from '../usage.format';
 import type { MeterPoint, UsageMeter } from '../usage.types';
 import { humanizeDimension } from '../usage.view';
 import { QuotaIndicator } from './quota-ring';
@@ -69,7 +69,7 @@ export function MeterCard({ meter }: MeterCardProps) {
   // Meter api names can contain dots/slashes (e.g.
   // `assistant.miloapis.com/conversation/input-tokens`), which aren't
   // valid in an SVG id or a `url(#...)` reference — sanitize them.
-  const fillId = `usage-fill-${meter.apiName}`.replace(/[^a-zA-Z0-9_-]/g, '-');
+  const fillId = `usage-fill-${meter.id}`.replace(/[^a-zA-Z0-9_-]/g, '-');
 
   const isBreakdownView = activeTab !== 'Total';
   const activeBreakdown = isBreakdownView
@@ -84,24 +84,41 @@ export function MeterCard({ meter }: MeterCardProps) {
   const hasBreakdownTabs = (meter.breakdowns?.length ?? 0) > 0;
 
   return (
-    <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 px-4 pt-6 pb-0 sm:px-8 sm:pt-8">
-        <div className="flex flex-col gap-1.5">
-          <h3 className="text-foreground text-base font-medium sm:text-lg">{meter.label}</h3>
+    <Card className="h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
+      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 px-5 pt-5 pb-0">
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <h3 className="text-foreground text-base font-medium">{meter.label}</h3>
           {meter.description ? (
-            <p className="text-muted-foreground text-sm leading-relaxed">{meter.description}</p>
+            <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+              {meter.description}
+            </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 flex-col items-end gap-1 sm:gap-1.5">
           <span className="text-foreground text-right text-sm font-medium tabular-nums">
             {formatUsagePair(meter.unit, meter.used, meter.limit)}
           </span>
-          <QuotaIndicator used={meter.used} limit={meter.limit} size={24} />
+          <div className="flex items-center gap-2 sm:gap-3">
+            {(meter.spend ?? 0) > 0 || meter.unitRate !== undefined ? (
+              <span className="text-muted-foreground text-right text-xs tabular-nums">
+                {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
+                {(meter.spend ?? 0) > 0 ? (
+                  <>
+                    {' · '}
+                    <span className="text-foreground font-medium">
+                      {formatCurrency(meter.spend, meter.currencyCode)} spent
+                    </span>
+                  </>
+                ) : null}
+              </span>
+            ) : null}
+            <QuotaIndicator used={meter.used} limit={meter.limit} size={24} />
+          </div>
         </div>
       </CardHeader>
 
       {hasBreakdownTabs ? (
-        <div className="px-4 pt-4 sm:px-8">
+        <div className="px-5 pt-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 bg-transparent">
             <TabsList className="scrollbar-hide h-auto max-w-full justify-start gap-4 overflow-x-auto rounded-none bg-transparent p-0">
               {meter.tabs.map((tab) => (
@@ -121,7 +138,7 @@ export function MeterCard({ meter }: MeterCardProps) {
         </div>
       ) : null}
 
-      <CardContent className="px-4 pt-4 pb-6 sm:px-8 sm:pb-8">
+      <CardContent className="px-5 pt-4 pb-5">
         {isBreakdownView && !isStackedChart ? (
           <div className="text-muted-foreground flex h-[220px] items-center justify-center text-sm">
             No {activeTab.toLowerCase()} breakdown recorded in this period.

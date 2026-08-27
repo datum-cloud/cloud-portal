@@ -156,6 +156,9 @@ export const paths = {
         },
       },
       activity: '/project/[projectId]/activity',
+      // Project-scoped metering dashboard. Gated by UsageMeteringDashboard,
+      // same flag as the org usage page and Observe nav item.
+      usage: '/project/[projectId]/usage',
       // Host Coming Soon holding page for planned / soft-launch services.
       comingSoon: '/project/[projectId]/coming-soon/[serviceId]',
       quotas: '/project/[projectId]/quotas',

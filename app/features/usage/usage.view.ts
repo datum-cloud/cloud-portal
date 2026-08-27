@@ -10,7 +10,6 @@ import type {
   UsageProjectOption,
   UsageSummaryRow,
 } from './usage.types';
-import { OTHER_GROUP, resolveServiceDisplayName } from '@/features/quotas/service-catalog';
 import type { MeterSeries, UsageFetchResult } from '@/modules/billing/usage.types';
 
 function sumSeries(values: { value: number }[]): number {
@@ -36,7 +35,11 @@ function projectDisplayName(
   return projects?.find((project) => project.name === projectName)?.displayName ?? projectName;
 }
 
-function toUsageMeter(meter: MeterSeries, projects?: UsageProjectOption[]): UsageMeter {
+function toUsageMeter(
+  meter: MeterSeries,
+  projects?: UsageProjectOption[],
+  currencyCode = 'USD'
+): UsageMeter {
   const unit = ucumToMeterUnit(meter.unit);
   const used = meter.used ?? sumSeries(meter.values);
   const limit = meter.limit ?? 0;
@@ -56,12 +59,17 @@ function toUsageMeter(meter: MeterSeries, projects?: UsageProjectOption[]): Usag
   const tabs = ['Total', ...breakdowns.map((b) => humanizeDimension(b.dimension))];
 
   return {
+    id: meter.meterApiName,
     apiName: meter.meterName ?? meter.meterApiName,
     label: meter.label,
     description: meter.description ?? '',
     unit,
     used,
     limit,
+    spend: meter.spend,
+    unitRate: meter.unitRate,
+    pricingUnit: meter.pricingUnit,
+    currencyCode,
     tabs,
     series: meter.values,
     breakdowns,
@@ -71,6 +79,8 @@ function toUsageMeter(meter: MeterSeries, projects?: UsageProjectOption[]): Usag
 export interface UsageView {
   groups: UsageGroupSection[];
   summaryRows: UsageSummaryRow[];
+  totalSpend?: number;
+  currencyCode?: string;
 }
 
 /** Build the dashboard view from live loader data. */
@@ -80,6 +90,7 @@ export function toUsageView(
 ): UsageView | null {
   if (!result.groups?.length) return null;
 
+  const currencyCode = result.currencyCode ?? 'USD';
   const meterByName = new Map(result.meters.map((m) => [m.meterApiName, m]));
 
   const groups: UsageGroupSection[] = result.groups
@@ -87,11 +98,11 @@ export function toUsageView(
       const meters = group.meterApiNames
         .map((name) => meterByName.get(name))
         .filter((m): m is MeterSeries => Boolean(m))
-        .map((meter) => toUsageMeter(meter, projects));
+        .map((meter) => toUsageMeter(meter, projects, currencyCode));
       return {
         id: group.id,
         title: group.title,
-        description: `Usage for the ${group.title} service across this organization, aggregated for the current period.`,
+        description: `Metered consumption and spend for ${group.title} in the selected billing period.`,
         meters,
       };
     })
@@ -101,19 +112,28 @@ export function toUsageView(
 
   const summaryRows: UsageSummaryRow[] = groups.flatMap((group) =>
     group.meters.map((meter) => {
-      const resolvedGroup = resolveServiceDisplayName(group.id, meter.apiName);
       return {
+        id: meter.id,
         apiName: meter.apiName,
         label: meter.label,
         unit: meter.unit,
         used: meter.used,
         limit: meter.limit,
+        spend: meter.spend,
+        unitRate: meter.unitRate,
+        pricingUnit: meter.pricingUnit,
+        currencyCode: meter.currencyCode,
         series: meter.series,
         groupId: group.id,
-        group: resolvedGroup === OTHER_GROUP ? group.title : resolvedGroup,
+        group: group.title,
       };
     })
   );
 
-  return { groups, summaryRows };
+  return {
+    groups,
+    summaryRows,
+    totalSpend: result.totalSpend,
+    currencyCode,
+  };
 }

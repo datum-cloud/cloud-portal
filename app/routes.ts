@@ -127,6 +127,9 @@ export default [
         // Project activity (Observe) — outside settings SubLayout
         route('activity', 'routes/project/detail/activity.tsx'),
 
+        // Project usage (Observe) — same dashboard as org, scoped to this project
+        route('usage', 'routes/project/detail/usage/index.tsx'),
+
         // Coming Soon holding page for planned / soft-launch services
         route('coming-soon/:serviceId', 'routes/project/detail/coming-soon.tsx'),
 
