@@ -8,8 +8,8 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
   Legend,
   ResponsiveContainer,
@@ -49,7 +49,15 @@ function buildStackData(series: { groupValue: string; values: MeterPoint[] }[]):
       byTimestamp.set(point.timestamp, row);
     }
   }
-  const data = Array.from(byTimestamp.values()).sort((a, b) => a.timestamp - b.timestamp);
+  const data = Array.from(byTimestamp.values())
+    .sort((a, b) => a.timestamp - b.timestamp)
+    .map((row) => {
+      const filled: StackRow = { timestamp: row.timestamp };
+      for (const key of keys) {
+        filled[key] = row[key] ?? 0;
+      }
+      return filled;
+    });
   return { keys, data };
 }
 
@@ -58,18 +66,13 @@ function sumValues(values: MeterPoint[]): number {
 }
 
 /**
- * Per-meter card from the Figma: title + description, a right-aligned
- * `used / limit` headline with a quota ring, optional breakdown tabs,
- * and a filled area chart. The "Total" tab shows the
- * aggregate series; dimension tabs render the live per-group breakdown as
- * a stacked area chart.
+ * Per-meter card: title + description, a right-aligned `used / limit`
+ * headline with a quota ring, optional breakdown tabs, and a daily bar
+ * chart. Amberflo series are day-bucketed sums, so bars (stacked on
+ * dimension tabs) match the data better than a smoothed area.
  */
 export function MeterCard({ meter }: MeterCardProps) {
   const [activeTab, setActiveTab] = useState(meter.tabs[0]);
-  // Meter api names can contain dots/slashes (e.g.
-  // `assistant.miloapis.com/conversation/input-tokens`), which aren't
-  // valid in an SVG id or a `url(#...)` reference — sanitize them.
-  const fillId = `usage-fill-${meter.id}`.replace(/[^a-zA-Z0-9_-]/g, '-');
 
   const isBreakdownView = activeTab !== 'Total';
   const activeBreakdown = isBreakdownView
@@ -153,26 +156,18 @@ export function MeterCard({ meter }: MeterCardProps) {
           </div>
         ) : (
           <ResponsiveContainer key={activeTab} width="100%" height={isStackedChart ? 248 : 220}>
-            <AreaChart
+            <BarChart
               data={chartData as Record<string, number>[]}
+              barCategoryGap="24%"
               margin={{
-                top: 4,
-                right: 4,
+                top: 14,
+                right: 8,
                 left: 0,
-                bottom: isStackedChart ? 20 : 0,
+                bottom: isStackedChart ? 20 : 4,
               }}>
-              <defs>
-                <linearGradient id={fillId} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
                 dataKey="timestamp"
-                type="number"
-                scale="time"
-                domain={['dataMin', 'dataMax']}
                 tickFormatter={(ts) => format(new Date(ts), 'MMM d')}
                 tickLine={false}
                 axisLine={false}
@@ -182,41 +177,52 @@ export function MeterCard({ meter }: MeterCardProps) {
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                width={40}
+                width={56}
                 tickFormatter={(value) =>
                   formatByUnit(meter.unit, typeof value === 'number' ? value : 0)
                 }
                 tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
               />
               <Tooltip
-                cursor={{ stroke: 'var(--border)' }}
+                cursor={{ fill: 'var(--muted)', fillOpacity: 0.45 }}
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
+                  const stackedRows = [...payload]
+                    .reverse()
+                    .filter((entry) => typeof entry.value === 'number' && entry.value > 0);
                   return (
                     <div className="border-border bg-background rounded-md border px-2.5 py-1.5 shadow-sm">
                       <div className="text-muted-foreground text-xs">
                         {format(new Date(label as number), 'MMM d, yyyy')}
                       </div>
                       {isStackedChart && stack ? (
-                        <div className="mt-1 flex flex-col gap-0.5">
-                          {payload.map((entry) => (
-                            <div
-                              key={entry.dataKey as string}
-                              className="text-foreground flex items-center gap-1.5 text-xs">
-                              <span
-                                className="size-2 shrink-0 rounded-[2px]"
-                                style={{ backgroundColor: entry.color }}
-                              />
-                              <span className="text-muted-foreground">{String(entry.dataKey)}</span>
-                              <span className="ml-auto font-medium tabular-nums">
-                                {formatByUnit(
-                                  meter.unit,
-                                  typeof entry.value === 'number' ? entry.value : 0
-                                )}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                        stackedRows.length > 0 ? (
+                          <div className="mt-1 flex flex-col gap-0.5">
+                            {stackedRows.map((entry) => (
+                              <div
+                                key={entry.dataKey as string}
+                                className="text-foreground flex items-center gap-1.5 text-xs">
+                                <span
+                                  className="size-2 shrink-0 rounded-[2px]"
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <span className="text-muted-foreground">
+                                  {String(entry.dataKey)}
+                                </span>
+                                <span className="ml-auto font-medium tabular-nums">
+                                  {formatByUnit(
+                                    meter.unit,
+                                    typeof entry.value === 'number' ? entry.value : 0
+                                  )}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-foreground mt-1 text-xs font-medium">
+                            {formatByUnit(meter.unit, 0)}
+                          </div>
+                        )
                       ) : (
                         <div className="text-foreground text-xs font-medium">
                           {meter.label}:{' '}
@@ -240,41 +246,27 @@ export function MeterCard({ meter }: MeterCardProps) {
                     wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
                   />
                   {stack.keys.map((key, index) => (
-                    <Area
+                    <Bar
                       key={key}
-                      type="monotone"
                       dataKey={key}
                       name={key}
                       stackId="breakdown"
-                      stroke={STACK_COLORS[index % STACK_COLORS.length]}
-                      strokeWidth={1.5}
                       fill={STACK_COLORS[index % STACK_COLORS.length]}
-                      fillOpacity={0.18}
+                      maxBarSize={18}
+                      isAnimationActive={false}
                     />
                   ))}
                 </>
               ) : (
-                <Area
-                  type="monotone"
+                <Bar
                   dataKey="value"
-                  stroke="var(--primary)"
-                  strokeWidth={2}
-                  fill={`url(#${fillId})`}
-                  dot={{
-                    r: 3,
-                    fill: 'var(--primary)',
-                    stroke: 'var(--background)',
-                    strokeWidth: 1.5,
-                  }}
-                  activeDot={{
-                    r: 4,
-                    fill: 'var(--primary)',
-                    stroke: 'var(--background)',
-                    strokeWidth: 2,
-                  }}
+                  fill="var(--primary)"
+                  maxBarSize={18}
+                  radius={[2, 2, 0, 0]}
+                  isAnimationActive={false}
                 />
               )}
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         )}
       </CardContent>
