@@ -80,7 +80,7 @@ export function formatCurrency(amount: number | undefined, currencyCode = 'USD')
   }
 }
 
-/** e.g. `$0.000003 / token` */
+/** e.g. `$0.000003 / token`, `$0.09 / GB` — `unitRate` is per pricingUnit. */
 export function formatUnitRate(
   unitRate: number | undefined,
   unit: MeterUnit,

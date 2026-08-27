@@ -136,6 +136,17 @@ export function flatRatePerMeterUnit(
   return flatPerPricingUnit * oneUnit;
 }
 
+/**
+ * Catalog list price in Offer pricingUnit terms (per GB, per token, …).
+ * Matches staff-portal offer UI: a flat is the rate; for tiers the last
+ * band is the list price so a free first gigabyte still shows the paid rate.
+ */
+export function catalogListRate(rate: CatalogPricingRate): number | undefined {
+  if (rate.flat !== undefined) return rate.flat;
+  if (!rate.tiered?.length) return undefined;
+  return rate.tiered[rate.tiered.length - 1]?.rate;
+}
+
 function sumPoints(values: { value: number }[]): number {
   return values.reduce((total, point) => total + point.value, 0);
 }
@@ -155,6 +166,7 @@ function spendFromBreakdowns(
   let spend = 0;
   let matchedUsage = 0;
   let matchedAny = false;
+  const listRates = new Set<number>();
 
   for (const breakdown of relevant) {
     for (const series of breakdown.series) {
@@ -175,33 +187,33 @@ function spendFromBreakdowns(
       spend += seriesSpend;
       matchedUsage += seriesUsed;
       matchedAny = true;
+      const listRate = catalogListRate(rate);
+      if (listRate !== undefined) listRates.add(listRate);
     }
   }
 
   if (!matchedAny) return null;
 
+  let unitRate: number | undefined;
+  if (listRates.size === 1) {
+    unitRate = [...listRates][0];
+  } else if (matchedUsage > 0) {
+    const pricingUnits = usageToPricingUnits(matchedUsage, meter.unit, pricing.pricingUnit);
+    unitRate = pricingUnits > 0 ? spend / pricingUnits : undefined;
+  }
+
   return {
     spend,
-    unitRate: matchedUsage > 0 ? spend / matchedUsage : undefined,
+    unitRate,
     pricingAvailable: true,
   };
 }
 
-/** Unmatched catalog rate to show when usage is zero (includes a $0 flat). */
-function indicativeUnitRate(
-  pricing: CatalogMeterPricing,
-  meterUnit: string | undefined
-): number | undefined {
+/** Unmatched catalog list price (includes a $0 flat). */
+function indicativeUnitRate(pricing: CatalogMeterPricing): number | undefined {
   const unmatched = pricing.rates.find((rate) => !rate.match);
   if (!unmatched) return undefined;
-  if (unmatched.flat !== undefined) {
-    return flatRatePerMeterUnit(unmatched.flat, meterUnit, pricing.pricingUnit);
-  }
-  const band = unmatched.tiered?.find((tier) => tier.rate !== undefined);
-  if (band) {
-    return flatRatePerMeterUnit(band.rate, meterUnit, pricing.pricingUnit);
-  }
-  return undefined;
+  return catalogListRate(unmatched);
 }
 
 /**
@@ -222,7 +234,7 @@ export function computeMeterSpend(
 
   const used = meter.used ?? sumPoints(meter.values);
   if (used <= 0) {
-    const unitRate = indicativeUnitRate(pricing, meter.unit);
+    const unitRate = indicativeUnitRate(pricing);
     return {
       // Only stamp $0 spend when we also have a displayable rate. Dimension-
       // only prices with no usage would otherwise show `$0` next to `—`.
@@ -246,14 +258,11 @@ export function computeMeterSpend(
     return { pricingAvailable: true };
   }
 
-  let unitRate: number | undefined;
-  if (defaultRate.flat !== undefined) {
-    unitRate = flatRatePerMeterUnit(defaultRate.flat, meter.unit, pricing.pricingUnit);
-  } else if (used > 0) {
-    unitRate = spend / used;
-  }
-
-  return { spend, unitRate, pricingAvailable: true };
+  return {
+    spend,
+    unitRate: catalogListRate(defaultRate),
+    pricingAvailable: true,
+  };
 }
 
 export function enrichMetersWithCatalogSpend(

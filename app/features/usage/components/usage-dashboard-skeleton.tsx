@@ -21,19 +21,20 @@ function UsageSummaryTableSkeleton() {
 
 function MeterCardSkeleton() {
   return (
-    <Card className="h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 px-5 pt-5 pb-0">
-        <div className="flex min-w-0 flex-1 flex-col gap-2">
-          <Skeleton className="h-5 w-40 max-w-full" />
-          <Skeleton className="h-4 w-full max-w-md" />
+    <Card className="@container h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
+      <CardHeader className="flex flex-col gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <Skeleton className="h-5 w-32 max-w-[60%]" />
+          <div className="flex shrink-0 items-center gap-2">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="size-6 shrink-0 rounded-sm" />
+          </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="size-6 shrink-0 rounded-sm" />
-        </div>
+        <Skeleton className="h-4 w-full max-w-md" />
+        <Skeleton className="h-3 w-40 max-w-full" />
       </CardHeader>
-      <CardContent className="px-5 pt-4 pb-5">
-        <Skeleton className="h-[220px] w-full rounded-lg" />
+      <CardContent className="px-4 pt-4 pb-4 @sm:px-5 @sm:pb-5">
+        <Skeleton className="h-55 w-full rounded-lg" />
       </CardContent>
     </Card>
   );
@@ -76,7 +77,7 @@ function UsageSectionSkeleton({
 export function UsageDashboardSkeleton({ scopeDescription }: { scopeDescription: string }) {
   return (
     <div className="border-border min-w-0 border-t">
-      <UsageSectionSkeleton title="Usage summary" description={scopeDescription}>
+      <UsageSectionSkeleton title="Usage summary" layout="grid" description={scopeDescription}>
         <UsageSummaryTableSkeleton />
       </UsageSectionSkeleton>
 

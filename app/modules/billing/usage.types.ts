@@ -44,7 +44,7 @@ export interface MeterSeries {
   used?: number;
   /** Period spend estimated from catalog Offer rates × usage. */
   spend?: number;
-  /** Unit rate from the active Offer, when available. */
+  /** Catalog list price per pricingUnit (not per meter-native unit). */
   unitRate?: number;
   /** Billing pricing unit label from the Offer, e.g. `token`, `request`, `GB`. */
   pricingUnit?: string;

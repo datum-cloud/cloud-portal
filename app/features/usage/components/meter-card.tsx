@@ -83,62 +83,66 @@ export function MeterCard({ meter }: MeterCardProps) {
   const chartData = isStackedChart ? stack!.data : meter.series;
   const hasBreakdownTabs = (meter.breakdowns?.length ?? 0) > 0;
 
+  const showRate = (meter.spend ?? 0) > 0 || meter.unitRate !== undefined;
+
   return (
-    <Card className="h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardHeader className="flex flex-row items-start justify-between gap-4 space-y-0 px-5 pt-5 pb-0">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <h3 className="text-foreground text-base font-medium">{meter.label}</h3>
-          {meter.description ? (
-            <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
-              {meter.description}
-            </p>
-          ) : null}
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1 sm:gap-1.5">
-          <span className="text-foreground text-right text-sm font-medium tabular-nums">
-            {formatUsagePair(meter.unit, meter.used, meter.limit)}
-          </span>
-          <div className="flex items-center gap-2 sm:gap-3">
-            {(meter.spend ?? 0) > 0 || meter.unitRate !== undefined ? (
-              <span className="text-muted-foreground text-right text-xs tabular-nums">
-                {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
-                {(meter.spend ?? 0) > 0 ? (
-                  <>
-                    {' · '}
-                    <span className="text-foreground font-medium">
-                      {formatCurrency(meter.spend, meter.currencyCode)} spent
-                    </span>
-                  </>
-                ) : null}
-              </span>
-            ) : null}
+    <Card className="@container h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
+      <CardHeader className="flex flex-col gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <h3 className="text-foreground min-w-0 text-base leading-snug font-medium">
+            {meter.label}
+          </h3>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="text-foreground text-sm font-medium tabular-nums">
+              {formatUsagePair(meter.unit, meter.used, meter.limit)}
+            </span>
             <QuotaIndicator used={meter.used} limit={meter.limit} size={24} />
           </div>
         </div>
+        {meter.description ? (
+          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+            {meter.description}
+          </p>
+        ) : null}
+        {showRate ? (
+          <p className="text-muted-foreground min-w-0 text-xs leading-relaxed wrap-break-word tabular-nums">
+            {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
+            {(meter.spend ?? 0) > 0 ? (
+              <>
+                {' · '}
+                <span className="text-foreground font-medium">
+                  {formatCurrency(meter.spend, meter.currencyCode)} spent
+                </span>
+              </>
+            ) : null}
+          </p>
+        ) : null}
       </CardHeader>
 
       {hasBreakdownTabs ? (
-        <div className="px-5 pt-4">
+        <div className="min-w-0 px-4 pt-3 @sm:px-5">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="min-w-0 bg-transparent">
-            <TabsList className="scrollbar-hide h-auto max-w-full justify-start gap-4 overflow-x-auto rounded-none bg-transparent p-0">
-              {meter.tabs.map((tab) => (
-                <TabsTrigger
-                  key={tab}
-                  value={tab}
-                  className={cn(
-                    'relative shrink-0 rounded-none border-b-2 border-transparent bg-transparent px-0 pb-2 text-xs font-normal shadow-none',
-                    'focus-visible:ring-0 focus-visible:outline-hidden',
-                    'data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-medium data-[state=active]:shadow-none'
-                  )}>
-                  {tab}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+            <div className="scrollbar-hide min-w-0 overflow-x-auto">
+              <TabsList className="inline-flex h-auto w-max justify-start gap-3 rounded-none bg-transparent p-0">
+                {meter.tabs.map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab}
+                    className={cn(
+                      'relative w-fit !flex-none shrink-0 rounded-none border-b border-transparent bg-transparent px-0 py-1 text-xs leading-none font-normal shadow-none',
+                      'focus-visible:ring-0 focus-visible:outline-hidden',
+                      'data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-medium data-[state=active]:shadow-none'
+                    )}>
+                    {tab}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
           </Tabs>
         </div>
       ) : null}
 
-      <CardContent className="px-5 pt-4 pb-5">
+      <CardContent className="min-w-0 px-4 pt-4 pb-4 @sm:px-5 @sm:pb-5">
         {isBreakdownView && !isStackedChart ? (
           <div className="text-muted-foreground flex h-[220px] items-center justify-center text-sm">
             No {activeTab.toLowerCase()} breakdown recorded in this period.
@@ -153,7 +157,7 @@ export function MeterCard({ meter }: MeterCardProps) {
               data={chartData as Record<string, number>[]}
               margin={{
                 top: 4,
-                right: 8,
+                right: 4,
                 left: 0,
                 bottom: isStackedChart ? 20 : 0,
               }}>
@@ -172,13 +176,13 @@ export function MeterCard({ meter }: MeterCardProps) {
                 tickFormatter={(ts) => format(new Date(ts), 'MMM d')}
                 tickLine={false}
                 axisLine={false}
-                minTickGap={24}
+                minTickGap={36}
                 tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                width={56}
+                width={40}
                 tickFormatter={(value) =>
                   formatByUnit(meter.unit, typeof value === 'number' ? value : 0)
                 }

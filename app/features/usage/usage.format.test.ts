@@ -27,4 +27,8 @@ describe('formatUnitRate', () => {
   it('renders a $0 unit rate instead of an em dash', () => {
     expect(formatUnitRate(0, 'count', 'USD', 'token')).toBe('$0 / token');
   });
+
+  it('renders a catalog per-GB list price', () => {
+    expect(formatUnitRate(0.09, 'bytes', 'USD', 'GB')).toBe('$0.0900 / GB');
+  });
 });

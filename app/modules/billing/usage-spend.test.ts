@@ -1,4 +1,5 @@
 import {
+  catalogListRate,
   computeMeterSpend,
   computeRateSpend,
   computeTieredSpend,
@@ -116,6 +117,23 @@ describe('flatRatePerMeterUnit', () => {
   });
 });
 
+describe('catalogListRate', () => {
+  it('returns a flat rate as-is', () => {
+    expect(catalogListRate({ flat: 0.05 })).toBe(0.05);
+  });
+
+  it('uses the last tier as the list price', () => {
+    expect(
+      catalogListRate({
+        tiered: [
+          { upTo: 1, rate: 0 },
+          { rate: 0.09 },
+        ],
+      })
+    ).toBe(0.09);
+  });
+});
+
 describe('computeMeterSpend', () => {
   it('computes flat-rate spend from aggregate usage', () => {
     const result = computeMeterSpend(
@@ -152,7 +170,39 @@ describe('computeMeterSpend', () => {
       })
     );
     expect(result.spend).toBe(12.5);
+    expect(result.unitRate).toBeCloseTo(12.5 / 1_500);
     expect(result.pricingAvailable).toBe(true);
+  });
+
+  it('keeps the catalog per-GB list price instead of converting to per-byte', () => {
+    const used = 208 * 1024;
+    const result = computeMeterSpend(
+      meter({ used, unit: 'By' }),
+      pricing({ pricingUnit: 'GB', rates: [{ flat: 0.09 }] })
+    );
+    expect(result.unitRate).toBe(0.09);
+    expect(result.spend).toBeCloseTo((used / 1024 ** 3) * 0.09);
+    expect(result.pricingAvailable).toBe(true);
+  });
+
+  it('shows the paid list price when usage is still in a free first band', () => {
+    const used = 208 * 1024;
+    const result = computeMeterSpend(
+      meter({ used, unit: 'By' }),
+      pricing({
+        pricingUnit: 'GB',
+        rates: [
+          {
+            tiered: [
+              { upTo: 1, rate: 0 },
+              { rate: 0.09 },
+            ],
+          },
+        ],
+      })
+    );
+    expect(result.spend).toBe(0);
+    expect(result.unitRate).toBe(0.09);
   });
 
   it('returns spend undefined when only dimension rates exist without breakdowns', () => {
@@ -180,6 +230,15 @@ describe('computeMeterSpend', () => {
     );
     expect(result.spend).toBe(0);
     expect(result.unitRate).toBe(0.002);
+  });
+
+  it('shows the catalog per-GB rate when byte usage is zero', () => {
+    const result = computeMeterSpend(
+      meter({ used: 0, unit: 'By' }),
+      pricing({ pricingUnit: 'GB', rates: [{ flat: 0.09 }] })
+    );
+    expect(result.spend).toBe(0);
+    expect(result.unitRate).toBe(0.09);
   });
 
   it('shows a $0 rate when the unmatched catalog flat is zero', () => {

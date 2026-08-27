@@ -303,7 +303,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           'border-border min-w-0 border-t',
           isRefetching && 'opacity-60 transition-opacity'
         )}>
-        <Section title="Usage summary" description={scopeDescription}>
+        <Section title="Usage summary" layout="grid" description={scopeDescription}>
           <UsageSummaryTable rows={view.summaryRows} />
         </Section>
 
