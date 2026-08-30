@@ -17,7 +17,7 @@ export interface MeterDimensionBreakdown {
 }
 
 export interface MeterSeries {
-  /** Amberflo meter id (`MeterDefinition.metadata.uid`). */
+  /** Amberflo meterApiName (`MeterDefinition.metadata.name`, hashed if >50 chars). */
   meterApiName: string;
   /** Canonical meter name from `MeterDefinition.spec.meterName`. */
   meterName?: string;
@@ -53,7 +53,7 @@ export interface MeterSeries {
 }
 
 export interface MeterDefinition {
-  /** Amberflo meter id (`MeterDefinition.metadata.uid`). */
+  /** Amberflo meterApiName (`MeterDefinition.metadata.name`, hashed if >50 chars). */
   meterApiName: string;
   /** Canonical meter name from `MeterDefinition.spec.meterName`. */
   meterName: string;

@@ -1,3 +1,4 @@
+import { amberfloMeterApiName } from './amberflo-meter-api-name';
 import { loadCatalogUsagePricing } from './usage-pricing.server';
 import { enrichMetersWithCatalogSpend } from './usage-spend';
 import type {
@@ -93,7 +94,7 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
     const baseUrl = axios.defaults?.baseURL ?? '';
     const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
     const items: {
-      metadata?: { uid?: string };
+      metadata?: { name?: string };
       spec?: {
         meterName?: string;
         displayName?: string;
@@ -104,8 +105,7 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
     }[] = resp.data?.items ?? [];
     return items
       .map((item) => ({
-        // Amberflo meterApiName is metadata.uid (not spec.meterName); see amberflo-provider.
-        meterApiName: item.metadata?.uid ?? '',
+        meterApiName: amberfloMeterApiName(item.metadata?.name ?? ''),
         meterName: item.spec?.meterName ?? '',
         displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
         description: item.spec?.description?.trim() || undefined,
