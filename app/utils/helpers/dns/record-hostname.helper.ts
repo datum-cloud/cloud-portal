@@ -1,4 +1,29 @@
 /**
+ * True when `name` is the zone apex: `@`, empty, or the zone domain
+ * (with or without a trailing dot). Subdomain labels are not apex.
+ */
+export function isApexName(name: string | undefined, zoneDomain?: string | null): boolean {
+  const trimmed = (name ?? '').trim().replace(/\.$/, '');
+  if (trimmed === '' || trimmed === '@') return true;
+  const zone = (zoneDomain ?? '').trim().replace(/\.$/, '');
+  if (zone && trimmed.toLowerCase() === zone.toLowerCase()) return true;
+  return false;
+}
+
+/**
+ * True for records Datum provisions and the user must not manage: SOA,
+ * and NS at the zone apex. Subdomain NS (delegation) returns false.
+ */
+export function isSystemManagedDnsRecord(
+  record: { type: string; name?: string },
+  zoneDomain?: string | null
+): boolean {
+  if (record.type === 'SOA') return true;
+  if (record.type === 'NS' && isApexName(record.name, zoneDomain)) return true;
+  return false;
+}
+
+/**
  * Normalized hostname for a DNS record in a zone (no trailing dot).
  * - @ or empty name → zone domain
  * - Name with dots → treated as FQDN, trailing dot stripped
