@@ -71,7 +71,6 @@ function ProjectBreadcrumbLabel({
  */
 type ProjectLayoutCompanions = {
   billingEnabled: boolean | null;
-  usageMeteringEnabled: boolean | null;
   organizationId: string | null | undefined;
 };
 
@@ -110,17 +109,6 @@ export const loader = withMiddleware(
           fetch: ({ data: project }) =>
             project?.organizationId
               ? isFeatureEnabled(FeatureFlag.Billing, project.organizationId)
-              : Promise.resolve(false),
-        },
-        usageMeteringEnabled: {
-          resource: 'projects',
-          group: 'resourcemanager.miloapis.com',
-          verb: 'get',
-          scope: 'user',
-          onError: 'tolerate',
-          fetch: ({ data: project }) =>
-            project?.organizationId
-              ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, project.organizationId)
               : Promise.resolve(false),
         },
         organizationId: {
@@ -267,19 +255,11 @@ function ProjectDetailLayoutContent({
       isReady,
       queryClient,
       orgId,
-      usageMeteringEnabled: companions.usageMeteringEnabled ?? false,
     });
     return mergePluginNavIntoTree(builtInTree, plugins ?? [], project.name, {
       activeServiceEntitlements,
     });
-  }, [
-    project,
-    queryClient,
-    plugins,
-    activeServiceEntitlements,
-    orgId,
-    companions.usageMeteringEnabled,
-  ]);
+  }, [project, queryClient, plugins, activeServiceEntitlements, orgId]);
 
   useEffect(() => {
     const currentOrg = org ?? appOrg;

@@ -16,8 +16,6 @@ import {
   selectBillingCycleWindow,
 } from '@/modules/billing/billing-cycle';
 import { client } from '@/modules/control-plane/shared/client.gen';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { env } from '@/utils/env/env.server';
@@ -410,17 +408,6 @@ export async function fetchOrgUsage(
 
   if (!env.server.amberfloApiKey) {
     return { status: 'unconfigured', meters: [], days: resolvedDays, projectId };
-  }
-
-  const enabled = await isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, orgId);
-  if (!enabled) {
-    return {
-      status: 'feature-disabled',
-      meters: [],
-      days: resolvedDays,
-      message: 'Usage metering is not enabled for this organization.',
-      projectId,
-    };
   }
 
   let customerIds: string[];

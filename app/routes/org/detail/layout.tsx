@@ -30,7 +30,6 @@ import { type LoaderFunctionArgs, Outlet, type ShouldRevalidateFunction } from '
 
 type OrgLayoutCompanions = {
   billingEnabled: boolean | null;
-  usageMeteringEnabled: boolean | null;
 };
 
 const route = defineResourceRoute<Organization, OrgLayoutCompanions>({
@@ -62,17 +61,6 @@ export const loader = withMiddleware(
           onError: 'tolerate',
           fetch: ({ data: org }) =>
             org?.name ? isFeatureEnabled(FeatureFlag.Billing, org.name) : Promise.resolve(false),
-        },
-        usageMeteringEnabled: {
-          resource: 'organizations',
-          group: 'resourcemanager.miloapis.com',
-          verb: 'get',
-          scope: 'user',
-          onError: 'tolerate',
-          fetch: ({ data: org }) =>
-            org?.name
-              ? isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, org.name)
-              : Promise.resolve(false),
         },
       },
       setHeaders: async ({ data: org, args: loaderArgs }) => {
@@ -109,7 +97,6 @@ export const shouldRevalidate: ShouldRevalidateFunction = ({
 
 export default route.Page(({ data: initialOrg, companions }) => {
   const billingEnabled = companions.billingEnabled ?? false;
-  const usageMeteringEnabled = companions.usageMeteringEnabled ?? false;
   const { organization, setOrganization, setProject } = useApp();
   const queryClient = useQueryClient();
 
@@ -168,30 +155,25 @@ export default route.Page(({ data: initialOrg, companions }) => {
           });
         },
       },
-      ...(usageMeteringEnabled
-        ? [
-            {
-              title: 'Usage',
-              href: getPathWithParams(paths.org.detail.usage, { orgId }),
-              type: 'link' as const,
-              icon: BarChart3Icon,
-              onPrefetch: () => {
-                if (!orgId) return;
-                void queryClient.prefetchQuery({
-                  queryKey: projectKeys.list(orgId),
-                  queryFn: () => createProjectService().list(orgId),
-                  staleTime: QUERY_STALE_TIME,
-                });
-                void queryClient.prefetchQuery({
-                  queryKey: usageKeys.dashboard(orgId, 'all', 'current'),
-                  queryFn: () =>
-                    fetchOrgUsageDashboard({ orgId, project: 'all', cycle: 'current' }),
-                  staleTime: QUERY_STALE_TIME,
-                });
-              },
-            },
-          ]
-        : []),
+      {
+        title: 'Usage',
+        href: getPathWithParams(paths.org.detail.usage, { orgId }),
+        type: 'link',
+        icon: BarChart3Icon,
+        onPrefetch: () => {
+          if (!orgId) return;
+          void queryClient.prefetchQuery({
+            queryKey: projectKeys.list(orgId),
+            queryFn: () => createProjectService().list(orgId),
+            staleTime: QUERY_STALE_TIME,
+          });
+          void queryClient.prefetchQuery({
+            queryKey: usageKeys.dashboard(orgId, 'all', 'current'),
+            queryFn: () => fetchOrgUsageDashboard({ orgId, project: 'all', cycle: 'current' }),
+            staleTime: QUERY_STALE_TIME,
+          });
+        },
+      },
       ...(billingEnabled
         ? [
             {
@@ -235,7 +217,7 @@ export default route.Page(({ data: initialOrg, companions }) => {
         ],
       },
     ];
-  }, [org, queryClient, billingEnabled, usageMeteringEnabled]);
+  }, [org, queryClient, billingEnabled]);
 
   // Sync SSR org to app state on initial load or org change
   useEffect(() => {

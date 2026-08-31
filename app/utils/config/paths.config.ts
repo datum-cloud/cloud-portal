@@ -75,8 +75,7 @@ export const paths = {
         root: '/org/[orgId]/billing',
       },
       // Org-wide metering dashboard. Aggregates usage across every billing
-      // account in the org's namespace; gated by the same
-      // `UsageMeteringDashboard` flag as the per-project view.
+      // account in the org's namespace.
       usage: '/org/[orgId]/usage',
       policyBindings: {
         root: '/org/[orgId]/policy-bindings',
@@ -156,8 +155,7 @@ export const paths = {
         },
       },
       activity: '/project/[projectId]/activity',
-      // Project-scoped metering dashboard. Gated by UsageMeteringDashboard,
-      // same flag as the org usage page and Observe nav item.
+      // Project-scoped metering dashboard.
       usage: '/project/[projectId]/usage',
       // Host Coming Soon holding page for planned / soft-launch services.
       comingSoon: '/project/[projectId]/coming-soon/[serviceId]',

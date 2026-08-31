@@ -11,7 +11,7 @@ The OpenFeature flag key is the **full** `spec.resourceType` of the registered
 flag, e.g.
 
 ```
-billing.miloapis.com/cloud-portal-usage-metering-dashboard
+billing.miloapis.com/cloud-portal-billing
 ```
 
 There is no implicit prefix. Use the same string the registration uses.
@@ -40,12 +40,12 @@ import { OpenFeature } from '@openfeature/server-sdk';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const client = OpenFeature.getClient();
-  const usageMeteringEnabled = await client.getBooleanValue(
-    'billing.miloapis.com/cloud-portal-usage-metering-dashboard',
+  const billingEnabled = await client.getBooleanValue(
+    'billing.miloapis.com/cloud-portal-billing',
     false,
     { targetingKey: params.orgId! }
   );
-  return { usageMeteringEnabled };
+  return { billingEnabled };
 };
 ```
 

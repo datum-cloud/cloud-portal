@@ -3,7 +3,6 @@
  * ResourceRegistration that backs each flag — no implicit prefix.
  */
 export const FeatureFlag = {
-  UsageMeteringDashboard: 'billing.miloapis.com/cloud-portal-usage-metering-dashboard',
   MultiBillingAccounts: 'billing.miloapis.com/multi-billing-accounts',
   Billing: 'billing.miloapis.com/cloud-portal-billing',
 } as const;

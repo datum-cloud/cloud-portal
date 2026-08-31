@@ -265,15 +265,8 @@ describe('mergePluginNavIntoTree', () => {
 });
 
 describe('buildProjectNavTree usage item', () => {
-  test('omits Usage under Observe when metering is disabled', () => {
+  test('places Usage between Activity and Metrics Export', () => {
     const tree = buildProjectNavTree('proj-1');
-    const observe = tree.find((item) => item.title === 'Observe');
-    const titles = observe?.children?.map((c) => c.title) ?? [];
-    expect(titles).not.toContain('Usage');
-  });
-
-  test('places Usage between Activity and Metrics Export when metering is enabled', () => {
-    const tree = buildProjectNavTree('proj-1', { usageMeteringEnabled: true });
     const observe = tree.find((item) => item.title === 'Observe');
     const titles = observe?.children?.map((c) => c.title) ?? [];
     expect(titles).toContain('Usage');

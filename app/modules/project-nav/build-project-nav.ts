@@ -36,8 +36,6 @@ export type BuildProjectNavOptions = {
   queryClient?: QueryClient;
   /** Owning org — used to prefetch the project-scoped usage dashboard. */
   orgId?: string;
-  /** When true, show Usage under Observe. Same flag as the usage page loaders. */
-  usageMeteringEnabled?: boolean;
 };
 
 /** Section id on category parents for plugin merge. Not rendered by datum-ui. */
@@ -102,7 +100,7 @@ function category(
  */
 export function buildProjectNavTree(
   projectId: string,
-  { isReady = true, queryClient, orgId, usageMeteringEnabled = false }: BuildProjectNavOptions = {}
+  { isReady = true, queryClient, orgId }: BuildProjectNavOptions = {}
 ): SectionNavItem[] {
   const settingsGeneral = getPathWithParams(paths.project.detail.settings.general, {
     projectId,
@@ -218,31 +216,27 @@ export function buildProjectNavTree(
         type: 'link',
         disabled: !isReady,
       },
-      ...(usageMeteringEnabled
-        ? [
-            {
-              title: 'Usage',
-              order: 15,
-              href: getPathWithParams(paths.project.detail.usage, { projectId }),
-              type: 'link' as const,
-              disabled: !isReady,
-              onPrefetch:
-                queryClient && orgId
-                  ? () => {
-                      void queryClient.prefetchQuery({
-                        queryKey: usageKeys.dashboard(orgId, projectId, 'current'),
-                        queryFn: () =>
-                          fetchOrgUsageDashboard({
-                            orgId,
-                            project: projectId,
-                            cycle: 'current',
-                          }),
-                      });
-                    }
-                  : undefined,
-            },
-          ]
-        : []),
+      {
+        title: 'Usage',
+        order: 15,
+        href: getPathWithParams(paths.project.detail.usage, { projectId }),
+        type: 'link',
+        disabled: !isReady,
+        onPrefetch:
+          queryClient && orgId
+            ? () => {
+                void queryClient.prefetchQuery({
+                  queryKey: usageKeys.dashboard(orgId, projectId, 'current'),
+                  queryFn: () =>
+                    fetchOrgUsageDashboard({
+                      orgId,
+                      project: projectId,
+                      cycle: 'current',
+                    }),
+                });
+              }
+            : undefined,
+      },
       {
         title: 'Metrics Export',
         order: 20,
