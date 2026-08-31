@@ -73,7 +73,7 @@ export interface UsageGroup {
 }
 
 export type UsageFetchStatus =
-  'ok' | 'unconfigured' | 'insufficient-permissions' | 'no-billing-account' | 'feature-disabled';
+  'ok' | 'unconfigured' | 'insufficient-permissions' | 'no-billing-account';
 
 export interface UsageFetchResult {
   status: UsageFetchStatus;

@@ -72,9 +72,7 @@ export default [
         ]),
 
         // Usage — org-wide metering dashboard. Sums per-meter usage across
-        // every billing account in the org's namespace. Gated by the same
-        // `UsageMeteringDashboard` flag as the per-project view so both
-        // pages flip on together.
+        // every billing account in the org's namespace.
         route('usage', 'routes/org/detail/usage/index.tsx'),
 
         // Team of an organization

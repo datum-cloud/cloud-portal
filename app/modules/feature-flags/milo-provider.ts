@@ -15,7 +15,7 @@ const DEFAULT_TTL_MS = 5_000;
 /**
  * Subset of the AllowanceBucket service used by the provider. The flag key
  * passed to OpenFeature is the full bucket `spec.resourceType`
- * (e.g. `billing.miloapis.com/cloud-portal-usage-metering-dashboard`), so
+ * (e.g. `billing.miloapis.com/cloud-portal-billing`), so
  * the provider only needs to list buckets for the org.
  */
 export interface OrgBucketLister {
@@ -39,7 +39,7 @@ interface CacheEntry {
  * OpenFeature server provider backed by Milo AllowanceBuckets.
  *
  * Flag keys are the full `spec.resourceType` of a feature-typed
- * ResourceRegistration (e.g. `billing.miloapis.com/cloud-portal-usage-metering-dashboard`).
+ * ResourceRegistration (e.g. `billing.miloapis.com/cloud-portal-billing`).
  * A flag is enabled for an org when an AllowanceBucket exists for
  * (org, resourceType) with `status.available > 0`.
  */

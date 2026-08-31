@@ -1,7 +1,5 @@
 import type { Variables } from '../types';
 import { loadOrgUsageDashboard } from '@/modules/billing/usage.server';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createProjectService } from '@/resources/projects';
 import { Hono } from 'hono';
 
@@ -17,11 +15,6 @@ usage.get('/', async (c) => {
   const orgId = c.req.query('orgId');
   if (!orgId) {
     return c.json({ message: 'orgId is required' }, 400);
-  }
-
-  const enabled = await isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, orgId);
-  if (!enabled) {
-    return c.json({ message: 'Usage metering is not enabled for this organization' }, 404);
   }
 
   const projectsList = await createProjectService()

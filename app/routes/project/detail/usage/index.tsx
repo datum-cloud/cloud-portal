@@ -1,6 +1,4 @@
 import { UsageDashboard } from '@/features/usage';
-import { FeatureFlag } from '@/modules/feature-flags';
-import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
 import { createProjectService } from '@/resources/projects';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { type LoaderFunctionArgs, type MetaFunction, data, useLoaderData } from 'react-router';
@@ -11,10 +9,7 @@ export const handle = {
   breadcrumb: () => <span>Usage</span>,
 };
 
-/**
- * Project-scoped usage dashboard. Gated by the same
- * `UsageMeteringDashboard` flag as the org page and Observe nav item.
- */
+/** Project-scoped usage dashboard. */
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const { projectId } = params;
 
@@ -26,11 +21,6 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   const orgId = project.organizationId;
   if (!orgId) {
     throw data('Organization is required', { status: 400 });
-  }
-
-  const enabled = await isFeatureEnabled(FeatureFlag.UsageMeteringDashboard, orgId);
-  if (!enabled) {
-    throw data('Usage metering is not enabled for this organization', { status: 404 });
   }
 
   return {
