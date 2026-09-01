@@ -1,17 +1,22 @@
-import { getRegionCoordinates } from './region-coordinates';
+import { enrichActivePops } from './enrich-active-pops';
 import { ChunkErrorBoundary } from '@/components/chunk-error-boundary/chunk-error-boundary';
 import { usePrometheusLabels } from '@/modules/metrics';
 import { buildPrometheusLabelSelector } from '@/modules/metrics/utils/query-builders';
+import { usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
+import { useLocations } from '@/resources/locations';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { MapPinIcon } from 'lucide-react';
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 
 const ActivePopsMap = lazyWithRetry(
   () => import('./active-pops-map').then((m) => ({ default: m.ActivePopsMap })),
@@ -22,6 +27,8 @@ const REGION_LABEL = 'label_topology_kubernetes_io_region';
 const PROXY_METRIC = 'envoy_vhost_vcluster_upstream_rq';
 
 export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; proxyId: string }) => {
+  const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+
   const matchSelector = useMemo(() => {
     const selector = buildPrometheusLabelSelector({
       baseLabels: {
@@ -48,18 +55,34 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
     sort: (a, b) => a.label.localeCompare(b.label),
   });
 
-  const regionOptions = regionOptionsFromApi;
+  const { hasPermission: canViewLocations } = usePermission('locations', 'list', {
+    group: 'locations.miloapis.com',
+    scope: 'project',
+    projectId,
+    enabled: !!projectId,
+  });
 
-  const regionsWithCoords = useMemo(() => {
-    return regionOptions
-      .map((opt) => ({
-        ...opt,
-        coords: getRegionCoordinates(opt.value),
-      }))
-      .filter((r): r is typeof r & { coords: [number, number] } => r.coords !== null);
-  }, [regionOptions]);
+  const { data: locations = [] } = useLocations(projectId, {
+    enabled: !!projectId && canViewLocations,
+  });
 
-  // Check if proxy is still being created (Pending status)
+  const activePops = useMemo(
+    () =>
+      enrichActivePops(
+        regionOptionsFromApi.map((option) => option.value),
+        locations
+      ),
+    [regionOptionsFromApi, locations]
+  );
+
+  const regionsWithCoords = useMemo(
+    () =>
+      activePops.filter(
+        (pop): pop is typeof pop & { coords: [number, number] } => pop.coords !== null
+      ),
+    [activePops]
+  );
+
   const { data: proxy } = useHttpProxy(projectId, proxyId, {
     enabled: !!projectId && !!proxyId,
   });
@@ -70,8 +93,7 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
     return transformedStatus.status === ControlPlaneStatus.Pending;
   }, [proxy?.status]);
 
-  // Show skeleton when proxy is pending and no POPs data yet
-  const showSkeleton = isProxyPending && !isLoading && regionOptions.length === 0 && !error;
+  const showSkeleton = isProxyPending && !isLoading && activePops.length === 0 && !error;
 
   return (
     <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
@@ -93,29 +115,58 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
         )}
         {showSkeleton && <Skeleton className="h-40 w-full rounded-lg border sm:h-64" />}
         {!isLoading && !showSkeleton && !error && (
-          <ChunkErrorBoundary
-            fallback={
-              <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
-                <div className="flex flex-col items-center gap-2">
-                  <p className="text-muted-foreground text-sm">Unable to load map.</p>
-                  <Button
-                    htmlType="button"
-                    type="primary"
-                    theme="solid"
-                    size="small"
-                    onClick={() => window.location.reload()}>
-                    Reload page
-                  </Button>
-                </div>
-              </div>
-            }>
-            <Suspense
+          <>
+            <ChunkErrorBoundary
               fallback={
-                <div className="bg-muted aspect-2/1 w-full animate-pulse rounded-lg border" />
+                <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-muted-foreground text-sm">Unable to load map.</p>
+                    <Button
+                      htmlType="button"
+                      type="primary"
+                      theme="solid"
+                      size="small"
+                      onClick={() => window.location.reload()}>
+                      Reload page
+                    </Button>
+                  </div>
+                </div>
               }>
-              <ActivePopsMap regionsWithCoords={regionsWithCoords} />
-            </Suspense>
-          </ChunkErrorBoundary>
+              <Suspense
+                fallback={
+                  <div className="bg-muted aspect-[1038/591] w-full animate-pulse rounded-lg border" />
+                }>
+                <ActivePopsMap
+                  regionsWithCoords={regionsWithCoords}
+                  hoveredRegion={hoveredRegion}
+                  onHoverRegion={setHoveredRegion}
+                />
+              </Suspense>
+            </ChunkErrorBoundary>
+            {activePops.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No active POPs found.</p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {activePops.map((pop) => (
+                  <Tooltip key={pop.value} message={pop.tooltip}>
+                    <span
+                      onMouseEnter={() => setHoveredRegion(pop.value)}
+                      onMouseLeave={() => setHoveredRegion(null)}>
+                      <Badge
+                        type="quaternary"
+                        theme="outline"
+                        className={cn(
+                          'rounded-xl text-xs font-normal',
+                          hoveredRegion === pop.value && 'ring-primary/40 ring-1'
+                        )}>
+                        {pop.city}
+                      </Badge>
+                    </span>
+                  </Tooltip>
+                ))}
+              </div>
+            )}
+          </>
         )}
         {!isLoading && !showSkeleton && error && (
           <div className="bg-muted flex h-40 w-full items-center justify-center rounded-lg border sm:h-64">
