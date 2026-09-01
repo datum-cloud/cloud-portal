@@ -1,4 +1,5 @@
 import { amberfloMeterApiName } from './amberflo-meter-api-name';
+import { resolveMeterGroup } from './usage-groups';
 import { loadCatalogUsagePricing } from './usage-pricing.server';
 import { enrichMetersWithCatalogSpend } from './usage-spend';
 import type {
@@ -116,35 +117,6 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
   } catch {
     return [];
   }
-}
-
-/**
- * Reverse-DNS service domain that owns a meter, e.g.
- * `assistant.miloapis.com/conversation/input-tokens` → `assistant.miloapis.com`.
- *
- * The richer source would be the meter's first MonitoredResourceType →
- * `gvk.group`, but that catalog (`billing.miloapis.com/monitoredresourcetypes`)
- * is cluster-scoped and 403s through the end-user IAM proxy. The meter name
- * prefix resolves to the same service domain, so we derive the group from it
- * directly and avoid a guaranteed-failing round-trip.
- */
-function serviceDomainFromMeterName(meterName: string): string {
-  const slash = meterName.indexOf('/');
-  return slash > 0 ? meterName.slice(0, slash) : meterName;
-}
-
-/** `compute.miloapis.com` → `Compute`; `ai-gateway.x` → `Ai Gateway`. */
-function humanizeServiceGroup(domain: string): string {
-  const label = domain.split('.')[0] ?? domain;
-  return label
-    .replace(/[-_]+/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-    .trim();
-}
-
-function resolveMeterGroup(def: MeterDefinition): { id: string; title: string } {
-  const domain = serviceDomainFromMeterName(def.meterName);
-  return { id: domain, title: humanizeServiceGroup(domain) };
 }
 
 interface SparseClientMeter {
@@ -286,7 +258,7 @@ export async function fetchUsageForCustomerIds({
 
   return Promise.all(
     meterDefs.map(async (def): Promise<MeterSeries> => {
-      const group = resolveMeterGroup(def);
+      const group = resolveMeterGroup(def.meterName);
       const base: MeterSeries = {
         meterApiName: def.meterApiName,
         meterName: def.meterName,
