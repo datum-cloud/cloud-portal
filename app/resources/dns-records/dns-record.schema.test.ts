@@ -43,3 +43,30 @@ describe('createDnsRecordSchema TXT', () => {
     expect(parsed.txt.content.length).toBeGreaterThan(255);
   });
 });
+
+describe('createDnsRecordSchema NS', () => {
+  it('rejects NS records at the zone apex', () => {
+    const result = createDnsRecordSchema.safeParse({
+      recordType: 'NS',
+      name: '@',
+      ttl: 3600,
+      ns: { content: 'ns1.example.com' },
+    });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    const nameIssue = result.error.issues.find((issue) => issue.path.includes('name'));
+    expect(nameIssue?.message).toContain('Apex NS records are managed automatically by Datum');
+  });
+
+  it('accepts subdomain NS records for delegation', () => {
+    const parsed = createDnsRecordSchema.parse({
+      recordType: 'NS',
+      name: 'ns1',
+      ttl: 3600,
+      ns: { content: 'ns1.example.com' },
+    });
+    expect(parsed.recordType).toBe('NS');
+    if (parsed.recordType !== 'NS') return;
+    expect(parsed.name).toBe('ns1');
+  });
+});

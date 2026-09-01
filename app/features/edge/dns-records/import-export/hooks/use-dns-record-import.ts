@@ -3,6 +3,8 @@ import { readFileAsText } from '@/utils/common';
 import {
   deduplicateParsedRecords,
   ImportResult,
+  isApexName,
+  isSystemManagedDnsRecord,
   parseBindZoneFile,
   SUPPORTED_DNS_RECORD_TYPES,
   transformApexCnameToAlias,
@@ -27,7 +29,6 @@ export interface DuplicateRecordsInfo {
  * Information about apex SOA/NS records that are skipped during import.
  * These records are managed automatically by Datum and should not be imported.
  *
- * TODO: Allow advanced users to override this behavior in the future.
  * @see https://github.com/datum-cloud/cloud-portal/issues/901
  */
 export interface SkippedApexRecordsInfo {
@@ -191,36 +192,18 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
       const { records: transformedRecords, transformedIndices } =
         transformApexCnameToAlias(deduplicatedRecords);
 
-      // =======================================================================
       // Filter out apex SOA and NS records - these are managed by Datum
-      // TODO: Allow advanced users to override this behavior in the future.
       // @see https://github.com/datum-cloud/cloud-portal/issues/901
-      // =======================================================================
-      // Apex can be represented as:
-      // - '@' (standard BIND notation)
-      // - '' (empty string)
-      // - The origin domain name itself (e.g., 'example.com' when $ORIGIN example.com.)
-      const originWithoutDot = result.origin?.replace(/\.$/, '') || null;
-      const isApexRecord = (name: string) => {
-        if (name === '@' || name === '') return true;
-        if (originWithoutDot && name === originWithoutDot) return true;
-        return false;
-      };
+      const originWithoutDot = result.origin?.replace(/\.$/, '') || undefined;
 
-      // Identify skipped records BEFORE transformation for accurate reporting
-      const skippedParsedSoa = transformedRecords.filter(
-        (r) => r.type === 'SOA' && isApexRecord(r.name)
-      );
+      const skippedParsedSoa = transformedRecords.filter((r) => r.type === 'SOA');
       const skippedParsedNs = transformedRecords.filter(
-        (r) => r.type === 'NS' && isApexRecord(r.name)
+        (r) => r.type === 'NS' && isApexName(r.name, originWithoutDot)
       );
 
-      // Filter out apex SOA/NS from records to import
-      const importableRecords = transformedRecords.filter((r) => {
-        if (r.type === 'SOA' && isApexRecord(r.name)) return false;
-        if (r.type === 'NS' && isApexRecord(r.name)) return false;
-        return true;
-      });
+      const importableRecords = transformedRecords.filter(
+        (r) => !isSystemManagedDnsRecord(r, originWithoutDot)
+      );
 
       // Update transformedIndices to account for filtered records
       // (indices of transformed CNAME→ALIAS records that are still in importableRecords)
@@ -228,9 +211,7 @@ export function useDnsRecordImport({ projectId, dnsZoneId, onSuccess }: UseDnsRe
       let newIndex = 0;
       for (let i = 0; i < transformedRecords.length; i++) {
         const r = transformedRecords[i];
-        const isSkipped =
-          (r.type === 'SOA' && isApexRecord(r.name)) || (r.type === 'NS' && isApexRecord(r.name));
-        if (!isSkipped) {
+        if (!isSystemManagedDnsRecord(r, originWithoutDot)) {
           if (transformedIndices.has(i)) {
             importableIndices.add(newIndex);
           }
