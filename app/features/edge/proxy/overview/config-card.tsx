@@ -309,7 +309,7 @@ export const HttpProxyConfigCard = ({
           <div className="flex items-center gap-1.5">
             <span>Basic Authentication</span>
             <Tooltip
-              message="Restrict access to this proxy with HTTP Basic Authentication"
+              message="Restrict access to this ALB with HTTP Basic Authentication"
               side="bottom"
               contentClassName="max-w-xs text-wrap">
               <Icon

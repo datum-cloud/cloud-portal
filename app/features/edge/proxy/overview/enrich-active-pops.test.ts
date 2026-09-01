@@ -1,4 +1,4 @@
-import { enrichActivePops } from './enrich-active-pops';
+import { buildLocationDirectory, enrichActivePops } from './enrich-active-pops';
 import { getRegionCoordinates } from './region-coordinates';
 import type { Location } from '@/resources/locations';
 import { describe, expect, it } from 'bun:test';
@@ -51,5 +51,31 @@ describe('enrichActivePops', () => {
     const [pop] = enrichActivePops(['unknown-region'], []);
     expect(pop.coords).toBeNull();
     expect(pop.city).toBe('unknown-region');
+  });
+});
+
+describe('buildLocationDirectory', () => {
+  const dallas: Location = {
+    name: 'us-central-1',
+    region: 'us-central-1',
+    city: 'Dallas',
+    cityCode: 'DFW',
+    country: 'United States',
+    locationLabel: 'us-central-1',
+    coords: [32.7767, -96.797],
+  };
+
+  it('lists every catalog location and highlights those with traffic', () => {
+    const directory = buildLocationDirectory([ashburn, dallas], ['us-east-1']);
+    expect(directory.map((item) => item.city)).toEqual(['Ashburn', 'Dallas']);
+    expect(directory[0]).toMatchObject({ active: true, trafficRegion: 'us-east-1' });
+    expect(directory[1].active).toBe(false);
+  });
+
+  it('appends unmatched prometheus regions so staging traffic is not dropped', () => {
+    const directory = buildLocationDirectory([ashburn], ['us-east4']);
+    expect(directory).toHaveLength(2);
+    expect(directory[0]).toMatchObject({ value: 'us-east4', active: true });
+    expect(directory[1]).toMatchObject({ city: 'Ashburn', active: false });
   });
 });

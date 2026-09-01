@@ -6,16 +6,15 @@ export type ActivePopMarker = {
   city: string;
   subtitle: string;
   coords: [number, number];
+  active?: boolean;
 };
 
-const ActivePopsFlatMap = lazyWithRetry(
-  () => import('./active-pops-flat-map').then((m) => ({ default: m.ActivePopsFlatMap })),
-  'active-pops-flat-map'
+const ActivePopsGlobe = lazyWithRetry(
+  () => import('./active-pops-globe').then((m) => ({ default: m.ActivePopsGlobe })),
+  'active-pops-globe'
 );
 
-const Fallback = () => (
-  <div className="bg-muted aspect-[1038/591] w-full animate-pulse rounded-lg border" />
-);
+const Fallback = () => <div className="size-full" />;
 
 export const ActivePopsMap = ({
   regionsWithCoords,
@@ -28,7 +27,7 @@ export const ActivePopsMap = ({
 }) => {
   return (
     <Suspense fallback={<Fallback />}>
-      <ActivePopsFlatMap
+      <ActivePopsGlobe
         regionsWithCoords={regionsWithCoords}
         hoveredRegion={hoveredRegion}
         onHoverRegion={onHoverRegion}

@@ -49,7 +49,6 @@ function stubServerModulesForCypress(): Plugin {
 
 export default defineConfig(async (config): Promise<UserConfig> => {
   const isCypress = !!process.env.CYPRESS;
-  const isProduction = process.env.NODE_ENV === 'production';
   const aliases: { [key: string]: string } = {
     '@': resolve(import.meta.dirname, './app'),
   };
@@ -91,6 +90,7 @@ export default defineConfig(async (config): Promise<UserConfig> => {
         'recharts',
         'class-variance-authority',
         'd3-geo',
+        'cobe',
         'nuqs',
         'motion/react',
       ],
