@@ -85,7 +85,7 @@
     "i18n-iso-countries": "^7.14.0",
     "ioredis": "^6.0.0",
     "isbot": "^5.2.1",
-    "isomorphic-dompurify": "^3.22.0",
+    "isomorphic-dompurify": "^4.0.0",
     "js-yaml": "^5.2.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.33.0",
