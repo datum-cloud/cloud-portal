@@ -45,7 +45,7 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { BadRequestError } from '@/utils/errors';
-import { getRecordHostname } from '@/utils/helpers/dns';
+import { getRecordHostname, isApexName, isSystemManagedDnsRecord } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
 import {
@@ -177,26 +177,35 @@ export default function DnsRecordsPage() {
 
   const zoneDomain = dnsZone?.domainName ?? '';
   const enrichedRecords = useMemo((): IFlattenedDnsRecord[] => {
-    return dnsRecords.map((record) => {
-      const hostname = getRecordHostname(record.name ?? '', zoneDomain);
-      // Match by hostname AND origin so the correct proxy is shown when multiple proxies use the same hostname.
-      const matchingProxy = findProxyForRecord(proxies, record, hostname, (r) =>
-        isEligibleForProtect(r.type)
-      );
-      const hasProxyForThisRecord = !!matchingProxy && !record.managedByGateway;
-      const linkedProxyId = matchingProxy?.name;
-      const lockReason = record.managedByGateway
-        ? 'Managed by Application Load Balancer'
-        : hasProxyForThisRecord
-          ? 'Protected by Application Load Balancer'
-          : undefined;
-      return {
-        ...record,
-        hasProxyForThisRecord,
-        linkedProxyId,
-        lockReason,
-      };
-    });
+    // Apex NS lives on the Nameservers tab. SOA stays here (locked) — it has
+    // no other surface. Subdomain NS for delegation still appear.
+    return dnsRecords
+      .filter((record) => !(record.type === 'NS' && isApexName(record.name, zoneDomain)))
+      .map((record) => {
+        const hostname = getRecordHostname(record.name ?? '', zoneDomain);
+        // Match by hostname AND origin so the correct proxy is shown when multiple proxies use the same hostname.
+        const matchingProxy = findProxyForRecord(proxies, record, hostname, (r) =>
+          isEligibleForProtect(r.type)
+        );
+        const hasProxyForThisRecord = !!matchingProxy && !record.managedByGateway;
+        const linkedProxyId = matchingProxy?.name;
+
+        let lockReason: string | undefined;
+        if (isSystemManagedDnsRecord(record, zoneDomain)) {
+          lockReason = 'Managed automatically by Datum';
+        } else if (record.managedByGateway) {
+          lockReason = 'Managed by Application Load Balancer';
+        } else if (hasProxyForThisRecord) {
+          lockReason = 'Protected by Application Load Balancer';
+        }
+
+        return {
+          ...record,
+          hasProxyForThisRecord,
+          linkedProxyId,
+          lockReason,
+        };
+      });
   }, [dnsRecords, zoneDomain, proxies]);
 
   const dnsRecordModalFormRef = useRef<DnsRecordModalFormRef>(null);
@@ -215,6 +224,7 @@ export default function DnsRecordsPage() {
   };
 
   const handleOpenEdit = (record: IFlattenedDnsRecord) => {
+    if (isRowLocked(record)) return;
     setInlinePosition('row');
     // Must match DnsRecordTable's `getRowId` so only the clicked row
     // (not every row sharing a recordSetName) anchors the inline panel.
@@ -223,6 +233,7 @@ export default function DnsRecordsPage() {
   };
 
   const handleOpenEditMobile = (record: IFlattenedDnsRecord) => {
+    if (isRowLocked(record)) return;
     dnsRecordModalFormRef.current?.show('edit', record);
   };
 
@@ -459,8 +470,6 @@ export default function DnsRecordsPage() {
       variant: 'destructive',
       onClick: (record) => handleDelete(record),
       hidden: (record) => !canDeleteRecord || record.type === 'SOA',
-      disabled: (record) => isRowLocked(record),
-      tooltip: (record) => record.lockReason ?? '',
     },
   ];
 
