@@ -112,7 +112,7 @@
     "tegaki": "^0.22.1",
     "tslib": "^2.8.1",
     "urql": "^5.0.3",
-    "zod": "4.4.3"
+    "zod": "4.5.4"
   },
   "devDependencies": {
     "@eslint/compat": "^2.1.0",
