@@ -1,9 +1,20 @@
 import {
+  catalogServiceDisplayName,
   resolveResourceDisplayName,
   resolveServiceDisplayName,
   OTHER_GROUP,
 } from './service-catalog';
 import { describe, expect, it } from 'bun:test';
+
+describe('catalogServiceDisplayName', () => {
+  it('returns the catalog title for DNS', () => {
+    expect(catalogServiceDisplayName('dns.networking.miloapis.com')).toBe('DNS');
+  });
+
+  it('returns undefined when the service is not in the map', () => {
+    expect(catalogServiceDisplayName('assistant.miloapis.com')).toBeUndefined();
+  });
+});
 
 describe('resolveServiceDisplayName', () => {
   it('uses the owner reference when present', () => {

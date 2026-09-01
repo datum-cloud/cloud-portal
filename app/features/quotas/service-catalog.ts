@@ -60,6 +60,14 @@ const RESOURCE_TYPE_BRIDGE: Record<string, string> = {
 };
 
 /**
+ * Display name for a reverse-DNS service domain from the catalog map.
+ * Undefined when the service is not registered here yet.
+ */
+export function catalogServiceDisplayName(serviceName: string): string | undefined {
+  return SERVICE_DISPLAY_NAMES[serviceName];
+}
+
+/**
  * Resolve a quota's group display name. Prefers the server-authored owner
  * reference, then the interim resourceType bridge, then the Other group.
  */
