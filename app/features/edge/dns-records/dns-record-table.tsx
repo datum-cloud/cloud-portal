@@ -10,7 +10,11 @@ import {
   createActionsColumn,
   tagFilterParser,
 } from '@/components/table';
-import { IFlattenedDnsRecord, type SupportedDnsRecordType } from '@/resources/dns-records';
+import {
+  IFlattenedDnsRecord,
+  dnsRecordKeys,
+  type SupportedDnsRecordType,
+} from '@/resources/dns-records';
 import { getDnsRecordTypePriority } from '@/utils/helpers/dns';
 import { formatTTL } from '@/utils/helpers/dns-record.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -426,6 +430,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     <Table.Client
       columns={columns}
       data={data}
+      liveUpdates={{ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) }}
       loading={loading}
       className={className}
       // Match the id shape used by the parent for `inlineRowId` so

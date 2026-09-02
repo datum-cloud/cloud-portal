@@ -1,13 +1,17 @@
+import { liveUpdatesStore, selectPausedCount } from '@/modules/watch';
 import { useProjectContext } from '@/providers/project.provider';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
+import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { BookOpen, Brain, PlayIcon, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Activity, Suspense, useRef, useState } from 'react';
+import { useSyncExternalStoreWithSelector } from 'use-sync-external-store/shim/with-selector';
 
 const AssistantWorkspace = lazyWithRetry(() =>
   import('@/features/assistant').then((m) => ({ default: m.AssistantWorkspace }))
@@ -51,6 +55,90 @@ function ToolbarButton({ panel, icon: icon, label, isActive, onClick }: ToolbarB
         )}>
         <Icon icon={icon} className="text-icon-header size-4" />
       </Button>
+    </Tooltip>
+  );
+}
+
+/**
+ * A resume-all-tables control, not a panel toggle — so it is a sibling of
+ * `ToolbarButton` rather than a variant of it. It reads `pausedCount`
+ * across every project and zone, not just the one currently on screen: a
+ * reader can pause a table, navigate away, and forget about it, and this is
+ * the one place a stray pause elsewhere in the session surfaces again.
+ *
+ * Always renders, including at zero paused tables — otherwise there is
+ * nowhere a reader can tell live updates exist as a concept at all. It is
+ * only ENABLED once `pausedCount > 0`; at zero it is a muted, passive
+ * indicator rather than a dead button, and its tooltip/`aria-label` say so
+ * explicitly (`Live updates — no tables paused`) rather than staying silent
+ * until there is something to act on.
+ *
+ * The disabled state is applied to the inner `Button` (a real `disabled`
+ * attribute, not just a visual treatment — the control genuinely does
+ * nothing at zero), but the `Tooltip` wraps an outer `<span aria-disabled>`
+ * instead of the button directly. A `disabled` native button suppresses
+ * pointer events entirely, so Radix's tooltip trigger would never see the
+ * hover and the zero-state copy would be unreachable — same pattern as
+ * `QuotaGuard`.
+ *
+ * Exported (unlike `ToolbarButton`) so the cypress component suite can mount
+ * it directly, without pulling in `ProjectBottomBar`'s project-context and
+ * lazy-loaded assistant-panel dependencies.
+ */
+export function LiveUpdatesResumeAllControl() {
+  const queryClient = useQueryClient();
+
+  const pausedCount = useSyncExternalStoreWithSelector(
+    liveUpdatesStore.subscribe,
+    liveUpdatesStore.getSnapshot,
+    liveUpdatesStore.getServerSnapshot,
+    selectPausedCount
+  );
+
+  const isActive = pausedCount > 0;
+  const displayCount = pausedCount > 99 ? '99+' : pausedCount;
+  const label = isActive
+    ? `Live updates — ${pausedCount} ${pausedCount === 1 ? 'table' : 'tables'} paused, click to resume all`
+    : 'Live updates — no tables paused';
+
+  const handleResumeAll = () => {
+    // The store can tell us which paused keys currently have a table
+    // mounted for them — those are the only ones with on-screen data to
+    // catch up — but it has no QueryClient of its own to invalidate them
+    // with, so that half happens here.
+    const keysToCatchUp = liveUpdatesStore.resumeAll();
+    for (const key of keysToCatchUp) {
+      queryClient.invalidateQueries({ queryKey: [...key] });
+    }
+  };
+
+  return (
+    <Tooltip message={label} side="top">
+      <span
+        aria-disabled={!isActive}
+        className={cn('inline-block rounded-lg', !isActive && '[&>*]:pointer-events-none')}>
+        <Button
+          data-e2e="live-updates-resume-all"
+          htmlType="button"
+          type="quaternary"
+          theme="borderless"
+          size="small"
+          disabled={!isActive}
+          onClick={handleResumeAll}
+          aria-label={label}
+          className="hover:bg-sidebar-accent relative h-7 w-7 rounded-lg p-0">
+          <Icon icon={PlayIcon} className="text-icon-header size-4" />
+          {isActive && (
+            <Badge
+              data-testid="live-updates-resume-all-badge"
+              type="tertiary"
+              theme="solid"
+              className="bg-primary text-primary-foreground text-2xs absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full p-0 leading-0">
+              {displayCount}
+            </Badge>
+          )}
+        </Button>
+      </span>
     </Tooltip>
   );
 }
@@ -207,6 +295,7 @@ export function ProjectBottomBar() {
             isActive={activePanel === 'docs'}
             onClick={handlePanelToggle}
           />
+          <LiveUpdatesResumeAllControl />
         </div>
       </div>
     </div>
