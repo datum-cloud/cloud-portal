@@ -113,6 +113,7 @@
     "tegaki": "^0.22.1",
     "tslib": "^2.8.1",
     "urql": "^5.0.3",
+    "use-sync-external-store": "^1.6.0",
     "zod": "4.4.3"
   },
   "devDependencies": {
@@ -140,6 +141,7 @@
     "@types/react-dom": "^19.2.4",
     "@types/topojson-client": "^3.1.5",
     "@types/topojson-specification": "^1.0.5",
+    "@types/use-sync-external-store": "^0.0.6",
     "@typescript-eslint/eslint-plugin": "^8.67.0",
     "@typescript-eslint/parser": "^8.67.0",
     "@vitejs/plugin-react": "^6.1.0",

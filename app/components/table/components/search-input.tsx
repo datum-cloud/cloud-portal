@@ -19,6 +19,16 @@ export interface TableSearchProps {
  * controlled, so it can drive any table's search (e.g. datum-ui's
  * `GroupedTable` controlled `search`/`onSearchChange`, with its built-in
  * toolbar disabled via `enableSearch={false}`).
+ *
+ * Sizing contract: the wrapper below is `w-full min-w-full flex-1` —
+ * deliberately claims 100% of whatever row it's placed in, matching
+ * `TableSearchInput`'s identical wrapper. That's only safe when this is the
+ * sole flex child of its row. If a caller ever places trailing content
+ * beside it in the same flex row (a filter chip, a control, etc.), that
+ * parent container needs `flex-wrap` so the trailing content drops to its
+ * own line below `sm:` instead of overflowing — see `TableToolbarTools` in
+ * `./toolbar.tsx` for the reference pattern (search + the live-updates
+ * toggle/chip).
  */
 export function TableSearch({
   value,

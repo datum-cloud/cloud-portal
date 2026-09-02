@@ -21,6 +21,11 @@ interface TableToolbarProps<TData extends RowData> {
   search?: string | true;
   filters?: ReactNode[];
   actions?: ReactNode | ReactNode[];
+  /**
+   * Rendered in the left group, immediately after the search input — e.g.
+   * the live-updates control (the toggle plus its catch-up chip).
+   */
+  searchTrailing?: ReactNode;
   multiActions?: MultiAction<TData>[];
   headerExtra?: ReactNode;
 }
@@ -45,6 +50,7 @@ export function TableToolbar<TData extends RowData>({
   search,
   filters,
   actions,
+  searchTrailing,
   multiActions,
   headerExtra,
 }: TableToolbarProps<TData>) {
@@ -65,6 +71,7 @@ export function TableToolbar<TData extends RowData>({
         search={search}
         filters={filters}
         actions={actions}
+        searchTrailing={searchTrailing}
         multiActions={multiActions}
       />
     </div>
@@ -83,6 +90,7 @@ function TableToolbarTools<TData extends RowData>({
   search,
   filters,
   actions,
+  searchTrailing,
   multiActions,
 }: Omit<TableToolbarProps<TData>, 'title' | 'description'>) {
   const isStandaloneEmpty = useIsStandaloneEmpty();
@@ -94,7 +102,7 @@ function TableToolbarTools<TData extends RowData>({
 
   const actionsArray = Array.isArray(actions) ? actions : actions ? [actions] : undefined;
 
-  const hasLeft = searchPlaceholder !== undefined;
+  const hasLeft = searchPlaceholder !== undefined || !!searchTrailing;
   const hasRight = !!(
     (filters && filters.length) ||
     (actionsArray && actionsArray.length) ||
@@ -107,7 +115,8 @@ function TableToolbarTools<TData extends RowData>({
   if (isInitialLoading) {
     return (
       <SkeletonTools
-        hasSearch={hasLeft}
+        hasSearch={searchPlaceholder !== undefined}
+        hasSearchTrailing={!!searchTrailing}
         hasFilters={!!filters?.length}
         actionCount={actionsArray?.length ?? 0}
       />
@@ -116,8 +125,24 @@ function TableToolbarTools<TData extends RowData>({
 
   return (
     <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-      <div className="flex w-full min-w-0 flex-1 items-center gap-3 sm:w-auto">
-        {hasLeft && <TableSearchInput placeholder={searchPlaceholder!} />}
+      {/*
+        `flex-wrap` — search's `min-w-full` (below) means it always claims
+        100% of THIS row's width, by design (see TableSearchInput). That's
+        exactly right when search is alone here, but once `searchTrailing`
+        (the live-updates toggle + catch-up chip) shares the row, "100% for
+        search" plus any width for the trailing controls no longer fits on
+        one line below `sm:`. Rather than shrinking search to squeeze
+        everything into one line — which starts clipping the placeholder
+        long before the controls are usably small — let the row wrap:
+        search keeps its full-width line, and the trailing controls drop to
+        a second line beneath it. Safe to leave unconditional (not gated to
+        below `sm:`) — from `sm:` up, search's own max-width/min-width rules
+        keep this row well within the available width, so wrapping never
+        engages there; it's a no-op safety net, not a second layout.
+      */}
+      <div className="flex w-full min-w-0 flex-1 flex-wrap items-center gap-3 sm:w-auto">
+        {searchPlaceholder !== undefined && <TableSearchInput placeholder={searchPlaceholder} />}
+        {searchTrailing}
       </div>
       {hasRight && (
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
@@ -160,28 +185,36 @@ function TableToolbarTools<TData extends RowData>({
  * shift when content materialises.
  *
  * - Search: fixed skeleton matching the real InputWithAddons dimensions.
+ * - Search-trailing: one `h-9` pill after the search skeleton — matches the
+ *   live-updates control's slot so the left group doesn't shift width once
+ *   the real control mounts.
  * - Filters: always 2 pills when the consumer passed any `filters` — gives
  *   a stable "chips" look without needing to match real filter count.
  * - Actions: one `h-9` pill per real action slot so the right side keeps
  *   its width (user asked for matching widths).
  *
- * All three sections skip rendering when the consumer didn't pass that
- * slot, matching the real-toolbar "hide if not passed" rule.
+ * All sections skip rendering when the consumer didn't pass that slot,
+ * matching the real-toolbar "hide if not passed" rule.
  */
 function SkeletonTools({
   hasSearch,
+  hasSearchTrailing,
   hasFilters,
   actionCount,
 }: {
   hasSearch: boolean;
+  hasSearchTrailing: boolean;
   hasFilters: boolean;
   actionCount: number;
 }) {
   return (
     <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-      {hasSearch && (
-        <div className="flex w-full min-w-0 flex-1 items-center gap-3 sm:w-auto">
-          <Skeleton className="h-9 w-full rounded-md sm:max-w-3xs md:min-w-80" />
+      {(hasSearch || hasSearchTrailing) && (
+        <div className="flex w-full min-w-0 flex-1 flex-wrap items-center gap-3 sm:w-auto">
+          {hasSearch && (
+            <Skeleton className="h-9 w-full min-w-full rounded-md sm:max-w-3xs md:min-w-80" />
+          )}
+          {hasSearchTrailing && <Skeleton className="h-9 w-20 shrink-0 rounded-md" />}
         </div>
       )}
       {(hasFilters || actionCount > 0) && (

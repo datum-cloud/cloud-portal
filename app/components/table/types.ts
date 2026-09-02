@@ -197,10 +197,29 @@ export type TableSharedProps<TData extends RowData> = {
   className?: string;
 };
 
+/**
+ * Opt a watched table into the live-updates controls. Pass the query key the
+ * table's data comes from — the catch-up chip counts updates held for that
+ * key and refreshes it, and the toolbar toggle pauses and resumes them.
+ *
+ * Omit on tables with no watch: a live-updates toggle on a static table is
+ * noise.
+ */
+export type LiveUpdatesConfig = {
+  queryKey: readonly unknown[];
+};
+
 /** Props for Table.Client. */
 export type TableClientProps<TData extends RowData> = TableSharedProps<TData> & {
   data: TData[];
   inline?: InlineContentConfig<TData>;
+  /**
+   * Client-only. Table.Server renders neither the toggle nor the chip, and
+   * the watch layer would silently hold that table's updates with no way to
+   * see or undo it — so the type system rejects it there rather than
+   * accepting a prop that does nothing.
+   */
+  liveUpdates?: LiveUpdatesConfig;
   /**
    * When true, the table renders a skeleton layout for toolbar, column
    * headers and body rows instead of the normal content. Skeleton is shown

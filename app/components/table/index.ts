@@ -17,6 +17,7 @@ export type {
   RowData,
   EmptyContentConfig,
   InlineContentConfig,
+  LiveUpdatesConfig,
   MultiAction,
   RowAction,
   ServerFetchArgs,
