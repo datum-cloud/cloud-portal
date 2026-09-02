@@ -82,6 +82,18 @@ export function useLiveUpdates(queryKey: readonly unknown[]) {
 
 const SCOPE_NOTE = 'this table only';
 
+/**
+ * Said only while paused, because only then is it true — and it is the one
+ * thing about pausing that surprises people.
+ *
+ * Saving a record writes it to the cache and refetches the list, and the
+ * refetch is the whole list: it brings everyone else's changes in with
+ * yours. So a paused table does move when you edit it. Holding your own
+ * write back instead would be worse — you would save a record and not see
+ * it — so the honest fix is to say what happens rather than change it.
+ */
+const EDIT_NOTE = 'Your own edits still apply, and bring in other changes with them.';
+
 interface LiveUpdatesToggleProps {
   queryKey: readonly unknown[];
 }
@@ -111,7 +123,7 @@ export function LiveUpdatesToggle({ queryKey }: LiveUpdatesToggleProps) {
   const { isPaused, pause, resume } = useLiveUpdates(queryKey);
 
   const label = isPaused
-    ? `Resume live updates — ${SCOPE_NOTE}`
+    ? `Resume live updates — ${SCOPE_NOTE}. ${EDIT_NOTE}`
     : `Pause live updates — ${SCOPE_NOTE}`;
 
   return (

@@ -194,6 +194,22 @@ describe('LiveUpdatesControls', () => {
       .and('contain', 'this table only');
   });
 
+  it('warns, only while paused, that your own edits still come through', () => {
+    // Saving a record refetches the whole list, so a paused table DOES move
+    // when you edit it. The caveat belongs to the paused state alone: while
+    // live it is not a caveat, it is just what live means.
+    cy.mount(withQueryClient(new QueryClient(), <LiveUpdatesToggle queryKey={KEY} />));
+    cy.get('[data-e2e="live-updates-toggle"]')
+      .should('have.attr', 'aria-label')
+      .and('not.contain', 'Your own edits');
+
+    cy.get('[data-e2e="live-updates-toggle"]').click();
+
+    cy.get('[data-e2e="live-updates-toggle"]')
+      .should('have.attr', 'aria-label')
+      .and('contain', 'Your own edits still apply');
+  });
+
   it('toggle shows a short state label alongside the icon', () => {
     cy.mount(withQueryClient(new QueryClient(), <LiveUpdatesToggle queryKey={KEY} />));
     cy.get('[data-e2e="live-updates-toggle"]').should('contain.text', 'Live');
