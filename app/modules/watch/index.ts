@@ -5,3 +5,4 @@ export * from './watch.parser';
 export * from './watch.manager';
 export * from './watch.context';
 export * from './use-resource-watch';
+export * from './live-updates.store';
