@@ -731,3 +731,72 @@ describe('selectLiveUpdatesSlice / liveUpdatesSliceEquality (per-key selector is
     expect(liveUpdatesSliceEquality(beforeOther, afterOther)).toBe(true);
   });
 });
+
+/**
+ * The tally answers "how many things are waiting for me", so it counts
+ * RESOURCES. One write emits an ADDED and then the MODIFIEDs that fill in
+ * its status; reporting that as three updates told the reader three records
+ * had changed when one had.
+ */
+describe('liveUpdatesStore gate counts resources, not events', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    liveUpdatesStore.__resetForTests();
+    mountControls(KEY, OTHER);
+  });
+
+  it('counts the several events of one write as a single update', () => {
+    liveUpdatesStore.pause(KEY);
+    liveUpdatesStore.gate(KEY, 'uid-a'); // ADDED
+    liveUpdatesStore.gate(KEY, 'uid-a'); // MODIFIED (status)
+    liveUpdatesStore.gate(KEY, 'uid-a'); // MODIFIED (status)
+    expect(liveUpdatesStore.pendingFor(KEY)).toBe(1);
+  });
+
+  it('counts distinct resources separately', () => {
+    liveUpdatesStore.pause(KEY);
+    liveUpdatesStore.gate(KEY, 'uid-a');
+    liveUpdatesStore.gate(KEY, 'uid-b');
+    liveUpdatesStore.gate(KEY, 'uid-a');
+    expect(liveUpdatesStore.pendingFor(KEY)).toBe(2);
+  });
+
+  it('still HOLDS a repeat event, even though it does not raise the count', () => {
+    // Deduping the count must never let the update through: the second
+    // event for a resource is still someone else's change arriving while
+    // this table is paused.
+    liveUpdatesStore.pause(KEY);
+    expect(liveUpdatesStore.gate(KEY, 'uid-a')).toBe(false);
+    expect(liveUpdatesStore.gate(KEY, 'uid-a')).toBe(false);
+  });
+
+  it('counts each unidentified event on its own', () => {
+    // No identity to collapse on — over-counting is the safe direction,
+    // since under-counting would hide that there is anything to catch up.
+    liveUpdatesStore.pause(KEY);
+    liveUpdatesStore.gate(KEY);
+    liveUpdatesStore.gate(KEY);
+    expect(liveUpdatesStore.pendingFor(KEY)).toBe(2);
+  });
+
+  it('keeps identities separate per query key', () => {
+    liveUpdatesStore.pause(KEY);
+    liveUpdatesStore.pause(OTHER);
+    liveUpdatesStore.gate(KEY, 'uid-a');
+    liveUpdatesStore.gate(OTHER, 'uid-a');
+    expect(liveUpdatesStore.pendingFor(KEY)).toBe(1);
+    expect(liveUpdatesStore.pendingFor(OTHER)).toBe(1);
+  });
+
+  it('does not notify subscribers for a resource already held', () => {
+    liveUpdatesStore.pause(KEY);
+    liveUpdatesStore.gate(KEY, 'uid-a');
+    let notifications = 0;
+    const unsubscribe = liveUpdatesStore.subscribe(() => {
+      notifications += 1;
+    });
+    liveUpdatesStore.gate(KEY, 'uid-a');
+    unsubscribe();
+    expect(notifications).toBe(0);
+  });
+});

@@ -34,9 +34,25 @@ export const LIVE_UPDATES_STORAGE_KEY = 'datum-cloud-liveUpdates-paused';
 // group it picks from.
 const MAX_PAUSED_KEYS = 50;
 
+// Distinguishes events whose caller could not identify the resource, so they
+// each occupy their own slot in a pending set instead of collapsing into one.
+// The leading space keeps these tokens out of the namespace of real
+// identities: a Kubernetes object name cannot contain whitespace.
+let anonEventSeq = 0;
+
 interface LiveUpdatesSnapshot {
   readonly paused: ReadonlySet<string>;
-  readonly pending: ReadonlyMap<string, number>;
+  /**
+   * Held updates per query key, as the SET of resource identities behind
+   * them rather than a raw event count.
+   *
+   * One write to one resource emits several watch events — an ADDED
+   * followed by the MODIFIEDs that fill in its status — so counting events
+   * told the reader three records had changed when one had. The set
+   * collapses them: `selectPending` reports its size, so "3 updates" means
+   * three resources, whatever number of events carried them.
+   */
+  readonly pending: ReadonlyMap<string, ReadonlySet<string>>;
 }
 
 const SERVER_SNAPSHOT: LiveUpdatesSnapshot = {
@@ -176,7 +192,7 @@ export function selectPending(
   queryKey: readonly unknown[],
   hash: string = hashKey(queryKey)
 ): number {
-  return snapshot.pending.get(hash) ?? 0;
+  return snapshot.pending.get(hash)?.size ?? 0;
 }
 
 /**
@@ -405,10 +421,17 @@ function createLiveUpdatesStore() {
      * Should the caller apply this update now?
      *
      * Returns true while nothing is paused, and true for any query key with
-     * no registered control. Otherwise records the suppressed event against
+     * no registered control. Otherwise records the held resource against
      * the query key and returns false.
+     *
+     * `identity` names the RESOURCE the event is about, so that the several
+     * events one write produces count once. Callers that cannot identify
+     * the resource omit it and each event counts on its own — the old
+     * behaviour, and still the safe direction to err in: over-counting
+     * tells the reader there is something to catch up on, under-counting
+     * would hide it.
      */
-    gate: (queryKey: readonly unknown[]): boolean => {
+    gate: (queryKey: readonly unknown[], identity?: string): boolean => {
       // The overwhelmingly common case — nothing paused at all — is checked
       // before hashing, so a live watch event never pays for a
       // `JSON.stringify` of queryKey just to learn that no key is held.
@@ -418,8 +441,14 @@ function createLiveUpdatesStore() {
       // control can show or undo the hold, so holding it would be
       // invisible.
       if (!isHeldForHash(hash)) return true;
+      const held = snapshot.pending.get(hash);
+      // An unidentified event gets a token of its own so it still counts;
+      // an identified one that is already held is a repeat of a resource
+      // the tally has, and must not move the count or the snapshot.
+      const token = identity ?? ` anon:${anonEventSeq++}`;
+      if (held?.has(token)) return false;
       const pending = new Map(snapshot.pending);
-      pending.set(hash, (pending.get(hash) ?? 0) + 1);
+      pending.set(hash, new Set(held).add(token));
       setSnapshot({ ...snapshot, pending });
       return false;
     },
