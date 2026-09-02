@@ -11,9 +11,11 @@
 // tested directly instead.
 import {
   classifyWatchEvent,
+  isCatchUpFetch,
   isWithinReplayWindow,
   nextReplayAnchor,
   planWatchEvent,
+  watchEventIdentity,
 } from './use-resource-watch';
 import type { WatchEventType } from './watch.types';
 import { describe, expect, it } from 'bun:test';
@@ -235,5 +237,67 @@ describe('planWatchEvent keeps the mount clock and the replay clock apart', () =
       now: RETURN,
     });
     expect(plan.replayAnchor).toBe(MOUNT);
+  });
+});
+
+describe('watchEventIdentity', () => {
+  it('prefers uid, which is unique and stable for the object lifetime', () => {
+    expect(watchEventIdentity({ metadata: { uid: 'u-1', name: 'rec', namespace: 'ns' } })).toBe(
+      'u-1'
+    );
+  });
+
+  it('falls back to namespace/name when uid is absent', () => {
+    expect(watchEventIdentity({ metadata: { name: 'rec', namespace: 'ns' } })).toBe('ns/rec');
+  });
+
+  it('uses a bare name when there is no namespace', () => {
+    expect(watchEventIdentity({ metadata: { name: 'rec' } })).toBe('rec');
+  });
+
+  it('returns undefined when the event identifies nothing', () => {
+    // The tally then counts this event on its own rather than risk
+    // collapsing it into an unrelated resource.
+    expect(watchEventIdentity({})).toBeUndefined();
+    expect(watchEventIdentity(undefined)).toBeUndefined();
+    expect(watchEventIdentity({ metadata: {} })).toBeUndefined();
+    expect(watchEventIdentity({ metadata: { uid: '', name: '' } })).toBeUndefined();
+  });
+});
+
+/**
+ * A completed fetch is the catch-up; a cache write is not. Getting this
+ * wrong in either direction is a bug the reader sees: too loose and a
+ * mutation writing its own row silently clears updates it never showed
+ * them, too tight and the count outlives the data it describes.
+ */
+describe('isCatchUpFetch', () => {
+  const HASH = 'target-hash';
+  const fetched = { type: 'updated', action: { type: 'success' }, query: { queryHash: HASH } };
+
+  it('accepts a completed fetch of the watched query', () => {
+    expect(isCatchUpFetch(fetched, HASH)).toBe(true);
+  });
+
+  it('rejects a setQueryData write, which is not a catch-up', () => {
+    expect(
+      isCatchUpFetch(
+        { type: 'updated', action: { type: 'setState' }, query: { queryHash: HASH } },
+        HASH
+      )
+    ).toBe(false);
+  });
+
+  it('rejects a fetch of a different query', () => {
+    expect(isCatchUpFetch({ ...fetched, query: { queryHash: 'other' } }, HASH)).toBe(false);
+  });
+
+  it('rejects non-update cache events', () => {
+    expect(isCatchUpFetch({ ...fetched, type: 'added' }, HASH)).toBe(false);
+    expect(isCatchUpFetch({ ...fetched, type: 'removed' }, HASH)).toBe(false);
+  });
+
+  it('rejects an event with no action or query', () => {
+    expect(isCatchUpFetch({ type: 'updated' }, HASH)).toBe(false);
   });
 });

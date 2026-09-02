@@ -2,7 +2,7 @@
 import { liveUpdatesStore } from './live-updates.store';
 import { watchManager } from './watch.manager';
 import type { WatchEvent, WatchEventType, UseResourceWatchOptions } from './watch.types';
-import { useQueryClient } from '@tanstack/react-query';
+import { hashKey, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 
 // Default configuration values
@@ -137,6 +137,48 @@ export function classifyWatchEvent(args: {
 }
 
 /**
+ * Is this query-cache event a completed fetch of `targetHash`?
+ *
+ * Narrow on purpose. Only a finished fetch means the reader now has server
+ * truth and nothing is still held; `setQueryData` — a mutation writing its
+ * own row, or this hook patching one in place — reports `setState` and must
+ * not clear the tally, because writing one row is not seeing every change.
+ *
+ * Pure and exported so the discrimination is unit-tested directly rather
+ * than only through a subscription inside an effect.
+ */
+export function isCatchUpFetch(
+  event: { type: string; action?: unknown; query?: { queryHash?: string } },
+  targetHash: string
+): boolean {
+  if (event.type !== 'updated') return false;
+  if ((event.action as { type?: string } | undefined)?.type !== 'success') return false;
+  return event.query?.queryHash === targetHash;
+}
+
+/**
+ * Which resource a watch event is about, for the held-updates tally.
+ *
+ * Prefers `uid`, which is stable for the life of the object and unique
+ * across the cluster, and falls back to `namespace/name` for the shapes
+ * that omit it. Returns undefined when the event carries neither, leaving
+ * the caller to count that event on its own rather than mis-attribute it
+ * to another resource.
+ */
+export function watchEventIdentity(object: unknown): string | undefined {
+  const metadata = (object as { metadata?: { uid?: unknown; name?: unknown; namespace?: unknown } })
+    ?.metadata;
+  if (!metadata) return undefined;
+  if (typeof metadata.uid === 'string' && metadata.uid) return metadata.uid;
+  if (typeof metadata.name === 'string' && metadata.name) {
+    return typeof metadata.namespace === 'string' && metadata.namespace
+      ? `${metadata.namespace}/${metadata.name}`
+      : metadata.name;
+  }
+  return undefined;
+}
+
+/**
  * Hook to subscribe to K8s Watch API and update React Query cache.
  *
  * @example
@@ -238,6 +280,31 @@ export function useResourceWatch<T>({
     };
   }, []);
 
+  // A successful fetch of this query IS the catch-up: the table now renders
+  // server truth, so nothing is still waiting and the tally must go to zero.
+  //
+  // Without this the count outlived the data it described. Your own create
+  // writes the row and then invalidates the list, so the table was already
+  // current while the watch echoes of that same write — which arrive after
+  // the refetch — sat in the tally as "3 updates" that did nothing when
+  // clicked. The same refetch also pulls in anyone else's changes, so a
+  // count of what you have not seen is exactly zero afterwards, whoever
+  // caused the fetch.
+  //
+  // Keyed on `success`, which only a completed fetch produces. `setQueryData`
+  // — used by mutations for their own row and by the in-place watch patching
+  // below — reports `setState` instead and must NOT clear the tally: writing
+  // one row is not seeing every held change.
+  useEffect(() => {
+    const targetHash = hashKey(queryKey);
+    return queryClient.getQueryCache().subscribe((event) => {
+      if (!isCatchUpFetch(event, targetHash)) return;
+      liveUpdatesStore.clearPending(queryKeyRef.current);
+    });
+    // `queryKey` is compared by hash, so a caller passing a fresh array
+    // literal each render does not resubscribe.
+  }, [queryClient, hashKey(queryKey)]);
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -281,12 +348,17 @@ export function useResourceWatch<T>({
         // Call custom event handler if provided
         onEventRef.current?.(transformedEvent);
 
-        // Paused: hold other people's updates and tally them for the banner.
-        // One gate call per event — the tally must count events, not the
-        // debounced refetches they collapse into. Never gates mutations,
-        // which write to the cache directly and bypass this callback
-        // entirely, so your own writes always appear.
-        if (disposition === 'gated' && !liveUpdatesStore.gate(queryKeyRef.current)) {
+        // Paused: hold other people's updates and tally them for the chip.
+        // The tally counts RESOURCES, not events: one write emits an ADDED
+        // and then the MODIFIEDs that fill in its status, and reporting
+        // those as three updates overstates what is waiting. Passing the
+        // resource's identity collapses them. Never gates mutations, which
+        // write to the cache directly and bypass this callback entirely, so
+        // your own writes always appear.
+        if (
+          disposition === 'gated' &&
+          !liveUpdatesStore.gate(queryKeyRef.current, watchEventIdentity(event.object))
+        ) {
           return;
         }
         // Replay events are dropped while paused rather than tallied — but
