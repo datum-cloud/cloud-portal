@@ -9,13 +9,16 @@
  *
  * All endpoints require a valid session. Subscribe/unsubscribe additionally
  * validate that the requesting user owns the client connection and use Zod
- * schemas for runtime request body validation.
+ * schemas for runtime request body validation. Ownership of the connection
+ * is not authorization for what is being watched: the scope itself is
+ * authorized inside {@link WatchHub.subscribe}, against the API, with the
+ * subscriber's own credentials.
  *
  * @see {@link WatchHub} for the server-side multiplexer engine.
  * @see {@link WatchManager} (client-side) for the browser-side counterpart.
  */
 import type { Variables } from '@/server/types';
-import { watchHub } from '@/server/watch/watch-hub';
+import { WatchAuthorizationError, watchHub } from '@/server/watch/watch-hub';
 import { watchSubscribeSchema, watchUnsubscribeSchema } from '@/server/watch/watch-hub.types';
 import { Hono } from 'hono';
 import { streamSSE } from 'hono/streaming';
@@ -39,7 +42,7 @@ watchRoutes.get('/stream', (c) => {
   }
 
   return streamSSE(c, async (stream) => {
-    const accepted = watchHub.registerClient({
+    const result = watchHub.registerClient({
       id: clientId,
       userId: session.sub,
       stream,
@@ -48,10 +51,15 @@ watchRoutes.get('/stream', (c) => {
       lastActivity: Date.now(),
     });
 
-    if (!accepted) {
+    if (result !== 'accepted') {
       await stream.writeSSE({
         event: 'error',
-        data: JSON.stringify({ message: 'Too many connections' }),
+        data: JSON.stringify({
+          message:
+            result === 'at-capacity'
+              ? 'Too many connections'
+              : 'Client ID already in use by another session',
+        }),
       });
       return;
     }
@@ -76,6 +84,12 @@ watchRoutes.get('/stream', (c) => {
  * POST /api/watch/subscribe
  * Subscribe a connected client to a K8s resource watch.
  * Request body is validated against {@link watchSubscribeSchema}.
+ *
+ * Answers 403 when the API will not serve the requested watch to this user's
+ * own credentials. The hub establishes that by presenting their token to the
+ * API — opening the channel if it is new, probing the same URL if someone else
+ * already has it open — rather than by trusting an upstream another user
+ * authorized. See the invariant on {@link WatchHub}.
  */
 watchRoutes.post('/subscribe', async (c) => {
   const session = c.get('session');
@@ -112,6 +126,9 @@ watchRoutes.post('/subscribe', async (c) => {
     const channel = await watchHub.subscribe(req);
     return c.json({ channel });
   } catch (err) {
+    if (err instanceof WatchAuthorizationError) {
+      return c.json({ error: err.message }, 403);
+    }
     return c.json({ error: (err as Error).message }, 400);
   }
 });

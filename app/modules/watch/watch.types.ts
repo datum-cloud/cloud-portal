@@ -1,6 +1,20 @@
 // app/modules/watch/watch.types.ts
 
-export type WatchEventType = 'ADDED' | 'MODIFIED' | 'DELETED' | 'BOOKMARK' | 'ERROR';
+/**
+ * Watch event types.
+ *
+ * ADDED / MODIFIED / DELETED / BOOKMARK / ERROR come from Kubernetes (ERROR is
+ * also synthesised by WatchManager from the hub's `watch-error` SSE event).
+ *
+ * RESYNC is synthetic and client-side only: it never appears in a Kubernetes
+ * watch stream. WatchManager emits it when the server hub confirms a channel
+ * subscription (`subscribed`) or restarts an upstream after a 410 Gone
+ * (`resync`). Both re-open the upstream at `resourceVersion: '0'`, which makes
+ * Kubernetes replay the entire current list as ADDED events. Subscribers use
+ * RESYNC to re-anchor their initial-sync/replay window — see
+ * `use-resource-watch.ts`. It carries no resource object.
+ */
+export type WatchEventType = 'ADDED' | 'MODIFIED' | 'DELETED' | 'BOOKMARK' | 'ERROR' | 'RESYNC';
 
 export interface WatchEvent<T = unknown> {
   type: WatchEventType;
