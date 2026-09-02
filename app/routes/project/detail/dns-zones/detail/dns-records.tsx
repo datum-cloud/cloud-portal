@@ -64,6 +64,9 @@ import { useNavigate, useParams } from 'react-router';
 /** Stable empty list for query fallbacks — avoids new `[]` identity each render. */
 const EMPTY_DNS_RECORDS: IFlattenedDnsRecord[] = [];
 
+/** Stable empty list for the optional proxy query — see EMPTY_DNS_RECORDS. */
+const EMPTY_PROXIES: HttpProxy[] = [];
+
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
 };
@@ -171,7 +174,7 @@ export default function DnsRecordsPage() {
 
   // Application Load Balancer enrichment is optional — only fetch when the user can list proxies
   // (a denied viewer still sees the records table without the linked-proxy cell).
-  const { data: proxies = [] } = useHttpProxies(projectId, {
+  const { data: proxies = EMPTY_PROXIES } = useHttpProxies(projectId, {
     enabled: canViewProxy,
   });
 
