@@ -85,6 +85,10 @@ export function waitForWatch<T>(options: WatchWaitOptions): {
       (event: WatchEvent) => {
         if (resolved) return; // Already resolved, ignore late events
 
+        // Connection bookkeeping, not a resource event: it carries no object
+        // for `onEvent` to inspect, so never hand it to the consumer.
+        if (event.type === 'RESYNC') return;
+
         // Handle Watch API errors
         if (event.type === 'ERROR') {
           resolved = true;
