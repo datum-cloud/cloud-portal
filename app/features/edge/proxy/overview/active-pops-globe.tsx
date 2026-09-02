@@ -8,11 +8,15 @@ interface Props {
   regionsWithCoords: ActivePopMarker[];
   hoveredRegion?: string | null;
   onHoverRegion?: (value: string | null) => void;
+  onFocusRegion?: (value: string) => void;
+  focusRegion?: string | null;
+  focusToken?: number;
 }
 
-const MARKER_COLOR: [number, number, number] = [0.702, 0.835, 0.435]; // #B3D56F
+const MARKER_COLOR_LIGHT: [number, number, number] = [0.702, 0.835, 0.435]; // #B3D56F
+const MARKER_COLOR_DARK: [number, number, number] = [0.82, 0.94, 0.58];
 const IDLE_MARKER_COLOR_LIGHT: [number, number, number] = [0.55, 0.6, 0.57];
-const IDLE_MARKER_COLOR_DARK: [number, number, number] = [0.62, 0.68, 0.64];
+const IDLE_MARKER_COLOR_DARK: [number, number, number] = [0.82, 0.86, 0.9];
 const MARKER_SIZE = 0.045;
 const IDLE_MARKER_SIZE = 0.028;
 const MARKER_SIZE_HOVER = 0.07;
@@ -29,21 +33,97 @@ const DRAG_SLOP_PX = 4;
 
 const LIGHT_THEME = {
   dark: 0,
-  baseColor: [0.678, 0.729, 0.69] as [number, number, number], // #ADBAB0
-  glowColor: [1, 1, 1] as [number, number, number],
-  mapBrightness: 5.2,
-  mapBaseBrightness: 0,
-  diffuse: 1.15,
+  baseColor: [0.988, 0.992, 0.969] as [number, number, number], // --background #fcfdf7
+  glowColor: [1, 1, 1] as [number, number, number], // --card
+  mapBrightness: 0.78,
+  mapBaseBrightness: 0.03,
+  diffuse: 1.05,
+  mapDotOpacity: 0.22,
 };
 
 const DARK_THEME = {
-  dark: 0.68,
-  baseColor: [0.46, 0.52, 0.49] as [number, number, number],
-  glowColor: [0.18, 0.22, 0.28] as [number, number, number],
-  mapBrightness: 2.6,
-  mapBaseBrightness: 0.06,
-  diffuse: 1.7,
+  dark: 1,
+  baseColor: [0.667, 0.706, 0.824] as [number, number, number], // --muted-foreground #aab4d2
+  glowColor: [0.047, 0.114, 0.192] as [number, number, number], // --background, not the card
+  mapBrightness: 1.9,
+  mapBaseBrightness: 0.04,
+  diffuse: 1.2,
+  mapDotOpacity: 0.58,
 };
+
+const FOCUS_DURATION_MS = 520;
+// Globe canvas is cropped to the left of the card; shift focus so the
+// location sits in that visible slice instead of the canvas center.
+const FOCUS_PHI_SHIFT = -0.94;
+const FOCUS_THETA_SCALE = 0.55;
+
+function cssColorToRgb(color: string): [number, number, number] | null {
+  if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return null;
+  const rgbMatch = color.match(/^rgba?\(\s*([\d.]+)[\s,/]+([\d.]+)[\s,/]+([\d.]+)/);
+  if (rgbMatch) {
+    return [
+      Math.max(0, Math.min(1, Number(rgbMatch[1]) / 255)),
+      Math.max(0, Math.min(1, Number(rgbMatch[2]) / 255)),
+      Math.max(0, Math.min(1, Number(rgbMatch[3]) / 255)),
+    ];
+  }
+  if (typeof document === 'undefined') return null;
+  const ctx = document.createElement('canvas').getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#000';
+  ctx.fillStyle = color;
+  const hex = typeof ctx.fillStyle === 'string' ? ctx.fillStyle : '';
+  const hexMatch = hex.match(/^#([0-9a-f]{6})$/i);
+  if (!hexMatch) return null;
+  return [
+    parseInt(hexMatch[1].slice(0, 2), 16) / 255,
+    parseInt(hexMatch[1].slice(2, 4), 16) / 255,
+    parseInt(hexMatch[1].slice(4, 6), 16) / 255,
+  ];
+}
+
+function mixRgb(
+  from: [number, number, number],
+  to: [number, number, number],
+  amount: number
+): [number, number, number] {
+  return [
+    from[0] + (to[0] - from[0]) * amount,
+    from[1] + (to[1] - from[1]) * amount,
+    from[2] + (to[2] - from[2]) * amount,
+  ];
+}
+
+function easeOutQuart(t: number) {
+  return 1 - (1 - t) ** 4;
+}
+
+function shortestTarget(from: number, to: number) {
+  let diff = to - from;
+  while (diff > Math.PI) diff -= Math.PI * 2;
+  while (diff < -Math.PI) diff += Math.PI * 2;
+  return from + diff;
+}
+
+function focusAngles(lat: number, lng: number): { phi: number; theta: number } {
+  const [x0, y0, z0] = latLngToVec3(lat, lng);
+  const theta = Math.asin(Math.max(-1, Math.min(1, y0))) * FOCUS_THETA_SCALE;
+  return {
+    phi: Math.atan2(x0, z0) + FOCUS_PHI_SHIFT,
+    theta: Math.min(THETA_MAX, Math.max(THETA_MIN, theta)),
+  };
+}
+
+function readCssVarRgb(name: string): [number, number, number] | null {
+  if (typeof document === 'undefined' || !document.body) return null;
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
+  probe.style.backgroundColor = `var(${name})`;
+  document.body.append(probe);
+  const raw = getComputedStyle(probe).backgroundColor;
+  probe.remove();
+  return cssColorToRgb(raw);
+}
 
 function latLngToVec3(lat: number, lng: number): [number, number, number] {
   const latR = (lat * Math.PI) / 180;
@@ -86,16 +166,31 @@ function toCobeMarkers(pops: ActivePopMarker[], hovered: string | null, isDark: 
       id: pop.value,
       location: pop.coords,
       size: isHovered ? MARKER_SIZE_HOVER : isActive ? MARKER_SIZE : IDLE_MARKER_SIZE,
-      color: isActive ? MARKER_COLOR : isDark ? IDLE_MARKER_COLOR_DARK : IDLE_MARKER_COLOR_LIGHT,
+      color: isActive
+        ? isDark
+          ? MARKER_COLOR_DARK
+          : MARKER_COLOR_LIGHT
+        : isDark
+          ? IDLE_MARKER_COLOR_DARK
+          : IDLE_MARKER_COLOR_LIGHT,
     };
   });
 }
 
-export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegion }: Props) {
+export function ActivePopsGlobe({
+  regionsWithCoords,
+  hoveredRegion,
+  onHoverRegion,
+  onFocusRegion,
+  focusRegion,
+  focusToken,
+}: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const popsRef = useRef(regionsWithCoords);
   const hoveredRef = useRef(hoveredRegion ?? null);
   const onHoverRef = useRef(onHoverRegion);
+  const onFocusRef = useRef(onFocusRegion);
+  const pendingFocusRef = useRef<string | null>(null);
   const phiRef = useRef(INITIAL_PHI);
   const thetaRef = useRef(INITIAL_THETA);
   const scheduleRef = useRef<() => void>(() => {});
@@ -106,6 +201,7 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
   popsRef.current = regionsWithCoords;
   hoveredRef.current = hoveredRegion ?? null;
   onHoverRef.current = onHoverRegion;
+  onFocusRef.current = onFocusRegion;
 
   const tooltipPop = tooltip
     ? regionsWithCoords.find((region) => region.value === tooltip.value)
@@ -122,7 +218,19 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
     container.appendChild(canvas);
 
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const theme = isDark ? DARK_THEME : LIGHT_THEME;
+    const defaults = isDark ? DARK_THEME : LIGHT_THEME;
+    const surface = isDark
+      ? (readCssVarRgb('--background') ?? defaults.glowColor)
+      : (readCssVarRgb('--card') ?? defaults.glowColor);
+    const land = isDark
+      ? (readCssVarRgb('--muted-foreground') ?? defaults.baseColor)
+      : (readCssVarRgb('--background') ?? defaults.baseColor);
+    const { mapDotOpacity, ...cobeTheme } = defaults;
+    const theme = {
+      ...cobeTheme,
+      baseColor: mixRgb(surface, land, mapDotOpacity),
+      glowColor: surface,
+    };
 
     let width = container.clientWidth;
     let height = container.clientHeight;
@@ -134,6 +242,13 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
     let lastPointerX = 0;
     let lastPointerY = 0;
     let lastPopsKey = '';
+    let focusAnim: {
+      fromPhi: number;
+      fromTheta: number;
+      toPhi: number;
+      toTheta: number;
+      start: number;
+    } | null = null;
 
     const globe = createGlobe(canvas, {
       devicePixelRatio: dpr,
@@ -145,7 +260,7 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
       scale: 1.08,
       offset: [0, 0],
       markerElevation: MARKER_ELEVATION,
-      markerColor: MARKER_COLOR,
+      markerColor: isDark ? MARKER_COLOR_DARK : MARKER_COLOR_LIGHT,
       markers: toCobeMarkers(popsRef.current, hoveredRef.current, isDark),
       ...theme,
     });
@@ -155,8 +270,39 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
       height = container.clientHeight;
     };
 
+    const startFocus = (value: string) => {
+      const pop = popsRef.current.find((region) => region.value === value);
+      if (!pop) return;
+      const target = focusAngles(pop.coords[0], pop.coords[1]);
+      const toPhi = shortestTarget(phi, target.phi);
+      if (Math.hypot(toPhi - phi, target.theta - theta) < 0.06) return;
+      focusAnim = {
+        fromPhi: phi,
+        fromTheta: theta,
+        toPhi,
+        toTheta: target.theta,
+        start: performance.now(),
+      };
+    };
+
     const render = () => {
       syncSize();
+      const pendingFocus = pendingFocusRef.current;
+      if (pendingFocus) {
+        pendingFocusRef.current = null;
+        startFocus(pendingFocus);
+      }
+
+      if (focusAnim) {
+        const t = Math.min(1, (performance.now() - focusAnim.start) / FOCUS_DURATION_MS);
+        const e = easeOutQuart(t);
+        phi = focusAnim.fromPhi + (focusAnim.toPhi - focusAnim.fromPhi) * e;
+        theta = focusAnim.fromTheta + (focusAnim.toTheta - focusAnim.fromTheta) * e;
+        phiRef.current = phi;
+        thetaRef.current = theta;
+        if (t >= 1) focusAnim = null;
+      }
+
       const hovered = dragging ? null : hoveredRef.current;
       const popsKey = popsRef.current
         .map((pop) => `${pop.value}:${pop.active ? '1' : '0'}`)
@@ -181,7 +327,7 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
       raf = requestAnimationFrame(() => {
         raf = 0;
         render();
-        if (dragging) schedule();
+        if (dragging || focusAnim) schedule();
       });
     };
     scheduleRef.current = schedule;
@@ -191,7 +337,7 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
 
     const hitTest = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return;
+      if (rect.width === 0 || rect.height === 0) return null;
       const px = (event.clientX - rect.left) / rect.width;
       const py = (event.clientY - rect.top) / rect.height;
       const aspect = width / Math.max(height, 1);
@@ -218,11 +364,13 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
       if (next !== hoveredRef.current) onHoverRef.current?.(next);
       setTooltip(next ? { value: next, x: nextX, y: nextY } : null);
       schedule();
+      return next;
     };
 
     const onPointerDown = (event: PointerEvent) => {
       dragging = true;
       dragMoved = false;
+      focusAnim = null;
       lastPointerX = event.clientX;
       lastPointerY = event.clientY;
       container.setPointerCapture(event.pointerId);
@@ -255,8 +403,10 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
       dragging = false;
       container.releasePointerCapture(event.pointerId);
       container.style.cursor = 'grab';
-      if (!dragMoved) hitTest(event);
-      else schedule();
+      if (!dragMoved) {
+        const hit = hitTest(event);
+        if (hit) onFocusRef.current?.(hit);
+      } else schedule();
     };
 
     const onPointerLeave = () => {
@@ -285,6 +435,12 @@ export function ActivePopsGlobe({ regionsWithCoords, hoveredRegion, onHoverRegio
       container.replaceChildren();
     };
   }, [isDark]);
+
+  useEffect(() => {
+    if (!focusRegion) return;
+    pendingFocusRef.current = focusRegion;
+    scheduleRef.current();
+  }, [focusRegion, focusToken]);
 
   useEffect(() => {
     if (!hoveredRegion) {

@@ -21,7 +21,7 @@ import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { MapPinIcon } from 'lucide-react';
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 
 const ActivePopsMap = lazyWithRetry(
   () => import('./active-pops-map').then((m) => ({ default: m.ActivePopsMap })),
@@ -66,6 +66,14 @@ function formatErrors(errorRps: number | undefined, totalRps: number | undefined
 
 export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; proxyId: string }) => {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
+  const [focusRegion, setFocusRegion] = useState<string | null>(null);
+  const [focusToken, setFocusToken] = useState(0);
+
+  const focusLocation = useCallback((value: string) => {
+    setHoveredRegion(value);
+    setFocusRegion(value);
+    setFocusToken((token) => token + 1);
+  }, []);
 
   const baseLabels = useMemo(
     () => ({
@@ -209,6 +217,9 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
                       regionsWithCoords={regionsWithCoords}
                       hoveredRegion={hoveredRegion}
                       onHoverRegion={setHoveredRegion}
+                      onFocusRegion={focusLocation}
+                      focusRegion={focusRegion}
+                      focusToken={focusToken}
                     />
                   </Suspense>
                 </div>
@@ -268,7 +279,10 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
                         onMouseEnter={() => setHoveredRegion(item.value)}
                         onMouseLeave={() => setHoveredRegion(null)}
                         onFocus={() => setHoveredRegion(item.value)}
-                        onBlur={() => setHoveredRegion(null)}>
+                        onBlur={() => setHoveredRegion(null)}
+                        onClick={() => {
+                          if (item.coords) focusLocation(item.value);
+                        }}>
                         <span
                           className={cn(
                             'mt-1.5 size-2 shrink-0 rounded-full',

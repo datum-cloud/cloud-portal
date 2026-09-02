@@ -20,10 +20,16 @@ export const ActivePopsMap = ({
   regionsWithCoords,
   hoveredRegion,
   onHoverRegion,
+  onFocusRegion,
+  focusRegion,
+  focusToken,
 }: {
   regionsWithCoords: ActivePopMarker[];
   hoveredRegion?: string | null;
   onHoverRegion?: (value: string | null) => void;
+  onFocusRegion?: (value: string) => void;
+  focusRegion?: string | null;
+  focusToken?: number;
 }) => {
   return (
     <Suspense fallback={<Fallback />}>
@@ -31,6 +37,9 @@ export const ActivePopsMap = ({
         regionsWithCoords={regionsWithCoords}
         hoveredRegion={hoveredRegion}
         onHoverRegion={onHoverRegion}
+        onFocusRegion={onFocusRegion}
+        focusRegion={focusRegion}
+        focusToken={focusToken}
       />
     </Suspense>
   );
