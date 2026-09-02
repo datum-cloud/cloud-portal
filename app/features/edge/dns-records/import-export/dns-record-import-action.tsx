@@ -208,7 +208,6 @@ export const DnsRecordImportAction = ({
                 </div>
 
                 {/* Alert for skipped apex SOA/NS records
-                    TODO: Allow advanced users to override this behavior in the future.
                     @see https://github.com/datum-cloud/cloud-portal/issues/901 */}
                 {skippedApexRecords && skippedApexRecords.totalCount > 0 && (
                   <Alert variant="info" className="mt-4">
