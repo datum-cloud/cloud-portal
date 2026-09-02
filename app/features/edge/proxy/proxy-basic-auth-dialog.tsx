@@ -125,7 +125,7 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
         open={open}
         onOpenChange={setOpen}
         title="Edit Basic Authentication"
-        description="Restrict access to this proxy with HTTP Basic Authentication. Credentials are hashed using SHA."
+        description="Restrict access to this ALB with HTTP Basic Authentication. Credentials are hashed using SHA."
         schema={basicAuthSchema}
         defaultValues={defaultValues}
         onSubmit={handleSubmit}
@@ -156,7 +156,7 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                   <AlertTitle>Warning</AlertTitle>
                   <AlertDescription>
                     Force HTTPS is not enabled. Credentials will be transmitted in plaintext over
-                    HTTP. Consider enabling Force HTTPS on this proxy.
+                    HTTP. Consider enabling Force HTTPS on this ALB.
                   </AlertDescription>
                 </Alert>
               )}

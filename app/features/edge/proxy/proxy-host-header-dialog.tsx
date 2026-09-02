@@ -92,9 +92,9 @@ export const ProxyHostHeaderDialog = forwardRef<
               <Info className="size-4" />
               <AlertDescription>
                 <p>
-                  This proxy has advanced configuration that the portal form doesn&apos;t support.
-                  To make changes, use <code className="text-xs font-semibold">datumctl</code> or
-                  edit the resource directly.
+                  This ALB has advanced configuration that the portal form doesn&apos;t support. To
+                  make changes, use <code className="text-xs font-semibold">datumctl</code> or edit
+                  the resource directly.
                 </p>
               </AlertDescription>
             </Alert>

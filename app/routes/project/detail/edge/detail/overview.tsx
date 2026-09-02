@@ -7,6 +7,7 @@ import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card'
 import { HttpProxyConfigCard } from '@/features/edge/proxy/overview/config-card';
 import { HttpProxyGeneralCard } from '@/features/edge/proxy/overview/general-card';
 import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames-card';
+import { HttpProxyLogsCard } from '@/features/edge/proxy/overview/logs-card';
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { MetricsProvider } from '@/modules/metrics';
 import { useGuardedRouteData, useResourcePermissions, usePermission } from '@/modules/rbac';
@@ -132,8 +133,11 @@ export default function HttpProxyOverviewPage() {
         <Col span={24} lg={12}>
           <HttpProxyOriginsCard proxy={effectiveProxy} projectId={projectId} />
         </Col>
-        <Col span={24}>
+        <Col span={24} lg={12}>
           <ActivePopsCard projectId={projectId} proxyId={effectiveProxy.name ?? ''} />
+        </Col>
+        <Col span={24} lg={12}>
+          <HttpProxyLogsCard />
         </Col>
 
         <Col span={24}>

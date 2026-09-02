@@ -23,10 +23,17 @@ export const REGION_COORDINATES: Record<string, [number, number]> = {
 };
 
 /**
+ * Lowercase a region code and strip a trailing zone letter (us-east1-b → us-east1).
+ */
+export function normalizeRegionCode(regionCode: string): string {
+  return regionCode.toLowerCase().replace(/-[a-z]$/, '');
+}
+
+/**
  * Get [lat, lng] for a region code, or null if unknown.
  * Handles zone suffixes (e.g. us-east1-b -> us-east1).
  */
 export function getRegionCoordinates(regionCode: string): [number, number] | null {
-  const normalized = regionCode.toLowerCase().replace(/-[a-z]$/, ''); // strip zone suffix
+  const normalized = normalizeRegionCode(regionCode);
   return REGION_COORDINATES[normalized] ?? REGION_COORDINATES[regionCode.toLowerCase()] ?? null;
 }
