@@ -1,6 +1,7 @@
 import { TableContent } from './components/content';
 import { TableBodyOrEmpty } from './components/empty-state';
-import { PagePreserver } from './components/page-preserver';
+import { LiveUpdatesChip } from './components/live-updates-chip';
+import { LiveUpdatesToggle } from './components/live-updates-toggle';
 import { ConditionalPagination } from './components/pagination';
 import { TablePanel } from './components/panel';
 import { TableToolbar } from './components/toolbar';
@@ -30,6 +31,16 @@ import { cn } from '@datum-cloud/datum-ui/utils';
  *   container-query variants (`@xs:`, `@md:` …) to reflow at narrow widths.
  * - Bordered table panel, then pagination OUTSIDE the border. Pagination
  *   auto-hides when there is only one page.
+ * - `liveUpdates` adds a toolbar control — the pause/resume toggle plus a
+ *   catch-up chip — immediately after the search input. Both pieces are
+ *   composed into one `searchTrailing` node below, so they render (or
+ *   don't) from the exact same slot: the standalone-empty state and the
+ *   initial-loading skeleton suppress the whole tools row, taking both with
+ *   them, rather than one being able to survive without the other. Below
+ *   `sm:`, search (which always claims the full row width) and this
+ *   trailing pair no longer fit on one line together, so the left group's
+ *   flex container wraps them onto a second line — see `TableToolbarTools`
+ *   in `./components/toolbar.tsx`.
  * - When data is empty AND no filter/search active, the table chrome is
  *   suppressed and only the EmptyContent card renders.
  *
@@ -55,6 +66,16 @@ export function TableClient<TData extends RowData>(props: TableClientProps<TData
   useInlineConflictWarning(props);
 
   const effectiveOnRowClick = props.inline ? undefined : props.onRowClick;
+  const toolbarProps = toolbarPropsFrom(props);
+  // Composed as one node — not two independent render sites — so the chip
+  // can never appear without the toggle beside it, or vice versa. See the
+  // layout note above.
+  const searchTrailing = props.liveUpdates && (
+    <>
+      <LiveUpdatesToggle queryKey={props.liveUpdates.queryKey} />
+      <LiveUpdatesChip queryKey={props.liveUpdates.queryKey} />
+    </>
+  );
 
   return (
     <DataTable.Client
@@ -67,9 +88,7 @@ export function TableClient<TData extends RowData>(props: TableClientProps<TData
       pageSize={props.pageSize}
       searchableColumns={props.searchableColumns}
       className={cn('space-y-6', props.className)}>
-      <PagePreserver<TData> data={props.data} />
-
-      {hasToolbar && <TableToolbar<TData> {...toolbarPropsFrom(props)} />}
+      {hasToolbar && <TableToolbar<TData> {...toolbarProps} searchTrailing={searchTrailing} />}
 
       {props.inline && (
         <DataTable.InlineContent
