@@ -47,6 +47,41 @@ export interface UpstreamWatch {
   creatorUserId: string;
 }
 
+/**
+ * A watch channel: the set of clients an upstream fans out to, plus the
+ * record of who has been shown to be entitled to it.
+ *
+ * Created and destroyed with its {@link UpstreamWatch} — see
+ * `WatchHub.closeChannel`. The two lifetimes have to match: a subscriber set
+ * that outlives its upstream is a set of clients the *next* upstream, opened
+ * and authorized by somebody else, would fan out to.
+ */
+export interface WatchChannel {
+  /** Channel key — the name clients subscribe and unsubscribe by. */
+  key: string;
+  /** Upstream URL this channel is served by. Fixed for the channel's life. */
+  url: string;
+  /** Client IDs currently subscribed. This is the fan-out set. */
+  subscribers: Set<string>;
+  /**
+   * User ID → epoch ms after which that user must be re-checked against
+   * {@link url} before being (re-)admitted.
+   *
+   * A memo, not a grant: it exists so navigation churn does not pay for a
+   * round trip on every re-subscribe. Bounded so that a revoked user is not
+   * admitted indefinitely on the strength of a check made once.
+   */
+  authorizedUntil: Map<string, number>;
+}
+
+/**
+ * Outcome of {@link WatchHub.registerClient}. A rejected registration has to
+ * say why: "at capacity" is a server-load condition, while "client id in use"
+ * means the id is already bound to a different user and rebinding it would
+ * hand over that id's channel memberships.
+ */
+export type RegisterClientResult = 'accepted' | 'at-capacity' | 'client-id-in-use';
+
 // ─── Subscribe/Unsubscribe ───────────────────────────
 
 /** Body of `POST /api/watch/subscribe`. */
@@ -82,14 +117,20 @@ export interface WatchUnsubscribeRequest {
 /**
  * Discriminated union of all SSE events the WatchHub can send to a client.
  *
- * - `connected` — sent immediately after SSE stream opens.
+ * - `connected` — sent immediately after SSE stream opens. Carries the session
+ *   user id, which the browser needs to derive user-scoped channel keys the
+ *   same way the hub does.
  * - `subscribed` / `unsubscribed` — confirmations for subscribe/unsubscribe requests.
  * - `watch` — a K8s watch event (ADDED / MODIFIED / DELETED) with the full object.
  * - `watch-error` — a non-410 error from the upstream K8s watch stream.
+ * - `resync` — the upstream reset to `resourceVersion: '0'` after a 410
+ *   Gone — see WatchEventType.RESYNC. Unlike `subscribed`, broadcast to
+ *   every subscriber of the channel, because the reset is upstream-wide and
+ *   no client asked for it.
  * - `heartbeat` — periodic keep-alive to prevent proxy/LB timeouts.
  */
 export type WatchSSEEvent =
-  | { event: 'connected'; data: { clientId: string } }
+  | { event: 'connected'; data: { clientId: string; userId: string } }
   | { event: 'subscribed'; data: { channel: string } }
   | { event: 'unsubscribed'; data: { channel: string } }
   | {
@@ -100,6 +141,7 @@ export type WatchSSEEvent =
       event: 'watch-error';
       data: { channel: string; code?: number; reason?: string; message?: string };
     }
+  | { event: 'resync'; data: { channel: string } }
   | { event: 'heartbeat'; data: { ts: number } };
 
 // ─── Stats ───────────────────────────────────────────
@@ -123,7 +165,15 @@ export interface WatchStats {
 const K8S_RESOURCE_TYPE =
   /^api(?:s\/[a-z][a-z0-9.-]*(?:\/[a-z][a-z0-9.-]*)*)?\/v[a-z0-9]+[a-z0-9]*\/[a-z][a-z0-9-]*$/;
 
-/** K8s-style identifiers: lowercase alphanumeric + hyphens + dots, 1–63 chars. */
+/**
+ * K8s-style identifiers: lowercase alphanumeric + hyphens + dots, 1–63 chars.
+ *
+ * Note for anyone widening these patterns: channel keys are these fields
+ * joined with ':' (see `buildWatchChannelKey`), and that join is only
+ * unambiguous because none of the patterns below — nor
+ * {@link K8S_RESOURCE_TYPE} or {@link SELECTOR_PATTERN} — admits a ':'.
+ * Allowing one would let two different subscriptions produce the same key.
+ */
 const K8S_IDENTIFIER = /^[a-z0-9]([a-z0-9.-]{0,61}[a-z0-9])?$/;
 
 /** Basic label/field selector chars: alphanumeric, dots, equals, commas, etc. */
