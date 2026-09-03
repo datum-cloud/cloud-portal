@@ -4,14 +4,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { XIcon } from 'lucide-react';
-import {
-  Suspense,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 const EASE_OUT = 'cubic-bezier(0.23, 1, 0.32, 1)';
@@ -209,7 +202,7 @@ export function ActivePopsExpandOverlay({
         type="button"
         aria-label="Close expanded map"
         className={cn(
-          'absolute inset-0 bg-background/70 backdrop-blur-[2px] transition-opacity ease-out',
+          'bg-background/70 absolute inset-0 backdrop-blur-[2px] transition-opacity ease-out',
           expanded ? 'opacity-100' : 'opacity-0'
         )}
         style={{

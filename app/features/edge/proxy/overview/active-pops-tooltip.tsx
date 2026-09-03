@@ -1,8 +1,8 @@
-import type { CSSProperties } from 'react';
 import type { ActivePopMarker } from './active-pops-map';
 import { formatActivePopMetrics } from './active-pops-metrics';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { cn } from '@datum-cloud/datum-ui/utils';
+import type { CSSProperties } from 'react';
 
 export function ActivePopTooltipCard({
   pop,
@@ -31,7 +31,9 @@ export function ActivePopTooltipCard({
       </div>
       <p className="text-muted-foreground text-xs">{pop.subtitle}</p>
       {pop.active ? (
-        <p className="text-muted-foreground text-xs tabular-nums">{formatActivePopMetrics(pop.metrics)}</p>
+        <p className="text-muted-foreground text-xs tabular-nums">
+          {formatActivePopMetrics(pop.metrics)}
+        </p>
       ) : (
         <p className="text-muted-foreground text-xs">No recent traffic</p>
       )}

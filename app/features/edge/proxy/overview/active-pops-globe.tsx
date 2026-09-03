@@ -1,10 +1,3 @@
-import type { ActivePopMarker } from './active-pops-map';
-import { layoutPersistentTooltips } from './active-pops-tooltip-layout';
-import {
-  ActivePopTooltipCard,
-  tooltipFlipTransform,
-  tooltipOffsetStyle,
-} from './active-pops-tooltip';
 import {
   GLOBE_SCALE,
   MARKER_ELEVATION,
@@ -16,6 +9,13 @@ import {
   isMarkerInView,
   projectLocation,
 } from './active-pops-globe-math';
+import type { ActivePopMarker } from './active-pops-map';
+import {
+  ActivePopTooltipCard,
+  tooltipFlipTransform,
+  tooltipOffsetStyle,
+} from './active-pops-tooltip';
+import { layoutPersistentTooltips } from './active-pops-tooltip-layout';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import createGlobe, { type Marker } from 'cobe';
 import { useEffect, useRef, useState } from 'react';
@@ -589,7 +589,11 @@ export function ActivePopsGlobe({
         tooltipPop &&
         hoverTooltipStyle &&
         createPortal(
-          <ActivePopTooltipCard pop={tooltipPop} className="fixed z-50" style={hoverTooltipStyle} />,
+          <ActivePopTooltipCard
+            pop={tooltipPop}
+            className="fixed z-50"
+            style={hoverTooltipStyle}
+          />,
           document.body
         )}
       {persistentActiveTooltips &&

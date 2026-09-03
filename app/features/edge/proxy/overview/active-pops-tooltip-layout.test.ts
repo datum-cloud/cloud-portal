@@ -14,14 +14,8 @@ function tooltipRect(
   const flipY = layout.y > 70;
   const anchorX = (layout.x / 100) * containerWidth;
   const anchorY = (layout.y / 100) * containerHeight;
-  const left =
-    anchorX +
-    (flipX ? -TOOLTIP_WIDTH_PX - 10 : 10) +
-    layout.offsetX;
-  const top =
-    anchorY +
-    (flipY ? -TOOLTIP_HEIGHT_PX - 10 : 10) +
-    layout.offsetY;
+  const left = anchorX + (flipX ? -TOOLTIP_WIDTH_PX - 10 : 10) + layout.offsetX;
+  const top = anchorY + (flipY ? -TOOLTIP_HEIGHT_PX - 10 : 10) + layout.offsetY;
   return { left, top, width: TOOLTIP_WIDTH_PX, height: TOOLTIP_HEIGHT_PX };
 }
 

@@ -68,8 +68,7 @@ function separate(a: LayoutRect, b: LayoutRect) {
   const padding = TOOLTIP_COLLISION_PADDING_PX;
   const overlapX =
     Math.min(a.left + a.width, b.left + b.width) - Math.max(a.left, b.left) + padding;
-  const overlapY =
-    Math.min(a.top + a.height, b.top + b.height) - Math.max(a.top, b.top) + padding;
+  const overlapY = Math.min(a.top + a.height, b.top + b.height) - Math.max(a.top, b.top) + padding;
   if (overlapX <= 0 || overlapY <= 0) return;
 
   if (overlapX < overlapY) {
@@ -130,7 +129,10 @@ function placementCandidates(
   }
 
   const preferred = defaultTooltipRect(anchor.x, anchor.y, containerWidth, containerHeight);
-  return [preferred, ...placements.filter((rect) => rect.left !== preferred.left || rect.top !== preferred.top)];
+  return [
+    preferred,
+    ...placements.filter((rect) => rect.left !== preferred.left || rect.top !== preferred.top),
+  ];
 }
 
 function scorePlacement(
@@ -156,7 +158,9 @@ export function layoutPersistentTooltips(
 ): TooltipLayout[] {
   if (containerWidth <= 0 || containerHeight <= 0 || anchors.length === 0) return [];
 
-  const sorted = [...anchors].sort((a, b) => a.y - b.y || a.x - b.x || a.value.localeCompare(b.value));
+  const sorted = [...anchors].sort(
+    (a, b) => a.y - b.y || a.x - b.x || a.value.localeCompare(b.value)
+  );
   const placed: LayoutRect[] = [];
 
   for (const anchor of sorted) {
