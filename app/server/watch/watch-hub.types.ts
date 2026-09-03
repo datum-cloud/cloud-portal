@@ -58,7 +58,7 @@ export interface WatchSubscribeRequest {
   orgId?: string;
   /** Project ID (for project-scoped resources). */
   projectId?: string;
-  /** K8s namespace (usually `'default'` for project resources). */
+  /** K8s namespace. Omit for cluster-scoped project/org control-plane resources. */
   namespace?: string;
   /** Resource name for single-resource watches (uses fieldSelector). */
   name?: string;

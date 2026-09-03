@@ -14,7 +14,7 @@ const ActivePopsGlobe = lazyWithRetry(
   'active-pops-globe'
 );
 
-const Fallback = () => <div className="size-full" />;
+const Fallback = () => <div className="bg-muted/20 size-full motion-safe:animate-pulse" />;
 
 export const ActivePopsMap = ({
   regionsWithCoords,
@@ -23,6 +23,7 @@ export const ActivePopsMap = ({
   onFocusRegion,
   focusRegion,
   focusToken,
+  searching,
 }: {
   regionsWithCoords: ActivePopMarker[];
   hoveredRegion?: string | null;
@@ -30,6 +31,7 @@ export const ActivePopsMap = ({
   onFocusRegion?: (value: string) => void;
   focusRegion?: string | null;
   focusToken?: number;
+  searching?: boolean;
 }) => {
   return (
     <Suspense fallback={<Fallback />}>
@@ -40,6 +42,7 @@ export const ActivePopsMap = ({
         onFocusRegion={onFocusRegion}
         focusRegion={focusRegion}
         focusToken={focusToken}
+        searching={searching}
       />
     </Suspense>
   );

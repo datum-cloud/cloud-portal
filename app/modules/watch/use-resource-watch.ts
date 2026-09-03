@@ -153,8 +153,27 @@ export function useResourceWatch<T>({
               } else {
                 queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
               }
+            } else if (getItemKeyRef.current) {
+              // List with key extractor: append/replace by key. Do not call
+              // updateListCache here — those callbacks are MODIFIED-only
+              // (find-and-replace) and would drop a brand-new item.
+              queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {
+                const itemKey = getItemKeyRef.current!(transformedEvent.object);
+                if (Array.isArray(oldData)) {
+                  const idx = oldData.findIndex(
+                    (item: T) => getItemKeyRef.current!(item) === itemKey
+                  );
+                  if (idx === -1) return [...oldData, transformedEvent.object];
+                  return oldData.map((item: T, index: number) =>
+                    index === idx ? transformedEvent.object : item
+                  );
+                }
+
+                if (oldData == null) return [transformedEvent.object];
+                return oldData;
+              });
             } else {
-              // List: debounced invalidate to batch multiple events
+              // List without key extractor: fallback to invalidate
               debouncedInvalidate();
             }
             break;

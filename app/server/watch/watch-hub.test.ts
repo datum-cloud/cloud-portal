@@ -2,9 +2,10 @@ import {
   HEARTBEAT_INTERVAL_MS,
   SSE_IDLE_TIMEOUT_MS,
   WatchHub,
+  buildWatchUpstreamPath,
   type WatchHub as WatchHubType,
 } from './watch-hub';
-import type { WatchClient } from './watch-hub.types';
+import type { WatchClient, WatchSubscribeRequest } from './watch-hub.types';
 import { afterEach, describe, expect, it, jest } from 'bun:test';
 
 /**
@@ -71,5 +72,57 @@ describe('WatchHub heartbeat', () => {
 
     const heartbeats = writes.slice(afterConnect).filter((w) => w.event === 'heartbeat');
     expect(heartbeats.length).toBeGreaterThan(0);
+  });
+});
+
+describe('buildWatchUpstreamPath', () => {
+  const namespacedProxy: WatchSubscribeRequest = {
+    clientId: '00000000-0000-0000-0000-000000000001',
+    resourceType: 'apis/networking.datumapis.com/v1alpha/httpproxies',
+    projectId: 'project-22w58',
+    namespace: 'default',
+  };
+
+  it('keeps namespaced project resources under /namespaces/{ns}', () => {
+    expect(buildWatchUpstreamPath(namespacedProxy)).toBe(
+      '/apis/resourcemanager.miloapis.com/v1alpha1/projects/project-22w58/control-plane/apis/networking.datumapis.com/v1alpha/namespaces/default/httpproxies'
+    );
+  });
+
+  it('omits /namespaces for cluster-scoped project resources', () => {
+    expect(
+      buildWatchUpstreamPath({
+        clientId: '00000000-0000-0000-0000-000000000001',
+        resourceType: 'apis/locations.miloapis.com/v1alpha1/locations',
+        projectId: 'project-22w58',
+      })
+    ).toBe(
+      '/apis/resourcemanager.miloapis.com/v1alpha1/projects/project-22w58/control-plane/apis/locations.miloapis.com/v1alpha1/locations'
+    );
+  });
+
+  it('keeps a non-default project namespace (allowance buckets)', () => {
+    expect(
+      buildWatchUpstreamPath({
+        clientId: '00000000-0000-0000-0000-000000000001',
+        resourceType: 'apis/quota.miloapis.com/v1alpha1/allowancebuckets',
+        projectId: 'project-22w58',
+        namespace: 'milo-system',
+      })
+    ).toBe(
+      '/apis/resourcemanager.miloapis.com/v1alpha1/projects/project-22w58/control-plane/apis/quota.miloapis.com/v1alpha1/namespaces/milo-system/allowancebuckets'
+    );
+  });
+
+  it('omits /namespaces for cluster-scoped org resources', () => {
+    expect(
+      buildWatchUpstreamPath({
+        clientId: '00000000-0000-0000-0000-000000000001',
+        resourceType: 'apis/resourcemanager.miloapis.com/v1alpha1/projects',
+        orgId: 'org-1',
+      })
+    ).toBe(
+      '/apis/resourcemanager.miloapis.com/v1alpha1/organizations/org-1/control-plane/apis/resourcemanager.miloapis.com/v1alpha1/projects'
+    );
   });
 });
