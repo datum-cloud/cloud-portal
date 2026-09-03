@@ -69,9 +69,7 @@ describe('WatchHub heartbeat', () => {
     // what arrives afterwards purely from the heartbeat.
     const afterConnect = writes.length;
 
-    const heartbeatCall = intervalSpy.mock.calls.find(
-      ([, ms]) => ms === HEARTBEAT_INTERVAL_MS
-    );
+    const heartbeatCall = intervalSpy.mock.calls.find(([, ms]) => ms === HEARTBEAT_INTERVAL_MS);
     expect(heartbeatCall).toBeDefined();
     expect(heartbeatCall![1]).toBeLessThan(SSE_IDLE_TIMEOUT_MS);
 
