@@ -1,3 +1,10 @@
+import { ActivePopsExpandOverlay } from './active-pops-expand-overlay';
+import {
+  formatErrors,
+  formatLatency,
+  formatRps,
+  metricsForTrafficRegion,
+} from './active-pops-metrics';
 import { buildLocationDirectory } from './enrich-active-pops';
 import { ChunkErrorBoundary } from '@/components/chunk-error-boundary/chunk-error-boundary';
 import {
@@ -7,7 +14,6 @@ import {
   usePrometheusChart,
   usePrometheusLabels,
 } from '@/modules/metrics';
-import { formatValue, type ChartSeries } from '@/modules/prometheus';
 import { usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
@@ -20,8 +26,8 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { MapPinIcon } from 'lucide-react';
-import { Suspense, useCallback, useMemo, useState } from 'react';
+import { ExpandIcon, MapPinIcon } from 'lucide-react';
+import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
 
 const ActivePopsMap = lazyWithRetry(
   () => import('./active-pops-map').then((m) => ({ default: m.ActivePopsMap })),
@@ -31,48 +37,71 @@ const ActivePopsMap = lazyWithRetry(
 const REGION_LABEL = 'label_topology_kubernetes_io_region';
 const PROXY_METRIC = 'envoy_vhost_vcluster_upstream_rq';
 const LATENCY_METRIC = 'envoy_vhost_vcluster_upstream_rq_time_bucket';
-
-function latestSeriesValue(series: ChartSeries | undefined): number | undefined {
-  if (!series?.data.length) return undefined;
-  for (let index = series.data.length - 1; index >= 0; index -= 1) {
-    const value = series.data[index]?.value;
-    if (value != null && Number.isFinite(value)) return value;
-  }
-  return undefined;
-}
-
-function seriesByRegion(
-  series: ChartSeries[] | undefined,
-  region: string
-): ChartSeries | undefined {
-  return series?.find((item) => item.labels?.[REGION_LABEL] === region || item.name === region);
-}
-
-function formatRps(value: number | undefined): string {
-  if (value == null) return '—';
-  if (value > 0 && value < 0.01) return '<0.01 req/s';
-  return formatValue(value, 'requestsPerSecond', 2);
-}
-
-function formatLatency(value: number | undefined): string {
-  if (value == null || value <= 0) return '—';
-  return `${formatValue(value, 'milliseconds-auto', 1)} p95`;
-}
-
-function formatErrors(errorRps: number | undefined, totalRps: number | undefined): string {
-  if (errorRps == null || totalRps == null || totalRps <= 0) return '—';
-  return `${formatValue(errorRps / totalRps, 'percent', 1)} 5xx`;
-}
+const INITIAL_GLOBE_ROTATION = { phi: -1.03, theta: 0.34 };
 
 export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; proxyId: string }) => {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const [focusRegion, setFocusRegion] = useState<string | null>(null);
   const [focusToken, setFocusToken] = useState(0);
+  const [expanded, setExpanded] = useState(false);
+  const [cardGlobeHidden, setCardGlobeHidden] = useState(false);
+  const [originRect, setOriginRect] = useState<{
+    top: number;
+    left: number;
+    width: number;
+    height: number;
+  } | null>(null);
+  const [globeRotation, setGlobeRotation] = useState(INITIAL_GLOBE_ROTATION);
+  const globeRotationRef = useRef(globeRotation);
+  globeRotationRef.current = globeRotation;
+  const globeOriginRef = useRef<HTMLDivElement>(null);
+  const cardBodyRef = useRef<HTMLDivElement>(null);
 
   const focusLocation = useCallback((value: string) => {
     setHoveredRegion(value);
     setFocusRegion(value);
     setFocusToken((token) => token + 1);
+  }, []);
+
+  const openExpanded = useCallback(() => {
+    const globeRect = globeOriginRef.current?.getBoundingClientRect();
+    const cardRect = cardBodyRef.current?.getBoundingClientRect();
+    const rect = globeRect && globeRect.width > 0 && globeRect.height > 0 ? globeRect : cardRect;
+    if (!rect) return;
+    setOriginRect({
+      top: rect.top,
+      left: rect.left,
+      width: rect.width,
+      height: rect.height,
+    });
+    setExpanded(true);
+  }, []);
+
+  const closeExpanded = useCallback(() => {
+    const globeRect = globeOriginRef.current?.getBoundingClientRect();
+    const cardRect = cardBodyRef.current?.getBoundingClientRect();
+    const rect = globeRect && globeRect.width > 0 && globeRect.height > 0 ? globeRect : cardRect;
+    if (rect) {
+      setOriginRect({
+        top: rect.top,
+        left: rect.left,
+        width: rect.width,
+        height: rect.height,
+      });
+    }
+    setExpanded(false);
+  }, []);
+
+  const handleOverlayEntered = useCallback(() => {
+    setCardGlobeHidden(true);
+  }, []);
+
+  const handleOverlayExitStart = useCallback(() => {
+    setCardGlobeHidden(false);
+  }, []);
+
+  const handleOverlayExited = useCallback(() => {
+    setCardGlobeHidden(false);
   }, []);
 
   const baseLabels = useMemo(
@@ -167,10 +196,25 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
 
   const regionsWithCoords = useMemo(
     () =>
-      directory.filter(
-        (pop): pop is typeof pop & { coords: [number, number] } => pop.coords !== null
-      ),
-    [directory]
+      directory
+        .filter((pop): pop is typeof pop & { coords: [number, number] } => pop.coords !== null)
+        .map((pop) => {
+          const metricKey = pop.trafficRegion ?? pop.value;
+          return {
+            value: pop.value,
+            city: pop.city,
+            subtitle: pop.subtitle,
+            coords: pop.coords,
+            active: pop.active,
+            metrics: metricsForTrafficRegion(
+              metricKey,
+              rpsData?.series,
+              errorData?.series,
+              latencyData?.series
+            ),
+          };
+        }),
+    [directory, rpsData?.series, errorData?.series, latencyData?.series]
   );
 
   const activeCount = directory.filter((item) => item.active).length;
@@ -186,143 +230,206 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
   }, [proxy?.status]);
 
   const showSkeleton = isProxyPending && !isLoading && directory.length === 0 && !error;
+  const canExpand = !isLoading && !showSkeleton && !error && regionsWithCoords.length > 0;
 
   return (
-    <Card className="relative h-full w-full overflow-hidden rounded-xl py-0 shadow">
-      <CardContent className="p-0">
-        <div className="relative h-[22rem] sm:h-[24rem]">
-          <div className="absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden sm:block">
-            {isLoading || showSkeleton ? (
-              <div className="bg-muted/40 size-full" />
-            ) : error ? null : (
-              <ChunkErrorBoundary
-                fallback={
-                  <div className="flex size-full items-center justify-center px-6">
-                    <div className="flex flex-col items-center gap-2">
-                      <p className="text-muted-foreground text-sm">Unable to load map.</p>
-                      <Button
-                        htmlType="button"
-                        type="primary"
-                        theme="solid"
-                        size="small"
-                        onClick={() => window.location.reload()}>
-                        Reload page
-                      </Button>
+    <>
+      <Card
+        data-active-pops-card
+        className="relative h-full w-full overflow-hidden rounded-xl py-0 shadow">
+        <CardContent className="p-0">
+          <div ref={cardBodyRef} className="relative h-[22rem] sm:h-[24rem]">
+            <div
+              ref={globeOriginRef}
+              data-active-pops-globe-clip
+              data-active-pops-globe-origin
+              className="absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden sm:block">
+              {isLoading || showSkeleton ? (
+                <div className="bg-muted/40 size-full" />
+              ) : error ? null : (
+                <ChunkErrorBoundary
+                  fallback={
+                    <div className="flex size-full items-center justify-center px-6">
+                      <div className="flex flex-col items-center gap-2">
+                        <p className="text-muted-foreground text-sm">Unable to load map.</p>
+                        <Button
+                          htmlType="button"
+                          type="primary"
+                          theme="solid"
+                          size="small"
+                          onClick={() => window.location.reload()}>
+                          Reload page
+                        </Button>
+                      </div>
                     </div>
+                  }>
+                  <div
+                    className={cn(
+                      'absolute top-1/2 right-0 size-[38rem] translate-x-1/2 -translate-y-1/2 transition-opacity duration-200 ease-out',
+                      cardGlobeHidden ? 'pointer-events-none opacity-0' : 'opacity-100'
+                    )}>
+                    <Suspense fallback={<div className="size-full" />}>
+                      <ActivePopsMap
+                        regionsWithCoords={regionsWithCoords}
+                        hoveredRegion={hoveredRegion}
+                        onHoverRegion={setHoveredRegion}
+                        onFocusRegion={focusLocation}
+                        focusRegion={focusRegion}
+                        focusToken={focusToken}
+                        initialPhi={globeRotation.phi}
+                        initialTheta={globeRotation.theta}
+                        onRotationChange={(phi, theta) => setGlobeRotation({ phi, theta })}
+                        suspended={cardGlobeHidden}
+                      />
+                    </Suspense>
                   </div>
-                }>
-                <div className="absolute top-1/2 right-0 size-[38rem] translate-x-[62%] -translate-y-1/2">
-                  <Suspense fallback={<div className="size-full" />}>
-                    <ActivePopsMap
-                      regionsWithCoords={regionsWithCoords}
-                      hoveredRegion={hoveredRegion}
-                      onHoverRegion={setHoveredRegion}
-                      onFocusRegion={focusLocation}
-                      focusRegion={focusRegion}
-                      focusToken={focusToken}
-                    />
-                  </Suspense>
-                </div>
-              </ChunkErrorBoundary>
-            )}
-          </div>
-          <div className="from-card from-card pointer-events-none absolute inset-y-0 left-0 hidden w-[34rem] bg-gradient-to-r from-[26rem] to-transparent sm:block" />
-
-          <div className="bg-card relative z-10 flex h-full min-h-0 w-full flex-col gap-3 px-3 pt-4 pb-4 sm:max-w-[26rem] sm:bg-transparent sm:px-6 sm:pb-8">
-            <div className="flex shrink-0 items-center gap-2.5">
-              <Icon icon={MapPinIcon} size={20} className="text-secondary stroke-2" />
-              <span className="text-base font-semibold">Active POPs</span>
+                </ChunkErrorBoundary>
+              )}
+              {canExpand && (
+                <Button
+                  htmlType="button"
+                  type="quaternary"
+                  theme="outline"
+                  size="small"
+                  aria-label="Expand map"
+                  className="bg-background/80 absolute top-3 right-3 z-20 backdrop-blur-sm transition-transform duration-[160ms] ease-out active:scale-[0.97]"
+                  onClick={openExpanded}>
+                  <Icon icon={ExpandIcon} size={14} />
+                </Button>
+              )}
             </div>
-            <p className="text-muted-foreground shrink-0 text-sm font-normal">
-              Locations this ALB can serve from. Highlighted locations have recent traffic.
-            </p>
-            {!isLoading && !showSkeleton && !error && directory.length > 0 && (
-              <p className="text-muted-foreground shrink-0 text-xs">
-                {activeCount} with traffic · {directory.length} locations
-              </p>
-            )}
-            {isLoading && (
-              <div className="flex items-center gap-2 py-4">
-                <SpinnerIcon size="sm" />
-                <p className="text-muted-foreground text-sm">Loading locations...</p>
-              </div>
-            )}
-            {showSkeleton && (
-              <div className="flex flex-col gap-3">
-                <Skeleton className="h-12 w-full rounded-lg" />
-                <Skeleton className="h-12 w-full rounded-lg" />
-              </div>
-            )}
-            {!isLoading && !showSkeleton && error && (
-              <p className="text-muted-foreground text-sm">Unable to load active regions.</p>
-            )}
-            {!isLoading && !showSkeleton && !error && directory.length === 0 && (
-              <p className="text-muted-foreground text-sm">No locations found.</p>
-            )}
-            {!isLoading && !showSkeleton && !error && directory.length > 0 && (
-              <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,black_calc(100%-1.25rem),transparent)] pb-4">
-                {directory.map((item) => {
-                  const metricKey = item.trafficRegion ?? item.value;
-                  const rps = latestSeriesValue(seriesByRegion(rpsData?.series, metricKey));
-                  const errorRps = latestSeriesValue(seriesByRegion(errorData?.series, metricKey));
-                  const latency = latestSeriesValue(seriesByRegion(latencyData?.series, metricKey));
-                  const isHovered = hoveredRegion === item.value;
+            <div className="from-card from-card pointer-events-none absolute inset-y-0 left-0 hidden w-[34rem] bg-gradient-to-r from-[26rem] to-transparent sm:block" />
 
-                  return (
-                    <li key={item.value}>
-                      <button
-                        type="button"
-                        className={cn(
-                          'hover:bg-foreground/[0.08] flex w-full items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-150 ease-out',
-                          isHovered && 'bg-foreground/[0.1]'
-                        )}
-                        onMouseEnter={() => setHoveredRegion(item.value)}
-                        onMouseLeave={() => setHoveredRegion(null)}
-                        onFocus={() => setHoveredRegion(item.value)}
-                        onBlur={() => setHoveredRegion(null)}
-                        onClick={() => {
-                          if (item.coords) focusLocation(item.value);
-                        }}>
-                        <span
+            <div
+              data-active-pops-list
+              className="bg-card relative z-10 flex h-full min-h-0 w-full flex-col gap-3 px-3 pt-4 pb-4 sm:max-w-[26rem] sm:bg-transparent sm:px-6 sm:pb-8">
+              <div className="flex shrink-0 items-center gap-2.5">
+                <Icon icon={MapPinIcon} size={20} className="text-secondary stroke-2" />
+                <span className="text-base font-semibold">Active POPs</span>
+                {canExpand && (
+                  <Button
+                    htmlType="button"
+                    type="quaternary"
+                    theme="outline"
+                    size="small"
+                    aria-label="Expand map"
+                    className="ml-auto transition-transform duration-[160ms] ease-out active:scale-[0.97] sm:hidden"
+                    onClick={openExpanded}>
+                    <Icon icon={ExpandIcon} size={14} />
+                  </Button>
+                )}
+              </div>
+              <p className="text-muted-foreground shrink-0 text-sm font-normal">
+                Locations this ALB can serve from. Highlighted locations have recent traffic.
+              </p>
+              {!isLoading && !showSkeleton && !error && directory.length > 0 && (
+                <p className="text-muted-foreground shrink-0 text-xs">
+                  {activeCount} with traffic · {directory.length} locations
+                </p>
+              )}
+              {isLoading && (
+                <div className="flex items-center gap-2 py-4">
+                  <SpinnerIcon size="sm" />
+                  <p className="text-muted-foreground text-sm">Loading locations...</p>
+                </div>
+              )}
+              {showSkeleton && (
+                <div className="flex flex-col gap-3">
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                  <Skeleton className="h-12 w-full rounded-lg" />
+                </div>
+              )}
+              {!isLoading && !showSkeleton && error && (
+                <p className="text-muted-foreground text-sm">Unable to load active regions.</p>
+              )}
+              {!isLoading && !showSkeleton && !error && directory.length === 0 && (
+                <p className="text-muted-foreground text-sm">No locations found.</p>
+              )}
+              {!isLoading && !showSkeleton && !error && directory.length > 0 && (
+                <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,black_calc(100%-1.25rem),transparent)] pb-4">
+                  {directory.map((item) => {
+                    const metricKey = item.trafficRegion ?? item.value;
+                    const metrics = metricsForTrafficRegion(
+                      metricKey,
+                      rpsData?.series,
+                      errorData?.series,
+                      latencyData?.series
+                    );
+                    const rps = metrics.rps;
+                    const errorRps = metrics.errorRps;
+                    const latency = metrics.latency;
+                    const isHovered = hoveredRegion === item.value;
+
+                    return (
+                      <li key={item.value}>
+                        <button
+                          type="button"
                           className={cn(
-                            'mt-1.5 size-2 shrink-0 rounded-full',
-                            item.active ? 'bg-[#B3D56F]' : 'bg-muted-foreground/30'
+                            'hover:bg-foreground/[0.08] flex w-full items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-150 ease-out',
+                            isHovered && 'bg-foreground/[0.1]'
                           )}
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-center justify-between gap-2">
-                            <span className="truncate text-sm font-medium">{item.city}</span>
-                            <Badge
-                              type={item.active ? 'primary' : 'quaternary'}
-                              theme={item.active ? 'light' : 'outline'}
-                              className="shrink-0 text-[10px] font-normal">
-                              {item.active ? 'Traffic' : 'Idle'}
-                            </Badge>
+                          onMouseEnter={() => setHoveredRegion(item.value)}
+                          onMouseLeave={() => setHoveredRegion(null)}
+                          onFocus={() => setHoveredRegion(item.value)}
+                          onBlur={() => setHoveredRegion(null)}
+                          onClick={() => {
+                            if (item.coords) focusLocation(item.value);
+                          }}>
+                          <span
+                            className={cn(
+                              'mt-1.5 size-2 shrink-0 rounded-full',
+                              item.active ? 'bg-[#B3D56F]' : 'bg-muted-foreground/30'
+                            )}
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="flex items-center justify-between gap-2">
+                              <span className="truncate text-sm font-medium">{item.city}</span>
+                              <Badge
+                                type={item.active ? 'primary' : 'quaternary'}
+                                theme={item.active ? 'light' : 'outline'}
+                                className="shrink-0 text-[10px] font-normal">
+                                {item.active ? 'Traffic' : 'Idle'}
+                              </Badge>
+                            </span>
+                            <span className="text-muted-foreground mt-0.5 block truncate text-xs">
+                              {item.subtitle}
+                            </span>
+                            <span className="text-muted-foreground mt-1 block text-xs tabular-nums">
+                              {item.active
+                                ? [
+                                    formatRps(rps),
+                                    formatLatency(latency),
+                                    formatErrors(errorRps, rps),
+                                  ]
+                                    .filter((part) => part !== '—')
+                                    .join(' · ') || 'Collecting metrics…'
+                                : 'No recent traffic'}
+                            </span>
                           </span>
-                          <span className="text-muted-foreground mt-0.5 block truncate text-xs">
-                            {item.subtitle}
-                          </span>
-                          <span className="text-muted-foreground mt-1 block text-xs tabular-nums">
-                            {item.active
-                              ? [
-                                  formatRps(rps),
-                                  formatLatency(latency),
-                                  formatErrors(errorRps, rps),
-                                ]
-                                  .filter((part) => part !== '—')
-                                  .join(' · ') || 'Collecting metrics…'
-                              : 'No recent traffic'}
-                          </span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <ActivePopsExpandOverlay
+        open={expanded}
+        originRect={originRect}
+        regionsWithCoords={regionsWithCoords}
+        rotation={globeRotation}
+        onRotationChange={(phi, theta) => setGlobeRotation({ phi, theta })}
+        onClose={closeExpanded}
+        onEntered={handleOverlayEntered}
+        onExitStart={handleOverlayExitStart}
+        onExited={handleOverlayExited}
+        activeCount={activeCount}
+        locationCount={directory.length}
+      />
+    </>
   );
 };
