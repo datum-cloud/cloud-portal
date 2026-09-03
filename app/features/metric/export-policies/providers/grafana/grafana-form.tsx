@@ -321,7 +321,7 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                     <NoteCard
                       size="sm"
                       description={
-                        <div className="text-secondary text-xs">
+                        <div className="text-secondary dark:text-secondary-foreground text-xs">
                           The link opens the connection flow for your instance. After you create or
                           select an API token, Grafana will show the Prometheus remote_write YAML
                           you need to copy and paste below.

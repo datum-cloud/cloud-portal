@@ -1,6 +1,8 @@
 import {
   getNameEndsWithZoneWarning,
   getRecordHostname,
+  isApexName,
+  isSystemManagedDnsRecord,
 } from '@/utils/helpers/dns/record-hostname.helper';
 
 describe('getRecordHostname', () => {
@@ -105,5 +107,65 @@ describe('getNameEndsWithZoneWarning', () => {
 
   it('does not warn when zone domain is missing', () => {
     expect(getNameEndsWithZoneWarning('test.mdj-test.online', '')).to.equal(null);
+  });
+});
+
+describe('isApexName', () => {
+  const zoneDomain = 'example.com';
+
+  it('treats @ as apex', () => {
+    expect(isApexName('@', zoneDomain)).to.equal(true);
+  });
+
+  it('treats empty and whitespace as apex', () => {
+    expect(isApexName('', zoneDomain)).to.equal(true);
+    expect(isApexName('   ', zoneDomain)).to.equal(true);
+    expect(isApexName(undefined, zoneDomain)).to.equal(true);
+  });
+
+  it('treats the zone domain as apex, with or without a trailing dot', () => {
+    expect(isApexName('example.com', zoneDomain)).to.equal(true);
+    expect(isApexName('example.com.', zoneDomain)).to.equal(true);
+    expect(isApexName('example.com', 'example.com.')).to.equal(true);
+  });
+
+  it('is case-insensitive for zone matching', () => {
+    expect(isApexName('EXAMPLE.COM', zoneDomain)).to.equal(true);
+  });
+
+  it('does not treat subdomains as apex', () => {
+    expect(isApexName('ns1', zoneDomain)).to.equal(false);
+    expect(isApexName('delegated', zoneDomain)).to.equal(false);
+    expect(isApexName('ns1.example.com', zoneDomain)).to.equal(false);
+  });
+
+  it('still treats @ as apex when zone domain is missing', () => {
+    expect(isApexName('@')).to.equal(true);
+    expect(isApexName('example.com')).to.equal(false);
+  });
+});
+
+describe('isSystemManagedDnsRecord', () => {
+  const zoneDomain = 'example.com';
+
+  it('locks every SOA record', () => {
+    expect(isSystemManagedDnsRecord({ type: 'SOA', name: '@' }, zoneDomain)).to.equal(true);
+    expect(isSystemManagedDnsRecord({ type: 'SOA', name: 'example.com' }, zoneDomain)).to.equal(
+      true
+    );
+  });
+
+  it('locks apex NS and leaves subdomain NS unmanaged', () => {
+    expect(isSystemManagedDnsRecord({ type: 'NS', name: '@' }, zoneDomain)).to.equal(true);
+    expect(isSystemManagedDnsRecord({ type: 'NS', name: 'example.com' }, zoneDomain)).to.equal(
+      true
+    );
+    expect(isSystemManagedDnsRecord({ type: 'NS', name: 'ns1' }, zoneDomain)).to.equal(false);
+    expect(isSystemManagedDnsRecord({ type: 'NS', name: 'delegated' }, zoneDomain)).to.equal(false);
+  });
+
+  it('does not lock other record types at the apex', () => {
+    expect(isSystemManagedDnsRecord({ type: 'A', name: '@' }, zoneDomain)).to.equal(false);
+    expect(isSystemManagedDnsRecord({ type: 'MX', name: '@' }, zoneDomain)).to.equal(false);
   });
 });

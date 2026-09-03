@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types -- TypeScript provides runtime-equivalent guarantees; the rule mis-fires on destructured discriminated-union props. */
 import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
+import { isRowLocked } from './utils';
 import {
   type ColumnDef,
   type RowData,
@@ -395,7 +396,12 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     ...extraRowActions,
   ];
 
-  const columns = [...baseColumns, createActionsColumn<IFlattenedDnsRecord>(rowActions)];
+  const columns = [
+    ...baseColumns,
+    createActionsColumn<IFlattenedDnsRecord>(rowActions, {
+      hideRowActions: isRowLocked,
+    }),
+  ];
 
   const toolbarActions = tableTitle?.actions ? [tableTitle.actions] : undefined;
 

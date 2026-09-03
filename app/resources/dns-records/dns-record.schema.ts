@@ -89,6 +89,15 @@ const cnameBaseRecordFieldSchema = baseRecordFieldSchema.extend({
   }),
 });
 
+// NS-specific base schema - disallows zone apex (@)
+// Apex NS records are managed by Datum; use a subdomain for delegation.
+const nsBaseRecordFieldSchema = baseRecordFieldSchema.extend({
+  name: baseRecordFieldSchema.shape.name.refine((val) => val !== '@', {
+    message:
+      'Apex NS records are managed automatically by Datum. Use a subdomain to delegate a nameserver.',
+  }),
+});
+
 // Type-specific record data schemas
 
 // A Record - IPv4 addresses
@@ -353,7 +362,7 @@ export const caaRecordSchema = baseRecordFieldSchema.extend({
   caa: caaRecordDataSchema,
 });
 
-export const nsRecordSchema = baseRecordFieldSchema.extend({
+export const nsRecordSchema = nsBaseRecordFieldSchema.extend({
   ns: nsRecordDataSchema,
 });
 

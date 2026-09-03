@@ -1,5 +1,5 @@
 import { GrafanaDialog } from '@/features/metric/export-policies/providers/grafana';
-import { Button } from '@datum-cloud/datum-ui/button';
+import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { useState } from 'react';
 
@@ -31,14 +31,26 @@ export const ExportPolicyGrafanaCard = ({
               </p>
             </div>
 
-            <Button
-              type="primary"
-              theme="solid"
-              size="small"
-              className="font-semibold"
-              onClick={() => setOpen(true)}>
-              Create the export policy
-            </Button>
+            <div className="flex flex-col gap-2 lg:flex-row">
+              <Button
+                type="primary"
+                theme="solid"
+                size="small"
+                className="font-semibold"
+                onClick={() => setOpen(true)}>
+                Create an export policy
+              </Button>
+              <LinkButton
+                type="secondary"
+                theme="outline"
+                size="small"
+                className="font-semibold"
+                target="_blank"
+
+                href="https://grafana.com/orgs/datumcloud/dashboards">
+                View Datum templates
+              </LinkButton>
+            </div>
           </div>
         </CardContent>
       </Card>
