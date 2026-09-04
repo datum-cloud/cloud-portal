@@ -10,6 +10,7 @@
 //
 // Public API is unchanged — all consumers (useResourceWatch, waitForWatch,
 // WatchProvider) work without modification.
+import { buildWatchChannelKey } from './watch.channel-key';
 import type { WatchOptions, WatchEvent, WatchSubscriber } from './watch.types';
 
 /** Base delay before reconnecting after the SSE stream drops (ms). */
@@ -38,6 +39,21 @@ interface ChannelSubscription {
 }
 
 /**
+ * A user-scoped subscription taken before the server told us who we are.
+ * Held whole (options + callback) rather than keyed by channel, because the
+ * channel name is precisely what cannot be computed yet.
+ */
+interface DeferredSubscription {
+  options: WatchOptions;
+  callback: WatchSubscriber<unknown>;
+  /**
+   * Set once the entry has been drained into a real channel. Until then the
+   * channel key cannot be derived at all, so unsubscribing must not try.
+   */
+  attached: boolean;
+}
+
+/**
  * WatchManager multiplexes all K8s watch subscriptions through a single SSE
  * connection to the server-side WatchHub. The server handles upstream K8s
  * connections, deduplication, and fan-out.
@@ -50,8 +66,18 @@ interface ChannelSubscription {
  * - Delayed cleanup for React Strict Mode re-mounts
  * - HMR-safe singleton (persists across hot reloads)
  */
-class WatchManager {
+export class WatchManager {
   private clientId: string;
+  /**
+   * Session user id, learned from the server's `connected` event. Channel
+   * keys for user-scoped watches embed it, so it is not optional detail:
+   * without it this manager cannot name the channel the hub will use.
+   *
+   * Fixed for the lifetime of the manager in practice — the SSE stream is
+   * authenticated by the session cookie, and changing sessions means a
+   * document load, which builds a new manager.
+   */
+  private userId: string | null = null;
   private channels = new Map<string, ChannelSubscription>();
   private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   private controller: AbortController | null = null;
@@ -61,6 +87,7 @@ class WatchManager {
     string,
     { timer: ReturnType<typeof setTimeout>; callback: WatchSubscriber<unknown> }
   >();
+  private deferredSubscriptions = new Set<DeferredSubscription>();
   private visibilityListenerAttached = false;
   private visibilityHandler: (() => void) | null = null;
   private reconnectAttempts = 0;
@@ -88,6 +115,38 @@ class WatchManager {
    *          a server-side unsubscribe is sent.
    */
   subscribe<T = unknown>(options: WatchOptions, callback: WatchSubscriber<T>): () => void {
+    const typedCallback = callback as WatchSubscriber<unknown>;
+
+    // A user-scoped channel key embeds the session user id, which only the
+    // server can supply. Hold the subscription until the `connected` event
+    // delivers it: keying the channel any other way would mean listening on
+    // a name the hub never broadcasts. Nothing is lost by waiting — no
+    // subscribe is sent to the server before `connected` either.
+    if (options.userScoped && !this.userId) {
+      const deferred: DeferredSubscription = {
+        options,
+        callback: typedCallback,
+        attached: false,
+      };
+      this.deferredSubscriptions.add(deferred);
+      return () => {
+        this.deferredSubscriptions.delete(deferred);
+        // Never attached — including the case where `disconnectAll()` dropped
+        // the queue. There is no channel to schedule a cleanup against, and
+        // asking for its key would throw.
+        if (!deferred.attached) return;
+        this.scheduleCleanup(options, typedCallback);
+      };
+    }
+
+    return this.attach(options, typedCallback);
+  }
+
+  /**
+   * Add a subscriber to its channel, creating the channel (and the server-side
+   * subscription) if this is the first one.
+   */
+  private attach(options: WatchOptions, callback: WatchSubscriber<unknown>): () => void {
     const channel = this.buildChannelKey(options);
 
     // Cancel pending cleanup (React Strict Mode re-mount)
@@ -116,19 +175,25 @@ class WatchManager {
       }
     }
 
-    this.channels.get(channel)!.subscribers.add(callback as WatchSubscriber<unknown>);
+    this.channels.get(channel)!.subscribers.add(callback);
 
-    // Return unsubscribe function
-    const typedCallback = callback as WatchSubscriber<unknown>;
-    return () => {
-      this.cleanupTimers.set(channel, {
-        timer: setTimeout(() => {
-          this.doUnsubscribe(channel, typedCallback);
-          this.cleanupTimers.delete(channel);
-        }, CLEANUP_DELAY_MS),
-        callback: typedCallback,
-      });
-    };
+    return () => this.scheduleCleanup(options, callback);
+  }
+
+  /**
+   * Schedule the delayed removal of a subscriber. The channel key is derived
+   * again here rather than captured at subscribe time, so a subscription taken
+   * before the user id arrived still cleans up under the key it ended up with.
+   */
+  private scheduleCleanup(options: WatchOptions, callback: WatchSubscriber<unknown>): void {
+    const channel = this.buildChannelKey(options);
+    this.cleanupTimers.set(channel, {
+      timer: setTimeout(() => {
+        this.doUnsubscribe(channel, callback);
+        this.cleanupTimers.delete(channel);
+      }, CLEANUP_DELAY_MS),
+      callback,
+    });
   }
 
   /** Unsubscribe all channels, close the SSE connection, and clear all state. */
@@ -144,6 +209,7 @@ class WatchManager {
       clearTimeout(timer);
     }
     this.cleanupTimers.clear();
+    this.deferredSubscriptions.clear();
 
     // Close SSE connection
     this.controller?.abort();
@@ -281,8 +347,28 @@ class WatchManager {
 
       switch (event) {
         case 'connected': {
+          this.applyServerIdentity(parsed.userId);
+
           // Server has registered the client — safe to send subscriptions now
           this.isConnected = true;
+
+          // User-scoped subscriptions held back until the id arrived can now
+          // be keyed. Attaching while `isConnected` is already true sends
+          // their server subscribe directly.
+          //
+          // Guarded on the id actually having arrived: draining without one
+          // would throw inside `buildChannelKey`, and this whole block runs
+          // under a catch that discards parse errors — the queue would be
+          // gone, `pendingSubscriptions` never flushed, and every watch in
+          // the tab dead with nothing but one warning to show for it.
+          if (this.userId !== null) {
+            const deferred = Array.from(this.deferredSubscriptions);
+            this.deferredSubscriptions.clear();
+            for (const entry of deferred) {
+              entry.attached = true;
+              this.attach(entry.options, entry.callback);
+            }
+          }
 
           for (const opts of this.pendingSubscriptions.values()) {
             this.serverSubscribe(opts);
@@ -321,11 +407,61 @@ class WatchManager {
           }
           break;
         }
-        // subscribed, unsubscribed, heartbeat — no action needed
+
+        // Both mean the channel's upstream is (re)opening — see
+        // WatchEventType.RESYNC for what that triggers downstream.
+        //
+        // - `subscribed` fires on first mount AND on every re-subscribe: tab
+        //   backgrounding aborts the SSE fetch, the hub's zero-subscriber
+        //   grace period closes the upstream, and returning opens a fresh
+        //   one — so does resubscribeAll() after the SSE stream ends.
+        // - `resync` is the hub resetting resourceVersion after a 410 Gone;
+        //   routine in Kubernetes and broadcast to every subscriber since no
+        //   client asked for it.
+        case 'subscribed':
+        case 'resync': {
+          const channel = parsed.channel as string;
+          const sub = this.channels.get(channel);
+          if (!sub) return;
+
+          const resyncEvent: WatchEvent<unknown> = {
+            type: 'RESYNC',
+            object: { channel },
+          };
+
+          for (const subscriber of Array.from(sub.subscribers)) {
+            subscriber(resyncEvent);
+          }
+          break;
+        }
+        // unsubscribed, heartbeat — no action needed
       }
     } catch {
       // Invalid JSON — skip
     }
+  }
+
+  /**
+   * Record the session user id from the `connected` handshake.
+   *
+   * Warns rather than silently no-ops on the two cases that would strand
+   * user-scoped watches: a handshake without an id (nothing would ever leave
+   * the deferred queue), and an id that changes mid-connection (channels
+   * created under the previous identity keep their old keys and go quiet).
+   * Neither is reachable today; both are silent if they ever become so.
+   */
+  private applyServerIdentity(userId: unknown): void {
+    const next = typeof userId === 'string' && userId.length > 0 ? userId : null;
+
+    if (next === null) {
+      console.warn('[WatchManager] connected without a user id — user-scoped watches will not run');
+      return;
+    }
+    if (this.userId !== null && this.userId !== next) {
+      console.warn('[WatchManager] session user changed on an open stream; reload expected');
+    }
+
+    this.userId = next;
   }
 
   // ─── Server Communication ────────────────────────
@@ -401,20 +537,14 @@ class WatchManager {
   }
 
   /**
-   * Build a deterministic channel key from watch options.
-   * Must match the server-side `WatchHub.buildWatchKey()` format exactly.
+   * Build the deterministic channel key for a set of watch options.
+   *
+   * Delegates to {@link buildWatchChannelKey}, which the server-side
+   * `WatchHub.buildWatchKey()` also calls — the two must derive the same
+   * string or subscribe, unsubscribe and event routing all miss.
    */
   private buildChannelKey(options: WatchOptions): string {
-    return [
-      options.resourceType,
-      options.orgId ?? '',
-      options.projectId ?? '',
-      options.namespace ?? '',
-      options.name ?? '',
-      options.labelSelector ?? '',
-      options.fieldSelector ?? '',
-      options.userScoped ? 'user' : '', // 8th segment — must match WatchHub.buildWatchKey exactly
-    ].join(':');
+    return buildWatchChannelKey(options, this.userId ?? undefined);
   }
 
   /** Disconnect when tab is hidden; reconnect when visible (saves connections). */
