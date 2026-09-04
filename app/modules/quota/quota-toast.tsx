@@ -1,4 +1,5 @@
 import { classifyQuotaError, parseQuotaError } from './quota-error';
+import { isEmailNotVerifiedError } from '@/features/account/email-verification/email-verification-error';
 import { isProjectReadOnlyError } from '@/features/project/read-only/project-read-only-error';
 import { isProjectSuspendedError } from '@/features/project/suspension/classify-suspension-error';
 import { showProjectSuspendedToast } from '@/features/project/suspension/suspension-toast';
@@ -72,6 +73,21 @@ export function showMutationErrorToast(
   error: unknown,
   opts: QuotaToastContext & { fallbackTitle: string; fallbackDescription?: string }
 ): void {
+  // Verification outranks both, matching the server: milo runs
+  // EmailVerificationEnforcement ahead of ProjectSuspensionEnforcement, so when
+  // both apply the denial that comes back is EmailNotVerified. Checking
+  // suspension first would render a toast for a denial nobody issued.
+  //
+  // A redirect rather than a toast: an unverified account fails EVERY write, so
+  // a toast per attempt is noise, and unlike a suspension the user can fix this
+  // themselves. The proxy has already refreshed and retried once by this point,
+  // so reaching here means the account genuinely is unverified rather than the
+  // TokenReview being stale.
+  if (isEmailNotVerifiedError(error)) {
+    window.location.assign(paths.fraud.verifyEmail);
+    return;
+  }
+
   // Suspension outranks quota: a suspended project's writes 403 with
   // ProjectSuspended regardless of quota headroom. ProjectReadOnlyError is the
   // client-side equivalent from useGuardedMutation — it never reaches the
