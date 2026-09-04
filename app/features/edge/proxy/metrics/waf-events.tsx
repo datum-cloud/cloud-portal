@@ -1,43 +1,27 @@
 import { DateTime } from '@/components/date-time';
 import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
+  OUTCOME_COLORS,
+  OUTCOME_LABELS,
+  albWafByOutcomeQuery,
+  albWafIncreaseQuery,
+  scopeFromContext,
+  stepOr,
+  windowDuration,
+} from '@/features/edge/proxy/metrics/queries';
+import {
   MetricChart,
   MetricChartTooltipContent,
-  buildPrometheusLabelSelector,
-  createRegionFilter,
   useMetrics,
   usePrometheusCard,
   type QueryBuilderContext,
   toChartLabelDate,
 } from '@/modules/metrics';
-import { formatDurationFromMs } from '@/modules/metrics/utils/date-parsers';
 import { formatValue, type ChartSeries } from '@/modules/prometheus';
 import type { TrafficProtectionMode } from '@/resources/http-proxies';
 import { useCallback, useMemo, useState } from 'react';
 
-const OUTCOME_LABELS: Record<string, string> = {
-  allowed: 'Allowed',
-  blocked: 'Blocked',
-  dropped: 'Dropped',
-};
-
-const OUTCOME_COLORS: Record<string, string> = {
-  allowed: 'var(--color-chart-2)',
-  blocked: 'var(--color-chart-1)',
-  dropped: 'var(--color-chart-4)',
-};
-
-function windowDuration(ctx: QueryBuilderContext): string {
-  return formatDurationFromMs(ctx.timeRange.end.getTime() - ctx.timeRange.start.getTime());
-}
-
-// A counter reset inside the range makes increase() extrapolate a bogus,
-// wildly inflated delta. Zero out any window where a reset occurred instead
-// of reporting it.
-export function resetGuardedIncrease(metric: string, selector: string, window: string): string {
-  const series = `${metric}${selector}`;
-  return `(increase(${series}[${window}]) * (resets(${series}[${window}]) == bool 0))`;
-}
+export { resetGuardedIncrease } from '@/features/edge/proxy/metrics/queries';
 
 function WafStat({ label, query }: { label: string; query: (ctx: QueryBuilderContext) => string }) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
@@ -73,39 +57,32 @@ export const HttpProxyWafEvents = ({
   const [series, setSeries] = useState<ChartSeries[]>([]);
 
   const blockedQuery = useCallback(
-    (ctx: QueryBuilderContext) => {
-      const regionFilter = createRegionFilter(ctx.get('regions'));
-      const selector = buildPrometheusLabelSelector({
-        baseLabels: {
-          resourcemanager_datumapis_com_project_name: projectId,
-          gateway_name: proxyId,
+    (ctx: QueryBuilderContext) =>
+      albWafIncreaseQuery(
+        {
+          ...scopeFromContext(ctx, projectId, proxyId),
+          wafOutcomes: undefined,
+          customLabels: { coraza_outcome: '=~"blocked|dropped"' },
         },
-        customLabels: {
-          label_topology_kubernetes_io_region: '!=""',
-          coraza_outcome: '=~"blocked|dropped"',
-        },
-        filters: [regionFilter],
-      });
-      return `sum(${resetGuardedIncrease('coraza_envoy_filter_request_events_total', selector, windowDuration(ctx))})`;
-    },
+        windowDuration(ctx)
+      ),
     [projectId, proxyId]
   );
 
   const allowedQuery = useCallback(
-    (ctx: QueryBuilderContext) => {
-      const regionFilter = createRegionFilter(ctx.get('regions'));
-      const selector = buildPrometheusLabelSelector({
-        baseLabels: {
-          resourcemanager_datumapis_com_project_name: projectId,
-          gateway_name: proxyId,
-          coraza_outcome: 'allowed',
-          trafficprotectionpolicy_mode: trafficProtectionMode === 'Enforce' ? 'Enforce' : 'Observe',
+    (ctx: QueryBuilderContext) =>
+      albWafIncreaseQuery(
+        {
+          ...scopeFromContext(ctx, projectId, proxyId),
+          wafOutcomes: undefined,
+          customLabels: {
+            coraza_outcome: 'allowed',
+            trafficprotectionpolicy_mode:
+              trafficProtectionMode === 'Enforce' ? 'Enforce' : 'Observe',
+          },
         },
-        customLabels: { label_topology_kubernetes_io_region: '!=""' },
-        filters: [regionFilter],
-      });
-      return `sum(${resetGuardedIncrease('coraza_envoy_filter_request_events_total', selector, windowDuration(ctx))})`;
-    },
+        windowDuration(ctx)
+      ),
     [projectId, proxyId, trafficProtectionMode]
   );
 
@@ -135,24 +112,9 @@ export const HttpProxyWafEvents = ({
       </div>
 
       <MetricChart
-        query={({ filters, get }) => {
-          const regionFilter = createRegionFilter(get('regions'));
-          const selector = buildPrometheusLabelSelector({
-            baseLabels: {
-              resourcemanager_datumapis_com_project_name: projectId,
-              gateway_name: proxyId,
-            },
-            customLabels: { label_topology_kubernetes_io_region: '!=""' },
-            filters: [regionFilter],
-          });
-          const step = filters.step ?? '15m';
-          return (
-            `sum by (coraza_outcome) (` +
-            `sum_over_time(` +
-            `${resetGuardedIncrease('coraza_envoy_filter_request_events_total', selector, '1m')}` +
-            `[${step}:1m]))`
-          );
-        }}
+        query={(ctx) =>
+          albWafByOutcomeQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
+        }
         chartType="bar"
         showLegend={false}
         colorOverrides={OUTCOME_COLORS}

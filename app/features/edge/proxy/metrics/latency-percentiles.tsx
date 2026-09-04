@@ -1,39 +1,43 @@
 import { DateTime } from '@/components/date-time';
 import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
-  RESPONSE_CODE_COLORS,
-  albRpsByClassQuery,
+  QUANTILE_COLORS,
+  albLatencyPercentilesQuery,
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
 import { SeriesLegend } from '@/features/edge/proxy/metrics/series-legend';
 import { MetricChart, MetricChartTooltipContent, toChartLabelDate } from '@/modules/metrics';
-import type { ChartSeries } from '@/modules/prometheus';
+import { formatValue, type ChartSeries } from '@/modules/prometheus';
 import { useState } from 'react';
 
-export const HttpProxyEdgeRequests = ({
+export function HttpProxyLatencyPercentiles({
   projectId,
   proxyId,
 }: {
   projectId: string;
   proxyId: string;
-}) => {
+}) {
   const [series, setSeries] = useState<ChartSeries[]>([]);
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium">Requests per second</p>
-        <SeriesLegend series={series} colors={RESPONSE_CODE_COLORS} />
+        <p className="text-sm font-medium">Upstream latency</p>
+        <SeriesLegend series={series} colors={QUANTILE_COLORS} />
       </div>
       <MetricChart
-        query={(ctx) => albRpsByClassQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
-        chartType="area"
+        query={(ctx) =>
+          albLatencyPercentilesQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
+        }
+        chartType="line"
         showLegend={false}
-        colorOverrides={RESPONSE_CODE_COLORS}
+        colorOverrides={QUANTILE_COLORS}
+        valueFormat="milliseconds-auto"
         padToTimeRange
         syncId={AI_EDGE_METRICS_SYNC_ID}
-        height={200}
+        height={220}
+        yAxisFormatter={(value) => formatValue(value, 'milliseconds-auto')}
         onSeriesChange={setSeries}
         tooltipContent={({ active, payload, label, ...props }) => {
           if (!active || !payload?.length) return null;
@@ -55,7 +59,7 @@ export const HttpProxyEdgeRequests = ({
                     <span className="font-medium">{name}</span>
                   </div>
                   <div className="text-foreground font-medium">
-                    {`${(value as number).toFixed(2)} req/s`}
+                    {formatValue(value as number, 'milliseconds-auto')}
                   </div>
                 </div>
               )}
@@ -67,4 +71,4 @@ export const HttpProxyEdgeRequests = ({
       />
     </div>
   );
-};
+}

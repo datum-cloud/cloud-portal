@@ -1,5 +1,5 @@
+import { formatMetricError } from '@/modules/metrics/utils/format-metric-error';
 import { type PrometheusError } from '@/modules/prometheus';
-import { Alert, AlertDescription } from '@datum-cloud/datum-ui/alert';
 import {
   Card,
   CardContent,
@@ -7,8 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
-import { AlertCircle } from 'lucide-react';
 import React from 'react';
 
 // Deterministic heights so the skeleton doesn't shift on re-render
@@ -68,25 +66,11 @@ export function BaseMetric({
     }
 
     if (error) {
-      // Permission/auth failures get a muted, non-alarming message — a viewer
-      // without telemetry access shouldn't see a red error banner.
-      if (error.statusCode === 403 || error.statusCode === 401) {
-        return (
-          <div
-            className="text-muted-foreground flex w-full items-center justify-center p-4 text-sm"
-            style={containerStyle}>
-            You don&apos;t have permission to view these metrics
-          </div>
-        );
-      }
       return (
-        <div className="w-full p-4" style={containerStyle}>
-          <Alert variant="destructive">
-            <Icon icon={AlertCircle} className="h-4 w-4" />
-            <AlertDescription className="text-sm">
-              {(error as Error).message || 'Failed to load metric.'}
-            </AlertDescription>
-          </Alert>
+        <div
+          className="text-muted-foreground flex w-full items-center justify-center p-4 text-center text-sm"
+          style={containerStyle}>
+          {formatMetricError(error)}
         </div>
       );
     }

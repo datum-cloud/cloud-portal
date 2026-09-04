@@ -1,40 +1,23 @@
 import { DateTime } from '@/components/date-time';
 import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
-import {
-  RESPONSE_CODE_COLORS,
-  albRpsByClassQuery,
-  scopeFromContext,
-  stepOr,
-} from '@/features/edge/proxy/metrics/queries';
-import { SeriesLegend } from '@/features/edge/proxy/metrics/series-legend';
+import { albErrorRateQuery, scopeFromContext, stepOr } from '@/features/edge/proxy/metrics/queries';
 import { MetricChart, MetricChartTooltipContent, toChartLabelDate } from '@/modules/metrics';
-import type { ChartSeries } from '@/modules/prometheus';
-import { useState } from 'react';
+import { formatValue } from '@/modules/prometheus';
 
-export const HttpProxyEdgeRequests = ({
-  projectId,
-  proxyId,
-}: {
-  projectId: string;
-  proxyId: string;
-}) => {
-  const [series, setSeries] = useState<ChartSeries[]>([]);
-
+export function HttpProxyErrorRate({ projectId, proxyId }: { projectId: string; proxyId: string }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium">Requests per second</p>
-        <SeriesLegend series={series} colors={RESPONSE_CODE_COLORS} />
-      </div>
+      <p className="text-sm font-medium">Error rate</p>
       <MetricChart
-        query={(ctx) => albRpsByClassQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
-        chartType="area"
+        query={(ctx) => albErrorRateQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
+        chartType="line"
         showLegend={false}
-        colorOverrides={RESPONSE_CODE_COLORS}
+        colorOverrides={{ Series: 'var(--color-chart-1)' }}
+        valueFormat="percent"
         padToTimeRange
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
-        onSeriesChange={setSeries}
+        yAxisFormatter={(value) => formatValue(value, 'percent')}
         tooltipContent={({ active, payload, label, ...props }) => {
           if (!active || !payload?.length) return null;
           const filteredPayload = payload.filter((p) => (p.value as number) > 0);
@@ -45,17 +28,17 @@ export const HttpProxyEdgeRequests = ({
               payload={filteredPayload}
               label={label}
               labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
-              formatter={(value, name, item) => (
+              formatter={(value, _name, item) => (
                 <div className="flex flex-1 items-center justify-between leading-none">
                   <div className="flex items-center gap-1">
                     <div
                       className="size-2.5 shrink-0 rounded-[2px]"
                       style={{ backgroundColor: item.payload.fill || item.color }}
                     />
-                    <span className="font-medium">{name}</span>
+                    <span className="font-medium">4xx + 5xx</span>
                   </div>
                   <div className="text-foreground font-medium">
-                    {`${(value as number).toFixed(2)} req/s`}
+                    {formatValue(value as number, 'percent')}
                   </div>
                 </div>
               )}
@@ -67,4 +50,4 @@ export const HttpProxyEdgeRequests = ({
       />
     </div>
   );
-};
+}

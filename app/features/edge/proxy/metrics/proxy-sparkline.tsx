@@ -1,4 +1,4 @@
-import { buildRateQuery } from '@/modules/metrics';
+import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
 import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
 import { transformForRecharts, type FormattedMetricData } from '@/modules/prometheus';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
@@ -29,19 +29,10 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
   }, []);
 
   // Build query for requests rate
-  const query = useMemo(() => {
-    return buildRateQuery({
-      metric: 'envoy_vhost_vcluster_upstream_rq',
-      timeWindow: '1m', // 1 minute resolution for last hour
-      baseLabels: {
-        resourcemanager_datumapis_com_project_name: projectId,
-        gateway_name: proxyId,
-        gateway_namespace: 'default',
-      },
-      // Sum all regions together for a single line
-      groupBy: [],
-    });
-  }, [projectId, proxyId]);
+  const query = useMemo(
+    () => albRpsQuery({ projectId, proxyId, requireRegion: false }, '1m'),
+    [projectId, proxyId]
+  );
 
   const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
     ['proxy-sparkline', projectId, proxyId],

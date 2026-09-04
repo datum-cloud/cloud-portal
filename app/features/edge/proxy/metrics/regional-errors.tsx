@@ -1,40 +1,32 @@
 import { DateTime } from '@/components/date-time';
 import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
-  RESPONSE_CODE_COLORS,
-  albRpsByClassQuery,
+  albRegionalErrorRpsQuery,
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
-import { SeriesLegend } from '@/features/edge/proxy/metrics/series-legend';
 import { MetricChart, MetricChartTooltipContent, toChartLabelDate } from '@/modules/metrics';
-import type { ChartSeries } from '@/modules/prometheus';
-import { useState } from 'react';
 
-export const HttpProxyEdgeRequests = ({
+export function HttpProxyRegionalErrors({
   projectId,
   proxyId,
 }: {
   projectId: string;
   proxyId: string;
-}) => {
-  const [series, setSeries] = useState<ChartSeries[]>([]);
-
+}) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium">Requests per second</p>
-        <SeriesLegend series={series} colors={RESPONSE_CODE_COLORS} />
-      </div>
+      <p className="text-sm font-medium">Regional 4xx + 5xx</p>
       <MetricChart
-        query={(ctx) => albRpsByClassQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
-        chartType="area"
-        showLegend={false}
-        colorOverrides={RESPONSE_CODE_COLORS}
+        query={(ctx) =>
+          albRegionalErrorRpsQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
+        }
+        chartType="line"
+        showLegend
         padToTimeRange
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
-        onSeriesChange={setSeries}
+        yAxisFormatter={(value) => `${value.toFixed(2)} req/s`}
         tooltipContent={({ active, payload, label, ...props }) => {
           if (!active || !payload?.length) return null;
           const filteredPayload = payload.filter((p) => (p.value as number) > 0);
@@ -55,7 +47,7 @@ export const HttpProxyEdgeRequests = ({
                     <span className="font-medium">{name}</span>
                   </div>
                   <div className="text-foreground font-medium">
-                    {`${(value as number).toFixed(2)} req/s`}
+                    {`${(value as number).toFixed(4)} req/s`}
                   </div>
                 </div>
               )}
@@ -67,4 +59,4 @@ export const HttpProxyEdgeRequests = ({
       />
     </div>
   );
-};
+}

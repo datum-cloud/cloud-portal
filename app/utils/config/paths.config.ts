@@ -114,6 +114,7 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/alb/[proxyId]',
           overview: '/project/[projectId]/alb/[proxyId]/overview',
+          metrics: '/project/[projectId]/alb/[proxyId]/metrics',
           activity: '/project/[projectId]/alb/[proxyId]/activity',
         },
       },

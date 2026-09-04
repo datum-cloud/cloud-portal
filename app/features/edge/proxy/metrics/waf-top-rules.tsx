@@ -1,10 +1,10 @@
 import {
-  buildPrometheusLabelSelector,
-  createRegionFilter,
-  useMetrics,
-  usePrometheusAPIQuery,
-} from '@/modules/metrics';
-import { formatDurationFromMs, parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
+  albWafTopRulesQuery,
+  scopeFromContext,
+  windowDuration,
+} from '@/features/edge/proxy/metrics/queries';
+import { useMetrics, usePrometheusAPIQuery } from '@/modules/metrics';
+import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import type { FormattedMetricData } from '@/modules/prometheus';
 import {
   Table,
@@ -58,30 +58,14 @@ export const HttpProxyWafTopRules = ({ projectId, proxyId }: HttpProxyWafTopRule
 
   const queryContext = useMemo(() => buildQueryContext(), [buildQueryContext, filterState]);
 
-  const windowDuration = useMemo(
+  const query = useMemo(
     () =>
-      formatDurationFromMs(
-        queryContext.timeRange.end.getTime() - queryContext.timeRange.start.getTime()
+      albWafTopRulesQuery(
+        scopeFromContext(queryContext, projectId, proxyId),
+        windowDuration(queryContext)
       ),
-    [queryContext.timeRange]
+    [projectId, proxyId, queryContext]
   );
-
-  const query = useMemo(() => {
-    const regionFilter = createRegionFilter(queryContext.get('regions'));
-    const selector = buildPrometheusLabelSelector({
-      baseLabels: {
-        resourcemanager_datumapis_com_project_name: projectId,
-        gateway_name: proxyId,
-      },
-      customLabels: { label_topology_kubernetes_io_region: '!=""' },
-      filters: [regionFilter],
-    });
-    return (
-      `topk(10, sum by (coraza_rule_id, coraza_rule_severity, coraza_rule_action) (` +
-      `increase(coraza_envoy_filter_request_events_total${selector}[${windowDuration}])` +
-      `))`
-    );
-  }, [projectId, proxyId, queryContext, windowDuration]);
 
   const refetchMs = useMemo<number | false>(() => {
     if (refreshInterval === 'off') return false;
