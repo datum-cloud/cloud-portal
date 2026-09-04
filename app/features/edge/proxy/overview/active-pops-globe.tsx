@@ -315,8 +315,7 @@ export function ActivePopsGlobe({
       !reduceMotionRef.current &&
       !dragging &&
       !focusAnim &&
-      (searchingRef.current ||
-        (!autoRotatePausedRef.current && !globeHoveredRef.current));
+      (searchingRef.current || (!autoRotatePausedRef.current && !globeHoveredRef.current));
 
     const syncRotation = () => {
       onRotationChangeRef.current?.(phi, theta);
