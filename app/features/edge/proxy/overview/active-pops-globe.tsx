@@ -1,4 +1,21 @@
+import {
+  GLOBE_SCALE,
+  MARKER_ELEVATION,
+  THETA_MAX,
+  THETA_MIN,
+  cropUvFromRects,
+  focusAngles,
+  globeFocusUv,
+  isMarkerInView,
+  projectLocation,
+} from './active-pops-globe-math';
 import type { ActivePopMarker } from './active-pops-map';
+import {
+  ActivePopTooltipCard,
+  tooltipFlipTransform,
+  tooltipOffsetStyle,
+} from './active-pops-tooltip';
+import { layoutPersistentTooltips } from './active-pops-tooltip-layout';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import createGlobe, { type Marker } from 'cobe';
 import { useReducedMotion } from 'motion/react';
@@ -6,17 +23,20 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface Props {
+  variant?: 'card' | 'expanded';
   regionsWithCoords: ActivePopMarker[];
   hoveredRegion?: string | null;
   onHoverRegion?: (value: string | null) => void;
   onFocusRegion?: (value: string) => void;
   focusRegion?: string | null;
   focusToken?: number;
+  initialPhi?: number;
+  initialTheta?: number;
+  onRotationChange?: (phi: number, theta: number) => void;
+  persistentActiveTooltips?: boolean;
+  suspended?: boolean;
   searching?: boolean;
 }
-
-/** One idle revolution every 50s while locations are still projecting. */
-const SEARCHING_PHI_PER_MS = (Math.PI * 2) / 50_000;
 
 const MARKER_COLOR_LIGHT: [number, number, number] = [0.702, 0.835, 0.435]; // #B3D56F
 const MARKER_COLOR_DARK: [number, number, number] = [0.82, 0.94, 0.58];
@@ -25,15 +45,11 @@ const IDLE_MARKER_COLOR_DARK: [number, number, number] = [0.82, 0.86, 0.9];
 const MARKER_SIZE = 0.045;
 const IDLE_MARKER_SIZE = 0.028;
 const MARKER_SIZE_HOVER = 0.07;
-const MARKER_ELEVATION = 0.02;
-const GLOBE_RADIUS = 0.8;
 // Globe canvas sits off the right edge; start with the Americas in the visible crop.
 const INITIAL_PHI = -1.03;
 const INITIAL_THETA = 0.34;
 const DRAG_PHI_PER_PX = 0.005;
 const DRAG_THETA_PER_PX = 0.0035;
-const THETA_MIN = -0.6;
-const THETA_MAX = 0.8;
 const DRAG_SLOP_PX = 4;
 
 const LIGHT_THEME = {
@@ -57,10 +73,9 @@ const DARK_THEME = {
 };
 
 const FOCUS_DURATION_MS = 520;
-// Globe canvas is cropped to the left of the card; shift focus so the
-// location sits in that visible slice instead of the canvas center.
-const FOCUS_PHI_SHIFT = -0.94;
-const FOCUS_THETA_SCALE = 0.55;
+// One full turn every two minutes when idle.
+const AUTO_ROTATE_PERIOD_MS = 120_000;
+const AUTO_ROTATE_PHI_PER_MS = (Math.PI * 2) / AUTO_ROTATE_PERIOD_MS;
 
 function cssColorToRgb(color: string): [number, number, number] | null {
   if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return null;
@@ -110,13 +125,27 @@ function shortestTarget(from: number, to: number) {
   return from + diff;
 }
 
-function focusAngles(lat: number, lng: number): { phi: number; theta: number } {
-  const [x0, y0, z0] = latLngToVec3(lat, lng);
-  const theta = Math.asin(Math.max(-1, Math.min(1, y0))) * FOCUS_THETA_SCALE;
-  return {
-    phi: Math.atan2(x0, z0) + FOCUS_PHI_SHIFT,
-    theta: Math.min(THETA_MAX, Math.max(THETA_MIN, theta)),
-  };
+function visibleFocusUv(
+  canvasEl: HTMLElement,
+  aspect: number,
+  variant: 'card' | 'expanded'
+): { x: number; y: number } {
+  if (variant === 'expanded') return { x: 0.5, y: 0.5 };
+  const canvas = canvasEl.getBoundingClientRect();
+  const card = canvasEl.closest('[data-active-pops-card]');
+  const clip = card?.querySelector('[data-active-pops-globe-clip]');
+  const crop = cropUvFromRects(canvas, (clip ?? canvasEl).getBoundingClientRect());
+  return globeFocusUv(crop, aspect);
+}
+
+function visibleCropUv(canvasEl: HTMLElement, variant: 'card' | 'expanded') {
+  if (variant === 'expanded') {
+    return { left: 0, right: 1, top: 0, bottom: 1 };
+  }
+  const canvas = canvasEl.getBoundingClientRect();
+  const card = canvasEl.closest('[data-active-pops-card]');
+  const clip = card?.querySelector('[data-active-pops-globe-clip]');
+  return cropUvFromRects(canvas, (clip ?? canvasEl).getBoundingClientRect());
 }
 
 function readCssVarRgb(name: string): [number, number, number] | null {
@@ -128,39 +157,6 @@ function readCssVarRgb(name: string): [number, number, number] | null {
   const raw = getComputedStyle(probe).backgroundColor;
   probe.remove();
   return cssColorToRgb(raw);
-}
-
-function latLngToVec3(lat: number, lng: number): [number, number, number] {
-  const latR = (lat * Math.PI) / 180;
-  const lngR = (lng * Math.PI) / 180 - Math.PI;
-  const cosLat = Math.cos(latR);
-  return [-cosLat * Math.cos(lngR), Math.sin(latR), cosLat * Math.sin(lngR)];
-}
-
-function projectLocation(
-  lat: number,
-  lng: number,
-  phi: number,
-  theta: number,
-  aspect: number
-): { x: number; y: number; visible: boolean } {
-  const [vx, vy, vz] = latLngToVec3(lat, lng);
-  const r = GLOBE_RADIUS + MARKER_ELEVATION;
-  const x0 = vx * r;
-  const y0 = vy * r;
-  const z0 = vz * r;
-  const cosT = Math.cos(theta);
-  const cosP = Math.cos(phi);
-  const sinT = Math.sin(theta);
-  const sinP = Math.sin(phi);
-  const c = cosP * x0 + sinP * z0;
-  const s = sinP * sinT * x0 + cosT * y0 - cosP * sinT * z0;
-  const z = -sinP * cosT * x0 + sinT * y0 + cosP * cosT * z0;
-  return {
-    x: (c / aspect + 1) / 2,
-    y: (-s + 1) / 2,
-    visible: z >= 0 || c * c + s * s >= 0.64,
-  };
 }
 
 function toCobeMarkers(pops: ActivePopMarker[], hovered: string | null, isDark: boolean): Marker[] {
@@ -183,12 +179,18 @@ function toCobeMarkers(pops: ActivePopMarker[], hovered: string | null, isDark: 
 }
 
 export function ActivePopsGlobe({
+  variant = 'card',
   regionsWithCoords,
   hoveredRegion,
   onHoverRegion,
   onFocusRegion,
   focusRegion,
   focusToken,
+  initialPhi,
+  initialTheta,
+  onRotationChange,
+  persistentActiveTooltips = false,
+  suspended = false,
   searching = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -196,13 +198,22 @@ export function ActivePopsGlobe({
   const hoveredRef = useRef(hoveredRegion ?? null);
   const onHoverRef = useRef(onHoverRegion);
   const onFocusRef = useRef(onFocusRegion);
+  const onRotationChangeRef = useRef(onRotationChange);
+  const variantRef = useRef(variant);
+  const persistentActiveTooltipsRef = useRef(persistentActiveTooltips);
+  const suspendedRef = useRef(suspended);
   const pendingFocusRef = useRef<string | null>(null);
+  const autoRotatePausedRef = useRef(false);
+  const globeHoveredRef = useRef(false);
   const searchingRef = useRef(searching);
   const reduceMotionRef = useRef(false);
-  const phiRef = useRef(INITIAL_PHI);
-  const thetaRef = useRef(INITIAL_THETA);
+  const phiRef = useRef(initialPhi ?? INITIAL_PHI);
+  const thetaRef = useRef(initialTheta ?? INITIAL_THETA);
   const scheduleRef = useRef<() => void>(() => {});
   const [tooltip, setTooltip] = useState<{ value: string; x: number; y: number } | null>(null);
+  const [persistentTooltips, setPersistentTooltips] = useState<
+    Array<{ value: string; x: number; y: number; offsetX: number; offsetY: number }>
+  >([]);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
   const reduceMotion = useReducedMotion() ?? false;
@@ -211,12 +222,29 @@ export function ActivePopsGlobe({
   hoveredRef.current = hoveredRegion ?? null;
   onHoverRef.current = onHoverRegion;
   onFocusRef.current = onFocusRegion;
+  onRotationChangeRef.current = onRotationChange;
+  variantRef.current = variant;
+  persistentActiveTooltipsRef.current = persistentActiveTooltips;
+  suspendedRef.current = suspended;
   searchingRef.current = searching;
   reduceMotionRef.current = reduceMotion;
 
   const tooltipPop = tooltip
     ? regionsWithCoords.find((region) => region.value === tooltip.value)
     : undefined;
+
+  useEffect(() => {
+    if (initialPhi == null && initialTheta == null) return;
+    if (!suspended) {
+      phiRef.current = initialPhi ?? phiRef.current;
+      thetaRef.current = initialTheta ?? thetaRef.current;
+    }
+    scheduleRef.current();
+  }, [initialPhi, initialTheta, suspended]);
+
+  useEffect(() => {
+    if (!suspended) scheduleRef.current();
+  }, [suspended]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -268,8 +296,8 @@ export function ActivePopsGlobe({
       height,
       phi,
       theta,
-      mapSamples: width < 480 ? 10_000 : 16_000,
-      scale: 1.08,
+      mapSamples: width < 480 ? 10_000 : variantRef.current === 'expanded' ? 24_000 : 16_000,
+      scale: GLOBE_SCALE,
       offset: [0, 0],
       markerElevation: MARKER_ELEVATION,
       markerColor: isDark ? MARKER_COLOR_DARK : MARKER_COLOR_LIGHT,
@@ -282,35 +310,71 @@ export function ActivePopsGlobe({
       height = container.clientHeight;
     };
 
+    const shouldAutoRotate = () =>
+      !suspendedRef.current &&
+      !reduceMotionRef.current &&
+      !dragging &&
+      !focusAnim &&
+      (searchingRef.current || (!autoRotatePausedRef.current && !globeHoveredRef.current));
+
+    const syncRotation = () => {
+      onRotationChangeRef.current?.(phi, theta);
+    };
+
+    const updatePersistentTooltips = () => {
+      if (!persistentActiveTooltipsRef.current) return;
+      const aspect = width / Math.max(height, 1);
+      const crop = visibleCropUv(container, variantRef.current);
+      const anchors = popsRef.current
+        .filter((pop) => pop.active)
+        .flatMap((pop) => {
+          const projected = projectLocation(pop.coords[0], pop.coords[1], phi, theta, aspect);
+          if (!isMarkerInView(projected, crop)) return [];
+          return [{ value: pop.value, x: projected.x * 100, y: projected.y * 100 }];
+        });
+      setPersistentTooltips(layoutPersistentTooltips(anchors, width, height));
+    };
+
     const startFocus = (value: string) => {
+      if (variantRef.current === 'expanded') return;
       const pop = popsRef.current.find((region) => region.value === value);
-      if (!pop) return;
-      const target = focusAngles(pop.coords[0], pop.coords[1]);
-      const toPhi = shortestTarget(phi, target.phi);
-      if (Math.hypot(toPhi - phi, target.theta - theta) < 0.06) return;
+      if (!pop?.coords) return;
+      const aspect = width / Math.max(height, 1);
+      const target = visibleFocusUv(container, aspect, variantRef.current);
+      const next = focusAngles(pop.coords[0], pop.coords[1], aspect, target.x, target.y);
+      const toPhi = shortestTarget(phi, next.phi);
+      const projected = projectLocation(pop.coords[0], pop.coords[1], phi, theta, aspect);
+      const alreadyFramed =
+        Math.hypot(projected.x - target.x, projected.y - target.y) < 0.04 &&
+        projected.front &&
+        Math.hypot(toPhi - phi, next.theta - theta) < 0.06;
+      if (alreadyFramed) return;
       focusAnim = {
         fromPhi: phi,
         fromTheta: theta,
         toPhi,
-        toTheta: target.theta,
+        toTheta: next.theta,
         start: performance.now(),
       };
     };
 
     const render = () => {
-      syncSize();
+      if (suspendedRef.current) return;
       const now = performance.now();
-      const delta = now - lastFrame;
+      const dt = Math.min(now - lastFrame, 48);
       lastFrame = now;
-      if (searchingRef.current && !reduceMotionRef.current && !dragging && !focusAnim) {
-        phi += SEARCHING_PHI_PER_MS * delta;
-        phiRef.current = phi;
-      }
+      syncSize();
 
       const pendingFocus = pendingFocusRef.current;
       if (pendingFocus) {
         pendingFocusRef.current = null;
         startFocus(pendingFocus);
+      }
+
+      if (shouldAutoRotate()) {
+        phi += AUTO_ROTATE_PHI_PER_MS * dt;
+        phiRef.current = phi;
+        syncRotation();
       }
 
       if (focusAnim) {
@@ -320,8 +384,16 @@ export function ActivePopsGlobe({
         theta = focusAnim.fromTheta + (focusAnim.toTheta - focusAnim.fromTheta) * e;
         phiRef.current = phi;
         thetaRef.current = theta;
-        if (t >= 1) focusAnim = null;
+        syncRotation();
+        if (t >= 1) {
+          phi = shortestTarget(0, phi);
+          phiRef.current = phi;
+          syncRotation();
+          focusAnim = null;
+        }
       }
+
+      updatePersistentTooltips();
 
       const hovered = dragging ? null : hoveredRef.current;
       const popsKey = popsRef.current
@@ -347,7 +419,10 @@ export function ActivePopsGlobe({
       raf = requestAnimationFrame(() => {
         raf = 0;
         render();
-        if (dragging || focusAnim || (searchingRef.current && !reduceMotionRef.current)) {
+        if (
+          !suspendedRef.current &&
+          (dragging || focusAnim || shouldAutoRotate() || persistentActiveTooltipsRef.current)
+        ) {
           schedule();
         }
       });
@@ -371,7 +446,7 @@ export function ActivePopsGlobe({
 
       for (const pop of popsRef.current) {
         const projected = projectLocation(pop.coords[0], pop.coords[1], phi, theta, aspect);
-        if (!projected.visible) continue;
+        if (!isMarkerInView(projected, visibleCropUv(container, variantRef.current))) continue;
         const dx = projected.x - px;
         const dy = projected.y - py;
         const dist = Math.hypot(dx, dy);
@@ -393,6 +468,7 @@ export function ActivePopsGlobe({
       dragging = true;
       dragMoved = false;
       focusAnim = null;
+      globeHoveredRef.current = true;
       lastPointerX = event.clientX;
       lastPointerY = event.clientY;
       container.setPointerCapture(event.pointerId);
@@ -418,6 +494,7 @@ export function ActivePopsGlobe({
       theta = Math.min(THETA_MAX, Math.max(THETA_MIN, theta + dy * DRAG_THETA_PER_PX));
       phiRef.current = phi;
       thetaRef.current = theta;
+      syncRotation();
     };
 
     const onPointerUp = (event: PointerEvent) => {
@@ -431,13 +508,20 @@ export function ActivePopsGlobe({
       } else schedule();
     };
 
+    const onPointerEnter = () => {
+      globeHoveredRef.current = true;
+      schedule();
+    };
+
     const onPointerLeave = () => {
+      globeHoveredRef.current = false;
       if (dragging) return;
       onHoverRef.current?.(null);
       setTooltip(null);
       schedule();
     };
 
+    container.addEventListener('pointerenter', onPointerEnter);
     container.addEventListener('pointerdown', onPointerDown);
     container.addEventListener('pointermove', onPointerMove);
     container.addEventListener('pointerup', onPointerUp);
@@ -448,6 +532,7 @@ export function ActivePopsGlobe({
     return () => {
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
+      container.removeEventListener('pointerenter', onPointerEnter);
       container.removeEventListener('pointerdown', onPointerDown);
       container.removeEventListener('pointermove', onPointerMove);
       container.removeEventListener('pointerup', onPointerUp);
@@ -463,14 +548,15 @@ export function ActivePopsGlobe({
   }, [searching, reduceMotion]);
 
   useEffect(() => {
-    if (!focusRegion) return;
+    if (variant !== 'card' || !focusRegion) return;
+    autoRotatePausedRef.current = true;
     pendingFocusRef.current = focusRegion;
     scheduleRef.current();
-  }, [focusRegion, focusToken]);
+  }, [focusRegion, focusToken, variant]);
 
   useEffect(() => {
-    if (!hoveredRegion) {
-      setTooltip(null);
+    if (variant !== 'card' || !hoveredRegion) {
+      if (variant === 'card') setTooltip(null);
       scheduleRef.current();
       return;
     }
@@ -487,44 +573,55 @@ export function ActivePopsGlobe({
       thetaRef.current,
       aspect
     );
-    if (!projected.visible) {
+    if (!isMarkerInView(projected, visibleCropUv(container, 'card'))) {
       setTooltip(null);
       scheduleRef.current();
       return;
     }
     setTooltip({ value: pop.value, x: projected.x * 100, y: projected.y * 100 });
     scheduleRef.current();
-  }, [hoveredRegion, regionsWithCoords]);
+  }, [hoveredRegion, regionsWithCoords, variant]);
 
   const tooltipLeft = tooltip?.x ?? 0;
   const tooltipTop = tooltip?.y ?? 0;
-  const flipX = tooltipLeft > 32;
-  const flipY = tooltipTop > 70;
   const tooltipRect = containerRef.current?.getBoundingClientRect();
-  const tooltipStyle =
+  const hoverTooltipStyle =
     tooltip && tooltipRect
       ? {
           left: tooltipRect.left + (tooltipLeft / 100) * tooltipRect.width,
           top: tooltipRect.top + (tooltipTop / 100) * tooltipRect.height,
-          transform: `translate(${flipX ? 'calc(-100% - 10px)' : '10px'}, ${flipY ? 'calc(-100% - 10px)' : '10px'})`,
+          ...tooltipFlipTransform(tooltipLeft, tooltipTop),
         }
       : undefined;
 
   return (
     <div className="relative size-full">
       <div ref={containerRef} className="absolute inset-0 cursor-grab touch-none" />
-      {tooltip &&
+      {variant === 'card' &&
+        tooltip &&
         tooltipPop &&
-        tooltipStyle &&
+        hoverTooltipStyle &&
         createPortal(
-          <div
-            className="bg-background text-foreground pointer-events-none fixed z-50 flex max-w-56 flex-col gap-1 rounded-lg border px-3 py-2 shadow-lg"
-            style={tooltipStyle}>
-            <p className="text-xs font-medium">{tooltipPop.city}</p>
-            <p className="text-muted-foreground text-xs">{tooltipPop.subtitle}</p>
-          </div>,
+          <ActivePopTooltipCard
+            pop={tooltipPop}
+            className="fixed z-50"
+            style={hoverTooltipStyle}
+          />,
           document.body
         )}
+      {persistentActiveTooltips &&
+        persistentTooltips.map((entry) => {
+          const pop = regionsWithCoords.find((region) => region.value === entry.value);
+          if (!pop) return null;
+          return (
+            <ActivePopTooltipCard
+              key={entry.value}
+              pop={pop}
+              className="absolute z-10"
+              style={tooltipOffsetStyle(entry.x, entry.y, entry.offsetX, entry.offsetY)}
+            />
+          );
+        })}
     </div>
   );
 }

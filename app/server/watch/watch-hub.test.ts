@@ -6,7 +6,7 @@ import {
   type WatchHub as WatchHubType,
 } from './watch-hub';
 import type { WatchClient, WatchSubscribeRequest } from './watch-hub.types';
-import { afterEach, describe, expect, it, jest } from 'bun:test';
+import { afterEach, describe, expect, it, spyOn } from 'bun:test';
 
 /**
  * Minimal stand-in for Hono's SSE stream. Records every write so a test can
@@ -40,8 +40,11 @@ function registerFakeClient(hub: WatchHubType, id: string) {
 }
 
 describe('WatchHub heartbeat', () => {
+  let hub: WatchHubType | null = null;
+
   afterEach(() => {
-    jest.useRealTimers();
+    hub?.shutdown();
+    hub = null;
   });
 
   it('beats faster than the runtime closes an idle stream', () => {
@@ -57,10 +60,9 @@ describe('WatchHub heartbeat', () => {
   });
 
   it('writes to a connected client before the idle timeout elapses', () => {
-    jest.useFakeTimers();
+    const intervalSpy = spyOn(globalThis, 'setInterval');
 
-    // Constructed under fake timers so its internal interval is controllable.
-    const hub = new WatchHub();
+    hub = new WatchHub();
     const { writes, accepted } = registerFakeClient(hub, 'client-1');
 
     expect(accepted).toBe(true);
@@ -68,10 +70,18 @@ describe('WatchHub heartbeat', () => {
     // what arrives afterwards purely from the heartbeat.
     const afterConnect = writes.length;
 
-    jest.advanceTimersByTime(SSE_IDLE_TIMEOUT_MS - 1);
+    const heartbeatCall = intervalSpy.mock.calls.find(([, ms]) => ms === HEARTBEAT_INTERVAL_MS);
+    expect(heartbeatCall).toBeDefined();
+    expect(heartbeatCall![1]).toBeLessThan(SSE_IDLE_TIMEOUT_MS);
+
+    const tickHeartbeat = heartbeatCall![0];
+    expect(typeof tickHeartbeat).toBe('function');
+    (tickHeartbeat as () => void)();
 
     const heartbeats = writes.slice(afterConnect).filter((w) => w.event === 'heartbeat');
     expect(heartbeats.length).toBeGreaterThan(0);
+
+    intervalSpy.mockRestore();
   });
 });
 
