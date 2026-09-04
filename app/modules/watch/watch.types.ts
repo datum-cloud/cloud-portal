@@ -20,7 +20,8 @@ export interface WatchOptions {
    */
   projectId?: string;
   /**
-   * K8s namespace (usually 'default' for project resources)
+   * K8s namespace (usually `'default'` for project resources).
+   * Omit for cluster-scoped resources in a project control plane (e.g. Location).
    */
   namespace?: string;
   name?: string;
@@ -73,15 +74,16 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
   skipInitialSync?: boolean;
   /**
    * Extract unique identifier from a transformed item.
-   * When provided, MODIFIED events on list watches update items in-place
-   * via setQueryData instead of invalidating (avoids full refetch).
+   * ADDED list events append/replace by this key. MODIFIED list events
+   * update in-place via updateListCache or find-and-replace.
    * @example (item) => item.name
    */
   getItemKey?: (item: T) => string;
   /**
-   * Update the list cache with a modified item.
+   * Update the list cache with a MODIFIED item (find-and-replace).
    * Required when the query data structure isn't a plain array (e.g. paginated { items: T[] }).
-   * Defaults to array find-and-replace by getItemKey.
+   * Not used for ADDED — those append by getItemKey so replace-only
+   * updaters cannot drop a new object.
    * @example (oldData, newItem) => ({ ...oldData, items: oldData.items.map(...) })
    */
   updateListCache?: (oldData: unknown, newItem: T) => unknown;

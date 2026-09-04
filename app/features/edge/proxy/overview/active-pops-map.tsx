@@ -16,7 +16,7 @@ const ActivePopsGlobe = lazyWithRetry(
   'active-pops-globe'
 );
 
-const Fallback = () => <div className="size-full" />;
+const Fallback = () => <div className="bg-muted/20 size-full motion-safe:animate-pulse" />;
 
 export const ActivePopsMap = ({
   variant = 'card',
@@ -31,6 +31,7 @@ export const ActivePopsMap = ({
   onRotationChange,
   persistentActiveTooltips,
   suspended,
+  searching,
 }: {
   variant?: 'card' | 'expanded';
   regionsWithCoords: ActivePopMarker[];
@@ -44,6 +45,7 @@ export const ActivePopsMap = ({
   onRotationChange?: (phi: number, theta: number) => void;
   persistentActiveTooltips?: boolean;
   suspended?: boolean;
+  searching?: boolean;
 }) => {
   return (
     <Suspense fallback={<Fallback />}>
@@ -60,6 +62,7 @@ export const ActivePopsMap = ({
         onRotationChange={onRotationChange}
         persistentActiveTooltips={persistentActiveTooltips}
         suspended={suspended}
+        searching={searching}
       />
     </Suspense>
   );

@@ -17,17 +17,21 @@ import {
 import { usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useHttpProxy } from '@/resources/http-proxies';
-import { useLocations } from '@/resources/locations';
+import { useLocations, useLocationsWatch } from '@/resources/locations';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ExpandIcon, MapPinIcon } from 'lucide-react';
-import { Suspense, useCallback, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+/** Poll while the catalog is empty — LocationBinding can take ~15–90s. */
+const LOCATION_PROJECTION_POLL_MS = 4_000;
+const LOCATION_PROJECTION_GIVE_UP_MS = 120_000;
 
 const ActivePopsMap = lazyWithRetry(
   () => import('./active-pops-map').then((m) => ({ default: m.ActivePopsMap })),
@@ -38,6 +42,24 @@ const REGION_LABEL = 'label_topology_kubernetes_io_region';
 const PROXY_METRIC = 'envoy_vhost_vcluster_upstream_rq';
 const LATENCY_METRIC = 'envoy_vhost_vcluster_upstream_rq_time_bucket';
 const INITIAL_GLOBE_ROTATION = { phi: -1.03, theta: 0.34 };
+
+function LocationRowSkeleton() {
+  return (
+    <li>
+      <div className="flex w-full items-start gap-3 rounded-lg px-2 py-2">
+        <Skeleton className="mt-1.5 size-2 shrink-0 rounded-full" />
+        <span className="min-w-0 flex-1">
+          <span className="flex items-center justify-between gap-2">
+            <Skeleton className="h-4 w-24" />
+            <Skeleton className="h-5 w-12 rounded-full" />
+          </span>
+          <Skeleton className="mt-1.5 h-3 w-32" />
+          <Skeleton className="mt-2 h-3 w-36" />
+        </span>
+      </div>
+    </li>
+  );
+}
 
 export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; proxyId: string }) => {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
@@ -123,11 +145,7 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
     return `${PROXY_METRIC}${selector}`;
   }, [baseLabels]);
 
-  const {
-    options: regionOptionsFromApi,
-    isLoading,
-    error,
-  } = usePrometheusLabels({
+  const { options: regionOptionsFromApi, error: metricsError } = usePrometheusLabels({
     label: REGION_LABEL,
     match: matchSelector,
     enabled: !!projectId && !!proxyId,
@@ -135,7 +153,7 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
     sort: (a, b) => a.label.localeCompare(b.label),
   });
 
-  const metricsEnabled = !!projectId && !!proxyId && !isLoading;
+  const metricsEnabled = !!projectId && !!proxyId;
 
   const { data: rpsData } = usePrometheusChart({
     query: buildRateQuery({
@@ -174,14 +192,46 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
     enabled: metricsEnabled,
   });
 
-  const { hasPermission: canViewLocations } = usePermission('locations', 'list', {
-    group: 'locations.miloapis.com',
-    scope: 'project',
-    projectId,
-    enabled: !!projectId,
+  const { hasPermission: canViewLocations, isLoading: locationsPermissionLoading } = usePermission(
+    'locations',
+    'list',
+    {
+      group: 'locations.miloapis.com',
+      scope: 'project',
+      projectId,
+      enabled: !!projectId,
+    }
+  );
+
+  const projectionStartedAtRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    projectionStartedAtRef.current = null;
+  }, [projectId]);
+
+  const {
+    data: locations = [],
+    isPending: locationsPending,
+    isFetched: locationsFetched,
+  } = useLocations(projectId, {
+    enabled: !!projectId && canViewLocations,
+    refetchInterval: (query) => {
+      if ((query.state.data?.length ?? 0) > 0) {
+        projectionStartedAtRef.current = null;
+        return false;
+      }
+      if (query.state.status !== 'success') return LOCATION_PROJECTION_POLL_MS;
+      if (projectionStartedAtRef.current == null) {
+        projectionStartedAtRef.current = Date.now();
+      }
+      if (Date.now() - projectionStartedAtRef.current > LOCATION_PROJECTION_GIVE_UP_MS) {
+        return false;
+      }
+      return LOCATION_PROJECTION_POLL_MS;
+    },
   });
 
-  const { data: locations = [] } = useLocations(projectId, {
+  useLocationsWatch(projectId, {
     enabled: !!projectId && canViewLocations,
   });
 
@@ -229,8 +279,28 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
     return transformedStatus.status === ControlPlaneStatus.Pending;
   }, [proxy?.status]);
 
-  const showSkeleton = isProxyPending && !isLoading && directory.length === 0 && !error;
-  const canExpand = !isLoading && !showSkeleton && !error && regionsWithCoords.length > 0;
+  const isLocationsLoading = locationsPermissionLoading || (canViewLocations && locationsPending);
+
+  const [projectionWindowOpen, setProjectionWindowOpen] = useState(false);
+
+  useEffect(() => {
+    if (!canViewLocations) return;
+    if (locations.length > 0) {
+      setProjectionWindowOpen(false);
+      return;
+    }
+    if (!locationsFetched) return;
+
+    setProjectionWindowOpen(true);
+    const timeout = window.setTimeout(() => {
+      setProjectionWindowOpen(false);
+    }, LOCATION_PROJECTION_GIVE_UP_MS);
+    return () => window.clearTimeout(timeout);
+  }, [projectId, canViewLocations, locations.length, locationsFetched]);
+
+  const showLocationSkeletons =
+    isLocationsLoading || (directory.length === 0 && (isProxyPending || projectionWindowOpen));
+  const canExpand = !showLocationSkeletons && regionsWithCoords.length > 0;
 
   return (
     <>
@@ -244,47 +314,53 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
               data-active-pops-globe-clip
               data-active-pops-globe-origin
               className="absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden sm:block">
-              {isLoading || showSkeleton ? (
-                <div className="bg-muted/40 size-full" />
-              ) : error ? null : (
-                <ChunkErrorBoundary
-                  fallback={
-                    <div className="flex size-full items-center justify-center px-6">
-                      <div className="flex flex-col items-center gap-2">
-                        <p className="text-muted-foreground text-sm">Unable to load map.</p>
-                        <Button
-                          htmlType="button"
-                          type="primary"
-                          theme="solid"
-                          size="small"
-                          onClick={() => window.location.reload()}>
-                          Reload page
-                        </Button>
-                      </div>
+              <ChunkErrorBoundary
+                fallback={
+                  <div className="flex size-full items-center justify-center px-6">
+                    <div className="flex flex-col items-center gap-2">
+                      <p className="text-muted-foreground text-sm">Unable to load map.</p>
+                      <Button
+                        htmlType="button"
+                        type="primary"
+                        theme="solid"
+                        size="small"
+                        onClick={() => window.location.reload()}>
+                        Reload page
+                      </Button>
                     </div>
-                  }>
+                  </div>
+                }>
+                <div
+                  className={cn(
+                    'absolute top-1/2 right-0 size-[38rem] translate-x-1/2 -translate-y-1/2 transition-opacity duration-200 ease-out',
+                    cardGlobeHidden ? 'pointer-events-none opacity-0' : 'opacity-100'
+                  )}>
+                  <Suspense
+                    fallback={<div className="bg-muted/20 size-full motion-safe:animate-pulse" />}>
+                    <ActivePopsMap
+                      regionsWithCoords={regionsWithCoords}
+                      hoveredRegion={hoveredRegion}
+                      onHoverRegion={setHoveredRegion}
+                      onFocusRegion={focusLocation}
+                      focusRegion={focusRegion}
+                      focusToken={focusToken}
+                      initialPhi={globeRotation.phi}
+                      initialTheta={globeRotation.theta}
+                      onRotationChange={(phi, theta) => setGlobeRotation({ phi, theta })}
+                      suspended={cardGlobeHidden}
+                      searching={showLocationSkeletons}
+                    />
+                  </Suspense>
                   <div
                     className={cn(
-                      'absolute top-1/2 right-0 size-[38rem] translate-x-1/2 -translate-y-1/2 transition-opacity duration-200 ease-out',
-                      cardGlobeHidden ? 'pointer-events-none opacity-0' : 'opacity-100'
-                    )}>
-                    <Suspense fallback={<div className="size-full" />}>
-                      <ActivePopsMap
-                        regionsWithCoords={regionsWithCoords}
-                        hoveredRegion={hoveredRegion}
-                        onHoverRegion={setHoveredRegion}
-                        onFocusRegion={focusLocation}
-                        focusRegion={focusRegion}
-                        focusToken={focusToken}
-                        initialPhi={globeRotation.phi}
-                        initialTheta={globeRotation.theta}
-                        onRotationChange={(phi, theta) => setGlobeRotation({ phi, theta })}
-                        suspended={cardGlobeHidden}
-                      />
-                    </Suspense>
+                      'pointer-events-none absolute inset-0 transition-opacity duration-200 ease-out',
+                      showLocationSkeletons ? 'opacity-100' : 'opacity-0'
+                    )}
+                    aria-hidden={!showLocationSkeletons}>
+                    <div className="bg-primary/20 absolute top-[38%] left-[6%] size-28 rounded-full blur-3xl motion-safe:animate-pulse" />
                   </div>
-                </ChunkErrorBoundary>
-              )}
+                </div>
+              </ChunkErrorBoundary>
               {canExpand && (
                 <Button
                   htmlType="button"
@@ -322,30 +398,29 @@ export const ActivePopsCard = ({ projectId, proxyId }: { projectId: string; prox
               <p className="text-muted-foreground shrink-0 text-sm font-normal">
                 Locations this ALB can serve from. Highlighted locations have recent traffic.
               </p>
-              {!isLoading && !showSkeleton && !error && directory.length > 0 && (
+              {showLocationSkeletons && (
+                <p className="text-muted-foreground shrink-0 text-xs" aria-live="polite">
+                  Discovering locations…
+                </p>
+              )}
+              {!showLocationSkeletons && directory.length > 0 && (
                 <p className="text-muted-foreground shrink-0 text-xs">
                   {activeCount} with traffic · {directory.length} locations
                 </p>
               )}
-              {isLoading && (
-                <div className="flex items-center gap-2 py-4">
-                  <SpinnerIcon size="sm" />
-                  <p className="text-muted-foreground text-sm">Loading locations...</p>
-                </div>
+              {showLocationSkeletons && (
+                <ul className="min-h-0 flex-1 overflow-hidden" aria-busy="true">
+                  <LocationRowSkeleton />
+                  <LocationRowSkeleton />
+                </ul>
               )}
-              {showSkeleton && (
-                <div className="flex flex-col gap-3">
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                  <Skeleton className="h-12 w-full rounded-lg" />
-                </div>
-              )}
-              {!isLoading && !showSkeleton && error && (
+              {!showLocationSkeletons && metricsError && directory.length === 0 && (
                 <p className="text-muted-foreground text-sm">Unable to load active regions.</p>
               )}
-              {!isLoading && !showSkeleton && !error && directory.length === 0 && (
+              {!showLocationSkeletons && !metricsError && directory.length === 0 && (
                 <p className="text-muted-foreground text-sm">No locations found.</p>
               )}
-              {!isLoading && !showSkeleton && !error && directory.length > 0 && (
+              {!showLocationSkeletons && directory.length > 0 && (
                 <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,black_calc(100%-1.25rem),transparent)] pb-4">
                   {directory.map((item) => {
                     const metricKey = item.trafficRegion ?? item.value;

@@ -18,6 +18,7 @@ import {
 import { layoutPersistentTooltips } from './active-pops-tooltip-layout';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import createGlobe, { type Marker } from 'cobe';
+import { useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -34,6 +35,7 @@ interface Props {
   onRotationChange?: (phi: number, theta: number) => void;
   persistentActiveTooltips?: boolean;
   suspended?: boolean;
+  searching?: boolean;
 }
 
 const MARKER_COLOR_LIGHT: [number, number, number] = [0.702, 0.835, 0.435]; // #B3D56F
@@ -189,6 +191,7 @@ export function ActivePopsGlobe({
   onRotationChange,
   persistentActiveTooltips = false,
   suspended = false,
+  searching = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const popsRef = useRef(regionsWithCoords);
@@ -202,6 +205,8 @@ export function ActivePopsGlobe({
   const pendingFocusRef = useRef<string | null>(null);
   const autoRotatePausedRef = useRef(false);
   const globeHoveredRef = useRef(false);
+  const searchingRef = useRef(searching);
+  const reduceMotionRef = useRef(false);
   const phiRef = useRef(initialPhi ?? INITIAL_PHI);
   const thetaRef = useRef(initialTheta ?? INITIAL_THETA);
   const scheduleRef = useRef<() => void>(() => {});
@@ -211,6 +216,7 @@ export function ActivePopsGlobe({
   >([]);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+  const reduceMotion = useReducedMotion() ?? false;
 
   popsRef.current = regionsWithCoords;
   hoveredRef.current = hoveredRegion ?? null;
@@ -220,6 +226,8 @@ export function ActivePopsGlobe({
   variantRef.current = variant;
   persistentActiveTooltipsRef.current = persistentActiveTooltips;
   suspendedRef.current = suspended;
+  searchingRef.current = searching;
+  reduceMotionRef.current = reduceMotion;
 
   const tooltipPop = tooltip
     ? regionsWithCoords.find((region) => region.value === tooltip.value)
@@ -267,13 +275,13 @@ export function ActivePopsGlobe({
     let height = container.clientHeight;
     let phi = phiRef.current;
     let theta = thetaRef.current;
+    let lastFrame = performance.now();
     let raf = 0;
     let dragging = false;
     let dragMoved = false;
     let lastPointerX = 0;
     let lastPointerY = 0;
     let lastPopsKey = '';
-    let lastFrame = performance.now();
     let focusAnim: {
       fromPhi: number;
       fromTheta: number;
@@ -304,10 +312,11 @@ export function ActivePopsGlobe({
 
     const shouldAutoRotate = () =>
       !suspendedRef.current &&
-      !autoRotatePausedRef.current &&
-      !globeHoveredRef.current &&
+      !reduceMotionRef.current &&
       !dragging &&
-      !focusAnim;
+      !focusAnim &&
+      (searchingRef.current ||
+        (!autoRotatePausedRef.current && !globeHoveredRef.current));
 
     const syncRotation = () => {
       onRotationChangeRef.current?.(phi, theta);
@@ -356,6 +365,7 @@ export function ActivePopsGlobe({
       const dt = Math.min(now - lastFrame, 48);
       lastFrame = now;
       syncSize();
+
       const pendingFocus = pendingFocusRef.current;
       if (pendingFocus) {
         pendingFocusRef.current = null;
@@ -533,6 +543,10 @@ export function ActivePopsGlobe({
       container.replaceChildren();
     };
   }, [isDark]);
+
+  useEffect(() => {
+    scheduleRef.current();
+  }, [searching, reduceMotion]);
 
   useEffect(() => {
     if (variant !== 'card' || !focusRegion) return;
