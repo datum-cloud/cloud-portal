@@ -13,6 +13,7 @@
  * it is an opaque object name like `my-project--compute-miloapis-com`.
  */
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { serviceEntitlementKeys } from '@/resources/service-entitlements';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 
 const SERVICE_ENTITLEMENTS_PATH = '/apis/services.miloapis.com/v1alpha1/serviceentitlements';
@@ -25,9 +26,7 @@ type RawServiceEntitlementList = {
   }>;
 };
 
-export const serviceEntitlementKeys = {
-  active: (projectId: string) => ['service-entitlements', 'active', projectId] as const,
-};
+export { serviceEntitlementKeys };
 
 /**
  * Collect the identifiers a plugin `serviceRef` may match for an Active

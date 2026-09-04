@@ -48,6 +48,7 @@ import { client } from '@/modules/control-plane/shared/client.gen';
 import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getProjectScopedBase } from '@/resources/base/utils';
+import { createServiceEntitlementService } from '@/resources/service-entitlements';
 import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -642,6 +643,10 @@ export function createHttpProxyService() {
       const startTime = Date.now();
 
       try {
+        if (!options?.dryRun) {
+          await createServiceEntitlementService().ensure(projectId);
+        }
+
         const payload = toCreateHttpProxyPayload(input);
 
         const response = await createNetworkingDatumapisComV1AlphaNamespacedHttpProxy({

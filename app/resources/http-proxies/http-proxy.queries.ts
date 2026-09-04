@@ -7,6 +7,8 @@ import {
 } from './http-proxy.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
+import { locationKeys } from '@/resources/locations';
+import { serviceEntitlementKeys } from '@/resources/service-entitlements';
 import {
   useQuery,
   useQueryClient,
@@ -108,6 +110,8 @@ export function useCreateHttpProxy(
       queryClient.setQueryData(httpProxyKeys.detail(projectId, newHttpProxy.name), newHttpProxy);
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+      queryClient.invalidateQueries({ queryKey: serviceEntitlementKeys.active(projectId) });
+      queryClient.invalidateQueries({ queryKey: locationKeys.list(projectId) });
 
       options?.onSuccess?.(...args);
       void invalidateAllowanceBuckets(queryClient);

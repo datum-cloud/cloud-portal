@@ -17,3 +17,5 @@ export { toLocation, toLocationList, parseCoordinates } from './location.adapter
 export { createLocationService, locationKeys, type LocationService } from './location.service';
 
 export { useLocations } from './location.queries';
+
+export { useLocationsWatch } from './location.watch';

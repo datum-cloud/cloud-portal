@@ -1,6 +1,7 @@
 import type { ActivePopMarker } from './active-pops-map';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import createGlobe, { type Marker } from 'cobe';
+import { useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -11,7 +12,11 @@ interface Props {
   onFocusRegion?: (value: string) => void;
   focusRegion?: string | null;
   focusToken?: number;
+  searching?: boolean;
 }
+
+/** One idle revolution every 50s while locations are still projecting. */
+const SEARCHING_PHI_PER_MS = (Math.PI * 2) / 50_000;
 
 const MARKER_COLOR_LIGHT: [number, number, number] = [0.702, 0.835, 0.435]; // #B3D56F
 const MARKER_COLOR_DARK: [number, number, number] = [0.82, 0.94, 0.58];
@@ -184,6 +189,7 @@ export function ActivePopsGlobe({
   onFocusRegion,
   focusRegion,
   focusToken,
+  searching = false,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const popsRef = useRef(regionsWithCoords);
@@ -191,17 +197,22 @@ export function ActivePopsGlobe({
   const onHoverRef = useRef(onHoverRegion);
   const onFocusRef = useRef(onFocusRegion);
   const pendingFocusRef = useRef<string | null>(null);
+  const searchingRef = useRef(searching);
+  const reduceMotionRef = useRef(false);
   const phiRef = useRef(INITIAL_PHI);
   const thetaRef = useRef(INITIAL_THETA);
   const scheduleRef = useRef<() => void>(() => {});
   const [tooltip, setTooltip] = useState<{ value: string; x: number; y: number } | null>(null);
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme === 'dark';
+  const reduceMotion = useReducedMotion() ?? false;
 
   popsRef.current = regionsWithCoords;
   hoveredRef.current = hoveredRegion ?? null;
   onHoverRef.current = onHoverRegion;
   onFocusRef.current = onFocusRegion;
+  searchingRef.current = searching;
+  reduceMotionRef.current = reduceMotion;
 
   const tooltipPop = tooltip
     ? regionsWithCoords.find((region) => region.value === tooltip.value)
@@ -236,6 +247,7 @@ export function ActivePopsGlobe({
     let height = container.clientHeight;
     let phi = phiRef.current;
     let theta = thetaRef.current;
+    let lastFrame = performance.now();
     let raf = 0;
     let dragging = false;
     let dragMoved = false;
@@ -287,6 +299,14 @@ export function ActivePopsGlobe({
 
     const render = () => {
       syncSize();
+      const now = performance.now();
+      const delta = now - lastFrame;
+      lastFrame = now;
+      if (searchingRef.current && !reduceMotionRef.current && !dragging && !focusAnim) {
+        phi += SEARCHING_PHI_PER_MS * delta;
+        phiRef.current = phi;
+      }
+
       const pendingFocus = pendingFocusRef.current;
       if (pendingFocus) {
         pendingFocusRef.current = null;
@@ -327,7 +347,9 @@ export function ActivePopsGlobe({
       raf = requestAnimationFrame(() => {
         raf = 0;
         render();
-        if (dragging || focusAnim) schedule();
+        if (dragging || focusAnim || (searchingRef.current && !reduceMotionRef.current)) {
+          schedule();
+        }
       });
     };
     scheduleRef.current = schedule;
@@ -435,6 +457,10 @@ export function ActivePopsGlobe({
       container.replaceChildren();
     };
   }, [isDark]);
+
+  useEffect(() => {
+    scheduleRef.current();
+  }, [searching, reduceMotion]);
 
   useEffect(() => {
     if (!focusRegion) return;

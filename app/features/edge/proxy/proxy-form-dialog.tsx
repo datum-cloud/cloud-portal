@@ -35,15 +35,6 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const { trackAction } = useAnalytics();
 
     const createProxyMutation = useCreateHttpProxy(projectId, {
-      onSuccess: (createdProxy) => {
-        trackAction(AnalyticsAction.AddProxy);
-        navigate(
-          getPathWithParams(paths.project.detail.proxy.detail.root, {
-            projectId,
-            proxyId: createdProxy.name,
-          })
-        );
-      },
       onError: (error) => {
         showMutationErrorToast(error, {
           fallbackTitle: 'Application Load Balancer',
@@ -71,7 +62,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide]);
 
-    const handleSubmit = (data: HttpProxySchema) => {
+    const handleSubmit = async (data: HttpProxySchema) => {
       const protocol = data.protocol || 'https';
       const fullEndpoint = `${protocol}://${data.endpointHost}`;
 
@@ -82,7 +73,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
           })
         : data.name;
 
-      createProxyMutation.mutate({
+      const createdProxy = await createProxyMutation.mutateAsync({
         name: resourceName,
         chosenName: data.chosenName,
         endpoint: fullEndpoint,
@@ -92,6 +83,14 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
         paranoiaLevels: { blocking: 1 },
         enableHttpRedirect: true,
       });
+
+      trackAction(AnalyticsAction.AddProxy);
+      navigate(
+        getPathWithParams(paths.project.detail.proxy.detail.root, {
+          projectId,
+          proxyId: createdProxy.name,
+        })
+      );
     };
 
     return (
