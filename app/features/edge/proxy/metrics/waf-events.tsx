@@ -8,7 +8,7 @@ import {
   stepOr,
   windowDuration,
 } from '@/features/edge/proxy/metrics/queries';
-import { ChartHeading } from '@/features/edge/proxy/metrics/series-legend';
+import { ChartBlock } from '@/features/edge/proxy/metrics/series-legend';
 import {
   MetricChart,
   MetricsChartTooltip,
@@ -16,9 +16,9 @@ import {
   usePrometheusCard,
   type QueryBuilderContext,
 } from '@/modules/metrics';
-import { formatValue, type ChartSeries } from '@/modules/prometheus';
+import { formatValue } from '@/modules/prometheus';
 import type { TrafficProtectionMode } from '@/resources/http-proxies';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export { resetGuardedIncrease } from '@/features/edge/proxy/metrics/queries';
 
@@ -53,8 +53,6 @@ export const HttpProxyWafEvents = ({
   proxyId: string;
   trafficProtectionMode?: TrafficProtectionMode;
 }) => {
-  const [series, setSeries] = useState<ChartSeries[]>([]);
-
   const blockedQuery = useCallback(
     (ctx: QueryBuilderContext) =>
       albWafIncreaseQuery(
@@ -88,20 +86,16 @@ export const HttpProxyWafEvents = ({
   const allowedLabel = trafficProtectionMode === 'Observe' ? 'Observed' : 'Allowed';
 
   return (
-    <div className="flex flex-col gap-2">
-      <ChartHeading
-        title="Traffic Protection Events"
-        series={series}
-        colors={OUTCOME_COLORS}
-        labels={OUTCOME_LABELS}
-        actions={
-          <>
-            <WafStat label="Blocked" query={blockedQuery} />
-            <WafStat label={allowedLabel} query={allowedQuery} />
-          </>
-        }
-      />
-
+    <ChartBlock
+      title="Traffic Protection Events"
+      colors={OUTCOME_COLORS}
+      labels={OUTCOME_LABELS}
+      actions={
+        <>
+          <WafStat label="Blocked" query={blockedQuery} />
+          <WafStat label={allowedLabel} query={allowedQuery} />
+        </>
+      }>
       <MetricChart
         query={(ctx) =>
           albWafByOutcomeQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
@@ -114,7 +108,6 @@ export const HttpProxyWafEvents = ({
         shareYScale
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
-        onSeriesChange={setSeries}
         yAxisFormatter={(value) => formatValue(value, 'short-number', 0)}
         tooltipContent={(props) => (
           <MetricsChartTooltip
@@ -125,6 +118,6 @@ export const HttpProxyWafEvents = ({
         )}
         className="text-foreground shadow-none"
       />
-    </div>
+    </ChartBlock>
   );
 };

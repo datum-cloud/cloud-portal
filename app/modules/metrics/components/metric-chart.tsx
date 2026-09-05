@@ -4,6 +4,8 @@
 import { BaseMetric } from '@/modules/metrics/components/base-metric';
 import { MetricsChartTooltip } from '@/modules/metrics/components/metric-tooltip';
 import { AreaSeries, BarSeries, LineSeries } from '@/modules/metrics/components/series';
+import { DEFAULT_TIME_RANGE } from '@/modules/metrics/constants';
+import { useOptionalChartLegend } from '@/modules/metrics/context/chart-legend';
 import { useChartScale } from '@/modules/metrics/context/chart-scale';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { usePrometheusChart } from '@/modules/metrics/hooks';
@@ -20,8 +22,18 @@ import {
   sanitizeGradientId,
   type BucketAggregation,
 } from '@/modules/metrics/utils/chart-axis';
-import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
+import {
+  clearZoomOriginIfPreset,
+  consumeZoomOrigin,
+  rememberZoomOrigin,
+  resolveBrushTimeRange,
+  timestampFromChartEvent,
+  type ChartMouseState,
+} from '@/modules/metrics/utils/chart-brush';
+import { parseDurationToMs, serializeTimeRange } from '@/modules/metrics/utils/date-parsers';
 import { limitSeriesByVolume } from '@/modules/metrics/utils/limit-series';
+import { nextHiddenSeries } from '@/modules/metrics/utils/series-visibility';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import {
   formatValue,
   transformForRecharts,
@@ -33,12 +45,15 @@ import {
 import { useApp } from '@/providers/app.provider';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
-import { ReactNode, useCallback, useEffect, useId, useMemo } from 'react';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { useQueryState } from 'nuqs';
+import { ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   AreaChart,
   BarChart,
   CartesianGrid,
   LineChart,
+  ReferenceArea,
   XAxis,
   YAxis,
   type YAxisProps,
@@ -115,6 +130,11 @@ export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> 
    */
   shareYScale?: boolean;
   /**
+   * Drag across the plot to set an absolute time range. Double-click restores
+   * the last relative preset. Defaults to true.
+   */
+  enableTimeZoom?: boolean;
+  /**
    * Children to render below the chart
    */
   children?: ReactNode;
@@ -152,11 +172,20 @@ export function MetricChart({
   stackAreas = false,
   maxSeries,
   shareYScale = false,
+  enableTimeZoom = true,
   children,
 }: MetricChartProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
   const { userPreferences } = useApp();
   const timezone = userPreferences?.timezone ?? getBrowserTimezone();
+  const legend = useOptionalChartLegend();
+  const [urlTimeRange, setUrlTimeRange] = useQueryState(
+    'timeRange',
+    createMetricsParser('string', DEFAULT_TIME_RANGE)
+  );
+  const [localHidden, setLocalHidden] = useState<Set<string>>(() => new Set());
+  const [brush, setBrush] = useState<{ start: number; end: number } | null>(null);
+  const brushRef = useRef<{ start: number; end: number } | null>(null);
 
   // Resolve custom API parameters - include filterState in dependencies to trigger re-evaluation
   const resolvedApiParams = useMemo(() => {
@@ -252,10 +281,15 @@ export function MetricChart({
 
   // Handle series change callbacks
   useEffect(() => {
-    if (chartSource?.series && onSeriesChange) {
-      onSeriesChange(chartSource.series);
+    if (chartSource?.series) {
+      onSeriesChange?.(chartSource.series);
+      legend?.setSeries(chartSource.series);
     }
-  }, [chartSource?.series, onSeriesChange]);
+  }, [chartSource?.series, onSeriesChange, legend]);
+
+  useEffect(() => {
+    clearZoomOriginIfPreset(urlTimeRange);
+  }, [urlTimeRange]);
 
   // Handle query state change callbacks
   useEffect(() => {
@@ -281,14 +315,30 @@ export function MetricChart({
     () => chartSource?.series.map((s) => s.name) ?? [],
     [chartSource?.series]
   );
-
+  const hiddenSeries = legend?.hidden ?? localHidden;
+  const visibleSeriesKeys = useMemo(() => {
+    const visible = seriesKeys.filter((name) => !hiddenSeries.has(name));
+    return visible.length > 0 ? visible : seriesKeys;
+  }, [seriesKeys, hiddenSeries]);
   const stacked = stackBars || stackAreas;
+  // Keep every series mounted so Recharts stack order does not change when a
+  // series is hidden and shown again. Zero hidden values so they leave no gap.
+  const plotData = useMemo(() => {
+    if (hiddenSeries.size === 0) return chartData;
+    return chartData.map((row) => {
+      const next = { ...row };
+      for (const name of seriesKeys) {
+        if (hiddenSeries.has(name)) next[name] = stacked ? 0 : null;
+      }
+      return next;
+    });
+  }, [chartData, hiddenSeries, seriesKeys, stacked]);
   const isBarChart = chartType === 'bar';
   const scaleId = useId();
 
   const localYMax = useMemo(
-    () => getChartDataMax(chartData, seriesKeys, { stacked }),
-    [chartData, seriesKeys, stacked]
+    () => getChartDataMax(chartData, visibleSeriesKeys, { stacked }),
+    [chartData, visibleSeriesKeys, stacked]
   );
   const sharedYMax = useChartScale(shareYScale ? scaleId : null, localYMax);
 
@@ -323,13 +373,13 @@ export function MetricChart({
     if (chartType !== 'line') return false;
     let points = 0;
     for (const row of chartData) {
-      for (const key of seriesKeys) {
+      for (const key of visibleSeriesKeys) {
         const value = row[key];
         if (typeof value === 'number' && Number.isFinite(value)) points += 1;
       }
     }
     return points > 0 && points <= 16;
-  }, [chartType, chartData, seriesKeys]);
+  }, [chartType, chartData, visibleSeriesKeys]);
 
   const seriesNodes = useMemo(() => {
     if (!chartSource) return null;
@@ -337,6 +387,7 @@ export function MetricChart({
     return chartSource.series.map((s: ChartSeries) => {
       const color = colorOverrides?.[s.name] ?? s.color ?? '#8884d8';
       const series = { name: s.name, color };
+      const hide = hiddenSeries.has(s.name);
 
       switch (chartType) {
         case 'area':
@@ -346,6 +397,7 @@ export function MetricChart({
               series={series}
               gradientId={sanitizeGradientId(s.name)}
               stackId={stackAreas ? 'stack' : undefined}
+              hide={!stackAreas && hide}
             />
           );
         case 'bar':
@@ -354,15 +406,25 @@ export function MetricChart({
               key={s.name}
               series={series}
               stackId={stackBars ? 'stack' : undefined}
-              seriesKeys={stackBars ? seriesKeys : undefined}
+              seriesKeys={stackBars ? visibleSeriesKeys : undefined}
+              hide={!stackBars && hide}
             />
           );
         case 'line':
         default:
-          return <LineSeries key={s.name} series={series} showDots={showDots} />;
+          return <LineSeries key={s.name} series={series} showDots={showDots} hide={hide} />;
       }
     });
-  }, [chartSource, colorOverrides, chartType, stackAreas, stackBars, showDots, seriesKeys]);
+  }, [
+    chartSource,
+    colorOverrides,
+    chartType,
+    stackAreas,
+    stackBars,
+    showDots,
+    visibleSeriesKeys,
+    hiddenSeries,
+  ]);
 
   const ChartComponent = useMemo(() => {
     switch (chartType) {
@@ -408,14 +470,108 @@ export function MetricChart({
     );
   }, [padToTimeRange, finalTimeRange, syncId, isBarChart, chartData]);
 
-  const legend = showLegend ? (
+  const stepMs = useMemo(() => parseDurationToMs(finalStep) ?? 60_000, [finalStep]);
+
+  const startBrush = useCallback((timestamp: number) => {
+    const next = { start: timestamp, end: timestamp };
+    brushRef.current = next;
+    setBrush(next);
+  }, []);
+
+  const moveBrush = useCallback((timestamp: number) => {
+    if (!brushRef.current) return;
+    const next = { start: brushRef.current.start, end: timestamp };
+    brushRef.current = next;
+    setBrush(next);
+  }, []);
+
+  const finishBrush = useCallback(() => {
+    const current = brushRef.current;
+    brushRef.current = null;
+    setBrush(null);
+    if (!current || !enableTimeZoom) return;
+
+    const range = resolveBrushTimeRange(current.start, current.end, {
+      stepMs,
+      rangeStart: finalTimeRange.start.getTime(),
+      rangeEnd: finalTimeRange.end.getTime(),
+    });
+    if (!range) return;
+
+    rememberZoomOrigin(urlTimeRange);
+    setUrlTimeRange(serializeTimeRange(range));
+  }, [enableTimeZoom, stepMs, finalTimeRange, urlTimeRange, setUrlTimeRange]);
+
+  useEffect(() => {
+    if (!brush) return;
+    const onUp = () => finishBrush();
+    window.addEventListener('mouseup', onUp);
+    return () => window.removeEventListener('mouseup', onUp);
+  }, [brush, finishBrush]);
+
+  const handleChartMouseDown = useCallback(
+    (state: unknown) => {
+      if (!enableTimeZoom) return;
+      const timestamp = timestampFromChartEvent(state as ChartMouseState);
+      if (timestamp != null) startBrush(timestamp);
+    },
+    [enableTimeZoom, startBrush]
+  );
+
+  const handleChartMouseMove = useCallback(
+    (state: unknown) => {
+      if (!brushRef.current) return;
+      const timestamp = timestampFromChartEvent(state as ChartMouseState);
+      if (timestamp != null) moveBrush(timestamp);
+    },
+    [moveBrush]
+  );
+
+  const handleChartDoubleClick = useCallback(() => {
+    if (!enableTimeZoom) return;
+    const origin = consumeZoomOrigin();
+    if (origin) setUrlTimeRange(origin);
+  }, [enableTimeZoom, setUrlTimeRange]);
+
+  const handleLegendClick = useCallback(
+    (name: string, modifiers: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean }) => {
+      if (legend) {
+        legend.onLegendClick(name, modifiers);
+        return;
+      }
+      setLocalHidden((prev) => nextHiddenSeries(seriesKeys, prev, name, modifiers));
+    },
+    [legend, seriesKeys]
+  );
+
+  const footerLegend = showLegend ? (
     <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-1 pt-1.5 text-[11px] leading-none">
-      {Object.entries(chartConfig).map(([key, item]) => (
-        <span key={key} className="inline-flex items-center gap-1">
-          <span className="size-2 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
-          {item.label ?? key}
-        </span>
-      ))}
+      {Object.entries(chartConfig).map(([key, item]) => {
+        const isHidden = hiddenSeries.has(key);
+        return (
+          <button
+            key={key}
+            type="button"
+            title="Click to isolate · Shift-click to hide"
+            onMouseDown={(event) => {
+              if (event.shiftKey) event.preventDefault();
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              handleLegendClick(key, event);
+            }}
+            className={cn(
+              'inline-flex items-center gap-1 select-none',
+              isHidden && 'text-muted-foreground/50 line-through'
+            )}>
+            <span
+              className={cn('size-2 shrink-0 rounded-[2px]', isHidden && 'opacity-40')}
+              style={{ backgroundColor: item.color }}
+            />
+            {item.label ?? key}
+          </button>
+        );
+      })}
     </div>
   ) : null;
 
@@ -431,19 +587,26 @@ export function MetricChart({
       height={height}
       footer={
         <>
-          {legend}
+          {footerLegend}
           {children}
         </>
       }>
       <ChartContainer
         config={chartConfig}
-        className="aspect-none h-full w-full justify-stretch overflow-visible [&_.recharts-responsive-container]:!h-full [&_.recharts-responsive-container]:w-full"
+        className={cn(
+          'aspect-none h-full w-full justify-stretch overflow-visible [&_.recharts-responsive-container]:!h-full [&_.recharts-responsive-container]:w-full',
+          enableTimeZoom &&
+            (brush ? 'cursor-col-resize select-none' : '[&_.recharts-surface]:cursor-crosshair')
+        )}
         style={{ height, aspectRatio: 'auto' }}>
         <ChartComponent
           syncId={syncId}
           syncMethod={padToTimeRange ? 'index' : 'value'}
-          data={chartData}
+          data={plotData}
           margin={{ top: 8, right: 16, left: 8, bottom: 4 }}
+          onMouseDown={handleChartMouseDown}
+          onMouseMove={handleChartMouseMove}
+          onDoubleClick={handleChartDoubleClick}
           {...(isBarChart ? { barGap: 2, barCategoryGap: '18%' } : {})}>
           {chartType === 'area' && chartSource && (
             <defs>
@@ -499,12 +662,23 @@ export function MetricChart({
             tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
             {...yAxisOptions}
           />
-          {showTooltip && (
+          {showTooltip && !brush && (
             <ChartTooltip
               isAnimationActive={false}
               shared={isBarChart}
               cursor={isBarChart ? undefined : { stroke: 'var(--border)' }}
               content={(tooltipContent ?? CustomTooltip) as never}
+            />
+          )}
+          {brush && brush.start !== brush.end && (
+            <ReferenceArea
+              x1={Math.min(brush.start, brush.end)}
+              x2={Math.max(brush.start, brush.end)}
+              fill="var(--primary)"
+              fillOpacity={0.1}
+              stroke="var(--primary)"
+              strokeOpacity={0.35}
+              ifOverflow="visible"
             />
           )}
           {seriesNodes}

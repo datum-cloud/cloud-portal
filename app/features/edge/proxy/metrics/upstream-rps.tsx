@@ -4,13 +4,8 @@ import {
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
-import {
-  ChartHeading,
-  metricChartStackClassName,
-} from '@/features/edge/proxy/metrics/series-legend';
+import { ChartBlock, metricChartStackClassName } from '@/features/edge/proxy/metrics/series-legend';
 import { MetricChart, MetricsChartTooltip, formatReqPerSecTick } from '@/modules/metrics';
-import { ChartSeries } from '@/modules/prometheus';
-import { useState } from 'react';
 
 export const HttpProxyUpstreamRps = ({
   projectId,
@@ -19,11 +14,8 @@ export const HttpProxyUpstreamRps = ({
   projectId: string;
   proxyId: string;
 }) => {
-  const [currentSeries, setCurrentSeries] = useState<ChartSeries[]>([]);
-
   return (
-    <div className={metricChartStackClassName}>
-      <ChartHeading title="Regional requests per second" series={currentSeries} />
+    <ChartBlock title="Regional requests per second" className={metricChartStackClassName}>
       <MetricChart
         query={(ctx) => albRegionalRpsQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
         chartType="line"
@@ -36,9 +28,8 @@ export const HttpProxyUpstreamRps = ({
         tooltipContent={(props) => (
           <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(4)} req/s`} />
         )}
-        onSeriesChange={setCurrentSeries}
         className="text-foreground shadow-none"
       />
-    </div>
+    </ChartBlock>
   );
 };

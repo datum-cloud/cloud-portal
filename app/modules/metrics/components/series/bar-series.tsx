@@ -28,10 +28,12 @@ export function BarSeries({
   series,
   stackId,
   seriesKeys,
+  hide = false,
 }: {
   series: { name: string; color: string };
   stackId?: string;
   seriesKeys?: string[];
+  hide?: boolean;
 }) {
   const stacked = Boolean(stackId && seriesKeys?.length);
 
@@ -40,25 +42,27 @@ export function BarSeries({
       dataKey={series.name}
       name={series.name}
       stackId={stackId}
+      hide={hide}
       fill={series.color}
       radius={stacked ? 0 : TOP_RADIUS}
       maxBarSize={48}
       isAnimationActive={false}
       shape={
         stacked
-          ? (props: BarShapeProps) => (
-              <Rectangle
-                x={props.x}
-                y={props.y}
-                width={props.width}
-                height={props.height}
-                fill={props.fill}
-                radius={
-                  hasSeriesAbove(props.payload, seriesKeys ?? [], series.name) ? 0 : TOP_RADIUS
-                }
-                isAnimationActive={false}
-              />
-            )
+          ? (props: BarShapeProps) =>
+              !props.height ? null : (
+                <Rectangle
+                  x={props.x}
+                  y={props.y}
+                  width={props.width}
+                  height={props.height}
+                  fill={props.fill}
+                  radius={
+                    hasSeriesAbove(props.payload, seriesKeys ?? [], series.name) ? 0 : TOP_RADIUS
+                  }
+                  isAnimationActive={false}
+                />
+              )
           : undefined
       }
     />

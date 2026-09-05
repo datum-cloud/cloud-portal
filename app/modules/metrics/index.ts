@@ -15,6 +15,7 @@ export * from './components/filters';
 // Export provider and hooks
 export { MetricsProvider, useMetrics } from './context/metrics.context';
 export { ChartScaleGroup } from './context/chart-scale';
+export { ChartLegendProvider } from './context/chart-legend';
 
 // Export types
 export type {

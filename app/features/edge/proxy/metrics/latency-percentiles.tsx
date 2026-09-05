@@ -5,10 +5,9 @@ import {
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
-import { ChartHeading } from '@/features/edge/proxy/metrics/series-legend';
+import { ChartBlock } from '@/features/edge/proxy/metrics/series-legend';
 import { MetricChart, MetricsChartTooltip } from '@/modules/metrics';
-import { formatValue, type ChartSeries } from '@/modules/prometheus';
-import { useState } from 'react';
+import { formatValue } from '@/modules/prometheus';
 
 export function HttpProxyLatencyPercentiles({
   projectId,
@@ -17,11 +16,8 @@ export function HttpProxyLatencyPercentiles({
   projectId: string;
   proxyId: string;
 }) {
-  const [series, setSeries] = useState<ChartSeries[]>([]);
-
   return (
-    <div className="flex flex-col gap-2">
-      <ChartHeading title="Upstream latency" series={series} colors={QUANTILE_COLORS} />
+    <ChartBlock title="Upstream latency" colors={QUANTILE_COLORS}>
       <MetricChart
         query={(ctx) =>
           albLatencyPercentilesQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
@@ -35,7 +31,6 @@ export function HttpProxyLatencyPercentiles({
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={220}
         yAxisFormatter={(value) => formatValue(value, 'milliseconds-auto')}
-        onSeriesChange={setSeries}
         tooltipContent={(props) => (
           <MetricsChartTooltip
             {...props}
@@ -44,6 +39,6 @@ export function HttpProxyLatencyPercentiles({
         )}
         className="text-foreground shadow-none"
       />
-    </div>
+    </ChartBlock>
   );
 }

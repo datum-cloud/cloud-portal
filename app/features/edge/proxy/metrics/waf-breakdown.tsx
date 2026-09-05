@@ -4,13 +4,9 @@ import {
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
-import {
-  ChartHeading,
-  metricChartStackClassName,
-} from '@/features/edge/proxy/metrics/series-legend';
+import { ChartBlock, metricChartStackClassName } from '@/features/edge/proxy/metrics/series-legend';
 import { MetricChart, MetricsChartTooltip } from '@/modules/metrics';
-import { formatValue, type ChartSeries } from '@/modules/prometheus';
-import { useState } from 'react';
+import { formatValue } from '@/modules/prometheus';
 
 function WafBreakdownChart({
   projectId,
@@ -23,11 +19,8 @@ function WafBreakdownChart({
   title: string;
   label: 'coraza_rule_severity' | 'http_method';
 }) {
-  const [series, setSeries] = useState<ChartSeries[]>([]);
-
   return (
-    <div className={metricChartStackClassName}>
-      <ChartHeading title={title} series={series} />
+    <ChartBlock title={title} className={metricChartStackClassName}>
       <MetricChart
         query={(ctx) =>
           albWafByLabelQuery(label, scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
@@ -39,7 +32,6 @@ function WafBreakdownChart({
         shareYScale
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
-        onSeriesChange={setSeries}
         yAxisFormatter={(value) => formatValue(value, 'short-number', 0)}
         tooltipContent={(props) => (
           <MetricsChartTooltip
@@ -49,7 +41,7 @@ function WafBreakdownChart({
         )}
         className="text-foreground shadow-none"
       />
-    </div>
+    </ChartBlock>
   );
 }
 

@@ -3,14 +3,17 @@ import { Line } from 'recharts';
 export function LineSeries({
   series,
   showDots = false,
+  hide = false,
 }: {
   series: { name: string; color: string };
   showDots?: boolean;
+  hide?: boolean;
 }) {
   return (
     <Line
       dataKey={series.name}
       name={series.name}
+      hide={hide}
       type="linear"
       stroke={series.color}
       strokeWidth={2}

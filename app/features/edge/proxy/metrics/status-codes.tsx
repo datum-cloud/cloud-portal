@@ -4,13 +4,8 @@ import {
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
-import {
-  ChartHeading,
-  metricChartStackClassName,
-} from '@/features/edge/proxy/metrics/series-legend';
+import { ChartBlock, metricChartStackClassName } from '@/features/edge/proxy/metrics/series-legend';
 import { MetricChart, MetricsChartTooltip, formatReqPerSecTick } from '@/modules/metrics';
-import type { ChartSeries } from '@/modules/prometheus';
-import { useState } from 'react';
 
 export function HttpProxyStatusCodes({
   projectId,
@@ -19,11 +14,8 @@ export function HttpProxyStatusCodes({
   projectId: string;
   proxyId: string;
 }) {
-  const [series, setSeries] = useState<ChartSeries[]>([]);
-
   return (
-    <div className={metricChartStackClassName}>
-      <ChartHeading title="Requests by status code" series={series} />
+    <ChartBlock title="Requests by status code" className={metricChartStackClassName}>
       <MetricChart
         query={(ctx) =>
           albRpsByStatusCodeQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))
@@ -35,13 +27,12 @@ export function HttpProxyStatusCodes({
         maxSeries={5}
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
-        onSeriesChange={setSeries}
         yAxisFormatter={formatReqPerSecTick}
         tooltipContent={(props) => (
           <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(2)} req/s`} />
         )}
         className="text-foreground overflow-visible shadow-none"
       />
-    </div>
+    </ChartBlock>
   );
 }
