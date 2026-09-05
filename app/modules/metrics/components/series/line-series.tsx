@@ -1,14 +1,23 @@
 import { Line } from 'recharts';
 
-export function LineSeries({ series }: { series: { name: string; color: string } }) {
+export function LineSeries({
+  series,
+  showDots = false,
+}: {
+  series: { name: string; color: string };
+  showDots?: boolean;
+}) {
   return (
     <Line
-      key={series.name}
       dataKey={series.name}
-      type="monotone"
+      name={series.name}
+      type="linear"
       stroke={series.color}
       strokeWidth={2}
-      dot={false}
+      connectNulls={false}
+      dot={
+        showDots ? { r: 3, fill: series.color, stroke: 'var(--background)', strokeWidth: 1 } : false
+      }
       activeDot={{
         r: 4,
         fill: series.color,

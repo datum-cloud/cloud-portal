@@ -1,4 +1,3 @@
-import { DateTime } from '@/components/date-time';
 import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
   OUTCOME_COLORS,
@@ -9,13 +8,13 @@ import {
   stepOr,
   windowDuration,
 } from '@/features/edge/proxy/metrics/queries';
+import { ChartHeading } from '@/features/edge/proxy/metrics/series-legend';
 import {
   MetricChart,
-  MetricChartTooltipContent,
+  MetricsChartTooltip,
   useMetrics,
   usePrometheusCard,
   type QueryBuilderContext,
-  toChartLabelDate,
 } from '@/modules/metrics';
 import { formatValue, type ChartSeries } from '@/modules/prometheus';
 import type { TrafficProtectionMode } from '@/resources/http-proxies';
@@ -89,27 +88,19 @@ export const HttpProxyWafEvents = ({
   const allowedLabel = trafficProtectionMode === 'Observe' ? 'Observed' : 'Allowed';
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-4">
-          <p className="text-sm font-medium">Traffic Protection Events</p>
-          <WafStat label="Blocked" query={blockedQuery} />
-          <WafStat label={allowedLabel} query={allowedQuery} />
-        </div>
-        {series.length > 0 && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {series.map((s) => (
-              <div key={s.name} className="text-foreground flex items-center gap-1.5 text-xs">
-                <span
-                  className="size-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: OUTCOME_COLORS[s.name] ?? s.color }}
-                />
-                {OUTCOME_LABELS[s.name] ?? s.name}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="flex flex-col gap-2">
+      <ChartHeading
+        title="Traffic Protection Events"
+        series={series}
+        colors={OUTCOME_COLORS}
+        labels={OUTCOME_LABELS}
+        actions={
+          <>
+            <WafStat label="Blocked" query={blockedQuery} />
+            <WafStat label={allowedLabel} query={allowedQuery} />
+          </>
+        }
+      />
 
       <MetricChart
         query={(ctx) =>
@@ -120,35 +111,18 @@ export const HttpProxyWafEvents = ({
         colorOverrides={OUTCOME_COLORS}
         padToTimeRange
         stackBars
+        shareYScale
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
         onSeriesChange={setSeries}
-        tooltipContent={({ active, payload, label, ...props }) => {
-          if (!active || !payload?.length) return null;
-          const filteredPayload = payload.filter((p) => (p.value as number) > 0);
-          if (!filteredPayload.length) return null;
-          return (
-            <MetricChartTooltipContent
-              active={active}
-              payload={filteredPayload}
-              label={label}
-              labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
-              formatter={(value, name, item) => (
-                <div className="flex flex-1 items-center justify-between leading-none">
-                  <div className="flex items-center gap-1">
-                    <div
-                      className="size-2.5 shrink-0 rounded-[2px]"
-                      style={{ backgroundColor: item.payload.fill || item.color }}
-                    />
-                    <span className="font-medium">{OUTCOME_LABELS[name as string] ?? name}</span>
-                  </div>
-                  <div className="text-foreground font-medium">{Math.round(value as number)}</div>
-                </div>
-              )}
-              {...props}
-            />
-          );
-        }}
+        yAxisFormatter={(value) => formatValue(value, 'short-number', 0)}
+        tooltipContent={(props) => (
+          <MetricsChartTooltip
+            {...props}
+            formatName={(name) => OUTCOME_LABELS[name] ?? name}
+            formatValue={(value) => Math.round(value).toLocaleString()}
+          />
+        )}
         className="text-foreground shadow-none"
       />
     </div>

@@ -101,6 +101,7 @@ export const ActivePopsCard = ({
     const cardRect = cardBodyRef.current?.getBoundingClientRect();
     const rect = globeRect && globeRect.width > 0 && globeRect.height > 0 ? globeRect : cardRect;
     if (!rect) return;
+    setGlobeRotation(globeRotationRef.current);
     setOriginRect({
       top: rect.top,
       left: rect.left,
@@ -135,6 +136,7 @@ export const ActivePopsCard = ({
 
   const handleOverlayExited = useCallback(() => {
     setCardGlobeHidden(false);
+    setGlobeRotation(globeRotationRef.current);
   }, []);
 
   const baseLabels = useMemo(
@@ -342,7 +344,9 @@ export const ActivePopsCard = ({
           focusToken={focusToken}
           initialPhi={globeRotation.phi}
           initialTheta={globeRotation.theta}
-          onRotationChange={(phi, theta) => setGlobeRotation({ phi, theta })}
+          onRotationChange={(phi, theta) => {
+            globeRotationRef.current = { phi, theta };
+          }}
           suspended={cardGlobeHidden}
           searching={showLocationSkeletons}
         />
@@ -558,7 +562,9 @@ export const ActivePopsCard = ({
           originRect={originRect}
           regionsWithCoords={regionsWithCoords}
           rotation={globeRotation}
-          onRotationChange={(phi, theta) => setGlobeRotation({ phi, theta })}
+          onRotationChange={(phi, theta) => {
+            globeRotationRef.current = { phi, theta };
+          }}
           onClose={closeExpanded}
           onEntered={handleOverlayEntered}
           onExitStart={handleOverlayExitStart}

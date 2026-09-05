@@ -14,7 +14,7 @@ export function getLinearYAxisScale(
   tickCount = 5
 ): { domain: [number, number]; ticks: number[] } {
   if (maxValue <= 0) {
-    return { domain: [0, 4], ticks: [0, 1, 2, 3, 4] };
+    return { domain: [0, 1], ticks: [0, 1] };
   }
 
   const roughStep = maxValue / Math.max(tickCount - 1, 1);
@@ -53,6 +53,15 @@ export function buildUniformYTicks(domain: [number, number], tickCount = 5): num
  * which are timezone-aware — falling back to the runtime's local zone
  * would otherwise silently mislabel every tick.
  */
+/** Compact Y-axis labels so "800.00 req/s" does not eat the plot. */
+export function formatReqPerSecTick(value: number): string {
+  if (!Number.isFinite(value)) return '';
+  if (Math.abs(value) >= 10) return `${Math.round(value)}`;
+  if (Math.abs(value) >= 1) return value.toFixed(1);
+  if (value === 0) return '0';
+  return value.toFixed(2);
+}
+
 export function formatChartTimeTick(timestamp: number, rangeMs: number, timezone: string): string {
   const date = new Date(timestamp);
   if (rangeMs < SIX_HOURS_MS) return formatInTimeZone(date, timezone, 'h:mm a');
@@ -77,9 +86,55 @@ export function toChartLabelDate(label: ReactNode): string | Date {
   return '';
 }
 
-type ChartRow = Record<string, number>;
+type ChartRow = { timestamp: number } & Record<string, number | null>;
 
 export type BucketAggregation = 'sum' | 'avg' | 'max';
+
+const AUTO_STEPS: Array<{ label: string; ms: number }> = [
+  { label: '15s', ms: 15_000 },
+  { label: '1m', ms: 60_000 },
+  { label: '5m', ms: 300_000 },
+  { label: '10m', ms: 600_000 },
+  { label: '15m', ms: 900_000 },
+  { label: '30m', ms: 1_800_000 },
+  { label: '1h', ms: 3_600_000 },
+];
+
+const AUTO_MIN_POINTS = 16;
+
+/**
+ * Grafana-style interval: coarsest step that still yields enough points
+ * for a 30–60 minute window to read as a series, not two needles.
+ */
+export function autoStepForRange(rangeMs: number): string {
+  if (!Number.isFinite(rangeMs) || rangeMs <= 0) return '1m';
+  for (let i = AUTO_STEPS.length - 1; i >= 0; i--) {
+    const step = AUTO_STEPS[i];
+    if (rangeMs / step.ms >= AUTO_MIN_POINTS) return step.label;
+  }
+  return AUTO_STEPS[0].label;
+}
+
+/** Resolve `auto` (or a missing step) against the selected time range. */
+export function resolveChartStep(step: string | undefined, rangeMs: number): string {
+  if (!step || step === 'auto') return autoStepForRange(rangeMs);
+  return step;
+}
+
+/**
+ * Pixel width for a bar that represents one step on a numeric time axis.
+ * Recharts otherwise draws time-scale bars as 1px needles.
+ */
+export function timeBucketBarWidth(
+  plotWidth: number,
+  rangeMs: number,
+  stepMs: number,
+  gap = 0.22
+): number {
+  if (plotWidth <= 0 || rangeMs <= 0 || stepMs <= 0) return 8;
+  const bucketPx = plotWidth * (stepMs / rangeMs);
+  return Math.max(4, Math.min(72, Math.floor(bucketPx * (1 - gap))));
+}
 
 /**
  * Fill a time-series dataset with zero-valued points at every step interval
@@ -123,16 +178,17 @@ export function bucketDataToTimeRange(
   endMs: number,
   stepMs: number,
   seriesKeys: string[],
-  aggregation: BucketAggregation = 'sum'
+  aggregation: BucketAggregation = 'sum',
+  emptyValue: number | null = 0
 ): ChartRow[] {
   if (stepMs <= 0 || seriesKeys.length === 0) return data;
 
-  const zeros = Object.fromEntries(seriesKeys.map((k) => [k, 0]));
+  const blanks = Object.fromEntries(seriesKeys.map((k) => [k, emptyValue]));
   const buckets = new Map<number, ChartRow>();
   const sampleCounts = new Map<number, Record<string, number>>();
 
   for (let t = startMs; t <= endMs; t += stepMs) {
-    buckets.set(t, { timestamp: t, ...zeros });
+    buckets.set(t, { timestamp: t, ...blanks });
     if (aggregation === 'avg') {
       sampleCounts.set(t, Object.fromEntries(seriesKeys.map((k) => [k, 0])));
     }
@@ -148,16 +204,24 @@ export function bucketDataToTimeRange(
 
     for (const key of seriesKeys) {
       const value = row[key];
-      if (typeof value !== 'number') continue;
+      if (typeof value !== 'number' || !Number.isFinite(value)) continue;
 
       if (aggregation === 'max') {
-        bucket[key] = Math.max(bucket[key] as number, value);
+        const current = bucket[key];
+        bucket[key] =
+          typeof current === 'number' && Number.isFinite(current)
+            ? Math.max(current, value)
+            : value;
       } else if (aggregation === 'avg') {
-        bucket[key] = (bucket[key] as number) + value;
+        const current = bucket[key];
+        bucket[key] =
+          (typeof current === 'number' && Number.isFinite(current) ? current : 0) + value;
         const counts = sampleCounts.get(bucketTs)!;
         counts[key] = (counts[key] ?? 0) + 1;
       } else {
-        bucket[key] = (bucket[key] as number) + value;
+        const current = bucket[key];
+        bucket[key] =
+          (typeof current === 'number' && Number.isFinite(current) ? current : 0) + value;
       }
     }
   }
@@ -170,6 +234,8 @@ export function bucketDataToTimeRange(
         const count = counts[key] ?? 0;
         if (count > 0) {
           bucket[key] = (bucket[key] as number) / count;
+        } else {
+          bucket[key] = emptyValue;
         }
       }
     }
@@ -200,13 +266,13 @@ export function getChartDataMax(
       let sum = 0;
       for (const key of seriesKeys) {
         const value = row[key];
-        if (typeof value === 'number') sum += value;
+        if (typeof value === 'number' && Number.isFinite(value)) sum += value;
       }
       if (sum > max) max = sum;
     } else {
       for (const key of seriesKeys) {
         const value = row[key];
-        if (typeof value === 'number' && value > max) max = value;
+        if (typeof value === 'number' && Number.isFinite(value) && value > max) max = value;
       }
     }
   }
@@ -224,4 +290,14 @@ export function buildTimeAxisTicks(startMs: number, endMs: number, tickCount = 6
     ticks.push(Math.round(startMs + step * i));
   }
   return ticks;
+}
+
+/** Pick labels from real bar categories so every synced chart shows the same times. */
+export function pickEvenlySpaced<T>(items: T[], count: number): T[] {
+  if (items.length === 0 || count <= 1) return items.slice(0, Math.max(count, 0));
+  if (items.length <= count) return items;
+  return Array.from({ length: count }, (_, i) => {
+    const index = Math.round((i * (items.length - 1)) / (count - 1));
+    return items[index];
+  });
 }

@@ -1,4 +1,3 @@
-import { DateTime } from '@/components/date-time';
 import { AI_EDGE_METRICS_SYNC_ID } from '@/features/edge/proxy/metrics/constants';
 import {
   RESPONSE_CODE_COLORS,
@@ -6,8 +5,11 @@ import {
   scopeFromContext,
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
-import { SeriesLegend } from '@/features/edge/proxy/metrics/series-legend';
-import { MetricChart, MetricChartTooltipContent, toChartLabelDate } from '@/modules/metrics';
+import {
+  ChartHeading,
+  metricChartStackClassName,
+} from '@/features/edge/proxy/metrics/series-legend';
+import { MetricChart, MetricsChartTooltip } from '@/modules/metrics';
 import type { ChartSeries } from '@/modules/prometheus';
 import { useState } from 'react';
 
@@ -21,48 +23,21 @@ export const HttpProxyEdgeRequests = ({
   const [series, setSeries] = useState<ChartSeries[]>([]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-medium">Requests per second</p>
-        <SeriesLegend series={series} colors={RESPONSE_CODE_COLORS} />
-      </div>
+    <div className={metricChartStackClassName}>
+      <ChartHeading title="Requests per second" series={series} colors={RESPONSE_CODE_COLORS} />
       <MetricChart
         query={(ctx) => albRpsByClassQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
         chartType="area"
         showLegend={false}
         colorOverrides={RESPONSE_CODE_COLORS}
         padToTimeRange
+        stackAreas
         syncId={AI_EDGE_METRICS_SYNC_ID}
         height={200}
         onSeriesChange={setSeries}
-        tooltipContent={({ active, payload, label, ...props }) => {
-          if (!active || !payload?.length) return null;
-          const filteredPayload = payload.filter((p) => (p.value as number) > 0);
-          if (!filteredPayload.length) return null;
-          return (
-            <MetricChartTooltipContent
-              active={active}
-              payload={filteredPayload}
-              label={label}
-              labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
-              formatter={(value, name, item) => (
-                <div className="flex flex-1 items-center justify-between leading-none">
-                  <div className="flex items-center gap-1">
-                    <div
-                      className="size-2.5 shrink-0 rounded-[2px]"
-                      style={{ backgroundColor: item.payload.fill || item.color }}
-                    />
-                    <span className="font-medium">{name}</span>
-                  </div>
-                  <div className="text-foreground font-medium">
-                    {`${(value as number).toFixed(2)} req/s`}
-                  </div>
-                </div>
-              )}
-              {...props}
-            />
-          );
-        }}
+        tooltipContent={(props) => (
+          <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(2)} req/s`} />
+        )}
         className="text-foreground shadow-none"
       />
     </div>

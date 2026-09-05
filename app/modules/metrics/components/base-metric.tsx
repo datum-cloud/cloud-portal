@@ -25,6 +25,7 @@ export interface BaseMetricProps {
   isEmpty?: boolean;
   emptyState?: React.ReactNode;
   height?: number;
+  footer?: React.ReactNode;
 }
 
 /**
@@ -41,6 +42,7 @@ export function BaseMetric({
   isEmpty = false,
   emptyState,
   height,
+  footer,
 }: BaseMetricProps): React.ReactElement {
   const containerStyle = height ? { height } : {};
 
@@ -86,11 +88,14 @@ export function BaseMetric({
     }
 
     return (
-      <div className="relative" style={containerStyle}>
-        {isFetching && !isLoading && (
-          <div className="bg-background/50 absolute inset-0 rounded-lg" />
-        )}
-        {children}
+      <div>
+        <div className="relative overflow-visible" style={containerStyle}>
+          {isFetching && !isLoading && (
+            <div className="bg-background/50 absolute inset-0 rounded-lg" />
+          )}
+          {children}
+        </div>
+        {footer}
       </div>
     );
   };
@@ -103,7 +108,7 @@ export function BaseMetric({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
       )}
-      <CardContent className="px-0">{renderContent()}</CardContent>
+      <CardContent className="px-3 py-2">{renderContent()}</CardContent>
     </Card>
   );
 }

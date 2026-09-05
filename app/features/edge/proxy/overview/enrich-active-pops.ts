@@ -77,6 +77,25 @@ export function enrichActivePops(regionValues: string[], locations: Location[]):
   });
 }
 
+/** Dropdown label for a Prometheus region code, using Location city/country when known. */
+export function formatRegionFilterOption(
+  value: string,
+  locations: Location[]
+): { label: string; value: string; description?: string } {
+  const [pop] = enrichActivePops([value], locations);
+  const matched = Boolean(pop?.country || (pop?.city && pop.city !== value));
+  if (!pop || !matched) {
+    return { label: value, value };
+  }
+
+  const place =
+    pop.city && pop.country && pop.city !== pop.country
+      ? `${pop.city}, ${pop.country}`
+      : pop.city || pop.country || value;
+
+  return { label: place, value, description: value };
+}
+
 export function buildLocationDirectory(
   locations: Location[],
   activeRegionValues: string[]

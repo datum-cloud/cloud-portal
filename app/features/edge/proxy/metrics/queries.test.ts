@@ -3,6 +3,7 @@ import {
   albLatencyPercentilesQuery,
   albRpsByClassQuery,
   albRpsQuery,
+  albWafByLabelQuery,
   albWafIncreaseQuery,
   albWafTopRulesQuery,
   createStatusClassFilter,
@@ -102,7 +103,18 @@ describe('alb query builders', () => {
     expect(blocked).toContain('coraza_outcome=~"blocked|dropped"');
 
     const topRules = albWafTopRulesQuery(scope, '1h');
-    expect(topRules.startsWith('topk(10,')).toBe(true);
+    expect(topRules.startsWith('topk(20,')).toBe(true);
     expect(topRules).toContain('coraza_rule_id');
+    expect(topRules).toContain('coraza_rule_file');
+    expect(topRules).toContain('coraza_interruption_phase');
+    expect(topRules).toContain('sum_over_time(');
+    expect(topRules).toContain('[1h:1m]');
+  });
+
+  it('maps empty WAF group-by labels to unknown', () => {
+    const query = albWafByLabelQuery('coraza_rule_severity', scope, '30m');
+    expect(query).toContain('sum by (coraza_rule_severity)');
+    expect(query).toContain('label_replace(sum_over_time(');
+    expect(query).toContain('"coraza_rule_severity","unknown","coraza_rule_severity","^$"');
   });
 });

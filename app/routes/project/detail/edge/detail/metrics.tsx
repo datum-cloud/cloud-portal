@@ -5,6 +5,8 @@ import { HttpProxyMetricsKpis } from '@/features/edge/proxy/metrics/kpi-cards';
 import { HttpProxyLatencyPercentiles } from '@/features/edge/proxy/metrics/latency-percentiles';
 import { albSeriesMatch } from '@/features/edge/proxy/metrics/queries';
 import { HttpProxyRegionalErrors } from '@/features/edge/proxy/metrics/regional-errors';
+import { HttpProxyRegionsFilter } from '@/features/edge/proxy/metrics/regions-filter';
+import { MetricChartPair } from '@/features/edge/proxy/metrics/series-legend';
 import { StatusClassFilter } from '@/features/edge/proxy/metrics/status-class-filter';
 import { HttpProxyStatusCodes } from '@/features/edge/proxy/metrics/status-codes';
 import { HttpProxyUpstreamRps } from '@/features/edge/proxy/metrics/upstream-rps';
@@ -16,7 +18,7 @@ import { HttpProxyWafEvents } from '@/features/edge/proxy/metrics/waf-events';
 import { WafOutcomeFilter, WafSeverityFilter } from '@/features/edge/proxy/metrics/waf-filters';
 import { HttpProxyWafTopRules } from '@/features/edge/proxy/metrics/waf-top-rules';
 import { ActivePopsCard } from '@/features/edge/proxy/overview/active-pops-card';
-import { MetricsProvider, MetricsToolbar, RegionsFilter } from '@/modules/metrics';
+import { ChartScaleGroup, MetricsProvider, MetricsToolbar } from '@/modules/metrics';
 import { useGuardedRouteData } from '@/modules/rbac';
 import { type HttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
@@ -123,12 +125,12 @@ export default function HttpProxyMetricsPage() {
         <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
         <div
           className={cn(
-            'bg-background sticky top-[-1.75rem] z-10 -mx-4 mb-6 px-4 py-2 md:top-[-2.25rem] md:-mx-9 md:px-9',
+            'bg-background sticky top-[-1.75rem] z-30 -mx-4 mb-6 px-4 py-2 md:top-[-2.25rem] md:-mx-9 md:px-9',
             stuck && 'border-border border-b'
           )}>
           <MetricsToolbar>
             <MetricsToolbar.Filters>
-              <RegionsFilter match={seriesMatch} />
+              <HttpProxyRegionsFilter projectId={projectId} match={seriesMatch} />
               <StatusClassFilter />
             </MetricsToolbar.Filters>
             <MetricsToolbar.CoreControls />
@@ -136,13 +138,18 @@ export default function HttpProxyMetricsPage() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <HttpProxyMetricsKpis projectId={projectId} proxyId={proxyId} showWaf={wafEnabled} />
+          <HttpProxyMetricsKpis
+            projectId={projectId}
+            proxyId={proxyId}
+            showWaf={wafEnabled}
+            wafPending={wafPending}
+          />
 
           <MetricsSection id="traffic" title="Traffic">
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <MetricChartPair>
               <HttpProxyEdgeRequests projectId={projectId} proxyId={proxyId} />
               <HttpProxyStatusCodes projectId={projectId} proxyId={proxyId} />
-            </div>
+            </MetricChartPair>
             <HttpProxyErrorRate projectId={projectId} proxyId={proxyId} />
           </MetricsSection>
 
@@ -152,10 +159,10 @@ export default function HttpProxyMetricsPage() {
 
           <MetricsSection id="geography" title="Geography">
             <ActivePopsCard projectId={projectId} proxyId={proxyId} embedded />
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <MetricChartPair>
               <HttpProxyUpstreamRps projectId={projectId} proxyId={proxyId} />
               <HttpProxyRegionalErrors projectId={projectId} proxyId={proxyId} />
-            </div>
+            </MetricChartPair>
           </MetricsSection>
 
           <MetricsSection
@@ -173,15 +180,17 @@ export default function HttpProxyMetricsPage() {
               <p className="text-muted-foreground text-sm">Loading traffic protection…</p>
             ) : wafEnabled && canViewWaf ? (
               <div className="flex flex-col gap-6">
-                <HttpProxyWafEvents
-                  projectId={projectId}
-                  proxyId={proxyId}
-                  trafficProtectionMode={effectiveProxy.trafficProtectionMode}
-                />
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <HttpProxyWafSeverity projectId={projectId} proxyId={proxyId} />
-                  <HttpProxyWafMethods projectId={projectId} proxyId={proxyId} />
-                </div>
+                <ChartScaleGroup>
+                  <HttpProxyWafEvents
+                    projectId={projectId}
+                    proxyId={proxyId}
+                    trafficProtectionMode={effectiveProxy.trafficProtectionMode}
+                  />
+                  <MetricChartPair>
+                    <HttpProxyWafSeverity projectId={projectId} proxyId={proxyId} />
+                    <HttpProxyWafMethods projectId={projectId} proxyId={proxyId} />
+                  </MetricChartPair>
+                </ChartScaleGroup>
                 <HttpProxyWafTopRules projectId={projectId} proxyId={proxyId} />
               </div>
             ) : wafEnabled ? (

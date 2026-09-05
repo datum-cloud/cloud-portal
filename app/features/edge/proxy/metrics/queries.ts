@@ -19,6 +19,7 @@ import {
   type PrometheusLabelFilter,
 } from '@/modules/metrics';
 import type { QueryBuilderContext } from '@/modules/metrics';
+import { resolveChartStep } from '@/modules/metrics/utils/chart-axis';
 import { formatDurationFromMs } from '@/modules/metrics/utils/date-parsers';
 
 export const ENVOY_RQ_METRIC = 'envoy_vhost_vcluster_upstream_rq';
@@ -133,8 +134,10 @@ export function windowDuration(ctx: QueryBuilderContext): string {
   return formatDurationFromMs(ctx.timeRange.end.getTime() - ctx.timeRange.start.getTime());
 }
 
-export function stepOr(ctx: QueryBuilderContext, fallback = '15m'): string {
-  return ctx.filters.step ?? ctx.step ?? fallback;
+export function stepOr(ctx: QueryBuilderContext, fallback = 'auto'): string {
+  const raw = ctx.filters.step ?? ctx.step ?? fallback;
+  const rangeMs = ctx.timeRange.end.getTime() - ctx.timeRange.start.getTime();
+  return resolveChartStep(raw, rangeMs);
 }
 
 function trafficSelector(scope: AlbQueryScope): string {
@@ -313,18 +316,21 @@ export function albWafByLabelQuery(
   scope: AlbQueryScope,
   step: string
 ): string {
+  const series = `sum_over_time(${resetGuardedIncrease(CORAZA_EVENTS_METRIC, wafSelector(scope), '1m')}[${step}:1m])`;
   return (
-    `sum by (${label}) (` +
-    `sum_over_time(` +
-    `${resetGuardedIncrease(CORAZA_EVENTS_METRIC, wafSelector(scope), '1m')}` +
-    `[${step}:1m]))`
+    `sum by (${label}) (` + `label_replace(${series},"${label}","unknown","${label}","^$")` + `)`
   );
 }
 
-export function albWafTopRulesQuery(scope: AlbQueryScope, window: string, top = 10): string {
+export function albWafTopRulesQuery(scope: AlbQueryScope, window: string, top = 20): string {
   return (
-    `topk(${top}, sum by (coraza_rule_id, coraza_rule_severity, coraza_rule_action) (` +
-    `${resetGuardedIncrease(CORAZA_EVENTS_METRIC, wafSelector(scope), window)}` +
-    `))`
+    `topk(${top}, sum by (` +
+    `coraza_rule_id, coraza_rule_file, coraza_interruption_phase, ` +
+    `coraza_rule_severity, coraza_rule_action, coraza_rule_version` +
+    `) (` +
+    `sum_over_time(` +
+    `${resetGuardedIncrease(CORAZA_EVENTS_METRIC, wafSelector(scope), '1m')}` +
+    `[${window}:1m]))` +
+    `)`
   );
 }

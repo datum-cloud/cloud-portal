@@ -262,6 +262,7 @@ export function ActivePopsExpandOverlay({
                 initialTheta={rotation.theta}
                 onRotationChange={onRotationChange}
                 persistentActiveTooltips
+                quality="high"
               />
             </Suspense>
           </div>

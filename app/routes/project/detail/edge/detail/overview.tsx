@@ -70,6 +70,7 @@ export default function HttpProxyOverviewPage() {
           projectId={projectId}
           proxyId={effectiveProxy.name ?? proxyId}
           showWaf={wafEnabled}
+          wafPending={wafPending}
         />
       </Col>
       <Col span={24} lg={12}>
