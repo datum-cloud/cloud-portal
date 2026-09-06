@@ -32,6 +32,7 @@ export const ActivePopsMap = ({
   persistentActiveTooltips,
   suspended,
   searching,
+  quality,
 }: {
   variant?: 'card' | 'expanded';
   regionsWithCoords: ActivePopMarker[];
@@ -46,6 +47,7 @@ export const ActivePopsMap = ({
   persistentActiveTooltips?: boolean;
   suspended?: boolean;
   searching?: boolean;
+  quality?: 'medium' | 'high';
 }) => {
   return (
     <Suspense fallback={<Fallback />}>
@@ -63,6 +65,7 @@ export const ActivePopsMap = ({
         persistentActiveTooltips={persistentActiveTooltips}
         suspended={suspended}
         searching={searching}
+        quality={quality}
       />
     </Suspense>
   );

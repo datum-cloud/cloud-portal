@@ -1,4 +1,8 @@
-import { buildLocationDirectory, enrichActivePops } from './enrich-active-pops';
+import {
+  buildLocationDirectory,
+  enrichActivePops,
+  formatRegionFilterOption,
+} from './enrich-active-pops';
 import { getRegionCoordinates } from './region-coordinates';
 import type { Location } from '@/resources/locations';
 import { describe, expect, it } from 'bun:test';
@@ -51,6 +55,23 @@ describe('enrichActivePops', () => {
     const [pop] = enrichActivePops(['unknown-region'], []);
     expect(pop.coords).toBeNull();
     expect(pop.city).toBe('unknown-region');
+  });
+});
+
+describe('formatRegionFilterOption', () => {
+  it('uses city and country as the label and keeps the region code as description', () => {
+    expect(formatRegionFilterOption('us-east-1', [ashburn])).toEqual({
+      label: 'Ashburn, United States',
+      value: 'us-east-1',
+      description: 'us-east-1',
+    });
+  });
+
+  it('falls back to the region code when no location matches', () => {
+    expect(formatRegionFilterOption('us-east4', [ashburn])).toEqual({
+      label: 'us-east4',
+      value: 'us-east4',
+    });
   });
 });
 

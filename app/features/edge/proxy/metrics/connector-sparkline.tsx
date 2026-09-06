@@ -4,7 +4,7 @@ import { transformForRecharts, type FormattedMetricData } from '@/modules/promet
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { useMemo } from 'react';
-import { Area, AreaChart, ResponsiveContainer } from 'recharts';
+import { Area, AreaChart } from 'recharts';
 
 interface ConnectorSparklineProps {
   projectId: string;
@@ -96,40 +96,39 @@ export function ConnectorSparkline({
   return (
     <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
       <ChartContainer config={chartConfig} className="h-full w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-requests)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="var(--color-requests)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <ChartTooltip
-              content={({ active, payload }) => {
-                if (active && payload?.length) {
-                  const value = payload[0].value as number;
-                  return (
-                    <div className="border-border bg-background text-1xs rounded-md border px-2 py-1 shadow-sm">
-                      <div className="text-foreground font-medium">{value.toFixed(2)} req/s</div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey={dataKey}
-              stroke="var(--color-requests)"
-              strokeWidth={1.5}
-              fill={`url(#${gradientId})`}
-              fillOpacity={1}
-              dot={false}
-              activeDot={false}
-              isAnimationActive={false}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--color-requests)" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="var(--color-requests)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <ChartTooltip
+            content={({ active, payload }) => {
+              if (active && payload?.length) {
+                const value = payload[0].value as number;
+                return (
+                  <div className="border-border bg-background text-1xs rounded-md border px-2 py-1 shadow-sm">
+                    <div className="text-foreground font-medium">{value.toFixed(2)} req/s</div>
+                  </div>
+                );
+              }
+              return null;
+            }}
+          />
+          <Area
+            type="monotone"
+            dataKey={dataKey}
+            stroke="var(--color-requests)"
+            strokeWidth={1.5}
+            fill={`url(#${gradientId})`}
+            fillOpacity={1}
+            connectNulls={false}
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+        </AreaChart>
       </ChartContainer>
     </div>
   );

@@ -1,10 +1,4 @@
-import { DateTime } from '@/components/date-time';
-import {
-  MetricChart,
-  MetricChartTooltipContent,
-  buildHistogramQuantileQuery,
-  toChartLabelDate,
-} from '@/modules/metrics';
+import { MetricChart, MetricsChartTooltip, buildHistogramQuantileQuery } from '@/modules/metrics';
 import { formatValue } from '@/modules/prometheus';
 
 export const HttpProxyGlobalUpstreamLatency = ({
@@ -38,42 +32,13 @@ export const HttpProxyGlobalUpstreamLatency = ({
       showLegend={false}
       showTooltip={true}
       valueFormat="milliseconds-auto"
-      tooltipContent={({ active, payload, label, ...props }) => {
-        if (active && payload && payload.length) {
-          const filteredPayload = payload.filter((p) => (p.value as number) > 0);
-          if (filteredPayload.length === 0) return null;
-
-          return (
-            <MetricChartTooltipContent
-              active={active}
-              payload={filteredPayload}
-              label={label}
-              labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
-              formatter={(value, name, item) => {
-                const indicatorColor = item.payload.fill || item.color;
-                return (
-                  <div className="flex flex-1 items-center justify-between leading-none">
-                    <div className="flex items-center gap-1">
-                      <div
-                        className="size-2.5 shrink-0 rounded-[2px]"
-                        style={{
-                          backgroundColor: indicatorColor,
-                          borderColor: indicatorColor,
-                        }}></div>
-                      <span className="font-medium">99%</span>
-                    </div>
-                    <div className="text-foreground font-medium">
-                      {`${formatValue(value as number, 'milliseconds-auto')}`}
-                    </div>
-                  </div>
-                );
-              }}
-              {...props}
-            />
-          );
-        }
-        return null;
-      }}
+      tooltipContent={(props) => (
+        <MetricsChartTooltip
+          {...props}
+          formatName={() => '99%'}
+          formatValue={(value) => formatValue(value, 'milliseconds-auto')}
+        />
+      )}
     />
   );
 };
