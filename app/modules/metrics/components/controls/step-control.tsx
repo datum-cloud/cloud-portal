@@ -21,7 +21,7 @@ export interface StepControlProps {
   filterKey?: string;
   /**
    * Default step value when no URL state exists.
-   * Defaults to '15m'.
+   * Defaults to `auto` (resolution follows the selected time range).
    */
   defaultValue?: string;
 }
@@ -30,7 +30,7 @@ export interface StepControlProps {
  * Dropdown to select query step resolution for charts.
  * Supports URL state synchronization via filterKey prop.
  */
-export const StepControl = ({ filterKey = 'step', defaultValue = '15m' }: StepControlProps) => {
+export const StepControl = ({ filterKey = 'step', defaultValue = 'auto' }: StepControlProps) => {
   const { registerUrlState, updateUrlStateEntry } = useMetrics();
 
   // Register URL state for this control

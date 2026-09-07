@@ -1,11 +1,9 @@
-import { DateTime } from '@/components/date-time';
 import { HttpProxyUpstreamTable } from '@/features/edge/proxy/metrics/upstream-table';
 import {
   MetricChart,
-  MetricChartTooltipContent,
+  MetricsChartTooltip,
   buildRateQuery,
   createRegionFilter,
-  toChartLabelDate,
 } from '@/modules/metrics';
 import { ChartSeries } from '@/modules/prometheus';
 import { useState } from 'react';
@@ -42,42 +40,9 @@ export const HttpProxyUpstreamResponse = ({
       showTooltip={true}
       yAxisFormatter={(value) => `${value.toFixed(2)} req/s`}
       yAxisOptions={{ fontSize: 12, width: 90 }}
-      tooltipContent={({ active, payload, label, ...props }) => {
-        if (active && payload && payload.length) {
-          const filteredPayload = payload.filter((p) => (p.value as number) > 0);
-          if (filteredPayload.length === 0) return null;
-
-          return (
-            <MetricChartTooltipContent
-              active={active}
-              payload={filteredPayload}
-              label={label}
-              labelFormatter={(value) => <DateTime date={toChartLabelDate(value)} />}
-              formatter={(value, name, item) => {
-                const indicatorColor = item.payload.fill || item.color;
-                return (
-                  <div className="flex flex-1 items-center justify-between gap-4 leading-none">
-                    <div className="flex items-center gap-1">
-                      <div
-                        className="size-2.5 shrink-0 rounded-[2px]"
-                        style={{
-                          backgroundColor: indicatorColor,
-                          borderColor: indicatorColor,
-                        }}></div>
-                      <span className="font-medium">{name}</span>
-                    </div>
-                    <div className="text-foreground font-medium">
-                      {`${(value as number).toFixed(4)} req/s`}
-                    </div>
-                  </div>
-                );
-              }}
-              {...props}
-            />
-          );
-        }
-        return null;
-      }}
+      tooltipContent={(props) => (
+        <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(4)} req/s`} />
+      )}
       onSeriesChange={setCurrentSeries}>
       <HttpProxyUpstreamTable series={currentSeries} />
     </MetricChart>

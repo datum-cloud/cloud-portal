@@ -248,13 +248,16 @@ function generateSeriesName(labels: Record<string, string>): string {
     }
   } */
 
-  // If no priority labels, combine all available labels with '-'
-  const labelEntries = Object.entries(labels);
-  if (labelEntries.length > 0) {
-    return labelEntries.map(([_, value]) => value).join(' - ');
+  const values = Object.values(labels)
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (values.length > 0) {
+    return values.join(' - ');
   }
 
-  return 'Series';
+  // `sum by (label)` with a missing/empty label still returns the key.
+  // Call that bucket "unknown". A true aggregate with no labels stays "Series".
+  return Object.keys(labels).length > 0 ? 'unknown' : 'Series';
 }
 
 // Pre-calculated constants for performance

@@ -2,7 +2,6 @@ import { METRICS_CONTROL_HEIGHT_CLASS, REFRESH_OPTIONS } from '@/modules/metrics
 import { useMetrics } from '@/modules/metrics/context';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
-import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import {
   Select,
@@ -108,18 +107,17 @@ export const RefreshControl = ({
       )}>
       {/* Manual Refresh Button */}
       <Tooltip message={getTooltipText()}>
-        <Button
-          type="quaternary"
-          theme="borderless"
-          size="small"
-          className="h-full w-9 shrink-0 rounded-r-none border-r px-0"
+        <button
+          type="button"
+          aria-label="Refresh metrics"
+          className="hover:bg-muted inline-flex h-full w-9 shrink-0 items-center justify-center border-r disabled:pointer-events-none disabled:opacity-50"
           onClick={handleManualRefresh}
           disabled={isManualRefreshing || isAutoRefreshing}>
           <Icon
             icon={RefreshCw}
-            className={`size-4 ${isManualRefreshing || isAutoRefreshing ? 'animate-spin' : ''}`}
+            className={cn('size-4', (isManualRefreshing || isAutoRefreshing) && 'animate-spin')}
           />
-        </Button>
+        </button>
       </Tooltip>
 
       {/* Auto Refresh Interval Dropdown */}

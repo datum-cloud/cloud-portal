@@ -1,4 +1,4 @@
-import { resetGuardedIncrease } from './waf-events';
+import { resetGuardedIncrease } from './queries';
 import { describe, expect, it } from 'bun:test';
 
 describe('resetGuardedIncrease', () => {

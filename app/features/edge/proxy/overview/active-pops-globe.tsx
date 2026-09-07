@@ -36,6 +36,8 @@ interface Props {
   persistentActiveTooltips?: boolean;
   suspended?: boolean;
   searching?: boolean;
+  /** In-page globes stay lighter; the expand overlay can ask for more detail. */
+  quality?: 'medium' | 'high';
 }
 
 const MARKER_COLOR_LIGHT: [number, number, number] = [0.702, 0.835, 0.435]; // #B3D56F
@@ -76,6 +78,8 @@ const FOCUS_DURATION_MS = 520;
 // One full turn every two minutes when idle.
 const AUTO_ROTATE_PERIOD_MS = 120_000;
 const AUTO_ROTATE_PHI_PER_MS = (Math.PI * 2) / AUTO_ROTATE_PERIOD_MS;
+/** Idle spin is slow enough that 20fps looks the same as 60 and cuts GPU work. */
+const IDLE_FRAME_MS = 50;
 
 function cssColorToRgb(color: string): [number, number, number] | null {
   if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return null;
@@ -192,6 +196,7 @@ export function ActivePopsGlobe({
   persistentActiveTooltips = false,
   suspended = false,
   searching = false,
+  quality = 'medium',
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const popsRef = useRef(regionsWithCoords);
@@ -256,7 +261,8 @@ export function ActivePopsGlobe({
     canvas.style.display = 'block';
     container.appendChild(canvas);
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const highQuality = quality === 'high';
+    const dpr = Math.min(window.devicePixelRatio || 1, highQuality ? 1.5 : 1.25);
     const defaults = isDark ? DARK_THEME : LIGHT_THEME;
     const surface = isDark
       ? (readCssVarRgb('--background') ?? defaults.glowColor)
@@ -282,6 +288,11 @@ export function ActivePopsGlobe({
     let lastPointerX = 0;
     let lastPointerY = 0;
     let lastPopsKey = '';
+    let lastWidth = 0;
+    let lastHeight = 0;
+    let lastTooltipSig = '';
+    let offscreen = false;
+    let pageHidden = document.hidden;
     let focusAnim: {
       fromPhi: number;
       fromTheta: number;
@@ -296,12 +307,18 @@ export function ActivePopsGlobe({
       height,
       phi,
       theta,
-      mapSamples: width < 480 ? 10_000 : variantRef.current === 'expanded' ? 24_000 : 16_000,
+      mapSamples: width < 480 ? 6_000 : highQuality ? 14_000 : 8_000,
       scale: GLOBE_SCALE,
       offset: [0, 0],
       markerElevation: MARKER_ELEVATION,
       markerColor: isDark ? MARKER_COLOR_DARK : MARKER_COLOR_LIGHT,
       markers: toCobeMarkers(popsRef.current, hoveredRef.current, isDark),
+      context: {
+        alpha: true,
+        antialias: false,
+        preserveDrawingBuffer: false,
+        powerPreference: 'low-power',
+      },
       ...theme,
     });
 
@@ -310,8 +327,10 @@ export function ActivePopsGlobe({
       height = container.clientHeight;
     };
 
+    const isPaused = () => suspendedRef.current || offscreen || pageHidden;
+
     const shouldAutoRotate = () =>
-      !suspendedRef.current &&
+      !isPaused() &&
       !reduceMotionRef.current &&
       !dragging &&
       !focusAnim &&
@@ -332,7 +351,13 @@ export function ActivePopsGlobe({
           if (!isMarkerInView(projected, crop)) return [];
           return [{ value: pop.value, x: projected.x * 100, y: projected.y * 100 }];
         });
-      setPersistentTooltips(layoutPersistentTooltips(anchors, width, height));
+      const next = layoutPersistentTooltips(anchors, width, height);
+      const sig = next
+        .map((entry) => `${entry.value}:${entry.x.toFixed(1)}:${entry.y.toFixed(1)}`)
+        .join('|');
+      if (sig === lastTooltipSig) return;
+      lastTooltipSig = sig;
+      setPersistentTooltips(next);
     };
 
     const startFocus = (value: string) => {
@@ -359,7 +384,7 @@ export function ActivePopsGlobe({
     };
 
     const render = () => {
-      if (suspendedRef.current) return;
+      if (isPaused()) return;
       const now = performance.now();
       const dt = Math.min(now - lastFrame, 48);
       lastFrame = now;
@@ -405,24 +430,24 @@ export function ActivePopsGlobe({
         globe.update({ markers: toCobeMarkers(popsRef.current, hovered, isDark) });
       }
 
-      globe.update({
-        phi,
-        theta,
-        width,
-        height,
-        ...theme,
-      });
+      const sizeChanged = width !== lastWidth || height !== lastHeight;
+      lastWidth = width;
+      lastHeight = height;
+      globe.update(sizeChanged ? { phi, theta, width, height } : { phi, theta });
     };
 
     const schedule = () => {
       if (raf) return;
-      raf = requestAnimationFrame(() => {
+      raf = requestAnimationFrame((now) => {
         raf = 0;
+        if (isPaused()) return;
+        const busy = dragging || Boolean(focusAnim) || globeHoveredRef.current;
+        if (!busy && now - lastFrame < IDLE_FRAME_MS) {
+          schedule();
+          return;
+        }
         render();
-        if (
-          !suspendedRef.current &&
-          (dragging || focusAnim || shouldAutoRotate() || persistentActiveTooltipsRef.current)
-        ) {
+        if (!isPaused() && (busy || shouldAutoRotate() || persistentActiveTooltipsRef.current)) {
           schedule();
         }
       });
@@ -431,6 +456,21 @@ export function ActivePopsGlobe({
 
     const resizeObserver = new ResizeObserver(() => schedule());
     resizeObserver.observe(container);
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        offscreen = !entry?.isIntersecting;
+        if (!offscreen) schedule();
+      },
+      { threshold: 0.08 }
+    );
+    intersectionObserver.observe(container);
+
+    const onPageVisibility = () => {
+      pageHidden = document.hidden;
+      if (!pageHidden) schedule();
+    };
+    document.addEventListener('visibilitychange', onPageVisibility);
 
     const hitTest = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect();
@@ -532,6 +572,8 @@ export function ActivePopsGlobe({
     return () => {
       cancelAnimationFrame(raf);
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+      document.removeEventListener('visibilitychange', onPageVisibility);
       container.removeEventListener('pointerenter', onPointerEnter);
       container.removeEventListener('pointerdown', onPointerDown);
       container.removeEventListener('pointermove', onPointerMove);
@@ -541,7 +583,7 @@ export function ActivePopsGlobe({
       globe.destroy();
       container.replaceChildren();
     };
-  }, [isDark]);
+  }, [isDark, quality]);
 
   useEffect(() => {
     scheduleRef.current();
