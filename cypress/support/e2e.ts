@@ -701,9 +701,9 @@ declare global {
       ensureSharedResources(): Chainable<{ orgId: string; projectId: string }>;
 
       /**
-       * Wait until the org projects list no longer shows the project's display
-       * name. Uses the live page (watch) because upstream LIST can stay stale
-       * for over a minute after DELETE.
+       * Wait until no project card shows the display name. Asserts against the
+       * card list, not `body`, because SSR loader JSON still contains the name
+       * after DELETE.
        * @example cy.waitForProjectAbsentInOrg(orgId, testName)
        */
       waitForProjectAbsentInOrg(orgId: string, displayName: string): Chainable<void>;
@@ -721,11 +721,11 @@ declare global {
 
 Cypress.Commands.add('waitForProjectAbsentInOrg', (orgId: string, displayName: string) => {
   const pageUrl = getPathWithParams(paths.org.detail.projects.root, { orgId });
-  // LIST after DELETE is eventually consistent and routinely exceeds 60s on
-  // shard 3. The projects page watches the list, so wait on the rendered
-  // body rather than SSR HTML from a stale LIST.
+  // Do not assert against `body` text. The SSR stream still embeds the
+  // project's displayName in loader JSON after DELETE, even when the live
+  // list has already dropped the card (empty state + deletionTimestamp).
   cy.visit(pageUrl);
-  cy.get('body', { timeout: 120_000 }).should('not.contain.text', displayName);
+  cy.contains('[data-e2e="project-card"]', displayName, { timeout: 120_000 }).should('not.exist');
 });
 
 Cypress.Commands.add('waitForOrgPresentInList', (displayName: string) => {
