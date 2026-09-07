@@ -22,8 +22,14 @@ import { redirect } from 'react-router';
  */
 export async function fraudStatusMiddleware(
   ctx: MiddlewareContext,
-  next: NextFunction
+  next: NextFunction,
+  // Injectable so the suite can drive each exit without `mock.module`, which is
+  // process-global in bun. Mocking this module wholesale replaced it for every
+  // suite that ran afterwards, including user-access's own. The middleware
+  // chain calls this with two arguments, so the real loader is the default.
+  deps: { loadUser?: typeof getUserWithAccessRetry } = {}
 ): Promise<Response> {
+  const loadUser = deps.loadUser ?? getUserWithAccessRetry;
   const { request } = ctx;
 
   // Short-circuit for the logout route so users can always sign out.
@@ -42,7 +48,7 @@ export async function fraudStatusMiddleware(
     let refreshedHeaders: Headers | undefined;
 
     if (!user) {
-      const access = await getUserWithAccessRetry(session.sub, request.headers.get('Cookie'));
+      const access = await loadUser(session.sub, request.headers.get('Cookie'));
 
       if ('error' in access) {
         if (access.error === 'not_found' || access.error === 'forbidden') {

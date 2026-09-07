@@ -2,10 +2,14 @@ import { fraudStatusMiddleware } from './fraud-status.middleware';
 import type { MiddlewareContext } from './middleware';
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
-// getUserWithAccessRetry is the seam: every indeterminate-state exit is
-// reachable by controlling what it returns or throws. getSession controls the
-// no-session keeper. Mutable per-test behaviour, following
-// legacy-setup.middleware.test.ts.
+// loadUser is the seam: every indeterminate-state exit is reachable by
+// controlling what it returns or throws. getSession controls the no-session
+// keeper. Mutable per-test behaviour, following legacy-setup.middleware.test.ts.
+//
+// Passed through the middleware's deps rather than mock.module. That mock is
+// process-global in bun, so replacing '@/utils/fraud/user-access' here handed
+// the stub to every later suite, including user-access's own, whose spies then
+// sat on a module its code never called.
 type Access = { error: 'not_found' | 'forbidden' | 'other' } | { user: Record<string, unknown> };
 
 let access: Access | (() => never) = { error: 'other' };
@@ -15,11 +19,6 @@ const getUserWithAccessRetry = mock(async () => {
   if (typeof access === 'function') return access();
   return access;
 });
-
-mock.module('@/utils/fraud/user-access', () => ({
-  getUserWithAccessRetry,
-  appendSetCookieHeaders: () => {},
-}));
 
 mock.module('@/utils/cookies', () => ({
   getSession: async () => ({ session }),
@@ -62,7 +61,9 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
   it("gate OFF: an 'other' error still passes through (today's behaviour, byte-identical)", async () => {
     gateOff();
     const next = mock(async () => new Response('ok'));
-    const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next);
+    const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next, {
+      loadUser: getUserWithAccessRetry,
+    });
     expect(next).toHaveBeenCalled();
     expect(res.status).toBe(200);
   });
@@ -70,7 +71,9 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
   it("gate ON: an 'other' error redirects to /verifying instead of admitting", async () => {
     gateOn();
     const next = mock(async () => new Response('ok'));
-    const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next);
+    const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next, {
+      loadUser: getUserWithAccessRetry,
+    });
     expect(next).not.toHaveBeenCalled();
     expect(res.status).toBe(302);
     expect(res.headers.get('Location')).toBe('/verifying');
@@ -82,7 +85,9 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
       throw new Error('boom');
     };
     const next = mock(async () => new Response('ok'));
-    const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next);
+    const res = await fraudStatusMiddleware(ctxFor('/dashboard'), next, {
+      loadUser: getUserWithAccessRetry,
+    });
     expect(next).not.toHaveBeenCalled();
     expect(res.headers.get('Location')).toBe('/verifying');
   });
@@ -94,7 +99,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
       throw new Error('boom');
     };
     const next = mock(async () => new Response('ok'));
-    await fraudStatusMiddleware(ctxFor('/logout'), next);
+    await fraudStatusMiddleware(ctxFor('/logout'), next, { loadUser: getUserWithAccessRetry });
     expect(next).toHaveBeenCalled();
   });
 
@@ -102,7 +107,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
     gateOn();
     session = null;
     const next = mock(async () => new Response('ok'));
-    await fraudStatusMiddleware(ctxFor('/dashboard'), next);
+    await fraudStatusMiddleware(ctxFor('/dashboard'), next, { loadUser: getUserWithAccessRetry });
     expect(next).toHaveBeenCalled();
   });
 
@@ -110,7 +115,7 @@ describe('fraudStatusMiddleware — indeterminate-state exits', () => {
     gateOn();
     access = { user: approvedVerifiedUser() };
     const next = mock(async () => new Response('ok'));
-    await fraudStatusMiddleware(ctxFor('/dashboard'), next);
+    await fraudStatusMiddleware(ctxFor('/dashboard'), next, { loadUser: getUserWithAccessRetry });
     expect(next).toHaveBeenCalled();
   });
 });
