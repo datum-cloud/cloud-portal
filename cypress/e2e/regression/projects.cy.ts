@@ -96,12 +96,10 @@ describe('Projects — regression', () => {
     cy.get('[data-e2e="confirmation-dialog-input"]', { timeout: 10000 }).type('DELETE');
     cy.get('[data-e2e="confirmation-dialog-submit"]').click();
     cy.url().should('include', paths.org.detail.projects.root.replace('[orgId]', orgId));
-    // Upstream LIST eventual consistency: the project may stay in the list
-    // response for a few seconds post-DELETE. Poll the SSR HTML until it's
-    // gone, then reload + assert against the rendered body.
-    cy.waitForProjectAbsentInOrg(orgId, testName);
-    cy.reload();
-    cy.get('body', { timeout: 10_000 }).should('not.contain.text', testName);
+    // The rename test runs first, so the list shows `updatedName`. Don't reload
+    // here: a fresh SSR LIST can still include the deleted project after the
+    // live watch has already dropped the card.
+    cy.waitForProjectAbsentInOrg(orgId, updatedName);
     cy.task('releaseTestProject', resourceId, { log: false });
     // Clear last — project deleted via UI; after() still removes the org via API
     resourceId = '';

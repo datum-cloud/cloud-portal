@@ -701,10 +701,9 @@ declare global {
       ensureSharedResources(): Chainable<{ orgId: string; projectId: string }>;
 
       /**
-       * Poll the org/projects SSR HTML via `cy.request` until the project's
-       * display name is no longer present. Handles the control-plane LIST
-       * eventual-consistency window after a project DELETE (the upstream LIST
-       * may continue returning the deleted project for a few seconds).
+       * Wait until the org projects list no longer shows the project's display
+       * name. Uses the live page (watch) because upstream LIST can stay stale
+       * for over a minute after DELETE.
        * @example cy.waitForProjectAbsentInOrg(orgId, testName)
        */
       waitForProjectAbsentInOrg(orgId: string, displayName: string): Chainable<void>;
@@ -722,7 +721,11 @@ declare global {
 
 Cypress.Commands.add('waitForProjectAbsentInOrg', (orgId: string, displayName: string) => {
   const pageUrl = getPathWithParams(paths.org.detail.projects.root, { orgId });
-  pollPageHtmlUntilDisplayNameGone(pageUrl, displayName, 60_000, 3_000);
+  // LIST after DELETE is eventually consistent and routinely exceeds 60s on
+  // shard 3. The projects page watches the list, so wait on the rendered
+  // body rather than SSR HTML from a stale LIST.
+  cy.visit(pageUrl);
+  cy.get('body', { timeout: 120_000 }).should('not.contain.text', displayName);
 });
 
 Cypress.Commands.add('waitForOrgPresentInList', (displayName: string) => {
@@ -749,34 +752,3 @@ Cypress.Commands.add('waitForOrgPresentInList', (displayName: string) => {
 
   attempt(120_000);
 });
-
-/**
- * Inverse of `pollPageHtmlForDisplayName` — keeps polling the SSR HTML
- * until the response body no longer contains the given display name.
- * Used after DELETE to wait for upstream LIST eventual consistency.
- */
-function pollPageHtmlUntilDisplayNameGone(
-  pageUrl: string,
-  displayName: string,
-  budgetMs: number,
-  intervalMs: number
-): void {
-  cy.request({ url: pageUrl, failOnStatusCode: false, log: false }).then((response) => {
-    // Only treat the project as gone when the body is a readable string AND
-    // does not contain the display name. A non-string body (parsed JSON,
-    // unexpected response shape) should fall through to retry — otherwise
-    // we'd report success on an unreadable response.
-    if (typeof response.body === 'string' && !response.body.includes(displayName)) {
-      return;
-    }
-
-    if (budgetMs <= 0) {
-      throw new Error(
-        `Project '${displayName}' still present in SSR HTML for ${pageUrl} after the poll budget`
-      );
-    }
-
-    cy.wait(intervalMs, { log: false });
-    pollPageHtmlUntilDisplayNameGone(pageUrl, displayName, budgetMs - intervalMs, intervalMs);
-  });
-}
