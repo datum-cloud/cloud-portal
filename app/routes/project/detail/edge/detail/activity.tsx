@@ -20,7 +20,7 @@ export default function ProxyActivityPage() {
         <ResourceActivityFeed
           client={client}
           resourceLinkResolver={resourceLinkResolver}
-          resourceKinds={['HTTPProxy']}
+          resourceKinds={['HTTPProxy', 'TrafficProtectionPolicy', 'DNSRecordSet', 'SecurityPolicy']}
           resourceName={proxyId}
         />
       </Col>
