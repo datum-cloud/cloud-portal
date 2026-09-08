@@ -64,6 +64,15 @@ import { useNavigate, useParams } from 'react-router';
 /** Stable empty list for query fallbacks — avoids new `[]` identity each render. */
 const EMPTY_DNS_RECORDS: IFlattenedDnsRecord[] = [];
 
+/**
+ * Auto-refresh is off by default. The watch rebuilt the list on every server
+ * event, so records changing out of band — a `datumctl` loop, another operator
+ * — reshuffled the page while someone was reading it (#1470). In-app actions
+ * refresh the list themselves, so the only thing lost is out-of-band changes,
+ * which a page reload picks up. Flip to `true` to restore live updates.
+ */
+const DNS_RECORDS_LIVE_WATCH = false;
+
 export const handle = {
   breadcrumb: () => <span>DNS Records</span>,
 };
@@ -151,8 +160,9 @@ export default function DnsRecordsPage() {
     ],
   });
 
-  // Subscribe to watch for real-time updates
-  useDnsRecordsWatch(projectId, dnsZoneId, { enabled: canListRecords });
+  useDnsRecordsWatch(projectId, dnsZoneId, {
+    enabled: canListRecords && DNS_RECORDS_LIVE_WATCH,
+  });
 
   const { data: queryData, isPending } = useDnsRecords(projectId, dnsZoneId, undefined, {
     staleTime: QUERY_STALE_TIME,
@@ -358,7 +368,6 @@ export default function DnsRecordsPage() {
         description: 'The DNS record changes are being validated by the DNS server.',
       });
     }
-    // Watch will automatically update the list with real-time changes
   };
 
   const handleProtectWithAlb = async (record: IFlattenedDnsRecord) => {
@@ -528,9 +537,6 @@ export default function DnsRecordsPage() {
                   existingRecords={dnsRecords}
                   projectId={projectId}
                   dnsZoneId={dnsZoneId}
-                  onSuccess={() => {
-                    // Watch will automatically update the list with real-time changes
-                  }}
                 />
               </PermissionGate>
               <AddDnsRecordButton onClick={handleOpenCreate} />
@@ -603,9 +609,6 @@ export default function DnsRecordsPage() {
                       existingRecords={dnsRecords}
                       projectId={projectId}
                       dnsZoneId={dnsZoneId}
-                      onSuccess={() => {
-                        // Watch will automatically update the list with real-time changes
-                      }}
                     />
                   </PermissionGate>
                   <ReadOnlyGuard>

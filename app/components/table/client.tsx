@@ -1,6 +1,5 @@
 import { TableContent } from './components/content';
 import { TableBodyOrEmpty } from './components/empty-state';
-import { PagePreserver } from './components/page-preserver';
 import { ConditionalPagination } from './components/pagination';
 import { TablePanel } from './components/panel';
 import { TableToolbar } from './components/toolbar';
@@ -67,8 +66,6 @@ export function TableClient<TData extends RowData>(props: TableClientProps<TData
       pageSize={props.pageSize}
       searchableColumns={props.searchableColumns}
       className={cn('space-y-6', props.className)}>
-      <PagePreserver<TData> data={props.data} />
-
       {hasToolbar && <TableToolbar<TData> {...toolbarPropsFrom(props)} />}
 
       {props.inline && (
