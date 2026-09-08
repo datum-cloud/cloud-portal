@@ -1,6 +1,12 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { showMutationErrorToast } from '@/modules/quota';
-import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
+import {
+  type HttpProxy,
+  OWASP_CRS_CATEGORIES,
+  disabledCategoryIds,
+  mergeCatalogExclusions,
+  useUpdateHttpProxy,
+} from '@/resources/http-proxies';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Switch } from '@datum-cloud/datum-ui/switch';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -52,6 +58,8 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
     const [defaultValues, setDefaultValues] = useState<Partial<WafConfigSchema>>();
     const [enabled, setEnabled] = useState(false);
     const [hasActiveWaf, setHasActiveWaf] = useState(false);
+    const [existingExclusions, setExistingExclusions] = useState<HttpProxy['ruleExclusions']>();
+    const [disabledIds, setDisabledIds] = useState<string[]>([]);
     const { confirm } = useConfirmationDialog();
 
     const updateMutation = useUpdateHttpProxy(projectId, proxyName);
@@ -62,6 +70,8 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
       setEnabled(defaults.enabled);
       setDefaultValues(defaults);
       setHasActiveWaf(defaults.enabled);
+      setExistingExclusions(proxy.ruleExclusions);
+      setDisabledIds(disabledCategoryIds(proxy.ruleExclusions));
       setOpen(true);
     }, []);
 
@@ -104,12 +114,15 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
           return;
         }
 
+        const ruleExclusions = mergeCatalogExclusions(existingExclusions, disabledIds) ?? null;
+
         await updateMutation.mutateAsync({
           trafficProtectionMode: data.trafficProtectionMode,
           // CRS requires detection >= blocking; keep them locked together.
           paranoiaLevels: data.paranoiaLevelBlocking
             ? { blocking: data.paranoiaLevelBlocking, detection: data.paranoiaLevelBlocking }
             : undefined,
+          ruleExclusions,
         });
         toast.success('Application Load Balancer', {
           description: 'Protection configuration has been updated successfully',
@@ -139,7 +152,8 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
         onSubmit={handleSubmit}
         submitText="Save"
         submitTextLoading="Saving..."
-        className="w-full focus:ring-0 focus:outline-none sm:max-w-2xl">
+        className="flex max-h-[80vh] min-h-0 w-full flex-col overflow-hidden focus:ring-0 focus:outline-none sm:max-w-2xl"
+        formClassName="flex min-h-0 flex-1 flex-col overflow-hidden">
         <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
           <Form.Field
             name="enabled"
@@ -195,6 +209,39 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
                   <Form.SelectItem value="2">Level 2 — Balanced</Form.SelectItem>
                 </Form.Select>
               </Form.Field>
+
+              <div>
+                <div className="mb-3 text-sm font-medium">Core rule sets</div>
+                <p className="text-muted-foreground mb-3 text-xs">
+                  Turn off a category to exclude those OWASP CRS rules. Remaining categories stay
+                  active.
+                </p>
+                <div className="space-y-3">
+                  {OWASP_CRS_CATEGORIES.map((category) => {
+                    const checked = !disabledIds.includes(category.id);
+                    return (
+                      <div key={category.id} className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium">{category.label}</div>
+                          <p className="text-muted-foreground text-xs">{category.description}</p>
+                        </div>
+                        <Switch
+                          checked={checked}
+                          aria-label={category.label}
+                          onCheckedChange={(nextChecked) => {
+                            setDisabledIds((current) => {
+                              const next = new Set(current);
+                              if (nextChecked) next.delete(category.id);
+                              else next.add(category.id);
+                              return [...next];
+                            });
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </>
           )}
         </div>

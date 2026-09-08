@@ -1,4 +1,9 @@
-import { getParanoiaLevels, getTrafficProtectionMode, toHttpProxy } from './http-proxy.adapter';
+import {
+  getParanoiaLevels,
+  getRuleExclusions,
+  getTrafficProtectionMode,
+  toHttpProxy,
+} from './http-proxy.adapter';
 import type { HttpProxy } from './http-proxy.schema';
 import { httpProxyKeys, type TrafficProtectionView } from './http-proxy.service';
 import {
@@ -21,6 +26,7 @@ function toTrafficProtectionView(
   return {
     mode: getTrafficProtectionMode(raw),
     paranoiaLevels: getParanoiaLevels(raw),
+    ruleExclusions: getRuleExclusions(raw),
     policyName: raw.metadata?.name,
     programmed: isTrafficProtectionProgrammed(raw?.status),
     programmedMessage: getTrafficProtectionProgrammedMessage(raw?.status),

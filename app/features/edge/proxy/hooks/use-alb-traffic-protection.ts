@@ -41,7 +41,12 @@ export function useAlbTrafficProtection(projectId: string, proxyId: string, prox
   const effectiveProxy = useMemo<HttpProxy | undefined>(
     () =>
       proxy
-        ? { ...proxy, trafficProtectionMode: waf?.mode, paranoiaLevels: waf?.paranoiaLevels }
+        ? {
+            ...proxy,
+            trafficProtectionMode: waf?.mode,
+            paranoiaLevels: waf?.paranoiaLevels,
+            ruleExclusions: waf?.ruleExclusions,
+          }
         : proxy,
     [proxy, waf]
   );

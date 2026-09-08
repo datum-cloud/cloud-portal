@@ -180,7 +180,8 @@ export function useUpdateHttpProxy(
       const touchesWaf =
         input.removeTrafficProtection ||
         input.trafficProtectionMode !== undefined ||
-        input.paranoiaLevels !== undefined;
+        input.paranoiaLevels !== undefined ||
+        input.ruleExclusions !== undefined;
       if (touchesWaf) {
         await queryClient.cancelQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
         previousWaf = queryClient.getQueryData<TrafficProtectionView | null>(
@@ -190,10 +191,14 @@ export function useUpdateHttpProxy(
           httpProxyKeys.wafDetail(projectId, name),
           (old) => {
             if (input.removeTrafficProtection)
-              return { mode: undefined, paranoiaLevels: undefined };
+              return { mode: undefined, paranoiaLevels: undefined, ruleExclusions: undefined };
             return {
               mode: input.trafficProtectionMode ?? old?.mode,
               paranoiaLevels: input.paranoiaLevels ?? old?.paranoiaLevels,
+              ruleExclusions:
+                input.ruleExclusions === undefined
+                  ? old?.ruleExclusions
+                  : (input.ruleExclusions ?? undefined),
             };
           }
         );
