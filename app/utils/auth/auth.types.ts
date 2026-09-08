@@ -21,6 +21,12 @@ export interface IAccessTokenSession {
   accessToken: string;
   expiredAt: Date;
   sub: string;
+  /**
+   * `email_verified` from the id_token, fixed at issue time. It only changes
+   * when a new token is issued, so a caller waiting on verification must force
+   * a refresh rather than re-read the session — see /verify-email.
+   */
+  emailVerified: boolean;
 }
 
 /**

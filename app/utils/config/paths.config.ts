@@ -19,6 +19,12 @@ export const paths = {
     verifying: '/verifying',
     accountUnderReview: '/account-under-review',
     accountSuspended: '/account-suspended',
+    // Grouped here by MECHANISM, not by meaning. Email verification is not a
+    // fraud signal, but this is the fourth page resolveUserFraudRedirectPath
+    // can send a user to, and all four must be declared outside the private
+    // layout for the same reason (see routes.ts). Keeping them together is
+    // what stops a fifth being added somewhere the layout gates it into a loop.
+    verifyEmail: '/verify-email',
     statusApi: '/api/fraud-status',
   },
   invitationAccept: '/invitation/:invitationId/accept',

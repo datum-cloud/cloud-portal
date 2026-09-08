@@ -10,6 +10,7 @@ import { usageRoutes } from './usage';
 import { userRoutes } from './user';
 import { watchRoutes } from './watch';
 import { authGuardMiddleware } from '@/server/middleware/auth';
+import { emailVerifiedGuardMiddleware } from '@/server/middleware/email-verification';
 import { rateLimiter, RateLimitPresets } from '@/server/middleware/rate-limit';
 import type { Variables } from '@/server/types';
 import { Hono } from 'hono';
@@ -38,6 +39,16 @@ export function createApiApp() {
         : RateLimitPresets.development
     )
   );
+
+  // Endpoints that authenticate with a key the PORTAL holds rather than the
+  // caller's token — nothing downstream can tell an unverified signup apart, so
+  // the email gate has to be applied here. Every other route below forwards the
+  // caller's own access token and is enforced upstream. See
+  // middleware/email-verification.ts. No-op while the flag is off.
+  const emailVerified = emailVerifiedGuardMiddleware();
+  api.use('/assistant/*', emailVerified);
+  api.use('/cloudvalid/*', emailVerified);
+  api.use('/usage/*', emailVerified);
 
   // Routes
   api.route('/fraud-status', fraudStatusRoutes);
