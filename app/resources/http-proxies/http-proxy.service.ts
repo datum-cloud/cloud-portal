@@ -388,7 +388,8 @@ export function createHttpProxyService() {
     async createBasicAuth(
       projectId: string,
       httpProxyName: string,
-      users: BasicAuthUser[]
+      users: BasicAuthUser[],
+      displayName?: string
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
@@ -418,7 +419,7 @@ export function createHttpProxyService() {
         await this.callSecurityPolicyCreate(
           baseURL,
           'default',
-          toSecurityPolicyPayload(httpProxyName)
+          toSecurityPolicyPayload(httpProxyName, displayName)
         );
       } catch (error: unknown) {
         if (this.getErrorStatus(error) !== 409) throw error;
@@ -433,7 +434,8 @@ export function createHttpProxyService() {
     async updateBasicAuth(
       projectId: string,
       httpProxyName: string,
-      users: BasicAuthUser[]
+      users: BasicAuthUser[],
+      displayName?: string
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const htpasswd = await generateHtpasswd(users);
@@ -458,7 +460,7 @@ export function createHttpProxyService() {
       } catch (error: unknown) {
         if (this.getErrorStatus(error) === 404) {
           // Secret doesn't exist yet — create everything from scratch
-          await this.createBasicAuth(projectId, httpProxyName, users);
+          await this.createBasicAuth(projectId, httpProxyName, users, displayName);
           return;
         }
         throw error;
@@ -469,7 +471,7 @@ export function createHttpProxyService() {
         await this.callSecurityPolicyCreate(
           baseURL,
           'default',
-          toSecurityPolicyPayload(httpProxyName)
+          toSecurityPolicyPayload(httpProxyName, displayName)
         );
       } catch (error: unknown) {
         if (this.getErrorStatus(error) !== 409) throw error;
@@ -794,7 +796,12 @@ export function createHttpProxyService() {
             if (!input.basicAuth.users || input.basicAuth.users.length === 0) {
               await this.deleteBasicAuth(projectId, name);
             } else {
-              await this.updateBasicAuth(projectId, name, input.basicAuth.users);
+              await this.updateBasicAuth(
+                projectId,
+                name,
+                input.basicAuth.users,
+                input.chosenName ?? options?.currentProxy?.chosenName ?? name
+              );
             }
           } catch (basicAuthError) {
             logger.error(`${SERVICE_NAME}.basicAuth update failed`, basicAuthError as Error);
