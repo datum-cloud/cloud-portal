@@ -122,6 +122,17 @@ export default defineConfig({
     viewportHeight: 720,
     video: true,
     screenshotOnRunFailure: true,
+    // These specs create real resources against shared staging, so a slow
+    // provision or a dropped request fails a run that a second attempt would
+    // pass. Retries cost nothing when the suite is healthy: only a failing
+    // test runs again.
+    //
+    // They rescue idempotent assertions, not destructive ones. Cypress re-runs
+    // the failed test and beforeEach, never before(), so a suite that creates
+    // its resource once and deletes it in the last test cannot retry that
+    // delete against a resource it already removed. Those tests have to assert
+    // something a second attempt can still observe.
+    retries: { runMode: 2, openMode: 0 },
     specPattern: 'cypress/e2e/{smoke,regression,quota}/**/*.{cy,spec}.{js,jsx,ts,tsx}',
     excludeSpecPattern: process.env.RUN_DISABLED_SPECS ? [] : DISABLED_REGRESSION_SPECS,
   },
