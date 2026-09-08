@@ -72,7 +72,11 @@ describe('Members & Invitations — regression', () => {
     ).should('be.visible');
   });
 
-  it('should cancel the invitation', () => {
+  // No retries: this test removes the resource the earlier tests set up, and
+  // cypress replays only the failed test, never before(). A second attempt
+  // would look for something the first attempt already deleted and report a
+  // missing element instead of the assertion that actually failed.
+  it('should cancel the invitation', { retries: 0 }, () => {
     cy.intercept('DELETE', '**/userinvitations/**').as('cancelInvitation');
     cy.visit(getPathWithParams(paths.org.detail.team.root, { orgId }));
     invitationRow(testEmail).closest('tr').find('[data-e2e="cancel-invitation-button"]').click();
