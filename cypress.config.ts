@@ -55,6 +55,11 @@ export default defineConfig({
     APP_URL: process.env.CYPRESS_BASE_URL,
     ACCESS_TOKEN: process.env.ACCESS_TOKEN,
     SUB: process.env.SUB,
+    // Forwarded so a spec can tell which position the server under test is in.
+    // Cypress only auto-imports CYPRESS_-prefixed variables, but the server
+    // reads the unprefixed name — without this line the two disagree and the
+    // spec asserts off-position behaviour against an on-position server.
+    EMAIL_VERIFICATION_GATE: process.env.EMAIL_VERIFICATION_GATE,
   },
   e2e: {
     // Required to type into Stripe PaymentElement / AddressElement iframes (js.stripe.com).
