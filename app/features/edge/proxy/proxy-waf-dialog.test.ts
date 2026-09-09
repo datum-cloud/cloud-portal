@@ -1,4 +1,5 @@
 import { getWafDialogDefaults } from './proxy-waf-dialog';
+import { disabledCategoryIds } from '@/resources/http-proxies';
 import { describe, expect, it } from 'bun:test';
 
 describe('getWafDialogDefaults', () => {
@@ -47,5 +48,9 @@ describe('getWafDialogDefaults', () => {
       trafficProtectionMode: 'Observe',
       paranoiaLevelBlocking: 1,
     });
+  });
+
+  it('maps excluded OWASP tags to disabled category ids', () => {
+    expect(disabledCategoryIds({ tags: ['attack-sqli', 'attack-xss'] })).toEqual(['sqli', 'xss']);
   });
 });

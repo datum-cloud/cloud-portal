@@ -1,10 +1,16 @@
-import { getParanoiaLevels, getTrafficProtectionMode, toHttpProxy } from './http-proxy.adapter';
+import {
+  getParanoiaLevels,
+  getRuleExclusions,
+  getTrafficProtectionMode,
+  toHttpProxy,
+} from './http-proxy.adapter';
 import type { HttpProxy } from './http-proxy.schema';
 import { httpProxyKeys, type TrafficProtectionView } from './http-proxy.service';
 import {
   getTrafficProtectionProgrammedMessage,
   getTrafficProtectionProgrammedReason,
   isTrafficProtectionProgrammed,
+  mergeTrafficProtectionView,
 } from './http-proxy.waf-status';
 import type {
   ComDatumapisNetworkingV1AlphaHttpProxy,
@@ -18,14 +24,18 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 function toTrafficProtectionView(
   raw: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy
 ): TrafficProtectionView {
-  return {
+  const view: TrafficProtectionView = {
     mode: getTrafficProtectionMode(raw),
     paranoiaLevels: getParanoiaLevels(raw),
+    ruleExclusions: getRuleExclusions(raw),
     policyName: raw.metadata?.name,
-    programmed: isTrafficProtectionProgrammed(raw?.status),
-    programmedMessage: getTrafficProtectionProgrammedMessage(raw?.status),
-    programmedReason: getTrafficProtectionProgrammedReason(raw?.status),
   };
+  if (raw.status?.ancestors !== undefined) {
+    view.programmed = isTrafficProtectionProgrammed(raw.status);
+    view.programmedMessage = getTrafficProtectionProgrammedMessage(raw.status);
+    view.programmedReason = getTrafficProtectionProgrammedReason(raw.status);
+  }
+  return view;
 }
 
 /**
@@ -121,24 +131,27 @@ export function useHttpProxyWatch(
 /**
  * Watch a proxy's TrafficProtectionPolicy for live mode/Programmed updates.
  * Updates the permission-gated WAF detail query cache (same key as
- * useTrafficProtectionPolicy).
+ * useTrafficProtectionPolicy). `policyName` is the actual TPP object name when
+ * it differs from the proxy (e.g. `{proxy}-protection`).
  */
 export function useTrafficProtectionPolicyWatch(
   projectId: string,
-  name: string,
-  options?: { enabled?: boolean }
+  proxyName: string,
+  options?: { enabled?: boolean; policyName?: string }
 ) {
-  const queryKey = httpProxyKeys.wafDetail(projectId, name);
+  const queryKey = httpProxyKeys.wafDetail(projectId, proxyName);
+  const watchName = options?.policyName || proxyName;
 
   useResourceWatch<TrafficProtectionView>({
     resourceType: 'apis/networking.datumapis.com/v1alpha/trafficprotectionpolicies',
     projectId,
     namespace: 'default',
-    name,
+    name: watchName,
     queryKey,
     transform: (item) =>
       toTrafficProtectionView(item as ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy),
-    enabled: (options?.enabled ?? true) && !!projectId && !!name,
+    enabled: (options?.enabled ?? true) && !!projectId && !!watchName,
+    updateSingleCache: (oldData, newItem) => mergeTrafficProtectionView(oldData, newItem),
   });
 }
 
