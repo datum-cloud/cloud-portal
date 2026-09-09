@@ -6,6 +6,7 @@ import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { usePrometheusCard } from '@/modules/metrics/hooks';
 import type { QueryBuilderFunction } from '@/modules/metrics/types/url.type';
 import type { CustomApiParams } from '@/modules/metrics/types/url.type';
+import { resolveChartStep } from '@/modules/metrics/utils/chart-axis';
 import {
   formatValue,
   type MetricCardData,
@@ -84,6 +85,10 @@ export interface MetricCardProps extends Omit<
    * @example icon={<Activity className="h-5 w-5 text-blue-500" />} // JSX with custom styling
    */
   icon?: React.ComponentType<{ className?: string }> | React.ReactElement;
+
+  pending?: boolean;
+  unavailable?: boolean;
+  unavailableLabel?: string;
 }
 
 /**
@@ -101,6 +106,9 @@ export function MetricCard({
   showTrend = false,
   className,
   icon,
+  pending = false,
+  unavailable = false,
+  unavailableLabel = 'Not enabled',
 }: MetricCardProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
 
@@ -124,13 +132,10 @@ export function MetricCard({
   }, [resolvedApiParams.timeRange, timeRange, buildQueryContext, filterState]);
 
   const finalStep = useMemo(() => {
-    if (resolvedApiParams.step) {
-      // If customApiParams specifies a step key, get it from URL state
-      const context = buildQueryContext();
-      return context.getStep(resolvedApiParams.step);
-    }
-    return step;
-  }, [resolvedApiParams.step, step, buildQueryContext, filterState]);
+    const raw = resolvedApiParams.step ? buildQueryContext().getStep(resolvedApiParams.step) : step;
+    const rangeMs = finalTimeRange.end.getTime() - finalTimeRange.start.getTime();
+    return resolveChartStep(raw, rangeMs);
+  }, [resolvedApiParams.step, step, buildQueryContext, filterState, finalTimeRange]);
 
   // Build the final query string
   const finalQuery = useMemo(() => {
@@ -152,7 +157,7 @@ export function MetricCard({
     query: finalQuery,
     timeRange: finalTimeRange,
     step: finalStep,
-    enabled,
+    enabled: enabled && !unavailable,
     metricFormat,
     ...additionalApiParams, // Spread additional API parameters (excluding timeRange/step)
   });
@@ -198,14 +203,20 @@ export function MetricCard({
     <BaseMetric
       title={title}
       description={description}
-      isLoading={isLoading}
-      isFetching={isFetching}
-      error={error}
+      isLoading={pending || (!unavailable && isLoading)}
+      isFetching={!unavailable && isFetching}
+      error={unavailable ? null : error}
       className={cn('MetricCard', className)}
-      isEmpty={!data}>
+      isEmpty={!unavailable && !data}>
       <div className="flex flex-col gap-1 px-6 pb-4">
         <div className="flex items-center justify-between">
-          <div className="text-2xl font-bold">{formattedValue}</div>
+          <div
+            className={cn(
+              'text-2xl font-bold',
+              unavailable && 'text-muted-foreground text-sm font-medium'
+            )}>
+            {unavailable ? unavailableLabel : formattedValue}
+          </div>
           {IconComponent}
         </div>
 

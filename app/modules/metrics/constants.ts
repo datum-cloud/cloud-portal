@@ -21,6 +21,7 @@ export const REFRESH_OPTIONS = [
 export type RefreshIntervalValue = (typeof REFRESH_OPTIONS)[number]['value'];
 
 export const STEP_OPTIONS = [
+  { label: 'Auto', value: 'auto' },
   { label: '15s', value: '15s' },
   { label: '1m', value: '1m' },
   { label: '5m', value: '5m' },

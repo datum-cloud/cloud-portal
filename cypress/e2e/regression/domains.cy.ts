@@ -121,7 +121,11 @@ describe('Domains — regression', () => {
     });
   });
 
-  it('should delete the domain', () => {
+  // No retries: this test removes the resource the earlier tests set up, and
+  // cypress replays only the failed test, never before(). A second attempt
+  // would look for something the first attempt already deleted and report a
+  // missing element instead of the assertion that actually failed.
+  it('should delete the domain', { retries: 0 }, () => {
     cy.visit(
       getPathWithParams(paths.project.detail.domains.detail.settings, {
         projectId,

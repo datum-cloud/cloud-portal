@@ -1,9 +1,10 @@
 import { MetricsFilterSelect } from './base/metrics-filter-select';
 import { usePrometheusLabels } from '@/modules/metrics';
 
-export const RegionsFilter = () => {
+export const RegionsFilter = ({ match }: { match?: string }) => {
   const { options, isLoading } = usePrometheusLabels({
     label: 'label_topology_kubernetes_io_region',
+    match,
   });
 
   return (

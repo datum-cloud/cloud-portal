@@ -46,6 +46,31 @@ describe('toUser', () => {
     expect(user.country).toBe('US');
   });
 
+  it('never reads emailVerified from the resource, even if milo sends one', () => {
+    const raw = {
+      metadata: { name: 'user-3', annotations: {} },
+      spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
+      status: { platformAccess: 'Approved', state: 'Active', emailVerified: true },
+    };
+
+    // The signal is an id_token claim, overlaid by getUserWithAccessRetry.
+    // Trusting a resource field would let anything able to write User status
+    // grant itself the gate.
+    expect(toUser(raw as never).emailVerified).toBe(false);
+  });
+
+  it('fails CLOSED when nothing overlays a value', () => {
+    const raw = {
+      metadata: { name: 'user-4', annotations: {} },
+      spec: { email: 'a@b.com', givenName: 'A', familyName: 'B' },
+      status: { platformAccess: 'Approved', state: 'Active' },
+    };
+
+    // Leaving it `undefined` would make an `emailVerified === false` check in
+    // the cascade read as VERIFIED — the opposite of the intended behaviour.
+    expect(toUser(raw as never).emailVerified).toBe(false);
+  });
+
   it('applies preference defaults and leaves status-derived fields undefined', () => {
     const raw = {
       metadata: { name: 'user-2', annotations: {} },

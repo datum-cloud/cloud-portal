@@ -85,6 +85,10 @@ export function toUser(raw: ComMiloapisIamV1Alpha1User): User {
         ? (status.lastLoginProvider as LastLoginProviderValue)
         : undefined,
     nameReviewRequired: metadata?.annotations?.[USER_NAME_REVIEW_REQUIRED_ANNOTATION] === 'true',
+    // milo carries no verification state — the signal is a token claim, and
+    // getUserWithAccessRetry overlays it from the session. False here so a
+    // caller reached without that overlay fails closed.
+    emailVerified: false,
     country: metadata?.annotations?.[USER_PROFILE_COUNTRY_ANNOTATION],
   };
 }

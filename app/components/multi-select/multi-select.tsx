@@ -46,6 +46,7 @@ const multiSelectVariants = cva(
 export interface MultiSelectOption {
   label: string;
   value: string;
+  description?: string;
   icon?: React.ComponentType<{ className?: string }>;
 }
 
@@ -408,7 +409,14 @@ export const MultiSelect = ({
                         {option.icon && (
                           <option.icon className="text-muted-foreground mr-2 size-4" />
                         )}
-                        <span>{option.label}</span>
+                        <span className="flex min-w-0 flex-col">
+                          <span>{option.label}</span>
+                          {option.description ? (
+                            <span className="text-muted-foreground text-xs">
+                              {option.description}
+                            </span>
+                          ) : null}
+                        </span>
                       </CommandItem>
                     );
                   })}
@@ -522,7 +530,14 @@ export const MultiSelect = ({
                         {option.icon && (
                           <option.icon className="text-muted-foreground mr-2 size-4" />
                         )}
-                        <span>{option.label}</span>
+                        <span className="flex min-w-0 flex-col">
+                          <span>{option.label}</span>
+                          {option.description ? (
+                            <span className="text-muted-foreground text-xs">
+                              {option.description}
+                            </span>
+                          ) : null}
+                        </span>
                       </CommandItem>
                     );
                   })}
