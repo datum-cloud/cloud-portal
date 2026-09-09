@@ -47,6 +47,7 @@ export function useResourceWatch<T>({
   getItemKey,
   updateListCache,
   updateSingleCache,
+  applyCacheUpdates = true,
   ...watchOptions
 }: UseResourceWatchOptions<T>) {
   const queryClient = useQueryClient();
@@ -56,6 +57,7 @@ export function useResourceWatch<T>({
   const getItemKeyRef = useRef(getItemKey);
   const updateListCacheRef = useRef(updateListCache);
   const updateSingleCacheRef = useRef(updateSingleCache);
+  const applyCacheUpdatesRef = useRef(applyCacheUpdates);
   const invalidateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const subscriptionStartTimeRef = useRef<number>(0);
   const lastRefetchTimeRef = useRef<number>(0);
@@ -72,6 +74,7 @@ export function useResourceWatch<T>({
   getItemKeyRef.current = getItemKey;
   updateListCacheRef.current = updateListCache;
   updateSingleCacheRef.current = updateSingleCache;
+  applyCacheUpdatesRef.current = applyCacheUpdates;
   throttleMsRef.current = throttleMs;
   debounceMsRef.current = debounceMs;
   skipInitialSyncRef.current = skipInitialSync;
@@ -136,6 +139,10 @@ export function useResourceWatch<T>({
 
         // Call custom event handler if provided
         onEventRef.current?.(transformedEvent);
+
+        if (!applyCacheUpdatesRef.current) {
+          return;
+        }
 
         // Update React Query cache based on event type
         switch (event.type) {

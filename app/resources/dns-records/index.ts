@@ -88,6 +88,8 @@ export {
   toFlattenedDnsRecordsByPriority,
   toCreateDnsRecordSetPayload,
   toUpdateDnsRecordSetPayload,
+  mergeRecordSetIntoListCache,
+  removeRecordSetFromListCache,
 } from './dns-record.adapter';
 
 // Service exports

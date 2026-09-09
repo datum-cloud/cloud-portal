@@ -1,65 +1,61 @@
 // app/resources/dns-records/dns-record.watch.ts
-import { toDnsRecordSet } from './dns-record.adapter';
-import type { DnsRecordSet } from './dns-record.schema';
+import {
+  mergeRecordSetIntoListCache,
+  removeRecordSetFromListCache,
+  toDnsRecordSet,
+} from './dns-record.adapter';
+import type { DnsRecordSet, FlattenedDnsRecord } from './dns-record.schema';
 import { dnsRecordKeys } from './dns-record.service';
 import type { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
 import { useResourceWatch } from '@/modules/watch';
+import { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Watch DNS records list for real-time updates.
  *
- * Uses faster throttle (500ms) and no initial sync skip because:
- * - DNS records are user-initiated CRUD operations
- * - Users expect immediate feedback after add/edit/delete
- * - Unlike domains (continuous status updates), DNS records change infrequently
- *
- * @example
- * ```tsx
- * function DnsRecordsPage() {
- *   const { data } = useDnsRecords(projectId, dnsZoneId);
- *
- *   // Subscribe to live updates
- *   useDnsRecordsWatch(projectId, dnsZoneId);
- *
- *   return <DnsRecordTable records={data?.items ?? []} />;
- * }
- * ```
+ * The list query stores flattened rows, but the API watches DNSRecordSet
+ * objects. Default watch cache updates would either refetch (and race a
+ * delete) or splice a RecordSet into the flattened array. Apply events
+ * ourselves instead.
  */
 export function useDnsRecordsWatch(
   projectId: string,
   dnsZoneId: string,
   options?: { enabled?: boolean }
 ) {
+  const queryClient = useQueryClient();
+  const queryKey = dnsRecordKeys.list(projectId, dnsZoneId);
+
   return useResourceWatch<DnsRecordSet>({
     resourceType: 'apis/dns.networking.miloapis.com/v1alpha1/dnsrecordsets',
     projectId,
     namespace: 'default',
     fieldSelector: `spec.dnsZoneRef.name=${dnsZoneId}`,
-    queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
+    queryKey,
     transform: (item) => toDnsRecordSet(item as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet),
     enabled: options?.enabled ?? true,
-    // Fast response for user-initiated CRUD operations
     throttleMs: 500,
     debounceMs: 100,
-    // Don't skip initial sync - user might create record immediately after page load
     skipInitialSync: false,
+    applyCacheUpdates: false,
+    onEvent: (event) => {
+      if (event.type === 'DELETED') {
+        queryClient.setQueryData<FlattenedDnsRecord[]>(queryKey, (old) =>
+          removeRecordSetFromListCache(old, event.object.name)
+        );
+        return;
+      }
+      if (event.type === 'ADDED' || event.type === 'MODIFIED') {
+        queryClient.setQueryData<FlattenedDnsRecord[]>(queryKey, (old) =>
+          mergeRecordSetIntoListCache(old, event.object)
+        );
+      }
+    },
   });
 }
 
 /**
  * Watch a single DNS record for real-time updates.
- *
- * @example
- * ```tsx
- * function DnsRecordDetailPage() {
- *   const { data } = useDnsRecord(projectId, recordSetId);
- *
- *   // Subscribe to live updates
- *   useDnsRecordWatch(projectId, recordSetId);
- *
- *   return <DnsRecordDetail record={data} />;
- * }
- * ```
  */
 export function useDnsRecordWatch(
   projectId: string,
