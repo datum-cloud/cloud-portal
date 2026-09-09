@@ -17,8 +17,6 @@ export type ActivityResourceKind =
   | 'Domain'
   // Edge / Networking
   | 'HTTPProxy'
-  | 'SecurityPolicy'
-  | 'TrafficProtectionPolicy'
   // Metrics / Observability
   | 'ExportPolicy'
   // Security

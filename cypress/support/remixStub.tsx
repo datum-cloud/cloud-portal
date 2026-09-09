@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // cypress/support/RemixStub.tsx
 import React from 'react';
 import { createMemoryRouter, RouterProvider, RouteObject } from 'react-router';
@@ -138,7 +137,6 @@ export const RemixStub: React.FC<RemixStubProps> = ({
 
   // Apply mock navigation state if provided
   if (remixStubProps.navigation) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Accessing internal properties for testing
     router.state.navigation = remixStubProps.navigation;
   }
