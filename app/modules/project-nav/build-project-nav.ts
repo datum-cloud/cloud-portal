@@ -265,7 +265,14 @@ export function buildProjectNavTree(
           href: settingsGeneral,
           type: 'link',
           disabled: !isReady,
-          tabChildLinks: [settingsGeneral, settingsNotifications, settingsQuotas, settingsBilling],
+          tabChildLinks: [settingsGeneral, settingsNotifications, settingsBilling],
+        },
+        {
+          title: 'Quotas',
+          order: 15,
+          href: settingsQuotas,
+          type: 'link',
+          disabled: !isReady,
         },
         {
           title: 'Service Accounts',

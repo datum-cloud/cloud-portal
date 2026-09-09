@@ -42,10 +42,6 @@ export default function ProjectSettingsLayout() {
         label: 'Notifications',
         href: getPathWithParams(paths.project.detail.settings.notifications, { projectId }),
       }, */
-      {
-        label: 'Quotas',
-        href: getPathWithParams(paths.project.detail.settings.quotas, { projectId }),
-      },
       ...(billingEnabled
         ? [
             {
