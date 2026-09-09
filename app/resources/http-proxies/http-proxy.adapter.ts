@@ -208,18 +208,12 @@ export async function generateHtpasswd(users: BasicAuthUser[]): Promise<string> 
  * Policy name matches the proxy name for 1:1 lifecycle.
  * The basicAuth.users field references the Secret `{httpProxyName}-basic-auth`.
  */
-export function toSecurityPolicyPayload(httpProxyName: string, displayName?: string): object {
-  const annotations =
-    displayName && displayName.trim() !== ''
-      ? { 'networking.datumapis.com/display-name': displayName.trim() }
-      : undefined;
-
+export function toSecurityPolicyPayload(httpProxyName: string): object {
   return {
     apiVersion: 'gateway.envoyproxy.io/v1alpha1',
     kind: 'SecurityPolicy',
     metadata: {
       name: httpProxyName,
-      ...(annotations ? { annotations } : {}),
     },
     spec: {
       targetRefs: [

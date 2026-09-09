@@ -19,7 +19,7 @@ const RESOURCE_ROUTES: Record<string, ResourceRouteConfig> = {
   // Project-scoped resources with full detail pages
   DNSZone: { pathSegment: 'dns-zones', defaultTab: '/dns-records' },
   Domain: { pathSegment: 'domains', defaultTab: '/overview' },
-  HTTPProxy: { pathSegment: 'alb' },
+  HTTPProxy: { pathSegment: 'edge' },
   ExportPolicy: { pathSegment: 'export-policies', defaultTab: '/overview' },
   Secret: { pathSegment: 'secrets', defaultTab: '/overview' },
   ServiceAccount: { pathSegment: 'service-accounts', defaultTab: '/overview' },
@@ -34,11 +34,6 @@ const RESOURCE_ROUTES: Record<string, ResourceRouteConfig> = {
   // ServiceAccountKey — link to parent service-account's keys tab
   // (Same caveat — fallback navigation, not direct deep-link)
   ServiceAccountKey: { pathSegment: 'service-accounts', defaultTab: '/keys' },
-
-  // TrafficProtectionPolicy and SecurityPolicy are named after the HTTPProxy
-  // by default, so the ALB detail route resolves. Neither has its own page.
-  TrafficProtectionPolicy: { pathSegment: 'alb' },
-  SecurityPolicy: { pathSegment: 'alb' },
 };
 
 /**

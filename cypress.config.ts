@@ -49,17 +49,31 @@ const DISABLED_REGRESSION_SPECS = [
   '**/regression/dns-zones.cy.ts',
 ];
 
+/** Mirrors how Cypress coerced CYPRESS_-prefixed shell flags before 16 stopped forwarding them. */
+const isFlagSet = (value: string | undefined): boolean => value === 'true' || value === '1';
+
 export default defineConfig({
+  // Node-side values. `cy.env()` reads them from inside a test and they never
+  // reach the browser, which is where the fixture credentials belong.
   env: {
     CYPRESS: 'true',
-    APP_URL: process.env.CYPRESS_BASE_URL,
     ACCESS_TOKEN: process.env.ACCESS_TOKEN,
     SUB: process.env.SUB,
+  },
+  // Browser-side values, read synchronously with `Cypress.expose()`. Cypress 16
+  // no longer hydrates `env` or the CYPRESS_-prefixed shell variables into the
+  // browser, so everything a spec or support file reads there is forwarded here.
+  expose: {
+    APP_URL: process.env.CYPRESS_BASE_URL,
     // Forwarded so a spec can tell which position the server under test is in.
-    // Cypress only auto-imports CYPRESS_-prefixed variables, but the server
-    // reads the unprefixed name — without this line the two disagree and the
-    // spec asserts off-position behaviour against an on-position server.
+    // The server reads the unprefixed name — without this line the two disagree
+    // and the spec asserts off-position behaviour against an on-position server.
     EMAIL_VERIFICATION_GATE: process.env.EMAIL_VERIFICATION_GATE,
+    // Opt-in switches, still set with their CYPRESS_ prefix from the shell.
+    E2E_ALLOW_AMBIENT_APIS: isFlagSet(process.env.CYPRESS_E2E_ALLOW_AMBIENT_APIS),
+    E2E_SILENCE_INFO_LOGS: isFlagSet(process.env.CYPRESS_E2E_SILENCE_INFO_LOGS),
+    TEST_PROJECT_ID: process.env.CYPRESS_TEST_PROJECT_ID,
+    TEST_SERVICE_ACCOUNT_ID: process.env.CYPRESS_TEST_SERVICE_ACCOUNT_ID,
   },
   e2e: {
     // Required to type into Stripe PaymentElement / AddressElement iframes (js.stripe.com).

@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         id: cache-deps
         with:
@@ -57,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -74,7 +74,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -96,7 +96,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -129,7 +129,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -154,7 +154,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -227,7 +227,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.0 } # renovate: datasource=docker depName=oven/bun
+        with: { bun-version: 1.4.2 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
@@ -315,7 +315,7 @@ jobs:
       contents: read
       packages: write
       attestations: write
-    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@a39a3b1772cda084b55e4504a48f39b4309a644b # v1.20.0
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@2dbca23d057e20ff1aab144b94a06d09ea75e5f6 # v1.21.0
     with:
       image-name: cloud-portal
     # NOTE: `secrets: inherit` is required because the upstream workflow
@@ -332,7 +332,7 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@a39a3b1772cda084b55e4504a48f39b4309a644b # v1.20.0
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@2dbca23d057e20ff1aab144b94a06d09ea75e5f6 # v1.21.0
     with:
       bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
       bundle-path: config
