@@ -5,7 +5,7 @@ import type {
   UpdateHttpProxyInput,
   BasicAuthUser,
 } from './http-proxy.schema';
-import type { TrafficProtectionMode } from './http-proxy.schema';
+import type { TrafficProtectionMode, WafRuleExclusions } from './http-proxy.schema';
 import { buildAttachmentMapsFromPolicies } from './http-proxy.waf-attach';
 import {
   type ComDatumapisNetworkingV1AlphaHttpProxy,
@@ -278,7 +278,8 @@ export function toTrafficProtectionPolicyPayload(
   httpProxyName: string,
   mode: 'Enforce' | 'Observe' | 'Disabled' = 'Enforce',
   paranoiaLevels?: { blocking?: number; detection?: number },
-  policyName: string = httpProxyName
+  policyName: string = httpProxyName,
+  ruleExclusions?: WafRuleExclusions
 ): ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy {
   const ruleSet: {
     type: 'OWASPCoreRuleSet';
@@ -287,20 +288,26 @@ export function toTrafficProtectionPolicyPayload(
         blocking?: number;
         detection?: number;
       };
+      ruleExclusions?: WafRuleExclusions;
     };
   } = {
     type: 'OWASPCoreRuleSet',
   };
 
-  if (
+  const hasParanoia =
     paranoiaLevels &&
-    (paranoiaLevels.blocking !== undefined || paranoiaLevels.detection !== undefined)
-  ) {
+    (paranoiaLevels.blocking !== undefined || paranoiaLevels.detection !== undefined);
+  const hasExclusions = ruleExclusions && Object.keys(ruleExclusions).length > 0;
+
+  if (hasParanoia || hasExclusions) {
     ruleSet.owaspCoreRuleSet = {
-      paranoiaLevels: {
-        ...(paranoiaLevels.blocking !== undefined && { blocking: paranoiaLevels.blocking }),
-        ...(paranoiaLevels.detection !== undefined && { detection: paranoiaLevels.detection }),
-      },
+      ...(hasParanoia && {
+        paranoiaLevels: {
+          ...(paranoiaLevels.blocking !== undefined && { blocking: paranoiaLevels.blocking }),
+          ...(paranoiaLevels.detection !== undefined && { detection: paranoiaLevels.detection }),
+        },
+      }),
+      ...(hasExclusions && { ruleExclusions }),
     };
   }
 
@@ -362,6 +369,61 @@ export function getParanoiaLevels(
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
+export function getRuleExclusions(
+  raw: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy | null | undefined
+): WafRuleExclusions | undefined {
+  const owaspRuleSet = raw?.spec?.ruleSets?.find(
+    (rs) => rs.type === 'OWASPCoreRuleSet'
+  )?.owaspCoreRuleSet;
+  const exclusions = owaspRuleSet?.ruleExclusions;
+  if (!exclusions) return undefined;
+
+  const result: WafRuleExclusions = {};
+  if (exclusions.tags?.length) result.tags = exclusions.tags;
+  if (exclusions.ids?.length) result.ids = exclusions.ids;
+  if (exclusions.idRanges?.length) result.idRanges = exclusions.idRanges;
+
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+export type TrafficProtectionPolicyUpdate = {
+  mode?: TrafficProtectionMode;
+  paranoiaLevels?: { blocking?: number; detection?: number };
+  ruleExclusions?: WafRuleExclusions | null;
+};
+
+export function toTrafficProtectionPolicySpecPatch(
+  existing: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy | undefined,
+  update: TrafficProtectionPolicyUpdate
+): {
+  mode?: TrafficProtectionMode;
+  ruleSets: Array<{
+    type: 'OWASPCoreRuleSet';
+    owaspCoreRuleSet: {
+      paranoiaLevels?: { blocking?: number; detection?: number };
+      ruleExclusions?: WafRuleExclusions | null;
+    };
+  }>;
+} {
+  const nextMode = update.mode ?? getTrafficProtectionMode(existing);
+  const nextParanoia = update.paranoiaLevels ?? getParanoiaLevels(existing);
+  const nextExclusions =
+    update.ruleExclusions === undefined ? getRuleExclusions(existing) : update.ruleExclusions;
+
+  return {
+    ...(nextMode && { mode: nextMode }),
+    ruleSets: [
+      {
+        type: 'OWASPCoreRuleSet',
+        owaspCoreRuleSet: {
+          ...(nextParanoia && { paranoiaLevels: nextParanoia }),
+          ruleExclusions: nextExclusions ?? null,
+        },
+      },
+    ],
+  };
+}
+
 /**
  * Transform raw API HttpProxy to domain HttpProxy type.
  * Optionally merge WAF (TrafficProtectionPolicy) mode and paranoia levels when provided.
@@ -371,6 +433,7 @@ export function toHttpProxy(
   options?: {
     trafficProtectionMode?: TrafficProtectionMode;
     paranoiaLevels?: { blocking?: number; detection?: number };
+    ruleExclusions?: WafRuleExclusions;
     basicAuth?: { enabled: boolean; userCount: number; usernames: string[]; forbidden?: boolean };
   }
 ): HttpProxy {
@@ -438,6 +501,9 @@ export function toHttpProxy(
     }),
     ...(options?.paranoiaLevels !== undefined && {
       paranoiaLevels: options.paranoiaLevels,
+    }),
+    ...(options?.ruleExclusions !== undefined && {
+      ruleExclusions: options.ruleExclusions,
     }),
     ...(options?.basicAuth !== undefined && {
       basicAuthEnabled: options.basicAuth.enabled,

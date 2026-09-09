@@ -5,9 +5,11 @@ import {
   toUpdateHttpProxyPayload,
   httpProxyPatchTouchesResource,
   toTrafficProtectionPolicyPayload,
+  toTrafficProtectionPolicySpecPatch,
   toSecurityPolicyPayload,
   getTrafficProtectionMode,
   getParanoiaLevels,
+  getRuleExclusions,
   getBasicAuthState,
   parseHtpasswdUsernames,
   generateHtpasswd,
@@ -20,6 +22,7 @@ import type {
   UpdateHttpProxyInput,
   TrafficProtectionMode,
   BasicAuthUser,
+  WafRuleExclusions,
 } from './http-proxy.schema';
 import { policyAttachesToProxy, selectPolicyForProxy } from './http-proxy.waf-attach';
 import {
@@ -71,11 +74,12 @@ export const httpProxyKeys = {
 export interface TrafficProtectionView {
   mode?: TrafficProtectionMode;
   paranoiaLevels?: { blocking?: number; detection?: number };
+  ruleExclusions?: WafRuleExclusions;
   /** Actual policy object name when it differs from the proxy name. */
   policyName?: string;
   /** True when the WAF read was denied (403) — render an insufficient-permissions state. */
   forbidden?: boolean;
-  /** True when all ancestors report Accepted+Programmed for the current generation. */
+  /** True when every Accepted ancestor reports Programmed=True. */
   programmed?: boolean;
   /** Programmed condition message while converging (e.g. M/N edges). */
   programmedMessage?: string;
@@ -266,6 +270,7 @@ export function createHttpProxyService() {
       return {
         mode: getTrafficProtectionMode(policy),
         paranoiaLevels: getParanoiaLevels(policy),
+        ruleExclusions: getRuleExclusions(policy),
         policyName: policy.metadata?.name,
         programmed: isTrafficProtectionProgrammed(policy.status),
         programmedMessage: getTrafficProtectionProgrammedMessage(policy.status),
@@ -277,7 +282,8 @@ export function createHttpProxyService() {
       projectId: string,
       httpProxyName: string,
       mode: 'Observe' | 'Enforce' | 'Disabled' = 'Enforce',
-      paranoiaLevels?: { blocking?: number; detection?: number }
+      paranoiaLevels?: { blocking?: number; detection?: number },
+      ruleExclusions?: WafRuleExclusions
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
       const tryCreate = async (policyName: string) => {
@@ -285,7 +291,8 @@ export function createHttpProxyService() {
           httpProxyName,
           mode,
           paranoiaLevels,
-          policyName
+          policyName,
+          ruleExclusions
         );
         await createNetworkingDatumapisComV1AlphaNamespacedTrafficProtectionPolicy({
           baseURL,
@@ -513,48 +520,27 @@ export function createHttpProxyService() {
     async updateTrafficProtectionPolicyMode(
       projectId: string,
       proxyName: string,
-      mode: TrafficProtectionMode,
-      paranoiaLevels?: { blocking?: number; detection?: number }
+      mode?: TrafficProtectionMode,
+      paranoiaLevels?: { blocking?: number; detection?: number },
+      ruleExclusions?: WafRuleExclusions | null
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
-
-      const specBody: {
-        mode?: TrafficProtectionMode;
-        ruleSets?: Array<{
-          type: 'OWASPCoreRuleSet';
-          owaspCoreRuleSet?: {
-            paranoiaLevels?: {
-              blocking?: number;
-              detection?: number;
-            };
-          };
-        }>;
-      } = { mode };
-
-      if (
-        paranoiaLevels &&
-        (paranoiaLevels.blocking !== undefined || paranoiaLevels.detection !== undefined)
-      ) {
-        specBody.ruleSets = [
-          {
-            type: 'OWASPCoreRuleSet',
-            owaspCoreRuleSet: {
-              paranoiaLevels: {
-                ...(paranoiaLevels.blocking !== undefined && {
-                  blocking: paranoiaLevels.blocking,
-                }),
-                ...(paranoiaLevels.detection !== undefined && {
-                  detection: paranoiaLevels.detection,
-                }),
-              },
-            },
-          },
-        ];
-      }
-
       const existing = await this.findTrafficProtectionPolicyForProxy(projectId, proxyName);
+      const specBody = toTrafficProtectionPolicySpecPatch(existing, {
+        mode,
+        paranoiaLevels,
+        ruleExclusions,
+      });
+      const nextMode = mode ?? getTrafficProtectionMode(existing) ?? 'Enforce';
+
       if (!existing?.metadata?.name) {
-        await this.createTrafficProtectionPolicy(projectId, proxyName, mode, paranoiaLevels);
+        await this.createTrafficProtectionPolicy(
+          projectId,
+          proxyName,
+          nextMode,
+          paranoiaLevels,
+          ruleExclusions ?? undefined
+        );
         return;
       }
 
@@ -568,7 +554,13 @@ export function createHttpProxyService() {
       } catch (error: unknown) {
         // Race: policy disappeared between find and patch — recreate.
         if (this.getErrorStatus(error) === 404) {
-          await this.createTrafficProtectionPolicy(projectId, proxyName, mode, paranoiaLevels);
+          await this.createTrafficProtectionPolicy(
+            projectId,
+            proxyName,
+            nextMode,
+            paranoiaLevels,
+            ruleExclusions ?? undefined
+          );
           return;
         }
         throw error;
@@ -676,7 +668,8 @@ export function createHttpProxyService() {
             projectId,
             input.name,
             input.trafficProtectionMode ?? 'Enforce',
-            input.paranoiaLevels
+            input.paranoiaLevels,
+            input.ruleExclusions
           );
         } catch (policyError) {
           logger.error(
@@ -714,7 +707,8 @@ export function createHttpProxyService() {
         const touchesWaf =
           !!input.removeTrafficProtection ||
           input.trafficProtectionMode !== undefined ||
-          input.paranoiaLevels !== undefined;
+          input.paranoiaLevels !== undefined ||
+          input.ruleExclusions !== undefined;
 
         let httpProxy: HttpProxy;
 
@@ -767,13 +761,18 @@ export function createHttpProxyService() {
           }
         }
         // If WAF mode or paranoia levels were changed, update the TrafficProtectionPolicy
-        else if (input.trafficProtectionMode || input.paranoiaLevels) {
+        else if (
+          input.trafficProtectionMode ||
+          input.paranoiaLevels ||
+          input.ruleExclusions !== undefined
+        ) {
           try {
             await this.updateTrafficProtectionPolicyMode(
               projectId,
               name,
-              input.trafficProtectionMode!,
-              input.paranoiaLevels
+              input.trafficProtectionMode,
+              input.paranoiaLevels,
+              input.ruleExclusions
             );
           } catch (policyError) {
             logger.error(
