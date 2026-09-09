@@ -8,7 +8,7 @@ import { paths } from '@/utils/config/paths.config';
  *   EMAIL_VERIFICATION_GATE=true bun run test:e2e   → gate on
  *
  * The variable reaches BOTH processes: the server reads it from its own
- * environment, and cypress.config.ts forwards it into `Cypress.env` so the spec
+ * environment, and cypress.config.ts forwards it into `Cypress.expose` so the spec
  * knows which behaviour to assert. Cypress only auto-imports CYPRESS_-prefixed
  * variables, so that forwarding is what keeps the two in agreement — without it
  * the spec asserts the off-position against an on-position server. A spec that
@@ -19,7 +19,7 @@ import { paths } from '@/utils/config/paths.config';
  * has run anywhere, EVERY user reads unverified, so gate-on holds the fixture
  * at /verify-email — which is exactly the assertion below.
  */
-const gateOn = Cypress.env('EMAIL_VERIFICATION_GATE') === 'true';
+const gateOn = Cypress.expose('EMAIL_VERIFICATION_GATE') === 'true';
 
 describe('email verification gate', () => {
   it(`${gateOn ? 'holds' : 'ignores'} a signed-in user at /verify-email`, () => {

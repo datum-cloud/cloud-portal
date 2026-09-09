@@ -73,7 +73,7 @@ export const RemixStub: React.FC<RemixStubProps> = ({
   // Mock session storage
   React.useEffect(() => {
     const mockStorage: Record<string, string> = {
-      APP_URL: Cypress.env('APP_URL') || 'http://localhost:3000',
+      APP_URL: Cypress.expose('APP_URL') || 'http://localhost:3000',
     };
 
     // Mock sessionStorage

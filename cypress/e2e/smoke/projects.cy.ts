@@ -21,7 +21,7 @@ describe('Load project list', () => {
       .then((projectId) => {
         const trimmedId = projectId.trim();
         expect(trimmedId).to.match(/^[a-z0-9-]+$/);
-        Cypress.env('projectId', trimmedId);
+        Cypress.expose('projectId', trimmedId);
       });
   });
 });

@@ -56,8 +56,8 @@ describe('Load org list', () => {
         // Store in Cypress shared state using alias (accessible within same test suite)
         cy.wrap(trimmedId).as('personalOrgId');
 
-        // Also store in Cypress.env for cross-test access (accessible across all tests)
-        Cypress.env('personalOrgId', trimmedId);
+        // Also store via Cypress.expose for cross-test access (accessible across all tests)
+        Cypress.expose('personalOrgId', trimmedId);
 
         cy.log(`Personal Org ID stored: ${trimmedId}`);
       });
