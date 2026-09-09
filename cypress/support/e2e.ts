@@ -47,7 +47,7 @@ Cypress.on('window:before:load', (win) => {
  *
  * Specs that genuinely exercise one of these endpoints can override the
  * intercept locally (later `cy.intercept` calls for the same route win) or
- * disable the helper entirely via `Cypress.env('E2E_ALLOW_AMBIENT_APIS')`.
+ * disable the helper entirely with `CYPRESS_E2E_ALLOW_AMBIENT_APIS=true`.
  */
 function stubAmbientApis(): void {
   // Notification bell — user-scoped invitation list.
@@ -98,7 +98,7 @@ function stubAmbientApis(): void {
 }
 
 beforeEach(() => {
-  if (!Cypress.env('E2E_ALLOW_AMBIENT_APIS')) {
+  if (!Cypress.expose('E2E_ALLOW_AMBIENT_APIS')) {
     stubAmbientApis();
   }
 });
@@ -186,7 +186,7 @@ Cypress.on('uncaught:exception', (err) => {
 Cypress.on('window:before:load', (win) => {
   // Optional CI noise reduction: silence browser console.info output.
   // Enable with CYPRESS_E2E_SILENCE_INFO_LOGS=true
-  if (Cypress.env('E2E_SILENCE_INFO_LOGS')) {
+  if (Cypress.expose('E2E_SILENCE_INFO_LOGS')) {
     win.console.info = () => {};
   }
 
@@ -232,10 +232,10 @@ Cypress.on('window:before:load', (win) => {
 
 /**
  * Get the personal org ID. Shard-safe: when run in a different process (e.g. cypress-split),
- * Cypress.env is empty, so we fetch from the organizations page instead of relying on cache.
+ * Cypress.expose() is empty, so we fetch from the organizations page instead of relying on cache.
  */
 Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
-  const storedId = Cypress.env('personalOrgId') as string | undefined;
+  const storedId = Cypress.expose('personalOrgId') as string | undefined;
   if (storedId) {
     return cy.wrap(storedId, { log: false });
   }
@@ -256,7 +256,7 @@ Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
       if (!/^personal-org-[a-z0-9]+$/.test(trimmedId)) {
         throw new Error(`Failed to extract personal org ID from page (got: "${trimmedId}")`);
       }
-      Cypress.env('personalOrgId', trimmedId);
+      Cypress.expose('personalOrgId', trimmedId);
       return trimmedId;
     })
     .then((orgId: string) => cy.wrap(orgId, { log: false })) as Cypress.Chainable<string>;
@@ -264,10 +264,10 @@ Cypress.Commands.add('getPersonalOrgId', (): Cypress.Chainable<string> => {
 
 /**
  * Get the project ID. Shard-safe: when run in a different process (e.g. cypress-split),
- * Cypress.env is empty, so we fetch from the projects page instead of relying on cache.
+ * Cypress.expose() is empty, so we fetch from the projects page instead of relying on cache.
  */
 Cypress.Commands.add('getProjectId', (orgId?: string): Cypress.Chainable<string> => {
-  const storedId = Cypress.env('projectId') as string | undefined;
+  const storedId = Cypress.expose('projectId') as string | undefined;
   if (storedId) {
     return cy.wrap(storedId, { log: false });
   }
@@ -288,7 +288,7 @@ Cypress.Commands.add('getProjectId', (orgId?: string): Cypress.Chainable<string>
         if (!trimmedId) {
           throw new Error('Failed to extract project ID from page');
         }
-        Cypress.env('projectId', trimmedId);
+        Cypress.expose('projectId', trimmedId);
         return trimmedId;
       })
       .then((projectId: string) => cy.wrap(projectId, { log: false }));
