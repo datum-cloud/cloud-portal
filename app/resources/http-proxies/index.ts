@@ -88,6 +88,7 @@ export {
 export {
   getWafProtectionState,
   isTrafficProtectionProgrammed,
+  mergeTrafficProtectionView,
   getTrafficProtectionProgrammedMessage,
   getTrafficProtectionProgrammedReason,
   formatWafProtectionStatusTooltip,

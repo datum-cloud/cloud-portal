@@ -211,7 +211,7 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
               </Form.Field>
 
               <div>
-                <div className="mb-3 text-sm font-medium">Core rule sets</div>
+                <div className="mb-1 text-sm font-medium">Core rule sets</div>
                 <p className="text-muted-foreground mb-3 text-xs">
                   Turn off a category to exclude those OWASP CRS rules. Remaining categories stay
                   active.

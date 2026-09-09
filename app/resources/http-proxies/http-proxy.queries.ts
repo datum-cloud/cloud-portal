@@ -193,6 +193,7 @@ export function useUpdateHttpProxy(
             if (input.removeTrafficProtection)
               return { mode: undefined, paranoiaLevels: undefined, ruleExclusions: undefined };
             return {
+              ...old,
               mode: input.trafficProtectionMode ?? old?.mode,
               paranoiaLevels: input.paranoiaLevels ?? old?.paranoiaLevels,
               ruleExclusions:

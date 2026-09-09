@@ -19,32 +19,73 @@ export type TrafficProtectionStatusLike = {
 /** Tenant-facing WAF readiness derived from mode + Programmed. */
 export type WafProtectionState = 'disabled' | 'pending' | 'error' | 'monitoring' | 'protected';
 
+function isAccepted(ancestor: PolicyAncestorLike): boolean {
+  return ancestor.conditions?.find((c) => c.type === 'Accepted')?.status === 'True';
+}
+
+function acceptedAncestors(
+  status: TrafficProtectionStatusLike | null | undefined
+): PolicyAncestorLike[] {
+  return (status?.ancestors ?? []).filter(isAccepted);
+}
+
 /**
- * True when every ancestor reports Accepted=True and Programmed=True.
- * Empty ancestors means not yet programmed.
+ * True when every Accepted ancestor reports Programmed=True.
+ * Stale / unattached ancestors (no Accepted) are ignored. Empty Accepted
+ * set means not yet programmed.
  */
 export function isTrafficProtectionProgrammed(
   status: TrafficProtectionStatusLike | null | undefined
 ): boolean {
-  const ancestors = status?.ancestors;
-  if (!ancestors?.length) return false;
-  return ancestors.every((ancestor) => {
-    const accepted = ancestor.conditions?.find((c) => c.type === 'Accepted');
-    const programmed = ancestor.conditions?.find((c) => c.type === 'Programmed');
-    return accepted?.status === 'True' && programmed?.status === 'True';
-  });
+  const accepted = acceptedAncestors(status);
+  if (!accepted.length) return false;
+  return accepted.every(
+    (ancestor) => ancestor.conditions?.find((c) => c.type === 'Programmed')?.status === 'True'
+  );
 }
 
 function findNonTrueProgrammed(
   status: TrafficProtectionStatusLike | null | undefined
 ): ConditionLike | undefined {
-  for (const ancestor of status?.ancestors ?? []) {
+  for (const ancestor of acceptedAncestors(status)) {
     const programmed = ancestor.conditions?.find((c) => c.type === 'Programmed');
-    if (programmed && programmed.status !== 'True') {
+    if (!programmed || programmed.status !== 'True') {
       return programmed;
     }
   }
   return undefined;
+}
+
+/** Programmed fields carried on the permission-gated WAF cache. */
+export type TrafficProtectionProgrammedView = {
+  policyName?: string;
+  programmed?: boolean;
+  programmedMessage?: string;
+  programmedReason?: string;
+};
+
+/**
+ * Merge a watch/optimistic WAF view into the existing cache.
+ * Drops events for a different policy name, and keeps prior Programmed
+ * status when the incoming object omitted ancestor status.
+ */
+export function mergeTrafficProtectionView<T extends TrafficProtectionProgrammedView>(
+  old: T | undefined,
+  incoming: T
+): T {
+  if (old?.policyName && incoming.policyName && old.policyName !== incoming.policyName) {
+    return old;
+  }
+  if (incoming.programmed === undefined && old) {
+    return {
+      ...old,
+      ...incoming,
+      programmed: old.programmed,
+      programmedMessage: old.programmedMessage,
+      programmedReason: old.programmedReason,
+    };
+  }
+  return old ? { ...old, ...incoming } : incoming;
 }
 
 /** First non-True Programmed message, for pending/error tooltips. */

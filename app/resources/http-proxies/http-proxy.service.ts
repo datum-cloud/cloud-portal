@@ -79,7 +79,7 @@ export interface TrafficProtectionView {
   policyName?: string;
   /** True when the WAF read was denied (403) — render an insufficient-permissions state. */
   forbidden?: boolean;
-  /** True when all ancestors report Accepted+Programmed for the current generation. */
+  /** True when every Accepted ancestor reports Programmed=True. */
   programmed?: boolean;
   /** Programmed condition message while converging (e.g. M/N edges). */
   programmedMessage?: string;

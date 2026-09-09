@@ -7,23 +7,22 @@ import {
 import { useMemo } from 'react';
 
 export function useAlbTrafficProtection(projectId: string, proxyId: string, proxy?: HttpProxy) {
-  const {
-    hasPermission: canViewWaf,
-    isLoading: wafPermLoading,
-    isFetching: wafPermFetching,
-  } = usePermission('trafficprotectionpolicies', 'get', {
-    group: 'networking.datumapis.com',
-    namespace: 'default',
-    scope: 'project',
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
+  const { hasPermission: canViewWaf, isLoading: wafPermLoading } = usePermission(
+    'trafficprotectionpolicies',
+    'get',
+    {
+      group: 'networking.datumapis.com',
+      namespace: 'default',
+      scope: 'project',
+      staleTime: 0,
+      refetchOnMount: 'always',
+    }
+  );
 
   const {
     data: waf,
     isError: wafError,
     isLoading: wafDataLoading,
-    isFetching: wafDataFetching,
   } = useTrafficProtectionPolicy(projectId, proxyId, {
     staleTime: 0,
     refetchOnMount: 'always',
@@ -31,12 +30,12 @@ export function useAlbTrafficProtection(projectId: string, proxyId: string, prox
     retry: false,
   });
 
-  useTrafficProtectionPolicyWatch(projectId, proxyId, { enabled: canViewWaf });
+  useTrafficProtectionPolicyWatch(projectId, proxyId, {
+    enabled: canViewWaf,
+    policyName: waf?.policyName,
+  });
 
-  const wafPending =
-    wafPermLoading ||
-    wafPermFetching ||
-    (canViewWaf && waf === undefined && (wafDataLoading || wafDataFetching));
+  const wafPending = wafPermLoading || (canViewWaf && waf === undefined && wafDataLoading);
 
   const effectiveProxy = useMemo<HttpProxy | undefined>(
     () =>
