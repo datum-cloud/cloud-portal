@@ -1,4 +1,4 @@
-import { toFlattenedDnsRecords } from './dns-record.adapter';
+import { mergeRecordSetIntoListCache } from './dns-record.adapter';
 import { createDnsRecordManager, type ImportResult } from './dns-record.manager';
 import type { DnsRecordSet, FlattenedDnsRecord, CreateDnsRecordSchema } from './dns-record.schema';
 import { createDnsRecordService, dnsRecordKeys } from './dns-record.service';
@@ -11,16 +11,6 @@ import {
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
-
-/** Replace flattened list rows for a RecordSet with rows from the server response. */
-function mergeRecordSetIntoListCache(
-  old: FlattenedDnsRecord[] | undefined,
-  recordSet: DnsRecordSet
-): FlattenedDnsRecord[] {
-  const newRows = toFlattenedDnsRecords([recordSet]);
-  if (!old) return newRows;
-  return [...old.filter((r) => r.recordSetName !== recordSet.name), ...newRows];
-}
 
 export function useDnsRecords(
   projectId: string,
@@ -158,8 +148,14 @@ export function useDeleteDnsRecord(
         .removeRecord(projectId, input)
         .then(() => undefined),
     ...options,
+    onMutate: async (...args) => {
+      await queryClient.cancelQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+      return options?.onMutate?.(...args);
+    },
     onSuccess: async (...args) => {
       const [, input] = args;
+      const listKey = dnsRecordKeys.list(projectId, dnsZoneId);
+      await queryClient.cancelQueries({ queryKey: listKey });
       await queryClient.cancelQueries({
         queryKey: dnsRecordKeys.detail(projectId, input.recordSetName),
       });
@@ -167,28 +163,21 @@ export function useDeleteDnsRecord(
       // Optimistically drop the flattened row so the table updates immediately.
       // removeRecord may PATCH or DELETE the RecordSet; either way the matching
       // flattened row should disappear now rather than waiting on watch/refetch.
-      queryClient.setQueryData<FlattenedDnsRecord[]>(
-        dnsRecordKeys.list(projectId, dnsZoneId),
-        (old) => {
-          if (!old) return old;
-          return old.filter((record) => {
-            if (record.recordSetName !== input.recordSetName) return true;
-            if (record.type !== input.recordType) return true;
-            if (record.name !== input.name) return true;
-            if (record.value !== input.value) return true;
-            const recordTtl = record.ttl ?? null;
-            const inputTtl = input.ttl ?? null;
-            return recordTtl !== inputTtl;
-          });
-        }
-      );
+      queryClient.setQueryData<FlattenedDnsRecord[]>(listKey, (old) => {
+        if (!old) return old;
+        return old.filter((record) => {
+          if (record.recordSetName !== input.recordSetName) return true;
+          if (record.type !== input.recordType) return true;
+          if (record.name !== input.name) return true;
+          if (record.value !== input.value) return true;
+          const recordTtl = record.ttl ?? null;
+          const inputTtl = input.ttl ?? null;
+          return recordTtl !== inputTtl;
+        });
+      });
 
       options?.onSuccess?.(...args);
       void invalidateAllowanceBuckets(queryClient);
-    },
-    onSettled: () => {
-      // Fallback: invalidate list cache in case watch doesn't trigger
-      queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
     },
   });
 }
