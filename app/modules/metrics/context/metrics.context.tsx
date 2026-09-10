@@ -9,6 +9,7 @@ import type {
   QueryBuilderContext,
 } from '@/modules/metrics/types/metrics.type';
 import type { URLStateRegistry } from '@/modules/metrics/types/url.type';
+import { resolveChartStep } from '@/modules/metrics/utils/chart-axis';
 import { parseRange, serializeTimeRange } from '@/modules/metrics/utils/date-parsers';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import type { TimeRange } from '@/modules/prometheus';
@@ -67,7 +68,7 @@ export interface MetricsProviderProps {
 export function MetricsProvider({
   children,
   defaultTimeRange = DEFAULT_TIME_RANGE,
-  defaultStep = '1m',
+  defaultStep = 'auto',
   defaultRefreshInterval = 'off',
   defaultFilters = {},
   onFiltersChange,
@@ -154,8 +155,10 @@ export function MetricsProvider({
   }, [coreUrlStates.timeRange, defaultTimeRange]);
 
   const currentStep = useMemo(() => {
-    return (coreUrlStates.step as string) || defaultStep;
-  }, [coreUrlStates.step, defaultStep]);
+    const raw = (coreUrlStates.step as string) || defaultStep;
+    const rangeMs = currentTimeRange.end.getTime() - currentTimeRange.start.getTime();
+    return resolveChartStep(raw, rangeMs);
+  }, [coreUrlStates.step, defaultStep, currentTimeRange]);
 
   const currentRefreshInterval = useMemo(() => {
     return (coreUrlStates.refresh as string) || defaultRefreshInterval;
@@ -320,11 +323,16 @@ export function MetricsProvider({
         return result;
       },
       getTimeRange: (key: string) => parseRange(getUrlStateEnhanced(key) || DEFAULT_TIME_RANGE),
-      getStep: (key: string) => getUrlStateEnhanced(key) || '1m',
+      getStep: (key: string) => {
+        const raw = getUrlStateEnhanced(key) || defaultStep;
+        const rangeMs = currentTimeRange.end.getTime() - currentTimeRange.start.getTime();
+        return resolveChartStep(raw, rangeMs);
+      },
     };
   }, [
     currentTimeRange,
     currentStep,
+    defaultStep,
     getUrlStateEnhanced,
     hasUrlState,
     coreUrlStates,

@@ -74,9 +74,10 @@ function interceptProjectSSAR(deny: ProjectDenyKey[]): void {
 // page before any resource fetch resolves for the client-side cases, so these
 // never need to exist upstream. For server-side scenarios (currently
 // `.skip`-ed), real fixture IDs are needed (see file header).
-const PROJECT_ID = (Cypress.env('TEST_PROJECT_ID') as string | undefined) ?? 'rbac-denials-project';
+const PROJECT_ID =
+  (Cypress.expose('TEST_PROJECT_ID') as string | undefined) ?? 'rbac-denials-project';
 const SERVICE_ACCOUNT_ID =
-  (Cypress.env('TEST_SERVICE_ACCOUNT_ID') as string | undefined) ?? 'rbac-denials-sa';
+  (Cypress.expose('TEST_SERVICE_ACCOUNT_ID') as string | undefined) ?? 'rbac-denials-sa';
 
 // ---------------------------------------------------------------------------
 // Client-side gates — PermissionButton disabled when deny intercept returns.

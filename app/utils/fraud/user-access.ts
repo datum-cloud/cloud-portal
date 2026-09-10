@@ -22,8 +22,34 @@ function buildDevStubUser(userId: string): User {
     platformAccess: 'Approved',
     state: 'Active',
     nameReviewRequired: false,
+    // Fourth gate, same reason as the three above: this principal has no User
+    // record at all, so there is nothing for zitadel-provider to have marked
+    // verified. Without this the email gate redirects the dev token-exchange
+    // session to /verify-email and the plugin e2e suite stops at the door.
+    emailVerified: true,
   };
 }
+
+/**
+ * The collaborators this module reaches out of process for.
+ *
+ * Injectable because `mock.module` is process-global in bun and cannot reach
+ * here reliably. Any suite that imports a fraud middleware loads this module
+ * first, binding it to the real modules. A later suite's `mock.module` then
+ * rebuilds only its own copy, so the stubs sit on an object this code never
+ * calls and the real collaborators run against fake fixtures instead.
+ */
+export type UserAccessDeps = {
+  auth: Pick<typeof AuthService, 'getRefreshToken' | 'getSession' | 'refreshTokens'>;
+  getUser: (userId: string) => Promise<User>;
+};
+
+const realDeps: UserAccessDeps = {
+  auth: AuthService,
+  // Built per call: the service reads the request-scoped token, which
+  // retryAfterTokenRefresh rewrites before asking for the user again.
+  getUser: (userId) => createUserService().get(userId),
+};
 
 /**
  * Load the signed-in user for fraud/onboarding gates. On 403 (common right
@@ -33,18 +59,20 @@ function buildDevStubUser(userId: string): User {
 export async function getUserWithAccessRetry(
   userId: string,
   cookieHeader: string | null,
-  options?: { refreshBeforeRead?: boolean }
+  options?: { refreshBeforeRead?: boolean; deps?: Partial<UserAccessDeps> }
 ): Promise<UserAccessResult> {
+  const deps: UserAccessDeps = { ...realDeps, ...options?.deps };
+
   if (options?.refreshBeforeRead) {
-    const refreshed = await retryAfterTokenRefresh(userId, cookieHeader);
+    const refreshed = await retryAfterTokenRefresh(userId, cookieHeader, deps);
     if (refreshed) {
       return refreshed;
     }
   }
 
   try {
-    const user = await createUserService().get(userId);
-    return { user };
+    const user = await deps.getUser(userId);
+    return { user: await withSessionEmailVerified(user, cookieHeader, deps) };
   } catch (error) {
     if (error instanceof NotFoundError) {
       if (isOnboardingDevBypassEnabled()) {
@@ -54,7 +82,7 @@ export async function getUserWithAccessRetry(
     }
 
     if (error instanceof AuthorizationError) {
-      const retried = await retryAfterTokenRefresh(userId, cookieHeader);
+      const retried = await retryAfterTokenRefresh(userId, cookieHeader, deps);
       if (retried) {
         return retried;
       }
@@ -70,17 +98,18 @@ export async function getUserWithAccessRetry(
 
 async function retryAfterTokenRefresh(
   userId: string,
-  cookieHeader: string | null
+  cookieHeader: string | null,
+  deps: UserAccessDeps
 ): Promise<{ user: User; refreshedHeaders: Headers } | null> {
-  const { refreshToken, rawSession: refreshRaw } = await AuthService.getRefreshToken(cookieHeader);
-  const { rawSession: sessionRaw } = await AuthService.getSession(cookieHeader);
+  const { refreshToken, rawSession: refreshRaw } = await deps.auth.getRefreshToken(cookieHeader);
+  const { rawSession: sessionRaw } = await deps.auth.getSession(cookieHeader);
 
   if (!refreshToken) {
     return null;
   }
 
   try {
-    const { session: newSession, headers } = await AuthService.refreshTokens(
+    const { session: newSession, headers } = await deps.auth.refreshTokens(
       refreshToken,
       sessionRaw,
       refreshRaw
@@ -91,11 +120,29 @@ async function retryAfterTokenRefresh(
       reqCtx.token = newSession.accessToken;
     }
 
-    const user = await createUserService().get(userId);
-    return { user, refreshedHeaders: headers };
+    const user = await deps.getUser(userId);
+    return {
+      user: { ...user, emailVerified: newSession.emailVerified },
+      refreshedHeaders: headers,
+    };
   } catch {
     return null;
   }
+}
+
+/**
+ * Verification lives on the id_token, not on the milo User, so it has to be
+ * overlaid after the fetch. Reading the session rather than the resource is
+ * what makes a stale claim possible — callers waiting on verification must
+ * force a refresh (`refreshBeforeRead`) rather than poll this alone.
+ */
+async function withSessionEmailVerified(
+  user: User,
+  cookieHeader: string | null,
+  deps: UserAccessDeps
+): Promise<User> {
+  const { session } = await deps.auth.getSession(cookieHeader);
+  return { ...user, emailVerified: session?.emailVerified === true };
 }
 
 export function appendSetCookieHeaders(target: Headers, source?: Headers): void {

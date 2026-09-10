@@ -7,6 +7,7 @@ import type {
   QueryBuilderFunction,
   QueryBuilderContext,
 } from '@/modules/metrics/types/metrics.type';
+import { resolveChartStep } from '@/modules/metrics/utils/chart-axis';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import {
   type FormattedMetricData,
@@ -208,10 +209,12 @@ export function usePrometheusChart(
   // Use context values if not provided in options
   const queryContext = React.useMemo(() => {
     const context = buildQueryContext();
+    const timeRange = optionsTimeRange || context.timeRange;
+    const rangeMs = timeRange.end.getTime() - timeRange.start.getTime();
     return {
       ...context,
-      timeRange: optionsTimeRange || context.timeRange,
-      step: optionsStep || context.step,
+      timeRange,
+      step: resolveChartStep(optionsStep || context.step, rangeMs),
     };
   }, [buildQueryContext, optionsTimeRange, optionsStep, urlTimeRange, urlStep]);
 

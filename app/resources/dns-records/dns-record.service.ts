@@ -270,13 +270,15 @@ export function createDnsRecordService() {
     },
 
     /**
-     * Find RecordSet by zone and type
+     * List RecordSets for a zone and record type.
+     * Callers must match on owner name — a zone can have multiple RecordSets
+     * of the same type (e.g. apex TXT vs subdomain TXT).
      */
-    async findByTypeAndZone(
+    async listByTypeAndZone(
       projectId: string,
       dnsZoneId: string,
       recordType: string
-    ): Promise<DnsRecordSet | undefined> {
+    ): Promise<DnsRecordSet[]> {
       const startTime = Date.now();
 
       try {
@@ -291,14 +293,14 @@ export function createDnsRecordService() {
         const data = response.data as ComMiloapisNetworkingDnsV1Alpha1DnsRecordSetList;
         const items = (data?.items ?? []).map(toDnsRecordSet);
 
-        logger.service(SERVICE_NAME, 'findByTypeAndZone', {
+        logger.service(SERVICE_NAME, 'listByTypeAndZone', {
           input: { projectId, dnsZoneId, recordType },
           duration: Date.now() - startTime,
         });
 
-        return items.length > 0 ? items[0] : undefined;
+        return items;
       } catch (error) {
-        logger.error(`${SERVICE_NAME}.findByTypeAndZone failed`, error as Error);
+        logger.error(`${SERVICE_NAME}.listByTypeAndZone failed`, error as Error);
         throw mapApiError(error);
       }
     },

@@ -105,11 +105,17 @@ describe('Organisations — regression', () => {
 
   it('should show quotas on the org quotas tab', () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.quotas, { orgId: resourceId }));
-    // Quotas are provisioned async after org creation — allow extra time
-    cy.get('[data-e2e="org-quota-card"]', { timeout: 15000 }).should('have.length.at.least', 1);
+    // Quotas are provisioned async after org creation — allow extra time.
+    // 45s, raised from 15s, for the same control-plane slowdown that pushed the
+    // project quota tab past its budget. See #1502.
+    cy.get('[data-e2e="org-quota-card"]', { timeout: 45000 }).should('have.length.at.least', 1);
   });
 
-  it('should delete the org and remove it from the list', () => {
+  // No retries: this test removes the resource the earlier tests set up, and
+  // cypress replays only the failed test, never before(). A second attempt
+  // would look for something the first attempt already deleted and report a
+  // missing element instead of the assertion that actually failed.
+  it('should delete the org and remove it from the list', { retries: 0 }, () => {
     cy.visit(getPathWithParams(paths.org.detail.settings.general, { orgId: resourceId }));
     cy.get('[data-e2e="delete-organization-button"]', { timeout: 10000 }).should('exist');
     cy.wait(500);
@@ -126,8 +132,10 @@ describe('Organisations — regression', () => {
     // other orgs are still listed, and the generous timeout absorbs the
     // post-delete list invalidation/refetch. Newly created orgs are typeless, so
     // match any card variant with a prefix selector.
+    // 45s, raised from 15s: org deletion went from 3.0s to 4.7s and the project
+    // equivalent overran its budget outright. See #1502.
     cy.contains('[data-e2e^="organization-card"]', testName, {
-      timeout: 15000,
+      timeout: 45000,
     }).should('not.exist');
     cy.task('releaseTestOrg', resourceId, { log: false });
     // Clear last — signals after() that cleanup is done

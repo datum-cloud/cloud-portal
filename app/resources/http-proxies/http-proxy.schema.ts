@@ -86,6 +86,14 @@ export const httpProxyResourceSchema = z.object({
       detection: z.number().int().min(1).max(4).optional(),
     })
     .optional(),
+  /** OWASP CRS rule exclusions from the linked TrafficProtectionPolicy (if present) */
+  ruleExclusions: z
+    .object({
+      tags: z.array(z.string()).optional(),
+      ids: z.array(z.number().int()).optional(),
+      idRanges: z.array(z.string()).optional(),
+    })
+    .optional(),
   /** Whether HTTP to HTTPS redirect is enabled */
   enableHttpRedirect: z.boolean().optional(),
   /** Connector referenced by the backend rule (if any) */
@@ -146,6 +154,13 @@ export type HttpProxyList = z.infer<typeof httpProxyListSchema>;
 export const trafficProtectionModeSchema = z.enum(['Observe', 'Enforce', 'Disabled']);
 export type TrafficProtectionMode = z.infer<typeof trafficProtectionModeSchema>;
 
+export const wafRuleExclusionsSchema = z.object({
+  tags: z.array(z.string()).optional(),
+  ids: z.array(z.number().int()).optional(),
+  idRanges: z.array(z.string()).optional(),
+});
+export type WafRuleExclusions = z.infer<typeof wafRuleExclusionsSchema>;
+
 /**
  * A single basic auth user credential.
  * Passwords are write-only — never returned from the server.
@@ -174,6 +189,8 @@ export type CreateHttpProxyInput = {
     blocking?: number;
     detection?: number;
   };
+  /** OWASP CRS rule exclusions for the TrafficProtectionPolicy */
+  ruleExclusions?: WafRuleExclusions;
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
   /**
@@ -199,6 +216,11 @@ export type UpdateHttpProxyInput = {
     blocking?: number;
     detection?: number;
   };
+  /**
+   * Optional update to OWASP CRS rule exclusions.
+   * `null` clears catalog exclusions while preserving non-catalog ids.
+   */
+  ruleExclusions?: WafRuleExclusions | null;
   /** When true, removes the TrafficProtectionPolicy (deletes WAF config). */
   removeTrafficProtection?: boolean;
   /** Enable HTTP to HTTPS redirect */

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // cypress/support/RemixStub.tsx
 import React from 'react';
 import { createMemoryRouter, RouterProvider, RouteObject } from 'react-router';
@@ -74,7 +73,7 @@ export const RemixStub: React.FC<RemixStubProps> = ({
   // Mock session storage
   React.useEffect(() => {
     const mockStorage: Record<string, string> = {
-      APP_URL: Cypress.env('APP_URL') || 'http://localhost:3000',
+      APP_URL: Cypress.expose('APP_URL') || 'http://localhost:3000',
     };
 
     // Mock sessionStorage
@@ -138,7 +137,6 @@ export const RemixStub: React.FC<RemixStubProps> = ({
 
   // Apply mock navigation state if provided
   if (remixStubProps.navigation) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - Accessing internal properties for testing
     router.state.navigation = remixStubProps.navigation;
   }

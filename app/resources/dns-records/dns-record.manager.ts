@@ -9,6 +9,7 @@ import {
   isDuplicateRecord,
   findRecordIndex,
   transformFormToRecord,
+  normalizeRecordName,
 } from '@/utils/helpers/dns-record.helper';
 
 // =============================================================================
@@ -121,8 +122,13 @@ export class DnsRecordManager {
       // Transform form data to K8s record format
       const transformed = transformFormToRecord(record);
 
-      // Resolve RecordSet for this type+zone
-      const resolution = await this.resolveRecordSet(projectId, zoneId, record.recordType);
+      // Resolve the RecordSet that already owns this (type, name) pair
+      const resolution = await this.resolveRecordSet(
+        projectId,
+        zoneId,
+        record.recordType,
+        transformed.name
+      );
 
       if (resolution.exists && resolution.recordSet) {
         // Check for duplicate
@@ -348,27 +354,25 @@ export class DnsRecordManager {
     const allDetails: ImportRecordDetail[] = [];
 
     try {
-      // Group by record type
-      const grouped = this.groupByType(records);
+      // Group by (type, name) so each owner name resolves independently
+      const grouped = this.groupByTypeAndName(records);
 
-      // Process each type sequentially (prevents race conditions)
-      for (const [recordType, typeRecords] of grouped) {
-        summary.totalRecords += typeRecords.length;
+      // Process each (type, name) group sequentially (prevents race conditions)
+      for (const { recordType, name, records: namedRecords } of grouped.values()) {
+        summary.totalRecords += namedRecords.length;
 
         try {
-          // Resolve RecordSet for this type
-          const resolution = await this.resolveRecordSet(projectId, zoneId, recordType);
+          const resolution = await this.resolveRecordSet(projectId, zoneId, recordType, name);
 
-          // Merge records with duplicate detection
           const { merged, details, counts } = this.mergeRecords(
             resolution.recordSet?.records || [],
-            typeRecords,
+            namedRecords,
             recordType,
+            name,
             opts,
             !resolution.exists
           );
 
-          // Only make API call if there are changes
           const hasChanges =
             merged.length > (resolution.recordSet?.records?.length || 0) ||
             opts.mergeStrategy === 'replace';
@@ -385,14 +389,12 @@ export class DnsRecordManager {
             }
           }
 
-          // Aggregate results
           allDetails.push(...details);
           summary.created += counts.created;
           summary.updated += counts.updated;
           summary.skipped += counts.skipped;
         } catch (error: any) {
-          // Mark all records of this type as failed
-          for (const record of typeRecords) {
+          for (const record of namedRecords) {
             const value = extractValue(record, recordType);
             allDetails.push({
               recordType,
@@ -404,7 +406,6 @@ export class DnsRecordManager {
             });
             summary.failed++;
           }
-          // Continue processing other types (partial failure support)
         }
       }
 
@@ -430,16 +431,28 @@ export class DnsRecordManager {
   // ===========================================================================
 
   /**
-   * Resolve RecordSet for a given type and zone
-   * Returns whether it exists and the RecordSet if found
+   * Resolve the RecordSet that owns this (type, name) pair in the zone.
+   * A zone can have multiple RecordSets of the same type at different names.
    */
   private async resolveRecordSet(
     projectId: string,
     zoneId: string,
-    recordType: string
+    recordType: string,
+    name: string
   ): Promise<RecordSetResolution> {
-    const existing = await this.service.findByTypeAndZone(projectId, zoneId, recordType);
+    const candidates = await this.service.listByTypeAndZone(projectId, zoneId, recordType);
+    const existing = this.findOwningRecordSet(candidates, name);
     return existing ? { exists: true, recordSet: existing } : { exists: false };
+  }
+
+  /**
+   * Find the RecordSet whose records[] include the target owner name
+   */
+  private findOwningRecordSet(recordSets: DnsRecordSet[], name: string): DnsRecordSet | undefined {
+    const target = normalizeRecordName(name);
+    return recordSets.find((recordSet) =>
+      (recordSet.records || []).some((record) => normalizeRecordName(record.name) === target)
+    );
   }
 
   /**
@@ -458,20 +471,24 @@ export class DnsRecordManager {
   }
 
   /**
-   * Merge incoming records with existing records based on strategy
+   * Merge incoming records with existing records based on strategy.
+   * Replace only swaps entries at the group's owner name so other names
+   * already on the same RecordSet are left intact.
    */
   private mergeRecords(
     existingRecords: any[],
     incomingRecords: any[],
     recordType: string,
+    groupName: string,
     options: Required<BulkImportOptions>,
     isNewRecordSet: boolean
   ): MergeResult {
     const details: ImportRecordDetail[] = [];
     const counts = { created: 0, updated: 0, skipped: 0 };
 
-    // Replace strategy: all incoming records replace existing
     if (options.mergeStrategy === 'replace') {
+      const target = normalizeRecordName(groupName);
+      const kept = existingRecords.filter((record) => normalizeRecordName(record.name) !== target);
       for (const record of incomingRecords) {
         const value = extractValue(record, recordType);
         details.push({
@@ -488,7 +505,7 @@ export class DnsRecordManager {
           counts.updated++;
         }
       }
-      return { merged: incomingRecords, details, counts };
+      return { merged: [...kept, ...incomingRecords], details, counts };
     }
 
     // Append strategy: merge with duplicate detection
@@ -531,17 +548,28 @@ export class DnsRecordManager {
   }
 
   /**
-   * Group discovery recordSets by record type
+   * Group discovery records by (recordType, normalized owner name)
    */
-  private groupByType(discoveryRecordSets: IDnsZoneDiscoveryRecordSet[]): Map<string, any[]> {
-    const grouped = new Map<string, any[]>();
+  private groupByTypeAndName(
+    discoveryRecordSets: IDnsZoneDiscoveryRecordSet[]
+  ): Map<string, { recordType: string; name: string; records: any[] }> {
+    const grouped = new Map<string, { recordType: string; name: string; records: any[] }>();
 
-    discoveryRecordSets.forEach((recordSet) => {
+    for (const recordSet of discoveryRecordSets) {
       const { recordType, records } = recordSet;
-      if (recordType && records) {
-        grouped.set(recordType, records);
+      if (!recordType || !records) continue;
+
+      for (const record of records) {
+        const name = normalizeRecordName(record.name);
+        const key = `${recordType}::${name}`;
+        const existing = grouped.get(key);
+        if (existing) {
+          existing.records.push(record);
+        } else {
+          grouped.set(key, { recordType, name, records: [record] });
+        }
       }
-    });
+    }
 
     return grouped;
   }

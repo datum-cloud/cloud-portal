@@ -9,7 +9,9 @@ import { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { extractValue } from '@/utils/helpers/dns/flatten.helper';
+import { normalizeRecordName } from '@/utils/helpers/dns/record-comparison.helper';
 import { getDnsRecordTypePriority } from '@/utils/helpers/dns/record-type.helper';
+import { sanitizeForK8s } from '@/utils/helpers/format.helper';
 
 /** Labels set by the Gateway controller when a DNSRecordSet is created for Application Load Balancer (proxy) */
 const DNS_SOURCE_KIND_LABEL = 'dns.datumapis.com/source-kind';
@@ -133,6 +135,31 @@ export function toFlattenedDnsRecordsByPriority(recordSets: DnsRecordSet[]): Fla
 }
 
 /**
+ * Replace flattened list rows for one RecordSet with rows from that object.
+ * Used by create/update mutations and by the RecordSet watch (cache is flattened
+ * rows, watch events are whole RecordSets).
+ */
+export function mergeRecordSetIntoListCache(
+  old: FlattenedDnsRecord[] | undefined,
+  recordSet: DnsRecordSet
+): FlattenedDnsRecord[] {
+  const newRows = toFlattenedDnsRecords([recordSet]);
+  if (!old) return newRows;
+  return [...old.filter((record) => record.recordSetName !== recordSet.name), ...newRows];
+}
+
+/**
+ * Drop every flattened row that belonged to a deleted RecordSet.
+ */
+export function removeRecordSetFromListCache(
+  old: FlattenedDnsRecord[] | undefined,
+  recordSetName: string
+): FlattenedDnsRecord[] | undefined {
+  if (!old) return old;
+  return old.filter((record) => record.recordSetName !== recordSetName);
+}
+
+/**
  * Extract TTL from record
  */
 function extractTTL(record: any): number | undefined {
@@ -143,17 +170,35 @@ function extractTTL(record: any): number | undefined {
 }
 
 /**
+ * DNS-1123 owner suffix for a RecordSet resource name.
+ * Apex (`@` / empty) becomes `apex` so same-type RecordSets at different
+ * names do not collide on `{zone}-{type}`.
+ */
+export function ownerNameForResource(name: string | undefined | null): string {
+  const normalized = normalizeRecordName(name);
+  if (normalized === '@') return 'apex';
+  if (normalized === '*') return 'wildcard';
+  if (normalized.startsWith('*.')) {
+    const rest = sanitizeForK8s(normalized.slice(2)).replace(/^\.+|\.+$/g, '');
+    return rest ? `wildcard-${rest}` : 'wildcard';
+  }
+  const sanitized = sanitizeForK8s(normalized).replace(/^\.+|\.+$/g, '');
+  return sanitized || 'apex';
+}
+
+/**
  * Transform CreateDnsRecordSetInput to API payload
  */
 export function toCreateDnsRecordSetPayload(
   input: CreateDnsRecordSetInput,
   dnsZoneId: string
 ): ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet {
+  const ownerName = ownerNameForResource(input.records?.[0]?.name);
   return {
     kind: 'DNSRecordSet',
     apiVersion: 'dns.networking.miloapis.com/v1alpha1',
     metadata: {
-      name: `${dnsZoneId}-${input.recordType}`.toLowerCase(),
+      name: `${dnsZoneId}-${input.recordType}-${ownerName}`.toLowerCase(),
     },
     spec: {
       dnsZoneRef: input.dnsZoneRef,

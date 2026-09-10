@@ -7,11 +7,13 @@ import {
 } from './http-proxy.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
+import { domainKeys } from '@/resources/domains/domain.service';
 import { locationKeys } from '@/resources/locations';
 import { serviceEntitlementKeys } from '@/resources/service-entitlements';
 import {
   useQuery,
   useQueryClient,
+  type QueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
@@ -94,6 +96,23 @@ export function useTrafficProtectionPolicy(
   });
 }
 
+/**
+ * The backend reconciles proxy hostnames into `Domain` resources, so a proxy
+ * write can create domains no client-side domain mutation ever touched. The
+ * domains list is served from cache by its route's `clientLoader`, which only
+ * falls through to the server loader once the query is marked invalidated.
+ */
+function invalidateDomainsForHostnames(
+  queryClient: QueryClient,
+  projectId: string,
+  hostnames: string[] | undefined
+): void {
+  if (hostnames === undefined) return;
+  // Prefix-match on the project rather than domainKeys.list(projectId), whose
+  // trailing `params` slot would miss any paginated variant of the same list.
+  queryClient.invalidateQueries({ queryKey: [...domainKeys.lists(), projectId] });
+}
+
 export function useCreateHttpProxy(
   projectId: string,
   options?: UseMutationOptions<HttpProxy, Error, CreateHttpProxyInput>
@@ -106,12 +125,13 @@ export function useCreateHttpProxy(
       createHttpProxyService().create(projectId, input) as Promise<HttpProxy>,
     ...options,
     onSuccess: (...args) => {
-      const [newHttpProxy] = args;
+      const [newHttpProxy, input] = args;
       queryClient.setQueryData(httpProxyKeys.detail(projectId, newHttpProxy.name), newHttpProxy);
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
       queryClient.invalidateQueries({ queryKey: serviceEntitlementKeys.active(projectId) });
       queryClient.invalidateQueries({ queryKey: locationKeys.list(projectId) });
+      invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
 
       options?.onSuccess?.(...args);
       void invalidateAllowanceBuckets(queryClient);
@@ -180,7 +200,8 @@ export function useUpdateHttpProxy(
       const touchesWaf =
         input.removeTrafficProtection ||
         input.trafficProtectionMode !== undefined ||
-        input.paranoiaLevels !== undefined;
+        input.paranoiaLevels !== undefined ||
+        input.ruleExclusions !== undefined;
       if (touchesWaf) {
         await queryClient.cancelQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
         previousWaf = queryClient.getQueryData<TrafficProtectionView | null>(
@@ -190,10 +211,15 @@ export function useUpdateHttpProxy(
           httpProxyKeys.wafDetail(projectId, name),
           (old) => {
             if (input.removeTrafficProtection)
-              return { mode: undefined, paranoiaLevels: undefined };
+              return { mode: undefined, paranoiaLevels: undefined, ruleExclusions: undefined };
             return {
+              ...old,
               mode: input.trafficProtectionMode ?? old?.mode,
               paranoiaLevels: input.paranoiaLevels ?? old?.paranoiaLevels,
+              ruleExclusions:
+                input.ruleExclusions === undefined
+                  ? old?.ruleExclusions
+                  : (input.ruleExclusions ?? undefined),
             };
           }
         );
@@ -212,11 +238,16 @@ export function useUpdateHttpProxy(
       }
       options?.onError?.(err, _input, context, mutationContext);
     },
-    onSuccess: async (...args) => {
-      await queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+    onSuccess: (...args) => {
+      const [, input] = args;
+      // Not awaited: `onMutate` already applied the optimistic edit, and an
+      // awaited invalidation holds `mutateAsync` open for a full re-GET, which
+      // strands the calling dialog in its saving state (#1491).
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
       queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+      invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
 
       options?.onSuccess?.(...args);
     },

@@ -1,5 +1,7 @@
+import { isEmailNotVerifiedDenial } from '@/features/account/email-verification/email-verification-error';
 import { extractQuotaDenialLabels, quotaDeniedTotal } from '@/server/observability/quota-metrics';
 import type { Variables } from '@/server/types';
+import { AuthService } from '@/utils/auth';
 import { env } from '@/utils/env/env.server';
 import { Hono } from 'hono';
 
@@ -53,12 +55,20 @@ proxyRoutes.all('/*', async (c) => {
       upstreamHeaders['X-Forwarded-For'] = clientIP;
     }
 
-    const response = await fetch(`${env.public.apiUrl}${path}${queryString}`, {
-      method: c.req.method,
-      headers: upstreamHeaders,
-      body: c.req.method !== 'GET' ? await c.req.text() : undefined,
-      signal: controller.signal,
-    });
+    // Read once: a verification retry below re-sends the same body, and
+    // c.req.text() is not guaranteed to survive a second call.
+    const requestBody = c.req.method !== 'GET' ? await c.req.text() : undefined;
+
+    const callUpstream = (accessToken: string) =>
+      fetch(`${env.public.apiUrl}${path}${queryString}`, {
+        method: c.req.method,
+        headers: { ...upstreamHeaders, Authorization: `Bearer ${accessToken}` },
+        body: requestBody,
+        signal: controller.signal,
+      });
+
+    let response = await callUpstream(session.accessToken);
+    let rotatedCookies: Headers | undefined;
 
     // Remove encoding headers to prevent double-decoding
     const headers = new Headers(response.headers);
@@ -68,12 +78,34 @@ proxyRoutes.all('/*', async (c) => {
     // Count real quota rejections (the "advisory gate missed" signal). Non-watch
     // 403s only — watch streams must keep streaming untouched.
     if (response.status === 403 && !isWatch) {
-      const text = await response.text();
+      let text = await response.text();
       const labels = extractQuotaDenialLabels(text);
       if (labels) {
         quotaDeniedTotal.inc(labels);
       }
-      return new Response(text, { status: response.status, headers });
+
+      // A verification denial is more often a stale TokenReview than a genuinely
+      // unverified account: the apiserver caches reviews per token for ~2
+      // minutes, so milo can still be holding "unverified" after the user has
+      // verified. Refreshing mints a new token, which is a new cache key, so the
+      // next call re-introspects. Same shape as getUserWithAccessRetry's 403
+      // retry.
+      //
+      // Once only. If it survives a fresh introspection the account really is
+      // unverified, and the client redirects to /verify-email on the cause.
+      if (isEmailNotVerifiedDenial(text)) {
+        const retried = await retryAfterRefresh(c.req.header('Cookie') ?? null, callUpstream);
+        if (retried) {
+          response = retried.response;
+          rotatedCookies = retried.cookies;
+          text = await response.text();
+        }
+      }
+
+      const outHeaders = withRotatedCookies(new Headers(response.headers), rotatedCookies);
+      outHeaders.delete('content-encoding');
+      outHeaders.delete('transfer-encoding');
+      return new Response(text, { status: response.status, headers: outHeaders });
     }
 
     return new Response(response.body, {
@@ -89,3 +121,42 @@ proxyRoutes.all('/*', async (c) => {
     return c.json({ error: error instanceof Error ? error.message : 'Proxy error' }, 502);
   }
 });
+
+/**
+ * Refresh the session and re-issue the upstream call once. Returns null when
+ * there is nothing to refresh with, or the refresh itself fails — the caller
+ * then returns the original 403 rather than masking it.
+ */
+async function retryAfterRefresh(
+  cookieHeader: string | null,
+  callUpstream: (accessToken: string) => Promise<Response>
+): Promise<{ response: Response; cookies: Headers } | null> {
+  const { refreshToken, rawSession: refreshRaw } = await AuthService.getRefreshToken(cookieHeader);
+  if (!refreshToken) return null;
+
+  const { rawSession: sessionRaw } = await AuthService.getSession(cookieHeader);
+
+  try {
+    const { session, headers } = await AuthService.refreshTokens(
+      refreshToken,
+      sessionRaw,
+      refreshRaw
+    );
+    return { response: await callUpstream(session.accessToken), cookies: headers };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Zitadel rotates refresh tokens, so a rotation the browser never receives
+ * leaves the next request presenting one the IdP has already invalidated.
+ */
+function withRotatedCookies(target: Headers, rotated?: Headers): Headers {
+  rotated?.forEach((value, key) => {
+    if (key.toLowerCase() === 'set-cookie') {
+      target.append('Set-Cookie', value);
+    }
+  });
+  return target;
+}

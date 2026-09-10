@@ -49,12 +49,31 @@ const DISABLED_REGRESSION_SPECS = [
   '**/regression/dns-zones.cy.ts',
 ];
 
+/** Mirrors how Cypress coerced CYPRESS_-prefixed shell flags before 16 stopped forwarding them. */
+const isFlagSet = (value: string | undefined): boolean => value === 'true' || value === '1';
+
 export default defineConfig({
+  // Node-side values. `cy.env()` reads them from inside a test and they never
+  // reach the browser, which is where the fixture credentials belong.
   env: {
     CYPRESS: 'true',
-    APP_URL: process.env.CYPRESS_BASE_URL,
     ACCESS_TOKEN: process.env.ACCESS_TOKEN,
     SUB: process.env.SUB,
+  },
+  // Browser-side values, read synchronously with `Cypress.expose()`. Cypress 16
+  // no longer hydrates `env` or the CYPRESS_-prefixed shell variables into the
+  // browser, so everything a spec or support file reads there is forwarded here.
+  expose: {
+    APP_URL: process.env.CYPRESS_BASE_URL,
+    // Forwarded so a spec can tell which position the server under test is in.
+    // The server reads the unprefixed name — without this line the two disagree
+    // and the spec asserts off-position behaviour against an on-position server.
+    EMAIL_VERIFICATION_GATE: process.env.EMAIL_VERIFICATION_GATE,
+    // Opt-in switches, still set with their CYPRESS_ prefix from the shell.
+    E2E_ALLOW_AMBIENT_APIS: isFlagSet(process.env.CYPRESS_E2E_ALLOW_AMBIENT_APIS),
+    E2E_SILENCE_INFO_LOGS: isFlagSet(process.env.CYPRESS_E2E_SILENCE_INFO_LOGS),
+    TEST_PROJECT_ID: process.env.CYPRESS_TEST_PROJECT_ID,
+    TEST_SERVICE_ACCOUNT_ID: process.env.CYPRESS_TEST_SERVICE_ACCOUNT_ID,
   },
   e2e: {
     // Required to type into Stripe PaymentElement / AddressElement iframes (js.stripe.com).
@@ -122,6 +141,17 @@ export default defineConfig({
     viewportHeight: 720,
     video: true,
     screenshotOnRunFailure: true,
+    // These specs create real resources against shared staging, so a slow
+    // provision or a dropped request fails a run that a second attempt would
+    // pass. Retries cost nothing when the suite is healthy: only a failing
+    // test runs again.
+    //
+    // They rescue idempotent assertions, not destructive ones. Cypress re-runs
+    // the failed test and beforeEach, never before(), so a suite that creates
+    // its resource once and deletes it in the last test cannot retry that
+    // delete against a resource it already removed. Those tests have to assert
+    // something a second attempt can still observe.
+    retries: { runMode: 2, openMode: 0 },
     specPattern: 'cypress/e2e/{smoke,regression,quota}/**/*.{cy,spec}.{js,jsx,ts,tsx}',
     excludeSpecPattern: process.env.RUN_DISABLED_SPECS ? [] : DISABLED_REGRESSION_SPECS,
   },

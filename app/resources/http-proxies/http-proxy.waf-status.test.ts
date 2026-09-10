@@ -3,6 +3,7 @@ import {
   formatWafProtectionStatusTooltip,
   getWafProtectionState,
   isTrafficProtectionProgrammed,
+  mergeTrafficProtectionView,
 } from './http-proxy.waf-status';
 import { describe, expect, it } from 'bun:test';
 
@@ -12,7 +13,7 @@ describe('isTrafficProtectionProgrammed', () => {
     expect(isTrafficProtectionProgrammed({ ancestors: [] })).toBe(false);
   });
 
-  it('requires Accepted and Programmed True on every ancestor', () => {
+  it('requires Programmed True on every Accepted ancestor', () => {
     expect(
       isTrafficProtectionProgrammed({
         ancestors: [
@@ -38,6 +39,66 @@ describe('isTrafficProtectionProgrammed', () => {
         ],
       })
     ).toBe(false);
+  });
+
+  it('ignores ancestors that are not Accepted', () => {
+    expect(
+      isTrafficProtectionProgrammed({
+        ancestors: [
+          {
+            conditions: [
+              { type: 'Accepted', status: 'True' },
+              { type: 'Programmed', status: 'True' },
+            ],
+          },
+          {
+            conditions: [{ type: 'Accepted', status: 'False' }],
+          },
+        ],
+      })
+    ).toBe(true);
+  });
+});
+
+describe('mergeTrafficProtectionView', () => {
+  it('keeps Programmed when the incoming view omitted status', () => {
+    expect(
+      mergeTrafficProtectionView(
+        {
+          mode: 'Enforce',
+          policyName: 'alb',
+          programmed: true,
+        },
+        { mode: 'Enforce', policyName: 'alb' }
+      )
+    ).toEqual({
+      mode: 'Enforce',
+      policyName: 'alb',
+      programmed: true,
+    });
+  });
+
+  it('drops events for a different policy name', () => {
+    const current = { policyName: 'alb-protection', programmed: true };
+    expect(
+      mergeTrafficProtectionView(current, {
+        policyName: 'alb',
+        programmed: false,
+      })
+    ).toEqual(current);
+  });
+
+  it('applies an explicit Programmed=false from the same policy', () => {
+    expect(
+      mergeTrafficProtectionView(
+        { policyName: 'alb', programmed: true },
+        { policyName: 'alb', programmed: false, programmedMessage: 'Waiting for edges' }
+      )
+    ).toEqual({
+      policyName: 'alb',
+      programmed: false,
+      programmedMessage: 'Waiting for edges',
+    });
   });
 });
 

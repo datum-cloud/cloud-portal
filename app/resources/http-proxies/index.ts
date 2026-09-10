@@ -9,6 +9,8 @@ export {
   type UpdateHttpProxyInput,
   trafficProtectionModeSchema,
   type TrafficProtectionMode,
+  wafRuleExclusionsSchema,
+  type WafRuleExclusions,
   type BasicAuthUser,
   // Re-exported validation schemas
   httpProxyHostnameSchema,
@@ -86,11 +88,20 @@ export {
 export {
   getWafProtectionState,
   isTrafficProtectionProgrammed,
+  mergeTrafficProtectionView,
   getTrafficProtectionProgrammedMessage,
   getTrafficProtectionProgrammedReason,
   formatWafProtectionStatusTooltip,
   type WafProtectionState,
 } from './http-proxy.waf-status';
+
+export {
+  OWASP_CRS_CATEGORIES,
+  disabledCategoryIds,
+  isCategoryEnabled,
+  mergeCatalogExclusions,
+} from './owasp-crs-catalog';
+export type { OwaspCrsCategory } from './owasp-crs-catalog';
 // Condition constants and helpers for TLS/certificate status (network-services-operator)
 export {
   HTTP_PROXY_CONDITION_CERTIFICATES_READY,
@@ -101,10 +112,15 @@ export {
   getCertificateReadyCondition,
   getCertificatesReadyDisplay,
   getCertificateReadyDisplay,
+  HOSTNAME_CONDITION_DNS_RECORD_PROGRAMMED,
+  DnsRecordProgrammedReason,
+  getDnsRecordProgrammedCondition,
+  getDnsRecordProgrammedDisplay,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,
   CertificateReadyReasonType,
+  DnsRecordProgrammedReasonType,
   ConditionLike,
   HttpProxyStatusLike,
   HostnameStatusLike,

@@ -1,4 +1,7 @@
 import {
+  mergeRecordSetIntoListCache,
+  ownerNameForResource,
+  removeRecordSetFromListCache,
   toCreateDnsRecordSetPayload,
   toDnsRecordSet,
   toDnsRecordSetList,
@@ -146,15 +149,116 @@ describe('toFlattenedDnsRecords', () => {
   });
 });
 
+describe('mergeRecordSetIntoListCache', () => {
+  it('replaces only the rows for that RecordSet after a record is removed', () => {
+    const previous = toFlattenedDnsRecords([
+      {
+        uid: 'rs-txt',
+        name: 'zone-txt-apex',
+        recordType: 'TXT',
+        dnsZoneId: 'z',
+        records: [
+          { name: '@', txt: { content: 'keep' } },
+          { name: '@', txt: { content: 'drop' } },
+        ],
+      },
+      {
+        uid: 'rs-www',
+        name: 'zone-txt-www',
+        recordType: 'TXT',
+        dnsZoneId: 'z',
+        records: [{ name: 'www', txt: { content: 'www-verify' } }],
+      },
+    ] as never);
+
+    const patched = {
+      uid: 'rs-txt',
+      name: 'zone-txt-apex',
+      recordType: 'TXT',
+      dnsZoneId: 'z',
+      records: [{ name: '@', txt: { content: 'keep' } }],
+    } as DnsRecordSet;
+
+    const merged = mergeRecordSetIntoListCache(previous, patched);
+    expect(merged.map((r) => `${r.recordSetName}:${r.value}`).sort()).toEqual([
+      'zone-txt-apex:keep',
+      'zone-txt-www:www-verify',
+    ]);
+  });
+});
+
+describe('removeRecordSetFromListCache', () => {
+  it('drops every flattened row for a deleted RecordSet', () => {
+    const previous = toFlattenedDnsRecords([
+      {
+        uid: 'rs-txt',
+        name: 'zone-txt-apex',
+        recordType: 'TXT',
+        dnsZoneId: 'z',
+        records: [{ name: '@', txt: { content: 'gone' } }],
+      },
+      {
+        uid: 'rs-www',
+        name: 'zone-txt-www',
+        recordType: 'TXT',
+        dnsZoneId: 'z',
+        records: [{ name: 'www', txt: { content: 'stay' } }],
+      },
+    ] as never);
+
+    const remaining = removeRecordSetFromListCache(previous, 'zone-txt-apex');
+    expect(remaining?.map((r) => r.recordSetName)).toEqual(['zone-txt-www']);
+  });
+});
+
+describe('ownerNameForResource', () => {
+  it('maps apex names to apex', () => {
+    expect(ownerNameForResource('@')).toBe('apex');
+    expect(ownerNameForResource('')).toBe('apex');
+    expect(ownerNameForResource(undefined)).toBe('apex');
+  });
+
+  it('sanitizes service and wildcard names for DNS-1123', () => {
+    expect(ownerNameForResource('_dmarc')).toBe('dmarc');
+    expect(ownerNameForResource('*')).toBe('wildcard');
+    expect(ownerNameForResource('*.cdn')).toBe('wildcard-cdn');
+    expect(ownerNameForResource('www')).toBe('www');
+  });
+});
+
 describe('toCreateDnsRecordSetPayload', () => {
-  it('derives a lowercased name from zone id + record type', () => {
+  it('includes a sanitized owner suffix so same-type RecordSets do not collide', () => {
+    const payload = toCreateDnsRecordSetPayload(
+      {
+        dnsZoneRef: { name: 'acme-zone' },
+        recordType: 'TXT',
+        records: [{ name: '@', txt: { content: 'v=spf1 -all' } }],
+      } as never,
+      'Acme-Zone'
+    );
+    expect(payload.kind).toBe('DNSRecordSet');
+    expect(payload.metadata?.name).toBe('acme-zone-txt-apex');
+    expect(payload.spec?.recordType).toBe('TXT');
+  });
+
+  it('uses the owner name for subdomain RecordSets', () => {
+    const payload = toCreateDnsRecordSetPayload(
+      {
+        dnsZoneRef: { name: 'acme-zone' },
+        recordType: 'A',
+        records: [{ name: 'www', a: { content: '1.2.3.4' } }],
+      } as never,
+      'acme-zone'
+    );
+    expect(payload.metadata?.name).toBe('acme-zone-a-www');
+  });
+
+  it('defaults empty records to an apex suffix', () => {
     const payload = toCreateDnsRecordSetPayload(
       { dnsZoneRef: { name: 'acme-zone' }, recordType: 'A', records: [] } as never,
       'Acme-Zone'
     );
-    expect(payload.kind).toBe('DNSRecordSet');
-    expect(payload.metadata?.name).toBe('acme-zone-a');
-    expect(payload.spec?.recordType).toBe('A');
+    expect(payload.metadata?.name).toBe('acme-zone-a-apex');
   });
 });
 

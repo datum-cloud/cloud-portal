@@ -2,6 +2,7 @@ import { initializeObservability } from '../../observability';
 import { cspNonceContext, loggerContext, requestIdContext, sessionContext } from './context';
 import { sessionMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error-handler';
+import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
 import { createApiApp } from './routes/api';
@@ -98,6 +99,7 @@ if (env.public.otelEnabled) {
 }
 
 // Global middleware chain
+app.use('*', forwardedProtoMiddleware()); // Restores https:// behind the TLS-terminating gateway
 app.use('*', sentryTracingMiddleware());
 app.use(requestId());
 app.use('*', loggerMiddleware());

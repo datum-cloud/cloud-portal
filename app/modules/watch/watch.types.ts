@@ -94,4 +94,11 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
    * @example (oldData, newItem) => ({ ...newItem, preservedField: oldData.preservedField })
    */
   updateSingleCache?: (oldData: T | undefined, newItem: T) => T;
+  /**
+   * When false, watch events are forwarded to `onEvent` only — the hook does
+   * not write the query cache. Use when cache items are a different shape
+   * than the watched object (e.g. flattened DNS rows vs DNSRecordSet).
+   * @default true
+   */
+  applyCacheUpdates?: boolean;
 }

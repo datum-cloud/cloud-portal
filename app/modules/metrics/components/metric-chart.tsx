@@ -1,9 +1,12 @@
 /**
  * Generic metric chart component using Shadcn UI Chart components
  */
-import { DateTime } from '@/components/date-time';
 import { BaseMetric } from '@/modules/metrics/components/base-metric';
+import { MetricsChartTooltip } from '@/modules/metrics/components/metric-tooltip';
 import { AreaSeries, BarSeries, LineSeries } from '@/modules/metrics/components/series';
+import { DEFAULT_TIME_RANGE } from '@/modules/metrics/constants';
+import { useOptionalChartLegend } from '@/modules/metrics/context/chart-legend';
+import { useChartScale } from '@/modules/metrics/context/chart-scale';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import { usePrometheusChart } from '@/modules/metrics/hooks';
 import type { QueryBuilderFunction } from '@/modules/metrics/types/url.type';
@@ -14,10 +17,23 @@ import {
   formatChartTimeTick,
   getChartDataMax,
   getLinearYAxisScale,
+  pickEvenlySpaced,
+  resolveChartStep,
   sanitizeGradientId,
   type BucketAggregation,
 } from '@/modules/metrics/utils/chart-axis';
-import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
+import {
+  clearZoomOriginIfPreset,
+  consumeZoomOrigin,
+  rememberZoomOrigin,
+  resolveBrushTimeRange,
+  timestampFromChartEvent,
+  type ChartMouseState,
+} from '@/modules/metrics/utils/chart-brush';
+import { parseDurationToMs, serializeTimeRange } from '@/modules/metrics/utils/date-parsers';
+import { limitSeriesByVolume } from '@/modules/metrics/utils/limit-series';
+import { nextHiddenSeries } from '@/modules/metrics/utils/series-visibility';
+import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import {
   formatValue,
   transformForRecharts,
@@ -28,16 +44,20 @@ import {
 } from '@/modules/prometheus';
 import { useApp } from '@/providers/app.provider';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
+import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { useQueryState } from 'nuqs';
+import { ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@datum-cloud/datum-ui/chart';
-import { ReactNode, useCallback, useEffect, useMemo } from 'react';
-import { CartesianGrid, AreaChart, BarChart, LineChart, XAxis, YAxis, YAxisProps } from 'recharts';
+  AreaChart,
+  BarChart,
+  CartesianGrid,
+  LineChart,
+  ReferenceArea,
+  XAxis,
+  YAxis,
+  type YAxisProps,
+} from 'recharts';
 import { TooltipContentProps } from 'recharts/types/component/Tooltip';
 
 export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> {
@@ -84,6 +104,12 @@ export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> 
    */
   padToTimeRange?: boolean;
   /**
+   * Value written into empty step buckets when `padToTimeRange` is on.
+   * Counts/rates should stay `0`. Latency/quantiles should be `null` so
+   * no-traffic is a gap, not 0ms.
+   */
+  padEmptyValue?: number | null;
+  /**
    * Recharts syncId — when set, tooltip/cursor sync across charts sharing the same id.
    */
   syncId?: string;
@@ -91,15 +117,32 @@ export interface MetricChartProps extends Omit<PrometheusQueryOptions, 'query'> 
   hideXAxis?: boolean;
   /** Stack bar series at each timestamp (bar charts only). */
   stackBars?: boolean;
+  /** Stack area series at each timestamp (area charts only). */
+  stackAreas?: boolean;
+  /**
+   * Keep only the busiest N series and roll the rest into "Other".
+   * Use for high-cardinality breakdowns like HTTP status codes.
+   */
+  maxSeries?: number;
+  /**
+   * Share the Y-axis domain with sibling charts in a ChartScaleGroup.
+   * Use for WAF count charts so the same event volume is the same height.
+   */
+  shareYScale?: boolean;
+  /**
+   * Drag across the plot to set an absolute time range. Double-click restores
+   * the last relative preset. Defaults to true.
+   */
+  enableTimeZoom?: boolean;
   /**
    * Children to render below the chart
    */
   children?: ReactNode;
 }
 
-const CustomTooltip = ({ labelFormatter, ...props }: any) => {
-  return <ChartTooltipContent labelFormatter={labelFormatter} {...props} />;
-};
+const CustomTooltip = (props: TooltipContentProps<number, string>) => (
+  <MetricsChartTooltip {...props} />
+);
 
 export function MetricChart({
   query,
@@ -122,14 +165,27 @@ export function MetricChart({
   tooltipContent,
   colorOverrides,
   padToTimeRange = false,
+  padEmptyValue = 0,
   syncId,
   hideXAxis = false,
   stackBars = false,
+  stackAreas = false,
+  maxSeries,
+  shareYScale = false,
+  enableTimeZoom = true,
   children,
 }: MetricChartProps) {
   const { timeRange, step, buildQueryContext, filterState } = useMetrics();
   const { userPreferences } = useApp();
   const timezone = userPreferences?.timezone ?? getBrowserTimezone();
+  const legend = useOptionalChartLegend();
+  const [urlTimeRange, setUrlTimeRange] = useQueryState(
+    'timeRange',
+    createMetricsParser('string', DEFAULT_TIME_RANGE)
+  );
+  const [localHidden, setLocalHidden] = useState<Set<string>>(() => new Set());
+  const [brush, setBrush] = useState<{ start: number; end: number } | null>(null);
+  const brushRef = useRef<{ start: number; end: number } | null>(null);
 
   // Resolve custom API parameters - include filterState in dependencies to trigger re-evaluation
   const resolvedApiParams = useMemo(() => {
@@ -150,14 +206,20 @@ export function MetricChart({
     return timeRange;
   }, [resolvedApiParams.timeRange, timeRange, buildQueryContext, filterState]);
 
-  const finalStep = useMemo(() => {
+  const rawStep = useMemo(() => {
     if (resolvedApiParams.step) {
-      // If customApiParams specifies a step key, get it from URL state
       const context = buildQueryContext();
       return context.getStep(resolvedApiParams.step);
     }
     return step;
   }, [resolvedApiParams.step, step, buildQueryContext, filterState]);
+
+  const rangeMs = useMemo(
+    () => finalTimeRange.end.getTime() - finalTimeRange.start.getTime(),
+    [finalTimeRange]
+  );
+
+  const finalStep = useMemo(() => resolveChartStep(rawStep, rangeMs), [rawStep, rangeMs]);
 
   // Build the final query string - include filterState to trigger re-evaluation
   const finalQuery = useMemo(() => {
@@ -183,33 +245,51 @@ export function MetricChart({
     ...additionalApiParams, // Spread additional API parameters (excluding timeRange/step)
   });
 
+  const chartSource = useMemo(() => {
+    if (!data) return data;
+    return maxSeries ? limitSeriesByVolume(data, maxSeries) : data;
+  }, [data, maxSeries]);
+
   const chartData = useMemo(() => {
-    if (!data) return [];
-    const transformed = transformForRecharts(data);
+    if (!chartSource) return [];
+    const transformed = transformForRecharts(chartSource);
     if (!padToTimeRange || transformed.length === 0) return transformed;
 
-    const seriesKeys = data.series.map((s) => s.name);
+    const seriesKeys = chartSource.series.map((s) => s.name);
     const startMs = finalTimeRange.start.getTime();
     const endMs = finalTimeRange.end.getTime();
     const stepMs = parseDurationToMs(finalStep) ?? 60_000;
 
     const aggregation: BucketAggregation = chartType === 'bar' ? 'sum' : 'avg';
-    return bucketDataToTimeRange(transformed, startMs, endMs, stepMs, seriesKeys, aggregation);
-  }, [data, finalTimeRange, finalStep, padToTimeRange, chartType]);
+    return bucketDataToTimeRange(
+      transformed,
+      startMs,
+      endMs,
+      stepMs,
+      seriesKeys,
+      aggregation,
+      padEmptyValue
+    );
+  }, [chartSource, finalTimeRange, finalStep, padToTimeRange, chartType, padEmptyValue]);
 
   // Handle data change callbacks
   useEffect(() => {
-    if (data && onDataChange) {
-      onDataChange(data, chartData);
+    if (chartSource && onDataChange) {
+      onDataChange(chartSource, chartData);
     }
-  }, [data, chartData, onDataChange]);
+  }, [chartSource, chartData, onDataChange]);
 
   // Handle series change callbacks
   useEffect(() => {
-    if (data?.series && onSeriesChange) {
-      onSeriesChange(data.series);
+    if (chartSource?.series) {
+      onSeriesChange?.(chartSource.series);
+      legend?.setSeries(chartSource.series);
     }
-  }, [data?.series, onSeriesChange]);
+  }, [chartSource?.series, onSeriesChange, legend]);
+
+  useEffect(() => {
+    clearZoomOriginIfPreset(urlTimeRange);
+  }, [urlTimeRange]);
 
   // Handle query state change callbacks
   useEffect(() => {
@@ -220,8 +300,8 @@ export function MetricChart({
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {};
-    if (data) {
-      data.series.forEach((series) => {
+    if (chartSource) {
+      chartSource.series.forEach((series) => {
         config[series.name] = {
           label: series.name,
           color: colorOverrides?.[series.name] ?? series.color ?? '#8884d8',
@@ -229,20 +309,43 @@ export function MetricChart({
       });
     }
     return config;
-  }, [data, colorOverrides]);
+  }, [chartSource, colorOverrides]);
 
-  const timeRangeMs = useMemo(
-    () => finalTimeRange.end.getTime() - finalTimeRange.start.getTime(),
-    [finalTimeRange]
+  const seriesKeys = useMemo(
+    () => chartSource?.series.map((s) => s.name) ?? [],
+    [chartSource?.series]
   );
+  const hiddenSeries = legend?.hidden ?? localHidden;
+  const visibleSeriesKeys = useMemo(() => {
+    const visible = seriesKeys.filter((name) => !hiddenSeries.has(name));
+    return visible.length > 0 ? visible : seriesKeys;
+  }, [seriesKeys, hiddenSeries]);
+  const stacked = stackBars || stackAreas;
+  // Keep every series mounted so Recharts stack order does not change when a
+  // series is hidden and shown again. Zero hidden values so they leave no gap.
+  const plotData = useMemo(() => {
+    if (hiddenSeries.size === 0) return chartData;
+    return chartData.map((row) => {
+      const next = { ...row };
+      for (const name of seriesKeys) {
+        if (hiddenSeries.has(name)) next[name] = stacked ? 0 : null;
+      }
+      return next;
+    });
+  }, [chartData, hiddenSeries, seriesKeys, stacked]);
+  const isBarChart = chartType === 'bar';
+  const scaleId = useId();
 
-  const seriesKeys = useMemo(() => data?.series.map((s) => s.name) ?? [], [data?.series]);
+  const localYMax = useMemo(
+    () => getChartDataMax(chartData, visibleSeriesKeys, { stacked }),
+    [chartData, visibleSeriesKeys, stacked]
+  );
+  const sharedYMax = useChartScale(shareYScale ? scaleId : null, localYMax);
 
-  const yAxisScale = useMemo(() => {
-    const max = getChartDataMax(chartData, seriesKeys, { stacked: stackBars });
-    const tickCount = stackBars ? 6 : 5;
-    return getLinearYAxisScale(max, tickCount);
-  }, [chartData, seriesKeys, stackBars]);
+  const yAxisScale = useMemo(
+    () => getLinearYAxisScale(sharedYMax, stacked ? 6 : 5),
+    [sharedYMax, stacked]
+  );
 
   const formatAxisValue = useCallback(
     (value: number) => {
@@ -255,52 +358,73 @@ export function MetricChart({
   );
 
   const formatXAxisValue = useCallback(
-    (tickItem: number) => {
+    (tickItem: number | string) => {
+      const timestamp = typeof tickItem === 'number' ? tickItem : Number(tickItem);
+      if (!Number.isFinite(timestamp)) return '';
       if (xAxisFormatter) {
-        return xAxisFormatter(tickItem);
+        return xAxisFormatter(timestamp);
       }
-      return formatChartTimeTick(tickItem, timeRangeMs, timezone);
+      return formatChartTimeTick(timestamp, rangeMs, timezone);
     },
-    [xAxisFormatter, timeRangeMs, timezone]
+    [xAxisFormatter, rangeMs, timezone]
   );
 
-  const tooltipLabelFormatter: any = useCallback((label: string) => {
-    if (!label) return '';
-    return <DateTime date={label} />;
-  }, []);
+  const showDots = useMemo(() => {
+    if (chartType !== 'line') return false;
+    let points = 0;
+    for (const row of chartData) {
+      for (const key of visibleSeriesKeys) {
+        const value = row[key];
+        if (typeof value === 'number' && Number.isFinite(value)) points += 1;
+      }
+    }
+    return points > 0 && points <= 16;
+  }, [chartType, chartData, visibleSeriesKeys]);
 
-  const renderChartSeries = () => {
-    if (!data) return null;
+  const seriesNodes = useMemo(() => {
+    if (!chartSource) return null;
 
-    return data.series.map((s: ChartSeries) => {
+    return chartSource.series.map((s: ChartSeries) => {
       const color = colorOverrides?.[s.name] ?? s.color ?? '#8884d8';
-      const seriesProps = {
-        series: {
-          name: s.name,
-          color,
-        },
-      };
+      const series = { name: s.name, color };
+      const hide = hiddenSeries.has(s.name);
 
       switch (chartType) {
         case 'area':
           return (
-            <AreaSeries key={s.name} {...seriesProps} gradientId={sanitizeGradientId(s.name)} />
+            <AreaSeries
+              key={s.name}
+              series={series}
+              gradientId={sanitizeGradientId(s.name)}
+              stackId={stackAreas ? 'stack' : undefined}
+              hide={!stackAreas && hide}
+            />
           );
         case 'bar':
           return (
             <BarSeries
               key={s.name}
-              {...seriesProps}
+              series={series}
               stackId={stackBars ? 'stack' : undefined}
-              barSize={barSize}
+              seriesKeys={stackBars ? visibleSeriesKeys : undefined}
+              hide={!stackBars && hide}
             />
           );
         case 'line':
         default:
-          return <LineSeries key={s.name} {...seriesProps} />;
+          return <LineSeries key={s.name} series={series} showDots={showDots} hide={hide} />;
       }
     });
-  };
+  }, [
+    chartSource,
+    colorOverrides,
+    chartType,
+    stackAreas,
+    stackBars,
+    showDots,
+    visibleSeriesKeys,
+    hiddenSeries,
+  ]);
 
   const ChartComponent = useMemo(() => {
     switch (chartType) {
@@ -315,12 +439,12 @@ export function MetricChart({
   }, [chartType]);
 
   const yAxisWidth = useMemo(() => {
-    if (syncId) return 52;
-    if (yAxisScale.ticks.length === 0) return 48;
+    if (syncId) return 48;
+    if (yAxisScale.ticks.length === 0) return 36;
     const maxLabelLength = Math.max(
       ...yAxisScale.ticks.map((tick) => formatAxisValue(tick).length)
     );
-    return Math.min(56, Math.max(36, maxLabelLength * 7 + 8));
+    return Math.min(52, Math.max(32, maxLabelLength * 7 + 6));
   }, [syncId, yAxisScale.ticks, formatAxisValue]);
 
   const xDomain = useMemo((): [number, number] | ['dataMin', 'dataMax'] => {
@@ -332,20 +456,124 @@ export function MetricChart({
 
   const xAxisTicks = useMemo(() => {
     if (!padToTimeRange) return undefined;
+    const tickCount = syncId ? 7 : 6;
+    if (isBarChart) {
+      return pickEvenlySpaced(
+        chartData.map((row) => row.timestamp),
+        tickCount
+      );
+    }
     return buildTimeAxisTicks(
       finalTimeRange.start.getTime(),
       finalTimeRange.end.getTime(),
-      syncId ? 7 : 6
+      tickCount
     );
-  }, [padToTimeRange, finalTimeRange, syncId]);
+  }, [padToTimeRange, finalTimeRange, syncId, isBarChart, chartData]);
 
-  const chartBottomMargin = showLegend ? 12 : 0;
+  const stepMs = useMemo(() => parseDurationToMs(finalStep) ?? 60_000, [finalStep]);
 
-  const barSize = useMemo(() => {
-    if (chartType !== 'bar' || chartData.length === 0) return undefined;
-    const plotWidth = Math.max(280, (height ?? 200) * 2.4);
-    return Math.max(16, Math.floor((plotWidth / chartData.length) * 0.7));
-  }, [chartType, chartData.length, height]);
+  const startBrush = useCallback((timestamp: number) => {
+    const next = { start: timestamp, end: timestamp };
+    brushRef.current = next;
+    setBrush(next);
+  }, []);
+
+  const moveBrush = useCallback((timestamp: number) => {
+    if (!brushRef.current) return;
+    const next = { start: brushRef.current.start, end: timestamp };
+    brushRef.current = next;
+    setBrush(next);
+  }, []);
+
+  const finishBrush = useCallback(() => {
+    const current = brushRef.current;
+    brushRef.current = null;
+    setBrush(null);
+    if (!current || !enableTimeZoom) return;
+
+    const range = resolveBrushTimeRange(current.start, current.end, {
+      stepMs,
+      rangeStart: finalTimeRange.start.getTime(),
+      rangeEnd: finalTimeRange.end.getTime(),
+    });
+    if (!range) return;
+
+    rememberZoomOrigin(urlTimeRange);
+    setUrlTimeRange(serializeTimeRange(range));
+  }, [enableTimeZoom, stepMs, finalTimeRange, urlTimeRange, setUrlTimeRange]);
+
+  useEffect(() => {
+    if (!brush) return;
+    const onUp = () => finishBrush();
+    window.addEventListener('mouseup', onUp);
+    return () => window.removeEventListener('mouseup', onUp);
+  }, [brush, finishBrush]);
+
+  const handleChartMouseDown = useCallback(
+    (state: unknown) => {
+      if (!enableTimeZoom) return;
+      const timestamp = timestampFromChartEvent(state as ChartMouseState);
+      if (timestamp != null) startBrush(timestamp);
+    },
+    [enableTimeZoom, startBrush]
+  );
+
+  const handleChartMouseMove = useCallback(
+    (state: unknown) => {
+      if (!brushRef.current) return;
+      const timestamp = timestampFromChartEvent(state as ChartMouseState);
+      if (timestamp != null) moveBrush(timestamp);
+    },
+    [moveBrush]
+  );
+
+  const handleChartDoubleClick = useCallback(() => {
+    if (!enableTimeZoom) return;
+    const origin = consumeZoomOrigin();
+    if (origin) setUrlTimeRange(origin);
+  }, [enableTimeZoom, setUrlTimeRange]);
+
+  const handleLegendClick = useCallback(
+    (name: string, modifiers: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean }) => {
+      if (legend) {
+        legend.onLegendClick(name, modifiers);
+        return;
+      }
+      setLocalHidden((prev) => nextHiddenSeries(seriesKeys, prev, name, modifiers));
+    },
+    [legend, seriesKeys]
+  );
+
+  const footerLegend = showLegend ? (
+    <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-1 pt-1.5 text-[11px] leading-none">
+      {Object.entries(chartConfig).map(([key, item]) => {
+        const isHidden = hiddenSeries.has(key);
+        return (
+          <button
+            key={key}
+            type="button"
+            title="Click to isolate · Shift-click to hide"
+            onMouseDown={(event) => {
+              if (event.shiftKey) event.preventDefault();
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              handleLegendClick(key, event);
+            }}
+            className={cn(
+              'inline-flex items-center gap-1 select-none',
+              isHidden && 'text-muted-foreground/50 line-through'
+            )}>
+            <span
+              className={cn('size-2 shrink-0 rounded-[2px]', isHidden && 'opacity-40')}
+              style={{ backgroundColor: item.color }}
+            />
+            {item.label ?? key}
+          </button>
+        );
+      })}
+    </div>
+  ) : null;
 
   return (
     <BaseMetric
@@ -356,19 +584,33 @@ export function MetricChart({
       error={error}
       className={className}
       isEmpty={chartData.length === 0}
-      height={height}>
+      height={height}
+      footer={
+        <>
+          {footerLegend}
+          {children}
+        </>
+      }>
       <ChartContainer
         config={chartConfig}
-        className="aspect-auto h-full w-full px-2"
-        style={{ height }}>
+        className={cn(
+          'aspect-none h-full w-full justify-stretch overflow-visible [&_.recharts-responsive-container]:!h-full [&_.recharts-responsive-container]:w-full',
+          enableTimeZoom &&
+            (brush ? 'cursor-col-resize select-none' : '[&_.recharts-surface]:cursor-crosshair')
+        )}
+        style={{ height, aspectRatio: 'auto' }}>
         <ChartComponent
           syncId={syncId}
-          syncMethod={padToTimeRange && syncId ? 'index' : 'value'}
-          data={chartData}
-          margin={{ top: 4, right: 12, left: 4, bottom: chartBottomMargin }}>
-          {chartType === 'area' && data && (
+          syncMethod={padToTimeRange ? 'index' : 'value'}
+          data={plotData}
+          margin={{ top: 8, right: 16, left: 8, bottom: 4 }}
+          onMouseDown={handleChartMouseDown}
+          onMouseMove={handleChartMouseMove}
+          onDoubleClick={handleChartDoubleClick}
+          {...(isBarChart ? { barGap: 2, barCategoryGap: '18%' } : {})}>
+          {chartType === 'area' && chartSource && (
             <defs>
-              {data.series.map((s) => {
+              {chartSource.series.map((s) => {
                 const color = colorOverrides?.[s.name] ?? s.color ?? '#8884d8';
                 const gradientId = sanitizeGradientId(s.name);
                 return (
@@ -381,24 +623,37 @@ export function MetricChart({
             </defs>
           )}
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="timestamp"
-            type="number"
-            scale="time"
-            domain={xDomain}
-            ticks={xAxisTicks}
-            hide={hideXAxis}
-            tickFormatter={formatXAxisValue}
-            tickLine={false}
-            axisLine={false}
-            minTickGap={xAxisTicks ? undefined : 24}
-            padding={chartType === 'bar' && !padToTimeRange ? { left: 8, right: 8 } : undefined}
-            tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
-          />
+          {isBarChart ? (
+            <XAxis
+              dataKey="timestamp"
+              type="category"
+              hide={hideXAxis}
+              ticks={xAxisTicks}
+              interval={xAxisTicks ? 0 : 'preserveStartEnd'}
+              tickFormatter={formatXAxisValue}
+              minTickGap={xAxisTicks ? undefined : 24}
+              tickLine={false}
+              axisLine={false}
+              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+            />
+          ) : (
+            <XAxis
+              dataKey="timestamp"
+              type="number"
+              scale="time"
+              domain={xDomain}
+              ticks={xAxisTicks}
+              hide={hideXAxis}
+              tickFormatter={formatXAxisValue}
+              tickLine={false}
+              axisLine={false}
+              minTickGap={xAxisTicks ? undefined : 24}
+              tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+            />
+          )}
           <YAxis
             domain={yAxisScale.domain}
             ticks={yAxisScale.ticks}
-            allowDecimals={false}
             tickFormatter={formatAxisValue}
             tickLine={false}
             axisLine={false}
@@ -407,27 +662,28 @@ export function MetricChart({
             tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
             {...yAxisOptions}
           />
-          {showTooltip && (
+          {showTooltip && !brush && (
             <ChartTooltip
               isAnimationActive={false}
-              shared={chartType === 'bar'}
-              cursor={{ stroke: 'var(--border)' }}
-              content={
-                typeof tooltipContent === 'function' ? (
-                  tooltipContent
-                ) : (
-                  <CustomTooltip labelFormatter={tooltipLabelFormatter} />
-                )
-              }
+              shared={isBarChart}
+              cursor={isBarChart ? undefined : { stroke: 'var(--border)' }}
+              content={(tooltipContent ?? CustomTooltip) as never}
             />
           )}
-          {renderChartSeries()}
-          {showLegend && <ChartLegend content={<ChartLegendContent className="z-0 mt-2" />} />}
+          {brush && brush.start !== brush.end && (
+            <ReferenceArea
+              x1={Math.min(brush.start, brush.end)}
+              x2={Math.max(brush.start, brush.end)}
+              fill="var(--primary)"
+              fillOpacity={0.1}
+              stroke="var(--primary)"
+              strokeOpacity={0.35}
+              ifOverflow="visible"
+            />
+          )}
+          {seriesNodes}
         </ChartComponent>
       </ChartContainer>
-
-      {/* Children slot for additional content below the chart */}
-      {children}
     </BaseMetric>
   );
 }
