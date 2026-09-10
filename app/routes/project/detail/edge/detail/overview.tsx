@@ -100,7 +100,7 @@ export default function HttpProxyOverviewPage() {
         </MetricsProvider>
       </Col>
       <Col span={24} lg={12}>
-        <HttpProxyLogsCard />
+        <HttpProxyLogsCard projectId={projectId} proxyId={effectiveProxy.name ?? proxyId} />
       </Col>
       <Col span={24}>
         <h3 className="mb-4 text-base font-medium">Delete Application Load Balancer</h3>
