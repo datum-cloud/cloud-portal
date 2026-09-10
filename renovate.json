@@ -1,11 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", "docker:pinDigests"],
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "labels": ["security", "renovate"]
-  },
-  "osvVulnerabilityAlerts": true,
+  "extends": [
+    "local>datum-cloud/.github:renovate-config",
+    "helpers:pinGitHubActionDigests",
+    "docker:pinDigests"
+  ],
   "rangeStrategy": "update-lockfile",
   "customManagers": [
     {
@@ -14,16 +13,6 @@
       "matchStrings": [
         "bun-version:\\s*(?<currentValue>\\S+)\\s*}\\s*#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)"
       ]
-    }
-  ],
-  "packageRules": [
-    {
-      "labels": ["renovate"],
-      "matchPackageNames": ["/.*/"]
-    },
-    {
-      "matchCategories": ["security"],
-      "prPriority": 10
     }
   ]
 }

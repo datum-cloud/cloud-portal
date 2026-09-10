@@ -82,7 +82,7 @@ describe('Projects — regression', () => {
     cy.get('[data-e2e="edit-project-name-input"]').should('have.value', updatedName);
   });
 
-  it('should show quotas on the project quotas tab', () => {
+  it('should show quotas on the project quotas page', () => {
     cy.visit(getPathWithParams(paths.project.detail.settings.quotas, { projectId: resourceId }));
     // Quotas are provisioned async after project creation — allow extra time.
     // 45s, raised from 15s: provisioning went from 1.2s to 4.1s between August

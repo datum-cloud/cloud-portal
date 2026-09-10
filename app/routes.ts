@@ -118,9 +118,11 @@ export default [
         layout('routes/project/detail/settings/layout.tsx', [
           route('general', 'routes/project/detail/settings/general.tsx'),
           route('notifications', 'routes/project/detail/settings/notifications.tsx'),
-          route('quotas', 'routes/project/detail/settings/quotas.tsx'),
           route('billing', 'routes/project/detail/settings/billing.tsx'),
         ]),
+
+        // Project quotas (Project Settings) — outside settings SubLayout
+        route('quotas', 'routes/project/detail/settings/quotas.tsx'),
 
         // Project activity (Observe) — outside settings SubLayout
         route('activity', 'routes/project/detail/activity.tsx'),

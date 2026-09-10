@@ -277,3 +277,19 @@ describe('buildProjectNavTree usage item', () => {
     expect(usage?.icon).toBeUndefined();
   });
 });
+
+describe('buildProjectNavTree quotas item', () => {
+  test('places Quotas under Project Settings after General', () => {
+    const tree = buildProjectNavTree('proj-1');
+    const settings = tree.find((item) => item.title === 'Project Settings');
+    const titles = settings?.children?.map((c) => c.title) ?? [];
+    expect(titles).toContain('Quotas');
+    expect(titles.indexOf('General')).toBeLessThan(titles.indexOf('Quotas'));
+    expect(titles.indexOf('Quotas')).toBeLessThan(titles.indexOf('Service Accounts'));
+    const quotas = settings?.children?.find((c) => c.title === 'Quotas');
+    expect(quotas?.href).toBe('/project/proj-1/quotas');
+    expect(quotas?.icon).toBeUndefined();
+    const general = settings?.children?.find((c) => c.title === 'General');
+    expect(general?.tabChildLinks).not.toContain('/project/proj-1/quotas');
+  });
+});

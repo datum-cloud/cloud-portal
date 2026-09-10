@@ -8,6 +8,7 @@ import {
   type ResourceRegistration,
 } from '@/resources/resource-registrations';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
+import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { type LoaderFunctionArgs } from 'react-router';
 
 export const handle = {
@@ -58,11 +59,14 @@ export default route.Page(({ data }) => {
   }
 
   return (
-    <QuotasTable
-      data={data.buckets}
-      registrations={data.registrations}
-      resourceType="project"
-      resource={project}
-    />
+    <div className="flex flex-col gap-6">
+      <PageTitle title="Quotas" titleClassName="text-3xl" />
+      <QuotasTable
+        data={data.buckets}
+        registrations={data.registrations}
+        resourceType="project"
+        resource={project}
+      />
+    </div>
   );
 });
