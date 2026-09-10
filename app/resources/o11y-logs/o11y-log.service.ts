@@ -33,19 +33,27 @@ export interface O11yLogQueryRangeParams {
   direction?: O11yLogDirection;
 }
 
+type O11yLogClient = Pick<typeof client, 'get'>;
+
 /**
  * Tenant-scoped log queries against telemetry queryapi's Loki-shaped routes.
  * Project tenancy is the control-plane base URL; queryapi never takes a
  * client-supplied project id.
+ *
+ * `client` is injectable so tests do not `mock.module` the shared control-plane
+ * client (that mock is process-global in bun and would strip `getConfig` from
+ * every other suite).
  */
-export function createO11yLogService() {
+export function createO11yLogService(deps: { client?: O11yLogClient } = {}) {
+  const api = deps.client ?? client;
+
   return {
     async queryRange(params: O11yLogQueryRangeParams): Promise<LogEntry[]> {
       const startTime = Date.now();
       const { projectId, query, start, end, limit = 100, direction = 'backward' } = params;
 
       try {
-        const response = await client.get({
+        const response = await api.get({
           url: O11Y_LOGS_QUERY_RANGE_PATH,
           baseURL: getProjectScopedBase(projectId),
           query: { query, start, end, limit, direction },
