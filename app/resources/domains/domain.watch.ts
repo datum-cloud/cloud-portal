@@ -8,10 +8,13 @@ import { useResourceWatch } from '@/modules/watch';
 /**
  * Watch domains list for real-time updates.
  *
- * Uses slower throttle (5000ms) because:
- * - Domains have continuous status updates (registrar lookup, nameserver resolution)
- * - Server pings frequently with status changes
- * - Prevents UI flickering from rapid status updates
+ * throttleMs only gates the invalidate fallback, which this watch never
+ * reaches — `getItemKey` routes every event through an in-place cache write.
+ *
+ * skipInitialSync is false because domains are created as a side effect of
+ * writes the domains list never sees (the backend reconciles ALB hostnames
+ * into Domain resources). Dropping the replayed ADDED events would leave a
+ * cache seeded before such a write stale until a full page reload (#1491).
  */
 export function useDomainsWatch(projectId: string, options?: { enabled?: boolean }) {
   return useResourceWatch<Domain>({
@@ -23,11 +26,9 @@ export function useDomainsWatch(projectId: string, options?: { enabled?: boolean
     enabled: options?.enabled ?? true,
     // In-place cache update for MODIFIED events (avoids full list refetch)
     getItemKey: (domain) => domain.name,
-    // Slow throttle for ADDED/DELETED events that still use invalidation
     throttleMs: 5000,
     debounceMs: 300,
-    // Skip initial sync - cache is already hydrated from SSR
-    skipInitialSync: true,
+    skipInitialSync: false,
   });
 }
 
