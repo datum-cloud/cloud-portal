@@ -239,15 +239,15 @@ Contract rules:
 
 ### Extension points
 
-| Type                                | Status | Renders                                                          | Key properties                                              |
-| ----------------------------------- | ------ | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| Type                                | Status | Renders                                                                 | Key properties                                                                                                                                    |
+| ----------------------------------- | ------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `portal.nav/project`                | **v1** | Item in the project sidebar under a host category or a per-plugin group | `id`, `title`, `icon` (lucide name), `path`, `section?`, `order?`, `comingSoon?`, `comingSoonMode?`, `description?`, `roadmapUrl?`, `serviceRef?` |
-| `portal.page/project`               | **v1** | Routed page under `/project/:projectId/services/<slug>/<path>`   | `path` (supports params and nesting), `component: $codeRef` |
-| `portal.card/project-home`          | **v1** | Card on the project home page                                    | `title`, `component: $codeRef`, `order`                     |
-| `portal.nav/org`, `portal.page/org` | v1.x   | Org-scoped nav and pages                                         | same shapes, org-scoped RBAC                                |
-| `portal.tab/resource`               | v1.x   | Extra tab on a host-owned resource detail page                   | `targetResource {group, kind}`, `title`, `component`        |
-| `portal.action/resource`            | v1.x   | Action-menu item on host resource rows/pages                     | `targetResource`, `title`, `component`                      |
-| `portal.assistant/tool`             | future | Tool contributed to the portal assistant                         | tool schema + `$codeRef` handler                            |
+| `portal.page/project`               | **v1** | Routed page under `/project/:projectId/services/<slug>/<path>`          | `path` (supports params and nesting), `component: $codeRef`                                                                                       |
+| `portal.card/project-home`          | **v1** | Card on the project home page                                           | `title`, `component: $codeRef`, `order`                                                                                                           |
+| `portal.nav/org`, `portal.page/org` | v1.x   | Org-scoped nav and pages                                                | same shapes, org-scoped RBAC                                                                                                                      |
+| `portal.tab/resource`               | v1.x   | Extra tab on a host-owned resource detail page                          | `targetResource {group, kind}`, `title`, `component`                                                                                              |
+| `portal.action/resource`            | v1.x   | Action-menu item on host resource rows/pages                            | `targetResource`, `title`, `component`                                                                                                            |
+| `portal.assistant/tool`             | future | Tool contributed to the portal assistant                                | tool schema + `$codeRef` handler                                                                                                                  |
 
 v1 ships exactly three extension points. The typed `{type, properties, requirements}` envelope makes growth additive: a portal that doesn't recognize an extension type records a status note and ignores it — never an error.
 
