@@ -112,10 +112,15 @@ export {
   getCertificateReadyCondition,
   getCertificatesReadyDisplay,
   getCertificateReadyDisplay,
+  HOSTNAME_CONDITION_DNS_RECORD_PROGRAMMED,
+  DnsRecordProgrammedReason,
+  getDnsRecordProgrammedCondition,
+  getDnsRecordProgrammedDisplay,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,
   CertificateReadyReasonType,
+  DnsRecordProgrammedReasonType,
   ConditionLike,
   HttpProxyStatusLike,
   HostnameStatusLike,
