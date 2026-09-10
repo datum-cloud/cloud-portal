@@ -36,9 +36,6 @@ export interface PublicEnv {
   rybbitTag?: string;
   helpscoutBeaconId?: string;
 
-  // Feature Flags
-  chatbotEnabled: boolean;
-
   // Optional: Google Maps / Places (browser key; HTTP-referrer restricted)
   googleMapsApiKey?: string;
 
@@ -79,10 +76,6 @@ export interface ServerEnv {
   redisConnectTimeout: number;
   redisCommandTimeout: number;
   redisKeyPrefix: string;
-
-  // Optional: AI Assistant
-  anthropicApiKey?: string;
-  anthropicModel?: string;
 
   // Optional: Usage Pipeline (Milo billing → Amberflo)
   // When unset, usage events are silently dropped (i.e. no-op). Once the

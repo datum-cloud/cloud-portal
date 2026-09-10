@@ -125,10 +125,7 @@ describe('catalogListRate', () => {
   it('uses the last tier as the list price', () => {
     expect(
       catalogListRate({
-        tiered: [
-          { upTo: 1, rate: 0 },
-          { rate: 0.09 },
-        ],
+        tiered: [{ upTo: 1, rate: 0 }, { rate: 0.09 }],
       })
     ).toBe(0.09);
   });
@@ -193,10 +190,7 @@ describe('computeMeterSpend', () => {
         pricingUnit: 'GB',
         rates: [
           {
-            tiered: [
-              { upTo: 1, rate: 0 },
-              { rate: 0.09 },
-            ],
+            tiered: [{ upTo: 1, rate: 0 }, { rate: 0.09 }],
           },
         ],
       })

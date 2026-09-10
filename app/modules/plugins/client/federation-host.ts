@@ -14,6 +14,7 @@
  * to `/api/plugins/<slug>/`. Plugin origins are never exposed to the browser.
  */
 import { parseCodeRef, pickCodeRefExport } from './code-ref';
+import * as PortalPluginSdk from '@datum-cloud/portal-plugin-sdk';
 import * as DatumUiBadge from '@datum-cloud/datum-ui/badge';
 import * as DatumUiButton from '@datum-cloud/datum-ui/button';
 import * as DatumUiCard from '@datum-cloud/datum-ui/card';
@@ -85,6 +86,19 @@ function hostShared() {
     '@tanstack/react-query': {
       version: reactQueryPkg.version,
       lib: () => ReactQuery,
+      shareConfig: { singleton: true, requiredVersion: false as const, eager: true },
+    },
+    // The plugin SDK's hooks read a React Context defined inside this module.
+    // That Context is only ever the host's Context — the one
+    // PortalPluginHostProvider (see plugin-sdk-bindings.tsx) actually
+    // provides a value to — if every plugin resolves this exact module
+    // instance instead of bundling its own copy. `singleton: true` + `eager`
+    // guarantees that, the same way it does for react/react-router above.
+    // `requiredVersion: false` matches SDK compatibility being checked
+    // separately, via the manifest's `sdk.range` against HOST_SDK_VERSION.
+    '@datum-cloud/portal-plugin-sdk': {
+      version: PortalPluginSdk.SDK_VERSION,
+      lib: () => PortalPluginSdk,
       shareConfig: { singleton: true, requiredVersion: false as const, eager: true },
     },
     ...Object.fromEntries(

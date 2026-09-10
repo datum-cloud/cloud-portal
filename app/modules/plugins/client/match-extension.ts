@@ -12,9 +12,11 @@
  */
 import {
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_DOCK_PROJECT,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   type CardProjectHomeExtension,
+  type DockProjectExtension,
   type NavProjectExtension,
   type PageProjectExtension,
   type PluginExtension,
@@ -48,6 +50,9 @@ function isNavExtension(ext: PluginExtension): ext is NavProjectExtension {
 function isCardExtension(ext: PluginExtension): ext is CardProjectHomeExtension {
   return ext.type === EXTENSION_CARD_PROJECT_HOME;
 }
+function isDockExtension(ext: PluginExtension): ext is DockProjectExtension {
+  return ext.type === EXTENSION_DOCK_PROJECT;
+}
 
 /** Extract the `portal.page/project` extensions from a manifest. */
 export function getPageExtensions(manifest: ClientPluginManifest): PageProjectExtension[] {
@@ -62,6 +67,11 @@ export function getNavExtensions(manifest: ClientPluginManifest): NavProjectExte
 /** Extract the `portal.card/project-home` extensions, sorted by `order` then title. */
 export function getCardExtensions(manifest: ClientPluginManifest): CardProjectHomeExtension[] {
   return manifest.extensions.filter(isCardExtension).sort(byOrderThenTitle);
+}
+
+/** Extract the `portal.dock/project` extensions, sorted by `order` then title. */
+export function getDockExtensions(manifest: ClientPluginManifest): DockProjectExtension[] {
+  return manifest.extensions.filter(isDockExtension).sort(byOrderThenTitle);
 }
 
 function byOrderThenTitle(

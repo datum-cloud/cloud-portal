@@ -50,6 +50,89 @@ describe('validateManifest', () => {
     }
   });
 
+  test('accepts a valid portal.dock/project extension', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'ChatDock' },
+              order: 0,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      expect(result.manifest.extensions).toHaveLength(1);
+      expect(result.unknownExtensionTypes).toEqual([]);
+    }
+  });
+
+  test('accepts a portal.dock/project extension without the optional order', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'ChatDock' },
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects a portal.dock/project extension missing required properties', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            // Missing `id` and `icon`.
+            properties: { title: 'Patch AI', component: { $codeRef: 'ChatDock' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects a portal.dock/project extension with a $codeRef that does not resolve', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'DoesNotExist' },
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.errors.some((e) => e.includes('DoesNotExist'))).toBe(true);
+    }
+  });
+
   test('rejects a manifest missing required top-level fields', () => {
     const { sdk: _sdk, ...noSdk } = baseManifest();
     const result = validateManifest(noSdk);

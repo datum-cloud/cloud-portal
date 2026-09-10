@@ -1,19 +1,23 @@
+import { resolvePluginIcon } from '@/modules/plugins/client/icon-map';
+import { LazyPluginComponent } from '@/modules/plugins/client/lazy-plugin-component';
+import { useProjectDockWidgets } from '@/modules/plugins/client/plugin-dock';
+import { PluginErrorBoundary } from '@/modules/plugins/client/plugin-error-boundary';
 import { useProjectContext } from '@/providers/project.provider';
-import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { BookOpen, Brain, type LucideIcon } from 'lucide-react';
+import { BookOpen, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Activity, Suspense, useRef, useState } from 'react';
+import { Activity, Suspense, useEffect, useRef, useState } from 'react';
 
-const AssistantWorkspace = lazyWithRetry(() =>
-  import('@/features/assistant').then((m) => ({ default: m.AssistantWorkspace }))
-);
-
-type PanelType = 'chat' | 'docs';
+/**
+ * Which panel is open in the bottom bar. `'docs'` is the one host-owned
+ * panel; any other string is the `id` of a plugin-contributed
+ * `portal.dock/project` widget (see `useProjectDockWidgets`).
+ */
+type PanelType = 'docs' | (string & {});
 
 const MIN_HEIGHT = 150;
 const MAX_HEIGHT_RATIO = 0.8;
@@ -55,9 +59,9 @@ function ToolbarButton({ panel, icon: icon, label, isActive, onClick }: ToolbarB
   );
 }
 
-// Mirrors the shared workspace's rail + empty-state layout (history collapsed by
-// default) so the lazy-load fallback matches what mounts in.
-function ChatPanelSkeleton() {
+// Mirrors a chat-like widget's rail + empty-state layout (history collapsed by
+// default) so the lazy-load fallback matches what most dock widgets mount in.
+function DockPanelSkeleton() {
   return (
     <div className="bg-background flex h-full w-full overflow-hidden">
       <div className="flex w-12 shrink-0 flex-col items-center gap-1 border-r py-3">
@@ -85,10 +89,32 @@ function ChatPanelSkeleton() {
 
 export function ProjectBottomBar() {
   const { project } = useProjectContext();
+  const dockWidgets = useProjectDockWidgets(project?.name);
+
   const [activePanel, setActivePanel] = useState<PanelType | null>(null);
   const [panelHeight, setPanelHeight] = useState(400);
   const docsEverOpened = useRef(false);
   if (activePanel === 'docs') docsEverOpened.current = true;
+
+  // Widgets are mount-gated the same way `docs` is: once opened, kept mounted
+  // (via Activity) so switching panels preserves state.
+  const widgetsEverOpened = useRef(new Set<string>());
+  if (activePanel && activePanel !== 'docs') widgetsEverOpened.current.add(activePanel);
+
+  // Preserve today's UX default: the first time a project's dock widgets
+  // become available, auto-select the first one (today that's always the
+  // Patch AI chat widget) rather than requiring the user to click it. Runs
+  // once per project — a user closing the panel afterwards should stay closed.
+  const defaultAppliedFor = useRef<string | null>(null);
+  useEffect(() => {
+    const projectKey = project?.name ?? null;
+    if (!projectKey) return;
+    if (defaultAppliedFor.current === projectKey) return;
+    if (dockWidgets.length === 0) return;
+
+    defaultAppliedFor.current = projectKey;
+    setActivePanel(dockWidgets[0].id);
+  }, [project?.name, dockWidgets]);
 
   const handlePanelToggle = (panel: PanelType) => {
     setActivePanel((prev) => (prev === panel ? null : panel));
@@ -166,11 +192,27 @@ export function ProjectBottomBar() {
                   is open, preserving state (e.g. iframe scroll) when switching tabs */}
               <div className="relative min-h-0 flex-1 overflow-hidden">
                 {isDragging && <div className="absolute inset-0 z-50" />}
-                <Activity mode={activePanel === 'chat' ? 'visible' : 'hidden'}>
-                  <Suspense fallback={<ChatPanelSkeleton />}>
-                    <AssistantWorkspace key={project?.name ?? 'no-project'} />
-                  </Suspense>
-                </Activity>
+                {dockWidgets.map(
+                  (widget) =>
+                    widgetsEverOpened.current.has(widget.id) && (
+                      <Activity
+                        key={widget.id}
+                        mode={activePanel === widget.id ? 'visible' : 'hidden'}>
+                        <PluginErrorBoundary
+                          slug={widget.plugin.slug}
+                          displayName={widget.plugin.displayName}
+                          resetKey={widget.codeRef}>
+                          <Suspense fallback={<DockPanelSkeleton />}>
+                            <LazyPluginComponent
+                              pluginRef={widget.pluginRef}
+                              codeRef={widget.codeRef}
+                              fallback={<DockPanelSkeleton />}
+                            />
+                          </Suspense>
+                        </PluginErrorBoundary>
+                      </Activity>
+                    )
+                )}
                 {docsEverOpened.current && (
                   <Activity mode={activePanel === 'docs' ? 'visible' : 'hidden'}>
                     <DocsPanel />
@@ -186,20 +228,16 @@ export function ProjectBottomBar() {
       <div className="bg-sidebar border-sidebar-border relative z-50 flex shrink-0 items-center justify-end overflow-hidden border-t p-2">
         <div className="border-sidebar-border flex h-8 items-center gap-1 border-l pl-4">
           <span className="text-foreground mr-2 text-xs">Developer Tools</span>
-          <ToolbarButton
-            panel="chat"
-            icon={Brain}
-            label="Patch AI"
-            isActive={activePanel === 'chat'}
-            onClick={handlePanelToggle}
-          />
-          {/* <ToolbarButton
-            panel="terminal"
-            icon={Terminal}
-            label="Terminal"
-            isActive={activePanel === 'terminal'}
-            onClick={handlePanelToggle}
-          /> */}
+          {dockWidgets.map((widget) => (
+            <ToolbarButton
+              key={widget.id}
+              panel={widget.id}
+              icon={resolvePluginIcon(widget.icon)}
+              label={widget.title}
+              isActive={activePanel === widget.id}
+              onClick={handlePanelToggle}
+            />
+          ))}
           <ToolbarButton
             panel="docs"
             icon={BookOpen}

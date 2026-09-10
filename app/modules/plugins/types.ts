@@ -36,9 +36,10 @@ export const DEFAULT_MANIFEST_PATH = '/plugin-manifest.json';
 /**
  * Host SDK the portal advertises to plugins. A manifest whose `sdk.range` does
  * not match this version is loaded as `Compatible=False` (never served).
+ * Re-exported from the real package (not a hand-copied literal) so the
+ * compatibility check can never drift from what the host actually ships.
  */
-export const HOST_SDK_NAME = '@datum-cloud/portal-plugin-sdk';
-export const HOST_SDK_VERSION = '1.0.0';
+export { SDK_NAME as HOST_SDK_NAME, SDK_VERSION as HOST_SDK_VERSION } from '@datum-cloud/portal-plugin-sdk';
 
 // ═══════════════════════════════════════════════════════════
 // Registry sources
@@ -99,12 +100,14 @@ export interface PortalPluginSpec {
 export const EXTENSION_NAV_PROJECT = 'portal.nav/project';
 export const EXTENSION_PAGE_PROJECT = 'portal.page/project';
 export const EXTENSION_CARD_PROJECT_HOME = 'portal.card/project-home';
+export const EXTENSION_DOCK_PROJECT = 'portal.dock/project';
 
 /** The v1 extension types the host recognizes and renders. */
 export const KNOWN_EXTENSION_TYPES = [
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_DOCK_PROJECT,
 ] as const;
 
 export type KnownExtensionType = (typeof KNOWN_EXTENSION_TYPES)[number];
@@ -216,6 +219,22 @@ export interface CardProjectHomeExtension {
   requirements?: PluginExtensionRequirements;
 }
 
+/** `portal.dock/project` — widget in the project bottom dock. */
+export interface DockProjectProperties {
+  id: string;
+  title: string;
+  /** A lucide icon name, resolved by the host. Never plugin code. */
+  icon: string;
+  component: CodeRef;
+  order?: number;
+}
+
+export interface DockProjectExtension {
+  type: typeof EXTENSION_DOCK_PROJECT;
+  properties: DockProjectProperties;
+  requirements?: PluginExtensionRequirements;
+}
+
 /**
  * An extension type the host does not recognize. Tolerated, not fatal: the
  * registry records it and excludes it from rendering. The `{type, properties,
@@ -228,7 +247,7 @@ export interface UnknownExtension {
 }
 
 export type KnownPluginExtension =
-  NavProjectExtension | PageProjectExtension | CardProjectHomeExtension;
+  NavProjectExtension | PageProjectExtension | CardProjectHomeExtension | DockProjectExtension;
 
 export type PluginExtension = KnownPluginExtension | UnknownExtension;
 

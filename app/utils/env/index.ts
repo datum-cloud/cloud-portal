@@ -34,7 +34,6 @@ const clientDefaults: PublicEnv = {
   logPayloads: false,
   otelEnabled: false,
   otelLogLevel: undefined,
-  chatbotEnabled: false,
   googleMapsApiKey: undefined,
 };
 
@@ -75,7 +74,6 @@ function getPublicEnv(): PublicEnv {
     logPayloads: source.LOG_PAYLOADS === 'true' || nodeEnv === 'development',
     otelEnabled: source.OTEL_ENABLED === 'true' && !!source.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: source.OTEL_LOG_LEVEL as PublicEnv['otelLogLevel'],
-    chatbotEnabled: source.CHATBOT_ENABLED === 'true',
     googleMapsApiKey: source.GOOGLE_MAPS_API_KEY || undefined,
   };
 }
