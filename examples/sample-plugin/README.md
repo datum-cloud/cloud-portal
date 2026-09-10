@@ -16,7 +16,7 @@ fixture for the portal repo.
   a Coming Soon badge and opens the host holding page until the project has an
   Active ServiceEntitlement for the service (defaults to the plugin slug);
   entitled projects get the live path with no badge. Use `comingSoonMode:
-  "plugin"` to land on the plugin path instead, or `"external"` to bounce to
+"plugin"` to land on the plugin path instead, or `"external"` to bounce to
   `roadmapUrl`.
 - `portal.page/project`:
   - `platform` — read-only **DNS zones** for the current project, read from the
