@@ -6,7 +6,7 @@ import type { Project } from '@/resources/projects';
 import { AppNavigation, NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-cloud/datum-ui/sidebar';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Link, useLocation, useRouteLoaderData, useSearchParams } from 'react-router';
 
 /**
@@ -59,7 +59,7 @@ export function DashboardLayout({
   contentClassName,
   sidebarHeader,
   containerClassName,
-  expandBehavior = 'overlay',
+  expandBehavior,
   showBackdrop = false,
   closeOnNavigation = false,
   sidebarLoading = false,
@@ -81,6 +81,9 @@ export function DashboardLayout({
    * How expanding the nav treats the page. `overlay` floats it above the
    * content so the layout never reflows; `push` widens the rail's spacer and
    * displaces everything to its right.
+   *
+   * Defaults to following the pin: pinning the nav pushes the page, while the
+   * hover peek overlays it. Pass a value to force one behaviour for both.
    */
   expandBehavior?: 'push' | 'overlay';
   showBackdrop?: boolean;
@@ -120,6 +123,17 @@ export function DashboardLayout({
   const rootData = useRouteLoaderData('root') as { sidebarOpen?: boolean } | undefined;
   const initialSidebarOpen = defaultSidebarOpen ?? rootData?.sidebarOpen ?? !isTablet;
 
+  // Held here rather than inside SidebarProvider so expandBehavior can follow
+  // it: a pinned nav reserves layout space, an unpinned one only ever floats.
+  const [isPinned, setIsPinned] = useState(initialSidebarOpen);
+
+  // The provider auto-collapses narrow viewports only while uncontrolled, so
+  // mirror that here. useBreakpoint reports desktop during SSR and corrects on
+  // mount, which is when this catches up.
+  useEffect(() => {
+    if (breakpoint !== 'desktop') setIsPinned(false);
+  }, [breakpoint]);
+
   return (
     <div className="flex h-svh w-full flex-col overflow-hidden">
       {/* Header with integrated mobile hamburger */}
@@ -133,10 +147,14 @@ export function DashboardLayout({
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
       <SidebarProvider
-        defaultOpen={initialSidebarOpen}
+        open={isPinned}
+        onOpenChange={setIsPinned}
         // Expand the icon rail on hover (desktop + tablet) so labels are readable without pinning open.
         expandOnHover={sidebarCollapsible === 'icon'}
-        expandBehavior={expandBehavior}
+        // Pinning the nav pushes the page over, the way it did before — the nav
+        // now owns that space. The hover peek overlays instead, so glancing at
+        // the labels never reflows the page.
+        expandBehavior={expandBehavior ?? (isPinned ? 'push' : 'overlay')}
         showBackdrop={showBackdrop}
         className="flex min-h-0 flex-1 overflow-hidden"
         style={
