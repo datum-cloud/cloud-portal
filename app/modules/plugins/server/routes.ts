@@ -26,6 +26,22 @@ function subPathAfter(pathname: string, prefix: string): string {
 }
 
 /**
+ * Whether `assetPath` is a Vite content-hashed chunk (`assets/foo-<hash>.js`)
+ * versus a fixed-name entry point (`remoteEntry.js`, `plugin-manifest.json`,
+ * `mf-manifest.json`, `index.html`, …). Every plugin here builds with Vite's
+ * default `assetsDir` ("assets"), so this holds regardless of the specific
+ * plugin — a hashed chunk's filename changes whenever its content does, so it
+ * can be cached forever; a fixed-name entry point keeps the same URL across
+ * every deploy, so caching it long-lived means a browser that has ever loaded
+ * the plugin before never sees a new build again without a manual hard
+ * refresh (see incident: compute plugin's react-router requiredVersion fix
+ * shipped but stayed invisible to already-visited browsers).
+ */
+export function isHashedAsset(assetPath: string): boolean {
+  return assetPath.startsWith('assets/');
+}
+
+/**
  * Safely resolves an asset sub-path against a plugin's base URL. Returns null
  * if the resolved URL would escape the base origin or path prefix (traversal).
  */
@@ -114,9 +130,17 @@ export function createPluginRoutes() {
       }
       headers.set('X-Content-Type-Options', 'nosniff');
       // Dev-sourced bundles change under the same URL; never cache them.
+      // A hashed chunk's URL changes with its content, so it's safe to cache
+      // forever; a fixed-name entry point (remoteEntry.js, plugin-manifest.json,
+      // …) is re-fetched on every load instead, so a redeploy is visible
+      // without requiring visitors to hard-refresh their browser.
       headers.set(
         'Cache-Control',
-        plugin.devMode ? 'no-store' : 'public, max-age=31536000, immutable'
+        plugin.devMode
+          ? 'no-store'
+          : isHashedAsset(assetPath)
+            ? 'public, max-age=31536000, immutable'
+            : 'no-cache'
       );
 
       return new Response(upstream.body, { status: upstream.status, headers });
