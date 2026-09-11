@@ -21,8 +21,12 @@ export function toSearchHit(raw: RawSearchHit): SearchHit {
   return {
     uid: metadata.uid ?? '',
     name: metadata.name ?? '',
-    // Domain + DNSZone use spec.domainName in their tables; undefined for kinds without it.
-    displayName: spec.domainName,
+    // Domain + DNSZone: spec.domainName. HTTPProxy/ALB: app.kubernetes.io/name (chosenName).
+    displayName:
+      spec.domainName ||
+      metadata.annotations?.['app.kubernetes.io/name'] ||
+      metadata.annotations?.['kubernetes.io/display-name'] ||
+      undefined,
     description: metadata.annotations?.['kubernetes.io/description'] || undefined,
     namespace: metadata.namespace,
     apiVersion: resource.apiVersion ?? '',
