@@ -12,5 +12,6 @@ export * from './project.server';
 export * from './redirect-intent.server';
 export * from './refresh-token.server';
 export * from './session.server';
+export * from './sidebar.server';
 export * from './toast.server';
 export * from './workload.server';

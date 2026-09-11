@@ -216,3 +216,38 @@
 .datum-ui-data-table__pagination [data-slot='select-trigger'] {
   @apply min-h-8;
 }
+
+/* ---------------------------------------------------------------------------
+ * Main navigation expand/collapse
+ *
+ * datum-ui eases the sidebar panel's width but nothing inside it, so the item
+ * labels jumped straight between full size and nothing while the panel was
+ * still gliding. These rules bring the contents into step with the panel:
+ * opacity for the labels (compositor-friendly), and a matching curve on the
+ * buttons so the clip happens gradually rather than in a single frame.
+ * ------------------------------------------------------------------------ */
+[data-slot='sidebar'] [data-slot='sidebar-menu-button'] {
+  transition:
+    width 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    padding 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 200ms ease,
+    color 200ms ease;
+}
+
+/* Expanding: labels arrive just after the panel has begun widening. */
+[data-slot='sidebar'] [data-slot='sidebar-menu-button'] > span:last-child {
+  transition: opacity 160ms ease-out 90ms;
+}
+
+/* Collapsing: labels leave first, so text never lingers over a narrowing rail. */
+[data-slot='sidebar'][data-collapsible='icon'] [data-slot='sidebar-menu-button'] > span:last-child {
+  opacity: 0;
+  transition: opacity 90ms ease-in;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='sidebar'] [data-slot='sidebar-menu-button'],
+  [data-slot='sidebar'] [data-slot='sidebar-menu-button'] > span:last-child {
+    transition: none;
+  }
+}
