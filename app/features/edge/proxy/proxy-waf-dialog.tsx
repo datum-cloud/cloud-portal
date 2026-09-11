@@ -181,22 +181,20 @@ export const ProxyWafDialog = forwardRef<ProxyWafDialogRef, ProxyWafDialogProps>
                 label="Blocking mode"
                 tooltip="Enforce blocks matching requests. Observe logs matches without blocking."
                 required>
-                {({ control }) => {
-                  const isEnforce = control.value === 'Enforce';
-                  return (
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={isEnforce}
-                        onCheckedChange={(checked) =>
-                          control.change(checked ? 'Enforce' : 'Observe')
-                        }
-                      />
-                      <span className="text-sm">
-                        {isEnforce ? 'Enforce — blocking enabled' : 'Observe — detect only'}
-                      </span>
-                    </div>
-                  );
-                }}
+                {/* Two modes, not on and off — a switch made Observe look like
+                    protection was off when it is very much running. */}
+                <Form.RadioGroup>
+                  <Form.RadioItem
+                    value="Enforce"
+                    label="Enforce"
+                    description="Block requests that match a rule."
+                  />
+                  <Form.RadioItem
+                    value="Observe"
+                    label="Observe"
+                    description="Log matches and let the request through."
+                  />
+                </Form.RadioGroup>
               </Form.Field>
 
               <Form.Field
