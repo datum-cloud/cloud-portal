@@ -167,13 +167,7 @@ export default function ProjectDetailLayout() {
 
   if (loaderData.restricted) {
     return (
-      <DashboardLayout
-        navItems={restrictedNavItems}
-        sidebarCollapsible="icon"
-        defaultSidebarOpen={false}
-        currentOrg={appOrg}
-        expandBehavior="push"
-        showBackdrop={false}>
+      <DashboardLayout navItems={restrictedNavItems} sidebarCollapsible="icon" currentOrg={appOrg}>
         <RestrictedState title={RESTRICTED_TITLE} message={RESTRICTED_MESSAGE} />
       </DashboardLayout>
     );
@@ -298,11 +292,8 @@ function ProjectDetailLayoutContent({
         <DashboardLayout
           navItems={navItems}
           sidebarCollapsible="icon"
-          defaultSidebarOpen={false}
           currentProject={currentProject}
           currentOrg={currentOrg}
-          expandBehavior="push"
-          showBackdrop={false}
           sidebarLoading={projectLoading}
           switcherLoading={projectLoading || orgLoading}
           bottomBar={<ProjectBottomBar />}

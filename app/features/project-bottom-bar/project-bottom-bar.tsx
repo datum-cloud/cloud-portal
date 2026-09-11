@@ -224,8 +224,11 @@ export function ProjectBottomBar() {
         )}
       </AnimatePresence>
 
-      {/* Toolbar — same chrome as SidebarFooter (border-t + p-2 + h-8 controls) */}
-      <div className="bg-sidebar border-sidebar-border relative z-50 flex shrink-0 items-center justify-end overflow-hidden border-t p-2">
+      {/* Toolbar — same chrome as SidebarFooter (border-t + p-2 + h-8 controls).
+          Sits below the main nav (z-50) so the expanded overlay panel keeps its
+          full-height right edge; still paints over the panel above it, which is
+          z-40 and earlier in the DOM. */}
+      <div className="bg-sidebar border-sidebar-border relative z-40 flex shrink-0 items-center justify-end overflow-hidden border-t p-2">
         <div className="border-sidebar-border flex h-8 items-center gap-1 border-l pl-4">
           <span className="text-foreground mr-2 text-xs">Developer Tools</span>
           {dockWidgets.map((widget) => (

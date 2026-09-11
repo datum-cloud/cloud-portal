@@ -8,7 +8,7 @@ import { queryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
-import { csrf, getToastSession } from '@/utils/cookies';
+import { csrf, getSidebarState, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
 import { isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { metaObject } from '@/utils/helpers/meta.helper';
@@ -81,6 +81,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
       toast,
       csrfToken,
       ENV: env.public,
+      // Persisted main-nav state. `undefined` means the user has never pinned or
+      // collapsed the nav, letting DashboardLayout apply its own default.
+      sidebarOpen: getSidebarState(request),
     } as const,
     {
       headers: combineHeaders(
@@ -92,7 +95,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 /** Skip root revalidation for client-side Link navigations.
- * Root loader only provides toast, csrf, ENV — none change per-route.
+ * Root loader only provides toast, csrf, ENV, sidebarOpen — none change per-route.
+ * `sidebarOpen` is deliberately read once per document load: while the app is
+ * mounted the live nav state belongs to SidebarProvider, not the loader.
  * Form submissions still revalidate (e.g. logout) via defaultShouldRevalidate. */
 export function shouldRevalidate({
   currentUrl: _currentUrl,
