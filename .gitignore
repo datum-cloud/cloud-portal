@@ -43,3 +43,6 @@ examples/sample-plugin/node_modules/
 
 # Locally generated dev CA certificate
 dev-ca.crt
+
+# graphify knowledge graph output
+graphify-out/
