@@ -1,4 +1,3 @@
-import { assistantRoutes } from './assistant';
 import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
 import { grafanaRoutes } from './grafana';
@@ -61,8 +60,6 @@ export function createApiApp() {
   api.route('/permissions', permissionsRoutes);
   api.route('/user', userRoutes);
   api.route('/watch', watchRoutes);
-  api.use('/assistant/*', rateLimiter(RateLimitPresets.assistant));
-  api.route('/assistant', assistantRoutes);
 
   // 404 for unregistered routes
   api.all('*', (c) =>

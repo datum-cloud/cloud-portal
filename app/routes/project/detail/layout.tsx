@@ -7,6 +7,7 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { pluginHostBindings } from '@/modules/plugins/client/plugin-sdk-bindings';
 import { useActiveServiceEntitlements } from '@/modules/plugins/client/use-active-service-entitlements';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
 import { buildProjectNavTree, mergePluginNavIntoTree } from '@/modules/project-nav';
@@ -23,7 +24,6 @@ import { createProjectService, useProject, type Project } from '@/resources/proj
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
-import { env } from '@/utils/env';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
@@ -31,6 +31,7 @@ import { projectLegacySetupMiddleware, withMiddleware } from '@/utils/middleware
 import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { cn } from '@datum-cloud/datum-ui/utils';
+import { PortalPluginHostProvider } from '@datum-cloud/portal-plugin-sdk/host';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import {
@@ -287,26 +288,28 @@ function ProjectDetailLayoutContent({
 
   return (
     <ProjectProvider value={projectContextValue}>
-      <DashboardLayout
-        navItems={navItems}
-        sidebarCollapsible="icon"
-        currentProject={currentProject}
-        currentOrg={currentOrg}
-        sidebarLoading={projectLoading}
-        switcherLoading={projectLoading || orgLoading}
-        bottomBar={env.public.chatbotEnabled ? <ProjectBottomBar /> : undefined}
-        banner={<SuspensionBar />}
-        headerContent={
-          <div
-            className={cn('flex h-full items-center justify-end border-l px-4', {
-              'px-0': breakpoint === 'desktop',
-            })}>
-            {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
-          </div>
-        }>
-        <QuotaWatchBridge scope="project" />
-        <Outlet />
-      </DashboardLayout>
+      <PortalPluginHostProvider bindings={pluginHostBindings}>
+        <DashboardLayout
+          navItems={navItems}
+          sidebarCollapsible="icon"
+          currentProject={currentProject}
+          currentOrg={currentOrg}
+          sidebarLoading={projectLoading}
+          switcherLoading={projectLoading || orgLoading}
+          bottomBar={<ProjectBottomBar />}
+          banner={<SuspensionBar />}
+          headerContent={
+            <div
+              className={cn('flex h-full items-center justify-end border-l px-4', {
+                'px-0': breakpoint === 'desktop',
+              })}>
+              {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+            </div>
+          }>
+          <QuotaWatchBridge scope="project" />
+          <Outlet />
+        </DashboardLayout>
+      </PortalPluginHostProvider>
     </ProjectProvider>
   );
 }

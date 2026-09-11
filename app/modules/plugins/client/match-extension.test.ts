@@ -1,6 +1,7 @@
 import { parseCodeRef, pickCodeRefExport } from './code-ref';
 import {
   getCardExtensions,
+  getDockExtensions,
   getNavExtensions,
   getPageExtensions,
   matchPluginPage,
@@ -9,6 +10,7 @@ import {
 } from './match-extension';
 import {
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_DOCK_PROJECT,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   type PageProjectExtension,
@@ -205,6 +207,33 @@ describe('getCardExtensions', () => {
       },
     ]);
     expect(getCardExtensions(m).map((c) => c.properties.title)).toEqual(['First', 'Second']);
+  });
+});
+
+describe('getDockExtensions', () => {
+  it('returns dock extensions sorted by order then title', () => {
+    const m = manifest([
+      {
+        type: EXTENSION_DOCK_PROJECT,
+        properties: { id: 'b', title: 'Beta', icon: 'brain', component: { $codeRef: 'B' } },
+      },
+      {
+        type: EXTENSION_DOCK_PROJECT,
+        properties: {
+          id: 'a',
+          title: 'Alpha',
+          icon: 'brain',
+          component: { $codeRef: 'A' },
+          order: 0,
+        },
+      },
+      {
+        type: EXTENSION_CARD_PROJECT_HOME,
+        properties: { title: 'Card', component: { $codeRef: 'Card' } },
+      },
+    ]);
+    const docks = getDockExtensions(m);
+    expect(docks.map((d) => d.properties.title)).toEqual(['Alpha', 'Beta']);
   });
 });
 

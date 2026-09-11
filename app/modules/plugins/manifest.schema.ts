@@ -3,7 +3,7 @@
  *
  * Contract rules enforced here (see `docs/enhancements/portal-plugin-system.md`):
  * - Known extension types (`portal.nav/project`, `portal.page/project`,
- *   `portal.card/project-home`) are strictly validated.
+ *   `portal.card/project-home`, `portal.dock/project`) are strictly validated.
  * - Unknown extension types are *tolerated*, not fatal: they parse through a
  *   permissive shape and are reported so the caller can record a status note.
  * - Every `$codeRef` on a known extension must reference a declared
@@ -11,6 +11,7 @@
  */
 import {
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_DOCK_PROJECT,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   KNOWN_EXTENSION_TYPES,
@@ -102,6 +103,18 @@ const cardProjectHomeExtensionSchema = z.object({
   requirements: requirementsSchema,
 });
 
+const dockProjectExtensionSchema = z.object({
+  type: z.literal(EXTENSION_DOCK_PROJECT),
+  properties: z.object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    icon: z.string().min(1),
+    component: codeRefSchema,
+    order: z.number().optional(),
+  }),
+  requirements: requirementsSchema,
+});
+
 /**
  * Catch-all for extension types the host doesn't recognize. It refuses *known*
  * types so a malformed known extension fails its own strict schema instead of
@@ -122,6 +135,7 @@ const extensionSchema = z.union([
   navProjectExtensionSchema,
   pageProjectExtensionSchema,
   cardProjectHomeExtensionSchema,
+  dockProjectExtensionSchema,
   unknownExtensionSchema,
 ]);
 
