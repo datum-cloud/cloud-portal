@@ -52,6 +52,101 @@ describe('toSearchHit', () => {
     expect(toSearchHit(raw as never).displayName).toBeUndefined();
   });
 
+  it('extracts displayName from app.kubernetes.io/name when domainName is absent', () => {
+    const raw = {
+      resource: {
+        apiVersion: 'networking.datumapis.com/v1alpha',
+        kind: 'HTTPProxy',
+        metadata: {
+          uid: 'u-alb-1',
+          name: 'alb-abc123',
+          annotations: { 'app.kubernetes.io/name': 'Production ALB' },
+        },
+      },
+      relevanceScore: 0.85,
+      tenant: { name: 'acme-prod', type: 'Project' },
+    };
+    expect(toSearchHit(raw as never).displayName).toBe('Production ALB');
+  });
+
+  it('falls back to kubernetes.io/display-name when app.kubernetes.io/name is absent', () => {
+    const raw = {
+      resource: {
+        apiVersion: 'networking.datumapis.com/v1alpha',
+        kind: 'HTTPProxy',
+        metadata: {
+          uid: 'u-alb-2',
+          name: 'alb-xyz789',
+          annotations: { 'kubernetes.io/display-name': 'Legacy ALB' },
+        },
+      },
+      relevanceScore: 0.85,
+      tenant: { name: 'acme-prod', type: 'Project' },
+    };
+    expect(toSearchHit(raw as never).displayName).toBe('Legacy ALB');
+  });
+
+  it('leaves displayName undefined when HTTPProxy name annotations are empty', () => {
+    const raw = {
+      resource: {
+        apiVersion: 'networking.datumapis.com/v1alpha',
+        kind: 'HTTPProxy',
+        metadata: {
+          uid: 'u-alb-3',
+          name: 'alb-empty',
+          annotations: {
+            'app.kubernetes.io/name': '',
+            'kubernetes.io/display-name': '',
+          },
+        },
+      },
+      relevanceScore: 0.85,
+      tenant: { name: 'acme-prod', type: 'Project' },
+    };
+    expect(toSearchHit(raw as never).displayName).toBeUndefined();
+  });
+
+  it('prefers spec.domainName over both name annotations', () => {
+    const raw = {
+      resource: {
+        apiVersion: 'networking.miloapis.com/v1alpha1',
+        kind: 'Domain',
+        metadata: {
+          uid: 'u-both',
+          name: 'd-abc123',
+          annotations: {
+            'app.kubernetes.io/name': 'Chosen Domain',
+            'kubernetes.io/display-name': 'Friendly Domain',
+          },
+        },
+        spec: { domainName: 'hiyahya.dev' },
+      },
+      relevanceScore: 0.8,
+      tenant: { name: 'molla-e29bml', type: 'Project' },
+    };
+    expect(toSearchHit(raw as never).displayName).toBe('hiyahya.dev');
+  });
+
+  it('prefers app.kubernetes.io/name over kubernetes.io/display-name when domainName is absent', () => {
+    const raw = {
+      resource: {
+        apiVersion: 'networking.datumapis.com/v1alpha',
+        kind: 'HTTPProxy',
+        metadata: {
+          uid: 'u-alb-4',
+          name: 'alb-both',
+          annotations: {
+            'app.kubernetes.io/name': 'Chosen ALB',
+            'kubernetes.io/display-name': 'Display ALB',
+          },
+        },
+      },
+      relevanceScore: 0.85,
+      tenant: { name: 'acme-prod', type: 'Project' },
+    };
+    expect(toSearchHit(raw as never).displayName).toBe('Chosen ALB');
+  });
+
   it('extracts description from metadata.annotations["kubernetes.io/description"]', () => {
     const raw = {
       resource: {
