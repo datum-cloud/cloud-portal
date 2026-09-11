@@ -30,6 +30,7 @@ import reactQueryPkg from '@tanstack/react-query/package.json';
 import type { ComponentType } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import * as ReactDOMClient from 'react-dom/client';
 import * as ReactRouter from 'react-router';
 import reactRouterPkg from 'react-router/package.json';
 
@@ -76,6 +77,18 @@ function hostShared() {
     'react-dom': {
       version: ReactDOM.version,
       lib: () => ReactDOM,
+      shareConfig: { singleton: true, requiredVersion: false as const, eager: true },
+    },
+    // React 19's createRoot/hydrateRoot live in this subpath, which Module
+    // Federation treats as a distinct shared module from 'react-dom' rather
+    // than folding it in automatically. Without an explicit host-side entry,
+    // a plugin that imports it (transitively, via some UI dependency) tries
+    // to "bridge" against nothing here and crashes with React's own
+    // "incompatible react/react-dom versions" invariant instead of cleanly
+    // falling back — hit by the assistant plugin's chat dock.
+    'react-dom/client': {
+      version: ReactDOM.version,
+      lib: () => ReactDOMClient,
       shareConfig: { singleton: true, requiredVersion: false as const, eager: true },
     },
     'react-router': {
