@@ -39,7 +39,10 @@ export const DEFAULT_MANIFEST_PATH = '/plugin-manifest.json';
  * Re-exported from the real package (not a hand-copied literal) so the
  * compatibility check can never drift from what the host actually ships.
  */
-export { SDK_NAME as HOST_SDK_NAME, SDK_VERSION as HOST_SDK_VERSION } from '@datum-cloud/portal-plugin-sdk';
+export {
+  SDK_NAME as HOST_SDK_NAME,
+  SDK_VERSION as HOST_SDK_VERSION,
+} from '@datum-cloud/portal-plugin-sdk';
 
 // ═══════════════════════════════════════════════════════════
 // Registry sources
