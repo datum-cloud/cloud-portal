@@ -151,7 +151,9 @@ export function DashboardLayout({
             title={sidebarHeader as any}
             navItems={navItems}
             collapsible={sidebarCollapsible}
-            className="top-12"
+            // Overrides datum-ui's 200ms linear width tween with an ease-out
+            // curve; custom.css brings the item labels in step with it.
+            className="top-12 duration-[260ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
             closeOnNavigation={closeOnNavigation}
             currentPath={pathname}
             linkComponent={Link}
