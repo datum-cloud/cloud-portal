@@ -9,6 +9,27 @@ spec:
   serviceRef:
     name: assistant-miloapis-com
   phase: Published
+  # Consumer-side portal plugin (cloud-portal): the "Patch AI" chat dock
+  # (portal.dock/project extension, no page). Hosted internally only —
+  # assistant's config/components/consumer-ui-plugin, folded into
+  # patch-assistant's own Deployment set, never fronted by a public
+  # Gateway/HTTPRoute. cloud-portal's server is the only caller, over this
+  # in-cluster Service DNS name — the browser never talks to a plugin origin
+  # directly. Cluster-local DNS means this value is correct in every
+  # environment patch-assistant deploys to.
+  #
+  # No caBundle needed: the plugin's CSI-issued server cert chains to
+  # datum-control-plane-ca, which cloud-portal's Bun runtime already trusts
+  # platform-wide via NODE_EXTRA_CA_CERTS.
+  #
+  # entitlement: None — there is no per-project ServiceEntitlement concept
+  # for Patch; every project should see it.
+  userInterface:
+    consumer:
+      assets:
+        baseURL: https://assistant-consumer-ui-plugin.patch-system.svc.cluster.local
+      visibility:
+        entitlement: None
   monitoredResourceTypes:
     - type: assistant.miloapis.com/Conversation
       displayName: AI assistant chat
