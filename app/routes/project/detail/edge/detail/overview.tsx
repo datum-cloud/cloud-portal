@@ -23,6 +23,9 @@ import { useParams } from 'react-router';
  * Operational dashboard for one ALB: status, live metrics, traffic, and the
  * recent request feed. Editing and deletion live on the Configuration tab.
  */
+/** Height of the four dashboard panels below the metrics strip. */
+const PANEL_HEIGHT = 'h-[27rem]';
+
 export default function HttpProxyOverviewPage() {
   const { data: proxy } = useGuardedRouteData<HttpProxy, Record<string, never>>('proxy-detail');
   const { projectId = '', proxyId = '' } = useParams<{ projectId: string; proxyId: string }>();
@@ -64,18 +67,20 @@ export default function HttpProxyOverviewPage() {
           wafPending={wafPending}
         />
       </Col>
-      <Col span={24} lg={12}>
+      {/* Fixed row heights: the chart fills its card and the lists scroll
+          inside theirs instead of growing the page. */}
+      <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <HttpProxyLiveTrafficCard projectId={projectId} proxyId={resourceName} range={range} />
       </Col>
-      <Col span={24} lg={12}>
+      <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <HttpProxyEndpointsCard proxy={effectiveProxy} projectId={projectId} proxyId={proxyId} />
       </Col>
-      <Col span={24} lg={12}>
+      <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <MetricsProvider>
           <ActivePopsCard projectId={projectId} proxyId={resourceName} />
         </MetricsProvider>
       </Col>
-      <Col span={24} lg={12}>
+      <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <HttpProxyLogsCard projectId={projectId} proxyId={resourceName} />
       </Col>
     </Row>

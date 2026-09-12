@@ -437,7 +437,7 @@ export const ActivePopsCard = ({
   }, [directory, rpsData?.series, errorData?.series, latencyData?.series]);
 
   const locationRows = (
-    <ul className="divide-border divide-y" data-active-pops-list>
+    <ul className="[&>li]:border-border [&>li]:border-b" data-active-pops-list>
       {directory.map((item) => {
         const metrics = metricsForTrafficRegion(
           item.trafficRegion ?? item.value,
@@ -506,6 +506,7 @@ export const ActivePopsCard = ({
 
   const card = (
     <Card
+      size="sm"
       sectioned
       data-active-pops-card
       className="relative flex h-full w-full flex-col overflow-hidden">

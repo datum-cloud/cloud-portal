@@ -100,7 +100,7 @@ export function HttpProxyLiveTrafficCard({
   })}#traffic`;
 
   return (
-    <Card className="flex h-full flex-col" data-e2e="alb-live-traffic">
+    <Card size="sm" className="flex h-full flex-col" data-e2e="alb-live-traffic">
       <CardHeader size="sm">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Icon icon={ActivityIcon} size={16} className="text-secondary" />
@@ -128,7 +128,7 @@ export function HttpProxyLiveTrafficCard({
         </CardAction>
       </CardHeader>
       <CardContent className="relative flex min-h-0 flex-1 flex-col">
-        <div className="relative h-56 w-full sm:h-64">
+        <div className="relative min-h-40 w-full flex-1">
           {isLoading ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <SpinnerIcon size="sm" />
@@ -153,7 +153,7 @@ export function HttpProxyLiveTrafficCard({
               responsive
               width="100%"
               height="100%"
-              margin={{ top: 4, right: 0, left: 0, bottom: 0 }}
+              margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
               barCategoryGap="20%">
               <YAxis
                 width={28}

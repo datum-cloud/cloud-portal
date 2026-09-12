@@ -13,7 +13,15 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-clo
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { CheckIcon, ChevronRightIcon, CopyIcon, GlobeIcon, ServerIcon } from 'lucide-react';
+import {
+  CheckIcon,
+  ChevronRightIcon,
+  CopyIcon,
+  GlobeIcon,
+  LockIcon,
+  PencilIcon,
+  ServerIcon,
+} from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
@@ -126,7 +134,11 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
   const backends = summarizeBackends(proxy);
 
   return (
-    <Card sectioned className="flex h-full flex-col overflow-hidden" data-e2e="alb-endpoints">
+    <Card
+      size="sm"
+      sectioned
+      className="flex h-full flex-col overflow-hidden"
+      data-e2e="alb-endpoints">
       <CardHeader size="sm" bordered>
         <CardTitle className="flex items-center gap-2 text-sm">
           <Icon icon={GlobeIcon} size={16} className="text-secondary" />
@@ -135,14 +147,21 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
         <CardAction>
           <Link
             to={`${configurationHref}#hostnames`}
-            className="text-primary text-xs font-medium hover:underline"
+            className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
             data-e2e="alb-endpoints-manage">
+            <Icon icon={PencilIcon} size={12} aria-hidden="true" />
             Manage
           </Link>
         </CardAction>
       </CardHeader>
-      <CardContent padding="x-none" className="min-h-0 flex-1 overflow-y-auto py-0">
-        <ul className="divide-border divide-y">
+      <CardContent padding="none" className="flex min-h-0 flex-1 flex-col">
+        {/* Custom hostnames scroll; the system hostname and backend pool stay pinned below. */}
+        <ul className="divide-border min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain">
+          {hostnames.length === 0 && !systemHostname ? (
+            <li className="text-muted-foreground px-(--card-px) py-6 text-center text-sm">
+              Hostnames appear here once the load balancer is programmed.
+            </li>
+          ) : null}
           {hostnames.map((item) => (
             <EndpointRow
               key={item.hostname}
@@ -191,7 +210,9 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
               }
             />
           ))}
+        </ul>
 
+        <ul className="divide-border border-border shrink-0 divide-y border-t">
           {systemHostname ? (
             <EndpointRow
               eyebrow="Default hostname"
@@ -200,16 +221,11 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
               onCopy={() => copy(systemHostname, { withToast: true })}
               chips={
                 <StatusChip tone="muted" tooltip="Issued and managed by Datum">
-                  System-managed
+                  <Icon icon={LockIcon} size={10} aria-hidden="true" />
+                  System managed
                 </StatusChip>
               }
             />
-          ) : null}
-
-          {hostnames.length === 0 && !systemHostname ? (
-            <li className="text-muted-foreground px-(--card-px) py-6 text-center text-sm">
-              Hostnames appear here once the load balancer is programmed.
-            </li>
           ) : null}
 
           <li>

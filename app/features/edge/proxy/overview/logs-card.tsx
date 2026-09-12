@@ -37,7 +37,7 @@ interface HttpProxyLogsCardProps {
   proxyId: string;
 }
 
-const ROW_LIMIT = 8;
+const ROW_LIMIT = ALB_LOGS_PREVIEW_LIMIT;
 
 function relativeAge(date: Date): string {
   const seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
@@ -134,6 +134,7 @@ export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps
 
   return (
     <Card
+      size="sm"
       sectioned
       className="relative flex h-full flex-col overflow-hidden"
       data-e2e="alb-live-requests">
@@ -158,17 +159,17 @@ export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps
       </CardHeader>
       <CardContent padding="none" className="min-h-0 flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="flex h-40 items-center justify-center">
+          <div className="flex h-full items-center justify-center">
             <SpinnerIcon size="sm" />
           </div>
         ) : errorMessage ? (
-          <div className="text-muted-foreground flex h-40 items-center justify-center px-(--card-px) text-center text-sm">
+          <div className="text-muted-foreground flex h-full items-center justify-center px-(--card-px) text-center text-sm">
             <Tooltip message={errorMessage}>
               <span>Unable to load recent requests.</span>
             </Tooltip>
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-muted-foreground flex h-40 items-center justify-center px-(--card-px) text-center text-sm">
+          <div className="text-muted-foreground flex h-full items-center justify-center px-(--card-px) text-center text-sm">
             No requests in the last 30 minutes.
           </div>
         ) : (
