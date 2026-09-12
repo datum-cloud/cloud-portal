@@ -1,3 +1,4 @@
+import type { OverviewRange } from './overview-range';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import {
@@ -20,21 +21,23 @@ import {
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import {
   httpStatusBadgeType,
-  lastThirtyMinutes,
   logRequestHost,
   parseLogLine,
   type LogEntry,
+  type LogTimeRange,
 } from '@datum-cloud/datum-ui/logs';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { LogsIcon } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 interface HttpProxyLogsCardProps {
   projectId: string;
   proxyId: string;
+  /** Shared overview window so the feed covers the same span as the metrics. */
+  range: OverviewRange;
 }
 
 const ROW_LIMIT = ALB_LOGS_PREVIEW_LIMIT;
@@ -108,9 +111,13 @@ function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) 
  * Most recent access-log lines as flush rows. The Logs tab owns filtering and
  * the detail panel; this is a glanceable feed that links there.
  */
-export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps) => {
+export const HttpProxyLogsCard = ({ projectId, proxyId, range }: HttpProxyLogsCardProps) => {
   const { hasPermission, isLoading: permLoading } = useAlbLogsPermission();
-  const [timeRange] = useState(() => lastThirtyMinutes());
+  const { start, end } = range.timeRange;
+  const timeRange = useMemo<LogTimeRange>(
+    () => ({ from: start.toISOString(), to: end.toISOString() }),
+    [start, end]
+  );
 
   const logsQuery = useAlbLogs(projectId, proxyId, {
     timeRange,
@@ -146,7 +153,7 @@ export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps
           {entries.length > 0 ? <StatusPulseDot variant="active" className="size-4" /> : null}
         </CardTitle>
         <CardDescription className="text-xs">
-          Most recent requests · last 30 minutes
+          Most recent requests · {range.label.toLowerCase()}
         </CardDescription>
         <CardAction>
           <Link
@@ -170,7 +177,7 @@ export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps
           </div>
         ) : entries.length === 0 ? (
           <div className="text-muted-foreground flex h-full items-center justify-center px-(--card-px) text-center text-sm">
-            No requests in the last 30 minutes.
+            No requests in the {range.label.toLowerCase()}.
           </div>
         ) : (
           <ul className="divide-border divide-y">

@@ -81,7 +81,7 @@ export default function HttpProxyOverviewPage() {
         </MetricsProvider>
       </Col>
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <HttpProxyLogsCard projectId={projectId} proxyId={resourceName} />
+        <HttpProxyLogsCard projectId={projectId} proxyId={resourceName} range={range} />
       </Col>
     </Row>
   );
