@@ -165,6 +165,9 @@ export function HttpProxyLiveTrafficCard({
           ) : (
             <BarChart
               data={rows}
+              // No tooltip to navigate, so don't make the surface focusable
+              // (the focus ring shows on click otherwise).
+              accessibilityLayer={false}
               responsive
               width="100%"
               height="100%"
