@@ -54,14 +54,14 @@ export function HttpProxyMetricsStrip({
   const windowLabel = `Last ${range.shortLabel}`;
 
   return (
-    <section className="flex flex-col gap-3" aria-labelledby="alb-live-metrics-heading">
+    <section className="flex flex-col gap-6" aria-labelledby="alb-live-metrics-heading">
       <div className="flex items-center justify-between gap-3">
         <h2 id="alb-live-metrics-heading" className="text-sm font-semibold">
           Live metrics
         </h2>
         <Select value={range.value} onValueChange={(v) => onRangeChange(v as OverviewRangeValue)}>
           <SelectTrigger
-            className="h-8 w-auto gap-2 text-xs"
+            className="bg-card h-8 w-auto gap-2 text-xs"
             aria-label="Live metrics time range"
             data-e2e="alb-overview-range">
             <Icon icon={HistoryIcon} size={14} className="text-muted-foreground" />
@@ -76,7 +76,7 @@ export function HttpProxyMetricsStrip({
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
         <SparklineStatCard
           title="Requests"
           href={`${metricsBase}#traffic`}
