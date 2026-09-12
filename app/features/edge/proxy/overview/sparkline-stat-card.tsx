@@ -227,7 +227,7 @@ export function SparklineStatCard({
     <Card
       size="sm"
       className={cn(
-        'relative h-full w-full overflow-hidden shadow-none',
+        'relative h-full w-full overflow-hidden',
         href && 'hover:bg-muted/30 transition-colors'
       )}>
       {isLoading ? (
