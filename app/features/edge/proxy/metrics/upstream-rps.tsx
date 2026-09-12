@@ -5,6 +5,7 @@ import {
   stepOr,
 } from '@/features/edge/proxy/metrics/queries';
 import { ChartBlock, metricChartStackClassName } from '@/features/edge/proxy/metrics/series-legend';
+import { useRegionLabels } from '@/features/edge/proxy/metrics/use-region-labels';
 import { MetricChart, MetricsChartTooltip, formatReqPerSecTick } from '@/modules/metrics';
 
 export const HttpProxyUpstreamRps = ({
@@ -14,8 +15,13 @@ export const HttpProxyUpstreamRps = ({
   projectId: string;
   proxyId: string;
 }) => {
+  const { legendLabels, formatName } = useRegionLabels(projectId);
+
   return (
-    <ChartBlock title="Regional requests per second" className={metricChartStackClassName}>
+    <ChartBlock
+      title="Regional requests per second"
+      labels={legendLabels}
+      className={metricChartStackClassName}>
       <MetricChart
         query={(ctx) => albRegionalRpsQuery(scopeFromContext(ctx, projectId, proxyId), stepOr(ctx))}
         chartType="line"
@@ -26,7 +32,11 @@ export const HttpProxyUpstreamRps = ({
         height={200}
         yAxisFormatter={formatReqPerSecTick}
         tooltipContent={(props) => (
-          <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(4)} req/s`} />
+          <MetricsChartTooltip
+            {...props}
+            formatName={formatName}
+            formatValue={(value) => `${value.toFixed(4)} req/s`}
+          />
         )}
         className="text-foreground"
       />

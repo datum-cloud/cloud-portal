@@ -1,7 +1,9 @@
 import {
   buildLocationDirectory,
+  buildLocationIndex,
   enrichActivePops,
   formatRegionFilterOption,
+  resolveRegionPlace,
 } from './enrich-active-pops';
 import { getRegionCoordinates } from './region-coordinates';
 import type { Location } from '@/resources/locations';
@@ -72,6 +74,27 @@ describe('formatRegionFilterOption', () => {
       label: 'us-east4',
       value: 'us-east4',
     });
+  });
+});
+
+describe('resolveRegionPlace', () => {
+  const index = buildLocationIndex([ashburn]);
+
+  it('returns "City, Country" for a known region code', () => {
+    expect(resolveRegionPlace('us-east-1', index)).toBe('Ashburn, United States');
+  });
+
+  it('matches zone-suffixed codes via normalisation', () => {
+    expect(resolveRegionPlace('US-EAST-1-b', index)).toBe('Ashburn, United States');
+  });
+
+  it('returns null when the code is unknown', () => {
+    expect(resolveRegionPlace('eu-west-9', index)).toBeNull();
+  });
+
+  it('returns null when the location adds nothing beyond the code', () => {
+    const bare: Location = { name: 'us-central-1', coords: null };
+    expect(resolveRegionPlace('us-central-1', buildLocationIndex([bare]))).toBeNull();
   });
 });
 
