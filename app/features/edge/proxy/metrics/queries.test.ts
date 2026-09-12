@@ -1,6 +1,7 @@
 import {
   albErrorRateQuery,
   albLatencyPercentilesQuery,
+  albRequestCountQuery,
   albRpsByClassQuery,
   albRpsQuery,
   albWafByLabelQuery,
@@ -66,6 +67,13 @@ describe('alb query builders', () => {
     expect(query).toContain('resourcemanager_datumapis_com_project_name="proj"');
     expect(query).toContain('gateway_name="gw-1"');
     expect(query).toContain('envoy_response_code=~"2.."');
+  });
+
+  it('counts total requests over a window for traffic presence', () => {
+    const query = albRequestCountQuery(scope, '24h');
+    expect(query).toStartWith('sum(increase(envoy_vhost_vcluster_upstream_rq{');
+    expect(query).toContain('gateway_name="gw-1"');
+    expect(query).toEndWith('[24h]))');
   });
 
   it('derives 2XX-5XX classes via label_replace', () => {

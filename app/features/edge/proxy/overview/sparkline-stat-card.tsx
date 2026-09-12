@@ -28,6 +28,8 @@ interface SparklineStatCardProps {
   pending?: boolean;
   unavailable?: boolean;
   unavailableLabel?: string;
+  /** ALB has never seen traffic: show "—" over a flat baseline instead of zeros. */
+  idle?: boolean;
   timeRange?: { start: Date; end: Date };
   step?: string;
   rangeLabel?: string;
@@ -115,6 +117,7 @@ export function SparklineStatCard({
   pending = false,
   unavailable = false,
   unavailableLabel = 'Not enabled',
+  idle = false,
   timeRange: timeRangeProp,
   step,
   rangeLabel,
@@ -222,11 +225,15 @@ export function SparklineStatCard({
   const isLoading = pending || (!unavailable && (chartLoading || (!!valueQuery && cardLoading)));
   const error = chartError ?? cardError;
   const denied = error?.statusCode === 403 || error?.statusCode === 401;
+  // Idle wins over "0.00 req/s": a load balancer that has never served a
+  // request has no rate to report yet.
+  const showIdle = idle && !unavailable && !denied && !isLoading;
 
   const card = (
     <Card
+      size="sm"
       className={cn(
-        'relative h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-5 sm:pb-4',
+        'relative h-full w-full overflow-hidden',
         href && 'hover:bg-muted/30 transition-colors'
       )}>
       {isLoading ? (
@@ -234,27 +241,32 @@ export function SparklineStatCard({
           <SpinnerIcon size="sm" />
         </div>
       ) : null}
-      <CardContent
-        className={cn('flex min-w-0 flex-col gap-2 p-0 sm:px-3', isLoading && 'invisible')}>
+      <CardContent className={cn('flex min-w-0 flex-col gap-2', isLoading && 'invisible')}>
         <div className="flex h-4 items-center justify-between gap-2">
           <span className="text-muted-foreground text-xs font-medium">{title}</span>
           <span className="text-muted-foreground text-2xs">
             {unavailable ? '\u00a0' : windowLabel}
           </span>
         </div>
-        <div className="text-foreground flex h-7 items-center text-xl font-semibold tabular-nums">
+        <div className="text-foreground flex h-8 items-center text-2xl font-semibold tabular-nums">
           {unavailable ? (
             <span className="text-muted-foreground text-sm font-medium">{unavailableLabel}</span>
           ) : denied ? (
             <Tooltip message="You don't have permission to view metrics">
               <span className="text-muted-foreground text-sm">&mdash;</span>
             </Tooltip>
+          ) : showIdle ? (
+            <span className="text-muted-foreground">—</span>
           ) : (
             (headline ?? '—')
           )}
         </div>
         <div className="h-8 w-full">
-          {denied ? null : isPercentiles ? (
+          {denied ? null : showIdle ? (
+            <div className="flex h-full items-center" aria-hidden="true">
+              <div className="bg-border h-px w-full" />
+            </div>
+          ) : isPercentiles ? (
             <PercentileRangeBar
               p50={percentiles.p50}
               p95={percentiles.p95}

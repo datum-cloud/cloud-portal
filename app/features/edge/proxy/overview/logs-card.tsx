@@ -1,28 +1,137 @@
+import { IdleChip, OverviewEmptyState } from './overview-empty-state';
+import type { OverviewRange } from './overview-range';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { StatusPulseDot } from '@/components/status-pulse-dot';
 import {
   ALB_LOGS_DENIED_MESSAGE,
   useAlbLogsPermission,
 } from '@/features/edge/proxy/hooks/use-alb-logs-permission';
-import { AlbLogsPreview } from '@/features/edge/proxy/logs/alb-logs-preview';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { ALB_LOGS_PREVIEW_LIMIT, useAlbLogs } from '@/resources/o11y-logs';
 import { paths } from '@/utils/config/paths.config';
 import { AuthorizationError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
-import { lastThirtyMinutes } from '@datum-cloud/datum-ui/logs';
-import { LogsIcon } from 'lucide-react';
-import { useState } from 'react';
+import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import {
+  httpStatusBadgeType,
+  logRequestHost,
+  parseLogLine,
+  type LogEntry,
+  type LogTimeRange,
+} from '@datum-cloud/datum-ui/logs';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { CheckIcon, CopyIcon, LogsIcon, RadioIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 interface HttpProxyLogsCardProps {
   projectId: string;
   proxyId: string;
+  /** Shared overview window so the feed covers the same span as the metrics. */
+  range: OverviewRange;
+  /** ALB has never seen traffic; shows the first-request prompt with a curl snippet. */
+  idle?: boolean;
+  /** System-managed hostname used in the test-request snippet. */
+  defaultHostname?: string;
 }
 
-export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps) => {
+const ROW_LIMIT = ALB_LOGS_PREVIEW_LIMIT;
+
+function relativeAge(date: Date): string {
+  const seconds = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return `${seconds}s ago`;
+  return `${formatDistanceToNowStrict(date, { roundingMethod: 'floor' })
+    .replace(/ minutes?/, 'm')
+    .replace(/ hours?/, 'h')
+    .replace(/ days?/, 'd')} ago`;
+}
+
+function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) {
+  const parsed = parseLogLine(entry.line, entry.labels);
+  const host = logRequestHost(entry.labels);
+
+  if (parsed.kind !== 'http') {
+    return (
+      <li className="flex items-center gap-3 px-(--card-px) py-2">
+        <span className="text-muted-foreground min-w-0 flex-1 truncate font-mono text-xs">
+          {parsed.line}
+        </span>
+        <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+          {relativeAge(entry.timestamp)}
+        </span>
+      </li>
+    );
+  }
+
+  return (
+    <li>
+      <Link
+        to={logsHref}
+        className="hover:bg-muted/40 flex items-center gap-3 px-(--card-px) py-2 transition-colors">
+        <Badge
+          type={httpStatusBadgeType(parsed.status)}
+          theme="light"
+          className="h-5 w-11 shrink-0 justify-center rounded-md px-0 font-mono text-[11px] font-medium tabular-nums">
+          {parsed.status}
+        </Badge>
+        <span className="text-muted-foreground w-12 shrink-0 font-mono text-[11px] font-medium">
+          {parsed.method}
+        </span>
+        <span className="min-w-0 flex-1 truncate font-mono text-xs" title={parsed.path}>
+          {parsed.path}
+        </span>
+        {host ? (
+          <span className="text-muted-foreground hidden max-w-40 shrink-0 truncate text-xs lg:inline">
+            {host}
+          </span>
+        ) : null}
+        <span
+          className={cn(
+            'w-14 shrink-0 text-right font-mono text-xs tabular-nums',
+            parsed.durationMs >= 1000 ? 'text-(--color-badge-warning)' : 'text-muted-foreground'
+          )}>
+          {parsed.durationMs >= 1000
+            ? `${(parsed.durationMs / 1000).toFixed(1)}s`
+            : `${Math.round(parsed.durationMs)}ms`}
+        </span>
+        <span className="text-muted-foreground w-16 shrink-0 text-right text-xs tabular-nums">
+          {relativeAge(entry.timestamp)}
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+/**
+ * Most recent access-log lines as flush rows. The Logs tab owns filtering and
+ * the detail panel; this is a glanceable feed that links there.
+ */
+export const HttpProxyLogsCard = ({
+  projectId,
+  proxyId,
+  range,
+  idle = false,
+  defaultHostname,
+}: HttpProxyLogsCardProps) => {
   const { hasPermission, isLoading: permLoading } = useAlbLogsPermission();
-  const [timeRange] = useState(() => lastThirtyMinutes());
+  const [, copy, isCopied] = useCopyToClipboard();
+  const { start, end } = range.timeRange;
+  const timeRange = useMemo<LogTimeRange>(
+    () => ({ from: start.toISOString(), to: end.toISOString() }),
+    [start, end]
+  );
 
   const logsQuery = useAlbLogs(projectId, proxyId, {
     timeRange,
@@ -41,26 +150,83 @@ export const HttpProxyLogsCard = ({ projectId, proxyId }: HttpProxyLogsCardProps
     proxyId,
   });
 
+  const entries = useMemo(() => (logsQuery.data ?? []).slice(0, ROW_LIMIT), [logsQuery.data]);
+  const isLoading = permLoading || logsQuery.isLoading;
+  const empty = !isLoading && !denied && !errorMessage && entries.length === 0;
+  const testCommand = defaultHostname ? `curl -I https://${defaultHostname}/` : null;
+
   return (
-    <Card className="relative flex h-[22rem] w-full flex-col overflow-hidden rounded-xl px-3 py-4 shadow sm:h-[24rem] sm:pt-6 sm:pb-4">
+    <Card
+      size="sm"
+      sectioned
+      className="relative flex h-full flex-col overflow-hidden"
+      data-e2e="alb-live-requests">
       {denied && <RestrictedOverlay message={ALB_LOGS_DENIED_MESSAGE} />}
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-5 p-0 sm:px-6 sm:pb-4">
-        <div className="flex shrink-0 items-center gap-2.5">
-          <Icon icon={LogsIcon} size={20} className="text-secondary stroke-2" />
-          <span className="text-base font-semibold">Logs</span>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Icon icon={LogsIcon} size={16} className="text-secondary" />
+          Live requests
+          {entries.length > 0 ? <StatusPulseDot variant="active" className="size-4" /> : null}
+          {empty ? <IdleChip /> : null}
+        </CardTitle>
+        <CardDescription className="text-xs">
+          Most recent requests · {range.label.toLowerCase()}
+        </CardDescription>
+        <CardAction>
           <Link
             to={logsHref}
-            className="text-primary ml-auto text-sm font-medium hover:underline"
+            className="text-primary text-xs font-medium hover:underline"
             data-e2e="alb-logs-view-all">
             View all
           </Link>
-        </div>
-
-        <AlbLogsPreview
-          entries={logsQuery.data ?? []}
-          isLoading={permLoading || logsQuery.isLoading}
-          error={errorMessage}
-        />
+        </CardAction>
+      </CardHeader>
+      <CardContent padding="none" className="min-h-0 flex-1 overflow-y-auto">
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <SpinnerIcon size="sm" />
+          </div>
+        ) : errorMessage ? (
+          <div className="text-muted-foreground flex h-full items-center justify-center px-(--card-px) text-center text-sm">
+            <Tooltip message={errorMessage}>
+              <span>Unable to load recent requests.</span>
+            </Tooltip>
+          </div>
+        ) : entries.length === 0 ? (
+          <OverviewEmptyState
+            icon={RadioIcon}
+            title={
+              idle
+                ? 'Waiting for the first request…'
+                : `No requests in the ${range.label.toLowerCase()}`
+            }
+            description={
+              idle
+                ? 'Send a test request and it will appear here live.'
+                : 'New requests appear here live as they arrive.'
+            }>
+            {idle && testCommand ? (
+              <div className="bg-muted/60 border-border flex w-full max-w-sm items-center gap-2 rounded-md border py-1.5 pr-1.5 pl-3 text-left">
+                <code className="min-w-0 flex-1 font-mono text-xs break-all">{testCommand}</code>
+                <Button
+                  type="quaternary"
+                  theme="borderless"
+                  size="xs"
+                  className="text-muted-foreground size-6 shrink-0 p-0"
+                  aria-label="Copy test request command"
+                  onClick={() => copy(testCommand, { withToast: true })}>
+                  <Icon icon={isCopied(testCommand) ? CheckIcon : CopyIcon} size={12} />
+                </Button>
+              </div>
+            ) : null}
+          </OverviewEmptyState>
+        ) : (
+          <ul className="divide-border divide-y">
+            {entries.map((entry) => (
+              <RequestRow key={entry.id} entry={entry} logsHref={logsHref} />
+            ))}
+          </ul>
+        )}
       </CardContent>
     </Card>
   );

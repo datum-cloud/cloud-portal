@@ -102,7 +102,7 @@ describe('mergePluginNavIntoTree', () => {
     expect(build?.type).toBe('collapsible');
     const objectStorage = build?.children?.find((c) => c.title === 'Object Storage');
     expect(objectStorage?.type).toBe('link');
-    expect(objectStorage?.badge?.label).toBe('Coming Soon');
+    expect(objectStorage?.badge?.label).toBe('Soon');
     expect(objectStorage?.href).toBe('/project/proj-1/coming-soon/object-storage');
     expect(objectStorage?.icon).toBeUndefined();
     expect(build?.children?.some((c) => c.title === 'Compute')).toBe(false);
@@ -110,7 +110,7 @@ describe('mergePluginNavIntoTree', () => {
     const deliver = tree.find((item) => item.sectionId === 'deliver');
     const gslb = deliver?.children?.find((c) => c.title === 'GSLB');
     expect(gslb?.type).toBe('link');
-    expect(gslb?.badge?.label).toBe('Coming Soon');
+    expect(gslb?.badge?.label).toBe('Soon');
     expect(gslb?.href).toBe('/project/proj-1/coming-soon/gslb');
     expect(gslb?.disabled).not.toBe(true);
   });
@@ -154,7 +154,7 @@ describe('mergePluginNavIntoTree', () => {
     const build = merged.find((item) => item.title === 'Build');
     const compute = build?.children?.find((c) => c.title === 'Compute');
     expect(compute?.type).toBe('link');
-    expect(compute?.badge?.label).toBe('Coming Soon');
+    expect(compute?.badge?.label).toBe('Soon');
     expect(compute?.href).toBe('/project/proj-1/coming-soon/compute');
     expect(compute?.muted).toBe(true);
   });
@@ -187,7 +187,7 @@ describe('mergePluginNavIntoTree', () => {
     const build = merged.find((item) => item.title === 'Build');
     const compute = build?.children?.find((c) => c.title === 'Compute');
     expect(compute?.type).toBe('link');
-    expect(compute?.badge?.label).toBe('Coming Soon');
+    expect(compute?.badge?.label).toBe('Soon');
     expect(compute?.href).toContain('/project/proj-1/services/workloads/workloads');
     expect(compute?.muted).toBe(true);
   });
@@ -222,7 +222,7 @@ describe('mergePluginNavIntoTree', () => {
     const build = merged.find((item) => item.title === 'Build');
     const compute = build?.children?.find((c) => c.title === 'Compute');
     expect(compute?.type).toBe('externalLink');
-    expect(compute?.badge?.label).toBe('Coming Soon');
+    expect(compute?.badge?.label).toBe('Soon');
     expect(compute?.href).toBe(roadmap);
     expect(compute?.muted).toBe(true);
   });

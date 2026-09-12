@@ -37,7 +37,7 @@ export function HttpProxyLatencyPercentiles({
             formatValue={(value) => formatValue(value, 'milliseconds-auto')}
           />
         )}
-        className="text-foreground shadow-none"
+        className="text-foreground"
       />
     </ChartBlock>
   );

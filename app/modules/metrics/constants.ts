@@ -2,8 +2,8 @@
  * Time-related constants for the Metrics module
  */
 
-/** Shared height for metrics toolbar controls (36px / Tailwind h-9). */
-export const METRICS_CONTROL_HEIGHT_CLASS = 'h-9 min-h-9';
+/** Shared height for metrics toolbar controls (32px / Tailwind h-8), matching sidebar nav items. */
+export const METRICS_CONTROL_HEIGHT_CLASS = 'h-8 min-h-8';
 
 /** Default time range when no URL state is present. */
 export const DEFAULT_TIME_RANGE = 'now-30m';

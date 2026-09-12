@@ -12,5 +12,5 @@ export function isProjectNavSection(value: unknown): value is ProjectNavSection 
 
 /** Coming soon chip for planned nav items (Cloudflare-style dashed pill). */
 export const COMING_SOON_BADGE = {
-  label: 'Coming Soon',
+  label: 'Soon',
 };

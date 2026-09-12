@@ -4,7 +4,6 @@
 import { BaseMetric } from '@/modules/metrics/components/base-metric';
 import { MetricsChartTooltip } from '@/modules/metrics/components/metric-tooltip';
 import { AreaSeries, BarSeries, LineSeries } from '@/modules/metrics/components/series';
-import { DEFAULT_TIME_RANGE } from '@/modules/metrics/constants';
 import { useOptionalChartLegend } from '@/modules/metrics/context/chart-legend';
 import { useChartScale } from '@/modules/metrics/context/chart-scale';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
@@ -175,13 +174,13 @@ export function MetricChart({
   enableTimeZoom = true,
   children,
 }: MetricChartProps) {
-  const { timeRange, step, buildQueryContext, filterState } = useMetrics();
+  const { timeRange, step, buildQueryContext, filterState, defaultTimeRange } = useMetrics();
   const { userPreferences } = useApp();
   const timezone = userPreferences?.timezone ?? getBrowserTimezone();
   const legend = useOptionalChartLegend();
   const [urlTimeRange, setUrlTimeRange] = useQueryState(
     'timeRange',
-    createMetricsParser('string', DEFAULT_TIME_RANGE)
+    createMetricsParser('string', defaultTimeRange)
   );
   const [localHidden, setLocalHidden] = useState<Set<string>>(() => new Set());
   const [brush, setBrush] = useState<{ start: number; end: number } | null>(null);
