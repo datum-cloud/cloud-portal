@@ -2,7 +2,7 @@ import type { OverviewRange } from './overview-range';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
 import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
-import { padDataToTimeRange } from '@/modules/metrics/utils/chart-axis';
+import { bucketDataToTimeRange } from '@/modules/metrics/utils/chart-axis';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import { formatValue, type FormattedMetricData } from '@/modules/prometheus';
 import { paths } from '@/utils/config/paths.config';
@@ -30,6 +30,8 @@ interface HttpProxyLiveTrafficCardProps {
 }
 
 const VALUE_KEY = 'rps';
+/** Target number of bars regardless of range; matches the design's density. */
+const BAR_COUNT = 60;
 
 function relativeTickLabel(timestamp: number, now: number, rangeMs: number): string {
   const agoMs = Math.max(0, now - timestamp);
@@ -61,6 +63,10 @@ export function HttpProxyLiveTrafficCard({
   );
 
   const stepMs = parseDurationToMs(range.step) ?? 60_000;
+  // Fixed column count so bars stay readable at every range: the chart
+  // averages samples into ~BAR_COUNT buckets instead of drawing one bar per
+  // Prometheus step. Never finer than the step, or buckets would be empty.
+  const bucketMs = Math.max(stepMs, Math.round(rangeMs / BAR_COUNT));
 
   const rows = useMemo(() => {
     const series = data?.series[0];
@@ -69,8 +75,17 @@ export function HttpProxyLiveTrafficCard({
     )
       .filter((point) => Number.isFinite(point.value))
       .map((point) => ({ timestamp: point.timestamp, [VALUE_KEY]: Math.max(0, point.value) }));
-    return padDataToTimeRange(points, start.getTime(), end.getTime(), stepMs, [VALUE_KEY]);
-  }, [data, start, end, stepMs]);
+    // Bucket (not pad): Prometheus samples don't sit on our `now - range`
+    // grid, so padding would interleave zero rows between real samples.
+    return bucketDataToTimeRange(
+      points,
+      start.getTime(),
+      end.getTime(),
+      bucketMs,
+      [VALUE_KEY],
+      'avg'
+    );
+  }, [data, start, end, bucketMs]);
 
   const stats = useMemo(() => {
     if (!data) return { peak: null, avg: null, hasTraffic: false };
@@ -92,7 +107,7 @@ export function HttpProxyLiveTrafficCard({
 
   const denied = error?.statusCode === 403 || error?.statusCode === 401;
   const now = end.getTime();
-  const recentCutoff = now - Math.max(stepMs * 5, 60_000);
+  const recentCutoff = now - Math.max(bucketMs * 5, 60_000);
 
   const metricsHref = `${getPathWithParams(paths.project.detail.proxy.detail.metrics, {
     projectId,
@@ -154,14 +169,14 @@ export function HttpProxyLiveTrafficCard({
               width="100%"
               height="100%"
               margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
-              barCategoryGap="20%">
+              barCategoryGap="15%">
               <YAxis
                 width={28}
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
-                tickFormatter={(value: number) => formatValue(value, 'number', 0)}
-                allowDecimals={false}
+                tickCount={4}
+                tickFormatter={(value: number) => formatValue(value, 'number', value < 10 ? 1 : 0)}
               />
               <XAxis
                 dataKey="timestamp"
