@@ -225,8 +225,9 @@ export function SparklineStatCard({
 
   const card = (
     <Card
+      size="sm"
       className={cn(
-        'relative h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-5 sm:pb-4',
+        'relative h-full w-full overflow-hidden shadow-none',
         href && 'hover:bg-muted/30 transition-colors'
       )}>
       {isLoading ? (
@@ -234,15 +235,14 @@ export function SparklineStatCard({
           <SpinnerIcon size="sm" />
         </div>
       ) : null}
-      <CardContent
-        className={cn('flex min-w-0 flex-col gap-2 p-0 sm:px-3', isLoading && 'invisible')}>
+      <CardContent className={cn('flex min-w-0 flex-col gap-2', isLoading && 'invisible')}>
         <div className="flex h-4 items-center justify-between gap-2">
           <span className="text-muted-foreground text-xs font-medium">{title}</span>
           <span className="text-muted-foreground text-2xs">
             {unavailable ? '\u00a0' : windowLabel}
           </span>
         </div>
-        <div className="text-foreground flex h-7 items-center text-xl font-semibold tabular-nums">
+        <div className="text-foreground flex h-8 items-center text-2xl font-semibold tabular-nums">
           {unavailable ? (
             <span className="text-muted-foreground text-sm font-medium">{unavailableLabel}</span>
           ) : denied ? (

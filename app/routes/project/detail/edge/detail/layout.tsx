@@ -49,6 +49,13 @@ export default route.Page(({ data: proxy }) => {
         }),
       },
       {
+        label: 'Configuration',
+        href: getPathWithParams(paths.project.detail.proxy.detail.configuration, {
+          projectId,
+          proxyId: id,
+        }),
+      },
+      {
         label: 'Metrics',
         href: getPathWithParams(paths.project.detail.proxy.detail.metrics, {
           projectId,

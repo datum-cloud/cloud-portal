@@ -13,7 +13,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * [data-e2e="create-alb-name-input"]    Name input (chosenName)
  * input[placeholder*="api.example.com"]     Origin endpoint input (custom component)
  *
- * Detail page
+ * Detail page — Configuration tab
  * [data-e2e="delete-alb-button"]        Delete Application Load Balancer button (DangerCard)
  *
  * Confirmation dialog (shared)
@@ -86,8 +86,9 @@ describe('Application Load Balancer — regression', () => {
   // would look for something the first attempt already deleted and report a
   // missing element instead of the assertion that actually failed.
   it('should delete the Application Load Balancer', { retries: 0 }, () => {
+    // Delete lives on the Configuration tab; the overview is an ops dashboard.
     cy.visit(
-      getPathWithParams(paths.project.detail.proxy.detail.root, {
+      getPathWithParams(paths.project.detail.proxy.detail.configuration, {
         projectId,
         proxyId,
       })

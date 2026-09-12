@@ -20,9 +20,15 @@ import { useHttpProxy } from '@/resources/http-proxies';
 import { useLocations, useLocationsWatch } from '@/resources/locations';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
-import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { cn } from '@datum-cloud/datum-ui/utils';
@@ -46,15 +52,16 @@ const INITIAL_GLOBE_ROTATION = { phi: -1.03, theta: 0.34 };
 function LocationRowSkeleton() {
   return (
     <li>
-      <div className="flex w-full items-start gap-3 rounded-lg px-2 py-2">
-        <Skeleton className="mt-1.5 size-2 shrink-0 rounded-full" />
-        <span className="min-w-0 flex-1">
-          <span className="flex items-center justify-between gap-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-5 w-12 rounded-full" />
-          </span>
-          <Skeleton className="mt-1.5 h-3 w-32" />
-          <Skeleton className="mt-2 h-3 w-36" />
+      <div className="flex w-full items-center gap-3 px-(--card-px) py-2.5">
+        <Skeleton className="size-2 shrink-0 rounded-full" />
+        <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-3 w-32" />
+        </span>
+        <Skeleton className="hidden h-1.5 w-28 rounded-full sm:block" />
+        <span className="flex w-20 flex-col items-end gap-1.5">
+          <Skeleton className="h-4 w-14" />
+          <Skeleton className="h-3 w-10" />
         </span>
       </div>
     </li>
@@ -412,132 +419,131 @@ export const ActivePopsCard = ({
         </div>
       </div>
     </div>
-  ) : (
-    <div ref={cardBodyRef} className="relative h-[22rem] sm:h-[24rem]">
-      <div
-        ref={globeOriginRef}
-        data-active-pops-globe-clip
-        data-active-pops-globe-origin
-        className="absolute inset-y-0 right-0 hidden w-[58%] overflow-hidden sm:block">
-        <div
-          className={cn(
-            'absolute top-1/2 right-0 size-[38rem] translate-x-1/2 -translate-y-1/2 transition-opacity duration-200 ease-out',
-            cardGlobeHidden ? 'pointer-events-none opacity-0' : 'opacity-100'
-          )}>
-          {globeMap}
-          <div
-            className={cn(
-              'pointer-events-none absolute inset-0 transition-opacity duration-200 ease-out',
-              showLocationSkeletons ? 'opacity-100' : 'opacity-0'
-            )}
-            aria-hidden={!showLocationSkeletons}>
-            <div className="bg-primary/20 absolute top-[38%] left-[6%] size-28 rounded-full blur-3xl motion-safe:animate-pulse" />
-          </div>
-        </div>
-        {canExpand ? (
-          <div className="absolute top-3 right-3 z-20">{renderExpandButton()}</div>
-        ) : null}
-      </div>
-      <div className="from-card from-card pointer-events-none absolute inset-y-0 left-0 hidden w-[34rem] bg-gradient-to-r from-[26rem] to-transparent sm:block" />
+  ) : null;
 
-      <div
-        data-active-pops-list
-        className="bg-card relative z-10 flex h-full min-h-0 w-full flex-col gap-3 px-3 pt-4 pb-4 sm:max-w-[26rem] sm:bg-transparent sm:px-6 sm:pb-8">
-        <div className="flex shrink-0 items-center gap-2.5">
-          <Icon icon={MapPinIcon} size={20} className="text-secondary stroke-2" />
-          <span className="text-base font-semibold">Active POPs</span>
-          {canExpand ? <div className="ml-auto sm:hidden">{renderExpandButton()}</div> : null}
-        </div>
-        <p className="text-muted-foreground shrink-0 text-sm font-normal">
-          Locations this ALB can serve from. Highlighted locations have recent traffic.
-        </p>
-        {showLocationSkeletons && (
-          <p className="text-muted-foreground shrink-0 text-xs" aria-live="polite">
-            Discovering locations…
-          </p>
-        )}
-        {!showLocationSkeletons && directory.length > 0 && (
-          <p className="text-muted-foreground shrink-0 text-xs">
-            {activeCount} with traffic · {directory.length} locations
-          </p>
-        )}
-        {showLocationSkeletons && (
-          <ul className="min-h-0 flex-1 overflow-hidden" aria-busy="true">
+  const maxRps = useMemo(() => {
+    let max = 0;
+    for (const item of directory) {
+      if (!item.active) continue;
+      const rps = metricsForTrafficRegion(
+        item.trafficRegion ?? item.value,
+        rpsData?.series,
+        errorData?.series,
+        latencyData?.series
+      ).rps;
+      if (rps != null && rps > max) max = rps;
+    }
+    return max;
+  }, [directory, rpsData?.series, errorData?.series, latencyData?.series]);
+
+  const locationRows = (
+    <ul className="divide-border divide-y" data-active-pops-list>
+      {directory.map((item) => {
+        const metrics = metricsForTrafficRegion(
+          item.trafficRegion ?? item.value,
+          rpsData?.series,
+          errorData?.series,
+          latencyData?.series
+        );
+        const share = item.active && maxRps > 0 && metrics.rps != null ? metrics.rps / maxRps : 0;
+        const isHovered = hoveredRegion === item.value;
+
+        return (
+          <li key={item.value}>
+            <button
+              type="button"
+              className={cn(
+                'hover:bg-muted/40 flex w-full items-center gap-3 px-(--card-px) py-2.5 text-left transition-colors duration-150 ease-out',
+                isHovered && 'bg-muted/40'
+              )}
+              onMouseEnter={() => setHoveredRegion(item.value)}
+              onMouseLeave={() => setHoveredRegion(null)}
+              onFocus={() => setHoveredRegion(item.value)}
+              onBlur={() => setHoveredRegion(null)}
+              onClick={() => {
+                if (item.coords) {
+                  focusLocation(item.value);
+                  if (canExpand) openExpanded();
+                }
+              }}>
+              <span
+                className={cn(
+                  'size-2 shrink-0 rounded-full',
+                  item.active ? 'bg-(--color-badge-success)' : 'bg-muted-foreground/30'
+                )}
+                aria-hidden
+              />
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-sm font-medium">{item.city}</span>
+                <span className="text-muted-foreground truncate text-xs">{item.subtitle}</span>
+              </span>
+              <span className="hidden w-28 shrink-0 items-center sm:flex">
+                <span className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+                  <span
+                    className="bg-primary block h-full rounded-full transition-[width] duration-300 ease-out"
+                    style={{ width: `${Math.max(share * 100, item.active ? 4 : 0)}%` }}
+                  />
+                </span>
+              </span>
+              <span className="flex w-20 shrink-0 flex-col items-end">
+                <span className="text-sm font-medium tabular-nums">
+                  {item.active ? formatRps(metrics.rps) : '—'}
+                </span>
+                <span className="text-muted-foreground text-xs tabular-nums">
+                  {item.active
+                    ? formatLatency(metrics.latency) !== '—'
+                      ? formatLatency(metrics.latency)
+                      : formatErrors(metrics.errorRps, metrics.rps)
+                    : 'Idle'}
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+
+  const card = (
+    <Card
+      sectioned
+      data-active-pops-card
+      className="relative flex h-full w-full flex-col overflow-hidden">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Icon icon={MapPinIcon} size={16} className="text-secondary" />
+          Traffic by location
+        </CardTitle>
+        <CardDescription className="text-xs" aria-live="polite">
+          {showLocationSkeletons
+            ? 'Discovering locations…'
+            : directory.length === 0
+              ? metricsError
+                ? 'Unable to load active regions.'
+                : 'No locations found.'
+              : `${activeCount} of ${directory.length} POPs serving traffic`}
+        </CardDescription>
+        <CardAction>{renderExpandButton('h-7 px-2')}</CardAction>
+      </CardHeader>
+      <CardContent
+        ref={cardBodyRef}
+        padding="none"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {showLocationSkeletons ? (
+          <ul className="divide-border divide-y" aria-busy="true">
+            <LocationRowSkeleton />
             <LocationRowSkeleton />
             <LocationRowSkeleton />
           </ul>
+        ) : directory.length === 0 ? (
+          <p className="text-muted-foreground px-(--card-px) py-8 text-center text-sm">
+            {metricsError ? 'Unable to load active regions.' : 'No locations found.'}
+          </p>
+        ) : (
+          locationRows
         )}
-        {!showLocationSkeletons && metricsError && directory.length === 0 && (
-          <p className="text-muted-foreground text-sm">Unable to load active regions.</p>
-        )}
-        {!showLocationSkeletons && !metricsError && directory.length === 0 && (
-          <p className="text-muted-foreground text-sm">No locations found.</p>
-        )}
-        {!showLocationSkeletons && directory.length > 0 && (
-          <ul className="min-h-0 flex-1 overflow-y-auto overscroll-contain [mask-image:linear-gradient(to_bottom,black_calc(100%-1.25rem),transparent)] pb-4">
-            {directory.map((item) => {
-              const metricKey = item.trafficRegion ?? item.value;
-              const metrics = metricsForTrafficRegion(
-                metricKey,
-                rpsData?.series,
-                errorData?.series,
-                latencyData?.series
-              );
-              const rps = metrics.rps;
-              const errorRps = metrics.errorRps;
-              const latency = metrics.latency;
-              const isHovered = hoveredRegion === item.value;
-
-              return (
-                <li key={item.value}>
-                  <button
-                    type="button"
-                    className={cn(
-                      'hover:bg-foreground/[0.08] flex w-full items-start gap-3 rounded-lg px-2 py-2 text-left transition-colors duration-150 ease-out',
-                      isHovered && 'bg-foreground/[0.1]'
-                    )}
-                    onMouseEnter={() => setHoveredRegion(item.value)}
-                    onMouseLeave={() => setHoveredRegion(null)}
-                    onFocus={() => setHoveredRegion(item.value)}
-                    onBlur={() => setHoveredRegion(null)}
-                    onClick={() => {
-                      if (item.coords) focusLocation(item.value);
-                    }}>
-                    <span
-                      className={cn(
-                        'mt-1.5 size-2 shrink-0 rounded-full',
-                        item.active ? 'bg-[#B3D56F]' : 'bg-muted-foreground/30'
-                      )}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center justify-between gap-2">
-                        <span className="truncate text-sm font-medium">{item.city}</span>
-                        <Badge
-                          type={item.active ? 'primary' : 'quaternary'}
-                          theme={item.active ? 'light' : 'outline'}
-                          className="shrink-0 text-[10px] font-normal">
-                          {item.active ? 'Traffic' : 'Idle'}
-                        </Badge>
-                      </span>
-                      <span className="text-muted-foreground mt-0.5 block truncate text-xs">
-                        {item.subtitle}
-                      </span>
-                      <span className="text-muted-foreground mt-1 block text-xs tabular-nums">
-                        {item.active
-                          ? [formatRps(rps), formatLatency(latency), formatErrors(errorRps, rps)]
-                              .filter((part) => part !== '—')
-                              .join(' · ') || 'Collecting metrics…'
-                          : 'No recent traffic'}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 
   return (
@@ -549,11 +555,7 @@ export const ActivePopsCard = ({
           {body}
         </div>
       ) : (
-        <Card
-          data-active-pops-card
-          className="relative h-full w-full overflow-hidden rounded-xl py-0 shadow">
-          <CardContent className="p-0">{body}</CardContent>
-        </Card>
+        card
       )}
 
       {!embedded && (
