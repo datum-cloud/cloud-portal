@@ -1,6 +1,11 @@
 import { summarizeBackends } from './backend-summary';
 import { OverviewEmptyState } from './overview-empty-state';
+import {
+  ProxyHostnamesConfigDialog,
+  type ProxyHostnamesConfigDialogRef,
+} from '@/features/edge/proxy/proxy-hostnames-dialog';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
+import { usePermission } from '@/modules/rbac';
 import {
   type HttpProxy,
   getCertificateReadyCondition,
@@ -24,7 +29,7 @@ import {
   PlusIcon,
   ServerIcon,
 } from 'lucide-react';
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 interface HttpProxyEndpointsCardProps {
@@ -34,6 +39,30 @@ interface HttpProxyEndpointsCardProps {
 }
 
 type Tone = 'success' | 'warning' | 'danger' | 'muted';
+
+const ADD_HOSTNAME_DENIED = "You don't have permission to edit this Application Load Balancer";
+
+function AddCustomHostnameLink({ projectId, onClick }: { projectId: string; onClick: () => void }) {
+  const { hasPermission, isLoading } = usePermission('httpproxies', 'patch', {
+    group: 'networking.datumapis.com',
+    namespace: 'default',
+    scope: 'project',
+    projectId,
+  });
+  const denied = !isLoading && !hasPermission;
+  const link = (
+    <button
+      type="button"
+      disabled={denied}
+      onClick={onClick}
+      className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline disabled:opacity-50"
+      data-e2e="alb-endpoints-add-hostname">
+      <Icon icon={PlusIcon} size={12} aria-hidden="true" />
+      Add a custom hostname
+    </button>
+  );
+  return denied ? <Tooltip message={ADD_HOSTNAME_DENIED}>{link}</Tooltip> : link;
+}
 
 function StatusChip({
   tone,
@@ -108,6 +137,7 @@ function EndpointRow({
  */
 export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyEndpointsCardProps) {
   const [, copy, isCopied] = useCopyToClipboard();
+  const hostnamesDialogRef = useRef<ProxyHostnamesConfigDialogRef>(null);
 
   const configurationHref = getPathWithParams(paths.project.detail.proxy.detail.configuration, {
     projectId,
@@ -167,13 +197,10 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
                   title="No custom hostnames"
                   description="Requests are served on the default hostname until you attach your own domain."
                   className="py-6">
-                  <Link
-                    to={`${configurationHref}#hostnames`}
-                    className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
-                    data-e2e="alb-endpoints-add-hostname">
-                    <Icon icon={PlusIcon} size={12} aria-hidden="true" />
-                    Add a custom hostname
-                  </Link>
+                  <AddCustomHostnameLink
+                    projectId={projectId}
+                    onClick={() => hostnamesDialogRef.current?.show(proxy)}
+                  />
                 </OverviewEmptyState>
               ) : (
                 <p className="text-muted-foreground px-(--card-px) py-6 text-center text-sm">
@@ -264,6 +291,7 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
           </li>
         </ul>
       </CardContent>
+      <ProxyHostnamesConfigDialog ref={hostnamesDialogRef} projectId={projectId} />
     </Card>
   );
 }
