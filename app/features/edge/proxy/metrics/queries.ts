@@ -199,6 +199,14 @@ export function albRpsQuery(scope: AlbQueryScope, timeWindow: string): string {
   });
 }
 
+/**
+ * Total requests handled over `window`. Used to tell an ALB that has never
+ * seen traffic (empty states) apart from one that is merely quiet right now.
+ */
+export function albRequestCountQuery(scope: AlbQueryScope, window: string): string {
+  return `sum(increase(${ENVOY_RQ_METRIC}${trafficSelector(scope)}[${window}]))`;
+}
+
 export function albRpsByClassQuery(scope: AlbQueryScope, timeWindow: string): string {
   const selector = trafficSelector(scope);
   return (

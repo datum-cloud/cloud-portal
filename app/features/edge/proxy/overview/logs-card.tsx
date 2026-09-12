@@ -1,3 +1,4 @@
+import { IdleChip, OverviewEmptyState } from './overview-empty-state';
 import type { OverviewRange } from './overview-range';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
@@ -5,11 +6,13 @@ import {
   ALB_LOGS_DENIED_MESSAGE,
   useAlbLogsPermission,
 } from '@/features/edge/proxy/hooks/use-alb-logs-permission';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { ALB_LOGS_PREVIEW_LIMIT, useAlbLogs } from '@/resources/o11y-logs';
 import { paths } from '@/utils/config/paths.config';
 import { AuthorizationError } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardAction,
@@ -29,7 +32,7 @@ import {
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
-import { LogsIcon } from 'lucide-react';
+import { CheckIcon, CopyIcon, LogsIcon, RadioIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 
@@ -38,6 +41,10 @@ interface HttpProxyLogsCardProps {
   proxyId: string;
   /** Shared overview window so the feed covers the same span as the metrics. */
   range: OverviewRange;
+  /** ALB has never seen traffic; shows the first-request prompt with a curl snippet. */
+  idle?: boolean;
+  /** System-managed hostname used in the test-request snippet. */
+  defaultHostname?: string;
 }
 
 const ROW_LIMIT = ALB_LOGS_PREVIEW_LIMIT;
@@ -111,8 +118,15 @@ function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) 
  * Most recent access-log lines as flush rows. The Logs tab owns filtering and
  * the detail panel; this is a glanceable feed that links there.
  */
-export const HttpProxyLogsCard = ({ projectId, proxyId, range }: HttpProxyLogsCardProps) => {
+export const HttpProxyLogsCard = ({
+  projectId,
+  proxyId,
+  range,
+  idle = false,
+  defaultHostname,
+}: HttpProxyLogsCardProps) => {
   const { hasPermission, isLoading: permLoading } = useAlbLogsPermission();
+  const [, copy, isCopied] = useCopyToClipboard();
   const { start, end } = range.timeRange;
   const timeRange = useMemo<LogTimeRange>(
     () => ({ from: start.toISOString(), to: end.toISOString() }),
@@ -138,6 +152,8 @@ export const HttpProxyLogsCard = ({ projectId, proxyId, range }: HttpProxyLogsCa
 
   const entries = useMemo(() => (logsQuery.data ?? []).slice(0, ROW_LIMIT), [logsQuery.data]);
   const isLoading = permLoading || logsQuery.isLoading;
+  const empty = !isLoading && !denied && !errorMessage && entries.length === 0;
+  const testCommand = defaultHostname ? `curl -I https://${defaultHostname}/` : null;
 
   return (
     <Card
@@ -151,6 +167,7 @@ export const HttpProxyLogsCard = ({ projectId, proxyId, range }: HttpProxyLogsCa
           <Icon icon={LogsIcon} size={16} className="text-secondary" />
           Live requests
           {entries.length > 0 ? <StatusPulseDot variant="active" className="size-4" /> : null}
+          {empty ? <IdleChip /> : null}
         </CardTitle>
         <CardDescription className="text-xs">
           Most recent requests · {range.label.toLowerCase()}
@@ -176,9 +193,33 @@ export const HttpProxyLogsCard = ({ projectId, proxyId, range }: HttpProxyLogsCa
             </Tooltip>
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-muted-foreground flex h-full items-center justify-center px-(--card-px) text-center text-sm">
-            No requests in the {range.label.toLowerCase()}.
-          </div>
+          <OverviewEmptyState
+            icon={RadioIcon}
+            title={
+              idle
+                ? 'Waiting for the first request…'
+                : `No requests in the ${range.label.toLowerCase()}`
+            }
+            description={
+              idle
+                ? 'Send a test request and it will appear here live.'
+                : 'New requests appear here live as they arrive.'
+            }>
+            {idle && testCommand ? (
+              <div className="bg-muted/60 border-border flex w-full max-w-sm items-center gap-2 rounded-md border py-1.5 pr-1.5 pl-3 text-left">
+                <code className="min-w-0 flex-1 font-mono text-xs break-all">{testCommand}</code>
+                <Button
+                  type="quaternary"
+                  theme="borderless"
+                  size="xs"
+                  className="text-muted-foreground size-6 shrink-0 p-0"
+                  aria-label="Copy test request command"
+                  onClick={() => copy(testCommand, { withToast: true })}>
+                  <Icon icon={isCopied(testCommand) ? CheckIcon : CopyIcon} size={12} />
+                </Button>
+              </div>
+            ) : null}
+          </OverviewEmptyState>
         ) : (
           <ul className="divide-border divide-y">
             {entries.map((entry) => (

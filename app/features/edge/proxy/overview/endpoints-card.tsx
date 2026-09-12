@@ -1,4 +1,5 @@
 import { summarizeBackends } from './backend-summary';
+import { OverviewEmptyState } from './overview-empty-state';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import {
   type HttpProxy,
@@ -20,6 +21,7 @@ import {
   GlobeIcon,
   LockIcon,
   PencilIcon,
+  PlusIcon,
   ServerIcon,
 } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
@@ -157,9 +159,27 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
       <CardContent padding="none" className="flex min-h-0 flex-1 flex-col">
         {/* Custom hostnames scroll; the system hostname and backend pool stay pinned below. */}
         <ul className="divide-border min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain">
-          {hostnames.length === 0 && !systemHostname ? (
-            <li className="text-muted-foreground px-(--card-px) py-6 text-center text-sm">
-              Hostnames appear here once the load balancer is programmed.
+          {hostnames.length === 0 ? (
+            <li className="h-full">
+              {systemHostname ? (
+                <OverviewEmptyState
+                  icon={GlobeIcon}
+                  title="No custom hostnames"
+                  description="Requests are served on the default hostname until you attach your own domain."
+                  className="py-6">
+                  <Link
+                    to={`${configurationHref}#hostnames`}
+                    className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
+                    data-e2e="alb-endpoints-add-hostname">
+                    <Icon icon={PlusIcon} size={12} aria-hidden="true" />
+                    Add a custom hostname
+                  </Link>
+                </OverviewEmptyState>
+              ) : (
+                <p className="text-muted-foreground px-(--card-px) py-6 text-center text-sm">
+                  Hostnames appear here once the load balancer is programmed.
+                </p>
+              )}
             </li>
           ) : null}
           {hostnames.map((item) => (

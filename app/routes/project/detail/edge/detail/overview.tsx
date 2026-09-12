@@ -10,6 +10,7 @@ import {
   type OverviewRangeValue,
   useOverviewRange,
 } from '@/features/edge/proxy/overview/overview-range';
+import { useAlbTrafficPresence } from '@/features/edge/proxy/overview/use-alb-traffic-presence';
 import { MetricsProvider } from '@/modules/metrics';
 import { useGuardedRouteData } from '@/modules/rbac';
 import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
@@ -43,9 +44,14 @@ export default function HttpProxyOverviewPage() {
   const { canViewWaf, wafUnavailable, wafPending, wafEnabled, effectiveProxy } =
     useAlbTrafficProtection(projectId, proxyId, httpProxy ?? proxy);
 
+  const resourceName = effectiveProxy?.name ?? proxyId;
+  // One shared "has this ALB ever seen traffic?" signal drives the first-run
+  // empty states so the panels don't disagree with each other.
+  const traffic = useAlbTrafficPresence(projectId, resourceName);
+
   if (!effectiveProxy) throw new NotFoundError('Application Load Balancer', proxyId);
 
-  const resourceName = effectiveProxy.name ?? proxyId;
+  const defaultHostname = effectiveProxy.canonicalHostname ?? effectiveProxy.status?.hostnames?.[0];
 
   return (
     <Row type="flex" gutter={[24, 24]}>
@@ -55,6 +61,7 @@ export default function HttpProxyOverviewPage() {
           canViewWaf={canViewWaf}
           wafPending={wafPending}
           wafUnavailable={wafUnavailable}
+          idle={traffic.idle}
         />
       </Col>
       <Col span={24}>
@@ -65,23 +72,35 @@ export default function HttpProxyOverviewPage() {
           onRangeChange={setRangeValue}
           showWaf={wafEnabled}
           wafPending={wafPending}
+          idle={traffic.idle}
         />
       </Col>
       {/* Fixed row heights: the chart fills its card and the lists scroll
           inside theirs instead of growing the page. */}
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <HttpProxyLiveTrafficCard projectId={projectId} proxyId={resourceName} range={range} />
+        <HttpProxyLiveTrafficCard
+          projectId={projectId}
+          proxyId={resourceName}
+          range={range}
+          idle={traffic.idle}
+        />
       </Col>
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <HttpProxyEndpointsCard proxy={effectiveProxy} projectId={projectId} proxyId={proxyId} />
       </Col>
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <MetricsProvider>
-          <ActivePopsCard projectId={projectId} proxyId={resourceName} />
+          <ActivePopsCard projectId={projectId} proxyId={resourceName} idle={traffic.idle} />
         </MetricsProvider>
       </Col>
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <HttpProxyLogsCard projectId={projectId} proxyId={resourceName} range={range} />
+        <HttpProxyLogsCard
+          projectId={projectId}
+          proxyId={resourceName}
+          range={range}
+          idle={traffic.idle}
+          defaultHostname={defaultHostname}
+        />
       </Col>
     </Row>
   );

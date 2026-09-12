@@ -6,6 +6,7 @@ import {
   metricsForTrafficRegion,
 } from './active-pops-metrics';
 import { buildLocationDirectory } from './enrich-active-pops';
+import { OverviewEmptyState } from './overview-empty-state';
 import { ChunkErrorBoundary } from '@/components/chunk-error-boundary/chunk-error-boundary';
 import {
   buildHistogramQuantileQuery,
@@ -72,11 +73,17 @@ export const ActivePopsCard = ({
   projectId,
   proxyId,
   embedded = false,
+  idle = false,
 }: {
   projectId: string;
   proxyId: string;
   /** Sit inside a parent section without a second card chrome. */
   embedded?: boolean;
+  /**
+   * ALB served nothing in the presence lookback. Region label values are
+   * all-time, so without this a long-dead POP would still read as "serving".
+   */
+  idle?: boolean;
 }) => {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const [focusRegion, setFocusRegion] = useState<string | null>(null);
@@ -165,7 +172,11 @@ export const ActivePopsCard = ({
     return `${PROXY_METRIC}${selector}`;
   }, [baseLabels]);
 
-  const { options: regionOptionsFromApi, error: metricsError } = usePrometheusLabels({
+  const {
+    options: regionOptionsFromApi,
+    error: metricsError,
+    isLoading: activeRegionsLoading,
+  } = usePrometheusLabels({
     label: REGION_LABEL,
     match: matchSelector,
     enabled: !!projectId && !!proxyId,
@@ -255,14 +266,15 @@ export const ActivePopsCard = ({
     enabled: !!projectId && canViewLocations,
   });
 
-  const directory = useMemo(
-    () =>
-      buildLocationDirectory(
-        locations,
-        regionOptionsFromApi.map((option) => option.value)
-      ),
-    [regionOptionsFromApi, locations]
-  );
+  const directory = useMemo(() => {
+    const items = buildLocationDirectory(
+      locations,
+      regionOptionsFromApi.map((option) => option.value)
+    );
+    // Keep the POPs (they still exist and may be the only ones we know about)
+    // but none of them is serving when the ALB is idle.
+    return idle ? items.map((item) => ({ ...item, active: false })) : items;
+  }, [regionOptionsFromApi, locations, idle]);
 
   const regionsWithCoords = useMemo(
     () =>
@@ -288,6 +300,10 @@ export const ActivePopsCard = ({
   );
 
   const activeCount = directory.filter((item) => item.active).length;
+  // Locations are known but none has served a request: show the first-run
+  // empty state instead of a list of uniformly inactive rows.
+  const noTraffic =
+    !activeRegionsLoading && !metricsError && directory.length > 0 && activeCount === 0;
 
   const { data: proxy } = useHttpProxy(projectId, proxyId, {
     enabled: !!projectId && !!proxyId,
@@ -540,6 +556,14 @@ export const ActivePopsCard = ({
           <p className="text-muted-foreground px-(--card-px) py-8 text-center text-sm">
             {metricsError ? 'Unable to load active regions.' : 'No locations found.'}
           </p>
+        ) : noTraffic ? (
+          <OverviewEmptyState
+            icon={MapPinIcon}
+            title="No traffic yet"
+            description={`${directory.length} ${
+              directory.length === 1 ? 'POP is' : 'POPs are'
+            } ready to serve as soon as requests arrive.`}
+          />
         ) : (
           locationRows
         )}

@@ -30,6 +30,8 @@ interface HttpProxyMetricsStripProps {
   onRangeChange: (value: OverviewRangeValue) => void;
   showWaf?: boolean;
   wafPending?: boolean;
+  /** ALB has seen no traffic; stat cards show a flat baseline and "—". */
+  idle?: boolean;
 }
 
 /** "Live metrics" header with the shared window control plus four stat cards. */
@@ -40,6 +42,7 @@ export function HttpProxyMetricsStrip({
   onRangeChange,
   showWaf = false,
   wafPending = false,
+  idle = false,
 }: HttpProxyMetricsStripProps) {
   const metricsBase = getPathWithParams(paths.project.detail.proxy.detail.metrics, {
     projectId,
@@ -56,9 +59,17 @@ export function HttpProxyMetricsStrip({
   return (
     <section className="flex flex-col gap-6" aria-labelledby="alb-live-metrics-heading">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="alb-live-metrics-heading" className="text-sm font-semibold">
-          Live metrics
-        </h2>
+        <div className="flex min-w-0 items-baseline gap-2">
+          <h2 id="alb-live-metrics-heading" className="shrink-0 text-sm font-semibold">
+            Live metrics
+          </h2>
+          {idle ? (
+            <p className="text-muted-foreground truncate text-xs" aria-live="polite">
+              <span aria-hidden="true">· </span>
+              No data yet — metrics start streaming with the first request
+            </p>
+          ) : null}
+        </div>
         <Select value={range.value} onValueChange={(v) => onRangeChange(v as OverviewRangeValue)}>
           <SelectTrigger
             className="bg-card h-8 w-auto gap-2 text-xs"
@@ -86,6 +97,7 @@ export function HttpProxyMetricsStrip({
           timeRange={range.timeRange}
           step={range.step}
           rangeLabel={windowLabel}
+          idle={idle}
         />
         <SparklineStatCard
           title="Error rate"
@@ -96,6 +108,7 @@ export function HttpProxyMetricsStrip({
           timeRange={range.timeRange}
           step={range.step}
           rangeLabel={windowLabel}
+          idle={idle}
         />
         <SparklineStatCard
           title="p95 latency"
@@ -107,6 +120,7 @@ export function HttpProxyMetricsStrip({
           timeRange={range.timeRange}
           step={range.shortLabel}
           rangeLabel={windowLabel}
+          idle={idle}
         />
         <SparklineStatCard
           title="WAF blocked"
@@ -119,6 +133,7 @@ export function HttpProxyMetricsStrip({
           timeRange={range.timeRange}
           step={range.step}
           rangeLabel={windowLabel}
+          idle={idle}
           pending={wafPending}
           unavailable={!showWaf && !wafPending}
         />

@@ -1,3 +1,4 @@
+import { IdleChip, OverviewEmptyState } from './overview-empty-state';
 import type { OverviewRange } from './overview-range';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
@@ -27,6 +28,8 @@ interface HttpProxyLiveTrafficCardProps {
   projectId: string;
   proxyId: string;
   range: OverviewRange;
+  /** ALB has never seen traffic (wider lookback than `range`). */
+  idle?: boolean;
 }
 
 const VALUE_KEY = 'rps';
@@ -50,6 +53,7 @@ export function HttpProxyLiveTrafficCard({
   projectId,
   proxyId,
   range,
+  idle = false,
 }: HttpProxyLiveTrafficCardProps) {
   const scope = useMemo(() => ({ projectId, proxyId }), [projectId, proxyId]);
   const query = useMemo(() => albRpsQuery(scope, range.step), [scope, range.step]);
@@ -106,6 +110,9 @@ export function HttpProxyLiveTrafficCard({
   }, [rows]);
 
   const denied = error?.statusCode === 403 || error?.statusCode === 401;
+  const settled = !isLoading && !error;
+  // Quiet in this window (or never any traffic at all): no bars worth drawing.
+  const quiet = settled && !stats.hasTraffic;
   const now = end.getTime();
   const recentCutoff = now - Math.max(bucketMs * 5, 60_000);
 
@@ -123,6 +130,7 @@ export function HttpProxyLiveTrafficCard({
             Live traffic
           </Link>
           {stats.hasTraffic ? <StatusPulseDot variant="active" className="size-4" /> : null}
+          {quiet ? <IdleChip /> : null}
         </CardTitle>
         <CardDescription className="text-xs">
           Requests per second · {range.label.toLowerCase()}
@@ -130,13 +138,13 @@ export function HttpProxyLiveTrafficCard({
         <CardAction className="flex items-start gap-4 text-right">
           <div className="flex flex-col">
             <span className="text-sm font-semibold tabular-nums">
-              {stats.peak == null ? '—' : formatValue(stats.peak, 'requestsPerSecond', 1)}
+              {stats.peak == null || quiet ? '—' : formatValue(stats.peak, 'requestsPerSecond', 1)}
             </span>
             <span className="text-muted-foreground text-2xs uppercase">Peak</span>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold tabular-nums">
-              {stats.avg == null ? '—' : formatValue(stats.avg, 'requestsPerSecond', 1)}
+              {stats.avg == null || quiet ? '—' : formatValue(stats.avg, 'requestsPerSecond', 1)}
             </span>
             <span className="text-muted-foreground text-2xs uppercase">Avg</span>
           </div>
@@ -158,10 +166,17 @@ export function HttpProxyLiveTrafficCard({
             <div className="absolute inset-0 flex items-center justify-center">
               <span className="text-muted-foreground text-sm">Unable to load traffic.</span>
             </div>
-          ) : rows.length === 0 ? (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">No traffic in this window.</span>
-            </div>
+          ) : quiet ? (
+            <OverviewEmptyState
+              icon={ActivityIcon}
+              title={`No requests in the ${range.label.toLowerCase()}`}
+              description={
+                idle
+                  ? 'Traffic appears here within a minute of the first request.'
+                  : 'Widen the window to see earlier traffic.'
+              }
+              className="absolute inset-0 py-0"
+            />
           ) : (
             <BarChart
               data={rows}

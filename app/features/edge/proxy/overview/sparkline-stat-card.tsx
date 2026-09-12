@@ -28,6 +28,8 @@ interface SparklineStatCardProps {
   pending?: boolean;
   unavailable?: boolean;
   unavailableLabel?: string;
+  /** ALB has never seen traffic: show "—" over a flat baseline instead of zeros. */
+  idle?: boolean;
   timeRange?: { start: Date; end: Date };
   step?: string;
   rangeLabel?: string;
@@ -115,6 +117,7 @@ export function SparklineStatCard({
   pending = false,
   unavailable = false,
   unavailableLabel = 'Not enabled',
+  idle = false,
   timeRange: timeRangeProp,
   step,
   rangeLabel,
@@ -222,6 +225,9 @@ export function SparklineStatCard({
   const isLoading = pending || (!unavailable && (chartLoading || (!!valueQuery && cardLoading)));
   const error = chartError ?? cardError;
   const denied = error?.statusCode === 403 || error?.statusCode === 401;
+  // Idle wins over "0.00 req/s": a load balancer that has never served a
+  // request has no rate to report yet.
+  const showIdle = idle && !unavailable && !denied && !isLoading;
 
   const card = (
     <Card
@@ -249,12 +255,18 @@ export function SparklineStatCard({
             <Tooltip message="You don't have permission to view metrics">
               <span className="text-muted-foreground text-sm">&mdash;</span>
             </Tooltip>
+          ) : showIdle ? (
+            <span className="text-muted-foreground">—</span>
           ) : (
             (headline ?? '—')
           )}
         </div>
         <div className="h-8 w-full">
-          {denied ? null : isPercentiles ? (
+          {denied ? null : showIdle ? (
+            <div className="flex h-full items-center" aria-hidden="true">
+              <div className="bg-border h-px w-full" />
+            </div>
+          ) : isPercentiles ? (
             <PercentileRangeBar
               p50={percentiles.p50}
               p95={percentiles.p95}

@@ -1,4 +1,5 @@
 import { summarizeBackends } from './backend-summary';
+import { TRAFFIC_PRESENCE_WINDOW_LABEL } from './use-alb-traffic-presence';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
@@ -14,6 +15,7 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 import {
   CircleCheckIcon,
   LockIcon,
+  RadioIcon,
   ServerIcon,
   ShieldCheckIcon,
   ShieldIcon,
@@ -28,7 +30,12 @@ interface HttpProxyHealthStripProps {
   canViewWaf: boolean;
   wafPending: boolean;
   wafUnavailable: boolean;
+  /** No requests in the presence lookback; swaps the "serving" headline for a first-run one. */
+  idle?: boolean;
 }
+
+/** Proxies younger than this with no traffic are "waiting for the first request". */
+const FIRST_REQUEST_AGE_MS = 24 * 60 * 60 * 1000;
 
 type Tone = 'success' | 'warning' | 'danger' | 'muted';
 
@@ -66,6 +73,7 @@ export function HttpProxyHealthStrip({
   canViewWaf,
   wafPending,
   wafUnavailable,
+  idle = false,
 }: HttpProxyHealthStripProps) {
   const status = useMemo(() => transformControlPlaneStatus(proxy.status), [proxy.status]);
   const certDisplay = useMemo(
@@ -80,6 +88,19 @@ export function HttpProxyHealthStrip({
   const headline = (() => {
     switch (status.status) {
       case ControlPlaneStatus.Success:
+        if (idle) {
+          const createdAt = proxy.createdAt?.getTime();
+          const isNew = createdAt == null || Date.now() - createdAt < FIRST_REQUEST_AGE_MS;
+          return {
+            icon: <Icon icon={RadioIcon} size={18} className="text-(--color-badge-info)" />,
+            title: isNew
+              ? 'Waiting for the first request'
+              : `No traffic in the ${TRAFFIC_PRESENCE_WINDOW_LABEL}`,
+            detail:
+              'Your load balancer is live. Point DNS at the default hostname, or add a custom hostname, to start receiving traffic.',
+            ring: 'bg-(--color-badge-info)/10',
+          };
+        }
         return {
           icon: <Icon icon={CircleCheckIcon} size={18} className="text-(--color-badge-success)" />,
           title: 'Serving traffic normally',
