@@ -1,5 +1,4 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
-import { ProxyHeaderActions } from '@/features/edge/proxy/proxy-header-actions';
 import { SubLayout } from '@/layouts';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
@@ -80,10 +79,7 @@ export default route.Page(({ data: proxy }) => {
   }, [projectId, proxyId, proxy?.name]);
 
   return (
-    <SubLayout
-      title={proxy.chosenName || proxy?.name}
-      actions={<ProxyHeaderActions projectId={projectId} proxy={proxy} />}
-      navItems={navItems}>
+    <SubLayout title={proxy.chosenName || proxy?.name} navItems={navItems}>
       <Outlet />
     </SubLayout>
   );
