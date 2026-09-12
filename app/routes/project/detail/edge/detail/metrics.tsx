@@ -120,13 +120,16 @@ export default function HttpProxyMetricsPage() {
   return (
     <MetricsProvider>
       <div className="flex flex-col">
-        <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
+        {/* -mb-px so the 1px sentinel doesn't push the toolbar below other tabs' content. */}
+        <div ref={sentinelRef} className="-mb-px h-px w-full shrink-0" aria-hidden />
         <div
           className={cn(
-            // pt-2 lines the 32px controls up with the sidebar's Home item; pb-2.5
-            // (8px + the menu's 2px gap) puts the stuck border on the sidebar's
-            // separator line.
-            'bg-background sticky top-[-1.75rem] z-30 -mx-4 mb-6 px-4 pt-2 pb-2.5 md:top-[-2.25rem] md:-mx-9 md:px-9',
+            // pt-2 lines the 32px controls up with the sidebar's Home item when
+            // stuck; -mt-2 cancels it at rest so the controls start where other
+            // tabs' content does. pb-2.5 (8px + the menu's 2px gap) puts the
+            // stuck border on the sidebar's separator line, and mb-3.5 brings
+            // the gap to the KPI cards back to 24px like the overview.
+            'bg-background sticky top-[-1.75rem] z-30 -mx-4 -mt-2 mb-3.5 px-4 pt-2 pb-2.5 md:top-[-2.25rem] md:-mx-9 md:px-9',
             stuck && 'border-border border-b'
           )}>
           <MetricsToolbar>
