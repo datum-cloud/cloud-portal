@@ -118,7 +118,7 @@ export default function HttpProxyMetricsPage() {
   const seriesMatch = albSeriesMatch(projectId, proxyId);
 
   return (
-    <MetricsProvider>
+    <MetricsProvider defaultTimeRange="now-1h">
       <div className="flex flex-col">
         {/* -mb-px so the 1px sentinel doesn't push the toolbar below other tabs' content. */}
         <div ref={sentinelRef} className="-mb-px h-px w-full shrink-0" aria-hidden />
