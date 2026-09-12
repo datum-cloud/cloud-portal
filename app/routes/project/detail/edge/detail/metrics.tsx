@@ -123,7 +123,10 @@ export default function HttpProxyMetricsPage() {
         <div ref={sentinelRef} className="h-px w-full shrink-0" aria-hidden />
         <div
           className={cn(
-            'bg-background sticky top-[-1.75rem] z-30 -mx-4 mb-6 px-4 py-2 md:top-[-2.25rem] md:-mx-9 md:px-9',
+            // pt-2 lines the 32px controls up with the sidebar's Home item; pb-2.5
+            // (8px + the menu's 2px gap) puts the stuck border on the sidebar's
+            // separator line.
+            'bg-background sticky top-[-1.75rem] z-30 -mx-4 mb-6 px-4 pt-2 pb-2.5 md:top-[-2.25rem] md:-mx-9 md:px-9',
             stuck && 'border-border border-b'
           )}>
           <MetricsToolbar>
