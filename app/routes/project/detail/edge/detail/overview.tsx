@@ -64,18 +64,18 @@ export default function HttpProxyOverviewPage() {
           wafPending={wafPending}
         />
       </Col>
-      <Col span={24} lg={14}>
+      <Col span={24} lg={12}>
         <HttpProxyLiveTrafficCard projectId={projectId} proxyId={resourceName} range={range} />
       </Col>
-      <Col span={24} lg={10}>
+      <Col span={24} lg={12}>
         <HttpProxyEndpointsCard proxy={effectiveProxy} projectId={projectId} proxyId={proxyId} />
       </Col>
-      <Col span={24} lg={10}>
+      <Col span={24} lg={12}>
         <MetricsProvider>
           <ActivePopsCard projectId={projectId} proxyId={resourceName} />
         </MetricsProvider>
       </Col>
-      <Col span={24} lg={14}>
+      <Col span={24} lg={12}>
         <HttpProxyLogsCard projectId={projectId} proxyId={resourceName} />
       </Col>
     </Row>
