@@ -1,3 +1,4 @@
+import { assistantChatRoutes } from './assistant-chat';
 import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
 import { grafanaRoutes } from './grafana';
@@ -50,6 +51,7 @@ export function createApiApp() {
   api.use('/usage/*', emailVerified);
 
   // Routes
+  api.route('/assistant-chat', assistantChatRoutes);
   api.route('/fraud-status', fraudStatusRoutes);
   api.route('/proxy', proxyRoutes);
   api.route('/graphql', graphqlRoutes);

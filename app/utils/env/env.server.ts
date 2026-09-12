@@ -133,6 +133,17 @@ const serverSchema = z.object({
   HELPSCOUT_SECRET_KEY: isProdEnv ? z.string().min(1) : z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Assistant ("Patch") A2A backend
+  //
+  // The in-cluster base URL of the assistant's standalone A2A server
+  // (cmd/assistant, POST /a2a) — see app/server/routes/assistant-chat.ts.
+  // Unset disables the chat-send route (404); conversation list/history
+  // reads are unaffected, they go through Milo's proxy like every other
+  // plugin call.
+  // ─────────────────────────────────────────────────────────
+  ASSISTANT_A2A_URL: urlSchemaOptional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Usage Pipeline (Milo billing → Amberflo)
   //
   // When USAGE_GATEWAY_URL is unset, usage emission is a no-op.
@@ -248,6 +259,7 @@ export const env: Env = {
     cloudvalidTemplateId: data.CLOUDVALID_TEMPLATE_ID,
     grafanaUrl: data.GRAFANA_URL,
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
+    assistantA2aUrl: data.ASSISTANT_A2A_URL,
     otelExporterEndpoint: data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelExporterTimeout: data.OTEL_EXPORTER_TIMEOUT,
     // Usage Pipeline
