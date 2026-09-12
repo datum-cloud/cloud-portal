@@ -159,7 +159,7 @@ export function DashboardLayout({
         className="flex min-h-0 flex-1 overflow-hidden"
         style={
           {
-            '--sidebar-width': '16.5rem',
+            '--sidebar-width': '15rem',
             '--sidebar-width-icon': '3rem',
             '--sidebar-width-mobile': '18.75rem',
           } as React.CSSProperties
