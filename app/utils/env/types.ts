@@ -70,6 +70,9 @@ export interface ServerEnv {
   grafanaUrl?: string;
   helpscoutSecretKey?: string;
 
+  // Optional: Assistant ("Patch") A2A backend — see app/server/routes/assistant-chat.ts
+  assistantA2aUrl?: string;
+
   // Optional: Redis (falls back to in-memory)
   redisUrl?: string;
   redisMaxRetries: number;
