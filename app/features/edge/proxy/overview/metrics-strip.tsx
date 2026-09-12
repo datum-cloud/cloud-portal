@@ -61,7 +61,7 @@ export function HttpProxyMetricsStrip({
         </h2>
         <Select value={range.value} onValueChange={(v) => onRangeChange(v as OverviewRangeValue)}>
           <SelectTrigger
-            className="bg-card h-8 w-auto gap-2 text-xs"
+            className="bg-card h-8 w-auto gap-2 text-xs shadow-none"
             aria-label="Live metrics time range"
             data-e2e="alb-overview-range">
             <Icon icon={HistoryIcon} size={14} className="text-muted-foreground" />
