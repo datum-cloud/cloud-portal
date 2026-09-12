@@ -137,7 +137,7 @@ export function MetricsFilterSelect({
 
       {multiple ? (
         <MultiSelect
-          className={cn('h-[36px] min-h-0', triggerClassName)}
+          className={cn('bg-card h-[36px] min-h-0', triggerClassName)}
           options={optionsForMultiSelect}
           onValueChange={handleMultiChange}
           placeholder={placeholder}
@@ -151,7 +151,7 @@ export function MetricsFilterSelect({
         />
       ) : (
         <Autocomplete
-          triggerClassName={cn('h-[36px] min-h-0', triggerClassName)}
+          triggerClassName={cn('bg-card h-[36px] min-h-0', triggerClassName)}
           value={currentValue as string}
           onValueChange={handleSingleChange}
           options={optionsForSelectBox}

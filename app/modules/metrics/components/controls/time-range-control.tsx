@@ -137,7 +137,7 @@ export const TimeRangeControl = ({
       disableFuture
       placeholder="Select time range"
       align="start"
-      className={cn('w-full sm:w-auto', METRICS_CONTROL_HEIGHT_CLASS, 'py-0 text-sm')}
+      className={cn('bg-card w-full sm:w-auto', METRICS_CONTROL_HEIGHT_CLASS, 'py-0 text-sm')}
     />
   );
 };

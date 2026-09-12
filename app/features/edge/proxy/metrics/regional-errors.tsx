@@ -29,7 +29,7 @@ export function HttpProxyRegionalErrors({
         tooltipContent={(props) => (
           <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(4)} req/s`} />
         )}
-        className="text-foreground shadow-none"
+        className="text-foreground"
       />
     </ChartBlock>
   );

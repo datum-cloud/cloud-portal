@@ -552,7 +552,7 @@ export const ActivePopsCard = ({
       {embedded ? (
         <div
           data-active-pops-card
-          className="border-border/60 relative -mx-3 overflow-hidden border-b sm:-mx-6">
+          className="border-border/60 relative -mx-(--card-px) -mt-(--card-py) overflow-hidden border-b">
           {body}
         </div>
       ) : (

@@ -26,7 +26,7 @@ import { NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useParams, type MetaFunction } from 'react-router';
@@ -78,14 +78,12 @@ function MetricsSection({
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
-        <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-base font-semibold">{title}</h2>
-            {actions}
-          </div>
-          {children}
-        </CardContent>
+      <Card size="sm" sectioned className="w-full overflow-hidden">
+        <CardHeader size="sm" bordered>
+          <CardTitle className="text-sm">{title}</CardTitle>
+          {actions ? <CardAction>{actions}</CardAction> : null}
+        </CardHeader>
+        <CardContent className="flex flex-col gap-5">{children}</CardContent>
       </Card>
     </section>
   );

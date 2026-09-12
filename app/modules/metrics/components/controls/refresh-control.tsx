@@ -102,7 +102,7 @@ export const RefreshControl = ({
   return (
     <div
       className={cn(
-        'border-input bg-background flex items-center overflow-hidden rounded-md border shadow-none',
+        'border-input bg-card flex items-center overflow-hidden rounded-md border shadow-none',
         METRICS_CONTROL_HEIGHT_CLASS
       )}>
       {/* Manual Refresh Button */}

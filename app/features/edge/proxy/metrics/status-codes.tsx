@@ -31,7 +31,7 @@ export function HttpProxyStatusCodes({
         tooltipContent={(props) => (
           <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(2)} req/s`} />
         )}
-        className="text-foreground overflow-visible shadow-none"
+        className="text-foreground overflow-visible"
       />
     </ChartBlock>
   );
