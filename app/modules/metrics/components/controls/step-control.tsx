@@ -49,18 +49,18 @@ export const StepControl = ({ filterKey = 'step', defaultValue = 'auto' }: StepC
   return (
     <div
       className={cn(
-        'border-input bg-card flex items-center overflow-hidden rounded-lg border shadow-none',
+        'border-input bg-card flex items-stretch overflow-hidden rounded-lg border shadow-none',
         METRICS_CONTROL_HEIGHT_CLASS
       )}>
       <Button
         type="quaternary"
         theme="borderless"
         size="small"
-        className="pointer-events-none w-auto cursor-default rounded-r-none border-r font-medium">
+        className="pointer-events-none h-full w-auto cursor-default rounded-r-none border-r font-medium">
         Step
       </Button>
       <Select value={step || defaultValue} onValueChange={setStep}>
-        <SelectTrigger className="h-full min-w-10 rounded-l-none border-0 bg-transparent px-2 shadow-none focus:ring-0">
+        <SelectTrigger className="h-full min-h-0 min-w-10 rounded-l-none border-0 bg-transparent px-2 py-0 shadow-none focus:ring-0">
           <SelectValue placeholder="Select step" />
         </SelectTrigger>
         <SelectContent>

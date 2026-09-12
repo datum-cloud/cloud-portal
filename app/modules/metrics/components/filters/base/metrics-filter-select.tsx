@@ -5,6 +5,7 @@
  * - Single-select: '@datum-cloud/datum-ui/autocomplete'
  */
 import { MultiSelect, type MultiSelectOption } from '@/components/multi-select/multi-select';
+import { METRICS_CONTROL_HEIGHT_CLASS } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
@@ -137,7 +138,7 @@ export function MetricsFilterSelect({
 
       {multiple ? (
         <MultiSelect
-          className={cn('bg-card h-[36px] min-h-0', triggerClassName)}
+          className={cn('bg-card', METRICS_CONTROL_HEIGHT_CLASS, triggerClassName)}
           options={optionsForMultiSelect}
           onValueChange={handleMultiChange}
           placeholder={placeholder}
@@ -151,7 +152,7 @@ export function MetricsFilterSelect({
         />
       ) : (
         <Autocomplete
-          triggerClassName={cn('bg-card h-[36px] min-h-0', triggerClassName)}
+          triggerClassName={cn('bg-card py-1', METRICS_CONTROL_HEIGHT_CLASS, triggerClassName)}
           value={currentValue as string}
           onValueChange={handleSingleChange}
           options={optionsForSelectBox}
