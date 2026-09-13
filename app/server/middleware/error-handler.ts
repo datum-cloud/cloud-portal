@@ -1,6 +1,8 @@
+import { buildResourceChallenge } from '../agent-discovery';
 import { logger } from '@/modules/logger';
 import { buildErrorFingerprint, isExpectedUserError, resolveErrorCode } from '@/modules/sentry';
 import type { Variables } from '@/server/types';
+import { env } from '@/utils/env/env.server';
 import { AppError, RateLimitError } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import type { Context, ErrorHandler as HonoErrorHandler } from 'hono';
@@ -62,6 +64,13 @@ export const errorHandler: HonoErrorHandler<{ Variables: Variables }> = (
     // call never reaches the already-created Response.
     if (error instanceof RateLimitError && error.retryAfter) {
       c.header('Retry-After', String(error.retryAfter));
+    }
+
+    // RFC 9728 §5.1: a 401 should say where to find out how to authenticate.
+    // Without this a client only learns it was refused, not what to do about
+    // it — which is the gap Protected Resource Metadata exists to close.
+    if (error.status === 401) {
+      c.header('WWW-Authenticate', buildResourceChallenge(env.public.appUrl));
     }
 
     return c.json(error.toJSON(), error.status as ContentfulStatusCode);
