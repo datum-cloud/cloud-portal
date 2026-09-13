@@ -2,7 +2,6 @@ import { buildResourceChallenge } from '../agent-discovery';
 import { logger } from '@/modules/logger';
 import { buildErrorFingerprint, isExpectedUserError, resolveErrorCode } from '@/modules/sentry';
 import type { Variables } from '@/server/types';
-import { env } from '@/utils/env/env.server';
 import { AppError, RateLimitError } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import type { Context, ErrorHandler as HonoErrorHandler } from 'hono';
@@ -64,13 +63,19 @@ export const errorHandler: HonoErrorHandler<{ Variables: Variables }> = (
    * still a 401 to the caller, and a challenge that depends on how the error
    * happened to be raised is no use to them.
    *
+   * The URL comes from the request rather than configuration. RFC 9728 wants
+   * the identifier the client actually used, which also keeps this correct
+   * across hosts and preview deploys — and keeps an error path from depending
+   * on env being populated, where a missing value would turn a clean 401 into
+   * a crash.
+   *
    * Headers must be staged before c.json(): Hono snapshots prepared headers
    * into the Response at creation time, so a later c.header() call never
    * reaches the already-created Response.
    */
   const stageAuthChallenge = (status: number) => {
     if (status === 401) {
-      c.header('WWW-Authenticate', buildResourceChallenge(env.public.appUrl));
+      c.header('WWW-Authenticate', buildResourceChallenge(c.req.url));
     }
   };
 

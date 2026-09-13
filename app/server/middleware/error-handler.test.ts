@@ -72,4 +72,14 @@ describe('errorHandler auth challenge', () => {
     expect(res.status).toBe(404);
     expect(res.headers.get('WWW-Authenticate')).toBeNull();
   });
+
+  test('points at the host the caller actually reached, not a configured one', async () => {
+    const res = await appThatThrows(new AuthenticationError('nope')).request(
+      'https://portal.example.test/boom'
+    );
+
+    expect(res.headers.get('WWW-Authenticate')).toBe(
+      'Bearer resource_metadata="https://portal.example.test/.well-known/oauth-protected-resource"'
+    );
+  });
 });

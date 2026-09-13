@@ -229,7 +229,10 @@ app.route('/api', createApiApp());
 
 /** RFC 9728 Protected Resource Metadata — which authorization server guards this API. */
 app.get(RESOURCE_METADATA_PATH, (c) =>
-  c.json(buildProtectedResourceMetadata(env.public.appUrl, env.public.authOidcIssuer), 200, {
+  // `resource` comes from the request, not config: RFC 9728 wants the
+  // identifier the client actually used, which also keeps this right across
+  // hosts and preview deploys. The issuer is genuine configuration.
+  c.json(buildProtectedResourceMetadata(c.req.url, env.public.authOidcIssuer), 200, {
     // Public, non-personal, and rarely changes; let intermediaries hold it.
     'Cache-Control': 'public, max-age=3600',
   })
