@@ -54,24 +54,36 @@ export const errorHandler: HonoErrorHandler<{ Variables: Variables }> = (
 ) => {
   const requestId = c.get('requestId') ?? c.req.header('X-Request-ID');
 
+  /**
+   * RFC 9728 §5.1: a 401 should say where to find out how to authenticate.
+   * Without it a client learns only that it was refused, not what to do about
+   * it — the gap Protected Resource Metadata exists to close.
+   *
+   * Applied to every branch that can answer 401, not just AppError. A
+   * react-router ErrorResponse or an un-normalized AxiosError reaching here is
+   * still a 401 to the caller, and a challenge that depends on how the error
+   * happened to be raised is no use to them.
+   *
+   * Headers must be staged before c.json(): Hono snapshots prepared headers
+   * into the Response at creation time, so a later c.header() call never
+   * reaches the already-created Response.
+   */
+  const stageAuthChallenge = (status: number) => {
+    if (status === 401) {
+      c.header('WWW-Authenticate', buildResourceChallenge(env.public.appUrl));
+    }
+  };
+
   if (error instanceof AppError) {
     if (error.status >= 500) {
       logger.error(`[${error.code}] ${error.message}`, error, { requestId });
     }
 
-    // Headers must be staged before c.json(): Hono snapshots prepared
-    // headers into the Response at creation time, so a later c.header()
-    // call never reaches the already-created Response.
     if (error instanceof RateLimitError && error.retryAfter) {
       c.header('Retry-After', String(error.retryAfter));
     }
 
-    // RFC 9728 §5.1: a 401 should say where to find out how to authenticate.
-    // Without this a client only learns it was refused, not what to do about
-    // it — which is the gap Protected Resource Metadata exists to close.
-    if (error.status === 401) {
-      c.header('WWW-Authenticate', buildResourceChallenge(env.public.appUrl));
-    }
+    stageAuthChallenge(error.status);
 
     return c.json(error.toJSON(), error.status as ContentfulStatusCode);
   }
@@ -84,6 +96,8 @@ export const errorHandler: HonoErrorHandler<{ Variables: Variables }> = (
       method: c.req.method,
       data: typeof error.data === 'string' ? error.data : undefined,
     });
+
+    stageAuthChallenge(status);
 
     return c.json(
       {
@@ -108,6 +122,8 @@ export const errorHandler: HonoErrorHandler<{ Variables: Variables }> = (
       path: c.req.path,
       method: c.req.method,
     });
+
+    stageAuthChallenge(status);
 
     return c.json({ code: body.code, message: body.message, status, requestId }, status);
   }
