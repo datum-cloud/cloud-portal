@@ -237,7 +237,7 @@ export function ActivePopsExpandOverlay({
           }}>
           <div className="border-border/60 flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 sm:px-6">
             <div>
-              <p className="text-base font-semibold">Active POPs</p>
+              <p className="text-base font-semibold">Active regions</p>
               <p className="text-muted-foreground text-sm">
                 {activeCount} with traffic · {locationCount} locations
               </p>
