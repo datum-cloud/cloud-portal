@@ -35,16 +35,17 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { PencilIcon, SquareLibrary } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+/**
+ * Text content of a note for emptiness checks only. Never parses the HTML into
+ * a live DOM: the note body is untrusted and this is not the render path
+ * (`RichTextContent` sanitises what is displayed).
+ */
 function stripHtml(html: string): string {
-  if (typeof document === 'undefined') {
-    return html
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-  const el = document.createElement('div');
-  el.innerHTML = html;
-  return (el.textContent || el.innerText || '').replace(/\s+/g, ' ').trim();
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function normalizeNoteHtml(html: string): string {
@@ -308,7 +309,7 @@ export function HttpProxyGeneralCard({
         </CardField>
 
         <CardField>
-          <FieldLabel hint="Most recent change to this load balancer's configuration. Status updates from the platform aren't counted.">
+          <FieldLabel hint="Most recent write to this load balancer's spec or metadata. Status reported by the platform isn't counted.">
             Last updated
           </FieldLabel>
           <CardFieldValue>

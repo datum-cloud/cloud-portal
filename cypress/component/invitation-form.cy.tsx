@@ -44,6 +44,11 @@ function mountInvitationForm(onSubmit: (data: InvitationFormSchema) => void) {
 function pickFirstRole() {
   cy.get('[role="combobox"]').first().click();
   cy.get('[role="option"]').first().click();
+  // Radix Select hands focus back to its trigger after the listbox unmounts.
+  // Wait for that before typing into the emails input, or on a slow runner the
+  // focus return lands mid-typing and the keystrokes go to the trigger.
+  cy.get('[role="option"]').should('not.exist');
+  cy.get('[role="combobox"]').first().should('have.focus');
 }
 
 describe('InvitationForm', () => {

@@ -11,6 +11,8 @@ import {
   type HttpProxy,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
+  getDnsRecordProgrammedCondition,
+  getDnsRecordProgrammedDisplay,
   getDnsRecordProgrammedIssue,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
@@ -127,14 +129,14 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
     return (proxy.hostnames ?? []).map((hostname) => {
       const hostnameStatus = statuses.find((hs) => hs.hostname === hostname);
       const available = hostnameStatus?.conditions?.find((c) => c.type === 'Available');
-      const dns = hostnameStatus?.conditions?.find((c) => c.type === 'DNSRecordProgrammed');
+      const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
       const certCondition = getCertificateReadyCondition(hostnameStatus);
       return {
         hostname,
         verified: available?.status === 'True',
         failedMessage: available?.status === 'False' ? available.message : undefined,
-        dnsProgrammed: dns?.status === 'True',
-        dnsIssue: getDnsRecordProgrammedIssue(dns),
+        dns: getDnsRecordProgrammedDisplay(dnsCondition),
+        dnsIssue: getDnsRecordProgrammedIssue(dnsCondition),
         cert: getCertificateReadyDisplay(certCondition),
         certMessage: certCondition?.message,
       };
@@ -215,9 +217,15 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
                       <Icon icon={TriangleAlertIcon} size={11} aria-hidden="true" />
                       {item.dnsIssue.label}
                     </StatusChip>
-                  ) : item.dnsProgrammed ? (
+                  ) : item.dns === 'programmed' ? (
                     <StatusChip tone="success" tooltip="DNS records programmed">
                       DNS ready
+                    </StatusChip>
+                  ) : item.dns === 'not-applicable' ? (
+                    <StatusChip
+                      tone="muted"
+                      tooltip="This hostname isn't in a Datum DNS zone, so you manage its DNS yourself">
+                      External DNS
                     </StatusChip>
                   ) : (
                     <StatusChip tone="warning" busy tooltip="Programming DNS records">

@@ -2,6 +2,7 @@ import { FieldLabel } from '@/components/card/field-label';
 import { UnavailableBadge } from '@/components/card/inline-controls';
 import { StatusChip, type StatusChipTone } from '@/components/card/status-chip';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { planSecurityUpdate } from '@/features/edge/proxy/overview/security-update';
 import { WafCategoryList } from '@/features/edge/proxy/overview/waf-category-list';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
@@ -12,7 +13,6 @@ import {
   disabledCategoryIds,
   formatWafProtectionStatusDisplay,
   getParanoiaLevelLabel,
-  mergeCatalogExclusions,
   useUpdateHttpProxy,
   validateHostHeader,
 } from '@/resources/http-proxies';
@@ -59,10 +59,6 @@ const WAF_STATE_TONE: Record<string, StatusChipTone> = {
   pending: 'warning',
   error: 'danger',
 };
-
-function sameSet(a: readonly string[], b: readonly string[]) {
-  return a.length === b.length && a.every((id) => b.includes(id));
-}
 
 /**
  * Request-handling security for an ALB. Protection mode, sensitivity and the
@@ -132,14 +128,24 @@ export const HttpProxyConfigCard = ({
 
   // ── draft / dirty state ─────────────────────────────────────────────────
   const draftEnabled = draftMode !== 'Disabled';
-  const modeDirty = canEditWaf && draftMode !== currentMode;
-  const levelDirty = canEditWaf && draftEnabled && draftLevel !== currentLevel;
-  const exclusionsDirty =
-    canEditWaf && draftEnabled && !sameSet(draftDisabledIds, currentDisabledIds);
   const trimmedHostHeader = draftHostHeader.trim();
-  const hostDirty = canEditHost && trimmedHostHeader !== currentHostHeader;
-  const changeCount =
-    (modeDirty ? 1 : 0) + (levelDirty ? 1 : 0) + (exclusionsDirty ? 1 : 0) + (hostDirty ? 1 : 0);
+  const plan = planSecurityUpdate(
+    {
+      mode: currentMode,
+      level: currentLevel,
+      disabledIds: currentDisabledIds,
+      hostHeader: currentHostHeader,
+      ruleExclusions: proxy.ruleExclusions,
+    },
+    {
+      mode: draftMode,
+      level: draftLevel,
+      disabledIds: draftDisabledIds,
+      hostHeader: draftHostHeader,
+    },
+    { canEditWaf, canEditHost }
+  );
+  const { changeCount } = plan;
 
   const hostHeaderError =
     editing && canEditHost ? (validateHostHeader(trimmedHostHeader) ?? undefined) : undefined;
@@ -156,8 +162,7 @@ export const HttpProxyConfigCard = ({
   const handleSave = async () => {
     if (changeCount === 0 || errorCount > 0) return;
 
-    const removingProtection = modeDirty && !draftEnabled;
-    if (removingProtection) {
+    if (plan.removingProtection) {
       const confirmed = await confirm({
         title: 'Disable protection',
         description:
@@ -171,22 +176,7 @@ export const HttpProxyConfigCard = ({
 
     setSaving(true);
     try {
-      await updateProxy.mutateAsync({
-        ...(removingProtection
-          ? { removeTrafficProtection: true }
-          : modeDirty || levelDirty || exclusionsDirty
-            ? {
-                trafficProtectionMode: draftMode,
-                // CRS requires detection >= blocking; keep them locked together.
-                paranoiaLevels: { blocking: draftLevel, detection: draftLevel },
-                // null clears catalog exclusions while preserving non-catalog ids.
-                ruleExclusions:
-                  mergeCatalogExclusions(proxy.ruleExclusions, draftDisabledIds) ?? null,
-              }
-            : {}),
-        // '' is an explicit clear; the adapter drops the filter.
-        ...(hostDirty && { hostHeader: trimmedHostHeader }),
-      });
+      await updateProxy.mutateAsync(plan.input);
       toast.success('Application Load Balancer', { description: 'Security settings saved' });
       setEditing(false);
     } catch (error) {

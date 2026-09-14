@@ -33,6 +33,7 @@ export {
   validateHostHeader,
   extractHostHeader,
   extractHsts,
+  extractHstsHeaderValue,
   extractUpdatedAt,
   HSTS_HEADER,
   HSTS_HEADER_VALUE,

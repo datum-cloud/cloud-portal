@@ -107,6 +107,12 @@ export const httpProxyResourceSchema = z.object({
    * filter that sets `Strict-Transport-Security`.
    */
   hsts: z.boolean().optional(),
+  /**
+   * The `Strict-Transport-Security` value currently on the backend rule, when
+   * set. Carried so a rules rebuild preserves a hand-tuned directive rather
+   * than rewriting it to the portal default.
+   */
+  hstsHeaderValue: z.string().optional(),
   /** Connector referenced by the backend rule (if any) */
   connector: z.object({ name: z.string() }).optional(),
   /** Whether basic auth is currently enabled (SecurityPolicy exists) */

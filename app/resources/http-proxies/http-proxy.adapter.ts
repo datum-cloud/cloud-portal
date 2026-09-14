@@ -120,18 +120,29 @@ export function extractUpdatedAt(raw: ComDatumapisNetworkingV1AlphaHttpProxy): D
 }
 
 /**
- * Whether the backend rule sets `Strict-Transport-Security` on responses.
- * Matches case-insensitively and accepts any value, not only the one the
- * portal writes, so a hand-tuned max-age still reads as "enabled".
+ * The `Strict-Transport-Security` value the backend rule sets on responses,
+ * or undefined when none is set. Matches the header name case-insensitively
+ * and returns whatever value is there, not only the one the portal writes,
+ * so a hand-tuned directive (longer max-age, includeSubDomains, preload)
+ * survives a rules rebuild instead of being replaced by the portal default.
  */
-export function extractHsts(raw: ComDatumapisNetworkingV1AlphaHttpProxy): boolean {
+export function extractHstsHeaderValue(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): string | undefined {
   const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
   const filters = backendRule?.filters ?? [];
-  return filters.some((filter) =>
-    (filter.responseHeaderModifier?.set ?? []).some(
+  for (const filter of filters) {
+    const header = (filter.responseHeaderModifier?.set ?? []).find(
       (h) => h.name.toLowerCase() === HSTS_HEADER.toLowerCase()
-    )
-  );
+    );
+    if (header) return header.value;
+  }
+  return undefined;
+}
+
+/** Whether the backend rule sets `Strict-Transport-Security` on responses. */
+export function extractHsts(raw: ComDatumapisNetworkingV1AlphaHttpProxy): boolean {
+  return extractHstsHeaderValue(raw) !== undefined;
 }
 
 /**
@@ -522,7 +533,7 @@ export function toHttpProxy(
 
   // Extract Host header from rule-level filters (case-insensitive per RFC 7230)
   const hostHeader = extractHostHeader(raw);
-  const hsts = extractHsts(raw);
+  const hstsHeaderValue = extractHstsHeaderValue(raw);
 
   // FR-4: classify the underlying resource so callers can decide between
   // editable form and read-only banner without re-reading the raw resource.
@@ -548,7 +559,8 @@ export function toHttpProxy(
     hostnameStatuses: raw.status?.hostnameStatuses,
     chosenName: raw.metadata?.annotations?.['app.kubernetes.io/name'] ?? '',
     enableHttpRedirect: hasRedirectRule,
-    hsts,
+    hsts: hstsHeaderValue !== undefined,
+    ...(hstsHeaderValue !== undefined && { hstsHeaderValue }),
     ...(backend?.connector && { connector: backend.connector }),
     ...(options?.trafficProtectionMode !== undefined && {
       trafficProtectionMode: options.trafficProtectionMode,
@@ -872,12 +884,18 @@ export function toUpdateHttpProxyPayload(
 
         // HSTS: explicit input wins, else preserve. Written as a response
         // header on the backend rule so it rides along with every proxied reply.
+        // When preserving, re-emit the value that is already there so a
+        // hand-tuned directive is not silently replaced by the portal default.
         const effectiveHsts = input.hsts ?? currentProxy?.hsts ?? false;
         if (effectiveHsts) {
+          const hstsValue =
+            input.hsts === undefined
+              ? (currentProxy?.hstsHeaderValue ?? HSTS_HEADER_VALUE)
+              : HSTS_HEADER_VALUE;
           backendFilters.push({
             type: 'ResponseHeaderModifier',
             responseHeaderModifier: {
-              set: [{ name: HSTS_HEADER, value: HSTS_HEADER_VALUE }],
+              set: [{ name: HSTS_HEADER, value: hstsValue }],
             },
           });
         }

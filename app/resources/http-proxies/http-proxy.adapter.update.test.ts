@@ -3,6 +3,7 @@ import {
   HSTS_HEADER_VALUE,
   classifyHttpProxyComplexity,
   extractHsts,
+  extractHstsHeaderValue,
   extractUpdatedAt,
   httpProxyPatchTouchesResource,
   toHttpProxy,
@@ -97,6 +98,47 @@ describe('HSTS filter modelling', () => {
     const payload = toUpdateHttpProxyPayload({ hsts: false }, { ...currentProxy, hsts: true });
     const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
     expect(backendRule?.filters).toBeUndefined();
+  });
+
+  describe('hand-tuned header value', () => {
+    const tuned = 'max-age=63072000; includeSubDomains; preload';
+    const tunedFilter = {
+      type: 'ResponseHeaderModifier' as const,
+      responseHeaderModifier: { set: [{ name: 'strict-transport-security', value: tuned }] },
+    };
+
+    it('reads the value as written and keeps the proxy form-editable', () => {
+      expect(extractHstsHeaderValue(rawProxy([tunedFilter]))).toBe(tuned);
+      const proxy = toHttpProxy(rawProxy([tunedFilter]));
+      expect(proxy.hsts).toBe(true);
+      expect(proxy.hstsHeaderValue).toBe(tuned);
+      expect(proxy.complexity).toBe('host-only');
+      expect(toHttpProxy(rawProxy()).hstsHeaderValue).toBeUndefined();
+    });
+
+    it('re-emits the tuned value when an unrelated rules field changes', () => {
+      const payload = toUpdateHttpProxyPayload(
+        { hostHeader: 'origin.internal' },
+        { ...currentProxy, hsts: true, hstsHeaderValue: tuned }
+      );
+      const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
+      expect(backendRule?.filters).toEqual([
+        hostFilter,
+        {
+          type: 'ResponseHeaderModifier',
+          responseHeaderModifier: { set: [{ name: HSTS_HEADER, value: tuned }] },
+        },
+      ]);
+    });
+
+    it('writes the portal default only when HSTS is explicitly enabled', () => {
+      const payload = toUpdateHttpProxyPayload(
+        { hsts: true },
+        { ...currentProxy, hsts: false, hstsHeaderValue: undefined }
+      );
+      const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
+      expect(backendRule?.filters).toEqual([hstsFilter]);
+    });
   });
 });
 

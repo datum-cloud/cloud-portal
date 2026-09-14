@@ -78,11 +78,6 @@ export const ActivePopsCard = ({
   proxyId: string;
   /** Sit inside a parent section without a second card chrome. */
   embedded?: boolean;
-  /**
-   * Accepted for call-site compatibility. Serving vs idle is derived from
-   * live region labels and rate, so the overview globe matches Metrics.
-   */
-  idle?: boolean;
 }) => {
   const [hoveredRegion, setHoveredRegion] = useState<string | null>(null);
   const [focusRegion, setFocusRegion] = useState<string | null>(null);

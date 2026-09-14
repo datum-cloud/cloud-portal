@@ -90,7 +90,7 @@ export default function HttpProxyOverviewPage() {
       </Col>
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
         <MetricsProvider>
-          <ActivePopsCard projectId={projectId} proxyId={resourceName} idle={traffic.idle} />
+          <ActivePopsCard projectId={projectId} proxyId={resourceName} />
         </MetricsProvider>
       </Col>
       <Col span={24} lg={12} className={PANEL_HEIGHT}>
