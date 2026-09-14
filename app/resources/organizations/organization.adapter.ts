@@ -147,8 +147,8 @@ export function toUpdatePayload(input: UpdateOrganizationInput): JsonPatchOp[] {
   return patches;
 }
 
-/** True once the membership controller has applied all owner PolicyBindings. */
-export function isOrganizationOwnerGrantReady(
+/** True once the membership controller has applied the member's PolicyBindings. */
+export function isMembershipRolesApplied(
   membership: ComMiloapisResourcemanagerV1Alpha1OrganizationMembership
 ): boolean {
   const conditions = membership.status?.conditions as Condition[] | undefined;

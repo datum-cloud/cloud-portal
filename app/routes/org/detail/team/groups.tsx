@@ -1,7 +1,11 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
-import { GroupFormDialog, type GroupFormDialogRef } from '@/features/organization/team/groups';
+import {
+  GroupFormDialog,
+  type GroupFormDialogRef,
+  buildDeleteGroupDialogCopy,
+} from '@/features/organization/team/groups';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
@@ -75,7 +79,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
     initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
   });
-  const { data: memberships = [] } = useGroupMemberships(orgId, {
+  const { data: memberships = [], isPending: isMembershipsPending } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
   const { data: members = [] } = useMembers(orgId, {
@@ -106,6 +110,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
 
   const deleteGroup = useCallback(
     async (row: GroupRow) => {
+      const copy = buildDeleteGroupDialogCopy(row.memberCount);
       await confirm({
         title: 'Delete Group',
         description: (
@@ -116,7 +121,11 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
         submitText: 'Delete',
         cancelText: 'Cancel',
         variant: 'destructive',
-        showConfirmInput: false,
+        showAlert: copy.warning !== undefined,
+        alertVariant: 'destructive',
+        alertTitle: 'This group still has members',
+        alertDescription: copy.warning,
+        showConfirmInput: copy.requiresTypedConfirmation,
         onSubmit: async () => {
           await deleteGroupAsync(row.name);
         },
@@ -173,12 +182,16 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
           label: 'Delete group',
           variant: 'destructive',
           icon: <Icon icon={TrashIcon} className="size-4" />,
-          hidden: (row) => !canDelete || row.memberCount > 0,
+          hidden: () => !canDelete,
+          // Member counts come from a separate query. Until it settles every
+          // group reads as empty, which would skip the members warning.
+          disabled: () => isMembershipsPending,
+          tooltip: () => (isMembershipsPending ? 'Loading members…' : undefined),
           onClick: (row) => deleteGroup(row),
         },
       ]),
     ],
-    [canDelete, deleteGroup, navigate, orgId]
+    [canDelete, deleteGroup, isMembershipsPending, navigate, orgId]
   );
 
   return (

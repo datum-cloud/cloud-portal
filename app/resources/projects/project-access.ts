@@ -2,7 +2,7 @@ import { createProjectService } from './project.service';
 import { inspectProjectReady } from './project.watch';
 import { logger } from '@/modules/logger';
 import { createOrganizationService } from '@/resources/organizations';
-import { isOrganizationOwnerGrantReady } from '@/resources/organizations/organization.adapter';
+import { isMembershipRolesApplied } from '@/resources/organizations/organization.adapter';
 import { createPolicyBindingService } from '@/resources/policy-bindings';
 import type { PolicyBinding } from '@/resources/policy-bindings/policy-binding.schema';
 import { AuthorizationError } from '@/utils/errors';
@@ -50,7 +50,7 @@ export function isProjectAccessGrantReady(
  *
  * Uses org-scoped project list (no cluster FGA), OrganizationMembership
  * `RolesApplied`, and a Ready PolicyBinding targeting the project in the org
- * namespace — the same pipeline as {@link createOrganizationService.waitForOwnerGrantReady}.
+ * namespace — the same pipeline as {@link waitForMembershipRolesApplied} in the members resource.
  */
 export async function waitForProjectAccessReady(
   orgId: string,
@@ -82,7 +82,7 @@ export async function waitForProjectAccessReady(
       }
 
       const membership = await orgService.fetchMembershipForOrganization(orgId);
-      if (!membership || !isOrganizationOwnerGrantReady(membership)) {
+      if (!membership || !isMembershipRolesApplied(membership)) {
         await new Promise((resolve) => setTimeout(resolve, intervalMs));
         continue;
       }

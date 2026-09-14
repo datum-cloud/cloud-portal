@@ -1,5 +1,5 @@
 import {
-  isOrganizationOwnerGrantReady,
+  isMembershipRolesApplied,
   toCreatePayload,
   toOrganization,
   toOrganizationFromMembership,
@@ -85,10 +85,10 @@ describe('toOrganization', () => {
   });
 });
 
-describe('isOrganizationOwnerGrantReady', () => {
+describe('isMembershipRolesApplied', () => {
   it('returns true when RolesApplied is True', () => {
     expect(
-      isOrganizationOwnerGrantReady({
+      isMembershipRolesApplied({
         status: {
           conditions: [{ type: 'RolesApplied', status: 'True', reason: 'AllRolesApplied' }],
         },
@@ -98,7 +98,7 @@ describe('isOrganizationOwnerGrantReady', () => {
 
   it('returns true when every applied role is Applied', () => {
     expect(
-      isOrganizationOwnerGrantReady({
+      isMembershipRolesApplied({
         status: {
           appliedRoles: [{ status: 'Applied' }, { status: 'Applied' }],
         },
@@ -108,7 +108,7 @@ describe('isOrganizationOwnerGrantReady', () => {
 
   it('returns false while roles are still pending', () => {
     expect(
-      isOrganizationOwnerGrantReady({
+      isMembershipRolesApplied({
         status: {
           appliedRoles: [{ status: 'Pending' }],
         },
