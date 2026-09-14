@@ -52,9 +52,17 @@ describe('InvitationForm', () => {
     mountInvitationForm(onSubmit);
 
     pickFirstRole();
-    cy.get('[data-e2e="invite-emails-input"] input').type(
-      'first@example.com{enter}Second@Example.com{enter}'
-    );
+    // Separate commands so the controlled input can commit each address
+    // before Enter. A single `.type('…{enter}…')` races React state and
+    // lets the form submit with an empty emails array.
+    cy.get('[data-e2e="invite-emails-input"] input')
+      .type('first@example.com')
+      .should('have.value', 'first@example.com')
+      .type('{enter}');
+    cy.get('[data-e2e="invite-emails-input"] input')
+      .type('Second@Example.com')
+      .should('have.value', 'Second@Example.com')
+      .type('{enter}');
     cy.get('[data-e2e="invite-emails-input"]')
       .should('contain.text', 'first@example.com')
       .and('contain.text', 'second@example.com');
