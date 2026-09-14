@@ -101,6 +101,11 @@ export {
 } from './http-proxy.waf-status';
 
 export {
+  isHttpProxyProvisioning,
+  HTTP_PROXY_PROVISIONING_POLL_MS,
+} from './http-proxy.provisioning';
+
+export {
   OWASP_CRS_CATEGORIES,
   disabledCategoryIds,
   isCategoryEnabled,

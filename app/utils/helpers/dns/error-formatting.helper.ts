@@ -1,4 +1,76 @@
 /**
+ * Formats DNS programming errors (usually from PowerDNS) into copy a person
+ * can act on. The API often wraps the real message in `status 422: {"error":"..."}`.
+ */
+
+export type DnsRrsetConflict = {
+  /** FQDN without a trailing dot, e.g. `testing.mdj-test.online`. */
+  recordName: string;
+  /** The type that failed to program, e.g. `ALIAS`. */
+  recordType: string;
+};
+
+/** Pull the inner PDNS message out of `status 422: {"error":"..."}` wrappers. */
+export function unwrapDnsError(errorMessage: string): string {
+  if (!errorMessage) return errorMessage;
+  const jsonMatch = errorMessage.match(/\{[^}]*"error"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if (jsonMatch?.[1]) {
+    return jsonMatch[1].replace(/\\"/g, '"');
+  }
+  return errorMessage;
+}
+
+/**
+ * True when PowerDNS rejected an RRset because another record already occupies
+ * that name — the usual outcome of a manual CNAME/ALIAS plus an ALB-managed one.
+ */
+export function parseDnsRrsetConflict(errorMessage: string): DnsRrsetConflict | undefined {
+  if (!errorMessage) return undefined;
+  const inner = unwrapDnsError(errorMessage);
+  if (!/conflicts with pre-existing rrset/i.test(inner)) return undefined;
+  const match = inner.match(/RRset\s+(\S+)\s+IN\s+([A-Z]+)/i);
+  return {
+    recordName: (match?.[1] ?? '').replace(/\.$/, ''),
+    recordType: (match?.[2] ?? '').toUpperCase(),
+  };
+}
+
+/**
+ * Copy for a pre-existing RRset conflict. `managedByAlb` is the record Datum
+ * tried to create after the hostname was attached to a load balancer.
+ */
+export function formatDnsRecordConflictError(
+  errorMessage: string,
+  options?: { managedByAlb?: boolean }
+): string {
+  const conflict = parseDnsRrsetConflict(errorMessage);
+  if (!conflict) {
+    return formatDnsError(errorMessage);
+  }
+
+  const atName = conflict.recordName ? ` at ${conflict.recordName}` : ' at this name';
+  const typeLabel = conflict.recordType || 'record';
+
+  if (options?.managedByAlb) {
+    return `A DNS record you created already exists${atName}, so Datum can't add this ALB-managed ${typeLabel}. Remove the manual record, then Datum can take over.`;
+  }
+
+  if (typeLabel === 'CNAME' || typeLabel === 'ALIAS') {
+    return `${typeLabel} records can't share a name with another record type. Remove the existing record${atName}, or use a different name.`;
+  }
+
+  return `This ${typeLabel} conflicts with an existing record${atName}. Remove the other record, or use a different name.`;
+}
+
+/** Hostname-card copy when Datum can't program DNS because a manual record exists. */
+export function formatAlbHostnameDnsConflict(errorMessage?: string, hostname?: string): string {
+  const conflict = errorMessage ? parseDnsRrsetConflict(errorMessage) : undefined;
+  const name = conflict?.recordName || hostname;
+  const atName = name ? ` (${name})` : '';
+  return `A DNS record you created already exists for this hostname${atName}. Remove that manual record so Datum can program the ALB-managed one.`;
+}
+
+/**
  * Formats a DNS conflict error message into a user-friendly explanation
  *
  * Handles errors like:
@@ -14,36 +86,11 @@ export function formatDnsConflictError(errorMessage: string): string {
     return errorMessage;
   }
 
-  // Extract the actual error message if it's wrapped in JSON format
-  // Pattern: "Record "...": status 422: {"error": "actual error message"}"
-  let actualErrorMessage = errorMessage;
-  const jsonMatch = errorMessage.match(/\{[^}]*"error"\s*:\s*"([^"]+)"/);
-  if (jsonMatch && jsonMatch[1]) {
-    actualErrorMessage = jsonMatch[1];
+  if (parseDnsRrsetConflict(errorMessage)) {
+    return formatDnsRecordConflictError(errorMessage);
   }
 
-  // Check if this is a conflict error
-  const isConflictError =
-    actualErrorMessage.toLowerCase().includes('conflicts with pre-existing rrset') ||
-    actualErrorMessage.toLowerCase().includes('conflicts with') ||
-    actualErrorMessage.toLowerCase().includes('conflict');
-
-  if (!isConflictError) {
-    return errorMessage;
-  }
-
-  // Try to extract record type from the error message
-  // Pattern: "RRset <name> IN <TYPE>: Conflicts..."
-  const typeMatch = actualErrorMessage.match(/\bIN\s+([A-Z]+):?\s*Conflicts/i);
-  const recordType = typeMatch ? typeMatch[1] : 'record';
-
-  // Special handling for CNAME/ALIAS conflicts (most common cases)
-  if (recordType === 'CNAME' || recordType === 'ALIAS') {
-    return `${recordType} records cannot coexist with other record types at the same name. Please remove the existing records before adding this ${recordType}, or use a different name.`;
-  }
-
-  // Generic conflict message for other record types
-  return `${recordType} record conflicts with an existing record at this name. Please remove the conflicting record first, or use a different name.`;
+  return errorMessage;
 }
 
 /**
@@ -57,17 +104,16 @@ export function formatDnsError(errorMessage: string): string {
     return errorMessage;
   }
 
-  // Apply conflict formatting first
-  const conflictFormatted = formatDnsConflictError(errorMessage);
-  if (conflictFormatted !== errorMessage) {
-    return conflictFormatted;
+  if (parseDnsRrsetConflict(errorMessage)) {
+    return formatDnsRecordConflictError(errorMessage);
   }
 
-  // Record name outside zone (relative name already included the zone domain)
-  const lower = errorMessage.toLowerCase();
+  const inner = unwrapDnsError(errorMessage);
+
+  const lower = inner.toLowerCase();
   if (lower.includes('outside the zone') || lower.includes('not in zone')) {
     return 'The record name is outside the zone. Enter a relative name without the zone domain (for example, "www" instead of "www.example.com").';
   }
 
-  return errorMessage;
+  return inner;
 }

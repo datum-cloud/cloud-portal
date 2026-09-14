@@ -3,6 +3,11 @@
  * Aligns with network-services-operator PR: hostname and proxy status conditions for TLS cert health.
  * @see https://github.com/datum-cloud/network-services-operator/pull/115
  */
+import {
+  formatAlbHostnameDnsConflict,
+  formatDnsError,
+  parseDnsRrsetConflict,
+} from '@/utils/helpers/dns/error-formatting.helper';
 
 /** HTTPProxy-level condition: true when all HTTPS hostnames have ready TLS certificates */
 export const HTTP_PROXY_CONDITION_CERTIFICATES_READY = 'CertificatesReady';
@@ -141,14 +146,15 @@ export function getDnsRecordProgrammedIssue(
 ): { label: string; message: string } | undefined {
   if (!condition || condition.status === 'True') return undefined;
 
+  const rrsetConflict = parseDnsRrsetConflict(condition.message ?? '');
+  if (condition.reason === DnsRecordProgrammedReason.Conflict || rrsetConflict) {
+    return {
+      label: 'DNS conflict',
+      message: formatAlbHostnameDnsConflict(condition.message),
+    };
+  }
+
   switch (condition.reason) {
-    case DnsRecordProgrammedReason.Conflict:
-      return {
-        label: 'DNS conflict',
-        message:
-          condition.message ||
-          'A DNS record already exists for this hostname and is managed elsewhere. Remove or update it so Datum can program the record.',
-      };
     case DnsRecordProgrammedReason.DNSAuthorityMissing:
       return {
         label: 'DNS not delegated',
@@ -159,7 +165,9 @@ export function getDnsRecordProgrammedIssue(
     case DnsRecordProgrammedReason.Failed:
       return {
         label: 'DNS failed',
-        message: condition.message || 'Datum could not program the DNS record for this hostname.',
+        message: formatDnsError(
+          condition.message || 'Datum could not program the DNS record for this hostname.'
+        ),
       };
     default:
       return undefined;

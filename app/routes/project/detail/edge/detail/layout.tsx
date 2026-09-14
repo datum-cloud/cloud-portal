@@ -5,8 +5,11 @@ import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import {
   createHttpProxyService,
   httpProxyKeys,
+  HTTP_PROXY_PROVISIONING_POLL_MS,
+  isHttpProxyProvisioning,
   type HttpProxy,
   useHttpProxy,
+  useHttpProxyWatch,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -47,11 +50,18 @@ export default route.Page(({ data: loaderProxy }) => {
   // The loader snapshot never changes after a mutation (shouldRevalidate skips
   // same-resource navigations), so read the title from the query cache, which
   // update mutations and the watch keep current. Seeded from the loader.
+  //
+  // The watch lives here (not on each tab) so overview, configuration, metrics,
+  // and logs all see hostname/TLS/programming updates. refetchOnMount is left
+  // on so a quiet watch still recovers when you enter the page; while the
+  // proxy is provisioning we poll as a backstop for status-only updates.
   const { data: liveProxy } = useHttpProxy(projectId, proxyId, {
     initialData: loaderProxy,
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
+    refetchInterval: (query) =>
+      isHttpProxyProvisioning(query.state.data) ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
   });
+  useHttpProxyWatch(projectId, proxyId);
   const proxy = liveProxy ?? loaderProxy;
 
   const navItems: SubNavigationTab[] = useMemo(() => {

@@ -21,6 +21,8 @@ export interface BadgeProgrammingErrorProps {
   programmedReason?: string;
   statusMessage?: string;
   className?: string;
+  /** Override the badge label. Defaults to "Error". */
+  label?: string;
   /**
    * List of error reasons that should trigger the error badge
    * @default ['InvalidDNSRecordSet', 'ProgrammingFailed', 'ConfigurationError', 'ValidationFailed']
@@ -71,6 +73,7 @@ export const BadgeProgrammingError = ({
   programmedReason,
   statusMessage,
   className,
+  label = 'Error',
   errorReasons = DEFAULT_ERROR_REASONS,
 }: BadgeProgrammingErrorProps) => {
   // Only show when there's a programming error
@@ -89,7 +92,7 @@ export const BadgeProgrammingError = ({
   return (
     <BadgeStatus
       status="error"
-      label="Error"
+      label={label}
       tooltipText={statusMessage || `Programming failed: ${programmedReason}`}
       showTooltip={true}
       showIcon={true}
@@ -97,7 +100,7 @@ export const BadgeProgrammingError = ({
       badgeType="danger"
       badgeTheme="solid"
       className={className}
-      tooltipContentClassName="max-w-64 bg-card text-destructive border"
+      tooltipContentClassName="max-w-sm text-pretty bg-card text-destructive border"
       tooltipArrowClassName="fill-card drop-shadow-[0_1px_0_var(--border)]"
     />
   );

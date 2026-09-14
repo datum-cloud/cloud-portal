@@ -20,6 +20,7 @@ import { useResourceWatch } from '@/modules/watch';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { useQueryClient } from '@tanstack/react-query';
 
 function toTrafficProtectionView(
   raw: ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy
@@ -39,10 +40,32 @@ function toTrafficProtectionView(
 }
 
 /**
+ * Watch events can omit fields derived from spec.rules or a sibling policy.
+ * Keep the last known values so a status-only MODIFIED doesn't blank them.
+ */
+function mergeWatchedHttpProxy(oldData: HttpProxy | undefined, newItem: HttpProxy): HttpProxy {
+  if (!oldData) return newItem;
+  return {
+    ...newItem,
+    ...(oldData.enableHttpRedirect !== undefined && {
+      enableHttpRedirect: oldData.enableHttpRedirect,
+    }),
+    ...(oldData.basicAuthEnabled !== undefined &&
+      newItem.basicAuthEnabled === undefined && {
+        basicAuthEnabled: oldData.basicAuthEnabled,
+        basicAuthUserCount: oldData.basicAuthUserCount,
+        basicAuthUsernames: oldData.basicAuthUsernames,
+        basicAuthForbidden: oldData.basicAuthForbidden,
+      }),
+  };
+}
+
+/**
  * Watch HTTP proxies list for real-time updates.
  */
 export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boolean }) {
   const queryKey = httpProxyKeys.list(projectId);
+  const queryClient = useQueryClient();
 
   // Watch HTTPProxy resources
   useResourceWatch<HttpProxy>({
@@ -53,33 +76,23 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
     enabled: options?.enabled ?? true,
     getItemKey: (proxy) => proxy.name,
+    onEvent: (event) => {
+      if (event.type !== 'ADDED' && event.type !== 'MODIFIED') return;
+      const proxy = event.object;
+      queryClient.setQueryData(
+        httpProxyKeys.detail(projectId, proxy.name),
+        (old: HttpProxy | undefined) => mergeWatchedHttpProxy(old, proxy)
+      );
+    },
     updateListCache: (oldData, newItem) => {
-      // Preserve fields that watch events may omit or send partially
       if (Array.isArray(oldData)) {
         const existingItem = oldData.find((item) => item.name === newItem.name);
         if (existingItem) {
           return oldData.map((item) =>
-            item.name === newItem.name
-              ? {
-                  ...newItem,
-                  ...(existingItem.enableHttpRedirect !== undefined && {
-                    enableHttpRedirect: existingItem.enableHttpRedirect,
-                  }),
-                  ...(existingItem.basicAuthEnabled !== undefined &&
-                    newItem.basicAuthEnabled === undefined && {
-                      basicAuthEnabled: existingItem.basicAuthEnabled,
-                      basicAuthUserCount: existingItem.basicAuthUserCount,
-                      basicAuthUsernames: existingItem.basicAuthUsernames,
-                      basicAuthForbidden: existingItem.basicAuthForbidden,
-                    }),
-                }
-              : item
+            item.name === newItem.name ? mergeWatchedHttpProxy(item, newItem) : item
           );
         }
-      }
-      // Default behavior: find and replace
-      if (Array.isArray(oldData)) {
-        return oldData.map((item) => (item.name === newItem.name ? newItem : item));
+        return [...oldData, newItem];
       }
       return oldData;
     },
@@ -88,6 +101,10 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
 
 /**
  * Watch a single HTTP proxy for real-time updates.
+ *
+ * skipInitialSync is false so the first ADDED (current object, or a replay
+ * after reconnect) still lands in the detail cache. Dropping it left the
+ * overview health strip on the loader snapshot until a full reload.
  */
 export function useHttpProxyWatch(
   projectId: string,
@@ -95,8 +112,8 @@ export function useHttpProxyWatch(
   options?: { enabled?: boolean }
 ) {
   const queryKey = httpProxyKeys.detail(projectId, name);
+  const queryClient = useQueryClient();
 
-  // Watch HTTPProxy resource
   useResourceWatch<HttpProxy>({
     resourceType: 'apis/networking.datumapis.com/v1alpha/httpproxies',
     projectId,
@@ -104,26 +121,21 @@ export function useHttpProxyWatch(
     name,
     queryKey,
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
-    enabled: options?.enabled ?? true,
-    updateSingleCache: (oldData, newItem) => {
-      // Preserve fields that watch events may omit or send partially
-      // (enableHttpRedirect derived from spec.rules, basic-auth from a separate policy).
-      // WAF is no longer carried on the proxy object — it has its own query/cache.
-      if (!oldData) return newItem;
-
-      return {
-        ...newItem,
-        ...(oldData.enableHttpRedirect !== undefined && {
-          enableHttpRedirect: oldData.enableHttpRedirect,
-        }),
-        ...(oldData.basicAuthEnabled !== undefined &&
-          newItem.basicAuthEnabled === undefined && {
-            basicAuthEnabled: oldData.basicAuthEnabled,
-            basicAuthUserCount: oldData.basicAuthUserCount,
-            basicAuthUsernames: oldData.basicAuthUsernames,
-            basicAuthForbidden: oldData.basicAuthForbidden,
-          }),
-      };
+    enabled: (options?.enabled ?? true) && !!projectId && !!name,
+    skipInitialSync: false,
+    updateSingleCache: mergeWatchedHttpProxy,
+    onEvent: (event) => {
+      if (event.type !== 'ADDED' && event.type !== 'MODIFIED') return;
+      const proxy = event.object;
+      queryClient.setQueryData(httpProxyKeys.list(projectId), (old: unknown) => {
+        if (!Array.isArray(old)) return old;
+        const list = old as HttpProxy[];
+        const idx = list.findIndex((item) => item.name === proxy.name);
+        if (idx === -1) return [...list, proxy];
+        return list.map((item) =>
+          item.name === proxy.name ? mergeWatchedHttpProxy(item, proxy) : item
+        );
+      });
     },
   });
 }

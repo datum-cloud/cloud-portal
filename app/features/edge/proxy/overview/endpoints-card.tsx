@@ -2,18 +2,23 @@ import { summarizeBackends } from './backend-summary';
 import { OverviewEmptyState } from './overview-empty-state';
 import { StatusChip } from '@/components/card/status-chip';
 import {
+  ProxyZoneRecordsWatch,
+  useProxyZoneRecords,
+} from '@/features/edge/proxy/hooks/use-proxy-zone-records';
+import {
   ProxyHostnamesConfigDialog,
   type ProxyHostnamesConfigDialogRef,
 } from '@/features/edge/proxy/proxy-hostnames-dialog';
+import { resolveHostnameDnsIssue } from '@/features/edge/proxy/utils/hostname-dns-issue';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { usePermission } from '@/modules/rbac';
 import {
   type HttpProxy,
+  HTTP_PROXY_PROVISIONING_POLL_MS,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
-  getDnsRecordProgrammedIssue,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -124,24 +129,47 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
     proxyId,
   });
 
+  const customHostnames = useMemo(() => proxy.hostnames ?? [], [proxy.hostnames]);
+  const dnsStillOpen = useMemo(
+    () =>
+      customHostnames.some((hostname) => {
+        const hostnameStatus = proxy.hostnameStatuses?.find((entry) => entry.hostname === hostname);
+        return (
+          getDnsRecordProgrammedDisplay(getDnsRecordProgrammedCondition(hostnameStatus)) ===
+          'pending'
+        );
+      }),
+    [customHostnames, proxy.hostnameStatuses]
+  );
+  const { matchedZones, zoneRecords } = useProxyZoneRecords(projectId, customHostnames, {
+    refetchInterval: dnsStillOpen ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
+  });
+
   const hostnames = useMemo(() => {
     const statuses = proxy.hostnameStatuses ?? [];
-    return (proxy.hostnames ?? []).map((hostname) => {
+    return customHostnames.map((hostname) => {
       const hostnameStatus = statuses.find((hs) => hs.hostname === hostname);
       const available = hostnameStatus?.conditions?.find((c) => c.type === 'Available');
       const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
       const certCondition = getCertificateReadyCondition(hostnameStatus);
+      const dns = getDnsRecordProgrammedDisplay(dnsCondition);
       return {
         hostname,
         verified: available?.status === 'True',
         failedMessage: available?.status === 'False' ? available.message : undefined,
-        dns: getDnsRecordProgrammedDisplay(dnsCondition),
-        dnsIssue: getDnsRecordProgrammedIssue(dnsCondition),
+        dns,
+        dnsIssue: resolveHostnameDnsIssue({
+          hostname,
+          dns,
+          condition: dnsCondition,
+          proxyName: proxy.name,
+          zoneRecords,
+        }),
         cert: getCertificateReadyDisplay(certCondition),
         certMessage: certCondition?.message,
       };
     });
-  }, [proxy.hostnames, proxy.hostnameStatuses]);
+  }, [customHostnames, proxy.hostnameStatuses, proxy.name, zoneRecords]);
 
   const systemHostname = proxy.canonicalHostname ?? proxy.status?.hostnames?.[0];
   const backends = summarizeBackends(proxy);
@@ -283,6 +311,10 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
           </li>
         </ul>
       </CardContent>
+      <ProxyZoneRecordsWatch
+        projectId={projectId}
+        zoneIds={matchedZones.map((zone) => zone.name)}
+      />
       <ProxyHostnamesConfigDialog ref={hostnamesDialogRef} projectId={projectId} />
     </Card>
   );
