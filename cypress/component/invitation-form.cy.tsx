@@ -44,6 +44,9 @@ function mountInvitationForm(onSubmit: (data: InvitationFormSchema) => void) {
 function pickFirstRole() {
   cy.get('[role="combobox"]').first().click();
   cy.get('[role="option"]').first().click();
+  // The select closes with an animation. On a slow CI runner, typing before
+  // the listbox is gone sends the first keystrokes to the closing popover.
+  cy.get('[role="option"]').should('not.exist');
 }
 
 describe('InvitationForm', () => {
@@ -52,12 +55,10 @@ describe('InvitationForm', () => {
     mountInvitationForm(onSubmit);
 
     pickFirstRole();
-    cy.get('[data-e2e="invite-emails-input"] input').type(
-      'first@example.com{enter}Second@Example.com{enter}'
-    );
-    cy.get('[data-e2e="invite-emails-input"]')
-      .should('contain.text', 'first@example.com')
-      .and('contain.text', 'second@example.com');
+    cy.get('[data-e2e="invite-emails-input"] input').click().type('first@example.com{enter}');
+    cy.get('[data-e2e="invite-emails-input"]').should('contain.text', 'first@example.com');
+    cy.get('[data-e2e="invite-emails-input"] input').type('Second@Example.com{enter}');
+    cy.get('[data-e2e="invite-emails-input"]').should('contain.text', 'second@example.com');
 
     cy.get('[data-e2e="invite-submit"]').click();
 
