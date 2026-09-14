@@ -36,6 +36,16 @@ describe('waitForMembershipRolesApplied', () => {
     expect(calls).toBe(3);
   });
 
+  it('keeps polling after a transient fetch error', async () => {
+    let calls = 0;
+    await waitForMembershipRolesApplied('acme', fast, async () => {
+      calls += 1;
+      if (calls === 1) throw new Error('socket hang up');
+      return ready;
+    });
+    expect(calls).toBe(2);
+  });
+
   it('throws AuthorizationError once the deadline passes without RolesApplied', async () => {
     await expect(
       waitForMembershipRolesApplied('acme', { ...fast, timeoutMs: 20 }, async () => pending)

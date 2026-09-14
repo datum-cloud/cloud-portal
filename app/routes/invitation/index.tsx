@@ -23,7 +23,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon, Icon } from '@datum-cloud/datum-ui/icons';
 import { Check } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Link,
   LoaderFunctionArgs,
@@ -89,6 +89,17 @@ export default function InvitationPage() {
   const [action, setAction] = useState<'Accepted' | 'Declined'>();
   const [isSettlingAccess, setIsSettlingAccess] = useState(false);
 
+  // The accept mutation does not await this page's onSuccess, so the wait
+  // below can outlive the page. Never navigate on behalf of a page the user
+  // has already left.
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const acceptMutation = useAcceptInvitation({
     onSuccess: async () => {
       // Accepting creates the OrganizationMembership, but its roles are applied
@@ -107,6 +118,7 @@ export default function InvitationPage() {
           error: error instanceof Error ? error.message : String(error),
         });
       }
+      if (!isMountedRef.current) return;
       navigate(
         getPathWithParams(paths.org.detail.root, {
           orgId: invitation.organizationName,

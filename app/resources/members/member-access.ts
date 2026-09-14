@@ -1,7 +1,7 @@
 import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
 import { logger } from '@/modules/logger';
 import { createOrganizationService } from '@/resources/organizations';
-import { isOrganizationOwnerGrantReady } from '@/resources/organizations/organization.adapter';
+import { isMembershipRolesApplied } from '@/resources/organizations/organization.adapter';
 import { AuthorizationError } from '@/utils/errors';
 
 type Membership = ComMiloapisResourcemanagerV1Alpha1OrganizationMembership;
@@ -45,8 +45,16 @@ export async function waitForMembershipRolesApplied(
   const deadline = startTime + timeoutMs;
 
   while (Date.now() < deadline) {
-    const membership = await fetchMembership();
-    if (membership && isOrganizationOwnerGrantReady(membership)) {
+    let membership: Membership | undefined;
+    try {
+      membership = await fetchMembership();
+    } catch (error) {
+      // A transient read failure should not abort the wait; keep polling.
+      logger.warn(`Membership poll failed for ${orgId}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+    if (membership && isMembershipRolesApplied(membership)) {
       if (postReadyDelayMs > 0) {
         await sleep(postReadyDelayMs);
       }
