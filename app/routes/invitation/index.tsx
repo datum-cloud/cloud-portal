@@ -1,10 +1,12 @@
 import BlankLayout from '@/layouts/blank.layout';
+import { logger } from '@/modules/logger';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationService } from '@/resources/invitations';
 import {
   useAcceptInvitation,
   useRejectInvitation,
 } from '@/resources/invitations/invitation.queries';
+import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
@@ -34,6 +36,12 @@ import {
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Invitation');
 });
+
+/**
+ * Upper bound on how long the accept button waits for the new membership's
+ * roles to propagate before sending the user into the org anyway.
+ */
+const ACCESS_WAIT_TIMEOUT_MS = 45_000;
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -79,9 +87,27 @@ export default function InvitationPage() {
   const navigate = useNavigate();
 
   const [action, setAction] = useState<'Accepted' | 'Declined'>();
+  const [isSettlingAccess, setIsSettlingAccess] = useState(false);
 
   const acceptMutation = useAcceptInvitation({
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Accepting creates the OrganizationMembership, but its roles are applied
+      // asynchronously. Landing on the org page before that finishes trips the
+      // access check and shows "Access restricted" (#1505), so wait on the
+      // membership status first. On timeout we still navigate; the org page's
+      // restricted state remains the fallback.
+      setIsSettlingAccess(true);
+      try {
+        await createOrganizationService().waitForMembershipRolesApplied(
+          invitation.organizationName,
+          { timeoutMs: ACCESS_WAIT_TIMEOUT_MS }
+        );
+      } catch (error) {
+        logger.warn('Invitation accepted but roles did not settle before timeout', {
+          orgId: invitation.organizationName,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
       navigate(
         getPathWithParams(paths.org.detail.root, {
           orgId: invitation.organizationName,
@@ -120,7 +146,7 @@ export default function InvitationPage() {
     }
   };
 
-  const isLoading = acceptMutation.isPending || rejectMutation.isPending;
+  const isLoading = acceptMutation.isPending || rejectMutation.isPending || isSettlingAccess;
 
   return (
     <BlankLayout>
@@ -171,7 +197,7 @@ export default function InvitationPage() {
                 {isLoading && action === 'Accepted' ? (
                   <>
                     <SpinnerIcon size="sm" aria-hidden="true" />
-                    Joining...
+                    {isSettlingAccess ? 'Setting up your access...' : 'Joining...'}
                   </>
                 ) : (
                   <>

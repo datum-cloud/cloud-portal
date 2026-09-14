@@ -1,11 +1,14 @@
 import {
-  isOrganizationOwnerGrantReady,
   toOrganization,
   toOrganizationFromMembership,
   toCreatePayload,
   toOnboardingCreatePayload,
   toUpdatePayload,
 } from './organization.adapter';
+import {
+  type MembershipWaitOptions,
+  waitForMembershipRolesApplied,
+} from './organization.membership-wait';
 import {
   createOrganizationSchema,
   createOnboardingOrganizationSchema,
@@ -28,7 +31,7 @@ import { logger } from '@/modules/logger';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getUserScopedBase } from '@/resources/base/utils';
-import { AuthorizationError, NotFoundError } from '@/utils/errors';
+import { NotFoundError } from '@/utils/errors';
 import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -287,48 +290,27 @@ export function createOrganizationService() {
     },
 
     /**
-     * Poll the user-scoped membership list until the owner's roles (and their
-     * PolicyBindings / OpenFGA tuples) have been applied for this org.
+     * Poll the user-scoped membership list until this user's roles (and their
+     * PolicyBindings / OpenFGA tuples) have been applied for the org.
      *
-     * Uses the membership API rather than SelfSubjectAccessReview so we do not
-     * hit OpenFGA while the grant is still propagating. Repeated SAR/create
-     * checks during that window seed OpenFGA's 30s check-query cache with
-     * denials and can block billing account creation for tens of seconds even
-     * after PolicyBinding is Ready.
+     * See {@link waitForMembershipRolesApplied} for why this reads membership
+     * status instead of SelfSubjectAccessReview.
      */
-    async waitForOwnerGrantReady(
+    async waitForMembershipRolesApplied(
       orgId: string,
-      opts: {
-        timeoutMs?: number;
-        intervalMs?: number;
-        /** Pause after RolesApplied before returning — avoids the first auth check racing OpenFGA replica sync. */
-        postReadyDelayMs?: number;
-      } = {}
+      opts: MembershipWaitOptions = {}
     ): Promise<void> {
-      const timeoutMs = opts.timeoutMs ?? 90_000;
-      const intervalMs = opts.intervalMs ?? 500;
-      const postReadyDelayMs = opts.postReadyDelayMs ?? 2_000;
-      const deadline = Date.now() + timeoutMs;
       const startTime = Date.now();
+      await waitForMembershipRolesApplied(() => this.fetchMembershipForOrganization(orgId), opts);
+      logger.service(SERVICE_NAME, 'waitForMembershipRolesApplied', {
+        input: { orgId },
+        duration: Date.now() - startTime,
+      });
+    },
 
-      while (Date.now() < deadline) {
-        const membership = await this.fetchMembershipForOrganization(orgId);
-        if (membership && isOrganizationOwnerGrantReady(membership)) {
-          if (postReadyDelayMs > 0) {
-            await new Promise((resolve) => setTimeout(resolve, postReadyDelayMs));
-          }
-          logger.service(SERVICE_NAME, 'waitForOwnerGrantReady', {
-            input: { orgId },
-            duration: Date.now() - startTime,
-          });
-          return;
-        }
-        await new Promise((resolve) => setTimeout(resolve, intervalMs));
-      }
-
-      throw new AuthorizationError(
-        `Timed out waiting for owner grant to propagate on organization ${orgId}`
-      );
+    /** Owner-flavoured alias kept for the onboarding flow. */
+    async waitForOwnerGrantReady(orgId: string, opts: MembershipWaitOptions = {}): Promise<void> {
+      return this.waitForMembershipRolesApplied(orgId, opts);
     },
 
     async fetchMembershipForOrganization(
