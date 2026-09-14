@@ -144,6 +144,7 @@ export default [
             [
               index('routes/project/detail/edge/detail/index.tsx'),
               route('overview', 'routes/project/detail/edge/detail/overview.tsx'),
+              route('configuration', 'routes/project/detail/edge/detail/configuration.tsx'),
               route('metrics', 'routes/project/detail/edge/detail/metrics.tsx'),
               route('logs', 'routes/project/detail/edge/detail/logs.tsx'),
               route('activity', 'routes/project/detail/edge/detail/activity.tsx'),

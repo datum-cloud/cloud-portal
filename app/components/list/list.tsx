@@ -1,3 +1,4 @@
+import { CardField, CardFieldLabel, CardFieldValue } from '@datum-cloud/datum-ui/card';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 export interface ListItem {
@@ -24,30 +25,22 @@ interface ListProps {
   labelClassName?: string;
 }
 
+/**
+ * Label / value rows rendered with the datum-ui `CardField` primitives, so a
+ * `List` inside a `sectioned` Card lines up with hand-written `CardField`
+ * rows (50/50 grid, inset dividers). Outside a Card the `--card-px` inset is
+ * unset and the rows simply span their container.
+ */
 export const List = ({ items, className, itemClassName, labelClassName }: ListProps) => {
   return (
     <div className={cn('flex flex-col', className)}>
       {items
         .filter((item) => !item.hidden)
         .map((item, index) => (
-          <div
-            key={index}
-            className={cn(
-              'border-table-accent dark:border-quaternary flex w-full flex-col gap-2 py-3 not-last:border-b sm:flex-row sm:items-center',
-              itemClassName,
-              item.className
-            )}>
-            <div
-              className={cn(
-                'flex min-w-0 items-center justify-start gap-1.5 text-left text-sm font-semibold sm:min-w-[200px]',
-                labelClassName
-              )}>
-              {item.label}
-            </div>
-            <div className="flex justify-start text-left text-sm font-normal wrap-break-word sm:justify-end sm:text-right">
-              {item.content}
-            </div>
-          </div>
+          <CardField key={index} className={cn(itemClassName, item.className)}>
+            <CardFieldLabel className={labelClassName}>{item.label}</CardFieldLabel>
+            <CardFieldValue className="min-w-0 wrap-break-word">{item.content}</CardFieldValue>
+          </CardField>
         ))}
     </div>
   );

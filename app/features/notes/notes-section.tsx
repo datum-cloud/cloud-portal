@@ -6,7 +6,7 @@ import { useDeleteNote, useNotes } from '@/resources/notes/note.queries';
 import type { Note, SubjectRef } from '@/resources/notes/note.schema';
 import { createUserService, userKeys } from '@/resources/users';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -86,13 +86,13 @@ export function NotesSection({ projectId, subjectRef }: NotesSectionProps) {
 
   return (
     <>
-      <Card className="relative h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-        <CardContent className="flex flex-col gap-4 p-0 sm:px-6 sm:pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <Icon icon={NotepadText} size={20} className="text-secondary stroke-2" />
-              <span className="text-base font-semibold">Notes</span>
-            </div>
+      <Card size="sm" sectioned className="relative h-full w-full overflow-hidden">
+        <CardHeader size="sm" bordered>
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Icon icon={NotepadText} size={16} className="text-secondary" />
+            Notes
+          </CardTitle>
+          <CardAction>
             <Button
               type="primary"
               size="xs"
@@ -102,8 +102,9 @@ export function NotesSection({ projectId, subjectRef }: NotesSectionProps) {
               iconPosition="left">
               Add Note
             </Button>
-          </div>
-
+          </CardAction>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
           {isLoading ? (
             <div className="relative flex min-h-[120px] items-center justify-center">
               <LoaderOverlay message="Loading notes..." className="relative inset-auto" />

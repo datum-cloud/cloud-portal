@@ -128,3 +128,40 @@ export function getDnsRecordProgrammedDisplay(
   if (condition?.reason === DnsRecordProgrammedReason.NotApplicable) return 'not-applicable';
   return 'pending';
 }
+
+/**
+ * A DNSRecordProgrammed problem the user has to act on, as opposed to a state
+ * that resolves on its own (still verifying, record being written).
+ *
+ * Returns a short label and an explanation suitable for a tooltip, or
+ * undefined when the hostname is fine or merely pending.
+ */
+export function getDnsRecordProgrammedIssue(
+  condition: ConditionLike | undefined
+): { label: string; message: string } | undefined {
+  if (!condition || condition.status === 'True') return undefined;
+
+  switch (condition.reason) {
+    case DnsRecordProgrammedReason.Conflict:
+      return {
+        label: 'DNS conflict',
+        message:
+          condition.message ||
+          'A DNS record already exists for this hostname and is managed elsewhere. Remove or update it so Datum can program the record.',
+      };
+    case DnsRecordProgrammedReason.DNSAuthorityMissing:
+      return {
+        label: 'DNS not delegated',
+        message:
+          condition.message ||
+          "The DNS zone for this hostname isn't delegated to Datum yet. Point the domain's nameservers at Datum to let it program records.",
+      };
+    case DnsRecordProgrammedReason.Failed:
+      return {
+        label: 'DNS failed',
+        message: condition.message || 'Datum could not program the DNS record for this hostname.',
+      };
+    default:
+      return undefined;
+  }
+}

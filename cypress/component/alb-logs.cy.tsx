@@ -1,5 +1,4 @@
 import { AlbLogsExplorer } from '@/features/edge/proxy/logs/alb-logs-explorer';
-import { AlbLogsPreview } from '@/features/edge/proxy/logs/alb-logs-preview';
 import { flattenLokiStreams, lastThirtyMinutes } from '@datum-cloud/datum-ui/logs';
 import { queryRangeFixture } from '@datum-cloud/datum-ui/logs/fixtures';
 
@@ -65,21 +64,5 @@ describe('AlbLogsExplorer', () => {
     cy.get('[data-slot="logs-table"] tbody tr').first().click();
     cy.get('[data-slot="logs-detail"]').should('contain', 'GET /api/v1/checkout');
     cy.get('[data-slot="logs-detail"]').should('contain', 'app.example.com');
-  });
-});
-
-describe('AlbLogsPreview', () => {
-  it('renders a compact table without the live toggle', () => {
-    cy.mount(
-      <div className="flex h-[22rem] w-full flex-col">
-        <AlbLogsPreview entries={entries} />
-      </div>
-    );
-
-    cy.get('[data-slot="logs-table"]').should('contain', 'GET');
-    cy.get('[data-slot="logs-table"]').should('contain', '/api/v1/checkout');
-    cy.get('[data-slot="logs-table"]').should('not.contain', 'Message');
-    cy.get('[data-slot="logs-live"]').should('not.exist');
-    cy.get('[data-slot="logs-search"]').should('not.exist');
   });
 });

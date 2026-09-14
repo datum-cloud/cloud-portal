@@ -47,7 +47,7 @@ export const DisplayNameFormCard = ({
   onSubmit,
 }: DisplayNameFormCardProps) => {
   return (
-    <Card className="rounded-xl pt-5 pb-4 shadow-none">
+    <Card size="sm" sectioned>
       <Form.Root
         id="billing-account-display-name-form"
         schema={displayNameFormSchema}
@@ -55,7 +55,7 @@ export const DisplayNameFormCard = ({
         defaultValues={{ displayName: defaultDisplayName }}
         isSubmitting={isSubmitting}
         onSubmit={(values) => onSubmit?.(values)}
-        className="flex flex-col gap-6 space-y-0">
+        className="flex flex-col space-y-0">
         {({ form }) => (
           <>
             <CardContent>
@@ -71,7 +71,7 @@ export const DisplayNameFormCard = ({
                 />
               </Form.Field>
             </CardContent>
-            <CardFooter className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+            <CardFooter bordered className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 htmlType="button"
                 type="quaternary"

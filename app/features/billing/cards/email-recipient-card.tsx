@@ -61,7 +61,7 @@ export const EmailRecipientCard = ({
   const emailsDefault = JSON.stringify(defaultEmails);
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
+    <Card size="sm" sectioned>
       <Form.Root
         name="email-recipients"
         id="email-recipients-form"
@@ -73,7 +73,7 @@ export const EmailRecipientCard = ({
         className="flex flex-col space-y-0">
         {({ form }) => (
           <>
-            <CardContent className="px-5 py-4">
+            <CardContent>
               <Form.Field
                 name="emails"
                 label="Invoice recipients"
@@ -92,7 +92,7 @@ export const EmailRecipientCard = ({
                 )}
               </Form.Field>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+            <CardFooter bordered className="flex justify-end gap-2">
               <Button
                 htmlType="button"
                 type="quaternary"

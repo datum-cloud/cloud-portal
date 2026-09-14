@@ -32,7 +32,7 @@ export const HttpProxyEdgeRequests = ({
         tooltipContent={(props) => (
           <MetricsChartTooltip {...props} formatValue={(value) => `${value.toFixed(2)} req/s`} />
         )}
-        className="text-foreground shadow-none"
+        className="text-foreground"
       />
     </ChartBlock>
   );

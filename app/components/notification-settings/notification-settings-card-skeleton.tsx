@@ -1,6 +1,5 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { cn } from '@datum-cloud/datum-ui/utils';
 
 export interface NotificationSettingsCardSkeletonProps {
   title: string;
@@ -20,12 +19,12 @@ export function NotificationSettingsCardSkeleton({
   className,
 }: NotificationSettingsCardSkeletonProps) {
   return (
-    <Card className={cn('gap-0 rounded-xl py-0 shadow-none', className)}>
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    <Card size="sm" sectioned className={className}>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>
 
-      <CardContent className="space-y-4 px-5 py-4">
+      <CardContent className="space-y-4">
         {Array.from({ length: count }).map((_, index) => (
           <div key={index} className="flex items-center justify-between gap-6">
             <div className="flex items-center space-x-3.5">
@@ -42,7 +41,7 @@ export function NotificationSettingsCardSkeleton({
         ))}
       </CardContent>
 
-      <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+      <CardFooter bordered className="flex justify-end gap-2">
         <Skeleton className="h-7 w-20 rounded-lg" />
         <Skeleton className="h-7 w-16 rounded-lg" />
       </CardFooter>

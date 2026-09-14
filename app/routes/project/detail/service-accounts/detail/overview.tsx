@@ -54,8 +54,8 @@ export default function ServiceAccountOverviewPage() {
   return (
     <Row type="flex" gutter={[24, 32]}>
       <Col span={24}>
-        <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
-          <CardContent className="p-0 sm:px-6 sm:pb-4">
+        <Card size="sm" sectioned className="w-full overflow-hidden">
+          <CardContent padding="none">
             <List items={listItems} />
           </CardContent>
         </Card>

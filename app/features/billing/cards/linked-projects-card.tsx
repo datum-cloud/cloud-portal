@@ -54,7 +54,7 @@ interface LinkedProjectsCardProps {
 export const LinkedProjectsCard = ({ bindings }: LinkedProjectsCardProps) => {
   if (bindings.length === 0) {
     return (
-      <Card className="gap-0 rounded-xl py-0 shadow-none">
+      <Card size="sm" sectioned>
         <CardContent className="border-border bg-muted/30 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-5 py-10 text-center">
           <Icon icon={FolderRoot} className="text-muted-foreground size-5" />
           <p className="text-foreground text-sm font-medium">No projects linked yet</p>
@@ -68,8 +68,8 @@ export const LinkedProjectsCard = ({ bindings }: LinkedProjectsCardProps) => {
   }
 
   return (
-    <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardContent className="p-0">
+    <Card size="sm" sectioned className="overflow-hidden">
+      <CardContent padding="none">
         <Table className={cn(ROW_INSET, HEADER_DIVIDERS)}>
           <TableHeader>
             <TableRow className="bg-background hover:bg-background">

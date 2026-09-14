@@ -87,7 +87,7 @@ const PaymentMethodRow = ({
   return (
     // The row reflows on its own container width rather than the viewport,
     // because this card lives in a narrow right-hand column at `md` widths.
-    <div className="@container px-5 py-4">
+    <div className="@container px-(--card-px) py-(--card-py)">
       <div className="flex flex-col gap-3 @md:flex-row @md:items-center @md:justify-between @md:gap-4">
         <div className="flex min-w-0 items-center gap-4">
           <CardBrandIcon brand={brand} />
@@ -213,9 +213,9 @@ export const PaymentMethodsCard = ({
 
   return (
     <>
-      <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
+      <Card size="sm" sectioned className="overflow-hidden">
         {hasMethods ? (
-          <CardContent className="divide-border divide-y p-0">
+          <CardContent padding="none" className="divide-border divide-y">
             {paymentMethods.map((method) => (
               <PaymentMethodRow
                 key={method.metadata?.uid ?? method.metadata?.name}
@@ -227,13 +227,13 @@ export const PaymentMethodsCard = ({
             ))}
           </CardContent>
         ) : (
-          <CardContent className="px-5 py-4">
+          <CardContent>
             <CardTitle className="text-muted-foreground text-sm font-medium">
               No payment methods
             </CardTitle>
           </CardContent>
         )}
-        <CardFooter className="flex justify-end border-t px-5 py-4">
+        <CardFooter bordered className="flex justify-end">
           <Button
             htmlType="button"
             type="quaternary"

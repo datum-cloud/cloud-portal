@@ -201,7 +201,7 @@ export const InvoicePreviewCard = () => {
     taxIdRows.length > 0;
 
   return (
-    <Card className="bg-muted/30 relative gap-0 overflow-hidden rounded-xl py-0 shadow-none">
+    <Card size="sm" sectioned className="bg-muted/30 relative overflow-hidden">
       {/* Diagonal "PREVIEW" watermark. Positioned absolutely above
           the white panel so it reads as if printed across the
           document; `pointer-events-none` keeps it out of the way of

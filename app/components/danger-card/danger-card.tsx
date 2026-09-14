@@ -26,9 +26,9 @@ export const DangerCard = ({
 }) => {
   const isDisabled = loading || disabled;
   return (
-    <Card className="border-destructive relative overflow-hidden rounded-xl px-3 py-4 shadow-none sm:pt-6 sm:pb-4">
+    <Card size="sm" className="border-destructive relative overflow-hidden">
       {children}
-      <CardContent className="flex flex-col items-end justify-between gap-4 p-0 sm:px-6 sm:pb-4 md:flex-row md:items-center md:justify-between md:gap-2">
+      <CardContent className="flex flex-col items-end justify-between gap-4 md:flex-row md:items-center md:justify-between md:gap-2">
         <div className="flex items-center gap-8">
           <Icon
             icon={TriangleAlertIcon}

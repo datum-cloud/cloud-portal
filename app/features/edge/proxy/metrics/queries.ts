@@ -199,6 +199,21 @@ export function albRpsQuery(scope: AlbQueryScope, timeWindow: string): string {
   });
 }
 
+/**
+ * Total requests handled over `window`. Used to tell an ALB that has never
+ * seen traffic (empty states) apart from one that is merely quiet right now.
+ *
+ * `increase()` needs two scrapes in the window; a brand-new series (one
+ * sample after the first request) returns an empty vector, which the card
+ * formatter treats as 0. Fall back to the current counter so a single
+ * scrape still counts as "has been hit".
+ */
+export function albRequestCountQuery(scope: AlbQueryScope, window: string): string {
+  const selector = trafficSelector(scope);
+  const series = `${ENVOY_RQ_METRIC}${selector}`;
+  return `sum(increase(${series}[${window}])) or sum(${series})`;
+}
+
 export function albRpsByClassQuery(scope: AlbQueryScope, timeWindow: string): string {
   const selector = trafficSelector(scope);
   return (

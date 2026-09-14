@@ -32,6 +32,11 @@ export {
   classifyHttpProxyComplexity,
   validateHostHeader,
   extractHostHeader,
+  extractHsts,
+  extractHstsHeaderValue,
+  extractUpdatedAt,
+  HSTS_HEADER,
+  HSTS_HEADER_VALUE,
   type HttpProxyComplexity,
 } from './http-proxy.adapter';
 
@@ -116,6 +121,7 @@ export {
   DnsRecordProgrammedReason,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
+  getDnsRecordProgrammedIssue,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,

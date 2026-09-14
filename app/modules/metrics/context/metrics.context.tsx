@@ -20,6 +20,8 @@ import React, { createContext, useContext, useMemo, useCallback, useState, useRe
 interface EnhancedMetricsContextType {
   // Core Controls
   timeRange: TimeRange;
+  /** Relative range used when the URL has no `timeRange` (e.g. `now-1h`). */
+  defaultTimeRange: string;
   setTimeRange: (range: TimeRange) => void;
   step: string;
   setStep: (step: string) => void;
@@ -322,7 +324,7 @@ export function MetricsProvider({
         });
         return result;
       },
-      getTimeRange: (key: string) => parseRange(getUrlStateEnhanced(key) || DEFAULT_TIME_RANGE),
+      getTimeRange: (key: string) => parseRange(getUrlStateEnhanced(key) || defaultTimeRange),
       getStep: (key: string) => {
         const raw = getUrlStateEnhanced(key) || defaultStep;
         const rangeMs = currentTimeRange.end.getTime() - currentTimeRange.start.getTime();
@@ -332,6 +334,7 @@ export function MetricsProvider({
   }, [
     currentTimeRange,
     currentStep,
+    defaultTimeRange,
     defaultStep,
     getUrlStateEnhanced,
     hasUrlState,
@@ -344,6 +347,7 @@ export function MetricsProvider({
     (): EnhancedMetricsContextType => ({
       // Core Controls (backward compatibility)
       timeRange: currentTimeRange,
+      defaultTimeRange,
       setTimeRange,
       step: currentStep,
       setStep: setStepValue,
@@ -370,6 +374,7 @@ export function MetricsProvider({
     }),
     [
       currentTimeRange,
+      defaultTimeRange,
       setTimeRange,
       currentStep,
       setStepValue,

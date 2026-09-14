@@ -39,7 +39,7 @@ function WafBreakdownChart({
             formatValue={(value) => Math.round(value).toLocaleString()}
           />
         )}
-        className="text-foreground shadow-none"
+        className="text-foreground"
       />
     </ChartBlock>
   );

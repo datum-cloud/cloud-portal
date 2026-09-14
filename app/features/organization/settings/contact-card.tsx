@@ -68,7 +68,7 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
   const showCountrySeparator = priorityItems.length > 0 && otherItems.length > 0;
 
   return (
-    <Card className="relative gap-0 rounded-xl py-0 shadow-none">
+    <Card size="sm" sectioned className="relative">
       {permLoading ? (
         <LoaderOverlay />
       ) : (
@@ -76,8 +76,8 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
           <RestrictedOverlay message="You don't have permission to edit this organization" />
         )
       )}
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Contact</CardTitle>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Contact</CardTitle>
       </CardHeader>
       <Form.Root
         name="update-organization-contact"
@@ -94,7 +94,7 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="flex flex-col gap-8 px-5 py-5">
+            <CardContent className="flex flex-col gap-8">
               <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <Form.Field name="email" label="Email" required>
                   <Form.Input autoComplete="email" />
@@ -134,7 +134,9 @@ export const OrganizationContactCard = ({ organization }: { organization: Organi
               <AddressFields layout="grid" includeCountry={false} dataE2ePrefix="org-contact" />
             </CardContent>
             {!permLoading && canEdit && (
-              <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
+              <CardFooter
+                bordered
+                className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   htmlType="button"
                   type="quaternary"

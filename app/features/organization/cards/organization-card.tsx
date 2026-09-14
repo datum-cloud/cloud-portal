@@ -152,10 +152,7 @@ export const OrganizationCard = ({
   if (variant === 'compact') {
     return (
       <MotionCard
-        className={cn(
-          'hover:border-primary/50 cursor-pointer py-0 transition-all hover:shadow-sm',
-          className
-        )}
+        className={cn('hover:border-primary/50 cursor-pointer py-0 transition-all', className)}
         onClick={handleClick}
         variants={cardLayoutVariants}
         animate="compact"
@@ -197,7 +194,7 @@ export const OrganizationCard = ({
   return (
     <MotionCard
       className={cn(
-        'hover:border-primary border-border group flex h-full cursor-pointer flex-col transition-all hover:shadow-md',
+        'hover:border-primary border-border group flex h-full cursor-pointer flex-col transition-all',
         className
       )}
       onClick={handleClick}

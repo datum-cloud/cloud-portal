@@ -163,8 +163,8 @@ export const BillingAddressFieldsCard = ({
   const { reset } = useFormContext();
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
-      <CardContent className="space-y-5 px-5 py-4">
+    <Card size="sm" sectioned>
+      <CardContent className="space-y-5">
         <Form.Field
           name="name"
           label="Contact name"
@@ -247,7 +247,7 @@ export const BillingAddressFieldsCard = ({
           </Form.FieldArray>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+      <CardFooter bordered className="flex justify-end gap-2">
         <Button
           htmlType="button"
           type="quaternary"

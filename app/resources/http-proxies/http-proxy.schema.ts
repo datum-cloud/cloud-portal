@@ -94,8 +94,25 @@ export const httpProxyResourceSchema = z.object({
       idRanges: z.array(z.string()).optional(),
     })
     .optional(),
+  /**
+   * Most recent spec/metadata write, derived from `metadata.managedFields`
+   * (status-subresource writes by controllers are ignored). Undefined when
+   * the API omits managedFields.
+   */
+  updatedAt: z.date().optional(),
   /** Whether HTTP to HTTPS redirect is enabled */
   enableHttpRedirect: z.boolean().optional(),
+  /**
+   * Whether HSTS is enabled: the backend rule carries a ResponseHeaderModifier
+   * filter that sets `Strict-Transport-Security`.
+   */
+  hsts: z.boolean().optional(),
+  /**
+   * The `Strict-Transport-Security` value currently on the backend rule, when
+   * set. Carried so a rules rebuild preserves a hand-tuned directive rather
+   * than rewriting it to the portal default.
+   */
+  hstsHeaderValue: z.string().optional(),
   /** Connector referenced by the backend rule (if any) */
   connector: z.object({ name: z.string() }).optional(),
   /** Whether basic auth is currently enabled (SecurityPolicy exists) */
@@ -119,7 +136,7 @@ export const httpProxyResourceSchema = z.object({
   /**
    * Form-editability classification of the underlying resource (FR-4):
    * - 'simple'    — no rule-level filters; safe to edit via form
-   * - 'host-only' — only a host-header filter; safe to edit via form
+   * - 'host-only' — only portal-managed filters (Host header, HSTS); safe to edit via form
    * - 'advanced'  — multi-rule, backend-level filters, or filters the form
    *   cannot represent without data loss; show read-only banner
    */
@@ -225,6 +242,11 @@ export type UpdateHttpProxyInput = {
   removeTrafficProtection?: boolean;
   /** Enable HTTP to HTTPS redirect */
   enableHttpRedirect?: boolean;
+  /**
+   * Send `Strict-Transport-Security` on responses. Only meaningful alongside
+   * `enableHttpRedirect`; the UI keeps the two in step.
+   */
+  hsts?: boolean;
   /**
    * Optional basic auth update.
    * Pass `users: undefined` to disable (delete SecurityPolicy + Secret).

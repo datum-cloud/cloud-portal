@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { CircleXIcon } from 'lucide-react';
 
 const noteCardVariants = cva(
-  'bg-card-warning text-card-warning-foreground relative overflow-hidden border-none shadow-none',
+  'bg-card-warning text-card-warning-foreground relative overflow-hidden border-none',
   {
     variants: {
       size: {

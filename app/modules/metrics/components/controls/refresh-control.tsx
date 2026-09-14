@@ -102,7 +102,7 @@ export const RefreshControl = ({
   return (
     <div
       className={cn(
-        'border-input bg-background flex items-center overflow-hidden rounded-md border shadow-none',
+        'border-input bg-card flex items-stretch overflow-hidden rounded-lg border shadow-none',
         METRICS_CONTROL_HEIGHT_CLASS
       )}>
       {/* Manual Refresh Button */}
@@ -122,7 +122,7 @@ export const RefreshControl = ({
 
       {/* Auto Refresh Interval Dropdown */}
       <Select value={refreshInterval || defaultValue} onValueChange={setRefreshInterval}>
-        <SelectTrigger className="h-full min-w-10 rounded-l-none border-0 bg-transparent px-2 shadow-none focus:ring-0">
+        <SelectTrigger className="h-full min-h-0 min-w-10 rounded-l-none border-0 bg-transparent px-2 py-0 shadow-none focus:ring-0">
           <SelectValue placeholder="Auto refresh" />
         </SelectTrigger>
         <SelectContent>

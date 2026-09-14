@@ -1,19 +1,14 @@
 import { ProxyHostnamesField } from '@/features/edge/proxy/form/hostnames-field';
-import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
 import { showMutationErrorToast } from '@/modules/quota';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import { httpProxyHostnameSchema } from '@/resources/http-proxies/http-proxy.schema';
-import { isIPAddress } from '@/utils/helpers/validation.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 import { z } from 'zod';
 
-const hostnamesConfigSchema = httpProxyHostnameSchema.extend({
-  // Allow empty string so clearing the TLS field validates and can be sent as an
-  // explicit clear (undefined would preserve the existing backend tls hostname).
-  tlsHostname: z.string().max(253).optional(),
-});
+// The origin TLS (SNI) hostname is edited on the TLS & Certificates card, not here.
+const hostnamesConfigSchema = httpProxyHostnameSchema;
 
 type HostnamesConfigSchema = z.infer<typeof hostnamesConfigSchema>;
 
@@ -39,22 +34,11 @@ export const ProxyHostnamesConfigDialog = forwardRef<
 
   const updateMutation = useUpdateHttpProxy(projectId, proxyName);
 
-  const isIPEndpoint = useMemo(() => {
-    if (!proxy?.endpoint) return false;
-    try {
-      const url = new URL(proxy.endpoint);
-      return isIPAddress(url.hostname);
-    } catch {
-      return false;
-    }
-  }, [proxy?.endpoint]);
-
   const show = useCallback((proxyData: HttpProxy) => {
     setProxy(proxyData);
     setProxyName(proxyData.name);
     setDefaultValues({
       hostnames: proxyData.hostnames && proxyData.hostnames.length > 0 ? proxyData.hostnames : [''],
-      tlsHostname: proxyData.tlsHostname,
     });
     setOpen(true);
   }, []);
@@ -69,21 +53,18 @@ export const ProxyHostnamesConfigDialog = forwardRef<
     if (!proxy) return;
 
     try {
-      await updateMutation.mutateAsync({
-        hostnames: data.hostnames ?? [],
-        // Always send a string: '' clears TLS; omitting would leave the old value.
-        tlsHostname: (data.tlsHostname ?? '').trim(),
-      });
+      // Only hostnames change here; the backend rule (endpoint, TLS hostname,
+      // Host header, HSTS) is preserved by the adapter.
+      await updateMutation.mutateAsync({ hostnames: data.hostnames ?? [] });
       toast.success('Application Load Balancer', {
-        description: 'Hostnames and TLS settings have been updated successfully',
+        description: 'Hostnames have been updated successfully',
       });
       setOpen(false);
       onSuccess?.();
     } catch (error) {
       showMutationErrorToast(error, {
         fallbackTitle: 'Application Load Balancer',
-        fallbackDescription:
-          (error as Error).message || 'Failed to update hostnames and TLS settings',
+        fallbackDescription: (error as Error).message || 'Failed to update hostnames',
         scope: 'project',
         projectId,
       });
@@ -95,22 +76,19 @@ export const ProxyHostnamesConfigDialog = forwardRef<
     <Form.Dialog
       open={open}
       onOpenChange={setOpen}
-      title="Edit Application Load Balancer Hostnames and TLS"
-      description="Configure hostnames and TLS settings for your Application Load Balancer."
+      title="Edit custom hostnames"
+      description="Configure the hostnames this Application Load Balancer answers on."
       schema={hostnamesConfigSchema}
       defaultValues={defaultValues}
       onSubmit={handleSubmit}
       submitText="Save"
       submitTextLoading="Saving..."
       className="w-full focus:ring-0 focus:outline-none sm:max-w-xl">
-      <div className="divide-border space-y-0 divide-y *:px-5 *:py-5 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
-        <div className="flex flex-col gap-5">
-          <ProxyHostnamesField
-            projectId={projectId}
-            proxyDisplayName={proxy?.chosenName ?? proxy?.name}
-          />
-          <ProxyTlsField required={isIPEndpoint} />
-        </div>
+      <div className="px-5">
+        <ProxyHostnamesField
+          projectId={projectId}
+          proxyDisplayName={proxy?.chosenName ?? proxy?.name}
+        />
       </div>
     </Form.Dialog>
   );

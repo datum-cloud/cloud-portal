@@ -33,8 +33,8 @@ export const DescriptionFormCard = ({
   });
 
   return (
-    <Card className="rounded-xl pt-5 pb-4 shadow-none">
-      <CardHeader>
+    <Card size="sm" sectioned>
+      <CardHeader size="sm" bordered>
         <CardDescription className="text-xs">
           This description is for your own reference and won&apos;t be shared externally
         </CardDescription>
@@ -54,10 +54,10 @@ export const DescriptionFormCard = ({
             resourceVersion: defaultValue.resourceVersion,
           });
         }}
-        className="mt-6 flex flex-col gap-10 space-y-0">
+        className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="space-y-10">
+            <CardContent className="space-y-6">
               <Form.Field name="domainName" className="hidden">
                 <Form.Input type="text" placeholder="e.g. example.com" />
               </Form.Field>
@@ -66,7 +66,7 @@ export const DescriptionFormCard = ({
                 <Form.Input type="text" placeholder="e.g. Our main marketing site" autoFocus />
               </Form.Field>
             </CardContent>
-            <CardFooter className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+            <CardFooter bordered className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 htmlType="button"
                 type="quaternary"

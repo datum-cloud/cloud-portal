@@ -1,211 +1,335 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { BadgeStatus } from '@/components/badge/badge-status';
-import { DateTime } from '@/components/date-time';
-import { List, ListItem } from '@/components/list/list';
-import { useProxyPending } from '@/features/edge/proxy/hooks/use-proxy-pending';
-import { ControlPlaneStatus } from '@/resources/base';
+import { FieldLabel } from '@/components/card/field-label';
+import { DateTime } from '@/components/date-time/date-time';
+import { showMutationErrorToast } from '@/modules/quota';
+import { useResourcePermissions } from '@/modules/rbac';
+import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
 import {
-  type HttpProxy,
-  getCertificatesReadyCondition,
-  getCertificatesReadyDisplay,
-} from '@/resources/http-proxies';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+  useCreateNote,
+  useDeleteNote,
+  useNotes,
+  useUpdateNote,
+} from '@/resources/notes/note.queries';
+import {
+  NOTE_MAX_HTML_LENGTH,
+  NOTE_MAX_TEXT_LENGTH,
+  type Note,
+  type SubjectRef,
+} from '@/resources/notes/note.schema';
+import { Button } from '@datum-cloud/datum-ui/button';
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardField,
+  CardFieldValue,
+  CardHeader,
+  CardSaveBar,
+  CardTitle,
+} from '@datum-cloud/datum-ui/card';
+import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Input } from '@datum-cloud/datum-ui/input';
+import { RichTextContent, RichTextEditor } from '@datum-cloud/datum-ui/rich-text-editor';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import {
-  CircleHelp,
-  ShieldCheckIcon,
-  ShieldOffIcon,
-  SquareLibrary,
-  TriangleAlertIcon,
-} from 'lucide-react';
-import { useMemo } from 'react';
+import { PencilIcon, SquareLibrary } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
-const DNS_PROPAGATION_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+/**
+ * Text content of a note for emptiness checks only. Never parses the HTML into
+ * a live DOM: the note body is untrusted and this is not the render path
+ * (`RichTextContent` sanitises what is displayed).
+ */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
-export const HttpProxyGeneralCard = ({ proxy }: { proxy: HttpProxy }) => {
-  const hostname = useMemo(
-    () => proxy.canonicalHostname ?? proxy.status?.hostnames?.[0],
-    [proxy.canonicalHostname, proxy.status?.hostnames]
+function normalizeNoteHtml(html: string): string {
+  return stripHtml(html) === '' ? '' : html;
+}
+
+/**
+ * Identity settings for an ALB: display name, a single description note, and
+ * the immutable resource name. Labels are not supported on HTTPProxy yet.
+ */
+export function HttpProxyGeneralCard({
+  proxy,
+  projectId,
+}: {
+  proxy: HttpProxy;
+  projectId: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [draftName, setDraftName] = useState('');
+  const [draftDescription, setDraftDescription] = useState('');
+
+  const subjectRef = useMemo<SubjectRef>(
+    () => ({
+      apiGroup: 'networking.datumapis.com',
+      kind: 'HTTPProxy',
+      name: proxy.name ?? '',
+    }),
+    [proxy.name]
   );
 
-  const isPending = useProxyPending(proxy?.status);
+  const { canPatch, isLoading: patchPermLoading } = useResourcePermissions({
+    resource: 'httpproxies',
+    group: 'networking.datumapis.com',
+    scope: 'project',
+    verbs: ['patch'],
+  });
 
-  // The operator sets Available=True as soon as the DNS record is programmed,
-  // not after it has propagated globally. Use a time window instead — the component
-  // re-renders via the K8s watch so the warning clears naturally once the window passes.
-  const isDnsPropagating = useMemo(() => {
-    if (!proxy.createdAt || isPending) return false;
-    const ageMs = Date.now() - new Date(proxy.createdAt).getTime();
-    return ageMs < DNS_PROPAGATION_WINDOW_MS;
-  }, [proxy.createdAt, isPending]);
+  const {
+    canList: canViewNotes,
+    canCreate,
+    canUpdate,
+    canDelete: canDeleteNotes,
+    isLoading: notesPermLoading,
+  } = useResourcePermissions({
+    resource: 'notes',
+    group: 'notes.miloapis.com',
+    scope: 'project',
+    verbs: ['list', 'create', 'update', 'delete'],
+  });
+  const canEditNotes = canCreate && canUpdate;
+  const canEditCard = canPatch || canEditNotes;
 
-  const listItems: ListItem[] = useMemo(() => {
-    if (!proxy) return [];
+  const notesEnabled = !!projectId && !!proxy.name && !!canViewNotes;
+  const { data: notes, isLoading: notesLoading } = useNotes(projectId, subjectRef, {
+    enabled: notesEnabled,
+  });
 
-    return [
-      {
-        label: (
-          <div className="flex items-center gap-1.5">
-            <span>Status</span>
-            <Tooltip
-              message="Has the Edge been successfully deployed and is active"
-              side="bottom"
-              contentClassName="max-w-xs text-wrap">
-              <Icon
-                icon={CircleHelp}
-                className="text-muted-foreground size-3.5 shrink-0 cursor-help"
-              />
-            </Tooltip>
-          </div>
-        ),
-        content: (() => {
-          const transformedStatus = transformControlPlaneStatus(proxy.status);
-          return (
-            <BadgeStatus
-              status={transformedStatus}
-              label={transformedStatus.status === ControlPlaneStatus.Success ? 'Active' : undefined}
-            />
+  const updateProxy = useUpdateHttpProxy(projectId, proxy.name);
+  const createNote = useCreateNote(projectId, subjectRef);
+  const updateNote = useUpdateNote(projectId, subjectRef);
+  const deleteNote = useDeleteNote(projectId, subjectRef);
+
+  // Notes only expose createdAt; pick the newest as the single description.
+  const descriptionNote = useMemo<Note | undefined>(() => {
+    if (!notes?.length) return undefined;
+    return [...notes].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+  }, [notes]);
+
+  const descriptionPreview = descriptionNote ? stripHtml(descriptionNote.content) : null;
+  const currentName = proxy.chosenName || proxy.name || '';
+  const notesReady = !notesPermLoading && (!notesEnabled || !notesLoading);
+
+  const trimmedName = draftName.trim();
+  const nameDirty = canPatch && trimmedName !== currentName;
+  const descriptionDirty =
+    canEditNotes &&
+    normalizeNoteHtml(draftDescription) !== normalizeNoteHtml(descriptionNote?.content ?? '');
+  const changeCount = (nameDirty ? 1 : 0) + (descriptionDirty ? 1 : 0);
+  const nameError =
+    editing && canPatch
+      ? !trimmedName
+        ? 'Display name is required'
+        : trimmedName.length > 50
+          ? 'Display name must be less than 50 characters'
+          : undefined
+      : undefined;
+  const errorCount = nameError ? 1 : 0;
+
+  const startEdit = () => {
+    setDraftName(currentName);
+    setDraftDescription(descriptionNote?.content ?? '');
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+  };
+
+  const handleSave = async () => {
+    const nextName = trimmedName;
+    if (nameError) return;
+
+    const nextDescription = normalizeNoteHtml(draftDescription);
+    if (nextDescription.length > NOTE_MAX_HTML_LENGTH) {
+      toast.error('Description', {
+        description: 'Content is too long — try removing some formatting.',
+      });
+      return;
+    }
+    if (canEditNotes && !nextDescription && descriptionNote && !canDeleteNotes) {
+      toast.error('Description', {
+        description: "You don't have permission to remove this description",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const tasks: Promise<unknown>[] = [];
+      if (nameDirty) {
+        tasks.push(updateProxy.mutateAsync({ chosenName: nextName }));
+      }
+      if (descriptionDirty) {
+        if (!nextDescription && descriptionNote) {
+          tasks.push(deleteNote.mutateAsync(descriptionNote.name));
+        } else if (nextDescription && descriptionNote) {
+          tasks.push(
+            updateNote.mutateAsync({
+              noteName: descriptionNote.name,
+              content: nextDescription,
+            })
           );
-        })(),
-      },
-      ...((): ListItem[] => {
-        const certCondition = getCertificatesReadyCondition(proxy?.status);
-        const certDisplay = getCertificatesReadyDisplay(certCondition);
-        return [
-          {
-            label: (
-              <div className="flex items-center gap-1.5">
-                <span>TLS Certificates</span>
-                <Tooltip
-                  message="Whether TLS certificates are ready for all HTTPS hostnames"
-                  side="bottom"
-                  contentClassName="max-w-xs text-wrap">
-                  <Icon
-                    icon={CircleHelp}
-                    className="text-muted-foreground size-3.5 shrink-0 cursor-help"
-                  />
-                </Tooltip>
+        } else if (nextDescription) {
+          tasks.push(createNote.mutateAsync(nextDescription));
+        }
+      }
+      await Promise.all(tasks);
+      toast.success('Application Load Balancer', {
+        description: 'General settings saved',
+      });
+      setEditing(false);
+    } catch (error) {
+      showMutationErrorToast(error, {
+        fallbackTitle: 'Application Load Balancer',
+        fallbackDescription: (error as Error).message || 'Failed to save general settings',
+        scope: 'project',
+        projectId,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Card size="sm" sectioned className="w-full overflow-hidden" data-e2e="alb-general-card">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Icon icon={SquareLibrary} size={16} className="text-secondary" />
+          General
+        </CardTitle>
+        {canEditCard ? (
+          <CardAction>
+            <Button
+              type="secondary"
+              theme="outline"
+              size="xs"
+              className={`shrink-0 ${editing ? 'invisible' : ''}`}
+              disabled={editing || patchPermLoading || !notesReady}
+              aria-hidden={editing}
+              tabIndex={editing ? -1 : undefined}
+              onClick={startEdit}>
+              <Icon icon={PencilIcon} size={12} />
+              Edit
+            </Button>
+          </CardAction>
+        ) : null}
+      </CardHeader>
+      <CardContent padding="none">
+        <CardField>
+          <FieldLabel hint="Friendly name shown in the portal">Display name</FieldLabel>
+          <CardFieldValue>
+            {editing && canPatch ? (
+              <div className="flex w-full flex-col gap-1">
+                <Input
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  maxLength={50}
+                  aria-invalid={!!nameError}
+                  aria-label="Display name"
+                  autoFocus
+                />
+                {nameError ? <p className="text-destructive text-xs">{nameError}</p> : null}
               </div>
-            ),
-            content:
-              certDisplay === undefined ? (
-                <Skeleton className="h-7 w-24 rounded-md" />
-              ) : certDisplay === 'ready' ? (
-                <BadgeStatus
-                  status={{
-                    status: ControlPlaneStatus.Success,
-                    message: certCondition?.message || 'All certificates ready',
-                  }}
-                  showIcon={true}
-                  customIcon={<Icon icon={ShieldCheckIcon} size={12} className="shrink-0" />}
-                  label="Ready"
-                />
-              ) : certDisplay === 'failed' ? (
-                <BadgeStatus
-                  status={{
-                    status: ControlPlaneStatus.Error,
-                    message: certCondition?.message || 'One or more certificates failed',
-                  }}
-                  showIcon={true}
-                  customIcon={<Icon icon={ShieldOffIcon} size={12} className="shrink-0" />}
-                  label="Failed"
-                />
-              ) : (
-                <BadgeStatus
-                  status={{
-                    status: ControlPlaneStatus.Pending,
-                    message: certCondition?.message || 'Certificates pending',
-                  }}
-                  showIcon={true}
-                  customIcon={<Icon icon={ShieldOffIcon} size={12} className="shrink-0" />}
-                  label="Pending"
-                />
-              ),
-          },
-        ];
-      })(),
-      {
-        label: 'Resource Name',
-        content:
-          isPending && !proxy.name ? (
-            <Skeleton className="h-7 w-32 rounded-md" />
-          ) : (
+            ) : (
+              <span className="truncate">{currentName}</span>
+            )}
+          </CardFieldValue>
+        </CardField>
+
+        <CardField className="sm:items-start">
+          <FieldLabel hint="A short note about this load balancer. Stored as a project note.">
+            Description
+          </FieldLabel>
+          <CardFieldValue>
+            {editing && canEditNotes ? (
+              <RichTextEditor
+                content={draftDescription}
+                onChange={setDraftDescription}
+                maxLength={NOTE_MAX_TEXT_LENGTH}
+                placeholder="Add a description"
+                className="min-h-[100px] w-full">
+                <RichTextEditor.Toolbar>
+                  <RichTextEditor.Bold />
+                  <RichTextEditor.Italic />
+                  <RichTextEditor.Underline />
+                  <RichTextEditor.Strike />
+                  <RichTextEditor.Separator />
+                  <RichTextEditor.Link />
+                </RichTextEditor.Toolbar>
+                <RichTextEditor.Content />
+                <RichTextEditor.CharacterCount maxLength={NOTE_MAX_TEXT_LENGTH} />
+              </RichTextEditor>
+            ) : notesPermLoading || (notesEnabled && notesLoading) ? (
+              <SpinnerIcon size="xs" aria-label="Loading description" />
+            ) : !canViewNotes ? (
+              <Tooltip message="You don't have permission to view notes for this load balancer">
+                <span className="text-muted-foreground">&mdash;</span>
+              </Tooltip>
+            ) : descriptionNote?.content && descriptionPreview ? (
+              <div className="line-clamp-3">
+                <RichTextContent content={descriptionNote.content} />
+              </div>
+            ) : (
+              <span className="text-muted-foreground">&mdash;</span>
+            )}
+          </CardFieldValue>
+        </CardField>
+
+        <CardField>
+          <FieldLabel hint="Immutable identifier used by the API and CLI.">
+            Resource name
+          </FieldLabel>
+          <CardFieldValue>
             <BadgeCopy
               value={proxy.name ?? ''}
               text={proxy.name}
               badgeType="muted"
               badgeTheme="solid"
             />
-          ),
-      },
-      {
-        label: (
-          <div className="flex items-center gap-1.5">
-            <span>Default Hostname</span>
-            <Tooltip
-              message="The hostname automatically assigned by Datum when your Application Load Balancer is created"
-              side="bottom"
-              contentClassName="max-w-xs text-wrap">
-              <Icon
-                icon={CircleHelp}
-                className="text-muted-foreground size-3.5 shrink-0 cursor-help"
-              />
-            </Tooltip>
-          </div>
-        ),
-        content:
-          isPending && !hostname ? (
-            <Skeleton className="h-7 w-48 rounded-md" />
-          ) : hostname ? (
-            <div className="flex items-center gap-2">
-              <BadgeCopy
-                value={`https://${hostname}`}
-                text={hostname}
-                badgeType="muted"
-                badgeTheme="solid"
-                textClassName="truncate max-w-[250px]"
-              />
-              {isDnsPropagating && (
-                <Tooltip
-                  message="DNS changes can take a few minutes to propagate globally"
-                  side="right"
-                  contentClassName="max-w-xs text-wrap">
-                  <div className="flex items-center gap-1 text-[11px] font-medium text-(--color-badge-warning)">
-                    <Icon icon={TriangleAlertIcon} size={12} className="shrink-0" />
-                  </div>
-                </Tooltip>
-              )}
-            </div>
-          ) : null,
-      },
-      {
-        label: 'Created At',
-        content:
-          isPending && !proxy?.createdAt ? (
-            <Skeleton className="h-5 w-32 rounded-md" />
-          ) : (
-            <DateTime
-              className="text-left text-sm"
-              date={proxy?.createdAt ?? ''}
-              variant="detailed"
-            />
-          ),
-      },
-    ];
-  }, [proxy, hostname, isPending, isDnsPropagating]);
+          </CardFieldValue>
+        </CardField>
 
-  return (
-    <Card className="h-full w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <div className="mb-4 flex items-center gap-2.5">
-          <Icon icon={SquareLibrary} size={20} className="text-secondary stroke-2" />
-          <span className="text-base font-semibold">General</span>
-        </div>
-        <List items={listItems} />
+        <CardField>
+          <FieldLabel>Created</FieldLabel>
+          <CardFieldValue>
+            <DateTime date={proxy.createdAt} variant="detailed" className="text-sm" />
+          </CardFieldValue>
+        </CardField>
+
+        <CardField>
+          <FieldLabel hint="Most recent write to this load balancer's spec or metadata. Status reported by the platform isn't counted.">
+            Last updated
+          </FieldLabel>
+          <CardFieldValue>
+            {proxy.updatedAt ? (
+              <DateTime date={proxy.updatedAt} variant="relative" className="text-sm" />
+            ) : (
+              <span className="text-muted-foreground">&mdash;</span>
+            )}
+          </CardFieldValue>
+        </CardField>
       </CardContent>
+      {editing ? (
+        <CardSaveBar
+          changeCount={changeCount}
+          errorCount={errorCount}
+          saving={saving}
+          onCancel={cancelEdit}
+          onSave={() => void handleSave()}
+        />
+      ) : null}
     </Card>
   );
-};
+}

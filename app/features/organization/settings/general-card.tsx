@@ -40,7 +40,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
   });
 
   return (
-    <Card className="relative gap-0 rounded-xl py-0 shadow-none">
+    <Card size="sm" sectioned className="relative">
       {permLoading ? (
         <LoaderOverlay />
       ) : (
@@ -48,8 +48,8 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
           <RestrictedOverlay message="You don't have permission to edit this organization" />
         )
       )}
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Organization Info</CardTitle>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Organization Info</CardTitle>
       </CardHeader>
       <Form.Root
         name="update-organization"
@@ -70,7 +70,7 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="px-5 py-4">
+            <CardContent>
               <div className="flex max-w-sm flex-col gap-5">
                 {organization?.type === 'Personal' ? (
                   <Form.Field
@@ -93,7 +93,9 @@ export const OrganizationGeneralCard = ({ organization }: { organization: Organi
               </div>
             </CardContent>
             {organization && organization?.type !== 'Personal' && !permLoading && canEdit && (
-              <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
+              <CardFooter
+                bordered
+                className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   htmlType="button"
                   type="quaternary"

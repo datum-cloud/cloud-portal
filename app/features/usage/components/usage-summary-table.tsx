@@ -114,7 +114,7 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
 
   if (rows.length === 0) {
     return (
-      <Card className="shadow-none">
+      <Card>
         <CardContent className="text-muted-foreground py-8 text-center text-sm">
           No meters defined yet for this organization.
         </CardContent>
@@ -123,8 +123,8 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
   }
 
   return (
-    <Card className="min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardContent className="p-0">
+    <Card size="sm" sectioned className="min-w-0 overflow-hidden">
+      <CardContent padding="none">
         <GroupedTable<UsageSummaryRow>
           columns={columns}
           groups={groups}
