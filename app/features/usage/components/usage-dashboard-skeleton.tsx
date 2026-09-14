@@ -5,8 +5,8 @@ import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 
 function UsageSummaryTableSkeleton() {
   return (
-    <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardContent className="p-0">
+    <Card size="sm" sectioned className="overflow-hidden">
+      <CardContent padding="none">
         <GroupedTable
           columns={usageSummaryTableColumns}
           groups={[]}
@@ -21,8 +21,8 @@ function UsageSummaryTableSkeleton() {
 
 function MeterCardSkeleton() {
   return (
-    <Card className="@container h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardHeader className="flex flex-col gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
+    <Card size="sm" sectioned className="@container h-full min-w-0 overflow-hidden">
+      <CardHeader className="flex flex-col items-stretch gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <Skeleton className="h-5 w-32 max-w-[60%]" />
           <div className="flex shrink-0 items-center gap-2">
@@ -30,8 +30,10 @@ function MeterCardSkeleton() {
             <Skeleton className="size-6 shrink-0 rounded-sm" />
           </div>
         </div>
-        <Skeleton className="h-4 w-full max-w-md" />
-        <Skeleton className="h-3 w-40 max-w-full" />
+        <div className="flex min-w-0 items-baseline justify-between gap-3">
+          <Skeleton className="h-4 w-full max-w-md" />
+          <Skeleton className="h-3 w-40 shrink-0" />
+        </div>
       </CardHeader>
       <CardContent className="px-4 pt-4 pb-4 @sm:px-5 @sm:pb-5">
         <Skeleton className="h-55 w-full rounded-lg" />

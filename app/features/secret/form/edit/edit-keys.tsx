@@ -7,7 +7,7 @@ import {
 import { showMutationErrorToast } from '@/modules/quota';
 import { type Secret, useUpdateSecret } from '@/resources/secrets';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import {
   Table,
@@ -76,11 +76,11 @@ export const EditSecretKeys = ({
 
   return (
     <>
-      <Card className="overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-        <CardHeader className="mb-2 px-0 sm:px-6">
-          <CardTitle className="flex items-center justify-between gap-2">
-            <span className="text-lg font-medium">Key-value pairs</span>
-            {!readOnly && (
+      <Card size="sm" sectioned className="overflow-hidden">
+        <CardHeader size="sm" bordered>
+          <CardTitle className="text-sm">Key-value pairs</CardTitle>
+          {!readOnly && (
+            <CardAction>
               <Button
                 icon={<Icon icon={PlusIcon} size={12} />}
                 type="secondary"
@@ -89,12 +89,12 @@ export const EditSecretKeys = ({
                 onClick={() => variablesFormDialogRef.current?.show()}>
                 Add
               </Button>
-            )}
-          </CardTitle>
+            </CardAction>
+          )}
         </CardHeader>
 
-        <CardContent className="p-0 sm:px-6 sm:pb-4">
-          <div className="flex max-w-full flex-col overflow-hidden rounded-lg border">
+        <CardContent padding="none">
+          <div className="flex max-w-full flex-col overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent">

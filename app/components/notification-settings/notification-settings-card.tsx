@@ -16,9 +16,9 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
   const ItemRenderer = renderItem ?? NotificationCheckboxItem;
 
   return (
-    <Card data-e2e="notification-settings-card" className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    <Card size="sm" sectioned data-e2e="notification-settings-card">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>
 
       <Form.Root
@@ -30,7 +30,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="space-y-4 px-5 py-4">
+            <CardContent className="space-y-4">
               {preferences.map((pref) => (
                 <Form.Field key={pref.name} name={pref.name}>
                   <ItemRenderer preference={pref} Checkbox={Form.Checkbox} />
@@ -38,7 +38,7 @@ export function NotificationSettingsCard<T extends z.ZodObject<z.ZodRawShape>>({
               ))}
             </CardContent>
 
-            <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
+            <CardFooter bordered className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Form.Button
                 onClick={() => {
                   form.reset();

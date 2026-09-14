@@ -98,7 +98,10 @@
   @apply hover:bg-transparent;
 }
 .datum-ui-data-table [data-slot='dt-header-cell'] {
-  @apply bg-background text-foreground h-[42px] border-r px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5;
+  @apply bg-background text-foreground h-[42px] px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5;
+}
+.datum-ui-data-table [data-slot='dt-header-cell']:not(:last-child) {
+  @apply border-r;
 }
 .datum-ui-data-table [data-slot='dt-row'] {
   @apply bg-table-cell hover:bg-table-cell-hover relative transition-colors;

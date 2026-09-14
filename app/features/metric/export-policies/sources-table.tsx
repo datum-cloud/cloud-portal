@@ -106,13 +106,11 @@ export const WorkloadSourcesTable = ({
   );
 
   return (
-    <Card className="overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardHeader className="mb-2 px-0 sm:px-6">
-        <CardTitle>
-          <span className="text-lg font-medium">Sources</span>
-        </CardTitle>
+    <Card size="sm" sectioned className="overflow-hidden">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Sources</CardTitle>
       </CardHeader>
-      <CardContent className="p-0 sm:px-6 sm:pb-4">
+      <CardContent className="pt-0">
         <Table.Client columns={columns} data={data ?? []} pagination={false} urlSync={false} />
       </CardContent>
     </Card>

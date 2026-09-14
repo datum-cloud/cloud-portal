@@ -196,7 +196,7 @@ export DATUM_PRIVATE_KEY_ID="${credentials.private_key_id}"
 
   return (
     <div
-      className="bg-card relative flex flex-col gap-4 rounded-lg border p-6 shadow-sm"
+      className="bg-card border-card-border relative flex flex-col gap-4 rounded-xl border p-6"
       role="region"
       aria-label="Key credentials — save these now">
       <Button

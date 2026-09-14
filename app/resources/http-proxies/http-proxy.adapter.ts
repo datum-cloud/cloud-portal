@@ -13,18 +13,55 @@ import {
   type ComDatumapisNetworkingV1AlphaTrafficProtectionPolicyList,
 } from '@/modules/control-plane/networking';
 
+/** Response header the portal manages for HSTS. Matched case-insensitively. */
+export const HSTS_HEADER = 'Strict-Transport-Security';
+/** One year, the value the TLS card writes. */
+export const HSTS_HEADER_VALUE = 'max-age=31536000';
+
+type RuleFilter = NonNullable<
+  NonNullable<
+    NonNullable<ComDatumapisNetworkingV1AlphaHttpProxy['spec']>['rules']
+  >[number]['filters']
+>[number];
+
+/**
+ * True for the one filter shape the portal writes for the Host header
+ * override: a requestHeaderModifier that only `set`s a single `Host` entry.
+ */
+function isPortalHostHeaderFilter(filter: RuleFilter): boolean {
+  const rhm = filter.requestHeaderModifier;
+  if (!rhm) return false;
+  if ((rhm.add && rhm.add.length > 0) || (rhm.remove && rhm.remove.length > 0)) return false;
+  const set = rhm.set ?? [];
+  return set.length === 1 && set[0].name.toLowerCase() === 'host';
+}
+
+/**
+ * True for the one filter shape the portal writes for HSTS: a
+ * responseHeaderModifier that only `set`s a single `Strict-Transport-Security`.
+ */
+function isPortalHstsFilter(filter: RuleFilter): boolean {
+  const rhm = filter.responseHeaderModifier;
+  if (!rhm) return false;
+  if ((rhm.add && rhm.add.length > 0) || (rhm.remove && rhm.remove.length > 0)) return false;
+  const set = rhm.set ?? [];
+  return set.length === 1 && set[0].name.toLowerCase() === HSTS_HEADER.toLowerCase();
+}
+
 /**
  * Classify the complexity of an HTTPProxy resource for portal rendering.
  *
  * - 'simple':    No rule-level filters on the backend rule (or no backend rules).
  *                Portal renders the full form without a host header value.
- * - 'host-only': The backend rule (rule 0 with backends) has exactly one filter:
- *                a requestHeaderModifier that sets exactly one header whose name
- *                is 'host' (case-insensitive), with no add/remove operations.
- *                Portal renders the full form with the hostHeader field populated.
- * - 'advanced':  Any other filter combination (multiple filters, non-Host header,
- *                multiple set entries, add/remove, backend-level filters, or
- *                multiple backend rules). Portal renders a read-only banner.
+ * - 'host-only': The backend rule (rule 0 with backends) carries only filters
+ *                the portal itself writes — at most one Host header override
+ *                (a requestHeaderModifier that `set`s a single `Host`) and at
+ *                most one HSTS filter (a responseHeaderModifier that `set`s a
+ *                single `Strict-Transport-Security`). Portal renders the full
+ *                form with those fields populated.
+ * - 'advanced':  Any other filter combination (other headers, add/remove,
+ *                duplicate filters, backend-level filters, or multiple backend
+ *                rules). Portal renders a read-only banner.
  */
 export type HttpProxyComplexity = 'simple' | 'host-only' | 'advanced';
 
@@ -57,30 +94,44 @@ export function classifyHttpProxyComplexity(
   // No rule-level filters → simple
   if (filters.length === 0) return 'simple';
 
-  // More than one rule-level filter → advanced
-  if (filters.length > 1) return 'advanced';
+  const hostFilters = filters.filter(isPortalHostHeaderFilter).length;
+  const hstsFilters = filters.filter(isPortalHstsFilter).length;
 
-  const filter = filters[0];
-
-  // Filter is not a requestHeaderModifier → advanced
-  if (!filter.requestHeaderModifier) return 'advanced';
-
-  const rhm = filter.requestHeaderModifier;
-
-  // requestHeaderModifier has add or remove → advanced
-  if ((rhm.add && rhm.add.length > 0) || (rhm.remove && rhm.remove.length > 0)) {
-    return 'advanced';
-  }
-
-  const setHeaders = rhm.set ?? [];
-
-  // Not exactly one set header → advanced
-  if (setHeaders.length !== 1) return 'advanced';
-
-  // The one set header is not 'host' (case-insensitive) → advanced
-  if (setHeaders[0].name.toLowerCase() !== 'host') return 'advanced';
+  // Anything the portal didn't write, or a duplicate of something it did → advanced
+  if (hostFilters > 1 || hstsFilters > 1) return 'advanced';
+  if (hostFilters + hstsFilters !== filters.length) return 'advanced';
 
   return 'host-only';
+}
+
+/**
+ * Latest spec/metadata write recorded in `metadata.managedFields`. Entries
+ * for the `status` subresource are controller writes, not user edits, so
+ * they're skipped. Returns undefined when nothing usable is present.
+ */
+export function extractUpdatedAt(raw: ComDatumapisNetworkingV1AlphaHttpProxy): Date | undefined {
+  let latest: number | undefined;
+  for (const entry of raw.metadata?.managedFields ?? []) {
+    if (entry.subresource === 'status' || !entry.time) continue;
+    const t = new Date(entry.time).getTime();
+    if (!Number.isNaN(t) && (latest === undefined || t > latest)) latest = t;
+  }
+  return latest === undefined ? undefined : new Date(latest);
+}
+
+/**
+ * Whether the backend rule sets `Strict-Transport-Security` on responses.
+ * Matches case-insensitively and accepts any value, not only the one the
+ * portal writes, so a hand-tuned max-age still reads as "enabled".
+ */
+export function extractHsts(raw: ComDatumapisNetworkingV1AlphaHttpProxy): boolean {
+  const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
+  const filters = backendRule?.filters ?? [];
+  return filters.some((filter) =>
+    (filter.responseHeaderModifier?.set ?? []).some(
+      (h) => h.name.toLowerCase() === HSTS_HEADER.toLowerCase()
+    )
+  );
 }
 
 /**
@@ -471,6 +522,7 @@ export function toHttpProxy(
 
   // Extract Host header from rule-level filters (case-insensitive per RFC 7230)
   const hostHeader = extractHostHeader(raw);
+  const hsts = extractHsts(raw);
 
   // FR-4: classify the underlying resource so callers can decide between
   // editable form and read-only banner without re-reading the raw resource.
@@ -484,6 +536,7 @@ export function toHttpProxy(
     createdAt: raw.metadata?.creationTimestamp
       ? new Date(raw.metadata.creationTimestamp)
       : new Date(),
+    updatedAt: extractUpdatedAt(raw),
     endpoint: backend?.endpoint,
     origins: origins.length > 0 ? origins : undefined,
     hostnames: raw.spec?.hostnames,
@@ -495,6 +548,7 @@ export function toHttpProxy(
     hostnameStatuses: raw.status?.hostnameStatuses,
     chosenName: raw.metadata?.annotations?.['app.kubernetes.io/name'] ?? '',
     enableHttpRedirect: hasRedirectRule,
+    hsts,
     ...(backend?.connector && { connector: backend.connector }),
     ...(options?.trafficProtectionMode !== undefined && {
       trafficProtectionMode: options.trafficProtectionMode,
@@ -703,12 +757,18 @@ type RedirectRule = {
     requestRedirect: { scheme: 'https'; statusCode: 301 };
   }>;
 };
+type BackendRuleFilter =
+  | {
+      type: 'RequestHeaderModifier';
+      requestHeaderModifier: { set: Array<{ name: string; value: string }> };
+    }
+  | {
+      type: 'ResponseHeaderModifier';
+      responseHeaderModifier: { set: Array<{ name: string; value: string }> };
+    };
 type BackendRule = {
   backends: Array<{ endpoint: string; tls?: { hostname: string }; connector?: { name: string } }>;
-  filters?: Array<{
-    type: 'RequestHeaderModifier';
-    requestHeaderModifier: { set: Array<{ name: string; value: string }> };
-  }>;
+  filters?: BackendRuleFilter[];
 };
 
 export type HttpProxyUpdatePayload = {
@@ -749,6 +809,7 @@ export function toUpdateHttpProxyPayload(
   const hasRulesChange =
     input.endpoint !== undefined ||
     input.enableHttpRedirect !== undefined ||
+    input.hsts !== undefined ||
     input.hostHeader !== undefined ||
     // TLS lives on the backend rule — rebuild rules when it changes even if
     // endpoint/redirect/hostHeader are untouched (e.g. hostnames dialog save).
@@ -799,12 +860,24 @@ export function toUpdateHttpProxyPayload(
             ? input.hostHeader.trim()
             : (currentProxy?.hostHeader?.trim() ?? '');
 
-        const backendFilters: BackendRule['filters'] = [];
+        const backendFilters: BackendRuleFilter[] = [];
         if (effectiveHostHeader) {
           backendFilters.push({
             type: 'RequestHeaderModifier',
             requestHeaderModifier: {
               set: [{ name: 'Host', value: effectiveHostHeader }],
+            },
+          });
+        }
+
+        // HSTS: explicit input wins, else preserve. Written as a response
+        // header on the backend rule so it rides along with every proxied reply.
+        const effectiveHsts = input.hsts ?? currentProxy?.hsts ?? false;
+        if (effectiveHsts) {
+          backendFilters.push({
+            type: 'ResponseHeaderModifier',
+            responseHeaderModifier: {
+              set: [{ name: HSTS_HEADER, value: HSTS_HEADER_VALUE }],
             },
           });
         }

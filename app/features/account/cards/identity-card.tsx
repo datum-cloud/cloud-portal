@@ -15,11 +15,11 @@ export const AccountIdentitySettingsCard = () => {
   const { data: identities, isLoading: isLoadingIdentities } = useUserIdentities(user?.sub ?? 'me');
 
   return (
-    <Card data-e2e="account-identities-card" className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Account Identities</CardTitle>
+    <Card size="sm" sectioned data-e2e="account-identities-card">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Account Identities</CardTitle>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent padding="none">
         {isLoadingIdentities ? (
           <IdentityItemSkeleton count={1} showActions />
         ) : (
@@ -32,7 +32,7 @@ export const AccountIdentitySettingsCard = () => {
               return (
                 <div key={identity.name} data-e2e="account-identity-item">
                   <IdentityItem
-                    className="px-5 py-4"
+                    className="px-(--card-px) py-(--card-py)"
                     icon={<ProviderIcon providerKey={provider} />}
                     label={providerLabel(identity)}
                     sublabel={identity.username}

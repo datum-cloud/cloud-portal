@@ -37,27 +37,30 @@ export const AccountSignInMethodSettingsCard = () => {
   });
 
   return (
-    <Card data-e2e="account-sign-in-methods-card" className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="gap-1 border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Sign-in Methods</CardTitle>
+    <Card size="sm" sectioned data-e2e="account-sign-in-methods-card">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Sign-in Methods</CardTitle>
         <CardDescription className="text-1xs">
           Customize how you access your account. Link your Git profiles and set up passkeys for
           seamless, secure authentication.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent padding="none">
         {isLoading ? (
           <IdentityItemSkeleton count={3} showActions />
         ) : isError ? (
           // Never fall through to an empty list: a blank Sign-in Methods card
           // reads as "you have no sign-in methods", which is false and alarming.
-          <p role="alert" className="text-foreground/80 text-1xs px-5 py-4">
+          <p role="alert" className="text-foreground/80 text-1xs px-(--card-px) py-(--card-py)">
             We couldn&apos;t load your sign-in methods. Refresh the page to try again.
           </p>
         ) : (
           <div className="divide-stepper-line flex flex-col divide-y">
             {rows.map((row) => (
-              <div key={row.key} className="px-5 py-4" data-e2e="account-sign-in-method-item">
+              <div
+                key={row.key}
+                className="px-(--card-px) py-(--card-py)"
+                data-e2e="account-sign-in-method-item">
                 <IdentityItem
                   icon={<ProviderIcon providerKey={row.providerKey} />}
                   label={row.label}

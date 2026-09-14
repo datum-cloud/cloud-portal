@@ -9,12 +9,12 @@ interface CreditsCardProps {
 
 export const CreditsCard = ({ balance, onRedeem, onTopUp }: CreditsCardProps) => {
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
-      <CardContent className="flex flex-col gap-2 px-5 py-4">
-        <CardTitle className="text-sm font-medium">Balance</CardTitle>
+    <Card size="sm" sectioned>
+      <CardContent className="flex flex-col gap-2">
+        <CardTitle className="text-sm">Balance</CardTitle>
         <p className="text-foreground text-2xl font-medium">{balance}</p>
       </CardContent>
-      <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+      <CardFooter bordered className="flex justify-end gap-2">
         <Button
           disabled
           htmlType="button"

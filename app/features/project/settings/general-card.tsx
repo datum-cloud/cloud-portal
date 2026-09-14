@@ -42,9 +42,9 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
   });
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Project Info</CardTitle>
+    <Card size="sm" sectioned>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Project Info</CardTitle>
       </CardHeader>
       <Form.Root
         // Remount when the project revision changes so defaultValues (and Cancel
@@ -67,7 +67,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="px-5 py-4">
+            <CardContent>
               <div className="flex max-w-sm flex-col gap-5">
                 <Form.Field name="description" label="Project name" required>
                   <Form.Input data-e2e="edit-project-name-input" placeholder="e.g. My Project" />
@@ -78,7 +78,7 @@ export const ProjectGeneralCard = ({ project }: { project: Project }) => {
                 </Form.Field>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+            <CardFooter bordered className="flex justify-end gap-2">
               <Button
                 htmlType="button"
                 type="quaternary"

@@ -181,8 +181,8 @@ export const PastInvoicesCard = ({
   const searchMiss = hasActiveSearch && sortedInvoices.length === 0;
 
   return (
-    <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardHeader className="border-border flex flex-row items-center border-b px-5 py-3">
+    <Card size="sm" sectioned className="overflow-hidden">
+      <CardHeader size="sm" bordered className="flex flex-row items-center py-3">
         <TableSearch
           value={search}
           onChange={handleSearchChange}
@@ -190,7 +190,7 @@ export const PastInvoicesCard = ({
           className="md:max-w-xs md:min-w-0"
         />
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent padding="none">
         {searchMiss ? (
           <EmptyContent
             title="Try adjusting your search or filters"
@@ -246,7 +246,9 @@ export const PastInvoicesCard = ({
         )}
       </CardContent>
       {!searchMiss && (
-        <CardFooter className="text-muted-foreground bg-background flex items-center justify-between border-t px-5 py-3 text-xs">
+        <CardFooter
+          bordered
+          className="text-muted-foreground bg-background flex items-center justify-between py-3 text-xs">
           <span>
             Showing {sortedInvoices.length === 0 ? 0 : startIndex + 1} to {endIndex} out of{' '}
             {sortedInvoices.length} invoices

@@ -100,11 +100,15 @@ export const WorkloadSinksTable = ({
         accessorKey: 'sources',
         enableSorting: false,
         cell: ({ row }: any) => {
-          return row.original?.sources?.map((source: string) => (
-            <Badge theme="outline" key={source}>
-              <span>{source}</span>
-            </Badge>
-          ));
+          return (
+            <div className="flex flex-wrap gap-1">
+              {row.original?.sources?.map((source: string) => (
+                <Badge type="quaternary" theme="outline" key={source}>
+                  {source}
+                </Badge>
+              ))}
+            </div>
+          );
         },
       },
       {
@@ -147,13 +151,11 @@ export const WorkloadSinksTable = ({
   }, [status]);
 
   return (
-    <Card className="overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardHeader className="mb-2 px-0 sm:px-6">
-        <CardTitle>
-          <span className="text-lg font-medium">Sinks</span>
-        </CardTitle>
+    <Card size="sm" sectioned className="overflow-hidden">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Sinks</CardTitle>
       </CardHeader>
-      <CardContent className="p-0 sm:px-6 sm:pb-4">
+      <CardContent className="pt-0">
         <Table.Client columns={columns} data={data ?? []} pagination={false} urlSync={false} />
       </CardContent>
     </Card>

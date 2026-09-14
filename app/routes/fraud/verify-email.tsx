@@ -113,7 +113,7 @@ export default function VerifyEmailPage() {
 
   return (
     <BlankLayout>
-      <Card className="bg-card text-foreground z-10 w-full max-w-full rounded-xl border p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
+      <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">Check your email</h2>
           <p role="status" className="text-center text-[14px] leading-5 font-normal">

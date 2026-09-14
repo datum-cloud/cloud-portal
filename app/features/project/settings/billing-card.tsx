@@ -123,20 +123,20 @@ export const ProjectBillingCard = ({ project, orgId }: ProjectBillingCardProps) 
   const isLoading = !orgId || accountsQuery.isLoading || bindingsQuery.isLoading;
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Billing account</CardTitle>
+    <Card size="sm" sectioned>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Billing account</CardTitle>
       </CardHeader>
       {isLoading ? (
         <>
-          <CardContent className="px-5 py-4">
+          <CardContent>
             <div className="flex max-w-md flex-col gap-3">
               <Skeleton className="h-4 w-32" />
               <Skeleton className="h-9 w-full" />
               <Skeleton className="h-3 w-40" />
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+          <CardFooter bordered className="flex justify-end gap-2">
             <Skeleton className="h-8 w-16" />
             <Skeleton className="h-8 w-16" />
           </CardFooter>
@@ -152,7 +152,7 @@ export const ProjectBillingCard = ({ project, orgId }: ProjectBillingCardProps) 
           className="flex flex-col space-y-0">
           {({ form, isSubmitting }) => (
             <>
-              <CardContent className="px-5 py-4">
+              <CardContent>
                 <div className="flex max-w-md flex-col gap-3">
                   <Form.Field
                     name="billingAccountName"
@@ -192,7 +192,7 @@ export const ProjectBillingCard = ({ project, orgId }: ProjectBillingCardProps) 
                   )}
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-end gap-2 border-t px-5 py-4">
+              <CardFooter bordered className="flex justify-end gap-2">
                 <Button
                   htmlType="button"
                   type="quaternary"

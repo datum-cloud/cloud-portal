@@ -1,6 +1,6 @@
 import { DateTime } from '@/components/date-time';
 import type { Domain } from '@/resources/domains';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { useCopyToClipboard } from '@datum-cloud/datum-ui/hooks';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -57,12 +57,14 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
   }
 
   return (
-    <Card className="w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
-        <div className="flex items-center gap-2.5">
-          <Icon icon={BookOpenIcon} size={20} className="text-secondary stroke-2" />
-          <span className="text-base font-semibold">Manual Verification</span>
-        </div>
+    <Card size="sm" className="w-full overflow-hidden">
+      <CardHeader size="sm">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Icon icon={BookOpenIcon} size={16} className="text-secondary" />
+          Manual Verification
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
         <p className="text-[14px] font-normal">
           To verify domain ownership, use one of the methods below. Once verified, you may remove
           the record from your DNS system. Next verification{' '}

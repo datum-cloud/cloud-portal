@@ -321,7 +321,7 @@ export default function ProjectHomePage() {
       {/* Community */}
       <Row className="shrink-0">
         <Col span={24}>
-          <div className="dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center rounded-lg bg-white/50 p-9 pb-8 shadow dark:bg-[#18273A]">
+          <div className="border-card-border dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center rounded-xl border bg-white/50 p-9 pb-8 dark:bg-[#18273A]">
             <h2 className="mb-2 text-lg font-medium">Datum community</h2>
             <p className="dark:text-card-quaternary text-foreground/60 text-center text-sm font-normal">
               Looking for some help or share some knowledge? We&apos;d love to see you!

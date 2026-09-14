@@ -4,7 +4,7 @@ import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useMutation } from '@tanstack/react-query';
@@ -81,12 +81,14 @@ export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domai
   };
 
   return (
-    <Card className="border-card-success-border bg-card-success w-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardContent className="flex flex-col gap-5 p-0 sm:px-6 sm:pb-4">
-        <div className="flex items-center gap-2.5">
-          <Icon icon={CloudLightningIcon} size={20} className="text-tertiary stroke-2" />
-          <span className="text-base font-semibold">Automatic Verification</span>
-        </div>
+    <Card size="sm" className="border-card-success-border bg-card-success w-full overflow-hidden">
+      <CardHeader size="sm">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Icon icon={CloudLightningIcon} size={16} className="text-tertiary" />
+          Automatic Verification
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-3.5">
           <p className="text-[14px] font-normal">
             Skip the manual DNS setup process and let Datum automatically configure your DNS records

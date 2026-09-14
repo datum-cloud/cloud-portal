@@ -26,15 +26,16 @@ const ActionCard = ({
 }) => {
   return (
     <Card
+      sectioned
       className={cn(
-        'h-full w-full gap-0 rounded-lg bg-white p-0 shadow dark:bg-[#18273A]',
+        'h-full w-full bg-white dark:bg-[#18273A]',
         isCompleted && !isLoading && 'dark:border-card-tertiary border-primary/40',
         isLoading && 'opacity-95',
         className
       )}>
       <CardHeader
         className={cn(
-          'bg-card-tertiary relative flex h-[170px] items-center justify-center gap-6 rounded-t-lg p-8',
+          'bg-card-tertiary relative flex h-[170px] items-center justify-center gap-6 rounded-t-xl p-8',
           isCompleted && 'dark:bg-card bg-background',
           isLoading && 'dark:bg-card bg-background'
         )}>

@@ -1,10 +1,15 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
-import { ProxyHeaderActions } from '@/features/edge/proxy/proxy-header-actions';
 import { SubLayout } from '@/layouts';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
-import { createHttpProxyService, httpProxyKeys, type HttpProxy } from '@/resources/http-proxies';
+import {
+  createHttpProxyService,
+  httpProxyKeys,
+  type HttpProxy,
+  useHttpProxy,
+} from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
+import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
 import { useMemo } from 'react';
@@ -36,14 +41,32 @@ export const meta = route.meta;
 
 export const shouldRevalidate = skipRevalidateWithinSameProjectResource('proxyId');
 
-export default route.Page(({ data: proxy }) => {
+export default route.Page(({ data: loaderProxy }) => {
   const { projectId = '', proxyId = '' } = useParams<{ projectId: string; proxyId: string }>();
+
+  // The loader snapshot never changes after a mutation (shouldRevalidate skips
+  // same-resource navigations), so read the title from the query cache, which
+  // update mutations and the watch keep current. Seeded from the loader.
+  const { data: liveProxy } = useHttpProxy(projectId, proxyId, {
+    initialData: loaderProxy,
+    refetchOnMount: false,
+    staleTime: QUERY_STALE_TIME,
+  });
+  const proxy = liveProxy ?? loaderProxy;
+
   const navItems: SubNavigationTab[] = useMemo(() => {
     const id = proxyId || proxy?.name || '';
     return [
       {
         label: 'Overview',
         href: getPathWithParams(paths.project.detail.proxy.detail.overview, {
+          projectId,
+          proxyId: id,
+        }),
+      },
+      {
+        label: 'Configuration',
+        href: getPathWithParams(paths.project.detail.proxy.detail.configuration, {
           projectId,
           proxyId: id,
         }),
@@ -73,10 +96,7 @@ export default route.Page(({ data: proxy }) => {
   }, [projectId, proxyId, proxy?.name]);
 
   return (
-    <SubLayout
-      title={proxy.chosenName || proxy?.name}
-      actions={<ProxyHeaderActions projectId={projectId} proxy={proxy} />}
-      navItems={navItems}>
+    <SubLayout title={proxy.chosenName || proxy?.name} navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

@@ -39,7 +39,7 @@ export function ConnectorDownloadCard({ onDismiss }: ConnectorDownloadCardProps)
 
   return (
     <Card
-      className="relative w-full max-w-sm shrink-0 overflow-hidden rounded-xl border p-3 px-3 shadow-sm"
+      className="relative w-full max-w-sm shrink-0 overflow-hidden p-3"
       role="region"
       aria-label="Download connector">
       {onDismiss && (

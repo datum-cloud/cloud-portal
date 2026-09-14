@@ -1,8 +1,4 @@
-import {
-  DEFAULT_TIME_RANGE,
-  METRICS_CONTROL_HEIGHT_CLASS,
-  PRESET_RANGES,
-} from '@/modules/metrics/constants';
+import { METRICS_CONTROL_HEIGHT_CLASS, PRESET_RANGES } from '@/modules/metrics/constants';
 import { useMetrics } from '@/modules/metrics/context/metrics.context';
 import {
   getPresetDateRange,
@@ -76,8 +72,9 @@ export interface TimeRangeControlProps {
    */
   filterKey?: string;
   /**
-   * Default time range value when no URL state exists.
-   * Defaults to {@link DEFAULT_TIME_RANGE} (`now-30m`).
+   * Default time range value when no URL state exists. Falls back to the
+   * enclosing `MetricsProvider`'s `defaultTimeRange`, then to
+   * `DEFAULT_TIME_RANGE` (`now-30m`).
    */
   defaultValue?: string;
 }
@@ -88,9 +85,10 @@ export interface TimeRangeControlProps {
  */
 export const TimeRangeControl = ({
   filterKey = 'timeRange',
-  defaultValue = DEFAULT_TIME_RANGE,
+  defaultValue: defaultValueProp,
 }: TimeRangeControlProps) => {
-  const { registerUrlState, updateUrlStateEntry } = useMetrics();
+  const { registerUrlState, updateUrlStateEntry, defaultTimeRange } = useMetrics();
+  const defaultValue = defaultValueProp ?? defaultTimeRange;
   const { userPreferences } = useApp();
 
   const timezone = useMemo(
@@ -137,7 +135,7 @@ export const TimeRangeControl = ({
       disableFuture
       placeholder="Select time range"
       align="start"
-      className={cn('w-full sm:w-auto', METRICS_CONTROL_HEIGHT_CLASS, 'py-0 text-sm')}
+      className={cn('bg-card w-full sm:w-auto', METRICS_CONTROL_HEIGHT_CLASS, 'py-0 text-sm')}
     />
   );
 };

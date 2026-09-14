@@ -124,7 +124,7 @@ export default function InvitationPage() {
 
   return (
     <BlankLayout>
-      <Card className="w-full max-w-md rounded-lg border py-11 shadow-none">
+      <Card className="w-full max-w-md py-11">
         <CardHeader className="space-y-3 px-9 pb-6">
           <div className="space-y-2 text-center">
             <CardTitle className="text-xl font-semibold">You&apos;ve been invited!</CardTitle>

@@ -8,7 +8,7 @@ import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helpe
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { getShortId } from '@/utils/helpers/text.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { PencilIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, useParams } from 'react-router';
@@ -69,10 +69,10 @@ export const ExportPolicyGeneralCard = ({
   }, [exportPolicy]);
 
   return (
-    <Card className="h-full overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardHeader className="mb-2 px-0 sm:px-6">
-        <CardTitle className="flex items-center justify-between gap-2">
-          <span className="text-lg font-medium">General</span>
+    <Card size="sm" sectioned className="h-full overflow-hidden">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">General</CardTitle>
+        <CardAction>
           <LinkButton
             as={Link}
             size="xs"
@@ -83,10 +83,10 @@ export const ExportPolicyGeneralCard = ({
             })}>
             Settings
           </LinkButton>
-        </CardTitle>
+        </CardAction>
       </CardHeader>
-      <CardContent className="p-0 sm:px-6 sm:pb-4">
-        <List items={listItems} className="border-table-accent dark:border-quaternary border-t" />
+      <CardContent padding="none">
+        <List items={listItems} />
       </CardContent>
     </Card>
   );

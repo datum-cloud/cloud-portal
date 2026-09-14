@@ -55,7 +55,7 @@ export const BillingLegacyResumeNotice = ({
 
   return (
     <OnboardingEntrance delay={1} className="flex w-full min-w-0 md:max-w-[410px] md:self-stretch">
-      <Card className="bg-card/50 text-foreground flex h-full w-full min-w-0 flex-col rounded-xl border-none shadow-none">
+      <Card className="bg-card/50 text-foreground flex h-full w-full min-w-0 flex-col rounded-xl border-none">
         <CardContent className="flex flex-1 flex-col p-6 sm:p-8 md:p-[44px]">
           <div className="flex flex-col gap-5">
             <div className="flex items-center">

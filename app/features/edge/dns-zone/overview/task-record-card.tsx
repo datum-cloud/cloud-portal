@@ -27,9 +27,9 @@ export const TaskRecordCard = ({ projectId, dnsZone }: { projectId: string; dnsZ
     [dnsZone?.domainName]
   );
   return (
-    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium">Add Key DNS Records</CardTitle>
+    <Card size="sm" className="relative overflow-hidden">
+      <CardHeader size="sm">
+        <CardTitle className="text-sm">Add Key DNS Records</CardTitle>
       </CardHeader>
       <CardContent className="max-w-4xl">
         <ul className="space-y-3.5 text-sm">

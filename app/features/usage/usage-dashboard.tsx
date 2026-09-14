@@ -310,7 +310,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
         {view.groups.map((group) => (
           <Section key={group.id} title={group.title} description={group.description} layout="grid">
             {group.meters.length === 0 ? (
-              <Card className="shadow-none">
+              <Card>
                 <CardContent className="text-muted-foreground py-12 text-center text-sm">
                   No meters defined yet for this group.
                 </CardContent>

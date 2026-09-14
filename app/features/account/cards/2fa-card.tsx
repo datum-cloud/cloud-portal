@@ -51,17 +51,17 @@ export const Account2FACard = () => {
   );
 
   return (
-    <Card data-e2e="account-2fa-card" className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="gap-1 border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Two-factor Authentication</CardTitle>
+    <Card size="sm" sectioned data-e2e="account-2fa-card">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Two-factor Authentication</CardTitle>
         <CardDescription className="text-1xs">
           Add an additional layer of security by requiring at least two methods of authentication to
           sign in.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent padding="none">
         <div className="divide-stepper-line flex flex-col divide-y">
-          <div className="px-5 py-4">
+          <div className="px-(--card-px) py-(--card-py)">
             <IdentityItem
               icon={<ProviderIcon providerKey="totp" emphasis />}
               label="Authenticator App (TOTP)"
@@ -70,7 +70,7 @@ export const Account2FACard = () => {
             />
           </div>
 
-          <div className="px-5 py-4">
+          <div className="px-(--card-px) py-(--card-py)">
             {isLoading ? (
               <IdentityItemSkeleton count={1} showActions className="px-0 py-0" />
             ) : (
@@ -111,7 +111,7 @@ export const Account2FACard = () => {
             )}
           </div>
 
-          <div className="px-5 py-4">
+          <div className="px-(--card-px) py-(--card-py)">
             <IdentityItem
               icon={<ProviderIcon providerKey="recoveryCodes" emphasis />}
               label="Recovery Codes"

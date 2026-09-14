@@ -24,7 +24,7 @@ export function HttpProxyErrorRate({ projectId, proxyId }: { projectId: string; 
             formatValue={(value) => formatValue(value, 'percent')}
           />
         )}
-        className="text-foreground shadow-none"
+        className="text-foreground"
       />
     </ChartBlock>
   );

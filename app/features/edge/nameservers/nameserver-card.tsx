@@ -1,6 +1,6 @@
 import { NameserverTable } from './nameserver-table';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { useMemo } from 'react';
 
 export interface NameserverCardProps {
@@ -29,14 +29,12 @@ export const NameserverCard = ({
   );
 
   return (
-    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardHeader className="px-0 sm:px-6">
-        <CardTitle className="flex items-center justify-between gap-2">
-          <span className="text-lg font-medium">{title}</span>
-          {actions}
-        </CardTitle>
+    <Card size="sm" sectioned className="relative overflow-hidden">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">{title}</CardTitle>
+        {actions ? <CardAction>{actions}</CardAction> : null}
       </CardHeader>
-      <CardContent className="p-0 sm:px-6 sm:pb-4">
+      <CardContent padding="none">
         <NameserverTable data={displayData} registration={registration} />
       </CardContent>
     </Card>

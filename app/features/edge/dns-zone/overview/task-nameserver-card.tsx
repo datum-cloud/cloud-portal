@@ -21,9 +21,9 @@ export const TaskNameserverCard = ({
   }, [dnsZone]);
 
   return (
-    <Card className="relative gap-6 overflow-hidden rounded-xl px-3 py-8 shadow">
-      <CardHeader>
-        <CardTitle className="text-lg font-medium">Point Your Nameservers at Datum</CardTitle>
+    <Card size="sm" className="relative overflow-hidden">
+      <CardHeader size="sm">
+        <CardTitle className="text-sm">Point Your Nameservers at Datum</CardTitle>
       </CardHeader>
       <CardContent className="max-w-4xl">
         <p className="text-sm leading-relaxed">

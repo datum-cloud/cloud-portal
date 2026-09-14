@@ -2,7 +2,7 @@ import { DateTime } from '@/components/date-time';
 import { MetricsProvider, usePrometheusChart } from '@/modules/metrics';
 import { BaseMetric } from '@/modules/metrics/components/base-metric';
 import { formatValue, transformForRecharts } from '@/modules/prometheus';
-import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import {
   ChartContainer,
   ChartTooltip,
@@ -148,10 +148,10 @@ const ActivityChart = () => {
   );
 
   return (
-    <Card className="overflow-hidden rounded-xl px-3 py-4 shadow sm:pt-6 sm:pb-4">
-      <CardHeader className="mb-2 px-0 sm:px-6">
-        <CardTitle className="flex items-center justify-between gap-2">
-          <span className="text-lg font-medium">Activity</span>
+    <Card size="sm" sectioned className="overflow-hidden">
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Activity</CardTitle>
+        <CardAction>
           <Select
             value={timeRangeOption}
             onValueChange={(value) => setTimeRangeOption(value as TimeRangeOption)}>
@@ -166,9 +166,9 @@ const ActivityChart = () => {
               <SelectItem value="last30days">Last 30 Days</SelectItem>
             </SelectContent>
           </Select>
-        </CardTitle>
+        </CardAction>
       </CardHeader>
-      <CardContent className="p-0 sm:px-6 sm:pb-4">
+      <CardContent>
         <BaseMetric
           className="border-none p-0 shadow-none"
           isLoading={isLoading}

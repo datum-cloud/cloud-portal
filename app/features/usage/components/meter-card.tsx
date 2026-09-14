@@ -89,8 +89,8 @@ export function MeterCard({ meter }: MeterCardProps) {
   const showRate = (meter.spend ?? 0) > 0 || meter.unitRate !== undefined;
 
   return (
-    <Card className="@container h-full min-w-0 gap-0 overflow-hidden rounded-xl py-0 shadow-none">
-      <CardHeader className="flex flex-col gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
+    <Card size="sm" sectioned className="@container h-full min-w-0 overflow-hidden">
+      <CardHeader className="flex flex-col items-stretch gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
         <div className="flex min-w-0 items-start justify-between gap-3">
           <h3 className="text-foreground min-w-0 text-base leading-snug font-medium">
             {meter.label}
@@ -102,23 +102,29 @@ export function MeterCard({ meter }: MeterCardProps) {
             <QuotaIndicator used={meter.used} limit={meter.limit} size={24} />
           </div>
         </div>
-        {meter.description ? (
-          <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
-            {meter.description}
-          </p>
-        ) : null}
-        {showRate ? (
-          <p className="text-muted-foreground min-w-0 text-xs leading-relaxed wrap-break-word tabular-nums">
-            {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
-            {(meter.spend ?? 0) > 0 ? (
-              <>
-                {' · '}
-                <span className="text-foreground font-medium">
-                  {formatCurrency(meter.spend, meter.currencyCode)} spent
-                </span>
-              </>
+        {meter.description || showRate ? (
+          <div className="flex min-w-0 items-baseline justify-between gap-3">
+            {meter.description ? (
+              <p className="text-muted-foreground line-clamp-2 min-w-0 text-sm leading-relaxed">
+                {meter.description}
+              </p>
+            ) : (
+              <span aria-hidden="true" />
+            )}
+            {showRate ? (
+              <p className="text-muted-foreground shrink-0 text-right text-xs leading-relaxed tabular-nums">
+                {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
+                {(meter.spend ?? 0) > 0 ? (
+                  <>
+                    {' · '}
+                    <span className="text-foreground font-medium">
+                      {formatCurrency(meter.spend, meter.currencyCode)} spent
+                    </span>
+                  </>
+                ) : null}
+              </p>
             ) : null}
-          </p>
+          </div>
         ) : null}
       </CardHeader>
 

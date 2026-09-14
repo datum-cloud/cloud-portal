@@ -101,9 +101,9 @@ export function BaseMetric({
   };
 
   return (
-    <Card className={className}>
+    <Card size="sm" className={className}>
       {(title || description) && (
-        <CardHeader>
+        <CardHeader size="sm">
           {title && <CardTitle>{title}</CardTitle>}
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>

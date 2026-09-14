@@ -344,7 +344,7 @@ function CardListItems<TData>({
               // class strings from data-table-loading.tsx DataTableLoadingCardSkeleton
               <TableRow key={i} className="relative border-none hover:bg-transparent">
                 <TableCell className="p-0 pb-4">
-                  <div className="bg-card flex h-[80px] items-center rounded-lg border shadow-none">
+                  <div className="bg-card flex h-[80px] items-center rounded-lg border">
                     <div className="w-full p-[24px]">
                       <div className="flex w-full flex-col items-start justify-start gap-4 md:flex-row md:items-center md:justify-between md:gap-2">
                         <div className="flex items-center gap-5">
@@ -455,7 +455,7 @@ function CardListItems<TData>({
                       role={onSelect ? 'button' : perCardProps.role}
                       tabIndex={onSelect ? 0 : perCardProps.tabIndex}
                       className={cn(
-                        'group relative rounded-lg border p-6 shadow-none transition-all duration-200',
+                        'group relative rounded-lg border p-6 transition-all duration-200',
                         onSelect && 'cursor-pointer',
                         onSelect &&
                           'focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',

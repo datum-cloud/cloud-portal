@@ -43,9 +43,9 @@ export const AccountProfileSettingsCard = () => {
   });
 
   return (
-    <Card className="gap-0 rounded-xl py-0 shadow-none">
-      <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-sm font-medium">Profile Information</CardTitle>
+    <Card size="sm" sectioned>
+      <CardHeader size="sm" bordered>
+        <CardTitle className="text-sm">Profile Information</CardTitle>
       </CardHeader>
 
       <Form.Root
@@ -70,7 +70,7 @@ export const AccountProfileSettingsCard = () => {
         className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="px-5 py-4">
+            <CardContent>
               <div className="flex max-w-[816px] flex-col space-y-8">
                 <div className="flex w-full flex-col gap-4 sm:flex-row">
                   <Form.Field name="firstName" label="First Name" required className="sm:w-1/2">
@@ -101,7 +101,7 @@ export const AccountProfileSettingsCard = () => {
                 )}
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col-reverse gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
+            <CardFooter bordered className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 htmlType="button"
                 type="quaternary"

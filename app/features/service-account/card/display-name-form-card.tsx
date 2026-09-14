@@ -38,8 +38,8 @@ export const DisplayNameFormCard = ({
   });
 
   return (
-    <Card className="rounded-xl pt-5 pb-4 shadow-none">
-      <CardHeader>
+    <Card size="sm" sectioned>
+      <CardHeader size="sm" bordered>
         <CardDescription className="text-xs">
           A human-friendly label shown in the portal. The resource name itself cannot be changed.
         </CardDescription>
@@ -57,15 +57,15 @@ export const DisplayNameFormCard = ({
             displayName: data.displayName ?? '',
           });
         }}
-        className="mt-6 flex flex-col gap-10 space-y-0">
+        className="flex flex-col space-y-0">
         {({ form, isSubmitting }) => (
           <>
-            <CardContent className="space-y-10">
+            <CardContent className="space-y-6">
               <Form.Field name="displayName">
                 <Form.Input type="text" placeholder="e.g. Deploy Bot" autoFocus />
               </Form.Field>
             </CardContent>
-            <CardFooter className="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+            <CardFooter bordered className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 htmlType="button"
                 type="quaternary"
