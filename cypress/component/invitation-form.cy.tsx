@@ -44,11 +44,9 @@ function mountInvitationForm(onSubmit: (data: InvitationFormSchema) => void) {
 function pickFirstRole() {
   cy.get('[role="combobox"]').first().click();
   cy.get('[role="option"]').first().click();
-  // Radix Select hands focus back to its trigger after the listbox unmounts.
-  // Wait for that before typing into the emails input, or on a slow runner the
-  // focus return lands mid-typing and the keystrokes go to the trigger.
+  // The select closes with an animation. On a slow CI runner, typing before
+  // the listbox is gone sends the first keystrokes to the closing popover.
   cy.get('[role="option"]').should('not.exist');
-  cy.get('[role="combobox"]').first().should('have.focus');
 }
 
 describe('InvitationForm', () => {
@@ -57,20 +55,10 @@ describe('InvitationForm', () => {
     mountInvitationForm(onSubmit);
 
     pickFirstRole();
-    // Separate commands so the controlled input can commit each address
-    // before Enter. A single `.type('…{enter}…')` races React state and
-    // lets the form submit with an empty emails array.
-    cy.get('[data-e2e="invite-emails-input"] input')
-      .type('first@example.com')
-      .should('have.value', 'first@example.com')
-      .type('{enter}');
-    cy.get('[data-e2e="invite-emails-input"] input')
-      .type('Second@Example.com')
-      .should('have.value', 'Second@Example.com')
-      .type('{enter}');
-    cy.get('[data-e2e="invite-emails-input"]')
-      .should('contain.text', 'first@example.com')
-      .and('contain.text', 'second@example.com');
+    cy.get('[data-e2e="invite-emails-input"] input').click().type('first@example.com{enter}');
+    cy.get('[data-e2e="invite-emails-input"]').should('contain.text', 'first@example.com');
+    cy.get('[data-e2e="invite-emails-input"] input').type('Second@Example.com{enter}');
+    cy.get('[data-e2e="invite-emails-input"]').should('contain.text', 'second@example.com');
 
     cy.get('[data-e2e="invite-submit"]').click();
 

@@ -9,6 +9,7 @@ import { logger } from '@/modules/logger';
 import { retryOnTransientAuthError } from '@/resources/base/utils';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { slugifyBillingAccountName } from '@/resources/billing/_naming';
+import { waitForMembershipRolesApplied } from '@/resources/members';
 import { createOrganizationService } from '@/resources/organizations';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
@@ -80,7 +81,7 @@ export function useSetupOnboardingBilling(
         // read — no OpenFGA checks). Do not poll SAR here: each denied check
         // refreshes OpenFGA's 30s query cache and can block the first create for
         // tens of seconds even after PolicyBinding is Ready.
-        await createOrganizationService().waitForOwnerGrantReady(orgId);
+        await waitForMembershipRolesApplied(orgId);
 
         const account = await retryOnTransientAuthError(
           () =>

@@ -77,7 +77,7 @@ export function createAccessReviewService() {
      * namespace, or until the timeout elapses.
      *
      * Prefer waiting on OrganizationMembership `RolesApplied` (see
-     * OrganizationService.waitForOwnerGrantReady) before the first write to a
+     * waitForMembershipRolesApplied in the members resource) before the first write to a
      * freshly provisioned org. Polling denied SAR checks while the grant is
      * still propagating refreshes OpenFGA's 30s check-query cache and can
      * block the first create for tens of seconds even after PolicyBinding is
