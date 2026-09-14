@@ -1,28 +1,33 @@
 import { StatusChip } from '@/components/card/status-chip';
 import { ValueRow } from '@/components/card/value-row';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  ProxyZoneRecordsWatch,
+  useProxyZoneRecords,
+} from '@/features/edge/proxy/hooks/use-proxy-zone-records';
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import { findZoneForHostname } from '@/features/edge/proxy/utils/delete-dns-preview';
+import { resolveHostnameDnsIssue } from '@/features/edge/proxy/utils/hostname-dns-issue';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionButton, usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
-import { useDnsZones } from '@/resources/dns-zones';
 import {
   type HttpProxy,
+  HTTP_PROXY_PROVISIONING_POLL_MS,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
-  getDnsRecordProgrammedIssue,
+  isHostnameDnsInFlight,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
-import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { formatDnsError } from '@/utils/helpers/dns/error-formatting.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Button } from '@datum-cloud/datum-ui/button';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { MoreActions, type ActionItem } from '@datum-cloud/datum-ui/more-actions';
@@ -85,11 +90,24 @@ export const HttpProxyHostnamesCard = ({
   );
 
   // Best-effort: when the zone list is slow or denied the rows still render,
-  // they just lose the "View DNS records" link.
-  const { data: zones = [] } = useDnsZones(projectId ?? '', undefined, {
-    staleTime: QUERY_STALE_TIME,
-    retry: false,
-    enabled: !!projectId && customHostnames.length > 0,
+  // they just lose the "View DNS records" link. Records themselves are how we
+  // detect a manual/ALB clash — the proxy condition often stays "pending".
+  const pollZoneRecords = useRef(true);
+  const dnsInFlight = useMemo(
+    () =>
+      customHostnames.some((hostname) =>
+        isHostnameDnsInFlight(
+          getDnsRecordProgrammedCondition(
+            proxy?.hostnameStatuses?.find((entry) => entry.hostname === hostname)
+          )
+        )
+      ),
+    [customHostnames, proxy?.hostnameStatuses]
+  );
+
+  const { zones, matchedZones, zoneRecords } = useProxyZoneRecords(projectId, customHostnames, {
+    refetchInterval: () =>
+      dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
   });
 
   const updateProxy = useUpdateHttpProxy(projectId ?? '', proxy?.name ?? '');
@@ -102,14 +120,21 @@ export const HttpProxyHostnamesCard = ({
       const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
       const certCondition = getCertificateReadyCondition(hostnameStatus);
       const zone = projectId ? findZoneForHostname(zones, hostname) : undefined;
+      const dns = getDnsRecordProgrammedDisplay(dnsCondition);
 
       return {
         hostname,
         verified: available?.status === 'True',
         failedMessage: available?.status === 'False' ? available.message : undefined,
-        dns: getDnsRecordProgrammedDisplay(dnsCondition),
+        dns,
         dnsMessage: dnsCondition?.message,
-        dnsIssue: getDnsRecordProgrammedIssue(dnsCondition),
+        dnsIssue: resolveHostnameDnsIssue({
+          hostname,
+          dns,
+          condition: dnsCondition,
+          proxyName: proxy?.name,
+          zoneRecords,
+        }),
         cert: getCertificateReadyDisplay(certCondition),
         certMessage: certCondition?.message,
         dnsRecordsHref:
@@ -121,7 +146,9 @@ export const HttpProxyHostnamesCard = ({
             : undefined,
       };
     });
-  }, [customHostnames, proxy?.hostnameStatuses, zones, projectId]);
+  }, [customHostnames, proxy?.hostnameStatuses, proxy?.name, zones, zoneRecords, projectId]);
+
+  pollZoneRecords.current = rows.some((row) => row.dns === 'pending' && !row.dnsIssue);
 
   const systemHostname = proxy?.canonicalHostname ?? proxy?.status?.hostnames?.[0];
   const proxyStatus = useMemo(
@@ -273,7 +300,11 @@ export const HttpProxyHostnamesCard = ({
                     <StatusChip
                       tone="warning"
                       busy
-                      tooltip={row.dnsMessage || 'Waiting for the DNS record to be programmed'}>
+                      tooltip={
+                        row.dnsMessage
+                          ? formatDnsError(row.dnsMessage)
+                          : 'Waiting for the DNS record to be programmed'
+                      }>
                       Pending DNS
                     </StatusChip>
                   )}
@@ -307,20 +338,18 @@ export const HttpProxyHostnamesCard = ({
                     </StatusChip>
                   )}
 
-                  {row.dns === 'pending' && row.dnsRecordsHref ? (
-                    // Covers both "still programming" and actionable issues — a conflict
-                    // is resolved on the zone's records page.
-                    <Button
-                      asChild
+                  {(row.dnsIssue || row.dns === 'pending') && row.dnsRecordsHref ? (
+                    // Conflicts are resolved by deleting the manual record on the zone page.
+                    <LinkButton
+                      as={Link}
+                      href={row.dnsRecordsHref}
                       type="secondary"
                       theme="outline"
                       size="xs"
-                      className="h-6 gap-1 px-2 text-[11px]">
-                      <Link to={row.dnsRecordsHref}>
-                        <Icon icon={ListIcon} size={12} aria-hidden="true" />
-                        View DNS records
-                      </Link>
-                    </Button>
+                      className="h-6 px-2 text-[11px]"
+                      icon={<Icon icon={ListIcon} size={12} aria-hidden="true" />}>
+                      View DNS records
+                    </LinkButton>
                   ) : null}
                 </>
               }
@@ -378,6 +407,12 @@ export const HttpProxyHostnamesCard = ({
           ) : null}
         </div>
       </CardContent>
+      {projectId ? (
+        <ProxyZoneRecordsWatch
+          projectId={projectId}
+          zoneIds={matchedZones.map((zone) => zone.name)}
+        />
+      ) : null}
       {proxy && projectId && (
         <ProxyHostnamesConfigDialog ref={hostnamesConfigDialogRef} projectId={projectId} />
       )}

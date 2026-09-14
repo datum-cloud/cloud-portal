@@ -30,5 +30,11 @@ export function StatusChip({
       {children}
     </Badge>
   );
-  return tooltip ? <Tooltip message={tooltip}>{chip}</Tooltip> : chip;
+  return tooltip ? (
+    <Tooltip message={tooltip} contentClassName="max-w-sm text-pretty">
+      {chip}
+    </Tooltip>
+  ) : (
+    chip
+  );
 }

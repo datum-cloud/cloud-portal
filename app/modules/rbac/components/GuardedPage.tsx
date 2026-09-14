@@ -1,3 +1,4 @@
+import { preferFresherQueryData } from '../prefer-fresher-query-data';
 import type { DslLoaderData } from '../types';
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
 import { useQueryClient, type QueryKey } from '@tanstack/react-query';
@@ -24,9 +25,11 @@ export interface GuardedPageProps<TData, TCompanions> {
  * `loaderData` reference on every loader run, so seeding re-fires on each
  * revalidation. This is intentional — fresh loader output should hydrate the
  * cache so child consumers via `useQuery` see the latest values immediately.
- * `setQueryData` is idempotent, so identical re-seeds are harmless. If a
- * caller wants strict reference stability for `seedCache` (e.g. because their
- * factory has side effects), wrap it in `useCallback` at the call site.
+ * Identical re-seeds are harmless. A seed must not replace a cache entry whose
+ * `resourceVersion` is newer than the loader snapshot — watches write live
+ * objects into the same keys, and clobbering them freezes the UI until reload.
+ * If a caller wants strict reference stability for `seedCache` (e.g. because
+ * their factory has side effects), wrap it in `useCallback` at the call site.
  */
 export function GuardedPage<TData, TCompanions>(props: GuardedPageProps<TData, TCompanions>) {
   const { loaderData, restrictedTitle, restrictedMessage, seedCache, children } = props;
@@ -38,7 +41,7 @@ export function GuardedPage<TData, TCompanions>(props: GuardedPageProps<TData, T
     if (!seedCache) return;
     const entries = seedCache({ data: loaderData.data, companions: loaderData.companions });
     for (const [queryKey, value] of entries) {
-      qc.setQueryData(queryKey, value);
+      qc.setQueryData(queryKey, (current) => preferFresherQueryData(current, value));
     }
   }, [loaderData, seedCache, qc]);
 

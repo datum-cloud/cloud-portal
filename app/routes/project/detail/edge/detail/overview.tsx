@@ -13,7 +13,7 @@ import {
 import { useAlbTrafficPresence } from '@/features/edge/proxy/overview/use-alb-traffic-presence';
 import { MetricsProvider } from '@/modules/metrics';
 import { useGuardedRouteData } from '@/modules/rbac';
-import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
+import { type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { NotFoundError } from '@/utils/errors';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
@@ -35,11 +35,8 @@ export default function HttpProxyOverviewPage() {
 
   const { data: httpProxy } = useHttpProxy(projectId, proxyId, {
     initialData: proxy,
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
-
-  useHttpProxyWatch(projectId, proxyId);
 
   const { canViewWaf, wafUnavailable, wafPending, wafEnabled, effectiveProxy } =
     useAlbTrafficProtection(projectId, proxyId, httpProxy ?? proxy);

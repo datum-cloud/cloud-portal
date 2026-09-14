@@ -9,7 +9,7 @@ import { HttpProxyHostnamesCard } from '@/features/edge/proxy/overview/hostnames
 import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import { HttpProxyTlsCard } from '@/features/edge/proxy/overview/tls-card';
 import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
-import { type HttpProxy, useHttpProxy, useHttpProxyWatch } from '@/resources/http-proxies';
+import { type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { NotFoundError } from '@/utils/errors';
@@ -163,11 +163,8 @@ export default function HttpProxyConfigurationPage() {
 
   const { data: httpProxy } = useHttpProxy(projectId, proxyId, {
     initialData: proxy,
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
-
-  useHttpProxyWatch(projectId, proxyId);
 
   const { canDelete, isLoading: deleteLoading } = useResourcePermissions({
     resource: 'httpproxies',

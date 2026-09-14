@@ -2,6 +2,11 @@ import { BadgeProgrammingError } from '@/components/badge/badge-programming-erro
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { ControlPlaneStatus } from '@/resources/base';
 import { IFlattenedDnsRecord } from '@/resources/dns-records';
+import {
+  formatDnsError,
+  formatDnsRecordConflictError,
+  parseDnsRrsetConflict,
+} from '@/utils/helpers/dns/error-formatting.helper';
 
 interface DnsRecordStatusProps {
   record: IFlattenedDnsRecord;
@@ -17,7 +22,7 @@ interface DnsRecordStatusProps {
  *
  * Status logic:
  * - isProgrammed === true → No badge (success state)
- * - programmedReason === 'InvalidDNSRecordSet' or 'PDNSError' → Show BadgeProgrammingError
+ * - pre-existing RRset / InvalidDNSRecordSet / PDNSError → error badge
  * - Other states → Show BadgeStatus with "Validating" label
  */
 export const DnsRecordStatus = ({ record, className }: DnsRecordStatusProps) => {
@@ -42,24 +47,35 @@ export const DnsRecordStatus = ({ record, className }: DnsRecordStatusProps) => 
     return null;
   }
 
-  // Error state - show BadgeProgrammingError
-  if (
+  const rawMessage = status.message || '';
+  const rrsetConflict = parseDnsRrsetConflict(rawMessage);
+  const isProgrammingError =
     status.programmedReason === 'InvalidDNSRecordSet' ||
-    status.programmedReason === 'PDNSError'
-  ) {
+    status.programmedReason === 'PDNSError' ||
+    !!rrsetConflict;
+
+  if (isProgrammingError) {
+    const tooltip = rrsetConflict
+      ? formatDnsRecordConflictError(rawMessage, { managedByAlb: record.managedByGateway })
+      : formatDnsError(rawMessage) || `Programming failed: ${status.programmedReason}`;
+
     return (
       <BadgeProgrammingError
         className={className}
-        isProgrammed={status.isProgrammed}
-        programmedReason={status.programmedReason}
-        statusMessage={status.message}
-        errorReasons={['InvalidDNSRecordSet', 'PDNSError']}
+        isProgrammed={false}
+        programmedReason={status.programmedReason || 'PDNSError'}
+        statusMessage={tooltip}
+        label={rrsetConflict ? 'Conflict' : 'Error'}
+        errorReasons={null}
       />
     );
   }
 
   // Pending/other states - show BadgeStatus
-  const tooltipText = status.message || status.programmedReason || 'DNS record is being validated';
+  const tooltipText =
+    (rawMessage ? formatDnsError(rawMessage) : undefined) ||
+    status.programmedReason ||
+    'DNS record is being validated';
 
   return (
     <BadgeStatus

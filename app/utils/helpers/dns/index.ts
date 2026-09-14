@@ -83,7 +83,15 @@ export {
 } from './import-result.helper';
 
 // Error formatting helpers
-export { formatDnsConflictError, formatDnsError } from './error-formatting.helper';
+export {
+  formatAlbHostnameDnsConflict,
+  formatDnsConflictError,
+  formatDnsError,
+  formatDnsRecordConflictError,
+  parseDnsRrsetConflict,
+  unwrapDnsError,
+  type DnsRrsetConflict,
+} from './error-formatting.helper';
 
 // DNS zone error state + remediation guidance
 export {
