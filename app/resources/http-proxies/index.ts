@@ -127,6 +127,7 @@ export {
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
   getDnsRecordProgrammedIssue,
+  isHostnameDnsInFlight,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,

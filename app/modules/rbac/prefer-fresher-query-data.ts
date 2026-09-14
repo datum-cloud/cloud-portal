@@ -9,6 +9,11 @@
  *
  * Arrays and values without a resourceVersion keep the incoming value so list
  * seeds and non-K8s caches behave as before.
+ *
+ * resourceVersion is compared as a BigInt. Kubernetes documents it as opaque,
+ * but etcd assigns it monotonically, which is what the watch vs loader race
+ * needs. A restore or API-server migration that reused a lower version would
+ * keep the cached object until that query is dropped.
  */
 export function preferFresherQueryData<T>(current: T | undefined, incoming: T): T {
   if (current == null) return incoming;

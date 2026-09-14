@@ -44,7 +44,7 @@ describe('resolveHostnameDnsIssue', () => {
     ).toBeUndefined();
   });
 
-  test('treats a manual record at the hostname as a conflict while ALB DNS is pending', () => {
+  test('treats a manual CNAME at the hostname as a conflict while ALB DNS is pending', () => {
     const issue = resolveHostnameDnsIssue({
       hostname: 'test.mdj-test.online',
       dns: 'pending',
@@ -55,6 +55,35 @@ describe('resolveHostnameDnsIssue', () => {
     expect(issue?.label).toBe('DNS conflict');
     expect(issue?.message).toContain('test.mdj-test.online');
     expect(issue?.message).toContain('manual record');
+  });
+
+  test('does not treat a TXT at the hostname as a conflict until the ALIAS fails', () => {
+    expect(
+      resolveHostnameDnsIssue({
+        hostname: 'test.mdj-test.online',
+        dns: 'pending',
+        condition: pendingCondition(),
+        proxyName: 'record-test',
+        zoneRecords: zoneRecords([record({ type: 'TXT', value: 'v=spf1 -all' })]),
+      })
+    ).toBeUndefined();
+  });
+
+  test('does not treat a manual CNAME as a conflict while the hostname is still unverified', () => {
+    expect(
+      resolveHostnameDnsIssue({
+        hostname: 'test.mdj-test.online',
+        dns: 'pending',
+        condition: {
+          type: 'DNSRecordProgrammed',
+          status: 'False',
+          reason: 'DomainNotVerified',
+          message: '',
+        },
+        proxyName: 'record-test',
+        zoneRecords: zoneRecords([record()]),
+      })
+    ).toBeUndefined();
   });
 
   test('reads the PowerDNS RRset error off the ALB-managed record even when the proxy stays pending', () => {

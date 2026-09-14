@@ -2,6 +2,7 @@ import type { ZoneRecords } from '@/features/edge/proxy/utils/delete-dns-preview
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
 import {
   type ConditionLike,
+  DnsRecordProgrammedReason,
   getDnsRecordProgrammedIssue,
 } from '@/resources/http-proxies/http-proxy.conditions';
 import { getRecordHostname, isSystemManagedDnsRecord } from '@/utils/helpers/dns';
@@ -12,6 +13,9 @@ import {
 } from '@/utils/helpers/dns/error-formatting.helper';
 
 export type HostnameDnsIssue = { label: string; message: string };
+
+/** Types that cannot share an owner name with the ALIAS Datum programs for an ALB hostname. */
+const ALIAS_OCCUPYING_TYPES = new Set(['A', 'AAAA', 'CNAME', 'ALIAS']);
 
 const normalizeDomain = (value: string): string => value.trim().replace(/\.$/, '').toLowerCase();
 
@@ -60,20 +64,28 @@ function isDnsRecordProgrammingError(record: IFlattenedDnsRecord): boolean {
 function issueFromZoneRecords(
   hostname: string,
   proxyName: string | undefined,
-  zoneRecords: ZoneRecords[]
+  zoneRecords: ZoneRecords[],
+  options?: { allowOccupyingHeuristic?: boolean }
 ): HostnameDnsIssue | undefined {
   const atName = recordsAtHostname(zoneRecords, hostname);
   if (!atName) return undefined;
 
   const gateway = atName.records.find((record) => isGatewayRecord(record, proxyName));
-  const manual = atName.records.filter((record) => isManualRecord(record, atName.zoneDomain));
+  const occupyingManual = atName.records.filter(
+    (record) => isManualRecord(record, atName.zoneDomain) && ALIAS_OCCUPYING_TYPES.has(record.type)
+  );
   const gatewayMessage = gateway?.status?.message ?? '';
   const collidingName =
     parseDnsRrsetConflict(gatewayMessage)?.recordName ||
-    (manual[0] ? getRecordHostname(manual[0].name ?? '', atName.zoneDomain) : undefined) ||
+    (occupyingManual[0]
+      ? getRecordHostname(occupyingManual[0].name ?? '', atName.zoneDomain)
+      : undefined) ||
     hostname;
 
-  if (parseDnsRrsetConflict(gatewayMessage) || manual.length > 0) {
+  if (
+    parseDnsRrsetConflict(gatewayMessage) ||
+    (options?.allowOccupyingHeuristic !== false && occupyingManual.length > 0)
+  ) {
     return {
       label: 'DNS conflict',
       message: formatAlbHostnameDnsConflict(gatewayMessage || undefined, collidingName),
@@ -122,7 +134,11 @@ export function resolveHostnameDnsIssue({
     return fromCondition;
   }
 
-  const fromRecords = issueFromZoneRecords(hostname, proxyName, zoneRecords);
+  const fromRecords = issueFromZoneRecords(hostname, proxyName, zoneRecords, {
+    // DomainNotVerified: Datum has not tried to write the ALIAS yet, so a
+    // pre-existing CNAME is not yet a programming clash.
+    allowOccupyingHeuristic: condition?.reason !== DnsRecordProgrammedReason.DomainNotVerified,
+  });
   if (fromRecords) return fromRecords;
 
   return fromCondition;

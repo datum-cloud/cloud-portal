@@ -20,6 +20,7 @@ import {
   getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
+  isHostnameDnsInFlight,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
@@ -91,22 +92,22 @@ export const HttpProxyHostnamesCard = ({
   // Best-effort: when the zone list is slow or denied the rows still render,
   // they just lose the "View DNS records" link. Records themselves are how we
   // detect a manual/ALB clash — the proxy condition often stays "pending".
-  const dnsStillOpen = useMemo(
+  const pollZoneRecords = useRef(true);
+  const dnsInFlight = useMemo(
     () =>
-      customHostnames.some((hostname) => {
-        const hostnameStatus = proxy?.hostnameStatuses?.find(
-          (entry) => entry.hostname === hostname
-        );
-        return (
-          getDnsRecordProgrammedDisplay(getDnsRecordProgrammedCondition(hostnameStatus)) ===
-          'pending'
-        );
-      }),
+      customHostnames.some((hostname) =>
+        isHostnameDnsInFlight(
+          getDnsRecordProgrammedCondition(
+            proxy?.hostnameStatuses?.find((entry) => entry.hostname === hostname)
+          )
+        )
+      ),
     [customHostnames, proxy?.hostnameStatuses]
   );
 
   const { zones, matchedZones, zoneRecords } = useProxyZoneRecords(projectId, customHostnames, {
-    refetchInterval: dnsStillOpen ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
+    refetchInterval: () =>
+      dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
   });
 
   const updateProxy = useUpdateHttpProxy(projectId ?? '', proxy?.name ?? '');
@@ -146,6 +147,8 @@ export const HttpProxyHostnamesCard = ({
       };
     });
   }, [customHostnames, proxy?.hostnameStatuses, proxy?.name, zones, zoneRecords, projectId]);
+
+  pollZoneRecords.current = rows.some((row) => row.dns === 'pending' && !row.dnsIssue);
 
   const systemHostname = proxy?.canonicalHostname ?? proxy?.status?.hostnames?.[0];
   const proxyStatus = useMemo(

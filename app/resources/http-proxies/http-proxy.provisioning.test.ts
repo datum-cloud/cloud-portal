@@ -73,4 +73,132 @@ describe('isHttpProxyProvisioning', () => {
       )
     ).toBe(true);
   });
+
+  test('is true while hostname DNS is still being written', () => {
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          hostnames: ['www.example.com'],
+          hostnameStatuses: [
+            {
+              hostname: 'www.example.com',
+              conditions: [
+                {
+                  type: 'Available',
+                  status: 'True',
+                  reason: 'Available',
+                  message: '',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+                {
+                  type: 'DNSRecordProgrammed',
+                  status: 'False',
+                  reason: 'Pending',
+                  message: 'DNS record is pending',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+              ],
+            },
+          ],
+          status: { conditions: [{ type: 'Ready', status: 'True', reason: 'Ready', message: '' }] },
+        })
+      )
+    ).toBe(true);
+  });
+
+  test('is false when DNS is conflicted — that only moves after a user action', () => {
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          hostnames: ['www.example.com'],
+          hostnameStatuses: [
+            {
+              hostname: 'www.example.com',
+              conditions: [
+                {
+                  type: 'Available',
+                  status: 'True',
+                  reason: 'Available',
+                  message: '',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+                {
+                  type: 'DNSRecordProgrammed',
+                  status: 'False',
+                  reason: 'Conflict',
+                  message: 'RRset exists',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+              ],
+            },
+          ],
+          status: { conditions: [{ type: 'Ready', status: 'True', reason: 'Ready', message: '' }] },
+        })
+      )
+    ).toBe(false);
+  });
+
+  test('is true while ownership verification is still in progress', () => {
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          hostnames: ['www.example.com'],
+          hostnameStatuses: [
+            {
+              hostname: 'www.example.com',
+              conditions: [
+                {
+                  type: 'Available',
+                  status: 'Unknown',
+                  reason: 'Pending',
+                  message: '',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+                {
+                  type: 'DNSRecordProgrammed',
+                  status: 'False',
+                  reason: 'DomainNotVerified',
+                  message: '',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+              ],
+            },
+          ],
+          status: { conditions: [{ type: 'Ready', status: 'True', reason: 'Ready', message: '' }] },
+        })
+      )
+    ).toBe(true);
+  });
+
+  test('is false when ownership verification already failed', () => {
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          hostnames: ['www.example.com'],
+          hostnameStatuses: [
+            {
+              hostname: 'www.example.com',
+              conditions: [
+                {
+                  type: 'Available',
+                  status: 'False',
+                  reason: 'Failed',
+                  message: 'not verified',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+                {
+                  type: 'DNSRecordProgrammed',
+                  status: 'False',
+                  reason: 'DomainNotVerified',
+                  message: '',
+                  lastTransitionTime: '2026-01-01T00:00:00Z',
+                },
+              ],
+            },
+          ],
+          status: { conditions: [{ type: 'Ready', status: 'True', reason: 'Ready', message: '' }] },
+        })
+      )
+    ).toBe(false);
+  });
 });

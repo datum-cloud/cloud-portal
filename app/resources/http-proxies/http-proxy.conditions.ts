@@ -135,6 +135,26 @@ export function getDnsRecordProgrammedDisplay(
 }
 
 /**
+ * True while DNS for this hostname can still change without the user editing
+ * the ALB (still verifying, record being written). False for terminal states
+ * that only move after a user action (conflict, failed, not delegated).
+ */
+export function isHostnameDnsInFlight(condition: ConditionLike | undefined): boolean {
+  if (!condition) return true;
+  if (condition.status === 'True') return false;
+  switch (condition.reason) {
+    case DnsRecordProgrammedReason.NotApplicable:
+    case DnsRecordProgrammedReason.Conflict:
+    case DnsRecordProgrammedReason.Failed:
+    case DnsRecordProgrammedReason.DNSAuthorityMissing:
+    case DnsRecordProgrammedReason.DomainNotVerified:
+      return false;
+    default:
+      return true;
+  }
+}
+
+/**
  * A DNSRecordProgrammed problem the user has to act on, as opposed to a state
  * that resolves on its own (still verifying, record being written).
  *

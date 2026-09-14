@@ -4,7 +4,7 @@ import {
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
   getDnsRecordProgrammedCondition,
-  getDnsRecordProgrammedDisplay,
+  isHostnameDnsInFlight,
 } from './http-proxy.conditions';
 import type { HttpProxy } from './http-proxy.schema';
 import { ControlPlaneStatus } from '@/resources/base';
@@ -33,9 +33,7 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
   if (expected.length > 0 && statuses.length < expected.length) return true;
 
   return statuses.some((hostnameStatus) => {
-    if (
-      getDnsRecordProgrammedDisplay(getDnsRecordProgrammedCondition(hostnameStatus)) === 'pending'
-    ) {
+    if (isHostnameDnsInFlight(getDnsRecordProgrammedCondition(hostnameStatus))) {
       return true;
     }
     const cert = getCertificateReadyDisplay(getCertificateReadyCondition(hostnameStatus));
@@ -43,6 +41,7 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
     const available = hostnameStatus.conditions?.find(
       (condition) => condition.type === 'Available'
     );
-    return available != null && available.status !== 'True';
+    // Unknown is still verifying; False is a user-action failure.
+    return available?.status === 'Unknown';
   });
 }

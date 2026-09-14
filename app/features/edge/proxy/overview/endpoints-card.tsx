@@ -19,6 +19,7 @@ import {
   getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
+  isHostnameDnsInFlight,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -130,19 +131,21 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
   });
 
   const customHostnames = useMemo(() => proxy.hostnames ?? [], [proxy.hostnames]);
-  const dnsStillOpen = useMemo(
+  const pollZoneRecords = useRef(true);
+  const dnsInFlight = useMemo(
     () =>
-      customHostnames.some((hostname) => {
-        const hostnameStatus = proxy.hostnameStatuses?.find((entry) => entry.hostname === hostname);
-        return (
-          getDnsRecordProgrammedDisplay(getDnsRecordProgrammedCondition(hostnameStatus)) ===
-          'pending'
-        );
-      }),
+      customHostnames.some((hostname) =>
+        isHostnameDnsInFlight(
+          getDnsRecordProgrammedCondition(
+            proxy.hostnameStatuses?.find((entry) => entry.hostname === hostname)
+          )
+        )
+      ),
     [customHostnames, proxy.hostnameStatuses]
   );
   const { matchedZones, zoneRecords } = useProxyZoneRecords(projectId, customHostnames, {
-    refetchInterval: dnsStillOpen ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
+    refetchInterval: () =>
+      dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
   });
 
   const hostnames = useMemo(() => {
@@ -170,6 +173,8 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
       };
     });
   }, [customHostnames, proxy.hostnameStatuses, proxy.name, zoneRecords]);
+
+  pollZoneRecords.current = hostnames.some((item) => item.dns === 'pending' && !item.dnsIssue);
 
   const systemHostname = proxy.canonicalHostname ?? proxy.status?.hostnames?.[0];
   const backends = summarizeBackends(proxy);

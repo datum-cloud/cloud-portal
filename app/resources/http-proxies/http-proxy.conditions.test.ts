@@ -1,4 +1,4 @@
-import { getDnsRecordProgrammedIssue } from './http-proxy.conditions';
+import { getDnsRecordProgrammedIssue, isHostnameDnsInFlight } from './http-proxy.conditions';
 import { describe, expect, test } from 'bun:test';
 
 const WRAPPED_ALIAS =
@@ -40,5 +40,38 @@ describe('getDnsRecordProgrammedIssue', () => {
         message: 'Waiting for DNS record to be programmed',
       })
     ).toBeUndefined();
+  });
+});
+
+describe('isHostnameDnsInFlight', () => {
+  test('is true while the condition is missing or still pending', () => {
+    expect(isHostnameDnsInFlight(undefined)).toBe(true);
+    expect(
+      isHostnameDnsInFlight({
+        type: 'DNSRecordProgrammed',
+        status: 'False',
+        reason: 'Pending',
+        message: 'DNS record is pending',
+      })
+    ).toBe(true);
+  });
+
+  test('is false for terminal user-action reasons', () => {
+    for (const reason of [
+      'Conflict',
+      'Failed',
+      'DNSAuthorityMissing',
+      'NotApplicable',
+      'DomainNotVerified',
+    ]) {
+      expect(
+        isHostnameDnsInFlight({
+          type: 'DNSRecordProgrammed',
+          status: 'False',
+          reason,
+          message: '',
+        })
+      ).toBe(false);
+    }
   });
 });

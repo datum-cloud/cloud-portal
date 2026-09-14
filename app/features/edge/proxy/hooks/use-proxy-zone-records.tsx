@@ -13,7 +13,7 @@ export type MatchedDnsZone = { name: string; domainName: string };
 export function useProxyZoneRecords(
   projectId: string | undefined,
   hostnames: string[],
-  options?: { refetchInterval?: number | false }
+  options?: { refetchInterval?: number | false | (() => number | false) }
 ) {
   const { data: zones = [], isLoading: isLoadingZones } = useDnsZones(projectId ?? '', undefined, {
     staleTime: QUERY_STALE_TIME,
