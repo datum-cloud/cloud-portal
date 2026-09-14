@@ -50,7 +50,7 @@ export function isProjectAccessGrantReady(
  *
  * Uses org-scoped project list (no cluster FGA), OrganizationMembership
  * `RolesApplied`, and a Ready PolicyBinding targeting the project in the org
- * namespace — the same pipeline as {@link createOrganizationService.waitForOwnerGrantReady}.
+ * namespace — the same pipeline as {@link waitForMembershipRolesApplied} in the members resource.
  */
 export async function waitForProjectAccessReady(
   orgId: string,

@@ -37,11 +37,6 @@ export {
   type OrganizationService,
 } from './organization.service';
 
-export {
-  waitForMembershipRolesApplied,
-  type MembershipWaitOptions,
-} from './organization.membership-wait';
-
 // Query hook exports
 export {
   useOrganizations,

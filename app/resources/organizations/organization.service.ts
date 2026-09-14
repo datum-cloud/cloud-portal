@@ -6,10 +6,6 @@ import {
   toUpdatePayload,
 } from './organization.adapter';
 import {
-  type MembershipWaitOptions,
-  waitForMembershipRolesApplied,
-} from './organization.membership-wait';
-import {
   createOrganizationSchema,
   createOnboardingOrganizationSchema,
   type Organization,
@@ -287,30 +283,6 @@ export function createOrganizationService() {
         logger.error(`${SERVICE_NAME}.update failed`, error as Error);
         throw mapApiError(error);
       }
-    },
-
-    /**
-     * Poll the user-scoped membership list until this user's roles (and their
-     * PolicyBindings / OpenFGA tuples) have been applied for the org.
-     *
-     * See {@link waitForMembershipRolesApplied} for why this reads membership
-     * status instead of SelfSubjectAccessReview.
-     */
-    async waitForMembershipRolesApplied(
-      orgId: string,
-      opts: MembershipWaitOptions = {}
-    ): Promise<void> {
-      const startTime = Date.now();
-      await waitForMembershipRolesApplied(() => this.fetchMembershipForOrganization(orgId), opts);
-      logger.service(SERVICE_NAME, 'waitForMembershipRolesApplied', {
-        input: { orgId },
-        duration: Date.now() - startTime,
-      });
-    },
-
-    /** Owner-flavoured alias kept for the onboarding flow. */
-    async waitForOwnerGrantReady(orgId: string, opts: MembershipWaitOptions = {}): Promise<void> {
-      return this.waitForMembershipRolesApplied(orgId, opts);
     },
 
     async fetchMembershipForOrganization(

@@ -6,7 +6,7 @@ import {
   useAcceptInvitation,
   useRejectInvitation,
 } from '@/resources/invitations/invitation.queries';
-import { createOrganizationService } from '@/resources/organizations';
+import { waitForMembershipRolesApplied } from '@/resources/members';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
@@ -98,10 +98,9 @@ export default function InvitationPage() {
       // restricted state remains the fallback.
       setIsSettlingAccess(true);
       try {
-        await createOrganizationService().waitForMembershipRolesApplied(
-          invitation.organizationName,
-          { timeoutMs: ACCESS_WAIT_TIMEOUT_MS }
-        );
+        await waitForMembershipRolesApplied(invitation.organizationName, {
+          timeoutMs: ACCESS_WAIT_TIMEOUT_MS,
+        });
       } catch (error) {
         logger.warn('Invitation accepted but roles did not settle before timeout', {
           orgId: invitation.organizationName,
