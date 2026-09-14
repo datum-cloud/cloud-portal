@@ -1,4 +1,9 @@
 import { initializeObservability } from '../../observability';
+import {
+  RESOURCE_METADATA_PATH,
+  buildLinkHeader,
+  buildProtectedResourceMetadata,
+} from './agent-discovery';
 import { cspNonceContext, loggerContext, requestIdContext, sessionContext } from './context';
 import { sessionMiddleware } from './middleware/auth';
 import { errorHandler } from './middleware/error-handler';
@@ -213,6 +218,50 @@ if (isDevSessionEnabled()) {
 // - Auth guard for all API routes
 // - Explicit 404 for unknown endpoints (prevents discovery attacks)
 app.route('/api', createApiApp());
+
+// ============================================================================
+// Agent / OAuth Discovery (no auth required)
+// ============================================================================
+// Registered here, ahead of the React Router handler, for two reasons: these
+// paths must answer without a session — discovery a client can only reach once
+// authenticated is circular — and React Router's catch-all (`route('*')`) would
+// otherwise swallow them and return the SPA shell as text/html.
+
+/** RFC 9728 Protected Resource Metadata — which authorization server guards this API. */
+app.get(RESOURCE_METADATA_PATH, (c) =>
+  // `resource` comes from the request, not config: RFC 9728 wants the
+  // identifier the client actually used, which also keeps this right across
+  // hosts and preview deploys. The issuer is genuine configuration.
+  c.json(buildProtectedResourceMetadata(c.req.url, env.public.authOidcIssuer), 200, {
+    // Public, non-personal, and rarely changes; let intermediaries hold it.
+    'Cache-Control': 'public, max-age=3600',
+  })
+);
+
+app.get('/robots.txt', (c) =>
+  c.text(`User-agent: *\nAllow: /$\nDisallow: /\n`, 200, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'public, max-age=3600',
+  })
+);
+
+/**
+ * RFC 8288 Link headers pointing at the machine-readable resources above.
+ * Only on HTML documents: an agent landing on a page gets the pointer without
+ * having to guess a path, while JSON and asset responses stay untouched.
+ */
+app.use('*', async (c, next) => {
+  await next();
+
+  if (!c.res.headers.get('Content-Type')?.includes('text/html')) return;
+
+  try {
+    c.res.headers.append('Link', buildLinkHeader());
+  } catch {
+    // Some responses (redirects, cached ones) carry immutable headers. A
+    // discovery hint is never worth failing the request it rides on.
+  }
+});
 
 // ============================================================================
 // Health Check Routes (no auth required)
