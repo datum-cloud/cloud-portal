@@ -79,7 +79,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
     initialDataUpdatedAt: Date.now(),
     refetchOnMount: false,
   });
-  const { data: memberships = [] } = useGroupMemberships(orgId, {
+  const { data: memberships = [], isPending: isMembershipsPending } = useGroupMemberships(orgId, {
     staleTime: QUERY_STALE_TIME,
   });
   const { data: members = [] } = useMembers(orgId, {
@@ -183,11 +183,15 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
           variant: 'destructive',
           icon: <Icon icon={TrashIcon} className="size-4" />,
           hidden: () => !canDelete,
+          // Member counts come from a separate query. Until it settles every
+          // group reads as empty, which would skip the members warning.
+          disabled: () => isMembershipsPending,
+          tooltip: () => (isMembershipsPending ? 'Loading members…' : undefined),
           onClick: (row) => deleteGroup(row),
         },
       ]),
     ],
-    [canDelete, deleteGroup, navigate, orgId]
+    [canDelete, deleteGroup, isMembershipsPending, navigate, orgId]
   );
 
   return (
