@@ -376,7 +376,13 @@ export const OrgBillingSetupForm = ({
           openE2e="org-billing-contact-open"
           onOpen={() => setContactDialogOpen(true)}>
           {contactComplete && contactInfo ? (
-            <div className="flex min-w-0 flex-col gap-1 text-left">
+            // Mirrors org-billing-payment-summary: this is the only rendered
+            // proof the contact save landed, and payment cannot be opened until
+            // it has. e2e waits on it so a failed save is reported here rather
+            // than surfacing later as a disabled payment button.
+            <div
+              className="flex min-w-0 flex-col gap-1 text-left"
+              data-e2e="org-billing-contact-summary">
               <p className="text-foreground text-[13px] leading-[18px] font-medium break-words">
                 {formatOrgContactPrimaryLine(contactInfo)}
               </p>
