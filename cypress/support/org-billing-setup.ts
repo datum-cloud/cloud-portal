@@ -131,6 +131,13 @@ export function completeOrgContactInfo(): void {
   });
 
   cy.get('[data-e2e="org-contact-save"]').click();
+
+  // Wait for the save to actually land. It creates the billing account, and
+  // nothing downstream works without one — the payment step stays disabled
+  // until it exists. Clicking and moving on meant a failed save surfaced two
+  // minutes later as "payment button is disabled", pointing at the wrong
+  // control; this fails here instead, naming the step that broke.
+  cy.get('[data-e2e="org-billing-contact-summary"]', { timeout: 60_000 }).should('be.visible');
 }
 
 export function fillStripePaymentDialog(displayName = 'E2E test card'): void {
