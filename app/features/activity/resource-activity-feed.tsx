@@ -50,9 +50,12 @@ export interface ResourceActivityFeedProps {
   compact?: boolean;
   /**
    * Override the rendered variant. Defaults: `'timeline'` when `compact`,
-   * `'feed'` otherwise.
+   * `'feed'` otherwise. `'digest'` is a day-sectioned timeline with
+   * consecutive same verb/kind/actor activities collapsed into a single
+   * expandable row, a summary strip, and a compact filter bar — opt in per
+   * route (see the project Activity page).
    */
-  variant?: 'feed' | 'timeline';
+  variant?: 'feed' | 'timeline' | 'digest';
   /**
    * Sync user-applied filter and time-range state to URL search params.
    * Defaults to `true`. Locked filters (`resourceKinds`, `resourceName`)

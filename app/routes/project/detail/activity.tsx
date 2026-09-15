@@ -18,7 +18,10 @@ export default function ProjectActivityLogsPage() {
       <ResourceActivityFeed
         client={client}
         resourceLinkResolver={resourceLinkResolver}
-        changeSource="human"
+        changeSource="all"
+        compact={false}
+        variant="digest"
+        feedProps={{ hiddenFilters: ['changeSource'] }}
       />
     </div>
   );
