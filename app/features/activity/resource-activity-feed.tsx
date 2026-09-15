@@ -34,7 +34,11 @@ export interface ResourceActivityFeedProps {
    * `'all'` = both. Defaults to `'all'`.
    */
   changeSource?: ChangeSource | 'all';
-  /** Page size for the feed. Defaults to 30. */
+  /**
+   * Page size for the feed. Defaults to 30. Embedded feeds page with an
+   * explicit "Load more" footer; pass `feedProps={{ infiniteScroll: true }}`
+   * to opt back in to infinite scroll.
+   */
   pageSize?: number;
   /** Enable SSE-based live streaming of new activity. Defaults to false (manual refresh). */
   enableStreaming?: boolean;
@@ -146,6 +150,7 @@ export function ResourceActivityFeed({
       compact={compact}
       variant={effectiveVariant}
       pageSize={pageSize}
+      infiniteScroll={false}
       enableStreaming={enableStreaming}
       tenantRenderer={() => null}
       errorFormatter={defaultErrorFormatter}
