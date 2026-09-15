@@ -173,6 +173,16 @@ const serverSchema = z.object({
   REDIS_KEY_PREFIX: z.string().default('cloud-portal:'),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: API rate limiting
+  //   RATE_LIMIT_PROFILE: force `standard` or `development` budgets instead of
+  //     deriving them from NODE_ENV (useful for exercising real budgets locally).
+  //   RATE_LIMIT_ENFORCE_BROWSER_ORIGIN: "true" rejects /api requests without
+  //     browser fetch metadata with 403; off by default (log-only).
+  // ─────────────────────────────────────────────────────────
+  RATE_LIMIT_PROFILE: z.enum(['standard', 'development']).optional(),
+  RATE_LIMIT_ENFORCE_BROWSER_ORIGIN: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Portal Plugin System (dev-only)
   //
   // These are development-only plugin-loading vectors — they are ignored

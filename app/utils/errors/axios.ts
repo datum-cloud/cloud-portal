@@ -1,14 +1,14 @@
+import { RateLimitError } from './app-error';
 import { TokenError, AuthenticationError, AuthorizationError } from './auth';
 import { AppError } from './base';
-import {
-  HttpError,
-  BadRequestError,
-  NotFoundError,
-  ValidationError,
-  ConflictError,
-  RateLimitError,
-} from './http';
+import { HttpError, BadRequestError, NotFoundError, ValidationError, ConflictError } from './http';
 import { isAxiosError, type AxiosError } from 'axios';
+
+/** Retry-After as whole seconds; the HTTP-date form is not used by this server and is ignored. */
+export function parseRetryAfterHeader(value: unknown): number | undefined {
+  const seconds = typeof value === 'number' ? value : parseInt(String(value ?? ''), 10);
+  return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined;
+}
 
 /**
  * Extract a human-friendly error message from various upstream response shapes.
@@ -83,7 +83,7 @@ function extractRequestId(error: AxiosError): string | undefined {
 /**
  * Map an AxiosError into a domain AppError subclass with meaningful message and status.
  */
-export function mapAxiosErrorToAppError(error: AxiosError): AppError {
+export function mapAxiosErrorToAppError(error: AxiosError): AppError | RateLimitError {
   // No response → network/timeout/canceled
   if (!error.response) {
     if (error.code === 'ERR_CANCELED') {
@@ -119,7 +119,10 @@ export function mapAxiosErrorToAppError(error: AxiosError): AppError {
     case 422:
       return new ValidationError(msg, requestId);
     case 429:
-      return new RateLimitError(msg, requestId);
+      return new RateLimitError(
+        parseRetryAfterHeader(error.response.headers?.['retry-after']),
+        requestId
+      );
     case 503:
       return new HttpError(msg || 'Service unavailable', 503, requestId);
     default:
@@ -135,6 +138,7 @@ export function isTimeoutOrNetworkError(error: any): boolean {
   // If it's an AxiosError, use the existing mapping logic
   if (isAxiosError(error)) {
     const appError = mapAxiosErrorToAppError(error);
+    if (appError instanceof RateLimitError) return false;
     // Timeout errors have status 504, network errors have status 503
     return appError.statusCode === 504 || appError.statusCode === 503;
   }
