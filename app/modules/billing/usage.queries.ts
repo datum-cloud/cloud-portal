@@ -1,4 +1,5 @@
 import type { OrgUsageDashboardData } from './usage.types';
+import { gatedFetch } from '@/modules/rate-limit';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 
@@ -19,7 +20,7 @@ export async function fetchOrgUsageDashboard(params: {
     cycle: params.cycle,
   });
 
-  const response = await fetch(`/api/usage?${search.toString()}`);
+  const response = await gatedFetch(`/api/usage?${search.toString()}`);
   const body = (await response.json().catch(() => ({}))) as OrgUsageDashboardData & {
     message?: string;
   };

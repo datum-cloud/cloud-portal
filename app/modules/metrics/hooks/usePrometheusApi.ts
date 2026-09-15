@@ -17,6 +17,7 @@ import {
   type TimeRange,
   PrometheusError,
 } from '@/modules/prometheus';
+import { gatedFetch } from '@/modules/rate-limit';
 import { useQuery, type QueryKey, type UseQueryResult } from '@tanstack/react-query';
 import { useQueryState } from 'nuqs';
 import React from 'react';
@@ -88,7 +89,7 @@ async function makePrometheusAPIRequest<T>(request: PrometheusAPIRequest): Promi
     // If already timestamps (numbers), use as-is
   }
 
-  const response = await fetch(PROMETHEUS_ROUTE_PATH, {
+  const response = await gatedFetch(PROMETHEUS_ROUTE_PATH, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestBody),

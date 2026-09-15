@@ -1,4 +1,5 @@
 import { type K8sStatus, isK8sStatus, parseK8sStatusError } from './k8s-error';
+import { gateAxiosRequest, rateLimitErrorFromAxios } from '@/modules/rate-limit/axios-gate';
 import {
   isKubernetesResource,
   setSentryResourceContext,
@@ -25,6 +26,8 @@ export const httpClient = Axios.create({
 });
 
 const onRequest = (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
+  // Fail fast while this request's rate limit bucket is paused; no network call.
+  gateAxiosRequest(config);
   // Clear previous resource context to avoid stale data
   clearSentryResourceContext();
   // Record start time for duration calculation
@@ -158,6 +161,9 @@ function appErrorFromRaw(error: AxiosError, httpStatus: number): AppError {
 }
 
 const onResponseError = (error: AxiosError): Promise<never> => {
+  const rateLimited = rateLimitErrorFromAxios(error, getErrorMessage(error).requestId);
+  if (rateLimited) return Promise.reject(rateLimited);
+
   // Handle 401 AUTH_ERROR → redirect to logout
   if (error.response?.status === 401) {
     const data = error.response?.data as { code?: string } | undefined;

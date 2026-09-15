@@ -1,4 +1,5 @@
 import type { PermissionCheckScope, IPermissionCheck, IPermissionResult } from '../types';
+import { gatedFetch } from '@/modules/rate-limit';
 
 /**
  * Input for a single precise check. Scope/projectId are optional and forwarded
@@ -23,7 +24,7 @@ export interface BulkCheckResult extends IPermissionResult {
 
 /** Single precise check (escape hatch — useAccessReview / usePermission). */
 export async function checkPermissionAPI(check: CheckPermissionInput): Promise<IPermissionResult> {
-  const response = await fetch('/api/permissions/check', {
+  const response = await gatedFetch('/api/permissions/check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(check),
@@ -42,7 +43,7 @@ export async function checkPermissionsBulkAPI(
   organizationId: string,
   checks: Array<Omit<CheckPermissionInput, 'organizationId'>>
 ): Promise<BulkCheckResult[]> {
-  const response = await fetch('/api/permissions/bulk-check', {
+  const response = await gatedFetch('/api/permissions/bulk-check', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ organizationId, checks }),
