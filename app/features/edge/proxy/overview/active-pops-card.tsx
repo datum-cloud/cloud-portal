@@ -531,7 +531,7 @@ export const ActivePopsCard = ({
               ? metricsError
                 ? 'Unable to load active regions.'
                 : 'No locations found.'
-              : `${activeCount} of ${directory.length} POPs serving traffic`}
+              : `${activeCount} of ${directory.length} regions serving traffic`}
         </CardDescription>
         <CardAction>{renderExpandButton('h-7 px-2')}</CardAction>
       </CardHeader>
@@ -554,7 +554,7 @@ export const ActivePopsCard = ({
             icon={MapPinIcon}
             title="No traffic yet"
             description={`${directory.length} ${
-              directory.length === 1 ? 'POP is' : 'POPs are'
+              directory.length === 1 ? 'region is' : 'regions are'
             } ready to serve as soon as requests arrive.`}
           />
         ) : (
