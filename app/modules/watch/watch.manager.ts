@@ -11,6 +11,7 @@
 // Public API is unchanged — all consumers (useResourceWatch, waitForWatch,
 // WatchProvider) work without modification.
 import type { WatchOptions, WatchEvent, WatchSubscriber } from './watch.types';
+import { noteRateLimitedResponse, parseRetryAfter } from '@/modules/rate-limit';
 
 /** Base delay before reconnecting after the SSE stream drops (ms). */
 const SSE_RECONNECT_BASE_DELAY = 1000;
@@ -50,7 +51,7 @@ interface ChannelSubscription {
  * - Delayed cleanup for React Strict Mode re-mounts
  * - HMR-safe singleton (persists across hot reloads)
  */
-class WatchManager {
+export class WatchManager {
   private clientId: string;
   private channels = new Map<string, ChannelSubscription>();
   private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
@@ -64,6 +65,8 @@ class WatchManager {
   private visibilityListenerAttached = false;
   private visibilityHandler: (() => void) | null = null;
   private reconnectAttempts = 0;
+  /** Pending reconnect scheduled by a 429 on the stream; cleared when the tab hides or on disconnect. */
+  private rateLimitTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.clientId = crypto.randomUUID();
@@ -147,6 +150,7 @@ class WatchManager {
 
     // Close SSE connection
     this.controller?.abort();
+    this.clearRateLimitTimer();
     this.reader = null;
     this.isConnected = false;
 
@@ -156,6 +160,12 @@ class WatchManager {
       this.visibilityListenerAttached = false;
       this.visibilityHandler = null;
     }
+  }
+
+  private clearRateLimitTimer(): void {
+    if (this.rateLimitTimer === null) return;
+    clearTimeout(this.rateLimitTimer);
+    this.rateLimitTimer = null;
   }
 
   /** Number of active watch channels. */
@@ -186,6 +196,23 @@ class WatchManager {
         signal: this.controller.signal,
         headers: { Accept: 'text/event-stream' },
       });
+
+      if (response.status === 429) {
+        // The limiter, not the network, said no. Come back when it says we may;
+        // this must not count toward SSE_MAX_RETRIES or a busy minute could
+        // exhaust the reconnect budget for the whole session.
+        noteRateLimitedResponse(response.headers);
+        this.isConnected = false;
+        this.clearRateLimitTimer();
+        this.rateLimitTimer = setTimeout(
+          () => {
+            this.rateLimitTimer = null;
+            this.connect();
+          },
+          parseRetryAfter(response.headers.get('Retry-After')) * 1000
+        );
+        return;
+      }
 
       if (!response.ok || !response.body) {
         throw new Error(`SSE connection failed: ${response.status}`);
@@ -330,8 +357,8 @@ class WatchManager {
 
   // ─── Server Communication ────────────────────────
 
-  /** Send `POST /api/watch/subscribe` to the server-side WatchHub. */
-  private async serverSubscribe(options: WatchOptions): Promise<void> {
+  /** Send `POST /api/watch/subscribe` to the server-side WatchHub. Retries once after a 429. */
+  private async serverSubscribe(options: WatchOptions, attempt = 0): Promise<void> {
     try {
       const response = await fetch('/api/watch/subscribe', {
         method: 'POST',
@@ -348,6 +375,17 @@ class WatchManager {
           userScoped: options.userScoped,
         }),
       });
+      if (response.status === 429 && attempt === 0) {
+        noteRateLimitedResponse(response.headers);
+        const wait = parseRetryAfter(response.headers.get('Retry-After'));
+        const channel = this.buildChannelKey(options);
+        setTimeout(() => {
+          // Only retry for a channel someone still listens to; otherwise the
+          // retry would open a server-side watch that nothing ever closes.
+          if (this.channels.has(channel)) this.serverSubscribe(options, 1);
+        }, wait * 1000);
+        return;
+      }
       if (!response.ok) {
         const body = await response.text().catch(() => '');
         console.warn(
@@ -425,6 +463,7 @@ class WatchManager {
     this.visibilityHandler = () => {
       if (document.hidden) {
         this.controller?.abort();
+        this.clearRateLimitTimer();
         this.isConnected = false;
       } else if (!this.isConnected) {
         this.reconnectAttempts = 0;
