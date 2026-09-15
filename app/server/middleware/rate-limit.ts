@@ -1,10 +1,27 @@
+import {
+  createMemoryPenaltyBox,
+  createRedisPenaltyBox,
+  type PenaltyBox,
+} from './rate-limit-penalty';
+import { createRateLimitStore, type RedisLike } from './rate-limit-store';
+import { logger } from '@/modules/logger';
 import { redisClient } from '@/modules/redis';
+import {
+  apiNonBrowserRequestsTotal,
+  rateLimitPenaltiesTotal,
+  rateLimitRejectionsTotal,
+} from '@/server/observability/rate-limit-metrics';
 import type { Variables } from '@/server/types';
-import { RateLimitError } from '@/utils/errors/app-error';
+import { AuthorizationError, RateLimitError } from '@/utils/errors/app-error';
+import {
+  resolveRouteGroup,
+  resolveTrafficClass,
+  type RateLimitBucket,
+} from '@/utils/rate-limit/traffic-class';
 import type { Context, MiddlewareHandler } from 'hono';
 import { rateLimiter as honoRateLimiter } from 'hono-rate-limiter';
-import { RedisStore } from 'rate-limit-redis';
-import type { RedisReply } from 'rate-limit-redis';
+
+type Ctx = Context<{ Variables: Variables }>;
 
 // ============================================================================
 // IP Detection & Key Generation
@@ -45,7 +62,7 @@ function getClientIP(c: Context<{ Variables: Variables }>): string {
   // Fallback: In production without proxy headers, we can't reliably get the IP
   // Use a placeholder that won't provide per-user limiting but prevents crashes
   if (!isDev) {
-    console.warn('[rate-limit] Could not determine client IP, using fallback');
+    logger.warn('[rate-limit] Could not determine client IP, using fallback');
   }
 
   return 'unknown';
@@ -80,143 +97,217 @@ function defaultKeyGenerator(c: Context<{ Variables: Variables }>): string {
 }
 
 // ============================================================================
-// Custom Handler for RateLimitError Integration
+// Budgets & profile
 // ============================================================================
 
-/**
- * Custom handler that throws our RateLimitError instead of returning default response.
- * This maintains compatibility with our existing error handling system.
- */
-function customRateLimitHandler(c: Context<{ Variables: Variables }>) {
-  const retryAfter = c.res.headers.get('Retry-After');
-  const retryAfterSeconds = retryAfter ? parseInt(retryAfter, 10) : 60;
-  const requestId = c.get('requestId');
+export interface RateLimitBudgets {
+  windowMs: number;
+  machine: number;
+  interactive: number;
+  ceiling: number;
+}
 
-  throw new RateLimitError(retryAfterSeconds, requestId);
+/**
+ * Per-user budgets per minute. One busy tab generates about 40 machine
+ * requests a minute, so five tabs fit under 600 with headroom. Interactive
+ * traffic never exceeded 100 on its own. The ceiling is the only bucket that
+ * can throttle a legitimate user and is what the penalty box watches.
+ * See datum-cloud/cloud-portal#1543.
+ */
+export const RATE_LIMIT_BUDGETS = {
+  standard: { windowMs: 60_000, machine: 600, interactive: 300, ceiling: 1500 },
+  development: { windowMs: 60_000, machine: 10_000, interactive: 10_000, ceiling: 10_000 },
+} as const satisfies Record<string, RateLimitBudgets>;
+
+export type RateLimitProfile = keyof typeof RATE_LIMIT_BUDGETS;
+
+/** `RATE_LIMIT_PROFILE` wins; otherwise production is standard and everything else development. */
+export function resolveRateLimitProfile(
+  env: Record<string, string | undefined> = process.env
+): RateLimitProfile {
+  const requested = env.RATE_LIMIT_PROFILE;
+  if (requested === 'standard' || requested === 'development') return requested;
+  return env.NODE_ENV === 'production' ? 'standard' : 'development';
 }
 
 // ============================================================================
-// Rate Limit Presets
+// Browser origin signal
 // ============================================================================
 
 /**
- * Preset configurations for different use cases.
- *
- * Note: hono-rate-limiter uses fixed window algorithm (not sliding window).
- * This is slightly less accurate at window boundaries but more performant
- * and works consistently across distributed systems (e.g., with Redis).
+ * Browsers send `Sec-Fetch-Site: same-origin` on every same-origin fetch and
+ * EventSource request; scripts and command-line clients do not. Older
+ * browsers without fetch metadata are recognised by Origin matching Host.
  */
-export const RateLimitPresets = {
-  /** Standard API endpoints - 100 requests per minute */
-  standard: {
-    windowMs: 60 * 1000,
-    limit: 100,
-    keyGenerator: defaultKeyGenerator,
-    standardHeaders: 'draft-6' as const,
-    handler: customRateLimitHandler,
-    // Use Redis if available, otherwise in-memory
-    ...(redisClient && {
-      store: new RedisStore({
-        sendCommand: async (command: string, ...args: string[]) =>
-          redisClient!.call(command, ...args) as Promise<RedisReply>,
-      }) as any,
-    }),
-  },
-
-  /** Development mode - 10,000 requests per minute */
-  development: {
-    windowMs: 60 * 1000,
-    limit: 10000,
-    keyGenerator: defaultKeyGenerator,
-    standardHeaders: 'draft-6' as const,
-    handler: customRateLimitHandler,
-    // Always in-memory for faster dev loop
-  },
-} as const;
+export function hasBrowserOrigin(c: Ctx): boolean {
+  const site = c.req.header('Sec-Fetch-Site');
+  if (site) return site === 'same-origin';
+  const origin = c.req.header('Origin');
+  const host = c.req.header('Host');
+  if (!origin || !host) return false;
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
 
 // ============================================================================
-// Rate Limiter Middleware
+// Traffic class limiter
 // ============================================================================
+
+export interface TrafficClassLimiterOptions {
+  /** Defaults to resolveRateLimitProfile(). */
+  profile?: RateLimitProfile;
+  /** Overrides the profile's budgets; tests use tiny numbers. */
+  budgets?: RateLimitBudgets;
+  /** Defaults to the app's redisClient; pass null to force memory. */
+  redis?: RedisLike | null;
+  penaltyBox?: PenaltyBox;
+  /** Defaults to RATE_LIMIT_ENFORCE_BROWSER_ORIGIN === 'true'. */
+  enforceBrowserOrigin?: boolean;
+}
+
+const CLASS_HEADER = 'X-RateLimit-Class';
+
+/** A flood is hundreds of rejections a second; one warn line per subject per interval is enough. */
+const REJECTION_LOG_INTERVAL_MS = 10_000;
+/** Bound on remembered subjects; cleared wholesale when reached, which only costs a few extra lines. */
+const REJECTION_LOG_MAX_SUBJECTS = 10_000;
+const lastRejectionLogAt = new Map<string, number>();
+
+/** True when a rejection for `subject` should be logged now; samples to one line per interval. */
+export function shouldLogRejection(subject: string, now: number = Date.now()): boolean {
+  const last = lastRejectionLogAt.get(subject);
+  if (last !== undefined && now - last < REJECTION_LOG_INTERVAL_MS) return false;
+  if (lastRejectionLogAt.size >= REJECTION_LOG_MAX_SUBJECTS) lastRejectionLogAt.clear();
+  lastRejectionLogAt.set(subject, now);
+  return true;
+}
+
+function retryAfterSeconds(c: Ctx, fallback = 60): number {
+  const header = c.res.headers.get('Retry-After');
+  const parsed = header ? parseInt(header, 10) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 /**
- * Creates a rate limiting middleware with configurable options.
- *
- * This is now powered by hono-rate-limiter, which provides:
- * - Fixed window rate limiting (performant and Redis-compatible)
- * - IETF standard rate limit headers
- * - Easy Redis/Cloudflare KV integration (when needed)
- * - Community-maintained and battle-tested
- *
- * @example
- * // Standard rate limiting
- * app.use('/api/*', rateLimiter());
- *
- * @example
- * // With preset
- * app.use('/api/proxy/*', rateLimiter(RateLimitPresets.proxy));
- *
- * @example
- * // Custom configuration
- * app.use('/api/auth/*', rateLimiter({
- *   limit: 10,
- *   windowMs: 60_000,
- *   keyGenerator: (c) => c.req.header('X-API-Key') ?? 'anonymous',
- * }));
- *
- * @example
- * // Skip rate limiting for certain requests
- * app.use('/api/*', rateLimiter({
- *   ...RateLimitPresets.standard,
- *   skip: (c) => c.get('isAdmin') === true,
- * }));
+ * One limiter per bucket, built once. The middleware runs the ceiling bucket
+ * then the class bucket, so the class headers (the tighter ones) win.
  */
-export function rateLimiter(
-  config: Partial<(typeof RateLimitPresets)[keyof typeof RateLimitPresets]> = {}
+export function trafficClassLimiter(
+  options: TrafficClassLimiterOptions = {}
 ): MiddlewareHandler<{ Variables: Variables }> {
-  const finalConfig = {
-    ...RateLimitPresets.standard,
-    ...config,
-  };
+  const profile = options.profile ?? resolveRateLimitProfile();
+  const budgets = options.budgets ?? RATE_LIMIT_BUDGETS[profile];
+  const redis = options.redis === undefined ? redisClient : options.redis;
+  const penaltyBox =
+    options.penaltyBox ?? (redis ? createRedisPenaltyBox(redis) : createMemoryPenaltyBox());
+  const enforceBrowserOrigin =
+    options.enforceBrowserOrigin ?? process.env.RATE_LIMIT_ENFORCE_BROWSER_ORIGIN === 'true';
 
-  // Cast needed: hono-rate-limiter ships its own hono peer dep whose path/input
-  // generics differ from the app's hono version at the type level only.
-  return honoRateLimiter<{ Variables: Variables }>(
-    finalConfig as any
-  ) as unknown as MiddlewareHandler<{
-    Variables: Variables;
-  }>;
-}
+  const reject = async (c: Ctx, bucket: RateLimitBucket, retryAfter: number): Promise<never> => {
+    const route = resolveRouteGroup(c.req.path);
+    const subject = defaultKeyGenerator(c);
+    c.header(CLASS_HEADER, bucket);
+    rateLimitRejectionsTotal.inc({ class: bucket, route });
 
-// ============================================================================
-// Utility Functions
-// ============================================================================
+    let penalised = false;
+    if (bucket === 'ceiling') {
+      penalised = await penaltyBox.recordTrip(subject);
+      if (penalised) rateLimitPenaltiesTotal.inc();
+    }
 
-/**
- * Create a composite rate limiter that applies multiple limits.
- * Useful for applying both per-user and per-IP limits.
- *
- * @example
- * // Apply both user-based and IP-based rate limiting
- * app.use('/api/*', compositeRateLimiter([
- *   { ...RateLimitPresets.standard }, // User-based (default keyGenerator uses session.sub)
- *   {
- *     ...RateLimitPresets.relaxed,
- *     keyGenerator: (c) => `ip:${getClientIP(c)}` // IP-based with prefix
- *   },
- * ]));
- */
-export function compositeRateLimiter(configs: Partial<(typeof RateLimitPresets)['standard']>[]) {
-  const limiters = configs.map((config) => rateLimiter(config));
-
-  return async (c: Context<{ Variables: Variables }>, next: () => Promise<void>) => {
-    // Apply all rate limiters in sequence
-    // If any throws RateLimitError, it will propagate
-    for (const limiter of limiters) {
-      await limiter(c as any, async () => {
-        // No-op, we'll call next() after all limiters pass
+    // The counter carries the volume; the log carries the signals. A new
+    // penalty is always worth a line, everything else is sampled per subject.
+    if (penalised || shouldLogRejection(subject)) {
+      logger.warn('[rate-limit] request rejected', {
+        requestId: c.get('requestId'),
+        sub: c.get('session')?.sub,
+        class: bucket,
+        route,
+        path: c.req.path,
+        clientIp: getClientIP(c),
+        userAgent: c.req.header('User-Agent'),
+        browserOrigin: hasBrowserOrigin(c),
+        retryAfter,
+        penalised,
       });
     }
 
-    await next();
+    throw new RateLimitError(retryAfter, c.get('requestId'));
   };
+
+  const limiterFor = (bucket: Exclude<RateLimitBucket, 'penalty'>) =>
+    honoRateLimiter<{ Variables: Variables }>({
+      windowMs: budgets.windowMs,
+      limit: budgets[bucket],
+      keyGenerator: (c: Ctx) => `${bucket}:${defaultKeyGenerator(c)}`,
+      standardHeaders: 'draft-6',
+      store: createRateLimitStore('ratelimit:', redis),
+      handler: (c: Ctx) => reject(c, bucket, retryAfterSeconds(c)),
+    } as never);
+
+  const limiters = {
+    ceiling: limiterFor('ceiling'),
+    machine: limiterFor('machine'),
+    interactive: limiterFor('interactive'),
+  };
+
+  return async (c, next) => {
+    const path = c.req.path;
+    const cls = resolveTrafficClass(path);
+
+    if (!hasBrowserOrigin(c)) {
+      const route = resolveRouteGroup(path);
+      apiNonBrowserRequestsTotal.inc({ route });
+      logger.debug('[rate-limit] request without browser fetch metadata', {
+        requestId: c.get('requestId'),
+        route,
+        userAgent: c.req.header('User-Agent'),
+      });
+      if (enforceBrowserOrigin) {
+        throw new AuthorizationError('Browser origin required', c.get('requestId'));
+      }
+    }
+
+    const penalty = await penaltyBox.remaining(defaultKeyGenerator(c));
+    if (penalty > 0) await reject(c, 'penalty', penalty);
+
+    c.header(CLASS_HEADER, cls);
+    await limiters.ceiling(c as never, async () => {});
+    await limiters[cls](c as never, next);
+  };
+}
+
+// ============================================================================
+// Single-bucket limiter for route-level use
+// ============================================================================
+
+export interface RateLimiterConfig {
+  windowMs?: number;
+  limit?: number;
+  keyGenerator?: (c: Ctx) => string;
+  skip?: (c: Ctx) => boolean;
+}
+
+/**
+ * A plain fixed-window limiter for a single route group, on the same
+ * fail-open store. Not mounted anywhere today; kept for endpoints that need a
+ * budget of their own, e.g. `api.use('/assistant-chat/*', rateLimiter({ limit: 20 }))`.
+ */
+export function rateLimiter(
+  config: RateLimiterConfig = {}
+): MiddlewareHandler<{ Variables: Variables }> {
+  return honoRateLimiter<{ Variables: Variables }>({
+    windowMs: config.windowMs ?? 60_000,
+    limit: config.limit ?? 100,
+    keyGenerator: (c: Ctx) => (config.keyGenerator ?? defaultKeyGenerator)(c),
+    skip: config.skip ? (c: Ctx) => config.skip!(c) : undefined,
+    standardHeaders: 'draft-6',
+    store: createRateLimitStore('ratelimit:route:', redisClient),
+    handler: (c: Ctx) => {
+      throw new RateLimitError(retryAfterSeconds(c), c.get('requestId'));
+    },
+  } as never) as unknown as MiddlewareHandler<{ Variables: Variables }>;
 }

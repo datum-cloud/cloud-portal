@@ -1,5 +1,6 @@
 import { buildScopedPath, buildProxyPath } from './endpoints';
 import type { GqlScope } from './types';
+import { gatedFetch } from '@/modules/rate-limit';
 import { env } from '@/utils/env';
 import { createClient, cacheExchange, fetchExchange } from '@urql/core';
 import type { Client as UrqlClient, SSRExchange } from '@urql/core';
@@ -70,11 +71,13 @@ export function createGqlClient(scope: GqlScope, ssr?: SSRExchange): UrqlClient 
     });
   }
 
-  // Client-side: Hono proxy at /api/graphql handles auth via session cookie
+  // Client-side: Hono proxy at /api/graphql handles auth via session cookie.
+  // gatedFetch fails fast while the interactive bucket is paused (429 backoff).
   return createClient({
     url: buildProxyPath(scope),
     preferGetMethod: false, // @urql/core@6 defaults to GET; backend requires POST
     exchanges: [cacheExchange, ...(ssr ? [ssr] : []), fetchExchange],
+    fetch: gatedFetch,
   });
 }
 
