@@ -17,7 +17,7 @@ import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitade
 import { redisClient } from '@/modules/redis';
 import { env } from '@/utils/env/env.server';
 import { categorizeRefreshError, RefreshError, RefreshErrorType } from '@/utils/errors/auth';
-import { createHash } from 'crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'crypto';
 import { jwtDecode } from 'jwt-decode';
 import { createCookieSessionStorage, createCookie } from 'react-router';
 
@@ -114,19 +114,83 @@ const LOCK_MAX_AGE_MS = 30 * 1000;
  */
 const REDIS_RESULT_TTL_MS = 10 * 1000;
 
-type RedisRefreshResult = {
+/**
+ * Longest a waiter will poll for the leader's result before giving up and
+ * falling back to the in-memory lock. Bounds request latency well under the
+ * lock TTL and replaces the previous unbounded recursion.
+ */
+const REDIS_WAIT_MAX_MS = 10 * 1000;
+
+// A leader publishes either its rotated session (ok) or the categorised failure
+// (err) so every concurrent waiter reuses one outcome instead of each re-hitting
+// Zitadel with the same, now-rotated, refresh token.
+type RedisRefreshOk = { kind: 'ok'; session: IAccessTokenSession; setCookie: string[] };
+type RedisRefreshErr = { kind: 'err'; message: string; code?: string; description?: string };
+type RedisRefreshPayload = RedisRefreshOk | RedisRefreshErr;
+
+/**
+ * Signals that Redis *coordination* failed (a GET/SET/EVAL threw or timed out),
+ * as opposed to the token refresh itself. The caller falls back to the in-memory
+ * lock on this, so a Redis blip never propagates as a logout.
+ */
+class RedisCoordinationError extends Error {}
+
+// Published payloads carry the rotated refresh token and the access token, so
+// they are encrypted at rest with a key derived from SESSION_SECRET. Cookie
+// session storage signs but does not encrypt, so without this anyone with Redis
+// access could read the tokens.
+const resultCipherKey = createHash('sha256').update(env.server.sessionSecret).digest();
+
+function encryptPayload(payload: RedisRefreshPayload): string {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', resultCipherKey, iv);
+  const body = Buffer.concat([cipher.update(JSON.stringify(payload), 'utf8'), cipher.final()]);
+  return Buffer.concat([iv, cipher.getAuthTag(), body]).toString('base64');
+}
+
+function decryptPayload(raw: string): RedisRefreshPayload | null {
+  try {
+    const buf = Buffer.from(raw, 'base64');
+    const decipher = createDecipheriv('aes-256-gcm', resultCipherKey, buf.subarray(0, 12));
+    decipher.setAuthTag(buf.subarray(12, 28));
+    const json = Buffer.concat([decipher.update(buf.subarray(28)), decipher.final()]).toString(
+      'utf8'
+    );
+    return JSON.parse(json) as RedisRefreshPayload;
+  } catch {
+    return null;
+  }
+}
+
+function okPayloadToResponse(payload: RedisRefreshOk): {
   session: IAccessTokenSession;
-  setCookie: string[];
-};
+  headers: Headers;
+} {
+  const headers = new Headers();
+  for (const cookie of payload.setCookie) headers.append('Set-Cookie', cookie);
+  return { session: payload.session, headers };
+}
+
+function errPayloadToError(payload: RedisRefreshErr): Error {
+  const err = new Error(payload.message) as Error & { code?: string; description?: string };
+  if (payload.code) err.code = payload.code;
+  if (payload.description) err.description = payload.description;
+  return err;
+}
+
+function toRefreshErrPayload(error: unknown): RedisRefreshErr {
+  const e = error as { message?: string; code?: string; description?: string };
+  return {
+    kind: 'err',
+    message: e?.message ?? String(error),
+    code: e?.code,
+    description: e?.description,
+  };
+}
 
 function deriveRefreshLockKey(refreshToken: string): string {
-  // Avoid putting token material (even prefixes) into Redis keys.
-  // If hashing fails for any reason, fall back to previous behavior.
-  try {
-    return createHash('sha256').update(refreshToken).digest('hex').slice(0, 32);
-  } catch {
-    return refreshToken.substring(0, 20);
-  }
+  // Hash so no token material (not even a prefix) lands in a Redis key.
+  return createHash('sha256').update(refreshToken).digest('hex').slice(0, 32);
 }
 
 function isRedisReadyForLocks(): boolean {
@@ -141,63 +205,69 @@ function redisResultKey(key: string): string {
   return `auth:refresh-result:${key}`;
 }
 
-async function getRedisRefreshResult(key: string): Promise<RedisRefreshResult | null> {
+// Reads (and decrypts) any published payload. A Redis error is surfaced as a
+// RedisCoordinationError so callers fall back rather than treat it as a refresh
+// failure; a corrupt/unreadable value reads as absent.
+async function readRedisPayload(key: string): Promise<RedisRefreshPayload | null> {
   if (!redisClient) return null;
-  const raw = await redisClient.get(redisResultKey(key));
-  if (!raw) return null;
+  let raw: string | null;
   try {
-    return JSON.parse(raw) as RedisRefreshResult;
-  } catch {
-    // If something corrupt is present, ignore it and let callers proceed.
-    return null;
+    raw = await redisClient.get(redisResultKey(key));
+  } catch (error) {
+    throw new RedisCoordinationError(String(error));
+  }
+  return raw ? decryptPayload(raw) : null;
+}
+
+// Best-effort publish of the leader's outcome. Never throws: once the token has
+// rotated, a failed publish must not strand the successful refresh.
+async function publishRedisPayload(key: string, payload: RedisRefreshPayload): Promise<void> {
+  if (!redisClient) return;
+  try {
+    await redisClient.set(redisResultKey(key), encryptPayload(payload), 'PX', REDIS_RESULT_TTL_MS);
+  } catch (error) {
+    debugLog('Failed to publish Redis refresh payload', { error: String(error) });
   }
 }
+
+// Atomic compare-and-delete via Lua: release the lock only if we still own it.
+// A WATCH/MULTI on the process-wide shared connection is not safe here — a
+// concurrent UNWATCH would clear the watch and let DEL drop a lock another
+// leader had since acquired. Best-effort: a failed release just waits out the TTL.
+const RELEASE_LOCK_LUA =
+  "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
 
 async function releaseRedisLockIfOwned(key: string, lockValue: string): Promise<void> {
   if (!redisClient) return;
-  const lockKey = redisLockKey(key);
-
-  for (let attempt = 0; attempt < 3; attempt++) {
-    try {
-      await redisClient.watch(lockKey);
-      const current = await redisClient.get(lockKey);
-
-      if (current !== lockValue) {
-        await redisClient.unwatch();
-        return;
-      }
-
-      const execResult = await redisClient.multi().del(lockKey).exec();
-      if (execResult) return;
-    } catch {
-      try {
-        await redisClient.unwatch();
-      } catch {
-        // ignore
-      }
-      return;
-    }
-  }
-
   try {
-    await redisClient.unwatch();
-  } catch {
-    // ignore
+    await redisClient.eval(RELEASE_LOCK_LUA, 1, redisLockKey(key), lockValue);
+  } catch (error) {
+    debugLog('Failed to release Redis refresh lock', { error: String(error) });
   }
 }
 
-async function waitForRedisResultOrLockRelease(
-  key: string,
-  maxWaitMs: number = 5000
-): Promise<RedisRefreshResult | null> {
+// Waits (bounded) for the leader to publish its result or failure. Returns null
+// if nothing arrives, the lock is gone, or Redis errors — the caller then falls
+// back to the in-memory lock exactly once. No recursion.
+async function waitForRedisPayload(key: string): Promise<RedisRefreshPayload | null> {
   if (!redisClient) return null;
 
-  const start = Date.now();
-  while (Date.now() - start < maxWaitMs) {
-    const result = await getRedisRefreshResult(key);
-    if (result) return result;
+  const deadline = Date.now() + REDIS_WAIT_MAX_MS;
+  while (Date.now() < deadline) {
+    let payload: RedisRefreshPayload | null;
+    try {
+      payload = await readRedisPayload(key);
+    } catch {
+      return null;
+    }
+    if (payload) return payload;
 
-    const stillLocked = await redisClient.exists(redisLockKey(key));
+    let stillLocked: number;
+    try {
+      stillLocked = await redisClient.exists(redisLockKey(key));
+    } catch {
+      return null;
+    }
     if (!stillLocked) return null;
 
     await new Promise((r) => setTimeout(r, 75 + Math.floor(Math.random() * 75)));
@@ -300,72 +370,97 @@ export class AuthService {
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
     const key = deriveRefreshLockKey(refreshToken);
 
-    // Prefer Redis singleflight when Redis is configured and actually ready.
-    // This prevents cross-process races (e.g. multiple Bun workers / pods).
+    // Prefer Redis singleflight across pods when Redis is ready. If Redis
+    // *coordination* fails at any point (not the refresh itself), fall through
+    // to the in-memory lock so a Redis blip never becomes a logout.
     if (isRedisReadyForLocks()) {
-      // Fast path: if a recent result exists, reuse it.
-      const existingResult = await getRedisRefreshResult(key);
-      if (existingResult) {
-        debugLog('Redis refresh result found, reusing...');
-        const headers = new Headers();
-        for (const cookie of existingResult.setCookie) headers.append('Set-Cookie', cookie);
-        return { session: existingResult.session, headers };
-      }
-
-      const lockValue = crypto.randomUUID();
-      const acquired = await redisClient!.set(
-        redisLockKey(key),
-        lockValue,
-        'PX',
-        LOCK_MAX_AGE_MS,
-        'NX'
-      );
-
-      if (acquired !== 'OK') {
-        debugLog('Redis refresh already in progress, waiting for result...');
-        const waited = await waitForRedisResultOrLockRelease(key);
-        if (waited) {
-          const headers = new Headers();
-          for (const cookie of waited.setCookie) headers.append('Set-Cookie', cookie);
-          return { session: waited.session, headers };
-        }
-
-        // Lock released or timed out without a result; retry once by recursively calling.
-        // (If the other refresh failed, this request becomes the new leader.)
-        return this.refreshTokens(refreshToken, sessionRaw, refreshRaw);
-      }
-
       try {
-        const result = await this.doRefreshTokens(refreshToken, sessionRaw, refreshRaw);
-
-        // Persist a short-lived result so concurrent requests can reuse it safely.
-        const setCookie: string[] = [];
-        result.headers.forEach((value, headerName) => {
-          if (headerName.toLowerCase() === 'set-cookie') setCookie.push(value);
-        });
-
-        const payload: RedisRefreshResult = {
-          session: result.session,
-          setCookie,
-        };
-
-        await redisClient!.set(
-          redisResultKey(key),
-          JSON.stringify(payload),
-          'PX',
-          REDIS_RESULT_TTL_MS
-        );
-        await releaseRedisLockIfOwned(key, lockValue);
-
-        return result;
+        return await this.refreshTokensViaRedis(key, refreshToken, sessionRaw, refreshRaw);
       } catch (error) {
-        // Ensure other waiters don't block until TTL.
-        await releaseRedisLockIfOwned(key, lockValue);
-        throw error;
+        if (!(error instanceof RedisCoordinationError)) throw error;
+        debugLog('Redis coordination unavailable, falling back to in-memory', {
+          error: String(error),
+        });
       }
     }
 
-    // Fallback: in-memory singleflight (works within a single process).
+    return this.refreshTokensInMemory(key, refreshToken, sessionRaw, refreshRaw);
+  }
+
+  /**
+   * Cross-pod singleflight. The leader rotates the token once and publishes the
+   * outcome (success or failure); waiters reuse it. Throws RedisCoordinationError
+   * for Redis-side failures so the caller can fall back; a genuine refresh error
+   * propagates unchanged.
+   */
+  private static async refreshTokensViaRedis(
+    key: string,
+    refreshToken: string,
+    sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
+    refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
+  ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
+    // Fast path: a fresh outcome from a concurrent refresh.
+    const existing = await readRedisPayload(key);
+    if (existing) {
+      if (existing.kind === 'ok') {
+        debugLog('Reusing Redis refresh result');
+        return okPayloadToResponse(existing);
+      }
+      throw errPayloadToError(existing);
+    }
+
+    const lockValue = randomUUID();
+    let acquired: string | null;
+    try {
+      acquired = await redisClient!.set(redisLockKey(key), lockValue, 'PX', LOCK_MAX_AGE_MS, 'NX');
+    } catch (error) {
+      throw new RedisCoordinationError(String(error));
+    }
+
+    // Waiter: wait (bounded) for the leader's outcome. No recursion — if nothing
+    // arrives, fall back to the in-memory lock once via RedisCoordinationError.
+    if (acquired !== 'OK') {
+      debugLog('Redis refresh in progress, waiting for leader...');
+      const payload = await waitForRedisPayload(key);
+      if (payload?.kind === 'ok') return okPayloadToResponse(payload);
+      if (payload?.kind === 'err') throw errPayloadToError(payload);
+      throw new RedisCoordinationError('no leader result within wait window');
+    }
+
+    // Leader.
+    let result: { session: IAccessTokenSession; headers: Headers };
+    try {
+      result = await this.doRefreshTokens(refreshToken, sessionRaw, refreshRaw);
+    } catch (refreshError) {
+      // Share the failure so waiters don't each re-hit Zitadel with the same,
+      // now-consumed, token, then surface the real error.
+      await publishRedisPayload(key, toRefreshErrPayload(refreshError));
+      await releaseRedisLockIfOwned(key, lockValue);
+      throw refreshError;
+    }
+
+    // Rotation succeeded: nothing below may throw, or a successful rotation would
+    // be stranded (RT1 consumed, caller never gets RT2). Publish + release are
+    // best-effort.
+    const setCookie: string[] = [];
+    result.headers.forEach((value, headerName) => {
+      if (headerName.toLowerCase() === 'set-cookie') setCookie.push(value);
+    });
+    await publishRedisPayload(key, { kind: 'ok', session: result.session, setCookie });
+    await releaseRedisLockIfOwned(key, lockValue);
+    return result;
+  }
+
+  /**
+   * In-memory singleflight — the fallback when Redis is unset or unavailable.
+   * Coordinates only within a single process.
+   */
+  private static async refreshTokensInMemory(
+    key: string,
+    refreshToken: string,
+    sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
+    refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
+  ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
     const existingLock = refreshLocks.get(key);
     if (existingLock) {
       debugLog('Refresh already in progress (in-memory), waiting for result...');

@@ -54,6 +54,10 @@ const fakeEnv = {
 // Only mock env.server — mocking `@/utils/env` with `{ env }` drops named
 // exports like `isDev` and leaks into other files under coverage runs.
 mock.module('@/utils/env/env.server', () => ({ env: fakeEnv }));
+// Pin Redis to null so these cases exercise the in-memory fallback they were
+// written for. mock.module is process-wide in Bun, so without this the Redis
+// singleflight suite (which sorts earlier) could leave a fake client installed.
+mock.module('@/modules/redis', () => ({ redisClient: null }));
 // Import AFTER mocks are registered.
 const { AuthService, sessionStorage, refreshTokenStorage } = await import('./auth.service');
 const { AUTH_COOKIE_KEYS } = await import('./auth.config');

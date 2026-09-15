@@ -5,24 +5,34 @@
  * When REDIS_URL is configured the refresh path prefers a Redis lock over the
  * in-memory Map, so concurrent refreshes for the same token — even on different
  * pods — perform ONE Zitadel rotation and every waiter reuses the winner's
- * rotated session and Set-Cookie headers. These tests inject a small in-memory
- * fake for `@/modules/redis` so the singleflight logic runs without a real
- * Redis, and stub the Zitadel strategy so no network call is made.
+ * outcome (a rotated session, or the shared failure). These tests inject a small
+ * in-memory fake for `@/modules/redis` so the singleflight logic runs without a
+ * real Redis, and stub the Zitadel strategy so no network call is made.
+ *
+ * Covered branches: successful singleflight + result reuse, shared leader
+ * failure, best-effort publish after a successful rotation, and fallback to the
+ * in-memory path when Redis coordination throws.
  */
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 
 // A JWT whose payload is {"sub":"user-123"} (jwtDecode reads the access token's sub).
 const ACCESS_JWT = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.c2ln';
 
-// --- Fake Redis: just the surface auth.service touches ---------------------
+// --- Fake Redis: just the surface auth.service touches, with error injection --
 function createFakeRedis() {
   const store = new Map<string, string>();
+  const flags = { failGet: false, failResultSet: false };
   const client = {
     status: 'ready' as const,
+    flags,
     async get(key: string) {
+      if (flags.failGet) throw new Error('redis get failed');
       return store.has(key) ? store.get(key)! : null;
     },
     async set(key: string, value: string, ...args: unknown[]) {
+      if (flags.failResultSet && key.startsWith('auth:refresh-result')) {
+        throw new Error('redis set failed');
+      }
       if (args.includes('NX') && store.has(key)) return null;
       store.set(key, value);
       return 'OK';
@@ -30,25 +40,13 @@ function createFakeRedis() {
     async exists(key: string) {
       return store.has(key) ? 1 : 0;
     },
-    async watch(_key: string) {
-      return 'OK';
-    },
-    async unwatch() {
-      return 'OK';
-    },
-    multi() {
-      const ops: Array<() => void> = [];
-      const chain = {
-        del(key: string) {
-          ops.push(() => store.delete(key));
-          return chain;
-        },
-        async exec() {
-          ops.forEach((op) => op());
-          return [[null, 1]];
-        },
-      };
-      return chain;
+    // Mirrors the compare-and-delete Lua used by releaseRedisLockIfOwned.
+    async eval(_script: string, _numKeys: number, key: string, arg: string) {
+      if (store.get(key) === arg) {
+        store.delete(key);
+        return 1;
+      }
+      return 0;
     },
     __store: store,
   };
@@ -101,6 +99,17 @@ function winningRefresh(delayMs = 40) {
   };
 }
 
+/** A Zitadel-shaped invalid_grant error (the cross-pod rotation-race signal). */
+function invalidGrantRefresh() {
+  return async () => {
+    refreshCalls++;
+    const err = new Error('invalid_grant') as Error & { code?: string; description?: string };
+    err.code = 'invalid_grant';
+    err.description = 'Errors.OIDCSession.RefreshTokenInvalid';
+    throw err;
+  };
+}
+
 async function rawSessions() {
   return {
     sessionRaw: await sessionStorage.getSession(null),
@@ -108,8 +117,16 @@ async function rawSessions() {
   };
 }
 
+const cookies = (h: Headers) => {
+  const out: string[] = [];
+  h.forEach((v, k) => k.toLowerCase() === 'set-cookie' && out.push(v));
+  return out;
+};
+
 beforeEach(() => {
   fakeRedis.__store.clear();
+  fakeRedis.flags.failGet = false;
+  fakeRedis.flags.failResultSet = false;
   refreshCalls = 0;
 });
 
@@ -129,30 +146,63 @@ describe('refreshTokens — Redis singleflight', () => {
       AuthService.refreshTokens('RT1-shared', sessionRaw, refreshRaw),
     ]);
 
-    // Exactly one Zitadel rotation across both concurrent callers.
     expect(refreshCalls).toBe(1);
     expect(a.session.sub).toBe('user-123');
     expect(b.session.sub).toBe('user-123');
-    // The waiter gets the winner's rotated Set-Cookie headers.
-    const cookies = (h: Headers) => {
-      const out: string[] = [];
-      h.forEach((v, k) => k.toLowerCase() === 'set-cookie' && out.push(v));
-      return out;
-    };
     expect(cookies(a.headers).length).toBeGreaterThan(0);
     expect(cookies(b.headers).length).toBeGreaterThan(0);
   });
 
   test('fast path reuses a stored result without calling Zitadel', async () => {
-    // Seed a recent result for the derived key, then assert no rotation happens.
     refreshImpl = winningRefresh();
     const { sessionRaw, refreshRaw } = await rawSessions();
     await AuthService.refreshTokens('RT1-cached', sessionRaw, refreshRaw);
     expect(refreshCalls).toBe(1);
 
-    // Second call within the result TTL reuses the stored payload.
     const again = await AuthService.refreshTokens('RT1-cached', sessionRaw, refreshRaw);
     expect(refreshCalls).toBe(1);
     expect(again.session.sub).toBe('user-123');
+  });
+
+  test('a leader failure is shared, so Zitadel is hit once and every waiter sees it', async () => {
+    refreshImpl = invalidGrantRefresh();
+
+    const { sessionRaw, refreshRaw } = await rawSessions();
+    const results = await Promise.allSettled([
+      AuthService.refreshTokens('RT1-doomed', sessionRaw, refreshRaw),
+      AuthService.refreshTokens('RT1-doomed', sessionRaw, refreshRaw),
+    ]);
+
+    // One Zitadel call across both callers, and both see the same categorised error.
+    expect(refreshCalls).toBe(1);
+    for (const r of results) {
+      expect(r.status).toBe('rejected');
+      const err = (r as PromiseRejectedResult).reason as { code?: string };
+      expect(err.code).toBe('invalid_grant');
+    }
+  });
+
+  test('a successful rotation is returned even if publishing the result fails', async () => {
+    refreshImpl = winningRefresh(0);
+    fakeRedis.flags.failResultSet = true; // the post-rotation publish throws
+
+    const { sessionRaw, refreshRaw } = await rawSessions();
+    const result = await AuthService.refreshTokens('RT1-publishfail', sessionRaw, refreshRaw);
+
+    expect(refreshCalls).toBe(1);
+    expect(result.session.sub).toBe('user-123');
+    expect(cookies(result.headers).length).toBeGreaterThan(0);
+  });
+
+  test('a Redis coordination error falls back to the in-memory lock', async () => {
+    refreshImpl = winningRefresh(0);
+    fakeRedis.flags.failGet = true; // the fast-path read throws before any lock
+
+    const { sessionRaw, refreshRaw } = await rawSessions();
+    const result = await AuthService.refreshTokens('RT1-redisdown', sessionRaw, refreshRaw);
+
+    expect(refreshCalls).toBe(1);
+    expect(result.session.sub).toBe('user-123');
+    expect(cookies(result.headers).length).toBeGreaterThan(0);
   });
 });
