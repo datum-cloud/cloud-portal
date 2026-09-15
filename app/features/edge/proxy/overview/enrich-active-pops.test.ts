@@ -23,11 +23,11 @@ describe('enrichActivePops', () => {
   it('joins by name, region topology, or location label', () => {
     const byName = enrichActivePops(['us-east-1'], [ashburn]);
     expect(byName[0]).toMatchObject({
-      city: 'Ashburn',
+      city: 'us-east-1',
       cityCode: 'IAD',
       country: 'United States',
-      tooltip: 'IAD · United States · us-east-1',
-      subtitle: 'IAD · United States',
+      tooltip: 'us-east-1 · United States',
+      subtitle: 'United States',
       coords: [39.0438, -77.4874],
     });
 
@@ -35,7 +35,11 @@ describe('enrichActivePops', () => {
       ['us-east-1'],
       [{ ...ashburn, name: 'iad', region: 'east', locationLabel: 'us-east-1' }]
     );
-    expect(byLabel[0].city).toBe('Ashburn');
+    expect(byLabel[0]).toMatchObject({
+      city: 'east',
+      country: 'United States',
+      coords: [39.0438, -77.4874],
+    });
   });
 
   it('falls back to hardcoded coords and the region code when unmatched', () => {
@@ -43,10 +47,11 @@ describe('enrichActivePops', () => {
     expect(pop.city).toBe('sg-central-1');
     expect(pop.coords).toEqual(getRegionCoordinates('sg-central-1'));
     expect(pop.tooltip).toBe('sg-central-1');
+    expect(pop.subtitle).toBe('');
   });
 
-  it('prefers city, then city-code, then location name', () => {
-    expect(enrichActivePops(['us-east-1'], [{ ...ashburn, city: undefined }])[0].city).toBe('IAD');
+  it('uses the region code even when city and city-code are present', () => {
+    expect(enrichActivePops(['us-east-1'], [ashburn])[0].city).toBe('us-east-1');
     expect(
       enrichActivePops(['us-east-1'], [{ ...ashburn, city: undefined, cityCode: undefined }])[0]
         .city
@@ -61,11 +66,11 @@ describe('enrichActivePops', () => {
 });
 
 describe('formatRegionFilterOption', () => {
-  it('uses city and country as the label and keeps the region code as description', () => {
+  it('uses the region code as the label and country as description', () => {
     expect(formatRegionFilterOption('us-east-1', [ashburn])).toEqual({
-      label: 'Ashburn, United States',
+      label: 'us-east-1',
       value: 'us-east-1',
-      description: 'us-east-1',
+      description: 'United States',
     });
   });
 
@@ -80,12 +85,12 @@ describe('formatRegionFilterOption', () => {
 describe('resolveRegionPlace', () => {
   const index = buildLocationIndex([ashburn]);
 
-  it('returns "City, Country" for a known region code', () => {
-    expect(resolveRegionPlace('us-east-1', index)).toBe('Ashburn, United States');
+  it('returns the country for a known region code', () => {
+    expect(resolveRegionPlace('us-east-1', index)).toBe('United States');
   });
 
   it('matches zone-suffixed codes via normalisation', () => {
-    expect(resolveRegionPlace('US-EAST-1-b', index)).toBe('Ashburn, United States');
+    expect(resolveRegionPlace('US-EAST-1-b', index)).toBe('United States');
   });
 
   it('returns null when the code is unknown', () => {
@@ -111,7 +116,7 @@ describe('buildLocationDirectory', () => {
 
   it('lists every catalog location and highlights those with traffic', () => {
     const directory = buildLocationDirectory([ashburn, dallas], ['us-east-1']);
-    expect(directory.map((item) => item.city)).toEqual(['Ashburn', 'Dallas']);
+    expect(directory.map((item) => item.city)).toEqual(['us-east-1', 'us-central-1']);
     expect(directory[0]).toMatchObject({ active: true, trafficRegion: 'us-east-1' });
     expect(directory[1].active).toBe(false);
   });
@@ -120,6 +125,6 @@ describe('buildLocationDirectory', () => {
     const directory = buildLocationDirectory([ashburn], ['us-east4']);
     expect(directory).toHaveLength(2);
     expect(directory[0]).toMatchObject({ value: 'us-east4', active: true });
-    expect(directory[1]).toMatchObject({ city: 'Ashburn', active: false });
+    expect(directory[1]).toMatchObject({ city: 'us-east-1', active: false });
   });
 });

@@ -50,7 +50,6 @@ export function buildLocationIndex(locations: Location[]): Map<string, Location>
 }
 
 function toActivePop(value: string, location?: Location): ActivePop {
-  const city = location?.city || location?.cityCode || location?.name || value;
   const region = location?.region || location?.name || value;
   const cityCode = location?.cityCode;
   const country = location?.country;
@@ -58,12 +57,12 @@ function toActivePop(value: string, location?: Location): ActivePop {
 
   return {
     value,
-    city,
+    city: region,
     cityCode,
     country,
     region,
-    tooltip: uniqueJoin([cityCode, country, region]) || value,
-    subtitle: uniqueJoin([cityCode, country]) || region,
+    tooltip: uniqueJoin([region, country]) || value,
+    subtitle: country || '',
     coords,
   };
 }
@@ -78,27 +77,25 @@ export function enrichActivePops(regionValues: string[], locations: Location[]):
 }
 
 /**
- * Human place name ("Chicago, US") for a Prometheus region code, or null when the
- * Location catalog has nothing better than the code itself.
+ * Country name for a Prometheus region code, or null when the Location catalog
+ * has nothing better than the code itself.
  */
 export function resolveRegionPlace(value: string, index: Map<string, Location>): string | null {
   const location = index.get(normalizeRegionCode(value)) ?? index.get(value.toLowerCase());
   if (!location) return null;
-  const city = location.city || location.cityCode;
-  const country = location.country;
-  const place = city && country && city !== country ? `${city}, ${country}` : city || country;
-  if (!place || place === value) return null;
-  return place;
+  const country = location.country?.trim();
+  if (!country || country === value) return null;
+  return country;
 }
 
-/** Dropdown label for a Prometheus region code, using Location city/country when known. */
+/** Dropdown option for a Prometheus region code, with country as secondary text. */
 export function formatRegionFilterOption(
   value: string,
   locations: Location[]
 ): { label: string; value: string; description?: string } {
-  const place = resolveRegionPlace(value, buildLocationIndex(locations));
-  if (!place) return { label: value, value };
-  return { label: place, value, description: value };
+  const country = resolveRegionPlace(value, buildLocationIndex(locations));
+  if (!country) return { label: value, value };
+  return { label: value, value, description: country };
 }
 
 export function buildLocationDirectory(
