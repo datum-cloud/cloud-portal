@@ -146,12 +146,17 @@ export default defineConfig({
     // pass. Retries cost nothing when the suite is healthy: only a failing
     // test runs again.
     //
+    // One retry, not two: CI also re-runs a whole failed shard once (see the
+    // `Retry ...` steps in .github/workflows/ci.yml), so a genuinely broken
+    // test already gets four attempts. A third per-test attempt only made a
+    // real failure take longer to report.
+    //
     // They rescue idempotent assertions, not destructive ones. Cypress re-runs
     // the failed test and beforeEach, never before(), so a suite that creates
     // its resource once and deletes it in the last test cannot retry that
     // delete against a resource it already removed. Those tests have to assert
     // something a second attempt can still observe.
-    retries: { runMode: 2, openMode: 0 },
+    retries: { runMode: 1, openMode: 0 },
     specPattern: 'cypress/e2e/{smoke,regression,quota}/**/*.{cy,spec}.{js,jsx,ts,tsx}',
     excludeSpecPattern: process.env.RUN_DISABLED_SPECS ? [] : DISABLED_REGRESSION_SPECS,
   },
