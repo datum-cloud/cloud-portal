@@ -10,7 +10,7 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BookOpen, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Activity, Suspense, useEffect, useRef, useState } from 'react';
+import { Activity, Suspense, useRef, useState } from 'react';
 
 /**
  * Which panel is open in the bottom bar. `'docs'` is the one host-owned
@@ -100,21 +100,6 @@ export function ProjectBottomBar() {
   // (via Activity) so switching panels preserves state.
   const widgetsEverOpened = useRef(new Set<string>());
   if (activePanel && activePanel !== 'docs') widgetsEverOpened.current.add(activePanel);
-
-  // Preserve today's UX default: the first time a project's dock widgets
-  // become available, auto-select the first one (today that's always the
-  // Patch AI chat widget) rather than requiring the user to click it. Runs
-  // once per project — a user closing the panel afterwards should stay closed.
-  const defaultAppliedFor = useRef<string | null>(null);
-  useEffect(() => {
-    const projectKey = project?.name ?? null;
-    if (!projectKey) return;
-    if (defaultAppliedFor.current === projectKey) return;
-    if (dockWidgets.length === 0) return;
-
-    defaultAppliedFor.current = projectKey;
-    setActivePanel(dockWidgets[0].id);
-  }, [project?.name, dockWidgets]);
 
   const handlePanelToggle = (panel: PanelType) => {
     setActivePanel((prev) => (prev === panel ? null : panel));
