@@ -5,9 +5,19 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ArrowLeft, BuildingIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { ActionFunctionArgs, Link, MetaFunction, useLocation, useNavigate } from 'react-router';
+import { data, Link, MetaFunction, useLocation, useNavigate } from 'react-router';
 
-export async function action({ request }: ActionFunctionArgs) {
+/**
+ * A path that matches no route must answer 404, not 200. React Router serves
+ * whatever status the loader sets; without one the document goes out as 200,
+ * so crawlers index typos as real pages and status-based clients cannot tell a
+ * missing page from a present one. The action below covers non-GET requests.
+ */
+export async function loader() {
+  return data(null, { status: 404 });
+}
+
+export async function action() {
   return new Response(null, { status: 404 });
 }
 

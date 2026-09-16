@@ -127,6 +127,16 @@ describe('Not found page', () => {
     });
   });
 
+  it('returns 404 for a path that matches no route at all', () => {
+    const url = `/definitely-not-a-real-path-${MISSING_ID}`;
+
+    // The catch-all route, not an error boundary: the document must still be a 404.
+    cy.request({ url, failOnStatusCode: false }).its('status').should('eq', 404);
+
+    cy.visit(url, { failOnStatusCode: false });
+    cy.contains('Page Not Found', { timeout: 10000 }).should('be.visible');
+  });
+
   it('sends a missing organization to the organizations list', () => {
     // `/org/:id` redirects to `/org/:id/projects`, which is where the 404 lands.
     const url = getPathWithParams(paths.org.detail.projects.root, { orgId: MISSING_ID });
