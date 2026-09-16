@@ -51,14 +51,6 @@ export const PLANNED_SERVICES: PlannedService[] = [
     order: 30,
   },
   {
-    id: 'galactic-vpc',
-    title: 'Galactic VPC',
-    section: 'connect',
-    description: 'Private networking across projects and regions.',
-    roadmapUrl: 'https://www.datum.net/platform/connect#galactic-vpc',
-    order: 10,
-  },
-  {
     id: 'interconnects',
     title: 'Interconnects',
     section: 'connect',
