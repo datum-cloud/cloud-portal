@@ -45,17 +45,24 @@ describe('Application Load Balancer — regression', () => {
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/alb`);
     // On an empty list the Table hides the toolbar actions (incl. the header
     // create button) and surfaces only the empty-state CTA. Click whichever
-    // create affordance is present and wait for it to be ENABLED first — the
-    // create-permission check renders the action disabled (with a tooltip)
-    // until it resolves, and clicking it while disabled opens no dialog.
+    // create affordance is present and wait for it to be ENABLED first.
+    //
+    // orgId/project reach RbacProvider via a useEffect in the project layout,
+    // not synchronously (see private.layout.tsx's RbacAppWrapper docblock) —
+    // until that lands, the create-permission query stays disabled (no
+    // request fires at all) and the button stays disabled. This is the very
+    // first load of a brand-new project (ensureSharedResources creates one
+    // per shard), which is exactly the slow case that docblock calls out, so
+    // give it real headroom rather than racing a network call that may not
+    // exist yet.
     cy.get('body', { timeout: 15000 }).then(($body) => {
       if ($body.find('[data-e2e="create-alb-button"]').length > 0) {
-        cy.get('[data-e2e="create-alb-button"]', { timeout: 15000 })
+        cy.get('[data-e2e="create-alb-button"]', { timeout: 30000 })
           .should('be.visible')
           .and('not.be.disabled')
           .click();
       } else {
-        cy.contains('button', /^new$/i, { timeout: 15000 })
+        cy.contains('button', /^new$/i, { timeout: 30000 })
           .should('be.visible')
           .and('not.be.disabled')
           .click();
