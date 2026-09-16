@@ -42,6 +42,19 @@ export const com_datumapis_networking_v1alpha_DomainSchema = {
             },
           ],
         },
+        desiredVerificationRefreshAttempt: {
+          description:
+            'DesiredVerificationRefreshAttempt is the desired time of the next verification refresh attempt.',
+          type: 'string',
+          format: 'date-time',
+          'x-kubernetes-validations': [
+            {
+              rule: "oldSelf == null || self == null || self == oldSelf || self >= oldSelf + duration('5m')",
+              message:
+                'must be at least 5m after the previous desiredVerificationRefreshAttempt when changed',
+            },
+          ],
+        },
         domainName: {
           description: 'DomainName is the fully qualified domain name (FQDN) to be managed',
           type: 'string',
@@ -370,6 +383,10 @@ export const com_datumapis_networking_v1alpha_DomainSchema = {
                 },
               },
             },
+            lastVerificationAttempt: {
+              type: 'string',
+              format: 'date-time',
+            },
             nextVerificationAttempt: {
               type: 'string',
               format: 'date-time',
@@ -386,7 +403,6 @@ export const com_datumapis_networking_v1alpha_DomainSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_DomainListSchema = {
@@ -429,7 +445,6 @@ export const com_datumapis_networking_v1alpha_DomainListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
@@ -476,6 +491,54 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
             pattern: '^(\\*\\.)?[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
           },
         },
+        loadBalancer: {
+          description:
+            "LoadBalancer selects the algorithm used to distribute requests across\nevery rule's backends, whenever a rule has more than one. It applies\nto the whole HTTPProxy rather than to an individual rule. If unset,\nEnvoy's own default algorithm applies.",
+          type: 'object',
+          required: ['type'],
+          properties: {
+            consistentHash: {
+              description:
+                'ConsistentHash configures what part of the request is hashed to pick\na backend. Required when type is ConsistentHash, and forbidden\notherwise.',
+              type: 'object',
+              required: ['type'],
+              properties: {
+                header: {
+                  description:
+                    'Header names the request header to hash on. Required when type is\nHeader, and forbidden otherwise.',
+                  type: 'string',
+                  maxLength: 256,
+                  minLength: 1,
+                },
+                type: {
+                  description:
+                    "Type selects what part of the request is hashed to pick a backend.\n\nSourceIP hashes the client's source IP address. Header hashes the\nvalue of the request header named in the header field.",
+                  type: 'string',
+                  enum: ['SourceIP', 'Header'],
+                },
+              },
+              'x-kubernetes-validations': [
+                {
+                  rule: "(self.type == 'Header') == has(self.header)",
+                  message: 'header is required when type is Header, and forbidden otherwise',
+                },
+              ],
+            },
+            type: {
+              description:
+                'Type selects the load balancing algorithm.\n\nRoundRobin cycles through backends in order. Random picks a backend\nuniformly at random. LeastRequest picks the backend with the fewest\nactive requests, biased toward spreading load evenly under uneven\nlatency. ConsistentHash routes requests that hash the same way (see\nconsistentHash) to the same backend, so the same client keeps\nlanding on the same backend so long as the backend set is stable.',
+              type: 'string',
+              enum: ['RoundRobin', 'Random', 'LeastRequest', 'ConsistentHash'],
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: "(self.type == 'ConsistentHash') == has(self.consistentHash)",
+              message:
+                'consistentHash is required when type is ConsistentHash, and forbidden otherwise',
+            },
+          ],
+        },
         rules: {
           description: 'Rules are a list of HTTP matchers, filters and actions.',
           type: 'array',
@@ -488,17 +551,16 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
             properties: {
               backends: {
                 description:
-                  'Backends defines the backend(s) where matching requests should be\nsent.\n\nNote: While this field is a list, only a single element is permitted at\nthis time due to underlying Gateway limitations. Once addressed, MaxItems\nwill be increased to allow for multiple backends on any given route.',
+                  'Backends defines the backend(s) where matching requests should be\nsent.\n\nWhen more than one backend is specified, requests are weighted load\nbalanced across all of them (see the weight field on each backend). A\nconnector backend must be the only backend in the rule — connectors do\nnot support weighted load balancing across multiple backends today.',
                 type: 'array',
-                maxItems: 1,
+                maxItems: 16,
                 minItems: 0,
                 items: {
                   type: 'object',
-                  required: ['endpoint'],
                   properties: {
                     connector: {
                       description:
-                        'Connector references the Connector that should be used for this backend.\n\nFor now, only a name reference is supported. In the future this can be\nextended to selector-based matching to allow multiple connectors.',
+                        "Connector references the Connector that should be used for this backend.\n\nFor now, only a name reference is supported. In the future this can be\nextended to selector-based matching to allow multiple connectors.\n\nUsed together with endpoint (the tunnel's target address). Mutually\nexclusive with instance.",
                       type: 'object',
                       required: ['name'],
                       properties: {
@@ -510,7 +572,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                     },
                     endpoint: {
                       description:
-                        'Endpoint for the backend. Must be a valid URL.\n\nSupports http and https protocols, IPs or DNS addresses in the host, custom\nports, and paths.',
+                        "Endpoint for the backend. Must be a valid URL.\n\nSupports http and https protocols, IPs or DNS addresses in the host, custom\nports, and paths.\n\nRequired unless instance is set. When connector is also set, this is the\ntunnel's target address rather than a directly reachable backend.",
                       type: 'string',
                     },
                     filters: {
@@ -520,24 +582,23 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                       maxItems: 16,
                       items: {
                         description:
-                          'HTTPRouteFilter defines processing steps that must be completed during the\nrequest or response lifecycle. HTTPRouteFilters are meant as an extension\npoint to express processing that may be done in Gateway implementations. Some\nexamples include request or response modification, implementing\nauthentication strategies, rate-limiting, and traffic shaping. API\nguarantee/conformance is defined based on the type of the filter.\n\n<gateway:experimental:validation:XValidation:message="filter.cors must be nil if the filter.type is not CORS",rule="!(has(self.cors) && self.type != \'CORS\')">\n<gateway:experimental:validation:XValidation:message="filter.cors must be specified for CORS filter.type",rule="!(!has(self.cors) && self.type == \'CORS\')">',
+                          'HTTPRouteFilter defines processing steps that must be completed during the\nrequest or response lifecycle. HTTPRouteFilters are meant as an extension\npoint to express processing that may be done in Gateway implementations. Some\nexamples include request or response modification, implementing\nauthentication strategies, rate-limiting, and traffic shaping. API\nguarantee/conformance is defined based on the type of the filter.\n\n<gateway:experimental:validation:XValidation:message="filter.externalAuth must be nil if the filter.type is not ExternalAuth",rule="!(has(self.externalAuth) && self.type != \'ExternalAuth\')">\n<gateway:experimental:validation:XValidation:message="filter.externalAuth must be specified for ExternalAuth filter.type",rule="!(!has(self.externalAuth) && self.type == \'ExternalAuth\')">',
                         type: 'object',
                         required: ['type'],
                         properties: {
                           cors: {
                             description:
-                              'CORS defines a schema for a filter that responds to the\ncross-origin request based on HTTP response header.\n\nSupport: Extended\n\n<gateway:experimental>',
+                              'CORS defines a schema for a filter that responds to the\ncross-origin request based on HTTP response header.\n\nSupport: Extended',
                             type: 'object',
                             properties: {
                               allowCredentials: {
                                 description:
-                                  'AllowCredentials indicates whether the actual cross-origin request allows\nto include credentials.\n\nThe only valid value for the `Access-Control-Allow-Credentials` response\nheader is true (case-sensitive).\n\nIf the credentials are not allowed in cross-origin requests, the gateway\nwill omit the header `Access-Control-Allow-Credentials` entirely rather\nthan setting its value to false.\n\nSupport: Extended',
+                                  'AllowCredentials indicates whether the actual cross-origin request allows\nto include credentials.\n\nWhen set to true, the gateway will include the `Access-Control-Allow-Credentials`\nresponse header with value true (case-sensitive).\n\nWhen set to false or omitted the gateway will omit the header\n`Access-Control-Allow-Credentials` entirely (this is the standard CORS\nbehavior).\n\nSupport: Extended',
                                 type: 'boolean',
-                                enum: [true],
                               },
                               allowHeaders: {
                                 description:
-                                  'AllowHeaders indicates which HTTP request headers are supported for\naccessing the requested resource.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Allow-Headers`\nresponse header are separated by a comma (",").\n\nWhen the `AllowHeaders` field is configured with one or more headers, the\ngateway must return the `Access-Control-Allow-Headers` response header\nwhich value is present in the `AllowHeaders` field.\n\nIf any header name in the `Access-Control-Request-Headers` request header\nis not included in the list of header names specified by the response\nheader `Access-Control-Allow-Headers`, it will present an error on the\nclient side.\n\nIf any header name in the `Access-Control-Allow-Headers` response header\ndoes not recognize by the client, it will also occur an error on the\nclient side.\n\nA wildcard indicates that the requests with all HTTP headers are allowed.\nThe `Access-Control-Allow-Headers` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowHeaders` field\nspecified with the `*` wildcard, the gateway must specify one or more\nHTTP headers in the value of the `Access-Control-Allow-Headers` response\nheader. The value of the header `Access-Control-Allow-Headers` is same as\nthe `Access-Control-Request-Headers` header provided by the client. If\nthe header `Access-Control-Request-Headers` is not included in the\nrequest, the gateway will omit the `Access-Control-Allow-Headers`\nresponse header, instead of specifying the `*` wildcard. A Gateway\nimplementation may choose to add implementation-specific default headers.\n\nSupport: Extended',
+                                  'AllowHeaders indicates which HTTP request headers are supported for\naccessing the requested resource.\n\nHeader names are not case-sensitive.\n\nMultiple header names in the value of the `Access-Control-Allow-Headers`\nresponse header are separated by a comma (",").\n\nWhen the `AllowHeaders` field is configured with one or more headers, the\ngateway must return the `Access-Control-Allow-Headers` response header\nwhich value is present in the `AllowHeaders` field.\n\nIf any header name in the `Access-Control-Request-Headers` request header\nis not included in the list of header names specified by the response\nheader `Access-Control-Allow-Headers`, it will present an error on the\nclient side.\n\nIf any header name in the `Access-Control-Allow-Headers` response header\ndoes not recognize by the client, it will also occur an error on the\nclient side.\n\nA wildcard indicates that the requests with all HTTP headers are allowed.\nIf config contains the wildcard "*" in allowHeaders and the request is\nnot credentialed, the `Access-Control-Allow-Headers` response header\ncan either use the `*` wildcard or the value of\nAccess-Control-Request-Headers from the request.\n\nWhen the request is credentialed, the gateway must not specify the `*`\nwildcard in the `Access-Control-Allow-Headers` response header. When\nalso the `AllowCredentials` field is true and `AllowHeaders` field\nis specified with the `*` wildcard, the gateway must specify one or more\nHTTP headers in the value of the `Access-Control-Allow-Headers` response\nheader. The value of the header `Access-Control-Allow-Headers` is same as\nthe `Access-Control-Request-Headers` header provided by the client. If\nthe header `Access-Control-Request-Headers` is not included in the\nrequest, the gateway will omit the `Access-Control-Allow-Headers`\nresponse header, instead of specifying the `*` wildcard.\n\nSupport: Extended',
                                 type: 'array',
                                 maxItems: 64,
                                 items: {
@@ -549,10 +610,17 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                   pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                                 },
                                 'x-kubernetes-list-type': 'set',
+                                'x-kubernetes-validations': [
+                                  {
+                                    rule: "!('*' in self && self.size() > 1)",
+                                    message:
+                                      "AllowHeaders cannot contain '*' alongside other methods",
+                                  },
+                                ],
                               },
                               allowMethods: {
                                 description:
-                                  'AllowMethods indicates which HTTP methods are supported for accessing the\nrequested resource.\n\nValid values are any method defined by RFC9110, along with the special\nvalue `*`, which represents all HTTP methods are allowed.\n\nMethod names are case sensitive, so these values are also case-sensitive.\n(See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)\n\nMultiple method names in the value of the `Access-Control-Allow-Methods`\nresponse header are separated by a comma (",").\n\nA CORS-safelisted method is a method that is `GET`, `HEAD`, or `POST`.\n(See https://fetch.spec.whatwg.org/#cors-safelisted-method) The\nCORS-safelisted methods are always allowed, regardless of whether they\nare specified in the `AllowMethods` field.\n\nWhen the `AllowMethods` field is configured with one or more methods, the\ngateway must return the `Access-Control-Allow-Methods` response header\nwhich value is present in the `AllowMethods` field.\n\nIf the HTTP method of the `Access-Control-Request-Method` request header\nis not included in the list of methods specified by the response header\n`Access-Control-Allow-Methods`, it will present an error on the client\nside.\n\nThe `Access-Control-Allow-Methods` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowMethods` field\nspecified with the `*` wildcard, the gateway must specify one HTTP method\nin the value of the Access-Control-Allow-Methods response header. The\nvalue of the header `Access-Control-Allow-Methods` is same as the\n`Access-Control-Request-Method` header provided by the client. If the\nheader `Access-Control-Request-Method` is not included in the request,\nthe gateway will omit the `Access-Control-Allow-Methods` response header,\ninstead of specifying the `*` wildcard. A Gateway implementation may\nchoose to add implementation-specific default methods.\n\nSupport: Extended',
+                                  'AllowMethods indicates which HTTP methods are supported for accessing the\nrequested resource.\n\nValid values are any method defined by RFC9110, along with the special\nvalue `*`, which represents all HTTP methods are allowed.\n\nMethod names are case-sensitive, so these values are also case-sensitive.\n(See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)\n\nMultiple method names in the value of the `Access-Control-Allow-Methods`\nresponse header are separated by a comma (",").\n\nA CORS-safelisted method is a method that is `GET`, `HEAD`, or `POST`.\n(See https://fetch.spec.whatwg.org/#cors-safelisted-method) The\nCORS-safelisted methods are always allowed, regardless of whether they\nare specified in the `AllowMethods` field.\n\nWhen the `AllowMethods` field is configured with one or more methods, the\ngateway must return the `Access-Control-Allow-Methods` response header\nwhich value is present in the `AllowMethods` field.\n\nIf the HTTP method of the `Access-Control-Request-Method` request header\nis not included in the list of methods specified by the response header\n`Access-Control-Allow-Methods`, it will present an error on the client\nside.\n\nIf config contains the wildcard "*" in allowMethods and the request is\nnot credentialed, the `Access-Control-Allow-Methods` response header\ncan either use the `*` wildcard or the value of\nAccess-Control-Request-Method from the request.\n\nWhen the request is credentialed, the gateway must not specify the `*`\nwildcard in the `Access-Control-Allow-Methods` response header. When\nalso the `AllowCredentials` field is true and `AllowMethods` field\nspecified with the `*` wildcard, the gateway must specify one HTTP method\nin the value of the Access-Control-Allow-Methods response header. The\nvalue of the header `Access-Control-Allow-Methods` is same as the\n`Access-Control-Request-Method` header provided by the client. If the\nheader `Access-Control-Request-Method` is not included in the request,\nthe gateway will omit the `Access-Control-Allow-Methods` response header,\ninstead of specifying the `*` wildcard.\n\nSupport: Extended',
                                 type: 'array',
                                 maxItems: 9,
                                 items: {
@@ -581,23 +649,30 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                               },
                               allowOrigins: {
                                 description:
-                                  'AllowOrigins indicates whether the response can be shared with requested\nresource from the given `Origin`.\n\nThe `Origin` consists of a scheme and a host, with an optional port, and\ntakes the form `<scheme>://<host>(:<port>)`.\n\nValid values for scheme are: `http` and `https`.\n\nValid values for port are any integer between 1 and 65535 (the list of\navailable TCP/UDP ports). Note that, if not included, port `80` is\nassumed for `http` scheme origins, and port `443` is assumed for `https`\norigins. This may affect origin matching.\n\nThe host part of the origin may contain the wildcard character `*`. These\nwildcard characters behave as follows:\n\n* `*` is a greedy match to the _left_, including any number of\n  DNS labels to the left of its position. This also means that\n  `*` will include any number of period `.` characters to the\n  left of its position.\n* A wildcard by itself matches all hosts.\n\nAn origin value that includes _only_ the `*` character indicates requests\nfrom all `Origin`s are allowed.\n\nWhen the `AllowOrigins` field is configured with multiple origins, it\nmeans the server supports clients from multiple origins. If the request\n`Origin` matches the configured allowed origins, the gateway must return\nthe given `Origin` and sets value of the header\n`Access-Control-Allow-Origin` same as the `Origin` header provided by the\nclient.\n\nThe status code of a successful response to a "preflight" request is\nalways an OK status (i.e., 204 or 200).\n\nIf the request `Origin` does not match the configured allowed origins,\nthe gateway returns 204/200 response but doesn\'t set the relevant\ncross-origin response headers. Alternatively, the gateway responds with\n403 status to the "preflight" request is denied, coupled with omitting\nthe CORS headers. The cross-origin request fails on the client side.\nTherefore, the client doesn\'t attempt the actual cross-origin request.\n\nThe `Access-Control-Allow-Origin` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowOrigins` field\nspecified with the `*` wildcard, the gateway must return a single origin\nin the value of the `Access-Control-Allow-Origin` response header,\ninstead of specifying the `*` wildcard. The value of the header\n`Access-Control-Allow-Origin` is same as the `Origin` header provided by\nthe client.\n\nSupport: Extended',
+                                  'AllowOrigins indicates whether the response can be shared with requested\nresource from the given `Origin`.\n\nThe `Origin` consists of a scheme and a host, with an optional port, and\ntakes the form `<scheme>://<host>(:<port>)`.\n\nValid values for scheme are: `http` and `https`.\n\nValid values for port are any integer between 1 and 65535 (the list of\navailable TCP/UDP ports). Note that, if not included, port `80` is\nassumed for `http` scheme origins, and port `443` is assumed for `https`\norigins. This may affect origin matching.\n\nThe host part of the origin may contain the wildcard character `*`. These\nwildcard characters behave as follows:\n\n* `*` is a greedy match to the _left_, including any number of\n  DNS labels to the left of its position. This also means that\n  `*` will include any number of period `.` characters to the\n  left of its position.\n* A wildcard by itself matches all hosts.\n\nAn origin value that includes _only_ the `*` character indicates requests\nfrom all `Origin`s are allowed.\n\nWhen the `AllowOrigins` field is configured with multiple origins, it\nmeans the server supports clients from multiple origins. If the request\n`Origin` matches the configured allowed origins, the gateway must return\nthe given `Origin` and sets value of the header\n`Access-Control-Allow-Origin` same as the `Origin` header provided by the\nclient.\n\nThe status code of a successful response to a "preflight" request is\nalways an OK status (i.e., 204 or 200).\n\nIf the request `Origin` does not match the configured allowed origins,\nthe gateway returns 204/200 response but doesn\'t set the relevant\ncross-origin response headers. Alternatively, the gateway responds with\n403 status to the "preflight" request is denied, coupled with omitting\nthe CORS headers. The cross-origin request fails on the client side.\nTherefore, the client doesn\'t attempt the actual cross-origin request.\n\nConversely, if the request `Origin` matches one of the configured\nallowed origins, the gateway sets the response header\n`Access-Control-Allow-Origin` to the same value as the `Origin`\nheader provided by the client.\n\nWhen config has the wildcard ("*") in allowOrigins, and the request\nis not credentialed (e.g., it is a preflight request), the\n`Access-Control-Allow-Origin` response header either contains the\nwildcard as well or the Origin from the request.\n\nWhen the request is credentialed, the gateway must not specify the `*`\nwildcard in the `Access-Control-Allow-Origin` response header. When\nalso the `AllowCredentials` field is true and `AllowOrigins` field\nspecified with the `*` wildcard, the gateway must return a single origin\nin the value of the `Access-Control-Allow-Origin` response header,\ninstead of specifying the `*` wildcard. The value of the header\n`Access-Control-Allow-Origin` is same as the `Origin` header provided by\nthe client.\n\nSupport: Extended',
                                 type: 'array',
                                 maxItems: 64,
                                 items: {
                                   description:
-                                    'The AbsoluteURI MUST NOT be a relative URI, and it MUST follow the URI syntax and\nencoding rules specified in RFC3986.  The AbsoluteURI MUST include both a\nscheme (e.g., "http" or "spiffe") and a scheme-specific-part.  URIs that\ninclude an authority MUST include a fully qualified domain name or\nIP address as the host.\n<gateway:util:excludeFromCRD> The below regex is taken from the regex section in RFC 3986 with a slight modification to enforce a full URI and not relative. </gateway:util:excludeFromCRD>',
+                                    'The CORSOrigin MUST NOT be a relative URI, and it MUST follow the URI syntax and\nencoding rules specified in RFC3986.  The CORSOrigin MUST include both a\nscheme ("http" or "https") and a scheme-specific-part, or it should be a single \'*\' character.\nURIs that include an authority MUST include a fully qualified domain name or\nIP address as the host.',
                                   type: 'string',
                                   maxLength: 253,
                                   minLength: 1,
                                   pattern:
-                                    '^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?',
+                                    '(^\\*$)|(^(http(s)?):\\/\\/(((\\*\\.)?([a-zA-Z0-9\\-]+\\.)*[a-zA-Z0-9-]+|\\*)(:([0-9]{1,5}))?)$)',
                                 },
                                 'x-kubernetes-list-type': 'set',
+                                'x-kubernetes-validations': [
+                                  {
+                                    rule: "!('*' in self && self.size() > 1)",
+                                    message:
+                                      "AllowOrigins cannot contain '*' alongside other origins",
+                                  },
+                                ],
                               },
                               exposeHeaders: {
                                 description:
-                                  'ExposeHeaders indicates which HTTP response headers can be exposed\nto client-side scripts in response to a cross-origin request.\n\nA CORS-safelisted response header is an HTTP header in a CORS response\nthat it is considered safe to expose to the client scripts.\nThe CORS-safelisted response headers include the following headers:\n`Cache-Control`\n`Content-Language`\n`Content-Length`\n`Content-Type`\n`Expires`\n`Last-Modified`\n`Pragma`\n(See https://fetch.spec.whatwg.org/#cors-safelisted-response-header-name)\nThe CORS-safelisted response headers are exposed to client by default.\n\nWhen an HTTP header name is specified using the `ExposeHeaders` field,\nthis additional header will be exposed as part of the response to the\nclient.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Expose-Headers`\nresponse header are separated by a comma (",").\n\nA wildcard indicates that the responses with all HTTP headers are exposed\nto clients. The `Access-Control-Expose-Headers` response header can only\nuse `*` wildcard as value when the `AllowCredentials` field is\nunspecified.\n\nSupport: Extended',
+                                  'ExposeHeaders indicates which HTTP response headers can be exposed\nto client-side scripts in response to a cross-origin request.\n\nA CORS-safelisted response header is an HTTP header in a CORS response\nthat it is considered safe to expose to the client scripts.\nThe CORS-safelisted response headers include the following headers:\n`Cache-Control`\n`Content-Language`\n`Content-Length`\n`Content-Type`\n`Expires`\n`Last-Modified`\n`Pragma`\n(See https://fetch.spec.whatwg.org/#cors-safelisted-response-header-name)\nThe CORS-safelisted response headers are exposed to client by default.\n\nWhen an HTTP header name is specified using the `ExposeHeaders` field,\nthis additional header will be exposed as part of the response to the\nclient.\n\nHeader names are not case-sensitive.\n\nMultiple header names in the value of the `Access-Control-Expose-Headers`\nresponse header are separated by a comma (",").\n\nA wildcard indicates that the responses with all HTTP headers are exposed\nto clients. The `Access-Control-Expose-Headers` response header can only\nuse `*` wildcard as value when the request is not credentialed.\n\nWhen the `exposeHeaders` config field contains the "*" wildcard and\nthe request is credentialed, the gateway cannot use the `*` wildcard in\nthe `Access-Control-Expose-Headers` response header.\n\nSupport: Extended',
                                 type: 'array',
                                 maxItems: 64,
                                 items: {
@@ -612,7 +687,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                               },
                               maxAge: {
                                 description:
-                                  'MaxAge indicates the duration (in seconds) for the client to cache the\nresults of a "preflight" request.\n\nThe information provided by the `Access-Control-Allow-Methods` and\n`Access-Control-Allow-Headers` response headers can be cached by the\nclient until the time specified by `Access-Control-Max-Age` elapses.\n\nThe default value of `Access-Control-Max-Age` response header is 5\n(seconds).',
+                                  'MaxAge indicates the duration (in seconds) for the client to cache the\nresults of a "preflight" request.\n\nThe information provided by the `Access-Control-Allow-Methods` and\n`Access-Control-Allow-Headers` response headers can be cached by the\nclient until the time specified by `Access-Control-Max-Age` elapses.\n\nThe default value of `Access-Control-Max-Age` response header is 5\n(seconds).\n\nWhen the `MaxAge` field is unspecified, the gateway sets the response\nheader "Access-Control-Max-Age: 5" by default.',
                                 type: 'integer',
                                 format: 'int32',
                                 default: 5,
@@ -650,6 +725,156 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                               },
                             },
                           },
+                          externalAuth: {
+                            description:
+                              'ExternalAuth configures settings related to sending request details\nto an external auth service. The external service MUST authenticate\nthe request, and MAY authorize the request as well.\n\nIf there is any problem communicating with the external service,\nthis filter MUST fail closed.\n\nSupport: Extended\n\n<gateway:experimental>',
+                            type: 'object',
+                            required: ['backendRef', 'protocol'],
+                            properties: {
+                              backendRef: {
+                                description:
+                                  'BackendRef is a reference to a backend to send authorization\nrequests to.\n\nThe backend must speak the selected protocol (GRPC or HTTP) on the\nreferenced port.\n\nIf the backend service requires TLS, use BackendTLSPolicy to tell the\nimplementation to supply the TLS details to be used to connect to that\nbackend.',
+                                type: 'object',
+                                required: ['name'],
+                                properties: {
+                                  group: {
+                                    description:
+                                      'Group is the group of the referent. For example, "gateway.networking.k8s.io".\nWhen unspecified or empty string, core API group is inferred.',
+                                    type: 'string',
+                                    default: '',
+                                    maxLength: 253,
+                                    pattern:
+                                      '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                                  },
+                                  kind: {
+                                    description:
+                                      'Kind is the Kubernetes resource kind of the referent. For example\n"Service".\n\nDefaults to "Service" when not specified.\n\nExternalName services can refer to CNAME DNS records that may live\noutside of the cluster and as such are difficult to reason about in\nterms of conformance. They also may not be safe to forward to (see\nCVE-2021-25740 for more information). Implementations SHOULD NOT\nsupport ExternalName Services.\n\nSupport: Core (Services with a type other than ExternalName)\n\nSupport: Implementation-specific (Services with type ExternalName)',
+                                    type: 'string',
+                                    default: 'Service',
+                                    maxLength: 63,
+                                    minLength: 1,
+                                    pattern: '^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$',
+                                  },
+                                  name: {
+                                    description: 'Name is the name of the referent.',
+                                    type: 'string',
+                                    maxLength: 253,
+                                    minLength: 1,
+                                  },
+                                  namespace: {
+                                    description:
+                                      "Namespace is the namespace of the backend. When unspecified, the local\nnamespace is inferred.\n\nNote that when a namespace different than the local namespace is specified,\na ReferenceGrant object is required in the referent namespace to allow that\nnamespace's owner to accept the reference. See the ReferenceGrant\ndocumentation for details.\n\nSupport: Core",
+                                    type: 'string',
+                                    maxLength: 63,
+                                    minLength: 1,
+                                    pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
+                                  },
+                                  port: {
+                                    description:
+                                      'Port specifies the destination port number to use for this resource.\nPort is required when the referent is a Kubernetes Service. In this\ncase, the port number is the service port number, not the target port.\nFor other resources, destination port might be derived from the referent\nresource or this field.',
+                                    type: 'integer',
+                                    format: 'int32',
+                                    maximum: 65535,
+                                    minimum: 1,
+                                  },
+                                },
+                                'x-kubernetes-validations': [
+                                  {
+                                    rule: "(size(self.group) == 0 && self.kind == 'Service') ? has(self.port) : true",
+                                    message: 'Must have port for Service reference',
+                                  },
+                                ],
+                              },
+                              forwardBody: {
+                                description:
+                                  'ForwardBody controls if requests to the authorization server should include\nthe body of the client request; and if so, how big that body is allowed\nto be.\n\nIt is expected that implementations will buffer the request body up to\n`forwardBody.maxSize` bytes. Bodies over that size must be rejected with a\n4xx series error (413 or 403 are common examples), and fail processing\nof the filter.\n\nIf unset, or `forwardBody.maxSize` is set to `0`, then the body will not\nbe forwarded.\n\nFeature Name: HTTPRouteExternalAuthForwardBody',
+                                type: 'object',
+                                properties: {
+                                  maxSize: {
+                                    description:
+                                      'MaxSize specifies how large in bytes the largest body that will be buffered\nand sent to the authorization server. If the body size is larger than\n`maxSize`, then the body sent to the authorization server must be\ntruncated to `maxSize` bytes.\n\nExperimental note: This behavior needs to be checked against\nvarious dataplanes; it may need to be changed.\nSee https://github.com/kubernetes-sigs/gateway-api/pull/4001#discussion_r2291405746\nfor more.\n\nIf 0, the body will not be sent to the authorization server.',
+                                    type: 'integer',
+                                  },
+                                },
+                              },
+                              grpc: {
+                                description:
+                                  'GRPCAuthConfig contains configuration for communication with ext_authz\nprotocol-speaking backends.\n\nIf unset, implementations must assume the default behavior for each\nincluded field is intended.',
+                                type: 'object',
+                                properties: {
+                                  allowedHeaders: {
+                                    description:
+                                      'AllowedRequestHeaders specifies what headers from the client request\nwill be sent to the authorization server.\n\nIf this list is empty, then all headers must be sent.\n\nIf the list has entries, only those entries must be sent.',
+                                    type: 'array',
+                                    maxItems: 64,
+                                    items: {
+                                      type: 'string',
+                                    },
+                                    'x-kubernetes-list-type': 'set',
+                                  },
+                                },
+                              },
+                              http: {
+                                description:
+                                  'HTTPAuthConfig contains configuration for communication with HTTP-speaking\nbackends.\n\nIf unset, implementations must assume the default behavior for each\nincluded field is intended.',
+                                type: 'object',
+                                properties: {
+                                  allowedHeaders: {
+                                    description:
+                                      'AllowedRequestHeaders specifies what additional headers from the client request\nwill be sent to the authorization server.\n\nThe following headers must always be sent to the authorization server,\nregardless of this setting:\n\n* `Host`\n* `Method`\n* `Path`\n* `Content-Length`\n* `Authorization`\n\nIf this list is empty, then only those headers must be sent.\n\nNote that `Content-Length` has a special behavior, in that the length\nsent must be correct for the actual request to the external authorization\nserver - that is, it must reflect the actual number of bytes sent in the\nbody of the request to the authorization server.\n\nSo if the `forwardBody` stanza is unset, or `forwardBody.maxSize` is set\nto `0`, then `Content-Length` must be `0`. If `forwardBody.maxSize` is set\nto anything other than `0`, then the `Content-Length` of the authorization\nrequest must be set to the actual number of bytes forwarded.',
+                                    type: 'array',
+                                    maxItems: 64,
+                                    items: {
+                                      type: 'string',
+                                    },
+                                    'x-kubernetes-list-type': 'set',
+                                  },
+                                  allowedResponseHeaders: {
+                                    description:
+                                      'AllowedResponseHeaders specifies what headers from the authorization response\nwill be copied into the request to the backend.\n\nIf this list is empty, then all headers from the authorization server\nexcept Authority or Host must be copied.',
+                                    type: 'array',
+                                    maxItems: 64,
+                                    items: {
+                                      type: 'string',
+                                    },
+                                    'x-kubernetes-list-type': 'set',
+                                  },
+                                  path: {
+                                    description:
+                                      'Path sets the prefix that paths from the client request will have added\nwhen forwarded to the authorization server.\n\nWhen empty or unspecified, no prefix is added.\n\nValid values are the same as the "value" regex for path values in the `match`\nstanza, and the validation regex will screen out invalid paths in the same way.\nEven with the validation, implementations MUST sanitize this input before using it\ndirectly.',
+                                    type: 'string',
+                                    maxLength: 1024,
+                                    pattern:
+                                      "^(?:[-A-Za-z0-9/._~!$&'()*+,;=:@]|[%][0-9a-fA-F]{2})+$",
+                                  },
+                                },
+                              },
+                              protocol: {
+                                description:
+                                  'ExternalAuthProtocol describes which protocol to use when communicating with an\next_authz authorization server.\n\nWhen this is set to GRPC, each backend must use the Envoy ext_authz protocol\non the port specified in `backendRefs`. Requests and responses are defined\nin the protobufs explained at:\nhttps://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/external_auth.proto\n\nWhen this is set to HTTP, each backend must respond with a `200` status\ncode in on a successful authorization. Any other code is considered\nan authorization failure.\n\nFeature Names:\nGRPC Support - HTTPRouteExternalAuthGRPC\nHTTP Support - HTTPRouteExternalAuthHTTP',
+                                type: 'string',
+                                enum: ['HTTP', 'GRPC'],
+                              },
+                            },
+                            'x-kubernetes-validations': [
+                              {
+                                rule: "self.protocol == 'GRPC' ? has(self.grpc) : true",
+                                message: "grpc must be specified when protocol is set to 'GRPC'",
+                              },
+                              {
+                                rule: "has(self.grpc) ? self.protocol == 'GRPC' : true",
+                                message: "protocol must be 'GRPC' when grpc is set",
+                              },
+                              {
+                                rule: "self.protocol == 'HTTP' ? has(self.http) : true",
+                                message: "http must be specified when protocol is set to 'HTTP'",
+                              },
+                              {
+                                rule: "has(self.http) ? self.protocol == 'HTTP' : true",
+                                message: "protocol must be 'HTTP' when http is set",
+                              },
+                            ],
+                          },
                           requestHeaderModifier: {
                             description:
                               'RequestHeaderModifier defines a schema for a filter that modifies request\nheaders.\n\nSupport: Core',
@@ -676,7 +901,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                     },
                                     value: {
                                       description:
-                                        'Value is the value of HTTP Header to be matched.',
+                                        'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                       type: 'string',
                                       maxLength: 4096,
                                       minLength: 1,
@@ -717,7 +942,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                     },
                                     value: {
                                       description:
-                                        'Value is the value of HTTP Header to be matched.',
+                                        'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                       type: 'string',
                                       maxLength: 4096,
                                       minLength: 1,
@@ -912,7 +1137,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                   'StatusCode is the HTTP status code to be used in response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\nSupport: Core',
                                 type: 'integer',
                                 default: 302,
-                                enum: [301, 302],
+                                enum: [301, 302, 303, 307, 308],
                               },
                             },
                           },
@@ -942,7 +1167,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                     },
                                     value: {
                                       description:
-                                        'Value is the value of HTTP Header to be matched.',
+                                        'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                       type: 'string',
                                       maxLength: 4096,
                                       minLength: 1,
@@ -983,7 +1208,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                     },
                                     value: {
                                       description:
-                                        'Value is the value of HTTP Header to be matched.',
+                                        'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                       type: 'string',
                                       maxLength: 4096,
                                       minLength: 1,
@@ -997,7 +1222,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                           },
                           type: {
                             description:
-                              'Type identifies the type of filter to apply. As with other API fields,\ntypes are classified into three conformance levels:\n\n- Core: Filter types and their corresponding configuration defined by\n  "Support: Core" in this package, e.g. "RequestHeaderModifier". All\n  implementations must support core filters.\n\n- Extended: Filter types and their corresponding configuration defined by\n  "Support: Extended" in this package, e.g. "RequestMirror". Implementers\n  are encouraged to support extended filters.\n\n- Implementation-specific: Filters that are defined and supported by\n  specific vendors.\n  In the future, filters showing convergence in behavior across multiple\n  implementations will be considered for inclusion in extended or core\n  conformance levels. Filter-specific configuration for such filters\n  is specified using the ExtensionRef field. `Type` should be set to\n  "ExtensionRef" for custom filters.\n\nImplementers are encouraged to define custom implementation types to\nextend the core API with implementation-specific behavior.\n\nIf a reference to a custom filter type cannot be resolved, the filter\nMUST NOT be skipped. Instead, requests that would have been processed by\nthat filter MUST receive a HTTP error response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\n<gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS>',
+                              'Type identifies the type of filter to apply. As with other API fields,\ntypes are classified into three conformance levels:\n\n- Core: Filter types and their corresponding configuration defined by\n  "Support: Core" in this package, e.g. "RequestHeaderModifier". All\n  implementations must support core filters.\n\n- Extended: Filter types and their corresponding configuration defined by\n  "Support: Extended" in this package, e.g. "RequestMirror". Implementers\n  are encouraged to support extended filters.\n\n- Implementation-specific: Filters that are defined and supported by\n  specific vendors.\n  In the future, filters showing convergence in behavior across multiple\n  implementations will be considered for inclusion in extended or core\n  conformance levels. Filter-specific configuration for such filters\n  is specified using the ExtensionRef field. `Type` should be set to\n  "ExtensionRef" for custom filters.\n\nImplementers are encouraged to define custom implementation types to\nextend the core API with implementation-specific behavior.\n\nIf a reference to a custom filter type cannot be resolved, the filter\nMUST NOT be skipped. Instead, requests that would have been processed by\nthat filter MUST receive a HTTP error response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\n<gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS;ExternalAuth>',
                             type: 'string',
                             enum: [
                               'RequestHeaderModifier',
@@ -1006,6 +1231,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                               'RequestRedirect',
                               'URLRewrite',
                               'ExtensionRef',
+                              'CORS',
                             ],
                           },
                           urlRewrite: {
@@ -1073,6 +1299,14 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                           },
                         },
                         'x-kubernetes-validations': [
+                          {
+                            rule: "!(has(self.cors) && self.type != 'CORS')",
+                            message: 'filter.cors must be nil if the filter.type is not CORS',
+                          },
+                          {
+                            rule: "!(!has(self.cors) && self.type == 'CORS')",
+                            message: 'filter.cors must be specified for CORS filter.type',
+                          },
                           {
                             rule: "!(has(self.requestHeaderModifier) && self.type != 'RequestHeaderModifier')",
                             message:
@@ -1158,9 +1392,53 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                         },
                       ],
                     },
+                    instance: {
+                      description:
+                        'Instance references an EndpointSlice published by galactic-cni for a pod\nrunning on a tenant VPC network. The referenced EndpointSlice is\nresolved and forwarded to as-is — it is never synthesized or mutated by\nthis controller, since doing so would separate the pod address from the\nSID annotation the tenant-VRF/SRv6 mechanism depends on.\n\nMutually exclusive with endpoint and connector.',
+                      type: 'object',
+                      required: ['name', 'port'],
+                      properties: {
+                        name: {
+                          description:
+                            'Name of the EndpointSlice galactic-cni publishes for the target pod.\nMust exist in the same namespace as this HTTPProxy.',
+                          type: 'string',
+                        },
+                        port: {
+                          description:
+                            'Port on the referenced EndpointSlice to forward traffic to.',
+                          type: 'integer',
+                          format: 'int32',
+                          maximum: 65535,
+                          minimum: 1,
+                        },
+                      },
+                    },
+                    networkService: {
+                      description:
+                        'NetworkService references a NetworkService in the same namespace, and one\nof the ports it declares. Every member the service resolves to becomes an\nendpoint of this backend, so instances appearing, disappearing, and moving\nbetween locations need no edit here.\n\nMutually exclusive with endpoint, connector and instance.',
+                      type: 'object',
+                      required: ['name', 'port'],
+                      properties: {
+                        name: {
+                          description:
+                            'Name of the referenced NetworkService. Must exist in the same namespace as\nthis HTTPProxy.',
+                          type: 'string',
+                          maxLength: 253,
+                          minLength: 1,
+                        },
+                        port: {
+                          description:
+                            "Port names a port declared in the referenced service's spec.ports, rather\nthan giving a number, so the reference survives a change to the port the\nmembers answer on.",
+                          type: 'string',
+                          maxLength: 63,
+                          minLength: 1,
+                          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
+                        },
+                      },
+                    },
                     tls: {
                       description:
-                        'TLS contains backend TLS configuration.\n\nWhen the backend endpoint uses HTTPS with an IP address, the Hostname field\nmust be specified for TLS certificate validation.',
+                        'TLS contains backend TLS configuration.\n\nWhen the backend endpoint uses HTTPS with an IP address, the Hostname field\nmust be specified for TLS certificate validation.\n\nNot supported for networkService backends, which are always reached over\nplaintext HTTP.',
                       type: 'object',
                       properties: {
                         hostname: {
@@ -1172,7 +1450,27 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                         },
                       },
                     },
+                    weight: {
+                      description:
+                        "Weight specifies the proportion of requests forwarded to this backend,\nrelative to the sum of weights across all backends in the rule.\nFollows the same semantics as the Gateway API's HTTPBackendRef.weight:\ncomputed as weight/(sum of all weights in the rule); a weight of 0\nmeans no traffic is forwarded to this backend; if unspecified, weight\ndefaults to 1.",
+                      type: 'integer',
+                      format: 'int32',
+                      default: 1,
+                      maximum: 1000000,
+                      minimum: 0,
+                    },
                   },
+                  'x-kubernetes-validations': [
+                    {
+                      rule: 'has(self.instance) ? (!has(self.endpoint) && !has(self.connector) && !has(self.networkService)) : (has(self.networkService) ? (!has(self.endpoint) && !has(self.connector)) : has(self.endpoint))',
+                      message:
+                        'endpoint is required unless instance or networkService is set; instance and networkService are mutually exclusive with each other and with endpoint and connector',
+                    },
+                    {
+                      rule: 'has(self.networkService) ? !has(self.tls) : true',
+                      message: 'backend TLS is not supported for networkService backends',
+                    },
+                  ],
                 },
               },
               filters: {
@@ -1182,24 +1480,23 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                 maxItems: 16,
                 items: {
                   description:
-                    'HTTPRouteFilter defines processing steps that must be completed during the\nrequest or response lifecycle. HTTPRouteFilters are meant as an extension\npoint to express processing that may be done in Gateway implementations. Some\nexamples include request or response modification, implementing\nauthentication strategies, rate-limiting, and traffic shaping. API\nguarantee/conformance is defined based on the type of the filter.\n\n<gateway:experimental:validation:XValidation:message="filter.cors must be nil if the filter.type is not CORS",rule="!(has(self.cors) && self.type != \'CORS\')">\n<gateway:experimental:validation:XValidation:message="filter.cors must be specified for CORS filter.type",rule="!(!has(self.cors) && self.type == \'CORS\')">',
+                    'HTTPRouteFilter defines processing steps that must be completed during the\nrequest or response lifecycle. HTTPRouteFilters are meant as an extension\npoint to express processing that may be done in Gateway implementations. Some\nexamples include request or response modification, implementing\nauthentication strategies, rate-limiting, and traffic shaping. API\nguarantee/conformance is defined based on the type of the filter.\n\n<gateway:experimental:validation:XValidation:message="filter.externalAuth must be nil if the filter.type is not ExternalAuth",rule="!(has(self.externalAuth) && self.type != \'ExternalAuth\')">\n<gateway:experimental:validation:XValidation:message="filter.externalAuth must be specified for ExternalAuth filter.type",rule="!(!has(self.externalAuth) && self.type == \'ExternalAuth\')">',
                   type: 'object',
                   required: ['type'],
                   properties: {
                     cors: {
                       description:
-                        'CORS defines a schema for a filter that responds to the\ncross-origin request based on HTTP response header.\n\nSupport: Extended\n\n<gateway:experimental>',
+                        'CORS defines a schema for a filter that responds to the\ncross-origin request based on HTTP response header.\n\nSupport: Extended',
                       type: 'object',
                       properties: {
                         allowCredentials: {
                           description:
-                            'AllowCredentials indicates whether the actual cross-origin request allows\nto include credentials.\n\nThe only valid value for the `Access-Control-Allow-Credentials` response\nheader is true (case-sensitive).\n\nIf the credentials are not allowed in cross-origin requests, the gateway\nwill omit the header `Access-Control-Allow-Credentials` entirely rather\nthan setting its value to false.\n\nSupport: Extended',
+                            'AllowCredentials indicates whether the actual cross-origin request allows\nto include credentials.\n\nWhen set to true, the gateway will include the `Access-Control-Allow-Credentials`\nresponse header with value true (case-sensitive).\n\nWhen set to false or omitted the gateway will omit the header\n`Access-Control-Allow-Credentials` entirely (this is the standard CORS\nbehavior).\n\nSupport: Extended',
                           type: 'boolean',
-                          enum: [true],
                         },
                         allowHeaders: {
                           description:
-                            'AllowHeaders indicates which HTTP request headers are supported for\naccessing the requested resource.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Allow-Headers`\nresponse header are separated by a comma (",").\n\nWhen the `AllowHeaders` field is configured with one or more headers, the\ngateway must return the `Access-Control-Allow-Headers` response header\nwhich value is present in the `AllowHeaders` field.\n\nIf any header name in the `Access-Control-Request-Headers` request header\nis not included in the list of header names specified by the response\nheader `Access-Control-Allow-Headers`, it will present an error on the\nclient side.\n\nIf any header name in the `Access-Control-Allow-Headers` response header\ndoes not recognize by the client, it will also occur an error on the\nclient side.\n\nA wildcard indicates that the requests with all HTTP headers are allowed.\nThe `Access-Control-Allow-Headers` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowHeaders` field\nspecified with the `*` wildcard, the gateway must specify one or more\nHTTP headers in the value of the `Access-Control-Allow-Headers` response\nheader. The value of the header `Access-Control-Allow-Headers` is same as\nthe `Access-Control-Request-Headers` header provided by the client. If\nthe header `Access-Control-Request-Headers` is not included in the\nrequest, the gateway will omit the `Access-Control-Allow-Headers`\nresponse header, instead of specifying the `*` wildcard. A Gateway\nimplementation may choose to add implementation-specific default headers.\n\nSupport: Extended',
+                            'AllowHeaders indicates which HTTP request headers are supported for\naccessing the requested resource.\n\nHeader names are not case-sensitive.\n\nMultiple header names in the value of the `Access-Control-Allow-Headers`\nresponse header are separated by a comma (",").\n\nWhen the `AllowHeaders` field is configured with one or more headers, the\ngateway must return the `Access-Control-Allow-Headers` response header\nwhich value is present in the `AllowHeaders` field.\n\nIf any header name in the `Access-Control-Request-Headers` request header\nis not included in the list of header names specified by the response\nheader `Access-Control-Allow-Headers`, it will present an error on the\nclient side.\n\nIf any header name in the `Access-Control-Allow-Headers` response header\ndoes not recognize by the client, it will also occur an error on the\nclient side.\n\nA wildcard indicates that the requests with all HTTP headers are allowed.\nIf config contains the wildcard "*" in allowHeaders and the request is\nnot credentialed, the `Access-Control-Allow-Headers` response header\ncan either use the `*` wildcard or the value of\nAccess-Control-Request-Headers from the request.\n\nWhen the request is credentialed, the gateway must not specify the `*`\nwildcard in the `Access-Control-Allow-Headers` response header. When\nalso the `AllowCredentials` field is true and `AllowHeaders` field\nis specified with the `*` wildcard, the gateway must specify one or more\nHTTP headers in the value of the `Access-Control-Allow-Headers` response\nheader. The value of the header `Access-Control-Allow-Headers` is same as\nthe `Access-Control-Request-Headers` header provided by the client. If\nthe header `Access-Control-Request-Headers` is not included in the\nrequest, the gateway will omit the `Access-Control-Allow-Headers`\nresponse header, instead of specifying the `*` wildcard.\n\nSupport: Extended',
                           type: 'array',
                           maxItems: 64,
                           items: {
@@ -1211,10 +1508,16 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                             pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                           },
                           'x-kubernetes-list-type': 'set',
+                          'x-kubernetes-validations': [
+                            {
+                              rule: "!('*' in self && self.size() > 1)",
+                              message: "AllowHeaders cannot contain '*' alongside other methods",
+                            },
+                          ],
                         },
                         allowMethods: {
                           description:
-                            'AllowMethods indicates which HTTP methods are supported for accessing the\nrequested resource.\n\nValid values are any method defined by RFC9110, along with the special\nvalue `*`, which represents all HTTP methods are allowed.\n\nMethod names are case sensitive, so these values are also case-sensitive.\n(See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)\n\nMultiple method names in the value of the `Access-Control-Allow-Methods`\nresponse header are separated by a comma (",").\n\nA CORS-safelisted method is a method that is `GET`, `HEAD`, or `POST`.\n(See https://fetch.spec.whatwg.org/#cors-safelisted-method) The\nCORS-safelisted methods are always allowed, regardless of whether they\nare specified in the `AllowMethods` field.\n\nWhen the `AllowMethods` field is configured with one or more methods, the\ngateway must return the `Access-Control-Allow-Methods` response header\nwhich value is present in the `AllowMethods` field.\n\nIf the HTTP method of the `Access-Control-Request-Method` request header\nis not included in the list of methods specified by the response header\n`Access-Control-Allow-Methods`, it will present an error on the client\nside.\n\nThe `Access-Control-Allow-Methods` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowMethods` field\nspecified with the `*` wildcard, the gateway must specify one HTTP method\nin the value of the Access-Control-Allow-Methods response header. The\nvalue of the header `Access-Control-Allow-Methods` is same as the\n`Access-Control-Request-Method` header provided by the client. If the\nheader `Access-Control-Request-Method` is not included in the request,\nthe gateway will omit the `Access-Control-Allow-Methods` response header,\ninstead of specifying the `*` wildcard. A Gateway implementation may\nchoose to add implementation-specific default methods.\n\nSupport: Extended',
+                            'AllowMethods indicates which HTTP methods are supported for accessing the\nrequested resource.\n\nValid values are any method defined by RFC9110, along with the special\nvalue `*`, which represents all HTTP methods are allowed.\n\nMethod names are case-sensitive, so these values are also case-sensitive.\n(See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)\n\nMultiple method names in the value of the `Access-Control-Allow-Methods`\nresponse header are separated by a comma (",").\n\nA CORS-safelisted method is a method that is `GET`, `HEAD`, or `POST`.\n(See https://fetch.spec.whatwg.org/#cors-safelisted-method) The\nCORS-safelisted methods are always allowed, regardless of whether they\nare specified in the `AllowMethods` field.\n\nWhen the `AllowMethods` field is configured with one or more methods, the\ngateway must return the `Access-Control-Allow-Methods` response header\nwhich value is present in the `AllowMethods` field.\n\nIf the HTTP method of the `Access-Control-Request-Method` request header\nis not included in the list of methods specified by the response header\n`Access-Control-Allow-Methods`, it will present an error on the client\nside.\n\nIf config contains the wildcard "*" in allowMethods and the request is\nnot credentialed, the `Access-Control-Allow-Methods` response header\ncan either use the `*` wildcard or the value of\nAccess-Control-Request-Method from the request.\n\nWhen the request is credentialed, the gateway must not specify the `*`\nwildcard in the `Access-Control-Allow-Methods` response header. When\nalso the `AllowCredentials` field is true and `AllowMethods` field\nspecified with the `*` wildcard, the gateway must specify one HTTP method\nin the value of the Access-Control-Allow-Methods response header. The\nvalue of the header `Access-Control-Allow-Methods` is same as the\n`Access-Control-Request-Method` header provided by the client. If the\nheader `Access-Control-Request-Method` is not included in the request,\nthe gateway will omit the `Access-Control-Allow-Methods` response header,\ninstead of specifying the `*` wildcard.\n\nSupport: Extended',
                           type: 'array',
                           maxItems: 9,
                           items: {
@@ -1242,22 +1545,29 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                         },
                         allowOrigins: {
                           description:
-                            'AllowOrigins indicates whether the response can be shared with requested\nresource from the given `Origin`.\n\nThe `Origin` consists of a scheme and a host, with an optional port, and\ntakes the form `<scheme>://<host>(:<port>)`.\n\nValid values for scheme are: `http` and `https`.\n\nValid values for port are any integer between 1 and 65535 (the list of\navailable TCP/UDP ports). Note that, if not included, port `80` is\nassumed for `http` scheme origins, and port `443` is assumed for `https`\norigins. This may affect origin matching.\n\nThe host part of the origin may contain the wildcard character `*`. These\nwildcard characters behave as follows:\n\n* `*` is a greedy match to the _left_, including any number of\n  DNS labels to the left of its position. This also means that\n  `*` will include any number of period `.` characters to the\n  left of its position.\n* A wildcard by itself matches all hosts.\n\nAn origin value that includes _only_ the `*` character indicates requests\nfrom all `Origin`s are allowed.\n\nWhen the `AllowOrigins` field is configured with multiple origins, it\nmeans the server supports clients from multiple origins. If the request\n`Origin` matches the configured allowed origins, the gateway must return\nthe given `Origin` and sets value of the header\n`Access-Control-Allow-Origin` same as the `Origin` header provided by the\nclient.\n\nThe status code of a successful response to a "preflight" request is\nalways an OK status (i.e., 204 or 200).\n\nIf the request `Origin` does not match the configured allowed origins,\nthe gateway returns 204/200 response but doesn\'t set the relevant\ncross-origin response headers. Alternatively, the gateway responds with\n403 status to the "preflight" request is denied, coupled with omitting\nthe CORS headers. The cross-origin request fails on the client side.\nTherefore, the client doesn\'t attempt the actual cross-origin request.\n\nThe `Access-Control-Allow-Origin` response header can only use `*`\nwildcard as value when the `AllowCredentials` field is unspecified.\n\nWhen the `AllowCredentials` field is specified and `AllowOrigins` field\nspecified with the `*` wildcard, the gateway must return a single origin\nin the value of the `Access-Control-Allow-Origin` response header,\ninstead of specifying the `*` wildcard. The value of the header\n`Access-Control-Allow-Origin` is same as the `Origin` header provided by\nthe client.\n\nSupport: Extended',
+                            'AllowOrigins indicates whether the response can be shared with requested\nresource from the given `Origin`.\n\nThe `Origin` consists of a scheme and a host, with an optional port, and\ntakes the form `<scheme>://<host>(:<port>)`.\n\nValid values for scheme are: `http` and `https`.\n\nValid values for port are any integer between 1 and 65535 (the list of\navailable TCP/UDP ports). Note that, if not included, port `80` is\nassumed for `http` scheme origins, and port `443` is assumed for `https`\norigins. This may affect origin matching.\n\nThe host part of the origin may contain the wildcard character `*`. These\nwildcard characters behave as follows:\n\n* `*` is a greedy match to the _left_, including any number of\n  DNS labels to the left of its position. This also means that\n  `*` will include any number of period `.` characters to the\n  left of its position.\n* A wildcard by itself matches all hosts.\n\nAn origin value that includes _only_ the `*` character indicates requests\nfrom all `Origin`s are allowed.\n\nWhen the `AllowOrigins` field is configured with multiple origins, it\nmeans the server supports clients from multiple origins. If the request\n`Origin` matches the configured allowed origins, the gateway must return\nthe given `Origin` and sets value of the header\n`Access-Control-Allow-Origin` same as the `Origin` header provided by the\nclient.\n\nThe status code of a successful response to a "preflight" request is\nalways an OK status (i.e., 204 or 200).\n\nIf the request `Origin` does not match the configured allowed origins,\nthe gateway returns 204/200 response but doesn\'t set the relevant\ncross-origin response headers. Alternatively, the gateway responds with\n403 status to the "preflight" request is denied, coupled with omitting\nthe CORS headers. The cross-origin request fails on the client side.\nTherefore, the client doesn\'t attempt the actual cross-origin request.\n\nConversely, if the request `Origin` matches one of the configured\nallowed origins, the gateway sets the response header\n`Access-Control-Allow-Origin` to the same value as the `Origin`\nheader provided by the client.\n\nWhen config has the wildcard ("*") in allowOrigins, and the request\nis not credentialed (e.g., it is a preflight request), the\n`Access-Control-Allow-Origin` response header either contains the\nwildcard as well or the Origin from the request.\n\nWhen the request is credentialed, the gateway must not specify the `*`\nwildcard in the `Access-Control-Allow-Origin` response header. When\nalso the `AllowCredentials` field is true and `AllowOrigins` field\nspecified with the `*` wildcard, the gateway must return a single origin\nin the value of the `Access-Control-Allow-Origin` response header,\ninstead of specifying the `*` wildcard. The value of the header\n`Access-Control-Allow-Origin` is same as the `Origin` header provided by\nthe client.\n\nSupport: Extended',
                           type: 'array',
                           maxItems: 64,
                           items: {
                             description:
-                              'The AbsoluteURI MUST NOT be a relative URI, and it MUST follow the URI syntax and\nencoding rules specified in RFC3986.  The AbsoluteURI MUST include both a\nscheme (e.g., "http" or "spiffe") and a scheme-specific-part.  URIs that\ninclude an authority MUST include a fully qualified domain name or\nIP address as the host.\n<gateway:util:excludeFromCRD> The below regex is taken from the regex section in RFC 3986 with a slight modification to enforce a full URI and not relative. </gateway:util:excludeFromCRD>',
+                              'The CORSOrigin MUST NOT be a relative URI, and it MUST follow the URI syntax and\nencoding rules specified in RFC3986.  The CORSOrigin MUST include both a\nscheme ("http" or "https") and a scheme-specific-part, or it should be a single \'*\' character.\nURIs that include an authority MUST include a fully qualified domain name or\nIP address as the host.',
                             type: 'string',
                             maxLength: 253,
                             minLength: 1,
-                            pattern: '^(([^:/?#]+):)(//([^/?#]*))([^?#]*)(\\?([^#]*))?(#(.*))?',
+                            pattern:
+                              '(^\\*$)|(^(http(s)?):\\/\\/(((\\*\\.)?([a-zA-Z0-9\\-]+\\.)*[a-zA-Z0-9-]+|\\*)(:([0-9]{1,5}))?)$)',
                           },
                           'x-kubernetes-list-type': 'set',
+                          'x-kubernetes-validations': [
+                            {
+                              rule: "!('*' in self && self.size() > 1)",
+                              message: "AllowOrigins cannot contain '*' alongside other origins",
+                            },
+                          ],
                         },
                         exposeHeaders: {
                           description:
-                            'ExposeHeaders indicates which HTTP response headers can be exposed\nto client-side scripts in response to a cross-origin request.\n\nA CORS-safelisted response header is an HTTP header in a CORS response\nthat it is considered safe to expose to the client scripts.\nThe CORS-safelisted response headers include the following headers:\n`Cache-Control`\n`Content-Language`\n`Content-Length`\n`Content-Type`\n`Expires`\n`Last-Modified`\n`Pragma`\n(See https://fetch.spec.whatwg.org/#cors-safelisted-response-header-name)\nThe CORS-safelisted response headers are exposed to client by default.\n\nWhen an HTTP header name is specified using the `ExposeHeaders` field,\nthis additional header will be exposed as part of the response to the\nclient.\n\nHeader names are not case sensitive.\n\nMultiple header names in the value of the `Access-Control-Expose-Headers`\nresponse header are separated by a comma (",").\n\nA wildcard indicates that the responses with all HTTP headers are exposed\nto clients. The `Access-Control-Expose-Headers` response header can only\nuse `*` wildcard as value when the `AllowCredentials` field is\nunspecified.\n\nSupport: Extended',
+                            'ExposeHeaders indicates which HTTP response headers can be exposed\nto client-side scripts in response to a cross-origin request.\n\nA CORS-safelisted response header is an HTTP header in a CORS response\nthat it is considered safe to expose to the client scripts.\nThe CORS-safelisted response headers include the following headers:\n`Cache-Control`\n`Content-Language`\n`Content-Length`\n`Content-Type`\n`Expires`\n`Last-Modified`\n`Pragma`\n(See https://fetch.spec.whatwg.org/#cors-safelisted-response-header-name)\nThe CORS-safelisted response headers are exposed to client by default.\n\nWhen an HTTP header name is specified using the `ExposeHeaders` field,\nthis additional header will be exposed as part of the response to the\nclient.\n\nHeader names are not case-sensitive.\n\nMultiple header names in the value of the `Access-Control-Expose-Headers`\nresponse header are separated by a comma (",").\n\nA wildcard indicates that the responses with all HTTP headers are exposed\nto clients. The `Access-Control-Expose-Headers` response header can only\nuse `*` wildcard as value when the request is not credentialed.\n\nWhen the `exposeHeaders` config field contains the "*" wildcard and\nthe request is credentialed, the gateway cannot use the `*` wildcard in\nthe `Access-Control-Expose-Headers` response header.\n\nSupport: Extended',
                           type: 'array',
                           maxItems: 64,
                           items: {
@@ -1272,7 +1582,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                         },
                         maxAge: {
                           description:
-                            'MaxAge indicates the duration (in seconds) for the client to cache the\nresults of a "preflight" request.\n\nThe information provided by the `Access-Control-Allow-Methods` and\n`Access-Control-Allow-Headers` response headers can be cached by the\nclient until the time specified by `Access-Control-Max-Age` elapses.\n\nThe default value of `Access-Control-Max-Age` response header is 5\n(seconds).',
+                            'MaxAge indicates the duration (in seconds) for the client to cache the\nresults of a "preflight" request.\n\nThe information provided by the `Access-Control-Allow-Methods` and\n`Access-Control-Allow-Headers` response headers can be cached by the\nclient until the time specified by `Access-Control-Max-Age` elapses.\n\nThe default value of `Access-Control-Max-Age` response header is 5\n(seconds).\n\nWhen the `MaxAge` field is unspecified, the gateway sets the response\nheader "Access-Control-Max-Age: 5" by default.',
                           type: 'integer',
                           format: 'int32',
                           default: 5,
@@ -1310,6 +1620,155 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                         },
                       },
                     },
+                    externalAuth: {
+                      description:
+                        'ExternalAuth configures settings related to sending request details\nto an external auth service. The external service MUST authenticate\nthe request, and MAY authorize the request as well.\n\nIf there is any problem communicating with the external service,\nthis filter MUST fail closed.\n\nSupport: Extended\n\n<gateway:experimental>',
+                      type: 'object',
+                      required: ['backendRef', 'protocol'],
+                      properties: {
+                        backendRef: {
+                          description:
+                            'BackendRef is a reference to a backend to send authorization\nrequests to.\n\nThe backend must speak the selected protocol (GRPC or HTTP) on the\nreferenced port.\n\nIf the backend service requires TLS, use BackendTLSPolicy to tell the\nimplementation to supply the TLS details to be used to connect to that\nbackend.',
+                          type: 'object',
+                          required: ['name'],
+                          properties: {
+                            group: {
+                              description:
+                                'Group is the group of the referent. For example, "gateway.networking.k8s.io".\nWhen unspecified or empty string, core API group is inferred.',
+                              type: 'string',
+                              default: '',
+                              maxLength: 253,
+                              pattern:
+                                '^$|^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$',
+                            },
+                            kind: {
+                              description:
+                                'Kind is the Kubernetes resource kind of the referent. For example\n"Service".\n\nDefaults to "Service" when not specified.\n\nExternalName services can refer to CNAME DNS records that may live\noutside of the cluster and as such are difficult to reason about in\nterms of conformance. They also may not be safe to forward to (see\nCVE-2021-25740 for more information). Implementations SHOULD NOT\nsupport ExternalName Services.\n\nSupport: Core (Services with a type other than ExternalName)\n\nSupport: Implementation-specific (Services with type ExternalName)',
+                              type: 'string',
+                              default: 'Service',
+                              maxLength: 63,
+                              minLength: 1,
+                              pattern: '^[a-zA-Z]([-a-zA-Z0-9]*[a-zA-Z0-9])?$',
+                            },
+                            name: {
+                              description: 'Name is the name of the referent.',
+                              type: 'string',
+                              maxLength: 253,
+                              minLength: 1,
+                            },
+                            namespace: {
+                              description:
+                                "Namespace is the namespace of the backend. When unspecified, the local\nnamespace is inferred.\n\nNote that when a namespace different than the local namespace is specified,\na ReferenceGrant object is required in the referent namespace to allow that\nnamespace's owner to accept the reference. See the ReferenceGrant\ndocumentation for details.\n\nSupport: Core",
+                              type: 'string',
+                              maxLength: 63,
+                              minLength: 1,
+                              pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
+                            },
+                            port: {
+                              description:
+                                'Port specifies the destination port number to use for this resource.\nPort is required when the referent is a Kubernetes Service. In this\ncase, the port number is the service port number, not the target port.\nFor other resources, destination port might be derived from the referent\nresource or this field.',
+                              type: 'integer',
+                              format: 'int32',
+                              maximum: 65535,
+                              minimum: 1,
+                            },
+                          },
+                          'x-kubernetes-validations': [
+                            {
+                              rule: "(size(self.group) == 0 && self.kind == 'Service') ? has(self.port) : true",
+                              message: 'Must have port for Service reference',
+                            },
+                          ],
+                        },
+                        forwardBody: {
+                          description:
+                            'ForwardBody controls if requests to the authorization server should include\nthe body of the client request; and if so, how big that body is allowed\nto be.\n\nIt is expected that implementations will buffer the request body up to\n`forwardBody.maxSize` bytes. Bodies over that size must be rejected with a\n4xx series error (413 or 403 are common examples), and fail processing\nof the filter.\n\nIf unset, or `forwardBody.maxSize` is set to `0`, then the body will not\nbe forwarded.\n\nFeature Name: HTTPRouteExternalAuthForwardBody',
+                          type: 'object',
+                          properties: {
+                            maxSize: {
+                              description:
+                                'MaxSize specifies how large in bytes the largest body that will be buffered\nand sent to the authorization server. If the body size is larger than\n`maxSize`, then the body sent to the authorization server must be\ntruncated to `maxSize` bytes.\n\nExperimental note: This behavior needs to be checked against\nvarious dataplanes; it may need to be changed.\nSee https://github.com/kubernetes-sigs/gateway-api/pull/4001#discussion_r2291405746\nfor more.\n\nIf 0, the body will not be sent to the authorization server.',
+                              type: 'integer',
+                            },
+                          },
+                        },
+                        grpc: {
+                          description:
+                            'GRPCAuthConfig contains configuration for communication with ext_authz\nprotocol-speaking backends.\n\nIf unset, implementations must assume the default behavior for each\nincluded field is intended.',
+                          type: 'object',
+                          properties: {
+                            allowedHeaders: {
+                              description:
+                                'AllowedRequestHeaders specifies what headers from the client request\nwill be sent to the authorization server.\n\nIf this list is empty, then all headers must be sent.\n\nIf the list has entries, only those entries must be sent.',
+                              type: 'array',
+                              maxItems: 64,
+                              items: {
+                                type: 'string',
+                              },
+                              'x-kubernetes-list-type': 'set',
+                            },
+                          },
+                        },
+                        http: {
+                          description:
+                            'HTTPAuthConfig contains configuration for communication with HTTP-speaking\nbackends.\n\nIf unset, implementations must assume the default behavior for each\nincluded field is intended.',
+                          type: 'object',
+                          properties: {
+                            allowedHeaders: {
+                              description:
+                                'AllowedRequestHeaders specifies what additional headers from the client request\nwill be sent to the authorization server.\n\nThe following headers must always be sent to the authorization server,\nregardless of this setting:\n\n* `Host`\n* `Method`\n* `Path`\n* `Content-Length`\n* `Authorization`\n\nIf this list is empty, then only those headers must be sent.\n\nNote that `Content-Length` has a special behavior, in that the length\nsent must be correct for the actual request to the external authorization\nserver - that is, it must reflect the actual number of bytes sent in the\nbody of the request to the authorization server.\n\nSo if the `forwardBody` stanza is unset, or `forwardBody.maxSize` is set\nto `0`, then `Content-Length` must be `0`. If `forwardBody.maxSize` is set\nto anything other than `0`, then the `Content-Length` of the authorization\nrequest must be set to the actual number of bytes forwarded.',
+                              type: 'array',
+                              maxItems: 64,
+                              items: {
+                                type: 'string',
+                              },
+                              'x-kubernetes-list-type': 'set',
+                            },
+                            allowedResponseHeaders: {
+                              description:
+                                'AllowedResponseHeaders specifies what headers from the authorization response\nwill be copied into the request to the backend.\n\nIf this list is empty, then all headers from the authorization server\nexcept Authority or Host must be copied.',
+                              type: 'array',
+                              maxItems: 64,
+                              items: {
+                                type: 'string',
+                              },
+                              'x-kubernetes-list-type': 'set',
+                            },
+                            path: {
+                              description:
+                                'Path sets the prefix that paths from the client request will have added\nwhen forwarded to the authorization server.\n\nWhen empty or unspecified, no prefix is added.\n\nValid values are the same as the "value" regex for path values in the `match`\nstanza, and the validation regex will screen out invalid paths in the same way.\nEven with the validation, implementations MUST sanitize this input before using it\ndirectly.',
+                              type: 'string',
+                              maxLength: 1024,
+                              pattern: "^(?:[-A-Za-z0-9/._~!$&'()*+,;=:@]|[%][0-9a-fA-F]{2})+$",
+                            },
+                          },
+                        },
+                        protocol: {
+                          description:
+                            'ExternalAuthProtocol describes which protocol to use when communicating with an\next_authz authorization server.\n\nWhen this is set to GRPC, each backend must use the Envoy ext_authz protocol\non the port specified in `backendRefs`. Requests and responses are defined\nin the protobufs explained at:\nhttps://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/external_auth.proto\n\nWhen this is set to HTTP, each backend must respond with a `200` status\ncode in on a successful authorization. Any other code is considered\nan authorization failure.\n\nFeature Names:\nGRPC Support - HTTPRouteExternalAuthGRPC\nHTTP Support - HTTPRouteExternalAuthHTTP',
+                          type: 'string',
+                          enum: ['HTTP', 'GRPC'],
+                        },
+                      },
+                      'x-kubernetes-validations': [
+                        {
+                          rule: "self.protocol == 'GRPC' ? has(self.grpc) : true",
+                          message: "grpc must be specified when protocol is set to 'GRPC'",
+                        },
+                        {
+                          rule: "has(self.grpc) ? self.protocol == 'GRPC' : true",
+                          message: "protocol must be 'GRPC' when grpc is set",
+                        },
+                        {
+                          rule: "self.protocol == 'HTTP' ? has(self.http) : true",
+                          message: "http must be specified when protocol is set to 'HTTP'",
+                        },
+                        {
+                          rule: "has(self.http) ? self.protocol == 'HTTP' : true",
+                          message: "protocol must be 'HTTP' when http is set",
+                        },
+                      ],
+                    },
                     requestHeaderModifier: {
                       description:
                         'RequestHeaderModifier defines a schema for a filter that modifies request\nheaders.\n\nSupport: Core',
@@ -1335,7 +1794,8 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description: 'Value is the value of HTTP Header to be matched.',
+                                description:
+                                  'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -1375,7 +1835,8 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description: 'Value is the value of HTTP Header to be matched.',
+                                description:
+                                  'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -1569,7 +2030,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                             'StatusCode is the HTTP status code to be used in response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\nSupport: Core',
                           type: 'integer',
                           default: 302,
-                          enum: [301, 302],
+                          enum: [301, 302, 303, 307, 308],
                         },
                       },
                     },
@@ -1598,7 +2059,8 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description: 'Value is the value of HTTP Header to be matched.',
+                                description:
+                                  'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -1638,7 +2100,8 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                                 pattern: "^[A-Za-z0-9!#$%&'*+\\-.^_\\x60|~]+$",
                               },
                               value: {
-                                description: 'Value is the value of HTTP Header to be matched.',
+                                description:
+                                  'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                                 type: 'string',
                                 maxLength: 4096,
                                 minLength: 1,
@@ -1652,7 +2115,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                     },
                     type: {
                       description:
-                        'Type identifies the type of filter to apply. As with other API fields,\ntypes are classified into three conformance levels:\n\n- Core: Filter types and their corresponding configuration defined by\n  "Support: Core" in this package, e.g. "RequestHeaderModifier". All\n  implementations must support core filters.\n\n- Extended: Filter types and their corresponding configuration defined by\n  "Support: Extended" in this package, e.g. "RequestMirror". Implementers\n  are encouraged to support extended filters.\n\n- Implementation-specific: Filters that are defined and supported by\n  specific vendors.\n  In the future, filters showing convergence in behavior across multiple\n  implementations will be considered for inclusion in extended or core\n  conformance levels. Filter-specific configuration for such filters\n  is specified using the ExtensionRef field. `Type` should be set to\n  "ExtensionRef" for custom filters.\n\nImplementers are encouraged to define custom implementation types to\nextend the core API with implementation-specific behavior.\n\nIf a reference to a custom filter type cannot be resolved, the filter\nMUST NOT be skipped. Instead, requests that would have been processed by\nthat filter MUST receive a HTTP error response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\n<gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS>',
+                        'Type identifies the type of filter to apply. As with other API fields,\ntypes are classified into three conformance levels:\n\n- Core: Filter types and their corresponding configuration defined by\n  "Support: Core" in this package, e.g. "RequestHeaderModifier". All\n  implementations must support core filters.\n\n- Extended: Filter types and their corresponding configuration defined by\n  "Support: Extended" in this package, e.g. "RequestMirror". Implementers\n  are encouraged to support extended filters.\n\n- Implementation-specific: Filters that are defined and supported by\n  specific vendors.\n  In the future, filters showing convergence in behavior across multiple\n  implementations will be considered for inclusion in extended or core\n  conformance levels. Filter-specific configuration for such filters\n  is specified using the ExtensionRef field. `Type` should be set to\n  "ExtensionRef" for custom filters.\n\nImplementers are encouraged to define custom implementation types to\nextend the core API with implementation-specific behavior.\n\nIf a reference to a custom filter type cannot be resolved, the filter\nMUST NOT be skipped. Instead, requests that would have been processed by\nthat filter MUST receive a HTTP error response.\n\nNote that values may be added to this enum, implementations\nmust ensure that unknown values will not cause a crash.\n\nUnknown values here must result in the implementation setting the\nAccepted Condition for the Route to `status: False`, with a\nReason of `UnsupportedValue`.\n\n<gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS;ExternalAuth>',
                       type: 'string',
                       enum: [
                         'RequestHeaderModifier',
@@ -1661,6 +2124,7 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                         'RequestRedirect',
                         'URLRewrite',
                         'ExtensionRef',
+                        'CORS',
                       ],
                     },
                     urlRewrite: {
@@ -1727,6 +2191,14 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                     },
                   },
                   'x-kubernetes-validations': [
+                    {
+                      rule: "!(has(self.cors) && self.type != 'CORS')",
+                      message: 'filter.cors must be nil if the filter.type is not CORS',
+                    },
+                    {
+                      rule: "!(!has(self.cors) && self.type == 'CORS')",
+                      message: 'filter.cors must be specified for CORS filter.type',
+                    },
                     {
                       rule: "!(has(self.requestHeaderModifier) && self.type != 'RequestHeaderModifier')",
                       message:
@@ -1855,7 +2327,8 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                             enum: ['Exact', 'RegularExpression'],
                           },
                           value: {
-                            description: 'Value is the value of HTTP Header to be matched.',
+                            description:
+                              'Value is the value of HTTP Header to be matched.\n<gateway:experimental:description>\nMust consist of printable US-ASCII characters, optionally separated\nby single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2\n</gateway:experimental:description>\n\n<gateway:experimental:validation:Pattern=`^[!-~]+([\\t ]?[!-~]+)*$`>',
                             type: 'string',
                             maxLength: 4096,
                             minLength: 1,
@@ -2033,6 +2506,10 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
                 rule: "(has(self.backends) && self.backends.exists_one(b, (has(b.filters) && b.filters.exists_one(f, has(f.urlRewrite) && has(f.urlRewrite.path) && f.urlRewrite.path.type == 'ReplacePrefixMatch' && has(f.urlRewrite.path.replacePrefixMatch))) )) ? ((size(self.matches) != 1 || !has(self.matches[0].path) || self.matches[0].path.type != 'PathPrefix') ? false : true) : true",
                 message:
                   'Within backends, When using URLRewrite filter with path.replacePrefixMatch, exactly one PathPrefix match must be specified',
+              },
+              {
+                rule: '(has(self.backends) && self.backends.exists(b, has(b.connector))) ? size(self.backends) == 1 : true',
+                message: 'a connector backend must be the only backend in its rule',
               },
             ],
           },
@@ -2263,7 +2740,6 @@ export const com_datumapis_networking_v1alpha_HTTPProxySchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_HTTPProxyListSchema = {
@@ -2306,7 +2782,6 @@ export const com_datumapis_networking_v1alpha_HTTPProxyListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_LocationSchema = {
@@ -2337,6 +2812,36 @@ export const com_datumapis_networking_v1alpha_LocationSchema = {
       type: 'object',
       required: ['locationClassName', 'provider', 'topology'],
       properties: {
+        coordinates: {
+          description:
+            'The geographic coordinates of the location, used by consumers that need\nto plot the location on a map.',
+          type: 'object',
+          required: ['latitude', 'longitude'],
+          properties: {
+            latitude: {
+              description: 'Latitude in decimal degrees, in the range [-90, 90].',
+              type: 'string',
+              pattern: '^-?\\d{1,2}(\\.\\d+)?$',
+              'x-kubernetes-validations': [
+                {
+                  rule: 'double(self) >= -90.0 && double(self) <= 90.0',
+                  message: 'latitude must be between -90 and 90',
+                },
+              ],
+            },
+            longitude: {
+              description: 'Longitude in decimal degrees, in the range [-180, 180].',
+              type: 'string',
+              pattern: '^-?\\d{1,3}(\\.\\d+)?$',
+              'x-kubernetes-validations': [
+                {
+                  rule: 'double(self) >= -180.0 && double(self) <= 180.0',
+                  message: 'longitude must be between -180 and 180',
+                },
+              ],
+            },
+          },
+        },
         locationClassName: {
           description:
             'The location class that indicates control plane behavior of entities\nassociated with the location.\n\nValid values are:\n\t- datum-managed\n\t- self-managed',
@@ -2442,7 +2947,177 @@ export const com_datumapis_networking_v1alpha_LocationSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_datumapis_networking_v1alpha_LocationBindingSchema = {
+  description:
+    "LocationBinding is the Schema for the locationbindings API. It is a\ncluster-scoped projection of a cluster-scoped Location into a project's\nvirtual control plane, created once the location's class is supported, the\nLocation is Ready, and the corresponding ServiceAvailability is Available.",
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'LocationBindingSpec defines the desired state of LocationBinding.',
+      type: 'object',
+      required: ['locationRef'],
+      properties: {
+        displayName: {
+          description: 'DisplayName is a human-readable label for the location.',
+          type: 'string',
+        },
+        locationClassName: {
+          description:
+            'LocationClassName mirrors spec.locationClassName from the referenced Location.',
+          type: 'string',
+        },
+        locationRef: {
+          description: 'LocationRef references the canonical cluster-scoped Location object.',
+          type: 'object',
+          properties: {
+            name: {
+              description:
+                'Name of the referent.\nThis field is effectively required, but due to backwards compatibility is\nallowed to be empty. Instances of this type with an empty value here are\nalmost certainly wrong.\nMore info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names',
+              type: 'string',
+              default: '',
+            },
+          },
+          'x-kubernetes-map-type': 'atomic',
+        },
+        topology: {
+          description:
+            'Topology mirrors spec.topology from the referenced Location, containing\nwell-known keys like topology.datum.net/city-code and topology.datum.net/region.',
+          type: 'object',
+          additionalProperties: {
+            type: 'string',
+          },
+        },
+      },
+    },
+    status: {
+      description: 'LocationBindingStatus defines the observed state of LocationBinding.',
+      type: 'object',
+      properties: {
+        conditions: {
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'LocationBinding',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_LocationBindingListSchema = {
+  description: 'LocationBindingList is a list of LocationBinding',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of locationbindings. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.datumapis.networking.v1alpha.LocationBinding',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'LocationBindingList',
+      version: 'v1alpha',
+    },
+  ],
 } as const;
 
 export const com_datumapis_networking_v1alpha_LocationListSchema = {
@@ -2485,7 +3160,6 @@ export const com_datumapis_networking_v1alpha_LocationListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkSchema = {
@@ -2518,9 +3192,9 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
       required: ['ipam'],
       properties: {
         ipFamilies: {
-          description: 'IP Families to permit on a network. Defaults to IPv4.',
+          description: 'IP Families to permit on a network. Defaults to IPv6.',
           type: 'array',
-          default: ['IPv4'],
+          default: ['IPv6'],
           items: {
             type: 'string',
             enum: ['IPv4', 'IPv6'],
@@ -2548,10 +3222,11 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
           },
         },
         mtu: {
-          description: 'Network MTU. May be between 1300 and 8856.',
+          description:
+            'Network MTU. May be between 1300 and 8856.\n\nDefaults to 1440. Traffic between locations is encapsulated with a\n40-byte outer IPv6 header, and some provider paths drop larger frames\nwithout returning Packet Too Big, so a larger MTU can hang connections\ninstead of fragmenting or failing fast.',
           type: 'integer',
           format: 'int32',
-          default: 1460,
+          default: 1440,
           maximum: 8856,
           minimum: 1300,
         },
@@ -2560,6 +3235,17 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
     status: {
       description: 'NetworkStatus defines the observed state of Network',
       type: 'object',
+      default: {
+        conditions: [
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Ready',
+          },
+        ],
+      },
       properties: {
         conditions: {
           description: "Represents the observations of a network's current state.",
@@ -2612,6 +3298,42 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
             },
           },
         },
+        ipam: {
+          description: 'IPAM reports the address space IPAM holds for this network.',
+          type: 'object',
+          properties: {
+            ipv6Prefix: {
+              description:
+                "IPv6Prefix is the /48 this network was assigned from the platform's\ntenant ULA pool. Every subnet and endpoint address in the network is\ncarved from it.",
+              type: 'string',
+            },
+            ipv6PrefixRef: {
+              description:
+                'IPv6PrefixRef names what holds the prefix in IPAM, so the allocation can\nbe audited and released.',
+              type: 'object',
+              properties: {
+                claimName: {
+                  description:
+                    'ClaimName is the IPClaim this operator holds against the prefix.\nDeleting it releases what the operator holds.',
+                  type: 'string',
+                },
+                namespace: {
+                  description: 'Namespace is the project namespace holding the claim.',
+                  type: 'string',
+                },
+                poolName: {
+                  description:
+                    'PoolName is the IPPool IPAM provisioned for the prefix. Subnet and\nendpoint addresses are drawn from it.',
+                  type: 'string',
+                },
+                project: {
+                  description: 'Project is the control plane the objects live in.',
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
       },
     },
   },
@@ -2622,7 +3344,6 @@ export const com_datumapis_networking_v1alpha_NetworkSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkBindingSchema = {
@@ -2654,23 +3375,47 @@ export const com_datumapis_networking_v1alpha_NetworkBindingSchema = {
       type: 'object',
       required: ['location', 'network'],
       properties: {
-        location: {
-          description: 'The location of where a network binding exists.',
+        consumer: {
+          description:
+            'The resource that needs the network in this location.\n\nNothing reads this to decide anything, and a binding is never held open\nbecause of it. It records who asked in a form that does not depend on the\nconsumer being an object in this control plane, which is the only record\nfor a consumer that cannot be an owner.',
           type: 'object',
-          required: ['name', 'namespace'],
+          required: ['kind', 'name'],
+          properties: {
+            apiGroup: {
+              description: 'APIGroup of the consumer. Empty means the core group.',
+              type: 'string',
+            },
+            kind: {
+              description: 'Kind of the consumer.',
+              type: 'string',
+            },
+            name: {
+              description: 'Name of the consumer.',
+              type: 'string',
+            },
+          },
+        },
+        location: {
+          description:
+            'The location of where a network binding exists.\n\nImmutable, for the same reason as spec.network.',
+          type: 'object',
+          required: ['name'],
           properties: {
             name: {
               description: 'Name of a datum location',
               type: 'string',
             },
-            namespace: {
-              description: 'Namespace for the datum location',
-              type: 'string',
-            },
           },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'spec.location is immutable',
+            },
+          ],
         },
         network: {
-          description: 'The network that the binding is for.',
+          description:
+            'The network that the binding is for.\n\nImmutable: a binding whose network changed is a declaration about a\ndifferent presence. Delete and recreate instead, so the crossing is\nobservable.',
           type: 'object',
           required: ['name'],
           properties: {
@@ -2684,6 +3429,12 @@ export const com_datumapis_networking_v1alpha_NetworkBindingSchema = {
               type: 'string',
             },
           },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'spec.network is immutable',
+            },
+          ],
         },
       },
     },
@@ -2777,7 +3528,6 @@ export const com_datumapis_networking_v1alpha_NetworkBindingSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkBindingListSchema = {
@@ -2820,7 +3570,6 @@ export const com_datumapis_networking_v1alpha_NetworkBindingListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
@@ -2851,20 +3600,34 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
       type: 'object',
       required: ['location', 'network'],
       properties: {
+        ipFamilies: {
+          description:
+            'IP families the network carries, projected from the Network.\n\nA reader that finds this unset must refuse rather than assume a family:\na context written before this field existed carries nothing, which is not\nthe same as a network that carries nothing.',
+          type: 'array',
+          maxItems: 2,
+          minItems: 1,
+          items: {
+            type: 'string',
+            enum: ['IPv4', 'IPv6'],
+          },
+        },
         location: {
           description: 'The location of where a network context exists.',
           type: 'object',
-          required: ['name', 'namespace'],
+          required: ['name'],
           properties: {
             name: {
               description: 'Name of a datum location',
               type: 'string',
             },
-            namespace: {
-              description: 'Namespace for the datum location',
-              type: 'string',
-            },
           },
+        },
+        mtu: {
+          description: 'MTU of interfaces on the network, projected from the Network.',
+          type: 'integer',
+          format: 'int32',
+          maximum: 8856,
+          minimum: 1300,
         },
         network: {
           description: 'The attached network',
@@ -2877,6 +3640,12 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
             },
           },
         },
+        networkGeneration: {
+          description:
+            'The Network generation the projected fields were read from, so an operator\ncomparing this to the Network can tell whether this location has caught up.',
+          type: 'integer',
+          format: 'int64',
+        },
       },
     },
     status: {
@@ -2884,13 +3653,6 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
       type: 'object',
       default: {
         conditions: [
-          {
-            lastTransitionTime: '1970-01-01T00:00:00Z',
-            message: 'Waiting for controller',
-            reason: 'Pending',
-            status: 'Unknown',
-            type: 'Programmed',
-          },
           {
             lastTransitionTime: '1970-01-01T00:00:00Z',
             message: 'Waiting for controller',
@@ -2952,6 +3714,48 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
             },
           },
         },
+        ipam: {
+          description:
+            'IPAM reports the address space IPAM holds for this network in this\nlocation.',
+          type: 'object',
+          properties: {
+            ipv6ClaimRef: {
+              description:
+                'IPv6ClaimRef names what holds the /64 in IPAM. Deleting the claim it\nnames releases what this operator holds.',
+              type: 'object',
+              properties: {
+                claimName: {
+                  description:
+                    'ClaimName is the IPClaim this operator holds against the prefix.\nDeleting it releases what the operator holds.',
+                  type: 'string',
+                },
+                namespace: {
+                  description: 'Namespace is the project namespace holding the claim.',
+                  type: 'string',
+                },
+                poolName: {
+                  description:
+                    'PoolName is the IPPool IPAM provisioned for the prefix. Subnet and\nendpoint addresses are drawn from it.',
+                  type: 'string',
+                },
+                project: {
+                  description: 'Project is the control plane the objects live in.',
+                  type: 'string',
+                },
+              },
+            },
+            ipv6SubnetRef: {
+              description: "IPv6SubnetRef names the Subnet publishing this location's /64.",
+              type: 'object',
+              required: ['name'],
+              properties: {
+                name: {
+                  type: 'string',
+                },
+              },
+            },
+          },
+        },
       },
     },
   },
@@ -2962,7 +3766,6 @@ export const com_datumapis_networking_v1alpha_NetworkContextSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkContextListSchema = {
@@ -3005,7 +3808,788 @@ export const com_datumapis_networking_v1alpha_NetworkContextListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_datumapis_networking_v1alpha_NetworkInterfaceSchema = {
+  description:
+    'NetworkInterface is an interface on a network, together with the addresses it\nholds. It is the unit that owns addresses: as long as the interface exists,\nits addresses stay allocated to it.\n\nYou do not create a NetworkInterface. Ask for one with a\nNetworkInterfaceClaim, and the operator creates the interface, allocates its\naddresses, and binds the two. A provider then reads the interface to\nconfigure a NIC, and reports what it programmed in status.\n\nAn interface outlives the instance using it. Whether it outlives the claim\nthat asked for it depends on spec.reclaimPolicy.',
+  type: 'object',
+  required: ['spec'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'NetworkInterfaceSpec defines the desired state of NetworkInterface. It is\nwritten by the operator when a claim is fulfilled, and it carries everything\na provider needs to configure a NIC without reading any other resource.',
+      type: 'object',
+      required: ['network'],
+      properties: {
+        addresses: {
+          description:
+            'addresses are the addresses the interface holds inside its network, at most\none per address family, exactly one of them primary. Each carries a prefix\nlength and, once the location has a subnet, the gateway to route through.',
+          type: 'array',
+          maxItems: 4,
+          items: {
+            description:
+              'NetworkInterfaceAddress is an address the interface holds inside its network.\nThese are the addresses configured on the NIC itself, and they always carry a\nprefix length.',
+            type: 'object',
+            required: ['address', 'family'],
+            properties: {
+              address: {
+                description:
+                  'address is the address the interface holds, in CIDR notation, such as\n10.128.0.2/32 or 2001:db8:a001::1/128.\n\nFor IPv6 this may be a block delegated to the interface rather than a\nsingle address, such as 2001:db8:a001::/96. The interface owns the whole\nblock and assigns within it.',
+                type: 'string',
+                maxLength: 45,
+                minLength: 1,
+              },
+              class: {
+                description:
+                  'class is the IPAM class this address was allocated from, such as\nprivate-ipv6. It is empty for the addresses a claim requests by family\nrather than by class.',
+                type: 'string',
+                maxLength: 63,
+              },
+              family: {
+                description: 'family is the address family of this entry.',
+                type: 'string',
+                enum: ['IPv4', 'IPv6'],
+              },
+              gateway: {
+                description:
+                  'gateway is the next hop the interface routes through for this family, such\nas 10.128.0.1. It is resolved from the subnet backing the network in this\nlocation, so nothing has to read the subnet to configure the NIC. It is\nempty until that subnet exists.',
+                type: 'string',
+                maxLength: 45,
+              },
+              primary: {
+                description:
+                  "primary marks the address projected into single-address fields, such as an\ninstance's reported network IP.\n\nExactly one address is primary for the interface as a whole, not one per\nfamily. It is the address of the first family the claim listed in\nspec.ipFamilies.",
+                type: 'boolean',
+              },
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'size(self) == 0 || self.filter(a, has(a.primary) && a.primary).size() == 1',
+              message: 'Exactly one address must be primary',
+            },
+            {
+              rule: 'self.all(a, self.exists_one(b, b.family == a.family))',
+              message: 'Only one address may be held per address family',
+            },
+          ],
+        },
+        attachmentMode: {
+          description:
+            "attachmentMode is how the guest consumes this interface. It comes from the\nclaim, and the operator carries it without interpreting it.\n\nNetns places the interface in the workload's network namespace. Hypervisor\nhands it to a hypervisor as a device, which is what a virtual machine or\nmicroVM guest needs. HypervisorDeclared also hands it to a hypervisor, and\nadditionally has the realizer state the device to that hypervisor instead\nof letting it discover the device from the node.",
+          type: 'string',
+          default: 'Netns',
+          enum: ['Netns', 'Hypervisor', 'HypervisorDeclared'],
+        },
+        claimRef: {
+          description:
+            'claimRef is the claim currently holding this interface. It is empty while a\nretained interface waits, unbound, for a claim of its name to return.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description:
+                'name is the name of the NetworkInterfaceClaim, in the same namespace as the\ninterface. A claim name stays with the workload slot it serves, so a\nreplacement instance binds this same interface and its addresses.',
+              type: 'string',
+              maxLength: 253,
+              minLength: 1,
+            },
+          },
+        },
+        externalAddresses: {
+          description:
+            'externalAddresses are the addresses the interface is reachable at from\noutside the network, each mapped onto the interface address of the same\nfamily. They come from the classes the claim requested, and they are absent\nfor a workload that only needs private addressing.',
+          type: 'array',
+          maxItems: 4,
+          items: {
+            description:
+              'NetworkInterfaceExternalAddress is an address reachable from outside the\nnetwork, mapped onto an address the interface holds inside it. A public IPv4\naddress in front of a private address is the usual case.\n\nUnlike an interface address, an external address is a bare address with no\nprefix length, such as 203.0.113.10, because nothing configures it on the\nNIC. The data plane maps it onto the interface address of the same family.',
+            type: 'object',
+            required: ['address', 'class', 'family'],
+            properties: {
+              address: {
+                description:
+                  'address is the externally reachable address, such as 203.0.113.10. It\ncarries no prefix length.',
+                type: 'string',
+                maxLength: 45,
+                minLength: 1,
+              },
+              class: {
+                description:
+                  'class is the IPAM class this address was allocated from, such as\npublic-ipv4. It matches the class the claim requested in spec.addresses.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+              },
+              family: {
+                description: 'family is the address family of this entry.',
+                type: 'string',
+                enum: ['IPv4', 'IPv6'],
+              },
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self.all(a, self.exists_one(b, b.address == a.address))',
+              message: 'External addresses must be unique',
+            },
+            {
+              rule: 'self.all(a, self.exists_one(b, b.class == a.class))',
+              message: 'Only one external address may be held per address class',
+            },
+          ],
+        },
+        interfaceName: {
+          description:
+            'interfaceName is the device name the interface presents to the guest\noperating system, such as eth0 or eth1. It comes from the claim.',
+          type: 'string',
+          default: 'eth0',
+          maxLength: 15,
+          minLength: 1,
+        },
+        mtu: {
+          description:
+            'mtu is the MTU, in bytes, the interface must be configured with. It is\nresolved from the network, so a provider never has to read the network to\nconfigure the NIC.',
+          type: 'integer',
+          format: 'int32',
+          maximum: 8856,
+          minimum: 1300,
+        },
+        network: {
+          description:
+            'network is the network this interface belongs to, in the same namespace as\nthe interface. It comes from the claim and does not change.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'The network name',
+              type: 'string',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'network is immutable and cannot be changed after creation',
+            },
+          ],
+        },
+        reclaimPolicy: {
+          description:
+            'reclaimPolicy decides what becomes of this interface, and its addresses,\nwhen the claim holding it is deleted. It comes from the claim, and a claim\nasking for a different policy cannot bind this interface.',
+          type: 'string',
+          default: 'Delete',
+          enum: ['Delete', 'Retain'],
+        },
+      },
+    },
+    status: {
+      description:
+        'NetworkInterfaceStatus defines the observed state of NetworkInterface: which\nclaim holds it, what realizes it on the data plane, and whether programming\nhas succeeded.',
+      type: 'object',
+      default: {
+        conditions: [
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Allocated',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Prepared',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Programmed',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'HolderAvailable',
+          },
+        ],
+      },
+      properties: {
+        attachmentRef: {
+          description:
+            'attachmentRef is the data-plane resource realizing this interface. The\nprovider sets it once an attachment exists.',
+          type: 'object',
+          required: ['apiGroup', 'kind', 'name'],
+          properties: {
+            apiGroup: {
+              description:
+                'apiGroup is the API group of the referent, such as\ncompute.datumapis.com.',
+              type: 'string',
+              maxLength: 253,
+              minLength: 1,
+            },
+            kind: {
+              description: 'kind is the kind of the referent.',
+              type: 'string',
+              maxLength: 63,
+              minLength: 1,
+            },
+            name: {
+              description: 'name is the name of the referent.',
+              type: 'string',
+              maxLength: 253,
+              minLength: 1,
+            },
+          },
+        },
+        conditions: {
+          description:
+            'conditions report the current state of the interface. Allocated means every\naddress is held. Prepared means the data plane is ready for a workload to\nconsume it. Programmed means the data plane carries the addresses.\nHolderAvailable means whatever holds the interface reports itself available\nto serve, and it is the only one of the four a service reads.',
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+        },
+        networkContextRef: {
+          description:
+            "networkContextRef is the network's presence in this location, resolved or\ncreated while fulfilling the claim. It is a breadcrumb for operators\ntracing where a network landed, and nothing needs it to configure a NIC.",
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'The network context name',
+              type: 'string',
+            },
+          },
+        },
+        phase: {
+          description:
+            'phase reports whether a claim holds the interface. Bound means the claim in\nspec.claimRef holds it. Available means it is retained and holding its\naddresses with no claim bound.',
+          type: 'string',
+          enum: ['Available', 'Bound'],
+        },
+        vpc: {
+          description:
+            'vpc is the base62 identifier of the VPC backing this network in this\nlocation, matching the identifier the fabric keys on. The provider records\nit when the attachment is programmed.',
+          type: 'string',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'NetworkInterface',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_NetworkInterfaceClaimSchema = {
+  description:
+    "NetworkInterfaceClaim asks for an interface on a network. It is the resource\na user creates. The operator finds or creates a NetworkInterface that\nsatisfies it, allocates the addresses, and reports them in status.\n\nA claim describes what the interface must be able to do, never which\ninterface or address to use. One claim holds at most one interface, and one\ninterface is held by at most one claim.\n\nA claim's name is what makes addresses stable. It names the slot in a\nworkload rather than the instance filling it, so an instance replaced by\nanother that asks for the same claim name comes back on the same interface\nand the same addresses. What happens when the claim itself is deleted is\nspec.reclaimPolicy.",
+  type: 'object',
+  required: ['spec'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'NetworkInterfaceClaimSpec defines the desired state of NetworkInterfaceClaim.\nEvery field states what the interface must be able to do, never which\ninterface or which address to use.\n\nMost of the spec is immutable, because the addresses are allocated against\nit. To change one of those fields, delete the claim and create a new one,\naccepting that the workload gets new addresses unless the interface is\nretained.',
+      type: 'object',
+      required: ['network'],
+      properties: {
+        addresses: {
+          description:
+            'addresses request extra addresses by class, beyond the ones the interface\nholds inside its network. Each appears in status.externalAddresses as a\nbare address, mapped onto the interface address of the same family.\n\nOmit this field for ordinary private addressing, which is the common case.',
+          type: 'array',
+          maxItems: 4,
+          minItems: 1,
+          items: {
+            description:
+              'NetworkInterfaceAddressRequest asks for one address beyond the ones the\ninterface holds inside its network, such as a public IPv4 address in front of\na private one.',
+            type: 'object',
+            required: ['class'],
+            properties: {
+              class: {
+                description:
+                  'class is the IPAM class to allocate from, such as public-ipv4.\n\nA class names a kind of address, and the platform decides which pool and\nprefix length serve it. A class never names a pool, a prefix length, or a\nCIDR, so a class cannot be used to ask for a particular address.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+              },
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self.all(a, self.exists_one(b, b.class == a.class))',
+              message: 'Each address class may be requested at most once',
+            },
+          ],
+        },
+        attachmentMode: {
+          description:
+            "attachmentMode is how the guest consumes this interface. Netns places it in\nthe workload's network namespace, which is what an ordinary container\nexpects. Hypervisor hands it to a hypervisor as a device, which is what a\nvirtual machine or microVM guest needs. HypervisorDeclared also hands it\nto a hypervisor, and additionally has the realizer state the device to\nthat hypervisor instead of letting it discover the device from the node.\n\nIt is copied to the bound interface and never interpreted here. Whoever\nrealizes the interface decides what each mode means on its data plane.\n\nImmutable, because the guest and the attachment are both built against it.",
+          type: 'string',
+          default: 'Netns',
+          enum: ['Netns', 'Hypervisor', 'HypervisorDeclared'],
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'attachmentMode is immutable and cannot be changed after creation',
+            },
+          ],
+        },
+        interfaceName: {
+          description:
+            'interfaceName is the device name the interface presents to the guest\noperating system, such as eth0 or eth1. Set it when a workload has more\nthan one interface and the guest configuration names them.\n\nImmutable, because the guest is configured against it.',
+          type: 'string',
+          default: 'eth0',
+          maxLength: 15,
+          minLength: 1,
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'interfaceName is immutable and cannot be changed after creation',
+            },
+          ],
+        },
+        ipFamilies: {
+          description:
+            "ipFamilies are the address families the interface must carry, in priority\norder. List [IPv6, IPv4] for a dual-stack interface. The first family\nlisted holds the interface's primary address, which is the one reported in\nsingle-address fields such as an instance's network IP.\n\nEvery family listed must be satisfiable or the claim does not bind. Asking\nfor a family the network does not carry fails the claim outright rather\nthan leaving it pending, and no partially addressed interface is ever\npublished.",
+          type: 'array',
+          default: ['IPv6'],
+          maxItems: 2,
+          minItems: 1,
+          items: {
+            type: 'string',
+            enum: ['IPv4', 'IPv6'],
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self.all(f, self.exists_one(g, g == f))',
+              message: 'Each address family may be requested at most once',
+            },
+            {
+              rule: 'self == oldSelf',
+              message: 'ipFamilies is immutable and cannot be changed after creation',
+            },
+          ],
+        },
+        network: {
+          description:
+            'network is the network the interface attaches to. The network must already\nexist in the same namespace as the claim.\n\nImmutable. An interface that changed network would hold addresses from a\nspace it no longer belongs to, so move a workload by recreating the claim\nagainst the other network.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'The network name',
+              type: 'string',
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'network is immutable and cannot be changed after creation',
+            },
+          ],
+        },
+        networkInterfaceName: {
+          description:
+            'networkInterfaceName binds one specific interface by name, instead of the\ninterface named after this claim. The named interface must already carry\nevery family and class this claim asks for, under the same reclaim policy,\nand must not be held by another claim.\n\nLeave it empty, which is the normal case. The claim then binds the\ninterface of its own name, retained by an earlier claim, or creates one.\n\nImmutable, including from empty to set. Rebinding a workload to a different\ninterface means a new claim.',
+          type: 'string',
+          maxLength: 253,
+          minLength: 1,
+        },
+        reclaimPolicy: {
+          description:
+            'reclaimPolicy decides what becomes of the bound interface, and its\naddresses, when this claim is deleted.\n\nDelete deletes the interface and returns its addresses to IPAM. A workload\nrecreated later comes back on different addresses.\n\nRetain keeps the interface, unbound and still holding its addresses, so a\nlater claim of this name binds it again and the workload returns to the\nsame addresses. Choose Retain when an address is published in DNS, allowed\nthrough a firewall, or otherwise depended on from outside.\n\nA retained address is reserved, and billable, for as long as the interface\nexists. Deleting the interface does not return it to the pool today, so\nchoose Retain for addresses worth holding rather than as a default.\n\nBoth policies keep the addresses while the claim exists, including across\ninstance replacement. They differ only on scale-down and deletion.\n\nImmutable. An address keeps the policy it was allocated under, and a claim\nasking for a policy the interface was not allocated under cannot bind it.',
+          type: 'string',
+          default: 'Delete',
+          enum: ['Delete', 'Retain'],
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'reclaimPolicy is immutable and cannot be changed after creation',
+            },
+          ],
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: 'has(self.networkInterfaceName) == has(oldSelf.networkInterfaceName) && (!has(self.networkInterfaceName) || self.networkInterfaceName == oldSelf.networkInterfaceName)',
+          message:
+            'networkInterfaceName is immutable and cannot be set, changed, or cleared after creation',
+        },
+        {
+          rule: 'has(self.addresses) == has(oldSelf.addresses) && (!has(self.addresses) || self.addresses == oldSelf.addresses)',
+          message: 'addresses is immutable and cannot be set, changed, or cleared after creation',
+        },
+      ],
+    },
+    status: {
+      description:
+        "NetworkInterfaceClaimStatus defines the observed state of\nNetworkInterfaceClaim. It repeats the bound interface's addresses so a\nconsumer reads one object rather than following the reference.",
+      type: 'object',
+      default: {
+        conditions: [
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Bound',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Allocated',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Prepared',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Programmed',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Ready',
+          },
+        ],
+      },
+      properties: {
+        addresses: {
+          description:
+            'addresses are the addresses the bound interface holds inside its network,\neach with its prefix length and, once the location has a subnet, its\ngateway. They are copied from the interface, which remains the source of\ntruth.',
+          type: 'array',
+          items: {
+            description:
+              'NetworkInterfaceAddress is an address the interface holds inside its network.\nThese are the addresses configured on the NIC itself, and they always carry a\nprefix length.',
+            type: 'object',
+            required: ['address', 'family'],
+            properties: {
+              address: {
+                description:
+                  'address is the address the interface holds, in CIDR notation, such as\n10.128.0.2/32 or 2001:db8:a001::1/128.\n\nFor IPv6 this may be a block delegated to the interface rather than a\nsingle address, such as 2001:db8:a001::/96. The interface owns the whole\nblock and assigns within it.',
+                type: 'string',
+                maxLength: 45,
+                minLength: 1,
+              },
+              class: {
+                description:
+                  'class is the IPAM class this address was allocated from, such as\nprivate-ipv6. It is empty for the addresses a claim requests by family\nrather than by class.',
+                type: 'string',
+                maxLength: 63,
+              },
+              family: {
+                description: 'family is the address family of this entry.',
+                type: 'string',
+                enum: ['IPv4', 'IPv6'],
+              },
+              gateway: {
+                description:
+                  'gateway is the next hop the interface routes through for this family, such\nas 10.128.0.1. It is resolved from the subnet backing the network in this\nlocation, so nothing has to read the subnet to configure the NIC. It is\nempty until that subnet exists.',
+                type: 'string',
+                maxLength: 45,
+              },
+              primary: {
+                description:
+                  "primary marks the address projected into single-address fields, such as an\ninstance's reported network IP.\n\nExactly one address is primary for the interface as a whole, not one per\nfamily. It is the address of the first family the claim listed in\nspec.ipFamilies.",
+                type: 'boolean',
+              },
+            },
+          },
+        },
+        conditions: {
+          description:
+            'conditions report the current state of the claim. Wait on Ready, which is\ntrue once the claim is bound, its addresses are allocated, the data plane\nis prepared for a workload, and the data plane carries the addresses.',
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+        },
+        externalAddresses: {
+          description:
+            'externalAddresses are the addresses the bound interface is reachable at from\noutside the network, one per class the claim requested. Each is a bare\naddress with no prefix length. They are copied from the interface.',
+          type: 'array',
+          items: {
+            description:
+              'NetworkInterfaceExternalAddress is an address reachable from outside the\nnetwork, mapped onto an address the interface holds inside it. A public IPv4\naddress in front of a private address is the usual case.\n\nUnlike an interface address, an external address is a bare address with no\nprefix length, such as 203.0.113.10, because nothing configures it on the\nNIC. The data plane maps it onto the interface address of the same family.',
+            type: 'object',
+            required: ['address', 'class', 'family'],
+            properties: {
+              address: {
+                description:
+                  'address is the externally reachable address, such as 203.0.113.10. It\ncarries no prefix length.',
+                type: 'string',
+                maxLength: 45,
+                minLength: 1,
+              },
+              class: {
+                description:
+                  'class is the IPAM class this address was allocated from, such as\npublic-ipv4. It matches the class the claim requested in spec.addresses.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+              },
+              family: {
+                description: 'family is the address family of this entry.',
+                type: 'string',
+                enum: ['IPv4', 'IPv6'],
+              },
+            },
+          },
+        },
+        networkInterfaceRef: {
+          description:
+            'networkInterfaceRef is the interface bound to this claim, in the same\nnamespace. Read it to reach fields the claim does not repeat, such as the\nMTU and the data-plane attachment.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'name is the network interface name.',
+              type: 'string',
+              maxLength: 253,
+              minLength: 1,
+            },
+          },
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'NetworkInterfaceClaim',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_NetworkInterfaceClaimListSchema = {
+  description: 'NetworkInterfaceClaimList is a list of NetworkInterfaceClaim',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of networkinterfaceclaims. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.datumapis.networking.v1alpha.NetworkInterfaceClaim',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'NetworkInterfaceClaimList',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_NetworkInterfaceListSchema = {
+  description: 'NetworkInterfaceList is a list of NetworkInterface',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of networkinterfaces. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.datumapis.networking.v1alpha.NetworkInterface',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'NetworkInterfaceList',
+      version: 'v1alpha',
+    },
+  ],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkListSchema = {
@@ -3048,7 +4632,6 @@ export const com_datumapis_networking_v1alpha_NetworkListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkPolicySchema = {
@@ -3090,7 +4673,6 @@ export const com_datumapis_networking_v1alpha_NetworkPolicySchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_NetworkPolicyListSchema = {
@@ -3133,7 +4715,473 @@ export const com_datumapis_networking_v1alpha_NetworkPolicyListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_datumapis_networking_v1alpha_NetworkServiceSchema = {
+  description:
+    "NetworkService is a named set of endpoints spanning every location a consumer\nruns in. Members are selected by label, and a proxy names the service as its\nbackend.\n\nAnycast brings each request to the closest edge. The service covers the rest:\nthat edge ranks the service's locations by distance from itself, serves the\nrequest from the best one, and moves to the next if it fails. None of that is\nconfigured here.\n\nA service selects network interfaces, which belong to the networking API.\nNothing in it names a workload, so anything that holds an interface can be\nput behind one.",
+  type: 'object',
+  required: ['spec'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'NetworkServiceSpec defines the desired state of NetworkService. It names the\nmembers and the ports they answer on, and nothing about where traffic should\ngo: the platform decides that from where each request arrived.',
+      type: 'object',
+      required: ['networkInterfaces', 'ports'],
+      properties: {
+        networkInterfaces: {
+          description:
+            "networkInterfaces selects the interfaces that make up the service's\nmembership. An interface joins when it matches and a workload holds it,\nand it is healthy once whatever holds it reports itself available to serve.\nIt leaves when it stops matching, when its workload releases it, or when it\ngoes away.\n\nMembership tracks reality rather than a list, so instances appearing,\ndisappearing, and moving between locations need no edit here.",
+          type: 'object',
+          required: ['selector'],
+          properties: {
+            selector: {
+              description:
+                'selector is a standard label selector matched against network interfaces.\nIt reaches only interfaces the consumer owns.\n\nEvery interface carries a defined set of labels, so the facts worth\nselecting on are present without labelling anything first. Networking sets\nnetworking.datumapis.com/location on every interface; compute sets keys\nsuch as compute.datumapis.com/workload-name on the interfaces its\nworkloads hold. Selecting a whole application by workload name is the\ncommon case, and adding keys narrows the membership to one placement or\none location.\n\nAdding the location key restricts which interfaces are members. It does\nnot steer traffic: serving users from the location nearest them requires\nno configuration.\n\nThe selector must constrain something. An empty selector would make every\ninterface in the namespace a member, which is never what a service means.\n\nAn interface no workload holds any more is never a member, whatever it is\nlabelled: its addresses are retired capacity and nothing answers on them.\n\nA selector matching interfaces across more than one network is a\nconfiguration error, reported on the MembersResolved condition. A service\nspans one network.',
+              type: 'object',
+              properties: {
+                matchExpressions: {
+                  description:
+                    'matchExpressions is a list of label selector requirements. The requirements are ANDed.',
+                  type: 'array',
+                  items: {
+                    description:
+                      'A label selector requirement is a selector that contains values, a key, and an operator that\nrelates the key and values.',
+                    type: 'object',
+                    required: ['key', 'operator'],
+                    properties: {
+                      key: {
+                        description: 'key is the label key that the selector applies to.',
+                        type: 'string',
+                      },
+                      operator: {
+                        description:
+                          "operator represents a key's relationship to a set of values.\nValid operators are In, NotIn, Exists and DoesNotExist.",
+                        type: 'string',
+                      },
+                      values: {
+                        description:
+                          'values is an array of string values. If the operator is In or NotIn,\nthe values array must be non-empty. If the operator is Exists or DoesNotExist,\nthe values array must be empty. This array is replaced during a strategic\nmerge patch.',
+                        type: 'array',
+                        items: {
+                          type: 'string',
+                        },
+                        'x-kubernetes-list-type': 'atomic',
+                      },
+                    },
+                  },
+                  'x-kubernetes-list-type': 'atomic',
+                },
+                matchLabels: {
+                  description:
+                    'matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels\nmap is equivalent to an element of matchExpressions, whose key field is "key", the\noperator is "In", and the values array contains only "value". The requirements are ANDed.',
+                  type: 'object',
+                  additionalProperties: {
+                    type: 'string',
+                  },
+                },
+              },
+              'x-kubernetes-map-type': 'atomic',
+              'x-kubernetes-validations': [
+                {
+                  rule: '(has(self.matchLabels) && size(self.matchLabels) > 0) || (has(self.matchExpressions) && size(self.matchExpressions) > 0)',
+                  message: 'selector must set matchLabels or matchExpressions',
+                },
+              ],
+            },
+          },
+        },
+        ports: {
+          description:
+            "ports are the ports the service's members answer on. A backend referencing\nthis service names one of them.",
+          type: 'array',
+          maxItems: 16,
+          minItems: 1,
+          items: {
+            description: "NetworkServicePort is one port the service's members answer on.",
+            type: 'object',
+            required: ['name', 'port'],
+            properties: {
+              name: {
+                description:
+                  'name identifies the port within the service, and is what a backend\nreferencing this service names. Naming a port rather than a number lets\nthe reference survive a port change.\n\nMust be a DNS label and unique within the service.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+                pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?$',
+              },
+              port: {
+                description:
+                  'port is the port number every member answers on. It is the port on the\nmember itself, not one the platform publishes.\n\nUnique within the service.',
+                type: 'integer',
+                format: 'int32',
+                maximum: 65535,
+                minimum: 1,
+              },
+              protocol: {
+                description:
+                  'protocol is the transport the port carries. TCP is the only value\naccepted, and is what a backend served through a proxy uses. The field\nexists so the same service can back a Layer 4 load balancer without\nchanging shape.',
+                type: 'string',
+                default: 'TCP',
+                enum: ['TCP'],
+              },
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self.all(p1, self.exists_one(p2, p2.name == p1.name))',
+              message: 'Port name must be unique within the service',
+            },
+            {
+              rule: 'self.all(p1, self.exists_one(p2, p2.port == p1.port))',
+              message: 'Port number must be unique within the service',
+            },
+          ],
+        },
+        trafficDistribution: {
+          description:
+            'trafficDistribution is how traffic is spread across the locations the\nservice has members in. Leave it unset: the default serves each request\nfrom the location nearest the edge that received it, which is what a\nconsumer wants without saying so.',
+          type: 'object',
+          default: {
+            strategy: 'Nearest',
+          },
+          properties: {
+            strategy: {
+              description:
+                "strategy is how a location is chosen for each request. Nearest is the only\nvalue accepted today: each edge prefers the service's location closest to\nitself and falls back down its own ranking when that location cannot\nserve.\n\nThe field carries one value deliberately. A consumer who sets it today\nkeeps working when further strategies are added.",
+              type: 'string',
+              default: 'Nearest',
+              enum: ['Nearest'],
+            },
+          },
+        },
+      },
+    },
+    status: {
+      description:
+        "NetworkServiceStatus defines the observed state of NetworkService. It answers\nwhich location serves a consumer's users and whether any location is out of\nrotation, which is what makes an over-broad or stale selector visible instead\nof silent.",
+      type: 'object',
+      default: {
+        conditions: [
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'MembersResolved',
+          },
+          {
+            lastTransitionTime: '1970-01-01T00:00:00Z',
+            message: 'Waiting for controller',
+            reason: 'Pending',
+            status: 'Unknown',
+            type: 'Ready',
+          },
+        ],
+      },
+      properties: {
+        conditions: {
+          description:
+            'conditions report the current state of the service. Wait on Ready, which\nis true once membership has resolved and the edge is reaching the members\nit resolved to.',
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+        },
+        locations: {
+          description:
+            'locations report the members the service has in each location it reaches,\nhow many of them are healthy, and whether the location is taking traffic.',
+          type: 'array',
+          maxItems: 64,
+          items: {
+            description:
+              'NetworkServiceLocationStatus reports the members a service has in one\nlocation, and whether that location is taking traffic.',
+            type: 'object',
+            required: ['name'],
+            properties: {
+              healthy: {
+                description:
+                  "healthy is how many of this location's members are currently taking\ntraffic. It falls below members when the edge ejects a member whose\nrequests are failing.",
+                type: 'integer',
+                format: 'int32',
+              },
+              members: {
+                description:
+                  'members is how many interfaces in this location are members of the\nservice.',
+                type: 'integer',
+                format: 'int32',
+              },
+              name: {
+                description:
+                  'name is the location, as it appears in the\nnetworking.datumapis.com/location label on the interfaces.',
+                type: 'string',
+                maxLength: 63,
+                minLength: 1,
+              },
+              serving: {
+                description:
+                  "serving reports whether this location is in rotation. It goes false when\ntoo few members are healthy for the location to be worth sending traffic\nto, which is what moves traffic down each edge's ranking.",
+                type: 'boolean',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['name'],
+          'x-kubernetes-list-type': 'map',
+        },
+        summary: {
+          description: 'summary totals the locations below.',
+          type: 'object',
+          properties: {
+            healthy: {
+              description: 'healthy is how many of those members are currently taking traffic.',
+              type: 'integer',
+              format: 'int32',
+            },
+            locations: {
+              description: 'locations is how many locations the service has members in.',
+              type: 'integer',
+              format: 'int32',
+            },
+            members: {
+              description:
+                'members is how many interfaces are members of the service, across every\nlocation.',
+              type: 'integer',
+              format: 'int32',
+            },
+          },
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'NetworkService',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_NetworkServiceListSchema = {
+  description: 'NetworkServiceList is a list of NetworkService',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of networkservices. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.datumapis.networking.v1alpha.NetworkService',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'NetworkServiceList',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_ServingLocationSchema = {
+  description:
+    'ServingLocation tells a cell which location it serves.\n\nA cell is a cluster that runs workloads at one physical location. It cannot\ntell where it is on its own, so the platform delivers it a ServingLocation:\na read-only copy of a Location, carrying the name and topology of the place\nthe cell sits in. Everything the cell does that depends on where it is,\nsuch as claiming network addresses, resolves through this object.\n\nA ServingLocation takes the name of the Location it was copied from. Expect\nexactly one on a cell. Two or more means more than one location has been\ndelivered to the same cell, and the cell refuses to guess between them.\n\nThis object is managed for you. Create and edit Locations on the platform\ncontrol plane; the copies follow.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'ServingLocationSpec describes the location a cell serves.',
+      type: 'object',
+      required: ['topology'],
+      properties: {
+        source: {
+          description:
+            'Source identifies the Location this copy came from. Use it to tell how\ncurrent the copy is: compare it against the Location of the same name to\nsee whether an edit has reached this cell yet.\n\nThe publisher sets this field. Leave it alone.',
+          type: 'object',
+          properties: {
+            generation: {
+              description:
+                "Generation is the metadata.generation of the Location this copy came\nfrom. When it is lower than the Location's current generation, an edit\nhas not reached this cell yet.",
+              type: 'integer',
+              format: 'int64',
+            },
+            publishedAt: {
+              description:
+                'PublishedAt is when the content of this copy last changed. A copy that is\nre-checked but not changed keeps its original timestamp, so an old\ntimestamp means the location has been stable, not that publishing has\nstalled.',
+              type: 'string',
+              format: 'date-time',
+            },
+          },
+        },
+        topology: {
+          description:
+            'Topology describes where in the world this location is. Workloads placed\nat this location inherit it, and placement rules that ask for a city or a\nregion are answered from these keys.\n\nThe map holds arbitrary keys. Some keys are well known:\n\n\ttopology.datum.net/city-code: IAD\n\ttopology.datum.net/region: us-east-1\n\nYou must supply topology.datum.net/city-code, and it must not be empty.\nA location with no city code cannot serve placement requests that name a\ncity, so the API rejects it. Any other key you set is carried through\nunchanged and is available to workloads at this location.\n\nThis field copies the topology of the Location it was published from.\nEdit the Location, not this copy.',
+          type: 'object',
+          minProperties: 1,
+          additionalProperties: {
+            type: 'string',
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: "'topology.datum.net/city-code' in self && self['topology.datum.net/city-code'] != ''",
+              message: 'topology must carry a non-empty topology.datum.net/city-code',
+            },
+          ],
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'ServingLocation',
+      version: 'v1alpha',
+    },
+  ],
+} as const;
+
+export const com_datumapis_networking_v1alpha_ServingLocationListSchema = {
+  description: 'ServingLocationList is a list of ServingLocation',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of servinglocations. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.datumapis.networking.v1alpha.ServingLocation',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'networking.datumapis.com',
+      kind: 'ServingLocationList',
+      version: 'v1alpha',
+    },
+  ],
 } as const;
 
 export const com_datumapis_networking_v1alpha_SubnetSchema = {
@@ -3179,14 +5227,10 @@ export const com_datumapis_networking_v1alpha_SubnetSchema = {
         location: {
           description: 'The location which a subnet is associated with',
           type: 'object',
-          required: ['name', 'namespace'],
+          required: ['name'],
           properties: {
             name: {
               description: 'Name of a datum location',
-              type: 'string',
-            },
-            namespace: {
-              description: 'Namespace for the datum location',
               type: 'string',
             },
           },
@@ -3316,7 +5360,6 @@ export const com_datumapis_networking_v1alpha_SubnetSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_SubnetClaimSchema = {
@@ -3355,14 +5398,10 @@ export const com_datumapis_networking_v1alpha_SubnetClaimSchema = {
         location: {
           description: 'The location which a subnet claim is associated with',
           type: 'object',
-          required: ['name', 'namespace'],
+          required: ['name'],
           properties: {
             name: {
               description: 'Name of a datum location',
-              type: 'string',
-            },
-            namespace: {
-              description: 'Namespace for the datum location',
               type: 'string',
             },
           },
@@ -3502,7 +5541,6 @@ export const com_datumapis_networking_v1alpha_SubnetClaimSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_SubnetClaimListSchema = {
@@ -3545,7 +5583,6 @@ export const com_datumapis_networking_v1alpha_SubnetClaimListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_SubnetListSchema = {
@@ -3588,7 +5625,6 @@ export const com_datumapis_networking_v1alpha_SubnetListSchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
@@ -3652,7 +5688,10 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
                     description:
                       'ParanoiaLevels specifies the OWASP ModSecurity Core Rule Set (CRS)\nparanoia levels to use.',
                     type: 'object',
-                    default: {},
+                    default: {
+                      blocking: 1,
+                      detection: 1,
+                    },
                     properties: {
                       blocking: {
                         description:
@@ -3671,6 +5710,13 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
                         minimum: 1,
                       },
                     },
+                    'x-kubernetes-validations': [
+                      {
+                        rule: 'self.detection >= self.blocking',
+                        message:
+                          'detection paranoia level must be greater than or equal to blocking paranoia level',
+                      },
+                    ],
                   },
                   ruleExclusions: {
                     description:
@@ -3831,7 +5877,7 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
             description:
               "PolicyAncestorStatus describes the status of a route with respect to an\nassociated Ancestor.\n\nAncestors refer to objects that are either the Target of a policy or above it\nin terms of object hierarchy. For example, if a policy targets a Service, the\nPolicy's Ancestors are, in order, the Service, the HTTPRoute, the Gateway, and\nthe GatewayClass. Almost always, in this hierarchy, the Gateway will be the most\nuseful object to place Policy status on, so we recommend that implementations\nSHOULD use Gateway as the PolicyAncestorStatus object unless the designers\nhave a _very_ good reason otherwise.\n\nIn the context of policy attachment, the Ancestor is used to distinguish which\nresource results in a distinct application of this policy. For example, if a policy\ntargets a Service, it may have a distinct result per attached Gateway.\n\nPolicies targeting the same resource may have different effects depending on the\nancestors of those resources. For example, different Gateways targeting the same\nService may have different capabilities, especially if they have different underlying\nimplementations.\n\nFor example, in BackendTLSPolicy, the Policy attaches to a Service that is\nused as a backend in a HTTPRoute that is itself attached to a Gateway.\nIn this case, the relevant object for status is the Gateway, and that is the\nancestor object referred to in this status.\n\nNote that a parent is also an ancestor, so for objects where the parent is the\nrelevant object for status, this struct SHOULD still be used.\n\nThis struct is intended to be used in a slice that's effectively a map,\nwith a composite key made up of the AncestorRef and the ControllerName.",
             type: 'object',
-            required: ['ancestorRef', 'controllerName'],
+            required: ['ancestorRef', 'conditions', 'controllerName'],
             properties: {
               ancestorRef: {
                 description:
@@ -3891,7 +5937,7 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
               },
               conditions: {
                 description:
-                  'Conditions describes the status of the Policy with respect to the given Ancestor.',
+                  "Conditions describes the status of the Policy with respect to the given Ancestor.\n\n<gateway:util:excludeFromCRD>\n\nNotes for implementors:\n\nConditions are a listType `map`, which means that they function like a\nmap with a key of the `type` field _in the k8s apiserver_.\n\nThis means that implementations must obey some rules when updating this\nsection.\n\n* Implementations MUST perform a read-modify-write cycle on this field\n  before modifying it. That is, when modifying this field, implementations\n  must be confident they have fetched the most recent version of this field,\n  and ensure that changes they make are on that recent version.\n* Implementations MUST NOT remove or reorder Conditions that they are not\n  directly responsible for. For example, if an implementation sees a Condition\n  with type `special.io/SomeField`, it MUST NOT remove, change or update that\n  Condition.\n* Implementations MUST always _merge_ changes into Conditions of the same Type,\n  rather than creating more than one Condition of the same Type.\n* Implementations MUST always update the `observedGeneration` field of the\n  Condition to the `metadata.generation` of the Gateway at the time of update creation.\n* If the `observedGeneration` of a Condition is _greater than_ the value the\n  implementation knows about, then it MUST NOT perform the update on that Condition,\n  but must wait for a future reconciliation and status update. (The assumption is that\n  the implementation's copy of the object is stale and an update will be re-triggered\n  if relevant.)\n\n</gateway:util:excludeFromCRD>",
                 type: 'array',
                 maxItems: 8,
                 minItems: 1,
@@ -3957,6 +6003,7 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
               },
             },
           },
+          'x-kubernetes-list-type': 'atomic',
         },
       },
     },
@@ -3968,7 +6015,6 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicySchema = {
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_datumapis_networking_v1alpha_TrafficProtectionPolicyListSchema = {
@@ -4011,7 +6057,6 @@ export const com_datumapis_networking_v1alpha_TrafficProtectionPolicyListSchema 
       version: 'v1alpha',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
@@ -4248,11 +6293,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'networking.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
-    },
-    {
-      group: 'networking.k8s.io',
-      kind: 'DeleteOptions',
       version: 'v1beta1',
     },
     {
@@ -4294,6 +6334,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'rbac.authorization.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1',
     },
     {
       group: 'resource.k8s.io',
@@ -4304,6 +6349,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'resource.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta2',
     },
     {
       group: 'scheduling.k8s.io',
@@ -4338,7 +6388,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'storagemigration.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1beta1',
     },
   ],
 } as const;
@@ -4642,7 +6692,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails',
         },
       ],
-      'x-kubernetes-list-type': 'atomic',
     },
     kind: {
       description:
