@@ -50,7 +50,7 @@ export const TrafficDistributionCard = ({
       sectioned
       className="w-full overflow-hidden"
       data-e2e="alb-traffic-distribution">
-      <CardHeader size="sm">
+      <CardHeader size="sm" className="pb-0!">
         <div className="flex min-w-0 flex-col gap-0.5">
           <CardTitle className="flex min-w-0 items-center gap-2 text-sm">
             Traffic distribution
