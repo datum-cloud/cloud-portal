@@ -2,6 +2,14 @@ import { AuthError } from '@/components/error/auth';
 import { GenericError } from '@/components/error/generic';
 import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
+import {
+  PwaLaunchSplash,
+  PwaMetaTags,
+  PwaSplashLinks,
+  PwaThemeColorSync,
+  applyPwaThemeColor,
+} from '@/components/misc/pwa-splash-links';
+import { PWA_THEME_COLOR_DARK, PWA_THEME_COLOR_LIGHT } from '@/features/pwa/theme';
 import { useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
 import { queryClient } from '@/modules/tanstack/query';
@@ -69,6 +77,7 @@ export const links: LinksFunction = () => {
       crossOrigin: 'anonymous',
     },
     { rel: 'stylesheet', href: RootCSS },
+    { rel: 'manifest', href: '/manifest.webmanifest' },
   ];
 };
 
@@ -133,16 +142,22 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
   const data = useLoaderData<typeof loader>();
 
   const { resolvedTheme } = useTheme();
+  const themeClass = resolvedTheme === 'dark' ? 'dark' : 'light';
 
   return (
     <html
       lang="en"
-      className="theme-alpha bg-background overflow-x-hidden overscroll-none"
+      className={`theme-alpha ${themeClass} bg-background overflow-x-hidden overscroll-none`}
       suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
+        <PwaMetaTags
+          themeColor={resolvedTheme === 'dark' ? PWA_THEME_COLOR_DARK : PWA_THEME_COLOR_LIGHT}
+        />
+        <PwaThemeColorSync />
+        <PwaSplashLinks />
         <DynamicFaviconLinks />
 
         <ClientHintCheck nonce={nonce} />
@@ -151,6 +166,8 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         <Links />
       </head>
       <body className="!bg-background h-auto w-full">
+        <div aria-hidden className="pwa-chrome-tint" />
+        <PwaLaunchSplash />
         {children}
 
         <Toaster position="top-right" theme={resolvedTheme as 'light' | 'dark'} />
@@ -226,6 +243,7 @@ export default function AppWithProviders() {
       startProgress();
     } else {
       stopProgress();
+      requestAnimationFrame(() => applyPwaThemeColor());
     }
   }, [state]);
 
@@ -273,20 +291,29 @@ export default function AppWithProviders() {
 
 function ErrorLayout({ children }: { children: React.ReactNode }) {
   const nonce = useNonce();
+  const { resolvedTheme } = useTheme();
+  const themeClass = resolvedTheme === 'dark' ? 'dark' : 'light';
 
   return (
     <html
       lang="en"
-      className="theme-alpha bg-background overflow-x-hidden"
+      className={`theme-alpha ${themeClass} bg-background overflow-x-hidden`}
       suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        <PwaMetaTags
+          themeColor={resolvedTheme === 'dark' ? PWA_THEME_COLOR_DARK : PWA_THEME_COLOR_LIGHT}
+        />
+        <PwaThemeColorSync />
+        <PwaSplashLinks />
         <Meta />
         <ThemeScript nonce={nonce} defaultTheme="light" attribute="class" />
         <Links />
       </head>
       <body className="!bg-background h-auto w-full">
+        <div aria-hidden className="pwa-chrome-tint" />
+        <PwaLaunchSplash />
         <div className="bg-muted flex min-h-svh flex-col items-center justify-center p-6 md:p-10">
           <div className="w-full max-w-sm md:max-w-3xl">{children}</div>
         </div>

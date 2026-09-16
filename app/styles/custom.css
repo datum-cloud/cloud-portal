@@ -254,3 +254,57 @@
     transition: none;
   }
 }
+
+/* Installed PWA window chrome */
+.pwa-drag {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.pwa-no-drag {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.pwa-chrome-tint {
+  display: none;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 40;
+  height: max(6px, env(titlebar-area-height, 0px));
+  background-color: var(--background);
+}
+
+@media (display-mode: standalone), (display-mode: window-controls-overlay) {
+  html,
+  body {
+    background-color: var(--background);
+  }
+
+  .pwa-chrome-tint {
+    display: block;
+  }
+
+  html:not([data-pwa-ready]) .pwa-launch-splash {
+    display: flex;
+  }
+}
+
+.pwa-launch-splash {
+  display: none;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background);
+}
+
+.pwa-launch-splash img {
+  width: min(40vw, 10rem);
+  height: auto;
+}

@@ -1,3 +1,5 @@
+import { getIsStandalone } from '@/features/pwa/detect';
+import { capturePwaInstallEvents } from '@/hooks/usePwaInstall';
 import { configureBrowserClient } from '@/modules/control-plane/setup.client';
 import { shouldDropSentryEventClient } from '@/modules/sentry/filters';
 import { env } from '@/utils/env';
@@ -11,6 +13,10 @@ import { HydratedRouter } from 'react-router/dom';
 // `"sideEffects": false` tree-shaking can't drop the registration from the
 // production client bundle.
 configureBrowserClient();
+
+// Capture Chromium's install prompt before React hydrates — the event can fire
+// as soon as the manifest and service worker are eligible.
+capturePwaInstallEvents();
 
 Sentry.init({
   dsn: env.public.sentryDsn ?? '',
@@ -114,7 +120,68 @@ window.addEventListener('load', () => {
   sessionStorage.removeItem('chunk-reload-attempted');
 });
 
+const PWA_CLAIM_CLIENTS = 'CLAIM_CLIENTS';
+const PWA_CLAIM_TIMEOUT_MS = 1500;
+
+async function registerPwaServiceWorker() {
+  const registration = await navigator.serviceWorker.register('/sw.js', {
+    updateViaCache: 'none',
+  });
+
+  if (navigator.serviceWorker.controller) return;
+
+  const worker = registration.active ?? registration.waiting ?? registration.installing;
+  if (!worker) return;
+
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    let timeout = 0;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeout);
+      navigator.serviceWorker.removeEventListener('controllerchange', done);
+      resolve();
+    };
+
+    navigator.serviceWorker.addEventListener('controllerchange', done);
+    timeout = window.setTimeout(done, PWA_CLAIM_TIMEOUT_MS);
+
+    const claim = () => worker.postMessage(PWA_CLAIM_CLIENTS);
+    if (worker.state === 'activated') {
+      claim();
+      return;
+    }
+
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'activated') claim();
+    });
+  });
+}
+
 async function main() {
+  if ('serviceWorker' in navigator) {
+    const installedPwa = getIsStandalone();
+
+    // Vite tabs must not be SW-controlled (HMR / GraphQL / SSE break). The
+    // installed Chrome window still needs a worker or it will not apply
+    // window-controls-overlay, so the native title bar stays system-white.
+    if (import.meta.env.DEV && !installedPwa) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      if (registrations.length > 0) {
+        await Promise.all(registrations.map((registration) => registration.unregister()));
+        window.location.reload();
+        return;
+      }
+    } else {
+      try {
+        await registerPwaServiceWorker();
+      } catch {
+        // Installability degrades silently if the SW fails to register.
+      }
+    }
+  }
+
   startTransition(() => {
     hydrateRoot(
       document,
