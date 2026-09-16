@@ -12,9 +12,12 @@ import { PermissionButton } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
 import { type HttpProxy } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardAction,
@@ -27,8 +30,15 @@ import {
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { LockIcon, PencilIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
+import {
+  LockIcon,
+  PencilIcon,
+  ServerIcon,
+  ShieldOffIcon,
+  SlidersHorizontalIcon,
+} from 'lucide-react';
 import { useMemo, useRef } from 'react';
+import { Link } from 'react-router';
 
 type OriginRow = {
   origin: string;
@@ -72,6 +82,39 @@ export const HttpProxyOriginsCard = ({
           : [];
     return list.map(parseOrigin);
   }, [proxy?.origins, proxy?.endpoint]);
+
+  /**
+   * The dialog below edits one origin on one rule. Once a proxy has more than
+   * one backend, or a backend kind the dialog has no field for, saving through
+   * it would write back a single endpoint and discard the rest — so send the
+   * operator to the Backends tab instead.
+   */
+  const poolBeyondDialog = useMemo(() => {
+    const routes = (proxy?.routes ?? []).filter((route) => !route.isRedirect);
+    if (routes.length === 0) return false;
+    if (routes.length > 1) return true;
+    const backends = routes[0].backends;
+    if (backends.length > 1) return true;
+    return backends.some((b) => b.kind === 'networkService' || b.kind === 'instance');
+  }, [proxy?.routes]);
+
+  /** Backends with no origin URL to list here — network services, instances. */
+  const nonEndpointBackendCount = useMemo(
+    () =>
+      (proxy?.routes ?? [])
+        .filter((route) => !route.isRedirect)
+        .flatMap((route) => route.backends)
+        .filter((b) => b.kind === 'networkService' || b.kind === 'instance').length,
+    [proxy?.routes]
+  );
+
+  const backendsHref =
+    projectId && proxy
+      ? getPathWithParams(paths.project.detail.proxy.detail.backends, {
+          projectId,
+          proxyId: proxy.name,
+        })
+      : undefined;
 
   const connectorBlock = useMemo(() => {
     if (!proxy?.connector) return null;
@@ -130,29 +173,48 @@ export const HttpProxyOriginsCard = ({
         </CardTitle>
         {proxy && projectId ? (
           <CardAction>
-            <PermissionButton
-              resource="httpproxies"
-              verb="patch"
-              group="networking.datumapis.com"
-              namespace="default"
-              scope="project"
-              projectId={projectId}
-              deniedReason="You don't have permission to edit this Application Load Balancer"
-              type="secondary"
-              theme="outline"
-              size="xs"
-              className="shrink-0"
-              onClick={() => originsDialogRef.current?.show(proxy)}>
-              <Icon icon={PencilIcon} size={12} />
-              Edit origin
-            </PermissionButton>
+            {poolBeyondDialog && backendsHref ? (
+              <LinkButton
+                as={Link}
+                href={backendsHref}
+                type="secondary"
+                theme="outline"
+                size="xs"
+                className="shrink-0"
+                data-e2e="alb-manage-backends">
+                <Icon icon={SlidersHorizontalIcon} size={12} />
+                Manage backends
+              </LinkButton>
+            ) : (
+              <PermissionButton
+                resource="httpproxies"
+                verb="patch"
+                group="networking.datumapis.com"
+                namespace="default"
+                scope="project"
+                projectId={projectId}
+                deniedReason="You don't have permission to edit this Application Load Balancer"
+                type="secondary"
+                theme="outline"
+                size="xs"
+                className="shrink-0"
+                onClick={() => originsDialogRef.current?.show(proxy)}>
+                <Icon icon={PencilIcon} size={12} />
+                Edit origin
+              </PermissionButton>
+            )}
           </CardAction>
         ) : null}
       </CardHeader>
       <CardContent padding="none">
         {origins.length === 0 ? (
           <div className="text-muted-foreground px-(--card-px) py-3.5 text-sm">
-            No origin configured. Add one so this load balancer has somewhere to send traffic.
+            {/* Only endpoint backends have an origin URL to list. A pool made
+                of network services still has somewhere to send traffic, so
+                saying "no origin configured" here would be wrong. */}
+            {nonEndpointBackendCount > 0
+              ? `${nonEndpointBackendCount} ${nonEndpointBackendCount === 1 ? 'backend is' : 'backends are'} configured without an origin URL. See the Backends tab.`
+              : 'No origin configured. Add one so this load balancer has somewhere to send traffic.'}
           </div>
         ) : (
           origins.map((row) => (
