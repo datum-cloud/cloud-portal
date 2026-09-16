@@ -4,6 +4,7 @@ import {
   completeOrgPaymentMethod,
   fillStripePaymentDialog,
 } from './org-billing-setup';
+import { waitForProjectQuota } from './quota-wait';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import '@testing-library/cypress/add-commands';
@@ -611,6 +612,11 @@ Cypress.Commands.add(
         cy.login();
         return cy.createStandardOrg(orgName).then((orgId) => {
           return cy.createProjectInOrg(orgId, projectName).then((projectId) => {
+            // Quota grants for a new project land asynchronously; without them
+            // every create in the suite is denied. Fail here with one clear
+            // message instead of three unrelated spec failures (#1553).
+            waitForProjectQuota(projectId, Date.now());
+
             const resources = { orgId, projectId, timestamp };
             return cy.task('setSharedResources', resources, { log: false }).then(() => {
               return cy.wrap({ orgId, projectId }, { log: false });
