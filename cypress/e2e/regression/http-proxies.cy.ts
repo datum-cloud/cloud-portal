@@ -41,32 +41,28 @@ describe('Application Load Balancer — regression', () => {
   });
 
   it('should create an Application Load Balancer and appear in the list', () => {
-    // Alias the create-permission check so we can wait on the actual network
-    // response instead of racing a fixed clock — on a freshly-created project
-    // the SelfSubjectAccessReview backing this can be slow, and the button
-    // stays disabled (fails closed) until it resolves.
-    cy.intercept('POST', '/api/permissions/check', (req) => {
-      if (req.body?.resource === 'httpproxies' && req.body?.verb === 'create') {
-        req.alias = 'canCreateAlb';
-      }
-    });
-
     cy.visit(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/alb`);
-    cy.wait('@canCreateAlb', { timeout: 20000 });
-
     // On an empty list the Table hides the toolbar actions (incl. the header
     // create button) and surfaces only the empty-state CTA. Click whichever
-    // create affordance is present — the permission check above has already
-    // resolved, so the button should be enabled by now.
+    // create affordance is present and wait for it to be ENABLED first.
+    //
+    // orgId/project reach RbacProvider via a useEffect in the project layout,
+    // not synchronously (see private.layout.tsx's RbacAppWrapper docblock) —
+    // until that lands, the create-permission query stays disabled (no
+    // request fires at all) and the button stays disabled. This is the very
+    // first load of a brand-new project (ensureSharedResources creates one
+    // per shard), which is exactly the slow case that docblock calls out, so
+    // give it real headroom rather than racing a network call that may not
+    // exist yet.
     cy.get('body', { timeout: 15000 }).then(($body) => {
       if ($body.find('[data-e2e="create-alb-button"]').length > 0) {
-        cy.get('[data-e2e="create-alb-button"]', { timeout: 15000 })
+        cy.get('[data-e2e="create-alb-button"]', { timeout: 30000 })
           .should('be.visible')
           .and('not.be.disabled')
           .click();
       } else {
-        cy.contains('button', /^new$/i, { timeout: 15000 })
+        cy.contains('button', /^new$/i, { timeout: 30000 })
           .should('be.visible')
           .and('not.be.disabled')
           .click();
