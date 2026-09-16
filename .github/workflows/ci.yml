@@ -21,6 +21,11 @@ jobs:
   install:
     name: Install Dependencies
     runs-on: ubuntu-latest
+    outputs:
+      # "false" only when every changed file is documentation or tooling
+      # metadata; the test jobs skip on that. Anything else, including an
+      # empty diff or a non-PR event, runs the full suite.
+      app: ${{ steps.changes.outputs.app }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
@@ -30,10 +35,38 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
+      # The cache is saved by this job only, so the Cypress binary has to be
+      # fetched here or every Cypress job downloads it again on every run.
+      - if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: bunx cypress install
+      - name: Detect app changes
+        id: changes
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [[ "$EVENT_NAME" != "pull_request" ]]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Fail open: if the base cannot be fetched, run everything.
+          if ! git fetch --no-tags --depth=1 origin "$BASE_SHA"; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          app=$(printf '%s\n' "$changed" | grep -vE '^(docs/|\.claude/|graphify-out/)|\.md$' || true)
+          if [[ -z "$changed" || -n "$app" ]]; then
+            echo "app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Only documentation changed; test jobs will be skipped."
+            echo "app=false" >> "$GITHUB_OUTPUT"
+          fi
 
   lint:
     name: Lint & Format
@@ -46,6 +79,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - run: bun run lint && bun run format
@@ -62,6 +96,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - run: bun typecheck
@@ -79,6 +114,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - run: bun run build
@@ -101,6 +137,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       # Coverage is reported (text in the log + lcov artifact) but not gated yet.
@@ -120,9 +157,9 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    needs: build
+    needs: [install, build]
     runs-on: ubuntu-latest
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ !failure() && !cancelled() && needs.install.outputs.app == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -134,6 +171,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - run: bunx cypress install && bunx cypress verify
@@ -144,10 +182,18 @@ jobs:
 
   e2e-smoke:
     name: E2E Smoke
-    needs: build
+    needs: [install, build]
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    if: ${{ !failure() && !cancelled() }}
+    # Two attempts of ~5 minutes each must fit, plus setup.
+    timeout-minutes: 15
+    if: ${{ !failure() && !cancelled() && needs.install.outputs.app == 'true' }}
+    env:
+      NODE_ENV: test
+      CYPRESS: 'true'
+      CYPRESS_BASE_URL: http://localhost:3000
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      SUB: ${{ secrets.SUB }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -159,6 +205,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -167,9 +214,6 @@ jobs:
           path: build
       - name: Setup Environment
         env:
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          SUB: ${{ secrets.SUB }}
           API_URL: ${{ secrets.API_URL }}
           GRAPHQL_URL: ${{ secrets.GRAPHQL_URL }}
           AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
@@ -188,19 +232,32 @@ jobs:
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
       - run: bunx cypress install && bunx cypress verify
+      # First attempt records no video: green runs are the common case and
+      # encoding plus upload is a real share of the job. A failure here does
+      # not fail the job yet; the retry below decides.
       - name: Run Smoke Tests
+        id: e2e
+        continue-on-error: true
         env:
-          NODE_ENV: test
-          CYPRESS: 'true'
-          CYPRESS_BASE_URL: http://localhost:3000
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          SUB: ${{ secrets.SUB }}
+          CYPRESS_video: 'false'
         run: >-
           bunx start-server-and-test
           'bun run start' http://localhost:3000/_healthz
           'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
-      - if: failure()
+      # One retry of the whole job, with video on, replaces the habit of
+      # re-running the entire workflow (~26 job-minutes) to clear a flake.
+      - name: Retry Smoke Tests
+        id: e2e-retry
+        if: steps.e2e.outcome == 'failure'
+        env:
+          CYPRESS_video: 'true'
+        run: >-
+          bunx start-server-and-test
+          'bun run start' http://localhost:3000/_healthz
+          'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+      - if: steps.e2e.outcome == 'failure' && steps.e2e-retry.outcome == 'success'
+        run: echo "::warning title=E2E passed on retry::Smoke failed once and passed on retry. Treat as flaky, not green."
+      - if: failure() || steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: e2e-smoke-artifacts-${{ github.run_id }}
@@ -212,15 +269,24 @@ jobs:
 
   e2e-regression:
     name: E2E Regression
-    needs: e2e-smoke
+    needs: [install, e2e-smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    # if: ${{ !failure() && !cancelled() && github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-    if: ${{ !failure() && !cancelled() }}
+    if: ${{ !failure() && !cancelled() && needs.install.outputs.app == 'true' }}
     strategy:
       fail-fast: false
       matrix:
         shard: [0, 1, 2, 3]
+    env:
+      NODE_ENV: test
+      CYPRESS: 'true'
+      CYPRESS_BASE_URL: http://localhost:3000
+      SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+      ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+      SUB: ${{ secrets.SUB }}
+      SPLIT: ${{ strategy.job-total }}
+      SPLIT_INDEX: ${{ strategy.job-index }}
+      CYPRESS_specPattern: 'cypress/e2e/regression/**/*.{cy,spec}.{js,jsx,ts,tsx}'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
@@ -232,6 +298,7 @@ jobs:
         with:
           path: |
             ${{ env.BUN_CACHE }}
+            ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
           key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
@@ -240,9 +307,6 @@ jobs:
           path: build
       - name: Setup Environment
         env:
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          SUB: ${{ secrets.SUB }}
           API_URL: ${{ secrets.API_URL }}
           GRAPHQL_URL: ${{ secrets.GRAPHQL_URL }}
           AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
@@ -261,22 +325,31 @@ jobs:
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
       - run: bunx cypress install && bunx cypress verify
+      # First attempt records no video; see the smoke job for the reasoning.
       - name: Run Regression Tests
+        id: e2e
+        continue-on-error: true
         env:
-          NODE_ENV: test
-          CYPRESS: 'true'
-          CYPRESS_BASE_URL: http://localhost:3000
-          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          SUB: ${{ secrets.SUB }}
-          SPLIT: ${{ strategy.job-total }}
-          SPLIT_INDEX: ${{ strategy.job-index }}
-          CYPRESS_specPattern: 'cypress/e2e/regression/**/*.{cy,spec}.{js,jsx,ts,tsx}'
+          CYPRESS_video: 'false'
         run: >-
           bunx start-server-and-test
           'bun run start' http://localhost:3000/_healthz
           'bunx cypress run --config-file cypress.config.ts'
-      - if: failure()
+      # The retry runs the same shard once more, with video on. A shard that
+      # fails twice fails the job; one that passes here is reported as flaky
+      # by the PR summary, not silently counted as green.
+      - name: Retry Regression Tests
+        id: e2e-retry
+        if: steps.e2e.outcome == 'failure'
+        env:
+          CYPRESS_video: 'true'
+        run: >-
+          bunx start-server-and-test
+          'bun run start' http://localhost:3000/_healthz
+          'bunx cypress run --config-file cypress.config.ts'
+      - if: steps.e2e.outcome == 'failure' && steps.e2e-retry.outcome == 'success'
+        run: echo "::warning title=E2E passed on retry::Regression shard ${{ matrix.shard }} failed once and passed on retry. Treat as flaky, not green."
+      - if: failure() || steps.e2e.outcome == 'failure'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: e2e-regression-artifacts-${{ github.run_id }}-shard-${{ matrix.shard }}
@@ -306,10 +379,17 @@ jobs:
           fi
 
   # ─── Publish (only after all checks pass) ──────────────────
+  # Releases always publish. A pull request publishes only when it carries the
+  # `publish-image` label, which is how a branch gets pinned into staging for
+  # testing; every other PR run skips the ~5 minutes of image build and push.
+  # Add the label, then push or re-run, to get the image.
   publish-container-image:
     name: Publish Container Image
     needs: [status-check]
-    if: ${{ !failure() && !cancelled() }}
+    if: >-
+      ${{ !failure() && !cancelled() &&
+          (github.event_name == 'release' ||
+           contains(github.event.pull_request.labels.*.name, 'publish-image')) }}
     permissions:
       id-token: write
       contents: read
@@ -327,7 +407,9 @@ jobs:
   publish-kustomize-bundles:
     name: Publish Kustomize Bundles
     needs: [publish-container-image]
-    if: ${{ !failure() && !cancelled() }}
+    # The bundle references the image, so it follows the image job exactly,
+    # including when that job was skipped by the label gate above.
+    if: ${{ needs.publish-container-image.result == 'success' }}
     permissions:
       id-token: write
       contents: read
@@ -391,13 +473,27 @@ jobs:
               return '❓';
             };
 
+            // The e2e jobs retry themselves once (see the `Retry ...` steps).
+            // A job whose retry step succeeded is green on the checks page but
+            // flaky in reality; say so here so the flake is not lost.
+            const passedOnRetry = (job) =>
+              (job.steps || []).some(s => s.name.startsWith('Retry ') && s.conclusion === 'success');
+
             let table = '| Job | Status |\n|-----|--------|\n';
             for (const job of testJobs.sort((a, b) => a.name.localeCompare(b.name))) {
-              table += `| ${job.name} | ${statusEmoji(job.conclusion)} ${job.conclusion || 'in progress'} |\n`;
+              const flaky = passedOnRetry(job) ? ' ⚠️ passed on retry' : '';
+              table += `| ${job.name} | ${statusEmoji(job.conclusion)} ${job.conclusion || 'in progress'}${flaky} |\n`;
             }
 
             let body = `## 🧪 Test Summary\n\n${table}\n\n`;
             body += `[View workflow run](${runUrl})`;
+
+            const flakyCount = testJobs.filter(passedOnRetry).length;
+            if (flakyCount > 0) {
+              body += `\n\n⚠️ ${flakyCount} e2e job(s) passed only on retry. That is a flake, not a pass; check the first-attempt screenshots in the artifacts.`;
+            }
+
+            body += `\n\n<sub>Need another run? Use **Re-run failed jobs**: one shard costs a few minutes, the whole workflow about 26.</sub>`;
 
             // Only surface debugging artifacts when a test actually failed. On a
             // green run the coverage/build artifacts still exist, so listing
