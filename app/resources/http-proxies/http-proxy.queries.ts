@@ -1,4 +1,10 @@
-import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
+import type {
+  HttpProxy,
+  CreateHttpProxyInput,
+  UpdateHttpProxyInput,
+  ProxyRoute,
+  ProxyLoadBalancer,
+} from './http-proxy.schema';
 import {
   createHttpProxyService,
   httpProxyKeys,
@@ -274,6 +280,93 @@ export function useDeleteHttpProxy(
 
       options?.onSuccess?.(...args);
       void invalidateAllowanceBuckets(queryClient);
+    },
+  });
+}
+
+/**
+ * Replace the proxy's routes and backend pools.
+ *
+ * Optimistically writes `routes` into the cached proxy so the table and the
+ * distribution bar settle immediately. `rawRules` is deliberately *not*
+ * patched: it mirrors what the API holds, and guessing at it would let the
+ * next write splice onto rules that were never persisted. The refetch in
+ * onSettled brings back the authoritative pair.
+ */
+export function useUpdateProxyRoutes(
+  projectId: string,
+  name: string,
+  options?: UseMutationOptions<HttpProxy, Error, ProxyRoute[]>
+) {
+  const queryClient = useQueryClient();
+  const detailKey = httpProxyKeys.detail(projectId, name);
+
+  return useGuardedMutation({
+    operation: 'write',
+    mutationFn: (routes: ProxyRoute[]) => {
+      const current = queryClient.getQueryData<HttpProxy>(detailKey);
+      return createHttpProxyService().updateRoutes(
+        projectId,
+        name,
+        routes,
+        current?.rawRules ?? []
+      );
+    },
+    ...options,
+    onMutate: async (routes) => {
+      await queryClient.cancelQueries({ queryKey: detailKey });
+      const previous = queryClient.getQueryData<HttpProxy>(detailKey);
+      if (previous) {
+        queryClient.setQueryData<HttpProxy>(detailKey, { ...previous, routes });
+      }
+      return { previous };
+    },
+    onError: (error, variables, context, mutationContext) => {
+      const previous = (context as { previous?: HttpProxy } | undefined)?.previous;
+      if (previous) queryClient.setQueryData(detailKey, previous);
+      options?.onError?.(error, variables, context as never, mutationContext);
+    },
+    onSettled: (...args) => {
+      queryClient.invalidateQueries({ queryKey: detailKey });
+      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
+      options?.onSettled?.(...args);
+    },
+  });
+}
+
+/** Set the load balancing algorithm; `null` restores Envoy's own default. */
+export function useUpdateProxyLoadBalancer(
+  projectId: string,
+  name: string,
+  options?: UseMutationOptions<HttpProxy, Error, ProxyLoadBalancer | null>
+) {
+  const queryClient = useQueryClient();
+  const detailKey = httpProxyKeys.detail(projectId, name);
+
+  return useGuardedMutation({
+    operation: 'write',
+    mutationFn: (loadBalancer: ProxyLoadBalancer | null) =>
+      createHttpProxyService().updateLoadBalancer(projectId, name, loadBalancer),
+    ...options,
+    onMutate: async (loadBalancer) => {
+      await queryClient.cancelQueries({ queryKey: detailKey });
+      const previous = queryClient.getQueryData<HttpProxy>(detailKey);
+      if (previous) {
+        const next = { ...previous };
+        if (loadBalancer) next.loadBalancer = loadBalancer;
+        else delete next.loadBalancer;
+        queryClient.setQueryData<HttpProxy>(detailKey, next);
+      }
+      return { previous };
+    },
+    onError: (error, variables, context, mutationContext) => {
+      const previous = (context as { previous?: HttpProxy } | undefined)?.previous;
+      if (previous) queryClient.setQueryData(detailKey, previous);
+      options?.onError?.(error, variables, context as never, mutationContext);
+    },
+    onSettled: (...args) => {
+      queryClient.invalidateQueries({ queryKey: detailKey });
+      options?.onSettled?.(...args);
     },
   });
 }

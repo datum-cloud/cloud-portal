@@ -15,6 +15,8 @@ import {
   generateHtpasswd,
   toTrafficProtectionModeMap,
   toParanoiaLevelsMap,
+  toUpdateProxyRoutesPayload,
+  toUpdateProxyLoadBalancerPayload,
 } from './http-proxy.adapter';
 import type {
   HttpProxy,
@@ -23,6 +25,8 @@ import type {
   TrafficProtectionMode,
   BasicAuthUser,
   WafRuleExclusions,
+  ProxyRoute,
+  ProxyLoadBalancer,
 } from './http-proxy.schema';
 import { policyAttachesToProxy, selectPolicyForProxy } from './http-proxy.waf-attach';
 import {
@@ -809,6 +813,89 @@ export function createHttpProxyService() {
         return httpProxy;
       } catch (error) {
         logger.error(`${SERVICE_NAME}.update failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    /**
+     * Replace the proxy's routes and backend pools (the Backends tab).
+     *
+     * `routes` is the desired end state, spliced onto the rules the API
+     * currently holds, so anything the routes model does not describe —
+     * unmanaged filters, connector and instance backends, the force-HTTPS
+     * rule — survives the write.
+     */
+    async updateRoutes(
+      projectId: string,
+      name: string,
+      routes: ProxyRoute[],
+      rawRules: unknown[],
+      options?: ServiceOptions
+    ): Promise<HttpProxy> {
+      const startTime = Date.now();
+
+      try {
+        const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name },
+          body: toUpdateProxyRoutesPayload(routes, rawRules as never),
+          query: {
+            ...(options?.dryRun ? { dryRun: 'All' } : {}),
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+
+        const data = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+        if (!data) throw new Error('Failed to update backends');
+
+        logger.service(SERVICE_NAME, 'updateRoutes', {
+          input: { projectId, name, routeCount: routes.length },
+          duration: Date.now() - startTime,
+        });
+
+        return toHttpProxy(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.updateRoutes failed`, error as Error);
+        throw mapApiError(error);
+      }
+    },
+
+    /**
+     * Set the load balancing algorithm. `null` clears it, restoring Envoy's
+     * own default.
+     */
+    async updateLoadBalancer(
+      projectId: string,
+      name: string,
+      loadBalancer: ProxyLoadBalancer | null,
+      options?: ServiceOptions
+    ): Promise<HttpProxy> {
+      const startTime = Date.now();
+
+      try {
+        const response = await patchNetworkingDatumapisComV1AlphaNamespacedHttpProxy({
+          baseURL: getProjectScopedBase(projectId),
+          path: { namespace: 'default', name },
+          body: toUpdateProxyLoadBalancerPayload(loadBalancer),
+          query: {
+            ...(options?.dryRun ? { dryRun: 'All' } : {}),
+            fieldManager: 'datum-cloud-portal',
+          },
+          headers: { 'Content-Type': 'application/merge-patch+json' },
+        });
+
+        const data = response.data as ComDatumapisNetworkingV1AlphaHttpProxy;
+        if (!data) throw new Error('Failed to update load balancing algorithm');
+
+        logger.service(SERVICE_NAME, 'updateLoadBalancer', {
+          input: { projectId, name, type: loadBalancer?.type ?? null },
+          duration: Date.now() - startTime,
+        });
+
+        return toHttpProxy(data);
+      } catch (error) {
+        logger.error(`${SERVICE_NAME}.updateLoadBalancer failed`, error as Error);
         throw mapApiError(error);
       }
     },

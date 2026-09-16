@@ -39,6 +39,8 @@ export {
   toCreateHttpProxyPayload,
   toUpdateHttpProxyPayload,
   classifyHttpProxyComplexity,
+  toUpdateProxyRoutesPayload,
+  toUpdateProxyLoadBalancerPayload,
   toProxyRoutes,
   toProxyLoadBalancer,
   isPortalRedirectRule,
@@ -70,6 +72,8 @@ export {
   useTrafficProtectionPolicy,
   useCreateHttpProxy,
   useUpdateHttpProxy,
+  useUpdateProxyRoutes,
+  useUpdateProxyLoadBalancer,
   useDeleteHttpProxy,
 } from './http-proxy.queries';
 

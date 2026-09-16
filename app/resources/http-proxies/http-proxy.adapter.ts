@@ -939,6 +939,8 @@ export type HttpProxyUpdatePayload = {
      * element type has to admit more than the two shapes we synthesize.
      */
     rules?: Array<BackendRule | RedirectRule | RawRule>;
+    /** `null` clears the field, so Envoy's own default algorithm applies. */
+    loadBalancer?: ProxyLoadBalancer | null;
   };
 };
 
@@ -1185,5 +1187,118 @@ export function toUpdateHttpProxyPayload(
     apiVersion: 'networking.datumapis.com/v1alpha',
     ...(metadata ? { metadata } : {}),
     ...(spec ? { spec } : {}),
+  };
+}
+
+/** Parse the `${ruleIndex}:${backendIndex}` identity a read put on a backend. */
+function backendIndexOf(key: string): number {
+  const parsed = Number(key.split(':')[1]);
+  return Number.isInteger(parsed) ? parsed : -1;
+}
+
+/**
+ * Apply one edited backend onto the backend the API returned.
+ *
+ * Splices for the same reason rule writes do: a backend can carry filters and
+ * fields the editor has no concept of, and rebuilding from ProxyBackend alone
+ * would drop them.
+ */
+function applyBackend(
+  backend: ProxyBackend,
+  original: Record<string, unknown> | undefined
+): Record<string, unknown> {
+  const out = original ? structuredClone(original) : {};
+
+  // Connector and instance backends, and any backend carrying its own
+  // filters, are shown read-only; pass them through exactly as they came.
+  if (!backend.editable && original) return out;
+
+  // The API forbids more than one target on a backend, so clear every target
+  // before setting the chosen one — otherwise switching kind would leave two.
+  delete out.endpoint;
+  delete out.networkService;
+  delete out.instance;
+  delete out.tls;
+
+  if (backend.kind === 'networkService' && backend.networkService) {
+    // TLS is not supported for this kind, which the delete above already
+    // guarantees.
+    out.networkService = {
+      name: backend.networkService.name,
+      port: backend.networkService.port,
+    };
+  } else {
+    out.endpoint = backend.endpoint ?? '';
+    if (backend.tlsHostname) out.tls = { hostname: backend.tlsHostname };
+  }
+
+  out.weight = backend.weight;
+  return out;
+}
+
+/** Apply an edited route onto the rule the API returned, or build a new one. */
+function applyRoute(route: ProxyRoute, original: RawRule | undefined): RawRule {
+  const rule: RawRule = original ? structuredClone(original) : {};
+
+  // Only reached for editable routes, whose single match carries nothing but
+  // a path — so replacing the match list outright loses nothing.
+  if (route.path !== undefined || route.pathType) {
+    rule.matches = [{ path: { type: route.pathType ?? 'PathPrefix', value: route.path ?? '/' } }];
+  }
+
+  const originalBackends = original?.backends ?? [];
+  rule.backends = route.backends.map((backend) => {
+    const index = backendIndexOf(backend.key);
+    return applyBackend(backend, index >= 0 ? originalBackends[index] : undefined);
+  });
+
+  return rule;
+}
+
+/**
+ * Merge-patch for the Backends tab: the routes and pools the user arranged,
+ * spliced onto the rules the API currently holds.
+ *
+ * `routes` is the desired end state — a rule the caller leaves out is a rule
+ * deleted. A route with a negative `ruleIndex` is new and has no rule to
+ * splice onto.
+ */
+export function toUpdateProxyRoutesPayload(
+  routes: ProxyRoute[],
+  rawRules: RawRule[]
+): HttpProxyUpdatePayload {
+  const base = structuredClone(rawRules);
+  const next: RawRule[] = [];
+
+  // The force-HTTPS rule belongs to the TLS card's toggle, not to this
+  // editor. Carry it through whether or not the caller passed it back, so a
+  // routes write can never turn Force HTTPS off by omission — and keep it
+  // first, since a redirect behind the backend rules never runs.
+  const redirect = base.find(isPortalRedirectRule);
+  if (redirect) next.push(redirect);
+
+  for (const route of routes) {
+    if (route.isRedirect) continue;
+    const original = route.ruleIndex >= 0 ? base[route.ruleIndex] : undefined;
+    // A route the editor cannot represent is passed through untouched rather
+    // than rewritten from a model that does not describe all of it.
+    next.push(original && route.readOnly ? original : applyRoute(route, original));
+  }
+
+  return {
+    kind: 'HTTPProxy',
+    apiVersion: 'networking.datumapis.com/v1alpha',
+    spec: { rules: next },
+  };
+}
+
+/** Merge-patch for the algorithm control. `null` restores Envoy's default. */
+export function toUpdateProxyLoadBalancerPayload(
+  loadBalancer: ProxyLoadBalancer | null
+): HttpProxyUpdatePayload {
+  return {
+    kind: 'HTTPProxy',
+    apiVersion: 'networking.datumapis.com/v1alpha',
+    spec: { loadBalancer },
   };
 }
