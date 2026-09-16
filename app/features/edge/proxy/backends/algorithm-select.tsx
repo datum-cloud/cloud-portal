@@ -18,20 +18,21 @@ import { Share2Icon } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
 
-const UNSET = 'unset';
-
 /**
- * Leaving spec.loadBalancer unset attaches no policy at all, so the data plane
- * applies its own default — round robin. "Not set" says that plainly; naming
- * Envoy leaked an implementation detail and still left the question of what
- * actually happens unanswered.
+ * The default shown for a proxy that has never set one.
+ *
+ * Leaving spec.loadBalancer unset attaches no BackendTrafficPolicy at all, so
+ * the data plane applies its own default — round robin. Showing "Round robin"
+ * for an unset proxy therefore describes what is actually happening, and
+ * spares the operator a "not set" option that only ever meant this anyway.
+ *
+ * Deliberately a display fallback and not a write: visiting a page should not
+ * mutate the resource. The value is persisted the moment the operator picks
+ * anything, at which point it stops depending on the data plane's default.
  */
+const DEFAULT_ALGORITHM = 'RoundRobin';
+
 const ALGORITHMS = [
-  {
-    value: UNSET,
-    label: 'Not set',
-    hint: 'Let the load balancer choose. Today that means round robin.',
-  },
   { value: 'RoundRobin', label: 'Round robin', hint: 'Cycles through backends in order.' },
   { value: 'Random', label: 'Random', hint: 'Picks a backend at random.' },
   {
@@ -111,7 +112,7 @@ export const ProxyAlgorithmSelect = ({
       setHashOpen(true);
       return;
     }
-    void save(value === UNSET ? null : ({ type: value } as ProxyLoadBalancer));
+    void save({ type: value } as ProxyLoadBalancer);
   };
 
   const handleHashSubmit = async (data: HashSchema) => {
@@ -125,9 +126,8 @@ export const ProxyAlgorithmSelect = ({
     if (saved) setHashOpen(false);
   };
 
-  const label = current
-    ? (ALGORITHMS.find((a) => a.value === current.type)?.label ?? current.type)
-    : 'Not set';
+  const selected = current?.type ?? DEFAULT_ALGORITHM;
+  const label = ALGORITHMS.find((a) => a.value === selected)?.label ?? selected;
   const hashNote =
     current?.type === 'ConsistentHash'
       ? current.consistentHash?.type === 'Header'
@@ -142,15 +142,12 @@ export const ProxyAlgorithmSelect = ({
         <div className="flex min-w-0 flex-col">
           <span className="text-muted-foreground text-2xs leading-none">Algorithm</span>
           {canEdit ? (
-            <Select
-              value={current?.type ?? UNSET}
-              onValueChange={handleChange}
-              disabled={mutation.isPending}>
+            <Select value={selected} onValueChange={handleChange} disabled={mutation.isPending}>
               <SelectTrigger
                 className="h-auto border-0 p-0 text-sm font-medium whitespace-nowrap shadow-none focus:ring-0 focus-visible:ring-0"
                 aria-label="Load balancing algorithm"
                 data-e2e="alb-algorithm-select">
-                <SelectValue placeholder="Not set" />
+                <SelectValue />
               </SelectTrigger>
               {/* The trigger is deliberately narrow, and the menu inherits its
                   width by default — which wrapped every label onto two lines. */}
