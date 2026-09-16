@@ -171,12 +171,13 @@ export default function HttpProxyBackendsPage() {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-end gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <ProxyAlgorithmSelect proxy={proxy} projectId={projectId} canEdit={!!canPatch} />
           {canPatch && routes.length > 0 ? (
             solePool ? (
               <Button
                 type="primary"
+                className="h-12"
                 onClick={() => openAddBackend(routes[0])}
                 data-e2e="alb-add-backend-primary">
                 <Icon icon={PlusIcon} size={14} />
@@ -185,6 +186,7 @@ export default function HttpProxyBackendsPage() {
             ) : (
               <Button
                 type="primary"
+                className="h-12"
                 onClick={() => routeDialogRef.current?.show()}
                 data-e2e="alb-add-route">
                 <Icon icon={PlusIcon} size={14} />

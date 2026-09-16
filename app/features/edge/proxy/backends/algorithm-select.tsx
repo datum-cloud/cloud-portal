@@ -33,16 +33,15 @@ import { z } from 'zod';
 const DEFAULT_ALGORITHM = 'RoundRobin';
 
 /**
- * Deliberately labels only. Per-item descriptions were added to explain what
- * "Envoy default" did; that option no longer exists, and the descriptions
- * wrapped to two lines each, turning a four-item picker into a wall. These are
- * standard load-balancer terms for the people choosing between them.
+ * Descriptions are kept short enough to sit on one line at the menu's width.
+ * They wrap otherwise, which is what made an earlier version of this menu
+ * taller than the card behind it.
  */
 const ALGORITHMS = [
-  { value: 'RoundRobin', label: 'Round robin' },
-  { value: 'Random', label: 'Random' },
-  { value: 'LeastRequest', label: 'Least request' },
-  { value: 'ConsistentHash', label: 'Consistent hash' },
+  { value: 'RoundRobin', label: 'Round robin', hint: 'Cycles through backends in order' },
+  { value: 'Random', label: 'Random', hint: 'Picks a backend at random' },
+  { value: 'LeastRequest', label: 'Least request', hint: 'Fewest requests in flight wins' },
+  { value: 'ConsistentHash', label: 'Consistent hash', hint: 'A client sticks to one backend' },
 ] as const;
 
 const hashSchema = z
@@ -135,47 +134,60 @@ export const ProxyAlgorithmSelect = ({
 
   return (
     <>
-      <div className="flex shrink-0 flex-col gap-1">
-        <span className="text-muted-foreground text-xs font-medium">Algorithm</span>
-        {canEdit ? (
-          <Select value={selected} onValueChange={handleChange} disabled={mutation.isPending}>
-            {/* Left with its own border and sizing. An earlier version stripped
-                those and nested it inside a hand-rolled box, which rendered as
-                a box within a box. */}
-            <SelectTrigger
-              className="bg-card h-9 w-52 gap-2"
-              aria-label="Load balancing algorithm"
-              data-e2e="alb-algorithm-select">
-              <Icon icon={Share2Icon} size={14} className="text-muted-foreground shrink-0" />
-              {/* Children, rather than the default, so the trigger can append
-                  the hash source — which belongs to the selection but not to
-                  any one menu item. flex-1 because the trigger is
-                  justify-between, which otherwise centres the value. */}
+      {canEdit ? (
+        <Select value={selected} onValueChange={handleChange} disabled={mutation.isPending}>
+          {/* The caption lives inside the trigger, as the mockup has it. An
+              earlier version stripped the trigger's border and nested it in a
+              hand-built box to fake this, which drew a box within a box; the
+              trigger keeps its own border, chevron and sizing here, and the
+              caption is simply one of its children. */}
+          <SelectTrigger
+            className="bg-card h-12 w-60 gap-3"
+            aria-label="Load balancing algorithm"
+            data-e2e="alb-algorithm-select">
+            <Icon icon={Share2Icon} size={16} className="text-muted-foreground shrink-0" />
+            {/* flex-1 sits on this stack rather than inside SelectValue:
+                SelectValue renders its own element, so it is the flex child of
+                the trigger and anything nested inside it is not. */}
+            <span className="flex min-w-0 flex-1 flex-col items-start text-left">
+              <span className="text-muted-foreground text-2xs leading-none">Algorithm</span>
+              {/* Children, not the default, so the trigger can append the hash
+                  source — which belongs to the selection but to no single menu
+                  item — and so the items' descriptions are not cloned in here
+                  alongside their labels. */}
               <SelectValue>
-                <span className="flex-1 truncate text-left">
+                <span className="truncate text-sm font-medium">
                   {label}
                   {hashNote}
                 </span>
               </SelectValue>
-            </SelectTrigger>
-            <SelectContent align="end">
-              {ALGORITHMS.map((algorithm) => (
-                <SelectItem key={algorithm.value} value={algorithm.value}>
+            </span>
+          </SelectTrigger>
+          <SelectContent align="end" className="min-w-[19rem]">
+            {ALGORITHMS.map((algorithm) => (
+              <SelectItem key={algorithm.value} value={algorithm.value}>
+                <span className="flex min-w-0 flex-col items-start gap-0.5">
                   <span className="whitespace-nowrap">{algorithm.label}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <span className="border-border bg-card flex h-9 w-56 items-center gap-2 rounded-md border px-3 text-sm">
-            <Icon icon={Share2Icon} size={14} className="text-muted-foreground shrink-0" />
-            <span className="truncate">
+                  <span className="text-muted-foreground text-xs whitespace-nowrap">
+                    {algorithm.hint}
+                  </span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <span className="border-border bg-card flex h-12 w-60 shrink-0 items-center gap-3 rounded-md border px-3">
+          <Icon icon={Share2Icon} size={16} className="text-muted-foreground shrink-0" />
+          <span className="flex min-w-0 flex-col items-start">
+            <span className="text-muted-foreground text-2xs leading-none">Algorithm</span>
+            <span className="truncate text-sm font-medium">
               {label}
               {hashNote}
             </span>
           </span>
-        )}
-      </div>
+        </span>
+      )}
 
       <Form.Dialog
         open={hashOpen}
