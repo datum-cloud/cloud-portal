@@ -32,19 +32,17 @@ import { z } from 'zod';
  */
 const DEFAULT_ALGORITHM = 'RoundRobin';
 
+/**
+ * Deliberately labels only. Per-item descriptions were added to explain what
+ * "Envoy default" did; that option no longer exists, and the descriptions
+ * wrapped to two lines each, turning a four-item picker into a wall. These are
+ * standard load-balancer terms for the people choosing between them.
+ */
 const ALGORITHMS = [
-  { value: 'RoundRobin', label: 'Round robin', hint: 'Cycles through backends in order.' },
-  { value: 'Random', label: 'Random', hint: 'Picks a backend at random.' },
-  {
-    value: 'LeastRequest',
-    label: 'Least request',
-    hint: 'Picks the backend with the fewest requests in flight.',
-  },
-  {
-    value: 'ConsistentHash',
-    label: 'Consistent hash',
-    hint: 'Sends requests that hash alike to the same backend.',
-  },
+  { value: 'RoundRobin', label: 'Round robin' },
+  { value: 'Random', label: 'Random' },
+  { value: 'LeastRequest', label: 'Least request' },
+  { value: 'ConsistentHash', label: 'Consistent hash' },
 ] as const;
 
 const hashSchema = z
@@ -145,30 +143,25 @@ export const ProxyAlgorithmSelect = ({
                 those and nested it inside a hand-rolled box, which rendered as
                 a box within a box. */}
             <SelectTrigger
-              className="bg-card h-9 w-56 gap-2"
+              className="bg-card h-9 w-52 gap-2"
               aria-label="Load balancing algorithm"
               data-e2e="alb-algorithm-select">
               <Icon icon={Share2Icon} size={14} className="text-muted-foreground shrink-0" />
-              {/* Given children, Radix renders these instead of cloning the
-                  selected item's content. Without that the item's hint line is
-                  pulled into the trigger too, because shadcn's SelectItem wraps
-                  every child in ItemText. */}
+              {/* Children, rather than the default, so the trigger can append
+                  the hash source — which belongs to the selection but not to
+                  any one menu item. flex-1 because the trigger is
+                  justify-between, which otherwise centres the value. */}
               <SelectValue>
-                <span className="truncate">
+                <span className="flex-1 truncate text-left">
                   {label}
                   {hashNote}
                 </span>
               </SelectValue>
             </SelectTrigger>
-            {/* The hints are wider than the trigger, and the menu takes the
-                trigger's width by default. */}
-            <SelectContent align="end" className="min-w-80">
+            <SelectContent align="end">
               {ALGORITHMS.map((algorithm) => (
                 <SelectItem key={algorithm.value} value={algorithm.value}>
-                  <span className="flex flex-col items-start gap-0.5">
-                    <span className="whitespace-nowrap">{algorithm.label}</span>
-                    <span className="text-muted-foreground text-xs">{algorithm.hint}</span>
-                  </span>
+                  <span className="whitespace-nowrap">{algorithm.label}</span>
                 </SelectItem>
               ))}
             </SelectContent>
