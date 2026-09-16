@@ -171,7 +171,7 @@ export default function HttpProxyBackendsPage() {
           </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="flex shrink-0 items-end gap-3">
           <ProxyAlgorithmSelect proxy={proxy} projectId={projectId} canEdit={!!canPatch} />
           {canPatch && routes.length > 0 ? (
             solePool ? (

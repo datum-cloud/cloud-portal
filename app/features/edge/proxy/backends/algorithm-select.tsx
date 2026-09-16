@@ -137,38 +137,51 @@ export const ProxyAlgorithmSelect = ({
 
   return (
     <>
-      <div className="border-border bg-card flex h-12 shrink-0 items-center gap-2 rounded-md border px-3">
-        <Icon icon={Share2Icon} size={16} className="text-muted-foreground shrink-0" />
-        <div className="flex min-w-0 flex-col">
-          <span className="text-muted-foreground text-2xs leading-none">Algorithm</span>
-          {canEdit ? (
-            <Select value={selected} onValueChange={handleChange} disabled={mutation.isPending}>
-              <SelectTrigger
-                className="h-auto border-0 p-0 text-sm font-medium whitespace-nowrap shadow-none focus:ring-0 focus-visible:ring-0"
-                aria-label="Load balancing algorithm"
-                data-e2e="alb-algorithm-select">
-                <SelectValue />
-              </SelectTrigger>
-              {/* The trigger is deliberately narrow, and the menu inherits its
-                  width by default — which wrapped every label onto two lines. */}
-              <SelectContent align="end" className="min-w-80">
-                {ALGORITHMS.map((algorithm) => (
-                  <SelectItem key={algorithm.value} value={algorithm.value}>
-                    <span className="flex flex-col items-start gap-0.5">
-                      <span className="whitespace-nowrap">{algorithm.label}</span>
-                      <span className="text-muted-foreground text-xs">{algorithm.hint}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <span className="truncate text-sm font-medium">
+      <div className="flex shrink-0 flex-col gap-1">
+        <span className="text-muted-foreground text-xs font-medium">Algorithm</span>
+        {canEdit ? (
+          <Select value={selected} onValueChange={handleChange} disabled={mutation.isPending}>
+            {/* Left with its own border and sizing. An earlier version stripped
+                those and nested it inside a hand-rolled box, which rendered as
+                a box within a box. */}
+            <SelectTrigger
+              className="bg-card h-9 w-56 gap-2"
+              aria-label="Load balancing algorithm"
+              data-e2e="alb-algorithm-select">
+              <Icon icon={Share2Icon} size={14} className="text-muted-foreground shrink-0" />
+              {/* Given children, Radix renders these instead of cloning the
+                  selected item's content. Without that the item's hint line is
+                  pulled into the trigger too, because shadcn's SelectItem wraps
+                  every child in ItemText. */}
+              <SelectValue>
+                <span className="truncate">
+                  {label}
+                  {hashNote}
+                </span>
+              </SelectValue>
+            </SelectTrigger>
+            {/* The hints are wider than the trigger, and the menu takes the
+                trigger's width by default. */}
+            <SelectContent align="end" className="min-w-80">
+              {ALGORITHMS.map((algorithm) => (
+                <SelectItem key={algorithm.value} value={algorithm.value}>
+                  <span className="flex flex-col items-start gap-0.5">
+                    <span className="whitespace-nowrap">{algorithm.label}</span>
+                    <span className="text-muted-foreground text-xs">{algorithm.hint}</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <span className="border-border bg-card flex h-9 w-56 items-center gap-2 rounded-md border px-3 text-sm">
+            <Icon icon={Share2Icon} size={14} className="text-muted-foreground shrink-0" />
+            <span className="truncate">
               {label}
               {hashNote}
             </span>
-          )}
-        </div>
+          </span>
+        )}
       </div>
 
       <Form.Dialog
