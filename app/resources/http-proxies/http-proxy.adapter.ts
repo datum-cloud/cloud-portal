@@ -48,6 +48,33 @@ function isPortalHstsFilter(filter: RuleFilter): boolean {
   return set.length === 1 && set[0].name.toLowerCase() === HSTS_HEADER.toLowerCase();
 }
 
+/** A rule as it arrives from the API, before we know which shape it is. */
+type RawRule = {
+  backends?: Array<Record<string, unknown>>;
+  filters?: RuleFilter[];
+  matches?: unknown[];
+  [key: string]: unknown;
+};
+
+/**
+ * True for the force-HTTPS rule the portal synthesizes: no backends, plus a
+ * filter redirecting to https with a 301/302.
+ */
+export function isPortalRedirectRule(rule: RawRule): boolean {
+  if (rule.backends && rule.backends.length > 0) return false;
+  return (rule.filters ?? []).some((filter) => {
+    const redirect = filter.requestRedirect;
+    if (!redirect || redirect.scheme !== 'https') return false;
+    const code = Number(redirect.statusCode);
+    return code === 301 || code === 302;
+  });
+}
+
+/** True when a rule carries at least one backend. */
+function ruleHasBackends(rule: RawRule): boolean {
+  return !!rule.backends && rule.backends.length > 0;
+}
+
 /**
  * Classify the complexity of an HTTPProxy resource for portal rendering.
  *
@@ -519,17 +546,7 @@ export function toHttpProxy(
   }
 
   // Check if HTTP redirect is enabled by looking for a redirect rule.
-  // Rule has no backends (undefined or []) and a filter that redirects to HTTPS (301/302).
-  const hasRedirectRule = raw.spec?.rules?.some((rule) => {
-    const noBackends = !rule.backends || rule.backends.length === 0;
-    if (!noBackends || !rule.filters?.length) return false;
-    return rule.filters.some((filter) => {
-      const redirect = filter.requestRedirect;
-      if (!redirect || redirect.scheme !== 'https') return false;
-      const code = Number(redirect.statusCode);
-      return code === 301 || code === 302;
-    });
-  });
+  const hasRedirectRule = raw.spec?.rules?.some((rule) => isPortalRedirectRule(rule as RawRule));
 
   // Extract Host header from rule-level filters (case-insensitive per RFC 7230)
   const hostHeader = extractHostHeader(raw);
@@ -554,6 +571,7 @@ export function toHttpProxy(
     tlsHostname: backend?.tls?.hostname,
     ...(hostHeader && { hostHeader }),
     complexity,
+    ...(raw.spec?.rules && { rawRules: raw.spec.rules }),
     status: raw.status,
     canonicalHostname: raw.status?.canonicalHostname,
     hostnameStatuses: raw.status?.hostnameStatuses,
@@ -789,9 +807,148 @@ export type HttpProxyUpdatePayload = {
   metadata?: { annotations: Record<string, string> };
   spec?: {
     hostnames?: string[];
-    rules?: Array<BackendRule | RedirectRule>;
+    /**
+     * Spliced rules are structurally opaque — they carry whatever the API
+     * returned, including fields this module has never heard of — so the
+     * element type has to admit more than the two shapes we synthesize.
+     */
+    rules?: Array<BackendRule | RedirectRule | RawRule>;
   };
 };
+
+/** The force-HTTPS rule the portal synthesizes. */
+function portalRedirectRule(): RedirectRule {
+  return {
+    matches: [
+      {
+        path: { type: 'PathPrefix', value: '/' },
+        headers: [{ name: 'x-forwarded-proto', type: 'Exact', value: 'http' }],
+      },
+    ],
+    filters: [{ type: 'RequestRedirect', requestRedirect: { scheme: 'https', statusCode: 301 } }],
+  };
+}
+
+function hostHeaderFilter(value: string): BackendRuleFilter {
+  return {
+    type: 'RequestHeaderModifier',
+    requestHeaderModifier: { set: [{ name: 'Host', value }] },
+  };
+}
+
+function hstsResponseFilter(value: string): BackendRuleFilter {
+  return {
+    type: 'ResponseHeaderModifier',
+    responseHeaderModifier: { set: [{ name: HSTS_HEADER, value }] },
+  };
+}
+
+/** The flat fields the Configuration/Overview surfaces own, already resolved. */
+type ResolvedFlatFields = {
+  redirect: boolean;
+  endpoint?: string;
+  tlsHostname?: string;
+  /** Empty string means "no Host override". */
+  hostHeader: string;
+  hsts: boolean;
+  hstsValue: string;
+};
+
+/**
+ * Apply the flat fields onto a clone of the rules the API currently holds,
+ * touching only what those fields own.
+ *
+ * This is the whole point of carrying `rawRules`: the previous implementation
+ * rebuilt `spec.rules` from the flat fields alone, which silently dropped
+ * every backend past the first, their weights, backend-level filters,
+ * non-path matches, and connector/instance backends. Editing the Host header
+ * must not collapse a five-backend pool down to one.
+ */
+function spliceFlatFieldsIntoRules(rawRules: RawRule[], resolved: ResolvedFlatFields): RawRule[] {
+  const rules = structuredClone(rawRules);
+
+  // --- the force-HTTPS rule -------------------------------------------------
+  const redirectIndex = rules.findIndex(isPortalRedirectRule);
+  if (resolved.redirect && redirectIndex === -1) {
+    // Ahead of the backend rules: a redirect that sits behind them never runs.
+    rules.unshift(portalRedirectRule() as unknown as RawRule);
+  } else if (!resolved.redirect && redirectIndex !== -1) {
+    rules.splice(redirectIndex, 1);
+  }
+
+  // --- the backend rule -----------------------------------------------------
+  const backendIndex = rules.findIndex(ruleHasBackends);
+  if (backendIndex === -1) {
+    if (resolved.endpoint) {
+      rules.push(buildBackendRule(resolved) as unknown as RawRule);
+    }
+    return rules;
+  }
+
+  const rule = rules[backendIndex];
+
+  // The flat model addresses exactly one origin, so endpoint and TLS apply to
+  // the first backend only. Everything after it belongs to the Backends tab.
+  const first = rule.backends?.[0];
+  if (first) {
+    if (resolved.endpoint) first.endpoint = resolved.endpoint;
+    if (resolved.tlsHostname) first.tls = { hostname: resolved.tlsHostname };
+    else delete first.tls;
+  }
+
+  // Replace the portal's own filters in place; carry everything else through
+  // untouched and in its original position.
+  const nextFilters: RuleFilter[] = [];
+  let hostWritten = false;
+  let hstsWritten = false;
+  for (const filter of rule.filters ?? []) {
+    if (isPortalHostHeaderFilter(filter)) {
+      if (resolved.hostHeader && !hostWritten) {
+        nextFilters.push(hostHeaderFilter(resolved.hostHeader) as RuleFilter);
+        hostWritten = true;
+      }
+      continue;
+    }
+    if (isPortalHstsFilter(filter)) {
+      if (resolved.hsts && !hstsWritten) {
+        nextFilters.push(hstsResponseFilter(resolved.hstsValue) as RuleFilter);
+        hstsWritten = true;
+      }
+      continue;
+    }
+    nextFilters.push(filter);
+  }
+  if (resolved.hostHeader && !hostWritten) {
+    nextFilters.push(hostHeaderFilter(resolved.hostHeader) as RuleFilter);
+  }
+  if (resolved.hsts && !hstsWritten) {
+    nextFilters.push(hstsResponseFilter(resolved.hstsValue) as RuleFilter);
+  }
+
+  // Omit rather than send an empty list, so a rule that never had filters
+  // does not acquire `filters: []`.
+  if (nextFilters.length > 0) rule.filters = nextFilters;
+  else delete rule.filters;
+
+  return rules;
+}
+
+/** The single-backend rule the flat model synthesizes when none exists yet. */
+function buildBackendRule(resolved: ResolvedFlatFields): BackendRule {
+  const filters: BackendRuleFilter[] = [];
+  if (resolved.hostHeader) filters.push(hostHeaderFilter(resolved.hostHeader));
+  if (resolved.hsts) filters.push(hstsResponseFilter(resolved.hstsValue));
+
+  return {
+    backends: [
+      {
+        endpoint: resolved.endpoint ?? '',
+        ...(resolved.tlsHostname && { tls: { hostname: resolved.tlsHostname } }),
+      },
+    ],
+    ...(filters.length > 0 && { filters }),
+  };
+}
 
 /** True when the merge-patch would change HTTPProxy metadata or spec. */
 export function httpProxyPatchTouchesResource(payload: HttpProxyUpdatePayload): boolean {
@@ -823,11 +980,12 @@ export function toUpdateHttpProxyPayload(
     input.enableHttpRedirect !== undefined ||
     input.hsts !== undefined ||
     input.hostHeader !== undefined ||
-    // TLS lives on the backend rule — rebuild rules when it changes even if
+    // TLS lives on the backend rule — rewrite rules when it changes even if
     // endpoint/redirect/hostHeader are untouched (e.g. hostnames dialog save).
     input.tlsHostname !== undefined;
 
-  let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
+  let spec:
+    { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule | RawRule> } | undefined;
 
   if (hasRulesChange || input.hostnames !== undefined) {
     spec = {};
@@ -837,81 +995,62 @@ export function toUpdateHttpProxyPayload(
     }
 
     if (hasRulesChange) {
-      const rules: Array<BackendRule | RedirectRule> = [];
-
-      const effectiveRedirect = input.enableHttpRedirect ?? currentProxy?.enableHttpRedirect;
-      if (effectiveRedirect) {
-        rules.push({
-          matches: [
-            {
-              path: { type: 'PathPrefix', value: '/' },
-              headers: [{ name: 'x-forwarded-proto', type: 'Exact', value: 'http' }],
-            },
-          ],
-          filters: [
-            {
-              type: 'RequestRedirect',
-              requestRedirect: { scheme: 'https', statusCode: 301 },
-            },
-          ],
-        });
-      }
-
+      // Explicit input wins over the current value; a defined-but-empty string
+      // means "clear". These resolutions are shared by both paths below so the
+      // two agree on what the flat fields currently say.
       const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
-      if (effectiveEndpoint) {
-        // Explicit tlsHostname (including '') means set/clear; omit means preserve.
-        const effectiveTls =
-          input.tlsHostname !== undefined
-            ? input.tlsHostname.trim() || undefined
-            : currentProxy?.tlsHostname;
+      const effectiveTls =
+        input.tlsHostname !== undefined
+          ? input.tlsHostname.trim() || undefined
+          : currentProxy?.tlsHostname;
+      const effectiveHostHeader =
+        input.hostHeader !== undefined
+          ? input.hostHeader.trim()
+          : (currentProxy?.hostHeader?.trim() ?? '');
+      const effectiveHsts = input.hsts ?? currentProxy?.hsts ?? false;
+      // When preserving, re-emit the value already there so a hand-tuned
+      // directive is not silently replaced by the portal default.
+      const effectiveHstsValue =
+        input.hsts === undefined
+          ? (currentProxy?.hstsHeaderValue ?? HSTS_HEADER_VALUE)
+          : HSTS_HEADER_VALUE;
+      const effectiveRedirect =
+        input.enableHttpRedirect ?? currentProxy?.enableHttpRedirect ?? false;
 
-        // Determine effective host header: explicit input > current proxy value
-        // A defined-but-empty string in input means "clear the host header"
-        const effectiveHostHeader =
-          input.hostHeader !== undefined
-            ? input.hostHeader.trim()
-            : (currentProxy?.hostHeader?.trim() ?? '');
+      const resolved: ResolvedFlatFields = {
+        redirect: effectiveRedirect,
+        endpoint: effectiveEndpoint,
+        tlsHostname: effectiveTls,
+        hostHeader: effectiveHostHeader,
+        hsts: effectiveHsts,
+        hstsValue: effectiveHstsValue,
+      };
 
-        const backendFilters: BackendRuleFilter[] = [];
-        if (effectiveHostHeader) {
-          backendFilters.push({
-            type: 'RequestHeaderModifier',
-            requestHeaderModifier: {
-              set: [{ name: 'Host', value: effectiveHostHeader }],
-            },
-          });
+      const rawRules = currentProxy?.rawRules as RawRule[] | undefined;
+
+      if (rawRules) {
+        // Preferred path: patch the rules the API actually holds, so anything
+        // the flat model cannot see survives the write.
+        spec.rules = spliceFlatFieldsIntoRules(rawRules, resolved);
+      } else {
+        // Fallback for an HttpProxy assembled by hand rather than read from the
+        // API (no rules to preserve). Synthesizes the flat model's own shape.
+        const rules: Array<BackendRule | RedirectRule> = [];
+
+        if (effectiveRedirect) {
+          rules.push(portalRedirectRule());
         }
 
-        // HSTS: explicit input wins, else preserve. Written as a response
-        // header on the backend rule so it rides along with every proxied reply.
-        // When preserving, re-emit the value that is already there so a
-        // hand-tuned directive is not silently replaced by the portal default.
-        const effectiveHsts = input.hsts ?? currentProxy?.hsts ?? false;
-        if (effectiveHsts) {
-          const hstsValue =
-            input.hsts === undefined
-              ? (currentProxy?.hstsHeaderValue ?? HSTS_HEADER_VALUE)
-              : HSTS_HEADER_VALUE;
-          backendFilters.push({
-            type: 'ResponseHeaderModifier',
-            responseHeaderModifier: {
-              set: [{ name: HSTS_HEADER, value: hstsValue }],
-            },
-          });
+        if (effectiveEndpoint) {
+          const rule = buildBackendRule(resolved);
+          if (currentProxy?.connector) {
+            rule.backends[0].connector = currentProxy.connector;
+          }
+          rules.push(rule);
         }
 
-        const backend: BackendRule['backends'][0] = {
-          endpoint: effectiveEndpoint,
-          ...(effectiveTls && { tls: { hostname: effectiveTls } }),
-          ...(currentProxy?.connector && { connector: currentProxy.connector }),
-        };
-        rules.push({
-          backends: [backend],
-          ...(backendFilters.length > 0 && { filters: backendFilters }),
-        });
+        spec.rules = rules;
       }
-
-      spec.rules = rules;
     }
   }
 

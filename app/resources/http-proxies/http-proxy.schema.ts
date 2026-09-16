@@ -141,6 +141,20 @@ export const httpProxyResourceSchema = z.object({
    *   cannot represent without data loss; show read-only banner
    */
   complexity: z.enum(['simple', 'host-only', 'advanced']).optional(),
+  /**
+   * The resource's `spec.rules` exactly as the API returned them.
+   *
+   * Carried so writers can splice their own field into the existing rules
+   * rather than rebuilding the array from the flat fields above — a rebuild
+   * drops everything the flat model does not represent (extra backends and
+   * their weights, backend-level filters, non-path matches, connector and
+   * instance backends). See `toUpdateHttpProxyPayload`.
+   *
+   * Undefined when the caller assembled an HttpProxy by hand rather than from
+   * the API; writers fall back to rebuilding in that case, since there is
+   * nothing to preserve.
+   */
+  rawRules: z.array(z.any()).optional(),
 });
 
 export type HttpProxy = z.infer<typeof httpProxyResourceSchema>;
