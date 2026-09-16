@@ -172,12 +172,11 @@ export default function HttpProxyBackendsPage() {
         </div>
 
         <div className="flex shrink-0 items-center gap-3">
-          <ProxyAlgorithmSelect proxy={proxy} projectId={projectId} canEdit={!!canPatch} />
-          {canPatch && routes.length > 0 ? (
+          {routes.length > 0 ? (
             solePool ? (
               <Button
                 type="primary"
-                className="h-12"
+                disabled={!canPatch}
                 onClick={() => openAddBackend(routes[0])}
                 data-e2e="alb-add-backend-primary">
                 <Icon icon={PlusIcon} size={14} />
@@ -186,7 +185,7 @@ export default function HttpProxyBackendsPage() {
             ) : (
               <Button
                 type="primary"
-                className="h-12"
+                disabled={!canPatch}
                 onClick={() => routeDialogRef.current?.show()}
                 data-e2e="alb-add-route">
                 <Icon icon={PlusIcon} size={14} />
@@ -216,9 +215,24 @@ export default function HttpProxyBackendsPage() {
         />
       ) : (
         <>
-          {routes.map((route) => (
+          {routes.map((route, index) => (
             <Fragment key={route.key}>
-              <TrafficDistributionCard route={route} showPath={!solePool} />
+              <TrafficDistributionCard
+                route={route}
+                showPath={!solePool}
+                // Proxy-scoped, so only the first card carries it: it decides
+                // how every route's distribution is arrived at, not just this
+                // one's.
+                action={
+                  index === 0 ? (
+                    <ProxyAlgorithmSelect
+                      proxy={proxy}
+                      projectId={projectId}
+                      canEdit={!!canPatch}
+                    />
+                  ) : undefined
+                }
+              />
               <BackendsCard
                 route={route}
                 projectId={projectId}

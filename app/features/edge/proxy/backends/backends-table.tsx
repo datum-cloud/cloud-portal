@@ -285,17 +285,14 @@ export const BackendsCard = ({
         ) : null}
       </CardHeader>
 
-      <CardContent padding="none">
+      <CardContent padding="none" className="rounded-none border-none!">
         <Table.Client
+          className="rounded-none border-none!"
           columns={columns}
           data={rows}
           getRowId={(row) => row.key}
           pagination={false}
           urlSync={false}
-          // Without this the table scans every row value and over-matches —
-          // a filter for "http" would hit the TLS chip and the kind badge too.
-          search="Filter backends..."
-          searchableColumns={['label']}
           empty={{
             title: 'No backends',
             description: 'Add a backend so this route has somewhere to send traffic.',

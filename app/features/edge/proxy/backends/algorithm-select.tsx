@@ -142,7 +142,8 @@ export const ProxyAlgorithmSelect = ({
               trigger keeps its own border, chevron and sizing here, and the
               caption is simply one of its children. */}
           <SelectTrigger
-            className="bg-card h-12 w-60 gap-3"
+            className="bg-card h-7 w-60 gap-3 rounded-lg"
+
             aria-label="Load balancing algorithm"
             data-e2e="alb-algorithm-select">
             <Icon icon={Share2Icon} size={16} className="text-muted-foreground shrink-0" />

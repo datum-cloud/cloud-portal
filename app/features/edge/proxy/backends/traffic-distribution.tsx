@@ -4,12 +4,13 @@ import { StatusChip } from '@/components/card';
 import type { ProxyRoute } from '@/resources/http-proxies';
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 
 /**
  * Share of traffic across a route's pool, derived from backend weights.
@@ -22,16 +23,26 @@ import { useMemo } from 'react';
 export const TrafficDistributionCard = ({
   route,
   showPath,
+  action,
 }: {
   route: ProxyRoute;
   /** Name the route when there is more than one pool on the page. */
   showPath: boolean;
+  /**
+   * Header control. The load balancing algorithm lives here because it decides
+   * how this distribution is arrived at — but it is proxy-scoped, so only the
+   * first route's card is given it.
+   */
+  action?: ReactNode;
 }) => {
   const { shares, noTraffic } = useMemo(() => backendShares(route.backends), [route.backends]);
 
-  // One backend takes everything by definition; a bar reading 100% tells the
-  // operator nothing the single row below it does not.
-  if (route.backends.length < 2) return null;
+  const hasBar = route.backends.length >= 2;
+
+  // One backend takes everything by definition, so a bar reading 100% says
+  // nothing the single row below it does not. The card still renders when it
+  // is hosting the algorithm control, which needs a stable home.
+  if (!hasBar && !action) return null;
 
   return (
     <Card
@@ -47,10 +58,17 @@ export const TrafficDistributionCard = ({
           </CardTitle>
           <CardDescription className="text-xs">Share of requests by weight</CardDescription>
         </div>
+        {action ? <CardAction>{action}</CardAction> : null}
       </CardHeader>
 
       <CardContent className="flex flex-col gap-3">
-        {noTraffic ? (
+        {!hasBar ? (
+          <p className="text-muted-foreground text-sm">
+            {route.backends.length === 1
+              ? 'Every request goes to the only backend on this route.'
+              : 'Add a backend so this route has somewhere to send traffic.'}
+          </p>
+        ) : noTraffic ? (
           <p className="text-muted-foreground text-sm">
             No backend is receiving traffic — every weight is 0.
           </p>
@@ -79,40 +97,42 @@ export const TrafficDistributionCard = ({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            {shares
-              .filter((s) => !s.excluded)
-              .map((s) => (
-                <li key={s.backend.key} className="flex min-w-0 items-center gap-1.5 text-xs">
-                  <span
-                    className="size-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: s.color }}
-                    aria-hidden="true"
-                  />
-                  <span className="text-foreground truncate font-mono">
-                    {backendLabel(s.backend)}
-                  </span>
-                  <span className="text-muted-foreground shrink-0 tabular-nums">
-                    {formatSharePercent(s.percent)}
-                  </span>
-                </li>
-              ))}
-          </ul>
+        {hasBar ? (
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <ul className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {shares
+                .filter((s) => !s.excluded)
+                .map((s) => (
+                  <li key={s.backend.key} className="flex min-w-0 items-center gap-1.5 text-xs">
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: s.color }}
+                      aria-hidden="true"
+                    />
+                    <span className="text-foreground truncate font-mono">
+                      {backendLabel(s.backend)}
+                    </span>
+                    <span className="text-muted-foreground shrink-0 tabular-nums">
+                      {formatSharePercent(s.percent)}
+                    </span>
+                  </li>
+                ))}
+            </ul>
 
-          {/* A zero-weight backend is configured but drained. Saying so here
+            {/* A zero-weight backend is configured but drained. Saying so here
               matches the mockup's "excluded" note, minus the health reason
               it had no way to know. */}
-          {shares.some((s) => s.excluded) ? (
-            <p className="text-muted-foreground text-xs">
-              {shares
-                .filter((s) => s.excluded)
-                .map((s) => backendLabel(s.backend))
-                .join(', ')}{' '}
-              excluded · weight 0
-            </p>
-          ) : null}
-        </div>
+            {shares.some((s) => s.excluded) ? (
+              <p className="text-muted-foreground text-xs">
+                {shares
+                  .filter((s) => s.excluded)
+                  .map((s) => backendLabel(s.backend))
+                  .join(', ')}{' '}
+                excluded · weight 0
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   );
