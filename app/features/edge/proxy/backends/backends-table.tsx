@@ -94,6 +94,10 @@ export const BackendsCard = ({
       {
         header: 'Backend',
         accessorKey: 'label',
+        // A pool holds at most 16 rows and its order is meaningful as written;
+        // sortable headers on every column were Table.Client's default, not a
+        // decision.
+        enableSorting: false,
         cell: ({ row }) => {
           const backend = row.original;
           return (
@@ -129,6 +133,8 @@ export const BackendsCard = ({
       {
         header: 'TLS',
         accessorKey: 'tlsHostname',
+        enableSorting: false,
+        meta: { className: 'w-28' },
         cell: ({ row }) => {
           const scheme = backendScheme(row.original);
           if (scheme === 'https') {
@@ -155,12 +161,15 @@ export const BackendsCard = ({
       {
         header: 'Weight',
         accessorKey: 'weight',
-        meta: { className: 'text-right' },
+        enableSorting: false,
+        meta: { className: 'w-24 text-right' },
         cell: ({ row }) => <span className="tabular-nums">{row.original.weight}</span>,
       },
       {
         header: 'Share',
         accessorKey: 'percent',
+        enableSorting: false,
+        meta: { className: 'w-44' },
         cell: ({ row }) => {
           const { noTraffic, excluded, percent, color } = row.original;
           if (noTraffic) return <span className="text-muted-foreground">&mdash;</span>;

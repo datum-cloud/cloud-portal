@@ -20,12 +20,30 @@ import { z } from 'zod';
 
 const UNSET = 'unset';
 
+/**
+ * Leaving spec.loadBalancer unset attaches no policy at all, so the data plane
+ * applies its own default — round robin. "Not set" says that plainly; naming
+ * Envoy leaked an implementation detail and still left the question of what
+ * actually happens unanswered.
+ */
 const ALGORITHMS = [
-  { value: UNSET, label: 'Envoy default' },
-  { value: 'RoundRobin', label: 'Round robin' },
-  { value: 'Random', label: 'Random' },
-  { value: 'LeastRequest', label: 'Least request' },
-  { value: 'ConsistentHash', label: 'Consistent hash' },
+  {
+    value: UNSET,
+    label: 'Not set',
+    hint: 'Let the load balancer choose. Today that means round robin.',
+  },
+  { value: 'RoundRobin', label: 'Round robin', hint: 'Cycles through backends in order.' },
+  { value: 'Random', label: 'Random', hint: 'Picks a backend at random.' },
+  {
+    value: 'LeastRequest',
+    label: 'Least request',
+    hint: 'Picks the backend with the fewest requests in flight.',
+  },
+  {
+    value: 'ConsistentHash',
+    label: 'Consistent hash',
+    hint: 'Sends requests that hash alike to the same backend.',
+  },
 ] as const;
 
 const hashSchema = z
@@ -109,7 +127,7 @@ export const ProxyAlgorithmSelect = ({
 
   const label = current
     ? (ALGORITHMS.find((a) => a.value === current.type)?.label ?? current.type)
-    : 'Envoy default';
+    : 'Not set';
   const hashNote =
     current?.type === 'ConsistentHash'
       ? current.consistentHash?.type === 'Header'
@@ -129,15 +147,20 @@ export const ProxyAlgorithmSelect = ({
               onValueChange={handleChange}
               disabled={mutation.isPending}>
               <SelectTrigger
-                className="h-auto border-0 p-0 text-sm font-medium shadow-none focus:ring-0 focus-visible:ring-0"
+                className="h-auto border-0 p-0 text-sm font-medium whitespace-nowrap shadow-none focus:ring-0 focus-visible:ring-0"
                 aria-label="Load balancing algorithm"
                 data-e2e="alb-algorithm-select">
-                <SelectValue placeholder="Envoy default" />
+                <SelectValue placeholder="Not set" />
               </SelectTrigger>
-              <SelectContent align="end">
+              {/* The trigger is deliberately narrow, and the menu inherits its
+                  width by default — which wrapped every label onto two lines. */}
+              <SelectContent align="end" className="min-w-80">
                 {ALGORITHMS.map((algorithm) => (
                   <SelectItem key={algorithm.value} value={algorithm.value}>
-                    {algorithm.label}
+                    <span className="flex flex-col items-start gap-0.5">
+                      <span className="whitespace-nowrap">{algorithm.label}</span>
+                      <span className="text-muted-foreground text-xs">{algorithm.hint}</span>
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>
