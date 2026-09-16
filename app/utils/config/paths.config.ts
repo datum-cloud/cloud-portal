@@ -121,6 +121,7 @@ export const paths = {
           root: '/project/[projectId]/alb/[proxyId]',
           overview: '/project/[projectId]/alb/[proxyId]/overview',
           configuration: '/project/[projectId]/alb/[proxyId]/configuration',
+          backends: '/project/[projectId]/alb/[proxyId]/backends',
           metrics: '/project/[projectId]/alb/[proxyId]/metrics',
           logs: '/project/[projectId]/alb/[proxyId]/logs',
           activity: '/project/[projectId]/alb/[proxyId]/activity',
