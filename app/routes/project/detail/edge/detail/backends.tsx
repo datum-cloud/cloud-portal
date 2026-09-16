@@ -1,14 +1,16 @@
-import { ProxyAlgorithmCard } from '@/features/edge/proxy/backends/algorithm-card';
+import { ProxyAlgorithmSelect } from '@/features/edge/proxy/backends/algorithm-select';
 import {
   ProxyBackendDialog,
   type ProxyBackendDialogRef,
 } from '@/features/edge/proxy/backends/backend-dialog';
-import { ProxyRouteCard } from '@/features/edge/proxy/backends/route-card';
+import { BackendsCard } from '@/features/edge/proxy/backends/backends-table';
+import { ProxyPoolSummary } from '@/features/edge/proxy/backends/pool-summary';
 import {
   ProxyRouteDialog,
   type ProxyRouteDialogRef,
 } from '@/features/edge/proxy/backends/route-dialog';
 import { displayRoutes } from '@/features/edge/proxy/backends/target';
+import { TrafficDistributionCard } from '@/features/edge/proxy/backends/traffic-distribution';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import {
@@ -26,7 +28,7 @@ import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { Fragment, useMemo, useRef, useState } from 'react';
 import { useParams, type MetaFunction } from 'react-router';
 
 export const handle = {
@@ -71,7 +73,10 @@ export default function HttpProxyBackendsPage() {
 
   if (!proxy) throw new NotFoundError('Application Load Balancer', proxyId);
 
-  const soleRoute = routes.length === 1 && (routes[0].path ?? '/') === '/';
+  // One route matching everything is the ordinary shape, and it reads as a
+  // single pool: no path chips, no per-route menu, and the primary action in
+  // the page header is about backends rather than routes.
+  const solePool = routes.length === 1 && (routes[0].path ?? '/') === '/';
   const routesWithBackends = routes.filter((r) => r.backends.length > 0).length;
 
   /** Persist a new route list, reporting failures the way the cards do. */
@@ -151,30 +156,45 @@ export default function HttpProxyBackendsPage() {
       'Route deleted'
     );
 
+  const openAddBackend = (route: ProxyRoute) => {
+    setTargetRouteKey(route.key);
+    backendDialogRef.current?.show();
+  };
+
   return (
     <div className="flex flex-col gap-6" data-e2e="alb-backends-tab">
-      <section className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="text-sm font-semibold">Backend pool</h2>
-          <p className="text-muted-foreground text-xs">
+      <section className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <h2 className="text-xl font-semibold">Backend pool</h2>
+          <p className="text-muted-foreground text-sm">
             {routes.reduce((n, r) => n + r.backends.length, 0)} backends
-            {routes.length > 1 ? ` across ${routes.length} routes` : null}
+            {routes.length > 1 ? ` across ${routes.length} routes` : ' in pool'}
           </p>
         </div>
-        {canPatch && routes.length > 0 ? (
-          <Button
-            type="secondary"
-            theme="outline"
-            size="xs"
-            onClick={() => routeDialogRef.current?.show()}
-            data-e2e="alb-add-route">
-            <Icon icon={PlusIcon} size={12} />
-            Add route
-          </Button>
-        ) : null}
-      </section>
 
-      <ProxyAlgorithmCard proxy={proxy} projectId={projectId} canEdit={!!canPatch} />
+        <div className="flex shrink-0 items-center gap-3">
+          <ProxyAlgorithmSelect proxy={proxy} projectId={projectId} canEdit={!!canPatch} />
+          {canPatch && routes.length > 0 ? (
+            solePool ? (
+              <Button
+                type="primary"
+                onClick={() => openAddBackend(routes[0])}
+                data-e2e="alb-add-backend-primary">
+                <Icon icon={PlusIcon} size={14} />
+                Add backend
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                onClick={() => routeDialogRef.current?.show()}
+                data-e2e="alb-add-route">
+                <Icon icon={PlusIcon} size={14} />
+                Add route
+              </Button>
+            )
+          ) : null}
+        </div>
+      </section>
 
       {routes.length === 0 ? (
         <EmptyContent
@@ -194,29 +214,32 @@ export default function HttpProxyBackendsPage() {
           }
         />
       ) : (
-        routes.map((route) => (
-          <ProxyRouteCard
-            key={route.key}
-            route={route}
-            projectId={projectId}
-            canEdit={!!canPatch}
-            soleRoute={soleRoute}
-            // Removing the last route with backends would leave the load
-            // balancer with nowhere to send traffic.
-            canDeleteRoute={route.backends.length === 0 || routesWithBackends > 1}
-            onAddBackend={(r) => {
-              setTargetRouteKey(r.key);
-              backendDialogRef.current?.show();
-            }}
-            onEditBackend={(r, backend) => {
-              setTargetRouteKey(r.key);
-              backendDialogRef.current?.show(backend);
-            }}
-            onRemoveBackend={handleRemoveBackend}
-            onEditRoute={(r) => routeDialogRef.current?.show(r)}
-            onDeleteRoute={handleDeleteRoute}
-          />
-        ))
+        <>
+          <ProxyPoolSummary routes={routes} />
+
+          {routes.map((route) => (
+            <Fragment key={route.key}>
+              <TrafficDistributionCard route={route} showPath={!solePool} />
+              <BackendsCard
+                route={route}
+                projectId={projectId}
+                canEdit={!!canPatch}
+                showPath={!solePool}
+                // Removing the last route with backends would leave the load
+                // balancer with nowhere to send traffic.
+                canDeleteRoute={route.backends.length === 0 || routesWithBackends > 1}
+                onAddBackend={openAddBackend}
+                onEditBackend={(r, backend) => {
+                  setTargetRouteKey(r.key);
+                  backendDialogRef.current?.show(backend);
+                }}
+                onRemoveBackend={handleRemoveBackend}
+                onEditRoute={(r) => routeDialogRef.current?.show(r)}
+                onDeleteRoute={handleDeleteRoute}
+              />
+            </Fragment>
+          ))}
+        </>
       )}
 
       <ProxyBackendDialog
