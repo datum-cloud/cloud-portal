@@ -2,6 +2,20 @@
 // Enable absolute imports from the root directory
 declare module '@/*';
 
+/** Optional; install with `bun add -d pwa-asset-generator` only when regenerating splash/icons. */
+declare module 'pwa-asset-generator' {
+  export function generateImages(
+    source: string,
+    outputDir: string,
+    options?: Record<string, unknown>
+  ): Promise<{
+    htmlMeta: {
+      appleLaunchImage?: string;
+      appleLaunchImageDarkMode?: string;
+    };
+  }>;
+}
+
 declare module '@tanstack/table-core' {
   interface ColumnMeta<TData extends RowData, TValue> {
     // Styling
