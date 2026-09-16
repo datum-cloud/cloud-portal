@@ -41,13 +41,24 @@ describe('Application Load Balancer — regression', () => {
   });
 
   it('should create an Application Load Balancer and appear in the list', () => {
+    // Alias the create-permission check so we can wait on the actual network
+    // response instead of racing a fixed clock — on a freshly-created project
+    // the SelfSubjectAccessReview backing this can be slow, and the button
+    // stays disabled (fails closed) until it resolves.
+    cy.intercept('POST', '/api/permissions/check', (req) => {
+      if (req.body?.resource === 'httpproxies' && req.body?.verb === 'create') {
+        req.alias = 'canCreateAlb';
+      }
+    });
+
     cy.visit(getPathWithParams(paths.project.detail.proxy.root, { projectId }));
     cy.url({ timeout: 10000 }).should('include', `project/${projectId}/alb`);
+    cy.wait('@canCreateAlb', { timeout: 20000 });
+
     // On an empty list the Table hides the toolbar actions (incl. the header
     // create button) and surfaces only the empty-state CTA. Click whichever
-    // create affordance is present and wait for it to be ENABLED first — the
-    // create-permission check renders the action disabled (with a tooltip)
-    // until it resolves, and clicking it while disabled opens no dialog.
+    // create affordance is present — the permission check above has already
+    // resolved, so the button should be enabled by now.
     cy.get('body', { timeout: 15000 }).then(($body) => {
       if ($body.find('[data-e2e="create-alb-button"]').length > 0) {
         cy.get('[data-e2e="create-alb-button"]', { timeout: 15000 })
