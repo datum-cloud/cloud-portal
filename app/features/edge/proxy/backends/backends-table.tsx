@@ -99,10 +99,16 @@ export const BackendsCard = ({
           return (
             <div className="flex min-w-0 flex-col gap-1">
               <span className="truncate font-mono text-sm">{backend.label}</span>
-              <div className="flex items-center gap-1.5">
-                <Badge type="muted" theme="solid" className="text-2xs">
-                  {BACKEND_KIND_LABELS[backend.kind]}
-                </Badge>
+              <div className="flex items-center gap-1.5 empty:hidden">
+                {/* A URL backend is the ordinary kind and the target above
+                    already shows a URL — labelling every row "URL" is noise.
+                    The badge earns its place only when the kind is not
+                    obvious from the target. */}
+                {backend.kind !== 'endpoint' ? (
+                  <Badge type="muted" theme="solid" className="text-2xs">
+                    {BACKEND_KIND_LABELS[backend.kind]}
+                  </Badge>
+                ) : null}
                 {!backend.editable ? (
                   <Tooltip
                     message={
@@ -240,7 +246,11 @@ export const BackendsCard = ({
           ) : null}
         </CardTitle>
 
-        {editable ? (
+        {/* For a sole pool the page header already carries the primary
+            "Add backend"; a second one here is the same action twice. With
+            several routes each card needs its own, since the header's
+            primary action becomes "Add route". */}
+        {editable && showPath ? (
           <CardAction className="flex items-center gap-1">
             {addBlocked ? <Tooltip message={addBlocked}>{addButton}</Tooltip> : addButton}
             {showPath ? (

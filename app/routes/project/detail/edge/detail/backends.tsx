@@ -4,7 +4,6 @@ import {
   type ProxyBackendDialogRef,
 } from '@/features/edge/proxy/backends/backend-dialog';
 import { BackendsCard } from '@/features/edge/proxy/backends/backends-table';
-import { ProxyPoolSummary } from '@/features/edge/proxy/backends/pool-summary';
 import {
   ProxyRouteDialog,
   type ProxyRouteDialogRef,
@@ -215,8 +214,6 @@ export default function HttpProxyBackendsPage() {
         />
       ) : (
         <>
-          <ProxyPoolSummary routes={routes} />
-
           {routes.map((route) => (
             <Fragment key={route.key}>
               <TrafficDistributionCard route={route} showPath={!solePool} />
