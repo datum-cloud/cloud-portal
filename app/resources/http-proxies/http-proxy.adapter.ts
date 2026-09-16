@@ -4,6 +4,10 @@ import type {
   CreateHttpProxyInput,
   UpdateHttpProxyInput,
   BasicAuthUser,
+  ProxyBackend,
+  ProxyBackendKind,
+  ProxyLoadBalancer,
+  ProxyRoute,
 } from './http-proxy.schema';
 import type { TrafficProtectionMode, WafRuleExclusions } from './http-proxy.schema';
 import { buildAttachmentMapsFromPolicies } from './http-proxy.waf-attach';
@@ -76,19 +80,144 @@ function ruleHasBackends(rule: RawRule): boolean {
 }
 
 /**
- * Classify the complexity of an HTTPProxy resource for portal rendering.
+ * Filter types the route editor understands well enough to leave a rule
+ * editable. Anything else means the rule is doing something the portal did
+ * not write, so the Backends tab shows it read-only rather than risk a write
+ * that reorders or drops it.
+ */
+const KNOWN_RULE_FILTER_TYPES = new Set(['RequestHeaderModifier', 'ResponseHeaderModifier']);
+
+/** The API's default when `weight` is unset. */
+const DEFAULT_BACKEND_WEIGHT = 1;
+
+/** Which of the four mutually exclusive backend kinds this backend is. */
+function backendKind(backend: Record<string, unknown>): ProxyBackendKind {
+  if (backend.networkService) return 'networkService';
+  if (backend.instance) return 'instance';
+  // Checked after instance/networkService because a connector backend also
+  // carries `endpoint` — there it is the tunnel's target, not a direct origin.
+  if (backend.connector) return 'connector';
+  return 'endpoint';
+}
+
+function toProxyBackend(
+  backend: Record<string, unknown>,
+  ruleIndex: number,
+  backendIndex: number
+): ProxyBackend {
+  const kind = backendKind(backend);
+  const tls = backend.tls as { hostname?: string } | undefined;
+  const ns = backend.networkService as { name?: string; port?: string } | undefined;
+  const connector = backend.connector as { name?: string } | undefined;
+  const instance = backend.instance as { name?: string; port?: number } | undefined;
+  const ownFilters = backend.filters as unknown[] | undefined;
+
+  return {
+    key: `${ruleIndex}:${backendIndex}`,
+    kind,
+    ...(typeof backend.endpoint === 'string' && backend.endpoint
+      ? { endpoint: backend.endpoint }
+      : {}),
+    ...(ns?.name ? { networkService: { name: ns.name, port: ns.port ?? '' } } : {}),
+    ...(connector?.name ? { connector: { name: connector.name } } : {}),
+    ...(instance?.name ? { instance: { name: instance.name, port: instance.port ?? 0 } } : {}),
+    ...(tls?.hostname ? { tlsHostname: tls.hostname } : {}),
+    weight: typeof backend.weight === 'number' ? backend.weight : DEFAULT_BACKEND_WEIGHT,
+    // A backend-level filter is scoped to this backend alone and the editor has
+    // no field for it, so editing the backend would have to drop or guess it.
+    editable:
+      (kind === 'endpoint' || kind === 'networkService') && !(ownFilters && ownFilters.length > 0),
+  };
+}
+
+/**
+ * Whether the route editor can represent this rule's matches. It writes a
+ * single path match and nothing else, so one match carrying only a `path` is
+ * the editable shape; several matches, or a match that also keys off method,
+ * headers or query params, is not.
+ */
+function hasEditableMatches(matches: unknown[] | undefined): boolean {
+  // The API defaults absent matches to a single PathPrefix '/', which is the
+  // simplest editable shape there is.
+  if (!matches || matches.length === 0) return true;
+  if (matches.length > 1) return false;
+  const only = matches[0] as Record<string, unknown>;
+  return Object.keys(only).every((k) => k === 'path');
+}
+
+function toProxyRoute(rule: RawRule, ruleIndex: number): ProxyRoute {
+  const isRedirect = isPortalRedirectRule(rule);
+  const path = (rule.matches?.[0] as { path?: { type?: string; value?: string } } | undefined)
+    ?.path;
+
+  const unknownFilter = (rule.filters ?? []).some(
+    (f) => !KNOWN_RULE_FILTER_TYPES.has(String((f as { type?: unknown }).type))
+  );
+
+  return {
+    key: `rule:${ruleIndex}`,
+    ruleIndex,
+    ...(typeof rule.name === 'string' && rule.name ? { name: rule.name } : {}),
+    ...(path?.type ? { pathType: path.type as ProxyRoute['pathType'] } : {}),
+    ...(path?.value !== undefined ? { path: path.value } : {}),
+    isRedirect,
+    // The redirect rule is portal-synthesized and edited through the Force
+    // HTTPS toggle, not here, so it is never treated as editable.
+    readOnly: isRedirect || unknownFilter || !hasEditableMatches(rule.matches),
+    backends: (rule.backends ?? []).map((b, i) => toProxyBackend(b, ruleIndex, i)),
+  };
+}
+
+/** Structured per-rule view of `spec.rules` for the Backends tab. */
+export function toProxyRoutes(raw: ComDatumapisNetworkingV1AlphaHttpProxy): ProxyRoute[] {
+  return (raw.spec?.rules ?? []).map((rule, i) => toProxyRoute(rule as RawRule, i));
+}
+
+/** Read `spec.loadBalancer`, or undefined when the proxy leaves it to Envoy. */
+export function toProxyLoadBalancer(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): ProxyLoadBalancer | undefined {
+  const lb = raw.spec?.loadBalancer;
+  if (!lb?.type) return undefined;
+  return {
+    type: lb.type,
+    ...(lb.consistentHash?.type
+      ? {
+          consistentHash: {
+            type: lb.consistentHash.type,
+            ...(lb.consistentHash.header ? { header: lb.consistentHash.header } : {}),
+          },
+        }
+      : {}),
+  };
+}
+
+/**
+ * Classify what the flat Configuration surfaces (TLS card, security card) can
+ * safely edit on this proxy.
  *
- * - 'simple':    No rule-level filters on the backend rule (or no backend rules).
- *                Portal renders the full form without a host header value.
- * - 'host-only': The backend rule (rule 0 with backends) carries only filters
- *                the portal itself writes — at most one Host header override
- *                (a requestHeaderModifier that `set`s a single `Host`) and at
- *                most one HSTS filter (a responseHeaderModifier that `set`s a
- *                single `Strict-Transport-Security`). Portal renders the full
- *                form with those fields populated.
- * - 'advanced':  Any other filter combination (other headers, add/remove,
- *                duplicate filters, backend-level filters, or multiple backend
- *                rules). Portal renders a read-only banner.
+ * Scope note: this describes the *flat* model — one origin on one rule — not
+ * the whole resource. Multiplicity is deliberately not a factor any more.
+ * Extra rules and extra backends used to force 'advanced' because writes
+ * rebuilt spec.rules and would have destroyed them; writes now splice, so a
+ * five-backend pool survives a Host header edit and there is nothing to
+ * protect against. The Backends tab is what represents that multiplicity, and
+ * per-route/per-backend flags there carry the finer-grained story.
+ *
+ * What still forces 'advanced' is content the flat form cannot show, on the
+ * one rule and backend it actually edits — because offering a simple form over
+ * it would misrepresent what the proxy does.
+ *
+ * - 'simple':    No rule-level filters on the first backend rule (or no
+ *                backend rules at all). Full form, no host header value.
+ * - 'host-only': That rule carries only filters the portal itself writes — at
+ *                most one Host header override (a requestHeaderModifier that
+ *                `set`s a single `Host`) and at most one HSTS filter (a
+ *                responseHeaderModifier that `set`s a single
+ *                `Strict-Transport-Security`). Full form, fields populated.
+ * - 'advanced':  Any other rule-level filter combination (other headers,
+ *                add/remove, duplicates), or a filter on the specific backend
+ *                the flat form edits. Read-only banner.
  */
 export type HttpProxyComplexity = 'simple' | 'host-only' | 'advanced';
 
@@ -97,24 +226,19 @@ export function classifyHttpProxyComplexity(
 ): HttpProxyComplexity {
   const rules = raw.spec?.rules ?? [];
 
-  // Find the backend rule (has backends). Redirect rules are benign and ignored.
-  const backendRules = rules.filter((r) => r.backends && r.backends.length > 0);
-
-  // Multiple backend rules → advanced
-  if (backendRules.length > 1) return 'advanced';
-
-  const backendRule = backendRules[0];
+  // The flat model addresses the first rule that has backends; redirect rules
+  // are benign and ignored. Later backend rules are the Backends tab's
+  // business and no longer bear on what this form may edit.
+  const backendRule = rules.find((r) => r.backends && r.backends.length > 0);
   if (!backendRule) return 'simple';
 
-  // Any backend-level filter → advanced
-  if (
-    backendRule.backends?.some((b) => {
-      const bf = (b as { filters?: unknown[] }).filters;
-      return bf && bf.length > 0;
-    })
-  ) {
-    return 'advanced';
-  }
+  // A filter on the first backend specifically: that is the backend whose
+  // endpoint and TLS hostname the flat form edits, so a filter the form cannot
+  // show would make its fields a half-truth. Filters on later backends do not
+  // matter here — the form never touches them.
+  const firstBackendFilters = (backendRule.backends?.[0] as { filters?: unknown[] } | undefined)
+    ?.filters;
+  if (firstBackendFilters && firstBackendFilters.length > 0) return 'advanced';
 
   const filters = backendRule.filters ?? [];
 
@@ -555,6 +679,7 @@ export function toHttpProxy(
   // FR-4: classify the underlying resource so callers can decide between
   // editable form and read-only banner without re-reading the raw resource.
   const complexity = classifyHttpProxyComplexity(raw);
+  const loadBalancer = toProxyLoadBalancer(raw);
 
   return {
     uid: raw.metadata?.uid ?? '',
@@ -571,7 +696,8 @@ export function toHttpProxy(
     tlsHostname: backend?.tls?.hostname,
     ...(hostHeader && { hostHeader }),
     complexity,
-    ...(raw.spec?.rules && { rawRules: raw.spec.rules }),
+    ...(raw.spec?.rules && { rawRules: raw.spec.rules, routes: toProxyRoutes(raw) }),
+    ...(loadBalancer && { loadBalancer }),
     status: raw.status,
     canonicalHostname: raw.status?.canonicalHostname,
     hostnameStatuses: raw.status?.hostnameStatuses,

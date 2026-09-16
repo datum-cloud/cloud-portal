@@ -121,7 +121,11 @@ describe('classifyHttpProxyComplexity', () => {
     expect(classifyHttpProxyComplexity(raw)).to.equal('host-only');
   });
 
-  it('returns advanced when there are multiple backend rules', () => {
+  // Multiplicity stopped being a complexity signal when rule writes moved from
+  // rebuilding spec.rules to splicing into it: extra rules and extra backends
+  // now survive a flat-field edit, so there is nothing to protect against. The
+  // Backends tab is what represents them.
+  it('does not treat multiple backend rules as advanced', () => {
     const raw = makeRaw({
       spec: {
         hostnames: [],
@@ -131,7 +135,24 @@ describe('classifyHttpProxyComplexity', () => {
         ],
       },
     });
-    expect(classifyHttpProxyComplexity(raw)).to.equal('advanced');
+    expect(classifyHttpProxyComplexity(raw)).to.equal('simple');
+  });
+
+  it('does not treat a multi-backend pool as advanced', () => {
+    const raw = makeRaw({
+      spec: {
+        hostnames: [],
+        rules: [
+          {
+            backends: [
+              { endpoint: 'https://api1.example.com' },
+              { endpoint: 'https://api2.example.com' },
+            ],
+          },
+        ],
+      },
+    });
+    expect(classifyHttpProxyComplexity(raw)).to.equal('simple');
   });
 
   it('returns advanced when there are multiple rule-level filters', () => {

@@ -62,6 +62,85 @@ export const hostnameStatusSchema = z.object({
 
 export type HostnameStatus = z.infer<typeof hostnameStatusSchema>;
 
+/**
+ * The four kinds a backend can take. `endpoint` and `networkService` are
+ * editable in the portal; `connector` and `instance` are read-only, because
+ * each carries constraints the backend editor does not model (a connector
+ * must be the only backend in its rule; an instance references an
+ * EndpointSlice published outside the portal's control).
+ */
+export const proxyBackendKindSchema = z.enum([
+  'endpoint',
+  'networkService',
+  'connector',
+  'instance',
+]);
+export type ProxyBackendKind = z.infer<typeof proxyBackendKindSchema>;
+
+/** One backend in a route's pool. */
+export const proxyBackendSchema = z.object({
+  /** Stable identity for React keys and table rows: `${ruleIndex}:${backendIndex}`. */
+  key: z.string(),
+  kind: proxyBackendKindSchema,
+  /** Set for the `endpoint` kind (and alongside `connector`, as the tunnel target). */
+  endpoint: z.string().optional(),
+  /** `port` names a port in the service's spec.ports, rather than giving a number. */
+  networkService: z.object({ name: z.string(), port: z.string() }).optional(),
+  connector: z.object({ name: z.string() }).optional(),
+  instance: z.object({ name: z.string(), port: z.number().int() }).optional(),
+  tlsHostname: z.string().optional(),
+  /**
+   * Share of traffic relative to the sum of weights in the same rule. The API
+   * defaults this to 1 when unset; the adapter applies that default on read so
+   * share arithmetic never meets undefined.
+   */
+  weight: z.number().int().min(0).max(1_000_000),
+  /**
+   * False when the backend editor must not touch this backend: the connector
+   * and instance kinds, or any backend carrying its own filters.
+   */
+  editable: z.boolean(),
+});
+export type ProxyBackend = z.infer<typeof proxyBackendSchema>;
+
+/** One `spec.rules[]` entry: a match, plus the pool of backends it feeds. */
+export const proxyRouteSchema = z.object({
+  /** Stable identity for React keys: `rule:${ruleIndex}`. */
+  key: z.string(),
+  /** Index into `spec.rules`, and so the splice target for a write. */
+  ruleIndex: z.number().int(),
+  name: z.string().optional(),
+  pathType: z.enum(['PathPrefix', 'Exact', 'RegularExpression']).optional(),
+  path: z.string().optional(),
+  /** The force-HTTPS rule the portal synthesizes. Not shown as a route. */
+  isRedirect: z.boolean(),
+  /**
+   * True when the rule's matches or filters go beyond what the route editor
+   * represents, so it renders read-only rather than risking a lossy write.
+   */
+  readOnly: z.boolean(),
+  backends: z.array(proxyBackendSchema),
+});
+export type ProxyRoute = z.infer<typeof proxyRouteSchema>;
+
+/**
+ * `spec.loadBalancer` — the algorithm Envoy uses across a rule's backends.
+ * Proxy-scoped, not per-rule. Unset means Envoy's own default applies.
+ *
+ * Weights are applied whatever the algorithm; this chooses how the remaining
+ * selection is made, not whether weighting happens.
+ */
+export const proxyLoadBalancerSchema = z.object({
+  type: z.enum(['RoundRobin', 'Random', 'LeastRequest', 'ConsistentHash']),
+  consistentHash: z
+    .object({
+      type: z.enum(['SourceIP', 'Header']),
+      header: z.string().min(1).max(256).optional(),
+    })
+    .optional(),
+});
+export type ProxyLoadBalancer = z.infer<typeof proxyLoadBalancerSchema>;
+
 // HTTP Proxy resource schema (from API)
 export const httpProxyResourceSchema = z.object({
   uid: z.string(),
@@ -155,6 +234,18 @@ export const httpProxyResourceSchema = z.object({
    * nothing to preserve.
    */
   rawRules: z.array(z.any()).optional(),
+  /**
+   * Structured view of `spec.rules` for the Backends tab: every rule as a
+   * route with its own backend pool. The flat fields above stay the source of
+   * truth for Overview, Configuration and the ALB list, which address a single
+   * origin; this is the multi-backend view alongside them, not a replacement.
+   *
+   * The synthesized force-HTTPS rule appears here with `isRedirect` set, so
+   * indexes line up with `rawRules`; callers filter it out for display.
+   */
+  routes: z.array(proxyRouteSchema).optional(),
+  /** Proxy-scoped load balancing algorithm; undefined means Envoy's default. */
+  loadBalancer: proxyLoadBalancerSchema.optional(),
 });
 
 export type HttpProxy = z.infer<typeof httpProxyResourceSchema>;
