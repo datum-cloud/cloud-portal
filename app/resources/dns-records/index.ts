@@ -5,6 +5,7 @@ export {
   flattenedDnsRecordSchema,
   type DnsRecordSet,
   type DnsRecordSetList,
+  type DnsRecordListResult,
   type FlattenedDnsRecord,
   type IFlattenedDnsRecord,
   type IFlattenedDnsRecordComputed,
@@ -90,10 +91,17 @@ export {
   toUpdateDnsRecordSetPayload,
   mergeRecordSetIntoListCache,
   removeRecordSetFromListCache,
+  updateDnsRecordListCache,
 } from './dns-record.adapter';
 
 // Service exports
-export { createDnsRecordService, dnsRecordKeys, type DnsRecordService } from './dns-record.service';
+export {
+  createDnsRecordService,
+  dnsRecordKeys,
+  DNS_RECORD_PAGE_SIZE,
+  DNS_RECORD_MAX_PAGES,
+  type DnsRecordService,
+} from './dns-record.service';
 
 // Manager exports
 export {

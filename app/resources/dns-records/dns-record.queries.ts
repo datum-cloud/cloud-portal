@@ -1,6 +1,6 @@
-import { mergeRecordSetIntoListCache } from './dns-record.adapter';
+import { mergeRecordSetIntoListCache, updateDnsRecordListCache } from './dns-record.adapter';
 import { createDnsRecordManager, type ImportResult } from './dns-record.manager';
-import type { DnsRecordSet, FlattenedDnsRecord, CreateDnsRecordSchema } from './dns-record.schema';
+import type { DnsRecordSet, DnsRecordListResult, CreateDnsRecordSchema } from './dns-record.schema';
 import { createDnsRecordService, dnsRecordKeys } from './dns-record.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
@@ -15,13 +15,12 @@ import {
 export function useDnsRecords(
   projectId: string,
   dnsZoneId?: string,
-  limit?: number,
-  options?: Omit<UseQueryOptions<FlattenedDnsRecord[]>, 'queryKey' | 'queryFn'>
+  options?: Omit<UseQueryOptions<DnsRecordListResult>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
-    // No limit in query key - fetch all records for client-side pagination
+    // No limit in query key - the service fetches every page for client-side pagination
     queryKey: dnsRecordKeys.list(projectId, dnsZoneId),
-    queryFn: () => createDnsRecordService().list(projectId, dnsZoneId, limit),
+    queryFn: () => createDnsRecordService().list(projectId, dnsZoneId),
     enabled: !!projectId,
     ...options,
   });
@@ -58,9 +57,12 @@ export function useCreateDnsRecord(
       const [recordSet] = args;
       // Set detail + list cache immediately so the table updates without waiting on watch
       queryClient.setQueryData(dnsRecordKeys.detail(projectId, recordSet.name), recordSet);
-      queryClient.setQueryData<FlattenedDnsRecord[]>(
+      queryClient.setQueryData<DnsRecordListResult>(
         dnsRecordKeys.list(projectId, dnsZoneId),
-        (old) => mergeRecordSetIntoListCache(old, recordSet)
+        (old) =>
+          updateDnsRecordListCache(old, (records) =>
+            mergeRecordSetIntoListCache(records, recordSet)
+          )
       );
 
       options?.onSuccess?.(...args);
@@ -111,9 +113,12 @@ export function useUpdateDnsRecord(
       const [recordSet] = args;
       // Update detail + list cache with server response (full RecordSet)
       queryClient.setQueryData(dnsRecordKeys.detail(projectId, recordSet.name), recordSet);
-      queryClient.setQueryData<FlattenedDnsRecord[]>(
+      queryClient.setQueryData<DnsRecordListResult>(
         dnsRecordKeys.list(projectId, dnsZoneId),
-        (old) => mergeRecordSetIntoListCache(old, recordSet)
+        (old) =>
+          updateDnsRecordListCache(old, (records) =>
+            mergeRecordSetIntoListCache(records, recordSet)
+          )
       );
 
       options?.onSuccess?.(...args);
@@ -163,17 +168,19 @@ export function useDeleteDnsRecord(
       // Optimistically drop the flattened row so the table updates immediately.
       // removeRecord may PATCH or DELETE the RecordSet; either way the matching
       // flattened row should disappear now rather than waiting on watch/refetch.
-      queryClient.setQueryData<FlattenedDnsRecord[]>(listKey, (old) => {
+      queryClient.setQueryData<DnsRecordListResult>(listKey, (old) => {
         if (!old) return old;
-        return old.filter((record) => {
-          if (record.recordSetName !== input.recordSetName) return true;
-          if (record.type !== input.recordType) return true;
-          if (record.name !== input.name) return true;
-          if (record.value !== input.value) return true;
-          const recordTtl = record.ttl ?? null;
-          const inputTtl = input.ttl ?? null;
-          return recordTtl !== inputTtl;
-        });
+        return updateDnsRecordListCache(old, (records) =>
+          records.filter((record) => {
+            if (record.recordSetName !== input.recordSetName) return true;
+            if (record.type !== input.recordType) return true;
+            if (record.name !== input.name) return true;
+            if (record.value !== input.value) return true;
+            const recordTtl = record.ttl ?? null;
+            const inputTtl = input.ttl ?? null;
+            return recordTtl !== inputTtl;
+          })
+        );
       });
 
       options?.onSuccess?.(...args);

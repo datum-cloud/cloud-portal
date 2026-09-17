@@ -1,6 +1,7 @@
 import {
   type DnsRecordSet,
   type DnsRecordSetList,
+  type DnsRecordListResult,
   type SupportedDnsRecordType,
   type FlattenedDnsRecord,
   type CreateDnsRecordSetInput,
@@ -157,6 +158,22 @@ export function removeRecordSetFromListCache(
 ): FlattenedDnsRecord[] | undefined {
   if (!old) return old;
   return old.filter((record) => record.recordSetName !== recordSetName);
+}
+
+/**
+ * Apply a flattened-row update to the list cache while carrying the
+ * `truncated` flag forward. The cache holds a whole-zone listing, so a
+ * mutation or watch event must edit its rows without claiming the listing
+ * suddenly became complete (or incomplete).
+ */
+export function updateDnsRecordListCache(
+  old: DnsRecordListResult | undefined,
+  update: (records: FlattenedDnsRecord[]) => FlattenedDnsRecord[] | undefined
+): DnsRecordListResult {
+  return {
+    records: update(old?.records ?? []) ?? [],
+    truncated: old?.truncated ?? false,
+  };
 }
 
 /**
