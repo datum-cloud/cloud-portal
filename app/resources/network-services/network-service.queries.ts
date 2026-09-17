@@ -1,63 +1,55 @@
 import { createNetworkServiceService, networkServiceKeys } from './network-service.service';
 import type { ComDatumapisNetworkingV1AlphaNetworkService } from '@/modules/control-plane/networking';
-import { usePermission } from '@/modules/rbac';
+import { resolveRelatedResource } from '@/resources/http-proxies/related-resource';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
-
-const NETWORK_SERVICE_GROUP = 'networking.datumapis.com';
 
 type NetworkServiceQueryOptions<T> = Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>;
 
 /**
- * List NetworkServices in a project. The fetch is gated on a `list`
- * SelfSubjectAccessReview so viewers without the permission never trigger a
- * 403 — the query simply stays idle and `data` is undefined.
+ * List NetworkServices in a project. 403/404 degrade to an empty list (same
+ * pattern as other related-resource reads) so viewers without permission never
+ * surface an error on the ALB list.
  */
 export function useNetworkServices(
   projectId: string,
   options?: NetworkServiceQueryOptions<ComDatumapisNetworkingV1AlphaNetworkService[]>
 ) {
-  const wanted = !!projectId && options?.enabled !== false;
-  const { hasPermission } = usePermission('networkservices', 'list', {
-    group: NETWORK_SERVICE_GROUP,
-    namespace: 'default',
-    scope: 'project',
-    projectId,
-    enabled: wanted,
-  });
-
   return useQuery({
     queryKey: networkServiceKeys.list(projectId),
-    queryFn: () => createNetworkServiceService().list(projectId),
+    queryFn: async () => {
+      const result = await resolveRelatedResource(() =>
+        createNetworkServiceService().list(projectId)
+      );
+      if (result.state !== 'ok') return [];
+      return result.data ?? [];
+    },
     retry: false,
     ...options,
-    enabled: wanted && hasPermission,
+    enabled: !!projectId && options?.enabled !== false,
   });
 }
 
 /**
- * Read a single NetworkService. Gated on a `get` SelfSubjectAccessReview for
- * the same reason as {@link useNetworkServices}.
+ * Read a single NetworkService. 403/404 degrade to `null` so a missing
+ * permission does not blank the ALB overview.
  */
 export function useNetworkService(
   projectId: string,
   name: string | undefined,
-  options?: NetworkServiceQueryOptions<ComDatumapisNetworkingV1AlphaNetworkService>
+  options?: NetworkServiceQueryOptions<ComDatumapisNetworkingV1AlphaNetworkService | null>
 ) {
-  const wanted = !!projectId && !!name && options?.enabled !== false;
-  const { hasPermission } = usePermission('networkservices', 'get', {
-    group: NETWORK_SERVICE_GROUP,
-    namespace: 'default',
-    name,
-    scope: 'project',
-    projectId,
-    enabled: wanted,
-  });
-
   return useQuery({
     queryKey: networkServiceKeys.detail(projectId, name ?? ''),
-    queryFn: () => createNetworkServiceService().get(projectId, name!),
+    queryFn: async () => {
+      if (!name) return null;
+      const result = await resolveRelatedResource(() =>
+        createNetworkServiceService().get(projectId, name)
+      );
+      if (result.state !== 'ok') return null;
+      return result.data;
+    },
     retry: false,
     ...options,
-    enabled: wanted && hasPermission,
+    enabled: !!projectId && !!name && options?.enabled !== false,
   });
 }

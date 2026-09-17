@@ -172,8 +172,8 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
     },
   });
 
-  // Only list NetworkServices when a proxy needs one to name its workload; the
-  // hook additionally gates the fetch on `list networkservices` permission.
+  // Only list NetworkServices when a proxy needs one to name its workload.
+  // 403/404 degrade to an empty map rather than failing the ALB list.
   const needsNetworkServices = useMemo(
     () => (data ?? []).some((proxy) => Boolean(proxy.networkService?.name && !proxy.workloadName)),
     [data]

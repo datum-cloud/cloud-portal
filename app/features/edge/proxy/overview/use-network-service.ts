@@ -23,6 +23,7 @@ export interface ResolvedComputeWorkload {
  * Resolve the compute workload behind an HTTPProxy: proxy label first, then
  * the NetworkService selector/labels when the backend is a networkService.
  * The NetworkService read is skipped when the label already names the workload.
+ * 403/404 on that read degrade to "unknown workload" rather than failing the page.
  */
 export function useResolvedComputeWorkload(
   projectId: string | undefined,
