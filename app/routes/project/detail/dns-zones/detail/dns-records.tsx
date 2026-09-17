@@ -26,6 +26,8 @@ import {
 } from '@/modules/rbac';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
+  DNS_RECORD_MAX_PAGES,
+  DNS_RECORD_PAGE_SIZE,
   IFlattenedDnsRecord,
   dnsRecordKeys,
   useDeleteDnsRecord,
@@ -48,6 +50,7 @@ import { BadRequestError } from '@/utils/errors';
 import { getRecordHostname, isApexName, isSystemManagedDnsRecord } from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { generateId, generateRandomString } from '@/utils/helpers/text.helper';
+import { Alert, AlertDescription } from '@datum-cloud/datum-ui/alert';
 import {
   useDataTablePagination,
   useDataTableSearch,
@@ -164,14 +167,18 @@ export default function DnsRecordsPage() {
     enabled: canListRecords && DNS_RECORDS_LIVE_WATCH,
   });
 
-  const { data: queryData, isPending } = useDnsRecords(projectId, dnsZoneId, undefined, {
+  const { data: queryData, isPending } = useDnsRecords(projectId, dnsZoneId, {
     staleTime: QUERY_STALE_TIME,
     enabled: canListRecords,
   });
 
   // Stable empty fallback — `data = []` allocates a new array each render while
   // undefined, which churns datum-ui's client table store via the data effect.
-  const dnsRecords = queryData ?? EMPTY_DNS_RECORDS;
+  const dnsRecords = queryData?.records ?? EMPTY_DNS_RECORDS;
+
+  // The service walks every page of RecordSets but stops at a ceiling. Say so
+  // rather than quietly showing a partial zone as if it were the whole thing.
+  const isTruncated = queryData?.truncated ?? false;
 
   // Show skeleton until permissions resolve and (when list is allowed) until the
   // records query has real data. Using only isPending is not enough: canList is
@@ -558,99 +565,109 @@ export default function DnsRecordsPage() {
   );
 
   return (
-    <ClientOnly fallback={desktopLayout}>
-      {isMobile ? (
-        <>
-          <DnsRecordModalForm
-            ref={dnsRecordModalFormRef}
-            projectId={projectId}
-            dnsZoneId={dnsZoneId}
-            zoneDomain={zoneDomain}
-            onSuccess={handleOnSuccess}
-          />
+    <>
+      {isTruncated && (
+        <Alert className="mb-4" data-e2e="dns-records-truncated-notice">
+          <AlertDescription>
+            Showing the first {(DNS_RECORD_PAGE_SIZE * DNS_RECORD_MAX_PAGES).toLocaleString()}{' '}
+            record sets. This zone holds more records than the portal can list.
+          </AlertDescription>
+        </Alert>
+      )}
+      <ClientOnly fallback={desktopLayout}>
+        {isMobile ? (
+          <>
+            <DnsRecordModalForm
+              ref={dnsRecordModalFormRef}
+              projectId={projectId}
+              dnsZoneId={dnsZoneId}
+              zoneDomain={zoneDomain}
+              onSuccess={handleOnSuccess}
+            />
 
-          <DnsRecordTable
-            mode="full"
-            data={enrichedRecords}
-            loading={isTableLoading}
-            projectId={projectId}
-            dnsZoneId={dnsZoneId}
-            zoneDomain={zoneDomain}
-            renderAlbCell={(record) => (
-              <DnsRecordAlbCell
-                record={record}
-                zoneDomain={zoneDomain}
-                onProtect={handleProtectWithAlb}
-                onRemove={handleRemoveAlb}
-                onViewProxy={(proxyId) =>
-                  navigate(
-                    getPathWithParams(paths.project.detail.proxy.detail.root, {
-                      projectId,
-                      proxyId,
-                    })
-                  )
-                }
-              />
-            )}
-            tableTitle={{
-              actions: (
-                <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
-                  {/* See the desktop mount: guarding this whole component would
+            <DnsRecordTable
+              mode="full"
+              data={enrichedRecords}
+              loading={isTableLoading}
+              projectId={projectId}
+              dnsZoneId={dnsZoneId}
+              zoneDomain={zoneDomain}
+              renderAlbCell={(record) => (
+                <DnsRecordAlbCell
+                  record={record}
+                  zoneDomain={zoneDomain}
+                  onProtect={handleProtectWithAlb}
+                  onRemove={handleRemoveAlb}
+                  onViewProxy={(proxyId) =>
+                    navigate(
+                      getPathWithParams(paths.project.detail.proxy.detail.root, {
+                        projectId,
+                        proxyId,
+                      })
+                    )
+                  }
+                />
+              )}
+              tableTitle={{
+                actions: (
+                  <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+                    {/* See the desktop mount: guarding this whole component would
                       disable the dropdown trigger and take Export — a pure
                       client-side read — down with the Import write. */}
-                  <PermissionGate
-                    resource="dnsrecordsets"
-                    verb="create"
-                    group="dns.networking.miloapis.com"
-                    scope="project"
-                    mode="hide">
-                    <DnsRecordImportAction
-                      origin={dnsZone?.domainName}
-                      existingRecords={dnsRecords}
-                      projectId={projectId}
-                      dnsZoneId={dnsZoneId}
-                    />
-                  </PermissionGate>
-                  <ReadOnlyGuard>
-                    <QuotaGuard
+                    <PermissionGate
                       resource="dnsrecordsets"
+                      verb="create"
                       group="dns.networking.miloapis.com"
-                      scope="project">
-                      <PermissionButton
+                      scope="project"
+                      mode="hide">
+                      <DnsRecordImportAction
+                        origin={dnsZone?.domainName}
+                        existingRecords={dnsRecords}
+                        projectId={projectId}
+                        dnsZoneId={dnsZoneId}
+                      />
+                    </PermissionGate>
+                    <ReadOnlyGuard>
+                      <QuotaGuard
                         resource="dnsrecordsets"
-                        verb="create"
                         group="dns.networking.miloapis.com"
-                        scope="project"
-                        deniedReason="You don't have permission to add a DNS record"
-                        htmlType="button"
-                        type="primary"
-                        theme="solid"
-                        size="small"
-                        className="min-w-0 flex-1 sm:flex-initial"
-                        onClick={() => dnsRecordModalFormRef.current?.show('create')}>
-                        <Icon icon={PlusIcon} className="size-4" />
-                        Add record
-                      </PermissionButton>
-                    </QuotaGuard>
-                  </ReadOnlyGuard>
-                </div>
-              ),
-            }}
-            inlineOpen={false}
-            inlinePosition={inlinePosition}
-            inlineRowId={inlineRowId}
-            onInlineClose={handleInlineClose}
-            onOpenCreate={handleOpenCreate}
-            onOpenEdit={handleOpenEditMobile}
-            onFormSuccess={handleOnSuccess}
-            canEdit={canPatchRecord && !isReadOnly}
-            editDisabledReason={isReadOnly ? readOnlyReason : undefined}
-            extraRowActions={extraRowActions}
-          />
-        </>
-      ) : (
-        desktopLayout
-      )}
-    </ClientOnly>
+                        scope="project">
+                        <PermissionButton
+                          resource="dnsrecordsets"
+                          verb="create"
+                          group="dns.networking.miloapis.com"
+                          scope="project"
+                          deniedReason="You don't have permission to add a DNS record"
+                          htmlType="button"
+                          type="primary"
+                          theme="solid"
+                          size="small"
+                          className="min-w-0 flex-1 sm:flex-initial"
+                          onClick={() => dnsRecordModalFormRef.current?.show('create')}>
+                          <Icon icon={PlusIcon} className="size-4" />
+                          Add record
+                        </PermissionButton>
+                      </QuotaGuard>
+                    </ReadOnlyGuard>
+                  </div>
+                ),
+              }}
+              inlineOpen={false}
+              inlinePosition={inlinePosition}
+              inlineRowId={inlineRowId}
+              onInlineClose={handleInlineClose}
+              onOpenCreate={handleOpenCreate}
+              onOpenEdit={handleOpenEditMobile}
+              onFormSuccess={handleOnSuccess}
+              canEdit={canPatchRecord && !isReadOnly}
+              editDisabledReason={isReadOnly ? readOnlyReason : undefined}
+              extraRowActions={extraRowActions}
+            />
+          </>
+        ) : (
+          desktopLayout
+        )}
+      </ClientOnly>
+    </>
   );
 }

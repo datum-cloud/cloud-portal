@@ -46,7 +46,7 @@ export function useProxyZoneRecords(
   const zoneRecords = useMemo<ZoneRecords[]>(
     () =>
       matchedZones.flatMap((zone, index) => {
-        const records = recordQueries[index]?.data;
+        const records = recordQueries[index]?.data?.records;
         return records ? [{ zoneDomain: zone.domainName, records }] : [];
       }),
     [matchedZones, recordQueries]

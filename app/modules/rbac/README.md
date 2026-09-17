@@ -136,7 +136,7 @@ function DnsZoneRecords() {
   });
 
   // Pass enabled: canList to every fetch/watch hook.
-  const { data } = useDnsRecords(projectId, dnsZoneId, undefined, { enabled: canList });
+  const { data } = useDnsRecords(projectId, dnsZoneId, { enabled: canList });
 
   return (
     <>

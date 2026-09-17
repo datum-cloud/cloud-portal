@@ -58,7 +58,11 @@ function mountPreview({
     defaultOptions: { queries: { retry: false, staleTime: Infinity } },
   });
   qc.setQueryData(dnsZoneKeys.list(PROJECT, undefined), zones ?? []);
-  if (records) qc.setQueryData(dnsRecordKeys.list(PROJECT, 'example-com'), records);
+  // The records cache holds a whole-zone listing, not a bare array — see
+  // `DnsRecordListResult`. Seeding the wrong shape reads back as no records.
+  if (records) {
+    qc.setQueryData(dnsRecordKeys.list(PROJECT, 'example-com'), { records, truncated: false });
+  }
 
   cy.mount(
     <QueryClientProvider client={qc}>
