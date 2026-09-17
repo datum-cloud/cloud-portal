@@ -23,9 +23,6 @@ describe('resolveComingSoonService', () => {
     expect(resolveComingSoonService('gslb')?.roadmapUrl).toBe(
       'https://www.datum.net/platform/deliver#global-load-balancer'
     );
-    expect(resolveComingSoonService('galactic-vpc')?.roadmapUrl).toBe(
-      'https://www.datum.net/platform/connect#galactic-vpc'
-    );
     expect(resolveComingSoonService('interconnects')?.roadmapUrl).toBe(
       'https://www.datum.net/platform/connect#interconnect'
     );

@@ -6,6 +6,7 @@ import GridDemo, { gridDemoSections } from '@/components/demo/grid';
 import BadgeStatusDemo, { statusBadgeDemoSections } from '@/components/demo/status-badge';
 import ToastDemo, { toastDemoSections } from '@/components/demo/toast';
 import TooltipDemo, { tooltipDemoSections } from '@/components/demo/tooltip';
+import TypographyDemo, { typographyDemoSections } from '@/components/demo/typography';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Collapsible,
@@ -20,6 +21,7 @@ import { useState, useEffect } from 'react';
 // Auto-generate navigation from demo components
 // Just add your component here and it will automatically appear in navigation!
 const demoComponents = [
+  { name: 'Typography', sections: typographyDemoSections, Component: TypographyDemo },
   { name: 'Alert', sections: alertDemoSections, Component: AlertDemo },
   { name: 'Button', sections: buttonDemoSections, Component: ButtonDemo },
   { name: 'Badge', sections: badgeDemoSections, Component: BadgeDemo },
@@ -115,7 +117,7 @@ export default function Demo() {
   return (
     <div className="flex min-h-screen">
       {/* Sidebar Navigation */}
-      <aside className="bg-background sticky top-0 h-screen w-64 border-r p-4">
+      <aside className="bg-background sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r p-4">
         <div className="mb-4">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Component Demos</h2>
@@ -144,8 +146,8 @@ export default function Demo() {
           </div>
           <p className="text-muted-foreground text-sm">Navigate to sections</p>
         </div>
-        <div className="h-[calc(100vh-6rem)] overflow-y-auto">
-          <nav className="space-y-2">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <nav className="space-y-2 pb-4">
             {demoComponents.map((component) => (
               <Collapsible
                 key={component.name}
