@@ -597,6 +597,17 @@ export const flattenedDnsRecordSchema = z.object({
 
 export type FlattenedDnsRecord = z.infer<typeof flattenedDnsRecordSchema>;
 
+/**
+ * Every flattened record in a zone, plus whether the listing was cut short.
+ *
+ * `truncated` is true only when the record service stopped at its page ceiling
+ * with more records still available — a complete zone always reports `false`.
+ */
+export interface DnsRecordListResult {
+  records: FlattenedDnsRecord[];
+  truncated: boolean;
+}
+
 /** Metadata for UI-only information (not sent to API) */
 export interface IFlattenedDnsRecordMeta {
   /** Original type before transformation (e.g., CNAME → ALIAS) */

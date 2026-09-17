@@ -3,8 +3,9 @@ import {
   mergeRecordSetIntoListCache,
   removeRecordSetFromListCache,
   toDnsRecordSet,
+  updateDnsRecordListCache,
 } from './dns-record.adapter';
-import type { DnsRecordSet, FlattenedDnsRecord } from './dns-record.schema';
+import type { DnsRecordSet, DnsRecordListResult } from './dns-record.schema';
 import { dnsRecordKeys } from './dns-record.service';
 import type { ComMiloapisNetworkingDnsV1Alpha1DnsRecordSet } from '@/modules/control-plane/dns-networking';
 import { useResourceWatch } from '@/modules/watch';
@@ -40,14 +41,22 @@ export function useDnsRecordsWatch(
     applyCacheUpdates: false,
     onEvent: (event) => {
       if (event.type === 'DELETED') {
-        queryClient.setQueryData<FlattenedDnsRecord[]>(queryKey, (old) =>
-          removeRecordSetFromListCache(old, event.object.name)
+        // Only edit a cache that already exists — seeding an empty listing here
+        // would flash an empty table if a delete lands before the first fetch.
+        queryClient.setQueryData<DnsRecordListResult>(queryKey, (old) =>
+          old
+            ? updateDnsRecordListCache(old, (records) =>
+                removeRecordSetFromListCache(records, event.object.name)
+              )
+            : old
         );
         return;
       }
       if (event.type === 'ADDED' || event.type === 'MODIFIED') {
-        queryClient.setQueryData<FlattenedDnsRecord[]>(queryKey, (old) =>
-          mergeRecordSetIntoListCache(old, event.object)
+        queryClient.setQueryData<DnsRecordListResult>(queryKey, (old) =>
+          updateDnsRecordListCache(old, (records) =>
+            mergeRecordSetIntoListCache(records, event.object)
+          )
         );
       }
     },
