@@ -14,16 +14,17 @@
  * to `/api/plugins/<slug>/`. Plugin origins are never exposed to the browser.
  */
 import { parseCodeRef, pickCodeRefExport } from './code-ref';
-import * as PortalPluginSdk from '@datum-cloud/portal-plugin-sdk';
 import * as DatumUiBadge from '@datum-cloud/datum-ui/badge';
 import * as DatumUiButton from '@datum-cloud/datum-ui/button';
 import * as DatumUiCard from '@datum-cloud/datum-ui/card';
 import * as DatumUiEmptyContent from '@datum-cloud/datum-ui/empty-content';
 import * as DatumUiIcons from '@datum-cloud/datum-ui/icons';
 import * as DatumUiLogs from '@datum-cloud/datum-ui/logs';
+import * as DatumUiSelect from '@datum-cloud/datum-ui/select';
 import * as DatumUiSeparator from '@datum-cloud/datum-ui/separator';
 import * as DatumUiSkeleton from '@datum-cloud/datum-ui/skeleton';
 import * as DatumUiTable from '@datum-cloud/datum-ui/table';
+import * as PortalPluginSdk from '@datum-cloud/portal-plugin-sdk';
 import { init, loadRemote, registerRemotes } from '@module-federation/runtime';
 import * as ReactQuery from '@tanstack/react-query';
 import reactQueryPkg from '@tanstack/react-query/package.json';
@@ -56,6 +57,7 @@ const DATUM_UI_SHARED: Record<string, unknown> = {
   '@datum-cloud/datum-ui/empty-content': DatumUiEmptyContent,
   '@datum-cloud/datum-ui/icons': DatumUiIcons,
   '@datum-cloud/datum-ui/logs': DatumUiLogs,
+  '@datum-cloud/datum-ui/select': DatumUiSelect,
   '@datum-cloud/datum-ui/separator': DatumUiSeparator,
   '@datum-cloud/datum-ui/skeleton': DatumUiSkeleton,
   '@datum-cloud/datum-ui/table': DatumUiTable,

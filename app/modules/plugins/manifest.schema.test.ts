@@ -289,7 +289,7 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(true);
   });
 
-  test('rejects comingSoonMode plugin with empty path', () => {
+  test('accepts comingSoonMode plugin with empty path (plugin index)', () => {
     const result = validateManifest(
       baseManifest({
         extensions: [
@@ -307,7 +307,26 @@ describe('validateManifest', () => {
         ],
       })
     );
-    expect(result.valid).toBe(false);
+    expect(result.valid).toBe(true);
+  });
+
+  test('accepts live nav with empty path (plugin index)', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: '',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
   });
 
   test('rejects comingSoonMode external without roadmapUrl', () => {
@@ -351,7 +370,7 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
-  test('rejects live nav with an empty path', () => {
+  test('rejects live nav with a whitespace-only path', () => {
     const result = validateManifest(
       baseManifest({
         extensions: [
@@ -363,6 +382,55 @@ describe('validateManifest', () => {
               icon: 'cpu',
               path: '   ',
             },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects comingSoonMode plugin with a whitespace-only path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.nav/project',
+            properties: {
+              id: 'compute',
+              title: 'Compute',
+              icon: 'server',
+              path: ' ',
+              comingSoon: true,
+              comingSoonMode: 'plugin',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('accepts a portal.page/project extension with empty path (plugin index)', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.page/project',
+            properties: { path: '', component: { $codeRef: 'InstanceList' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects a portal.page/project extension with a whitespace-only path', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.page/project',
+            properties: { path: '   ', component: { $codeRef: 'InstanceList' } },
           },
         ],
       })

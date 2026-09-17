@@ -29,6 +29,10 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
      */
     desiredRegistrationRefreshAttempt?: string;
     /**
+     * DesiredVerificationRefreshAttempt is the desired time of the next verification refresh attempt.
+     */
+    desiredVerificationRefreshAttempt?: string;
+    /**
      * DomainName is the fully qualified domain name (FQDN) to be managed
      */
     domainName: string;
@@ -175,6 +179,7 @@ export type ComDatumapisNetworkingV1AlphaDomain = {
         body: string;
         url: string;
       };
+      lastVerificationAttempt?: string;
       nextVerificationAttempt?: string;
     };
   };
@@ -224,6 +229,41 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
    */
   spec: {
     /**
+     * HealthCheck configures how backends are considered healthy. It applies
+     * to every backend on the HTTPProxy. If unset, Envoy treats every
+     * endpoint as healthy.
+     */
+    healthCheck?: {
+      /**
+       * Passive configures Envoy outlier detection: consecutive 5xx responses
+       * eject an endpoint from load balancing for a growing period, then
+       * Envoy re-admits it. Unset keeps every endpoint eligible.
+       *
+       * See: https://www.envoyproxy.io/docs/envoy/latest/intro/arch_overview/upstream/outlier.html
+       */
+      passive?: {
+        /**
+         * BaseEjectionTime is how long an endpoint stays ejected after its
+         * first streak of failures. Later ejections multiply this duration.
+         * Defaults to 30s. Envoy re-admits the endpoint when the period
+         * elapses; it does not replace the instance.
+         */
+        baseEjectionTime?: string;
+        /**
+         * Consecutive5xxErrors is the number of consecutive 5xx responses that
+         * eject an endpoint. Defaults to 5.
+         */
+        consecutive5xxErrors?: number;
+        /**
+         * MaxEjectionPercent is the maximum percentage of endpoints in a
+         * backend that may be ejected at once. Defaults to 50. Must be at
+         * least 1 so a single-endpoint backend can still be ejected. This
+         * limit is per backend, not across every backend on the HTTPProxy.
+         */
+        maxEjectionPercent?: number;
+      };
+    };
+    /**
      * Hostnames defines a set of hostnames that should match against the HTTP
      * Host header to select a HTTPProxy used to process the request.
      *
@@ -261,6 +301,44 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
      */
     hostnames?: Array<string>;
     /**
+     * LoadBalancer selects the algorithm used to distribute requests across
+     * every rule's backends, whenever a rule has more than one. It applies
+     * to the whole HTTPProxy rather than to an individual rule. If unset,
+     * Envoy's own default algorithm applies.
+     */
+    loadBalancer?: {
+      /**
+       * ConsistentHash configures what part of the request is hashed to pick
+       * a backend. Required when type is ConsistentHash, and forbidden
+       * otherwise.
+       */
+      consistentHash?: {
+        /**
+         * Header names the request header to hash on. Required when type is
+         * Header, and forbidden otherwise.
+         */
+        header?: string;
+        /**
+         * Type selects what part of the request is hashed to pick a backend.
+         *
+         * SourceIP hashes the client's source IP address. Header hashes the
+         * value of the request header named in the header field.
+         */
+        type: 'SourceIP' | 'Header';
+      };
+      /**
+       * Type selects the load balancing algorithm.
+       *
+       * RoundRobin cycles through backends in order. Random picks a backend
+       * uniformly at random. LeastRequest picks the backend with the fewest
+       * active requests, biased toward spreading load evenly under uneven
+       * latency. ConsistentHash routes requests that hash the same way (see
+       * consistentHash) to the same backend, so the same client keeps
+       * landing on the same backend so long as the backend set is stable.
+       */
+      type: 'RoundRobin' | 'Random' | 'LeastRequest' | 'ConsistentHash';
+    };
+    /**
      * Rules are a list of HTTP matchers, filters and actions.
      */
     rules: Array<{
@@ -268,9 +346,10 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
        * Backends defines the backend(s) where matching requests should be
        * sent.
        *
-       * Note: While this field is a list, only a single element is permitted at
-       * this time due to underlying Gateway limitations. Once addressed, MaxItems
-       * will be increased to allow for multiple backends on any given route.
+       * When more than one backend is specified, requests are weighted load
+       * balanced across all of them (see the weight field on each backend). A
+       * connector backend must be the only backend in the rule — connectors do
+       * not support weighted load balancing across multiple backends today.
        */
       backends?: Array<{
         /**
@@ -278,6 +357,9 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
          *
          * For now, only a name reference is supported. In the future this can be
          * extended to selector-based matching to allow multiple connectors.
+         *
+         * Used together with endpoint (the tunnel's target address). Mutually
+         * exclusive with instance.
          */
         connector?: {
           /**
@@ -290,8 +372,11 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
          *
          * Supports http and https protocols, IPs or DNS addresses in the host, custom
          * ports, and paths.
+         *
+         * Required unless instance is set. When connector is also set, this is the
+         * tunnel's target address rather than a directly reachable backend.
          */
-        endpoint: string;
+        endpoint?: string;
         /**
          * Filters defined at this level should be executed if and only if the
          * request is being forwarded to the backend defined here.
@@ -302,29 +387,27 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * cross-origin request based on HTTP response header.
            *
            * Support: Extended
-           *
-           * <gateway:experimental>
            */
           cors?: {
             /**
              * AllowCredentials indicates whether the actual cross-origin request allows
              * to include credentials.
              *
-             * The only valid value for the `Access-Control-Allow-Credentials` response
-             * header is true (case-sensitive).
+             * When set to true, the gateway will include the `Access-Control-Allow-Credentials`
+             * response header with value true (case-sensitive).
              *
-             * If the credentials are not allowed in cross-origin requests, the gateway
-             * will omit the header `Access-Control-Allow-Credentials` entirely rather
-             * than setting its value to false.
+             * When set to false or omitted the gateway will omit the header
+             * `Access-Control-Allow-Credentials` entirely (this is the standard CORS
+             * behavior).
              *
              * Support: Extended
              */
-            allowCredentials?: true;
+            allowCredentials?: boolean;
             /**
              * AllowHeaders indicates which HTTP request headers are supported for
              * accessing the requested resource.
              *
-             * Header names are not case sensitive.
+             * Header names are not case-sensitive.
              *
              * Multiple header names in the value of the `Access-Control-Allow-Headers`
              * response header are separated by a comma (",").
@@ -343,18 +426,21 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              * client side.
              *
              * A wildcard indicates that the requests with all HTTP headers are allowed.
-             * The `Access-Control-Allow-Headers` response header can only use `*`
-             * wildcard as value when the `AllowCredentials` field is unspecified.
+             * If config contains the wildcard "*" in allowHeaders and the request is
+             * not credentialed, the `Access-Control-Allow-Headers` response header
+             * can either use the `*` wildcard or the value of
+             * Access-Control-Request-Headers from the request.
              *
-             * When the `AllowCredentials` field is specified and `AllowHeaders` field
-             * specified with the `*` wildcard, the gateway must specify one or more
+             * When the request is credentialed, the gateway must not specify the `*`
+             * wildcard in the `Access-Control-Allow-Headers` response header. When
+             * also the `AllowCredentials` field is true and `AllowHeaders` field
+             * is specified with the `*` wildcard, the gateway must specify one or more
              * HTTP headers in the value of the `Access-Control-Allow-Headers` response
              * header. The value of the header `Access-Control-Allow-Headers` is same as
              * the `Access-Control-Request-Headers` header provided by the client. If
              * the header `Access-Control-Request-Headers` is not included in the
              * request, the gateway will omit the `Access-Control-Allow-Headers`
-             * response header, instead of specifying the `*` wildcard. A Gateway
-             * implementation may choose to add implementation-specific default headers.
+             * response header, instead of specifying the `*` wildcard.
              *
              * Support: Extended
              */
@@ -366,7 +452,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              * Valid values are any method defined by RFC9110, along with the special
              * value `*`, which represents all HTTP methods are allowed.
              *
-             * Method names are case sensitive, so these values are also case-sensitive.
+             * Method names are case-sensitive, so these values are also case-sensitive.
              * (See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)
              *
              * Multiple method names in the value of the `Access-Control-Allow-Methods`
@@ -386,18 +472,21 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              * `Access-Control-Allow-Methods`, it will present an error on the client
              * side.
              *
-             * The `Access-Control-Allow-Methods` response header can only use `*`
-             * wildcard as value when the `AllowCredentials` field is unspecified.
+             * If config contains the wildcard "*" in allowMethods and the request is
+             * not credentialed, the `Access-Control-Allow-Methods` response header
+             * can either use the `*` wildcard or the value of
+             * Access-Control-Request-Method from the request.
              *
-             * When the `AllowCredentials` field is specified and `AllowMethods` field
+             * When the request is credentialed, the gateway must not specify the `*`
+             * wildcard in the `Access-Control-Allow-Methods` response header. When
+             * also the `AllowCredentials` field is true and `AllowMethods` field
              * specified with the `*` wildcard, the gateway must specify one HTTP method
              * in the value of the Access-Control-Allow-Methods response header. The
              * value of the header `Access-Control-Allow-Methods` is same as the
              * `Access-Control-Request-Method` header provided by the client. If the
              * header `Access-Control-Request-Method` is not included in the request,
              * the gateway will omit the `Access-Control-Allow-Methods` response header,
-             * instead of specifying the `*` wildcard. A Gateway implementation may
-             * choose to add implementation-specific default methods.
+             * instead of specifying the `*` wildcard.
              *
              * Support: Extended
              */
@@ -456,10 +545,19 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              * the CORS headers. The cross-origin request fails on the client side.
              * Therefore, the client doesn't attempt the actual cross-origin request.
              *
-             * The `Access-Control-Allow-Origin` response header can only use `*`
-             * wildcard as value when the `AllowCredentials` field is unspecified.
+             * Conversely, if the request `Origin` matches one of the configured
+             * allowed origins, the gateway sets the response header
+             * `Access-Control-Allow-Origin` to the same value as the `Origin`
+             * header provided by the client.
              *
-             * When the `AllowCredentials` field is specified and `AllowOrigins` field
+             * When config has the wildcard ("*") in allowOrigins, and the request
+             * is not credentialed (e.g., it is a preflight request), the
+             * `Access-Control-Allow-Origin` response header either contains the
+             * wildcard as well or the Origin from the request.
+             *
+             * When the request is credentialed, the gateway must not specify the `*`
+             * wildcard in the `Access-Control-Allow-Origin` response header. When
+             * also the `AllowCredentials` field is true and `AllowOrigins` field
              * specified with the `*` wildcard, the gateway must return a single origin
              * in the value of the `Access-Control-Allow-Origin` response header,
              * instead of specifying the `*` wildcard. The value of the header
@@ -490,15 +588,18 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              * this additional header will be exposed as part of the response to the
              * client.
              *
-             * Header names are not case sensitive.
+             * Header names are not case-sensitive.
              *
              * Multiple header names in the value of the `Access-Control-Expose-Headers`
              * response header are separated by a comma (",").
              *
              * A wildcard indicates that the responses with all HTTP headers are exposed
              * to clients. The `Access-Control-Expose-Headers` response header can only
-             * use `*` wildcard as value when the `AllowCredentials` field is
-             * unspecified.
+             * use `*` wildcard as value when the request is not credentialed.
+             *
+             * When the `exposeHeaders` config field contains the "*" wildcard and
+             * the request is credentialed, the gateway cannot use the `*` wildcard in
+             * the `Access-Control-Expose-Headers` response header.
              *
              * Support: Extended
              */
@@ -513,6 +614,9 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              *
              * The default value of `Access-Control-Max-Age` response header is 5
              * (seconds).
+             *
+             * When the `MaxAge` field is unspecified, the gateway sets the response
+             * header "Access-Control-Max-Age: 5" by default.
              */
             maxAge?: number;
           };
@@ -540,6 +644,201 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              * Name is the name of the referent.
              */
             name: string;
+          };
+          /**
+           * ExternalAuth configures settings related to sending request details
+           * to an external auth service. The external service MUST authenticate
+           * the request, and MAY authorize the request as well.
+           *
+           * If there is any problem communicating with the external service,
+           * this filter MUST fail closed.
+           *
+           * Support: Extended
+           *
+           * <gateway:experimental>
+           */
+          externalAuth?: {
+            /**
+             * BackendRef is a reference to a backend to send authorization
+             * requests to.
+             *
+             * The backend must speak the selected protocol (GRPC or HTTP) on the
+             * referenced port.
+             *
+             * If the backend service requires TLS, use BackendTLSPolicy to tell the
+             * implementation to supply the TLS details to be used to connect to that
+             * backend.
+             */
+            backendRef: {
+              /**
+               * Group is the group of the referent. For example, "gateway.networking.k8s.io".
+               * When unspecified or empty string, core API group is inferred.
+               */
+              group?: string;
+              /**
+               * Kind is the Kubernetes resource kind of the referent. For example
+               * "Service".
+               *
+               * Defaults to "Service" when not specified.
+               *
+               * ExternalName services can refer to CNAME DNS records that may live
+               * outside of the cluster and as such are difficult to reason about in
+               * terms of conformance. They also may not be safe to forward to (see
+               * CVE-2021-25740 for more information). Implementations SHOULD NOT
+               * support ExternalName Services.
+               *
+               * Support: Core (Services with a type other than ExternalName)
+               *
+               * Support: Implementation-specific (Services with type ExternalName)
+               */
+              kind?: string;
+              /**
+               * Name is the name of the referent.
+               */
+              name: string;
+              /**
+               * Namespace is the namespace of the backend. When unspecified, the local
+               * namespace is inferred.
+               *
+               * Note that when a namespace different than the local namespace is specified,
+               * a ReferenceGrant object is required in the referent namespace to allow that
+               * namespace's owner to accept the reference. See the ReferenceGrant
+               * documentation for details.
+               *
+               * Support: Core
+               */
+              namespace?: string;
+              /**
+               * Port specifies the destination port number to use for this resource.
+               * Port is required when the referent is a Kubernetes Service. In this
+               * case, the port number is the service port number, not the target port.
+               * For other resources, destination port might be derived from the referent
+               * resource or this field.
+               */
+              port?: number;
+            };
+            /**
+             * ForwardBody controls if requests to the authorization server should include
+             * the body of the client request; and if so, how big that body is allowed
+             * to be.
+             *
+             * It is expected that implementations will buffer the request body up to
+             * `forwardBody.maxSize` bytes. Bodies over that size must be rejected with a
+             * 4xx series error (413 or 403 are common examples), and fail processing
+             * of the filter.
+             *
+             * If unset, or `forwardBody.maxSize` is set to `0`, then the body will not
+             * be forwarded.
+             *
+             * Feature Name: HTTPRouteExternalAuthForwardBody
+             */
+            forwardBody?: {
+              /**
+               * MaxSize specifies how large in bytes the largest body that will be buffered
+               * and sent to the authorization server. If the body size is larger than
+               * `maxSize`, then the body sent to the authorization server must be
+               * truncated to `maxSize` bytes.
+               *
+               * Experimental note: This behavior needs to be checked against
+               * various dataplanes; it may need to be changed.
+               * See https://github.com/kubernetes-sigs/gateway-api/pull/4001#discussion_r2291405746
+               * for more.
+               *
+               * If 0, the body will not be sent to the authorization server.
+               */
+              maxSize?: number;
+            };
+            /**
+             * GRPCAuthConfig contains configuration for communication with ext_authz
+             * protocol-speaking backends.
+             *
+             * If unset, implementations must assume the default behavior for each
+             * included field is intended.
+             */
+            grpc?: {
+              /**
+               * AllowedRequestHeaders specifies what headers from the client request
+               * will be sent to the authorization server.
+               *
+               * If this list is empty, then all headers must be sent.
+               *
+               * If the list has entries, only those entries must be sent.
+               */
+              allowedHeaders?: Array<string>;
+            };
+            /**
+             * HTTPAuthConfig contains configuration for communication with HTTP-speaking
+             * backends.
+             *
+             * If unset, implementations must assume the default behavior for each
+             * included field is intended.
+             */
+            http?: {
+              /**
+               * AllowedRequestHeaders specifies what additional headers from the client request
+               * will be sent to the authorization server.
+               *
+               * The following headers must always be sent to the authorization server,
+               * regardless of this setting:
+               *
+               * * `Host`
+               * * `Method`
+               * * `Path`
+               * * `Content-Length`
+               * * `Authorization`
+               *
+               * If this list is empty, then only those headers must be sent.
+               *
+               * Note that `Content-Length` has a special behavior, in that the length
+               * sent must be correct for the actual request to the external authorization
+               * server - that is, it must reflect the actual number of bytes sent in the
+               * body of the request to the authorization server.
+               *
+               * So if the `forwardBody` stanza is unset, or `forwardBody.maxSize` is set
+               * to `0`, then `Content-Length` must be `0`. If `forwardBody.maxSize` is set
+               * to anything other than `0`, then the `Content-Length` of the authorization
+               * request must be set to the actual number of bytes forwarded.
+               */
+              allowedHeaders?: Array<string>;
+              /**
+               * AllowedResponseHeaders specifies what headers from the authorization response
+               * will be copied into the request to the backend.
+               *
+               * If this list is empty, then all headers from the authorization server
+               * except Authority or Host must be copied.
+               */
+              allowedResponseHeaders?: Array<string>;
+              /**
+               * Path sets the prefix that paths from the client request will have added
+               * when forwarded to the authorization server.
+               *
+               * When empty or unspecified, no prefix is added.
+               *
+               * Valid values are the same as the "value" regex for path values in the `match`
+               * stanza, and the validation regex will screen out invalid paths in the same way.
+               * Even with the validation, implementations MUST sanitize this input before using it
+               * directly.
+               */
+              path?: string;
+            };
+            /**
+             * ExternalAuthProtocol describes which protocol to use when communicating with an
+             * ext_authz authorization server.
+             *
+             * When this is set to GRPC, each backend must use the Envoy ext_authz protocol
+             * on the port specified in `backendRefs`. Requests and responses are defined
+             * in the protobufs explained at:
+             * https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/external_auth.proto
+             *
+             * When this is set to HTTP, each backend must respond with a `200` status
+             * code in on a successful authorization. Any other code is considered
+             * an authorization failure.
+             *
+             * Feature Names:
+             * GRPC Support - HTTPRouteExternalAuthGRPC
+             * HTTP Support - HTTPRouteExternalAuthHTTP
+             */
+            protocol: 'HTTP' | 'GRPC';
           };
           /**
            * RequestHeaderModifier defines a schema for a filter that modifies request
@@ -580,6 +879,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
               name: string;
               /**
                * Value is the value of HTTP Header to be matched.
+               * <gateway:experimental:description>
+               * Must consist of printable US-ASCII characters, optionally separated
+               * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+               * </gateway:experimental:description>
+               *
+               * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
                */
               value: string;
             }>;
@@ -634,6 +939,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
               name: string;
               /**
                * Value is the value of HTTP Header to be matched.
+               * <gateway:experimental:description>
+               * Must consist of printable US-ASCII characters, optionally separated
+               * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+               * </gateway:experimental:description>
+               *
+               * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
                */
               value: string;
             }>;
@@ -858,7 +1169,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
              *
              * Support: Core
              */
-            statusCode?: 301 | 302;
+            statusCode?: 301 | 302 | 303 | 307 | 308;
           };
           /**
            * ResponseHeaderModifier defines a schema for a filter that modifies response
@@ -899,6 +1210,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
               name: string;
               /**
                * Value is the value of HTTP Header to be matched.
+               * <gateway:experimental:description>
+               * Must consist of printable US-ASCII characters, optionally separated
+               * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+               * </gateway:experimental:description>
+               *
+               * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
                */
               value: string;
             }>;
@@ -953,6 +1270,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
               name: string;
               /**
                * Value is the value of HTTP Header to be matched.
+               * <gateway:experimental:description>
+               * Must consist of printable US-ASCII characters, optionally separated
+               * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+               * </gateway:experimental:description>
+               *
+               * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
                */
               value: string;
             }>;
@@ -991,7 +1314,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * Accepted Condition for the Route to `status: False`, with a
            * Reason of `UnsupportedValue`.
            *
-           * <gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS>
+           * <gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS;ExternalAuth>
            */
           type:
             | 'RequestHeaderModifier'
@@ -999,7 +1322,8 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
             | 'RequestMirror'
             | 'RequestRedirect'
             | 'URLRewrite'
-            | 'ExtensionRef';
+            | 'ExtensionRef'
+            | 'CORS';
           /**
            * URLRewrite defines a schema for a filter that modifies a request during forwarding.
            *
@@ -1059,10 +1383,54 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
           };
         }>;
         /**
+         * Instance references an EndpointSlice published by galactic-cni for a pod
+         * running on a tenant VPC network. The referenced EndpointSlice is
+         * resolved and forwarded to as-is — it is never synthesized or mutated by
+         * this controller, since doing so would separate the pod address from the
+         * SID annotation the tenant-VRF/SRv6 mechanism depends on.
+         *
+         * Mutually exclusive with endpoint and connector.
+         */
+        instance?: {
+          /**
+           * Name of the EndpointSlice galactic-cni publishes for the target pod.
+           * Must exist in the same namespace as this HTTPProxy.
+           */
+          name: string;
+          /**
+           * Port on the referenced EndpointSlice to forward traffic to.
+           */
+          port: number;
+        };
+        /**
+         * NetworkService references a NetworkService in the same namespace, and one
+         * of the ports it declares. Every member the service resolves to becomes an
+         * endpoint of this backend, so instances appearing, disappearing, and moving
+         * between locations need no edit here.
+         *
+         * Mutually exclusive with endpoint, connector and instance.
+         */
+        networkService?: {
+          /**
+           * Name of the referenced NetworkService. Must exist in the same namespace as
+           * this HTTPProxy.
+           */
+          name: string;
+          /**
+           * Port names a port declared in the referenced service's spec.ports, rather
+           * than giving a number, so the reference survives a change to the port the
+           * members answer on.
+           */
+          port: string;
+        };
+        /**
          * TLS contains backend TLS configuration.
          *
          * When the backend endpoint uses HTTPS with an IP address, the Hostname field
          * must be specified for TLS certificate validation.
+         *
+         * Not supported for networkService backends, which are always reached over
+         * plaintext HTTP.
          */
         tls?: {
           /**
@@ -1080,6 +1448,15 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            */
           hostname?: string;
         };
+        /**
+         * Weight specifies the proportion of requests forwarded to this backend,
+         * relative to the sum of weights across all backends in the rule.
+         * Follows the same semantics as the Gateway API's HTTPBackendRef.weight:
+         * computed as weight/(sum of all weights in the rule); a weight of 0
+         * means no traffic is forwarded to this backend; if unspecified, weight
+         * defaults to 1.
+         */
+        weight?: number;
       }>;
       /**
        * Filters define the filters that are applied to requests that match
@@ -1094,29 +1471,27 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
          * cross-origin request based on HTTP response header.
          *
          * Support: Extended
-         *
-         * <gateway:experimental>
          */
         cors?: {
           /**
            * AllowCredentials indicates whether the actual cross-origin request allows
            * to include credentials.
            *
-           * The only valid value for the `Access-Control-Allow-Credentials` response
-           * header is true (case-sensitive).
+           * When set to true, the gateway will include the `Access-Control-Allow-Credentials`
+           * response header with value true (case-sensitive).
            *
-           * If the credentials are not allowed in cross-origin requests, the gateway
-           * will omit the header `Access-Control-Allow-Credentials` entirely rather
-           * than setting its value to false.
+           * When set to false or omitted the gateway will omit the header
+           * `Access-Control-Allow-Credentials` entirely (this is the standard CORS
+           * behavior).
            *
            * Support: Extended
            */
-          allowCredentials?: true;
+          allowCredentials?: boolean;
           /**
            * AllowHeaders indicates which HTTP request headers are supported for
            * accessing the requested resource.
            *
-           * Header names are not case sensitive.
+           * Header names are not case-sensitive.
            *
            * Multiple header names in the value of the `Access-Control-Allow-Headers`
            * response header are separated by a comma (",").
@@ -1135,18 +1510,21 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * client side.
            *
            * A wildcard indicates that the requests with all HTTP headers are allowed.
-           * The `Access-Control-Allow-Headers` response header can only use `*`
-           * wildcard as value when the `AllowCredentials` field is unspecified.
+           * If config contains the wildcard "*" in allowHeaders and the request is
+           * not credentialed, the `Access-Control-Allow-Headers` response header
+           * can either use the `*` wildcard or the value of
+           * Access-Control-Request-Headers from the request.
            *
-           * When the `AllowCredentials` field is specified and `AllowHeaders` field
-           * specified with the `*` wildcard, the gateway must specify one or more
+           * When the request is credentialed, the gateway must not specify the `*`
+           * wildcard in the `Access-Control-Allow-Headers` response header. When
+           * also the `AllowCredentials` field is true and `AllowHeaders` field
+           * is specified with the `*` wildcard, the gateway must specify one or more
            * HTTP headers in the value of the `Access-Control-Allow-Headers` response
            * header. The value of the header `Access-Control-Allow-Headers` is same as
            * the `Access-Control-Request-Headers` header provided by the client. If
            * the header `Access-Control-Request-Headers` is not included in the
            * request, the gateway will omit the `Access-Control-Allow-Headers`
-           * response header, instead of specifying the `*` wildcard. A Gateway
-           * implementation may choose to add implementation-specific default headers.
+           * response header, instead of specifying the `*` wildcard.
            *
            * Support: Extended
            */
@@ -1158,7 +1536,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * Valid values are any method defined by RFC9110, along with the special
            * value `*`, which represents all HTTP methods are allowed.
            *
-           * Method names are case sensitive, so these values are also case-sensitive.
+           * Method names are case-sensitive, so these values are also case-sensitive.
            * (See https://www.rfc-editor.org/rfc/rfc2616#section-5.1.1)
            *
            * Multiple method names in the value of the `Access-Control-Allow-Methods`
@@ -1178,18 +1556,21 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * `Access-Control-Allow-Methods`, it will present an error on the client
            * side.
            *
-           * The `Access-Control-Allow-Methods` response header can only use `*`
-           * wildcard as value when the `AllowCredentials` field is unspecified.
+           * If config contains the wildcard "*" in allowMethods and the request is
+           * not credentialed, the `Access-Control-Allow-Methods` response header
+           * can either use the `*` wildcard or the value of
+           * Access-Control-Request-Method from the request.
            *
-           * When the `AllowCredentials` field is specified and `AllowMethods` field
+           * When the request is credentialed, the gateway must not specify the `*`
+           * wildcard in the `Access-Control-Allow-Methods` response header. When
+           * also the `AllowCredentials` field is true and `AllowMethods` field
            * specified with the `*` wildcard, the gateway must specify one HTTP method
            * in the value of the Access-Control-Allow-Methods response header. The
            * value of the header `Access-Control-Allow-Methods` is same as the
            * `Access-Control-Request-Method` header provided by the client. If the
            * header `Access-Control-Request-Method` is not included in the request,
            * the gateway will omit the `Access-Control-Allow-Methods` response header,
-           * instead of specifying the `*` wildcard. A Gateway implementation may
-           * choose to add implementation-specific default methods.
+           * instead of specifying the `*` wildcard.
            *
            * Support: Extended
            */
@@ -1248,10 +1629,19 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * the CORS headers. The cross-origin request fails on the client side.
            * Therefore, the client doesn't attempt the actual cross-origin request.
            *
-           * The `Access-Control-Allow-Origin` response header can only use `*`
-           * wildcard as value when the `AllowCredentials` field is unspecified.
+           * Conversely, if the request `Origin` matches one of the configured
+           * allowed origins, the gateway sets the response header
+           * `Access-Control-Allow-Origin` to the same value as the `Origin`
+           * header provided by the client.
            *
-           * When the `AllowCredentials` field is specified and `AllowOrigins` field
+           * When config has the wildcard ("*") in allowOrigins, and the request
+           * is not credentialed (e.g., it is a preflight request), the
+           * `Access-Control-Allow-Origin` response header either contains the
+           * wildcard as well or the Origin from the request.
+           *
+           * When the request is credentialed, the gateway must not specify the `*`
+           * wildcard in the `Access-Control-Allow-Origin` response header. When
+           * also the `AllowCredentials` field is true and `AllowOrigins` field
            * specified with the `*` wildcard, the gateway must return a single origin
            * in the value of the `Access-Control-Allow-Origin` response header,
            * instead of specifying the `*` wildcard. The value of the header
@@ -1282,15 +1672,18 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * this additional header will be exposed as part of the response to the
            * client.
            *
-           * Header names are not case sensitive.
+           * Header names are not case-sensitive.
            *
            * Multiple header names in the value of the `Access-Control-Expose-Headers`
            * response header are separated by a comma (",").
            *
            * A wildcard indicates that the responses with all HTTP headers are exposed
            * to clients. The `Access-Control-Expose-Headers` response header can only
-           * use `*` wildcard as value when the `AllowCredentials` field is
-           * unspecified.
+           * use `*` wildcard as value when the request is not credentialed.
+           *
+           * When the `exposeHeaders` config field contains the "*" wildcard and
+           * the request is credentialed, the gateway cannot use the `*` wildcard in
+           * the `Access-Control-Expose-Headers` response header.
            *
            * Support: Extended
            */
@@ -1305,6 +1698,9 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            *
            * The default value of `Access-Control-Max-Age` response header is 5
            * (seconds).
+           *
+           * When the `MaxAge` field is unspecified, the gateway sets the response
+           * header "Access-Control-Max-Age: 5" by default.
            */
           maxAge?: number;
         };
@@ -1332,6 +1728,201 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            * Name is the name of the referent.
            */
           name: string;
+        };
+        /**
+         * ExternalAuth configures settings related to sending request details
+         * to an external auth service. The external service MUST authenticate
+         * the request, and MAY authorize the request as well.
+         *
+         * If there is any problem communicating with the external service,
+         * this filter MUST fail closed.
+         *
+         * Support: Extended
+         *
+         * <gateway:experimental>
+         */
+        externalAuth?: {
+          /**
+           * BackendRef is a reference to a backend to send authorization
+           * requests to.
+           *
+           * The backend must speak the selected protocol (GRPC or HTTP) on the
+           * referenced port.
+           *
+           * If the backend service requires TLS, use BackendTLSPolicy to tell the
+           * implementation to supply the TLS details to be used to connect to that
+           * backend.
+           */
+          backendRef: {
+            /**
+             * Group is the group of the referent. For example, "gateway.networking.k8s.io".
+             * When unspecified or empty string, core API group is inferred.
+             */
+            group?: string;
+            /**
+             * Kind is the Kubernetes resource kind of the referent. For example
+             * "Service".
+             *
+             * Defaults to "Service" when not specified.
+             *
+             * ExternalName services can refer to CNAME DNS records that may live
+             * outside of the cluster and as such are difficult to reason about in
+             * terms of conformance. They also may not be safe to forward to (see
+             * CVE-2021-25740 for more information). Implementations SHOULD NOT
+             * support ExternalName Services.
+             *
+             * Support: Core (Services with a type other than ExternalName)
+             *
+             * Support: Implementation-specific (Services with type ExternalName)
+             */
+            kind?: string;
+            /**
+             * Name is the name of the referent.
+             */
+            name: string;
+            /**
+             * Namespace is the namespace of the backend. When unspecified, the local
+             * namespace is inferred.
+             *
+             * Note that when a namespace different than the local namespace is specified,
+             * a ReferenceGrant object is required in the referent namespace to allow that
+             * namespace's owner to accept the reference. See the ReferenceGrant
+             * documentation for details.
+             *
+             * Support: Core
+             */
+            namespace?: string;
+            /**
+             * Port specifies the destination port number to use for this resource.
+             * Port is required when the referent is a Kubernetes Service. In this
+             * case, the port number is the service port number, not the target port.
+             * For other resources, destination port might be derived from the referent
+             * resource or this field.
+             */
+            port?: number;
+          };
+          /**
+           * ForwardBody controls if requests to the authorization server should include
+           * the body of the client request; and if so, how big that body is allowed
+           * to be.
+           *
+           * It is expected that implementations will buffer the request body up to
+           * `forwardBody.maxSize` bytes. Bodies over that size must be rejected with a
+           * 4xx series error (413 or 403 are common examples), and fail processing
+           * of the filter.
+           *
+           * If unset, or `forwardBody.maxSize` is set to `0`, then the body will not
+           * be forwarded.
+           *
+           * Feature Name: HTTPRouteExternalAuthForwardBody
+           */
+          forwardBody?: {
+            /**
+             * MaxSize specifies how large in bytes the largest body that will be buffered
+             * and sent to the authorization server. If the body size is larger than
+             * `maxSize`, then the body sent to the authorization server must be
+             * truncated to `maxSize` bytes.
+             *
+             * Experimental note: This behavior needs to be checked against
+             * various dataplanes; it may need to be changed.
+             * See https://github.com/kubernetes-sigs/gateway-api/pull/4001#discussion_r2291405746
+             * for more.
+             *
+             * If 0, the body will not be sent to the authorization server.
+             */
+            maxSize?: number;
+          };
+          /**
+           * GRPCAuthConfig contains configuration for communication with ext_authz
+           * protocol-speaking backends.
+           *
+           * If unset, implementations must assume the default behavior for each
+           * included field is intended.
+           */
+          grpc?: {
+            /**
+             * AllowedRequestHeaders specifies what headers from the client request
+             * will be sent to the authorization server.
+             *
+             * If this list is empty, then all headers must be sent.
+             *
+             * If the list has entries, only those entries must be sent.
+             */
+            allowedHeaders?: Array<string>;
+          };
+          /**
+           * HTTPAuthConfig contains configuration for communication with HTTP-speaking
+           * backends.
+           *
+           * If unset, implementations must assume the default behavior for each
+           * included field is intended.
+           */
+          http?: {
+            /**
+             * AllowedRequestHeaders specifies what additional headers from the client request
+             * will be sent to the authorization server.
+             *
+             * The following headers must always be sent to the authorization server,
+             * regardless of this setting:
+             *
+             * * `Host`
+             * * `Method`
+             * * `Path`
+             * * `Content-Length`
+             * * `Authorization`
+             *
+             * If this list is empty, then only those headers must be sent.
+             *
+             * Note that `Content-Length` has a special behavior, in that the length
+             * sent must be correct for the actual request to the external authorization
+             * server - that is, it must reflect the actual number of bytes sent in the
+             * body of the request to the authorization server.
+             *
+             * So if the `forwardBody` stanza is unset, or `forwardBody.maxSize` is set
+             * to `0`, then `Content-Length` must be `0`. If `forwardBody.maxSize` is set
+             * to anything other than `0`, then the `Content-Length` of the authorization
+             * request must be set to the actual number of bytes forwarded.
+             */
+            allowedHeaders?: Array<string>;
+            /**
+             * AllowedResponseHeaders specifies what headers from the authorization response
+             * will be copied into the request to the backend.
+             *
+             * If this list is empty, then all headers from the authorization server
+             * except Authority or Host must be copied.
+             */
+            allowedResponseHeaders?: Array<string>;
+            /**
+             * Path sets the prefix that paths from the client request will have added
+             * when forwarded to the authorization server.
+             *
+             * When empty or unspecified, no prefix is added.
+             *
+             * Valid values are the same as the "value" regex for path values in the `match`
+             * stanza, and the validation regex will screen out invalid paths in the same way.
+             * Even with the validation, implementations MUST sanitize this input before using it
+             * directly.
+             */
+            path?: string;
+          };
+          /**
+           * ExternalAuthProtocol describes which protocol to use when communicating with an
+           * ext_authz authorization server.
+           *
+           * When this is set to GRPC, each backend must use the Envoy ext_authz protocol
+           * on the port specified in `backendRefs`. Requests and responses are defined
+           * in the protobufs explained at:
+           * https://www.envoyproxy.io/docs/envoy/latest/api-v3/service/auth/v3/external_auth.proto
+           *
+           * When this is set to HTTP, each backend must respond with a `200` status
+           * code in on a successful authorization. Any other code is considered
+           * an authorization failure.
+           *
+           * Feature Names:
+           * GRPC Support - HTTPRouteExternalAuthGRPC
+           * HTTP Support - HTTPRouteExternalAuthHTTP
+           */
+          protocol: 'HTTP' | 'GRPC';
         };
         /**
          * RequestHeaderModifier defines a schema for a filter that modifies request
@@ -1372,6 +1963,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
             name: string;
             /**
              * Value is the value of HTTP Header to be matched.
+             * <gateway:experimental:description>
+             * Must consist of printable US-ASCII characters, optionally separated
+             * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+             * </gateway:experimental:description>
+             *
+             * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
              */
             value: string;
           }>;
@@ -1426,6 +2023,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
             name: string;
             /**
              * Value is the value of HTTP Header to be matched.
+             * <gateway:experimental:description>
+             * Must consist of printable US-ASCII characters, optionally separated
+             * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+             * </gateway:experimental:description>
+             *
+             * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
              */
             value: string;
           }>;
@@ -1650,7 +2253,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
            *
            * Support: Core
            */
-          statusCode?: 301 | 302;
+          statusCode?: 301 | 302 | 303 | 307 | 308;
         };
         /**
          * ResponseHeaderModifier defines a schema for a filter that modifies response
@@ -1691,6 +2294,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
             name: string;
             /**
              * Value is the value of HTTP Header to be matched.
+             * <gateway:experimental:description>
+             * Must consist of printable US-ASCII characters, optionally separated
+             * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+             * </gateway:experimental:description>
+             *
+             * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
              */
             value: string;
           }>;
@@ -1745,6 +2354,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
             name: string;
             /**
              * Value is the value of HTTP Header to be matched.
+             * <gateway:experimental:description>
+             * Must consist of printable US-ASCII characters, optionally separated
+             * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+             * </gateway:experimental:description>
+             *
+             * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
              */
             value: string;
           }>;
@@ -1783,7 +2398,7 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
          * Accepted Condition for the Route to `status: False`, with a
          * Reason of `UnsupportedValue`.
          *
-         * <gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS>
+         * <gateway:experimental:validation:Enum=RequestHeaderModifier;ResponseHeaderModifier;RequestMirror;RequestRedirect;URLRewrite;ExtensionRef;CORS;ExternalAuth>
          */
         type:
           | 'RequestHeaderModifier'
@@ -1791,7 +2406,8 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
           | 'RequestMirror'
           | 'RequestRedirect'
           | 'URLRewrite'
-          | 'ExtensionRef';
+          | 'ExtensionRef'
+          | 'CORS';
         /**
          * URLRewrite defines a schema for a filter that modifies a request during forwarding.
          *
@@ -1897,6 +2513,12 @@ export type ComDatumapisNetworkingV1AlphaHttpProxy = {
           type?: 'Exact' | 'RegularExpression';
           /**
            * Value is the value of HTTP Header to be matched.
+           * <gateway:experimental:description>
+           * Must consist of printable US-ASCII characters, optionally separated
+           * by single tabs or spaces. See: https://tools.ietf.org/html/rfc7230#section-3.2
+           * </gateway:experimental:description>
+           *
+           * <gateway:experimental:validation:Pattern=`^[!-~]+([\t ]?[!-~]+)*$`>
            */
           value: string;
         }>;
@@ -2157,6 +2779,20 @@ export type ComDatumapisNetworkingV1AlphaLocation = {
    */
   spec?: {
     /**
+     * The geographic coordinates of the location, used by consumers that need
+     * to plot the location on a map.
+     */
+    coordinates?: {
+      /**
+       * Latitude in decimal degrees, in the range [-90, 90].
+       */
+      latitude: string;
+      /**
+       * Longitude in decimal degrees, in the range [-180, 180].
+       */
+      longitude: string;
+    };
+    /**
      * The location class that indicates control plane behavior of entities
      * associated with the location.
      *
@@ -2244,6 +2880,121 @@ export type ComDatumapisNetworkingV1AlphaLocation = {
 };
 
 /**
+ * LocationBinding is the Schema for the locationbindings API. It is a
+ * cluster-scoped projection of a cluster-scoped Location into a project's
+ * virtual control plane, created once the location's class is supported, the
+ * Location is Ready, and the corresponding ServiceAvailability is Available.
+ */
+export type ComDatumapisNetworkingV1AlphaLocationBinding = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * LocationBindingSpec defines the desired state of LocationBinding.
+   */
+  spec?: {
+    /**
+     * DisplayName is a human-readable label for the location.
+     */
+    displayName?: string;
+    /**
+     * LocationClassName mirrors spec.locationClassName from the referenced Location.
+     */
+    locationClassName?: string;
+    /**
+     * LocationRef references the canonical cluster-scoped Location object.
+     */
+    locationRef: {
+      /**
+       * Name of the referent.
+       * This field is effectively required, but due to backwards compatibility is
+       * allowed to be empty. Instances of this type with an empty value here are
+       * almost certainly wrong.
+       * More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       */
+      name?: string;
+    };
+    /**
+     * Topology mirrors spec.topology from the referenced Location, containing
+     * well-known keys like topology.datum.net/city-code and topology.datum.net/region.
+     */
+    topology?: {
+      [key: string]: string;
+    };
+  };
+  /**
+   * LocationBindingStatus defines the observed state of LocationBinding.
+   */
+  status?: {
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+  };
+};
+
+/**
+ * LocationBindingList is a list of LocationBinding
+ */
+export type ComDatumapisNetworkingV1AlphaLocationBindingList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of locationbindings. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComDatumapisNetworkingV1AlphaLocationBinding>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
  * LocationList is a list of Location
  */
 export type ComDatumapisNetworkingV1AlphaLocationList = {
@@ -2286,7 +3037,7 @@ export type ComDatumapisNetworkingV1AlphaNetwork = {
    */
   spec: {
     /**
-     * IP Families to permit on a network. Defaults to IPv4.
+     * IP Families to permit on a network. Defaults to IPv6.
      */
     ipFamilies?: Array<'IPv4' | 'IPv6'>;
     /**
@@ -2308,6 +3059,11 @@ export type ComDatumapisNetworkingV1AlphaNetwork = {
     };
     /**
      * Network MTU. May be between 1300 and 8856.
+     *
+     * Defaults to 1440. Traffic between locations is encapsulated with a
+     * 40-byte outer IPv6 header, and some provider paths drop larger frames
+     * without returning Packet Too Big, so a larger MTU can hang connections
+     * instead of fragmenting or failing fast.
      */
     mtu?: number;
   };
@@ -2352,6 +3108,41 @@ export type ComDatumapisNetworkingV1AlphaNetwork = {
        */
       type: string;
     }>;
+    /**
+     * IPAM reports the address space IPAM holds for this network.
+     */
+    ipam?: {
+      /**
+       * IPv6Prefix is the /48 this network was assigned from the platform's
+       * tenant ULA pool. Every subnet and endpoint address in the network is
+       * carved from it.
+       */
+      ipv6Prefix?: string;
+      /**
+       * IPv6PrefixRef names what holds the prefix in IPAM, so the allocation can
+       * be audited and released.
+       */
+      ipv6PrefixRef?: {
+        /**
+         * ClaimName is the IPClaim this operator holds against the prefix.
+         * Deleting it releases what the operator holds.
+         */
+        claimName?: string;
+        /**
+         * Namespace is the project namespace holding the claim.
+         */
+        namespace?: string;
+        /**
+         * PoolName is the IPPool IPAM provisioned for the prefix. Subnet and
+         * endpoint addresses are drawn from it.
+         */
+        poolName?: string;
+        /**
+         * Project is the control plane the objects live in.
+         */
+        project?: string;
+      };
+    };
   };
 };
 
@@ -2376,20 +3167,44 @@ export type ComDatumapisNetworkingV1AlphaNetworkBinding = {
    */
   spec: {
     /**
+     * The resource that needs the network in this location.
+     *
+     * Nothing reads this to decide anything, and a binding is never held open
+     * because of it. It records who asked in a form that does not depend on the
+     * consumer being an object in this control plane, which is the only record
+     * for a consumer that cannot be an owner.
+     */
+    consumer?: {
+      /**
+       * APIGroup of the consumer. Empty means the core group.
+       */
+      apiGroup?: string;
+      /**
+       * Kind of the consumer.
+       */
+      kind: string;
+      /**
+       * Name of the consumer.
+       */
+      name: string;
+    };
+    /**
      * The location of where a network binding exists.
+     *
+     * Immutable, for the same reason as spec.network.
      */
     location: {
       /**
        * Name of a datum location
        */
       name: string;
-      /**
-       * Namespace for the datum location
-       */
-      namespace: string;
     };
     /**
      * The network that the binding is for.
+     *
+     * Immutable: a binding whose network changed is a declaration about a
+     * different presence. Delete and recreate instead, so the crossing is
+     * observable.
      */
     network: {
       /**
@@ -2501,6 +3316,14 @@ export type ComDatumapisNetworkingV1AlphaNetworkContext = {
    */
   spec?: {
     /**
+     * IP families the network carries, projected from the Network.
+     *
+     * A reader that finds this unset must refuse rather than assume a family:
+     * a context written before this field existed carries nothing, which is not
+     * the same as a network that carries nothing.
+     */
+    ipFamilies?: Array<'IPv4' | 'IPv6'>;
+    /**
      * The location of where a network context exists.
      */
     location: {
@@ -2508,11 +3331,11 @@ export type ComDatumapisNetworkingV1AlphaNetworkContext = {
        * Name of a datum location
        */
       name: string;
-      /**
-       * Namespace for the datum location
-       */
-      namespace: string;
     };
+    /**
+     * MTU of interfaces on the network, projected from the Network.
+     */
+    mtu?: number;
     /**
      * The attached network
      */
@@ -2522,6 +3345,11 @@ export type ComDatumapisNetworkingV1AlphaNetworkContext = {
        */
       name: string;
     };
+    /**
+     * The Network generation the projected fields were read from, so an operator
+     * comparing this to the Network can tell whether this location has caught up.
+     */
+    networkGeneration?: number;
   };
   /**
    * NetworkContextStatus defines the observed state of NetworkContext
@@ -2564,6 +3392,42 @@ export type ComDatumapisNetworkingV1AlphaNetworkContext = {
        */
       type: string;
     }>;
+    /**
+     * IPAM reports the address space IPAM holds for this network in this
+     * location.
+     */
+    ipam?: {
+      /**
+       * IPv6ClaimRef names what holds the /64 in IPAM. Deleting the claim it
+       * names releases what this operator holds.
+       */
+      ipv6ClaimRef?: {
+        /**
+         * ClaimName is the IPClaim this operator holds against the prefix.
+         * Deleting it releases what the operator holds.
+         */
+        claimName?: string;
+        /**
+         * Namespace is the project namespace holding the claim.
+         */
+        namespace?: string;
+        /**
+         * PoolName is the IPPool IPAM provisioned for the prefix. Subnet and
+         * endpoint addresses are drawn from it.
+         */
+        poolName?: string;
+        /**
+         * Project is the control plane the objects live in.
+         */
+        project?: string;
+      };
+      /**
+       * IPv6SubnetRef names the Subnet publishing this location's /64.
+       */
+      ipv6SubnetRef?: {
+        name: string;
+      };
+    };
   };
 };
 
@@ -2579,6 +3443,553 @@ export type ComDatumapisNetworkingV1AlphaNetworkContextList = {
    * List of networkcontexts. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
    */
   items: Array<ComDatumapisNetworkingV1AlphaNetworkContext>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * NetworkInterface is an interface on a network, together with the addresses it
+ * holds. It is the unit that owns addresses: as long as the interface exists,
+ * its addresses stay allocated to it.
+ *
+ * You do not create a NetworkInterface. Ask for one with a
+ * NetworkInterfaceClaim, and the operator creates the interface, allocates its
+ * addresses, and binds the two. A provider then reads the interface to
+ * configure a NIC, and reports what it programmed in status.
+ *
+ * An interface outlives the instance using it. Whether it outlives the claim
+ * that asked for it depends on spec.reclaimPolicy.
+ */
+export type ComDatumapisNetworkingV1AlphaNetworkInterface = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * NetworkInterfaceSpec defines the desired state of NetworkInterface. It is
+   * written by the operator when a claim is fulfilled, and it carries everything
+   * a provider needs to configure a NIC without reading any other resource.
+   */
+  spec: {
+    /**
+     * addresses are the addresses the interface holds inside its network, at most
+     * one per address family, exactly one of them primary. Each carries a prefix
+     * length and, once the location has a subnet, the gateway to route through.
+     */
+    addresses?: Array<{
+      /**
+       * address is the address the interface holds, in CIDR notation, such as
+       * 10.128.0.2/32 or 2001:db8:a001::1/128.
+       *
+       * For IPv6 this may be a block delegated to the interface rather than a
+       * single address, such as 2001:db8:a001::/96. The interface owns the whole
+       * block and assigns within it.
+       */
+      address: string;
+      /**
+       * class is the IPAM class this address was allocated from, such as
+       * private-ipv6. It is empty for the addresses a claim requests by family
+       * rather than by class.
+       */
+      class?: string;
+      /**
+       * family is the address family of this entry.
+       */
+      family: 'IPv4' | 'IPv6';
+      /**
+       * gateway is the next hop the interface routes through for this family, such
+       * as 10.128.0.1. It is resolved from the subnet backing the network in this
+       * location, so nothing has to read the subnet to configure the NIC. It is
+       * empty until that subnet exists.
+       */
+      gateway?: string;
+      /**
+       * primary marks the address projected into single-address fields, such as an
+       * instance's reported network IP.
+       *
+       * Exactly one address is primary for the interface as a whole, not one per
+       * family. It is the address of the first family the claim listed in
+       * spec.ipFamilies.
+       */
+      primary?: boolean;
+    }>;
+    /**
+     * attachmentMode is how the guest consumes this interface. It comes from the
+     * claim, and the operator carries it without interpreting it.
+     *
+     * Netns places the interface in the workload's network namespace. Hypervisor
+     * hands it to a hypervisor as a device, which is what a virtual machine or
+     * microVM guest needs. HypervisorDeclared also hands it to a hypervisor, and
+     * additionally has the realizer state the device to that hypervisor instead
+     * of letting it discover the device from the node.
+     */
+    attachmentMode?: 'Netns' | 'Hypervisor' | 'HypervisorDeclared';
+    /**
+     * claimRef is the claim currently holding this interface. It is empty while a
+     * retained interface waits, unbound, for a claim of its name to return.
+     */
+    claimRef?: {
+      /**
+       * name is the name of the NetworkInterfaceClaim, in the same namespace as the
+       * interface. A claim name stays with the workload slot it serves, so a
+       * replacement instance binds this same interface and its addresses.
+       */
+      name: string;
+    };
+    /**
+     * externalAddresses are the addresses the interface is reachable at from
+     * outside the network, each mapped onto the interface address of the same
+     * family. They come from the classes the claim requested, and they are absent
+     * for a workload that only needs private addressing.
+     */
+    externalAddresses?: Array<{
+      /**
+       * address is the externally reachable address, such as 203.0.113.10. It
+       * carries no prefix length.
+       */
+      address: string;
+      /**
+       * class is the IPAM class this address was allocated from, such as
+       * public-ipv4. It matches the class the claim requested in spec.addresses.
+       */
+      class: string;
+      /**
+       * family is the address family of this entry.
+       */
+      family: 'IPv4' | 'IPv6';
+    }>;
+    /**
+     * interfaceName is the device name the interface presents to the guest
+     * operating system, such as eth0 or eth1. It comes from the claim.
+     */
+    interfaceName?: string;
+    /**
+     * mtu is the MTU, in bytes, the interface must be configured with. It is
+     * resolved from the network, so a provider never has to read the network to
+     * configure the NIC.
+     */
+    mtu?: number;
+    /**
+     * network is the network this interface belongs to, in the same namespace as
+     * the interface. It comes from the claim and does not change.
+     */
+    network: {
+      /**
+       * The network name
+       */
+      name: string;
+    };
+    /**
+     * reclaimPolicy decides what becomes of this interface, and its addresses,
+     * when the claim holding it is deleted. It comes from the claim, and a claim
+     * asking for a different policy cannot bind this interface.
+     */
+    reclaimPolicy?: 'Delete' | 'Retain';
+  };
+  /**
+   * NetworkInterfaceStatus defines the observed state of NetworkInterface: which
+   * claim holds it, what realizes it on the data plane, and whether programming
+   * has succeeded.
+   */
+  status?: {
+    /**
+     * attachmentRef is the data-plane resource realizing this interface. The
+     * provider sets it once an attachment exists.
+     */
+    attachmentRef?: {
+      /**
+       * apiGroup is the API group of the referent, such as
+       * compute.datumapis.com.
+       */
+      apiGroup: string;
+      /**
+       * kind is the kind of the referent.
+       */
+      kind: string;
+      /**
+       * name is the name of the referent.
+       */
+      name: string;
+    };
+    /**
+     * conditions report the current state of the interface. Allocated means every
+     * address is held. Prepared means the data plane is ready for a workload to
+     * consume it. Programmed means the data plane carries the addresses.
+     * HolderAvailable means whatever holds the interface reports itself available
+     * to serve, and it is the only one of the four a service reads.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * networkContextRef is the network's presence in this location, resolved or
+     * created while fulfilling the claim. It is a breadcrumb for operators
+     * tracing where a network landed, and nothing needs it to configure a NIC.
+     */
+    networkContextRef?: {
+      /**
+       * The network context name
+       */
+      name: string;
+    };
+    /**
+     * phase reports whether a claim holds the interface. Bound means the claim in
+     * spec.claimRef holds it. Available means it is retained and holding its
+     * addresses with no claim bound.
+     */
+    phase?: 'Available' | 'Bound';
+    /**
+     * vpc is the base62 identifier of the VPC backing this network in this
+     * location, matching the identifier the fabric keys on. The provider records
+     * it when the attachment is programmed.
+     */
+    vpc?: string;
+  };
+};
+
+/**
+ * NetworkInterfaceClaim asks for an interface on a network. It is the resource
+ * a user creates. The operator finds or creates a NetworkInterface that
+ * satisfies it, allocates the addresses, and reports them in status.
+ *
+ * A claim describes what the interface must be able to do, never which
+ * interface or address to use. One claim holds at most one interface, and one
+ * interface is held by at most one claim.
+ *
+ * A claim's name is what makes addresses stable. It names the slot in a
+ * workload rather than the instance filling it, so an instance replaced by
+ * another that asks for the same claim name comes back on the same interface
+ * and the same addresses. What happens when the claim itself is deleted is
+ * spec.reclaimPolicy.
+ */
+export type ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * NetworkInterfaceClaimSpec defines the desired state of NetworkInterfaceClaim.
+   * Every field states what the interface must be able to do, never which
+   * interface or which address to use.
+   *
+   * Most of the spec is immutable, because the addresses are allocated against
+   * it. To change one of those fields, delete the claim and create a new one,
+   * accepting that the workload gets new addresses unless the interface is
+   * retained.
+   */
+  spec: {
+    /**
+     * addresses request extra addresses by class, beyond the ones the interface
+     * holds inside its network. Each appears in status.externalAddresses as a
+     * bare address, mapped onto the interface address of the same family.
+     *
+     * Omit this field for ordinary private addressing, which is the common case.
+     */
+    addresses?: Array<{
+      /**
+       * class is the IPAM class to allocate from, such as public-ipv4.
+       *
+       * A class names a kind of address, and the platform decides which pool and
+       * prefix length serve it. A class never names a pool, a prefix length, or a
+       * CIDR, so a class cannot be used to ask for a particular address.
+       */
+      class: string;
+    }>;
+    /**
+     * attachmentMode is how the guest consumes this interface. Netns places it in
+     * the workload's network namespace, which is what an ordinary container
+     * expects. Hypervisor hands it to a hypervisor as a device, which is what a
+     * virtual machine or microVM guest needs. HypervisorDeclared also hands it
+     * to a hypervisor, and additionally has the realizer state the device to
+     * that hypervisor instead of letting it discover the device from the node.
+     *
+     * It is copied to the bound interface and never interpreted here. Whoever
+     * realizes the interface decides what each mode means on its data plane.
+     *
+     * Immutable, because the guest and the attachment are both built against it.
+     */
+    attachmentMode?: 'Netns' | 'Hypervisor' | 'HypervisorDeclared';
+    /**
+     * interfaceName is the device name the interface presents to the guest
+     * operating system, such as eth0 or eth1. Set it when a workload has more
+     * than one interface and the guest configuration names them.
+     *
+     * Immutable, because the guest is configured against it.
+     */
+    interfaceName?: string;
+    /**
+     * ipFamilies are the address families the interface must carry, in priority
+     * order. List [IPv6, IPv4] for a dual-stack interface. The first family
+     * listed holds the interface's primary address, which is the one reported in
+     * single-address fields such as an instance's network IP.
+     *
+     * Every family listed must be satisfiable or the claim does not bind. Asking
+     * for a family the network does not carry fails the claim outright rather
+     * than leaving it pending, and no partially addressed interface is ever
+     * published.
+     */
+    ipFamilies?: Array<'IPv4' | 'IPv6'>;
+    /**
+     * network is the network the interface attaches to. The network must already
+     * exist in the same namespace as the claim.
+     *
+     * Immutable. An interface that changed network would hold addresses from a
+     * space it no longer belongs to, so move a workload by recreating the claim
+     * against the other network.
+     */
+    network: {
+      /**
+       * The network name
+       */
+      name: string;
+    };
+    /**
+     * networkInterfaceName binds one specific interface by name, instead of the
+     * interface named after this claim. The named interface must already carry
+     * every family and class this claim asks for, under the same reclaim policy,
+     * and must not be held by another claim.
+     *
+     * Leave it empty, which is the normal case. The claim then binds the
+     * interface of its own name, retained by an earlier claim, or creates one.
+     *
+     * Immutable, including from empty to set. Rebinding a workload to a different
+     * interface means a new claim.
+     */
+    networkInterfaceName?: string;
+    /**
+     * reclaimPolicy decides what becomes of the bound interface, and its
+     * addresses, when this claim is deleted.
+     *
+     * Delete deletes the interface and returns its addresses to IPAM. A workload
+     * recreated later comes back on different addresses.
+     *
+     * Retain keeps the interface, unbound and still holding its addresses, so a
+     * later claim of this name binds it again and the workload returns to the
+     * same addresses. Choose Retain when an address is published in DNS, allowed
+     * through a firewall, or otherwise depended on from outside.
+     *
+     * A retained address is reserved, and billable, for as long as the interface
+     * exists. Deleting the interface does not return it to the pool today, so
+     * choose Retain for addresses worth holding rather than as a default.
+     *
+     * Both policies keep the addresses while the claim exists, including across
+     * instance replacement. They differ only on scale-down and deletion.
+     *
+     * Immutable. An address keeps the policy it was allocated under, and a claim
+     * asking for a policy the interface was not allocated under cannot bind it.
+     */
+    reclaimPolicy?: 'Delete' | 'Retain';
+  };
+  /**
+   * NetworkInterfaceClaimStatus defines the observed state of
+   * NetworkInterfaceClaim. It repeats the bound interface's addresses so a
+   * consumer reads one object rather than following the reference.
+   */
+  status?: {
+    /**
+     * addresses are the addresses the bound interface holds inside its network,
+     * each with its prefix length and, once the location has a subnet, its
+     * gateway. They are copied from the interface, which remains the source of
+     * truth.
+     */
+    addresses?: Array<{
+      /**
+       * address is the address the interface holds, in CIDR notation, such as
+       * 10.128.0.2/32 or 2001:db8:a001::1/128.
+       *
+       * For IPv6 this may be a block delegated to the interface rather than a
+       * single address, such as 2001:db8:a001::/96. The interface owns the whole
+       * block and assigns within it.
+       */
+      address: string;
+      /**
+       * class is the IPAM class this address was allocated from, such as
+       * private-ipv6. It is empty for the addresses a claim requests by family
+       * rather than by class.
+       */
+      class?: string;
+      /**
+       * family is the address family of this entry.
+       */
+      family: 'IPv4' | 'IPv6';
+      /**
+       * gateway is the next hop the interface routes through for this family, such
+       * as 10.128.0.1. It is resolved from the subnet backing the network in this
+       * location, so nothing has to read the subnet to configure the NIC. It is
+       * empty until that subnet exists.
+       */
+      gateway?: string;
+      /**
+       * primary marks the address projected into single-address fields, such as an
+       * instance's reported network IP.
+       *
+       * Exactly one address is primary for the interface as a whole, not one per
+       * family. It is the address of the first family the claim listed in
+       * spec.ipFamilies.
+       */
+      primary?: boolean;
+    }>;
+    /**
+     * conditions report the current state of the claim. Wait on Ready, which is
+     * true once the claim is bound, its addresses are allocated, the data plane
+     * is prepared for a workload, and the data plane carries the addresses.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * externalAddresses are the addresses the bound interface is reachable at from
+     * outside the network, one per class the claim requested. Each is a bare
+     * address with no prefix length. They are copied from the interface.
+     */
+    externalAddresses?: Array<{
+      /**
+       * address is the externally reachable address, such as 203.0.113.10. It
+       * carries no prefix length.
+       */
+      address: string;
+      /**
+       * class is the IPAM class this address was allocated from, such as
+       * public-ipv4. It matches the class the claim requested in spec.addresses.
+       */
+      class: string;
+      /**
+       * family is the address family of this entry.
+       */
+      family: 'IPv4' | 'IPv6';
+    }>;
+    /**
+     * networkInterfaceRef is the interface bound to this claim, in the same
+     * namespace. Read it to reach fields the claim does not repeat, such as the
+     * MTU and the data-plane attachment.
+     */
+    networkInterfaceRef?: {
+      /**
+       * name is the network interface name.
+       */
+      name: string;
+    };
+  };
+};
+
+/**
+ * NetworkInterfaceClaimList is a list of NetworkInterfaceClaim
+ */
+export type ComDatumapisNetworkingV1AlphaNetworkInterfaceClaimList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of networkinterfaceclaims. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * NetworkInterfaceList is a list of NetworkInterface
+ */
+export type ComDatumapisNetworkingV1AlphaNetworkInterfaceList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of networkinterfaces. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComDatumapisNetworkingV1AlphaNetworkInterface>;
   /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
@@ -2664,6 +4075,373 @@ export type ComDatumapisNetworkingV1AlphaNetworkPolicyList = {
 };
 
 /**
+ * NetworkService is a named set of endpoints spanning every location a consumer
+ * runs in. Members are selected by label, and a proxy names the service as its
+ * backend.
+ *
+ * Anycast brings each request to the closest edge. The service covers the rest:
+ * that edge ranks the service's locations by distance from itself, serves the
+ * request from the best one, and moves to the next if it fails. None of that is
+ * configured here.
+ *
+ * A service selects network interfaces, which belong to the networking API.
+ * Nothing in it names a workload, so anything that holds an interface can be
+ * put behind one.
+ */
+export type ComDatumapisNetworkingV1AlphaNetworkService = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * NetworkServiceSpec defines the desired state of NetworkService. It names the
+   * members and the ports they answer on, and nothing about where traffic should
+   * go: the platform decides that from where each request arrived.
+   */
+  spec: {
+    /**
+     * networkInterfaces selects the interfaces that make up the service's
+     * membership. An interface joins when it matches and a workload holds it,
+     * and it is healthy once whatever holds it reports itself available to serve.
+     * It leaves when it stops matching, when its workload releases it, or when it
+     * goes away.
+     *
+     * Membership tracks reality rather than a list, so instances appearing,
+     * disappearing, and moving between locations need no edit here.
+     */
+    networkInterfaces: {
+      /**
+       * selector is a standard label selector matched against network interfaces.
+       * It reaches only interfaces the consumer owns.
+       *
+       * Every interface carries a defined set of labels, so the facts worth
+       * selecting on are present without labelling anything first. Networking sets
+       * networking.datumapis.com/location on every interface; compute sets keys
+       * such as compute.datumapis.com/workload-name on the interfaces its
+       * workloads hold. Selecting a whole application by workload name is the
+       * common case, and adding keys narrows the membership to one placement or
+       * one location.
+       *
+       * Adding the location key restricts which interfaces are members. It does
+       * not steer traffic: serving users from the location nearest them requires
+       * no configuration.
+       *
+       * The selector must constrain something. An empty selector would make every
+       * interface in the namespace a member, which is never what a service means.
+       *
+       * An interface no workload holds any more is never a member, whatever it is
+       * labelled: its addresses are retired capacity and nothing answers on them.
+       *
+       * A selector matching interfaces across more than one network is a
+       * configuration error, reported on the MembersResolved condition. A service
+       * spans one network.
+       */
+      selector: {
+        /**
+         * matchExpressions is a list of label selector requirements. The requirements are ANDed.
+         */
+        matchExpressions?: Array<{
+          /**
+           * key is the label key that the selector applies to.
+           */
+          key: string;
+          /**
+           * operator represents a key's relationship to a set of values.
+           * Valid operators are In, NotIn, Exists and DoesNotExist.
+           */
+          operator: string;
+          /**
+           * values is an array of string values. If the operator is In or NotIn,
+           * the values array must be non-empty. If the operator is Exists or DoesNotExist,
+           * the values array must be empty. This array is replaced during a strategic
+           * merge patch.
+           */
+          values?: Array<string>;
+        }>;
+        /**
+         * matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels
+         * map is equivalent to an element of matchExpressions, whose key field is "key", the
+         * operator is "In", and the values array contains only "value". The requirements are ANDed.
+         */
+        matchLabels?: {
+          [key: string]: string;
+        };
+      };
+    };
+    /**
+     * ports are the ports the service's members answer on. A backend referencing
+     * this service names one of them.
+     */
+    ports: Array<{
+      /**
+       * name identifies the port within the service, and is what a backend
+       * referencing this service names. Naming a port rather than a number lets
+       * the reference survive a port change.
+       *
+       * Must be a DNS label and unique within the service.
+       */
+      name: string;
+      /**
+       * port is the port number every member answers on. It is the port on the
+       * member itself, not one the platform publishes.
+       *
+       * Unique within the service.
+       */
+      port: number;
+      /**
+       * protocol is the transport the port carries. TCP is the only value
+       * accepted, and is what a backend served through a proxy uses. The field
+       * exists so the same service can back a Layer 4 load balancer without
+       * changing shape.
+       */
+      protocol?: 'TCP';
+    }>;
+    /**
+     * trafficDistribution is how traffic is spread across the locations the
+     * service has members in. Leave it unset: the default serves each request
+     * from the location nearest the edge that received it, which is what a
+     * consumer wants without saying so.
+     */
+    trafficDistribution?: {
+      /**
+       * strategy is how a location is chosen for each request. Nearest is the only
+       * value accepted today: each edge prefers the service's location closest to
+       * itself and falls back down its own ranking when that location cannot
+       * serve.
+       *
+       * The field carries one value deliberately. A consumer who sets it today
+       * keeps working when further strategies are added.
+       */
+      strategy?: 'Nearest';
+    };
+  };
+  /**
+   * NetworkServiceStatus defines the observed state of NetworkService. It answers
+   * which location serves a consumer's users and whether any location is out of
+   * rotation, which is what makes an over-broad or stale selector visible instead
+   * of silent.
+   */
+  status?: {
+    /**
+     * conditions report the current state of the service. Wait on Ready, which
+     * is true once membership has resolved and the edge is reaching the members
+     * it resolved to.
+     */
+    conditions?: Array<{
+      /**
+       * lastTransitionTime is the last time the condition transitioned from one status to another.
+       * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+       */
+      lastTransitionTime: string;
+      /**
+       * message is a human readable message indicating details about the transition.
+       * This may be an empty string.
+       */
+      message: string;
+      /**
+       * observedGeneration represents the .metadata.generation that the condition was set based upon.
+       * For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+       * with respect to the current state of the instance.
+       */
+      observedGeneration?: number;
+      /**
+       * reason contains a programmatic identifier indicating the reason for the condition's last transition.
+       * Producers of specific condition types may define expected values and meanings for this field,
+       * and whether the values are considered a guaranteed API.
+       * The value should be a CamelCase string.
+       * This field may not be empty.
+       */
+      reason: string;
+      /**
+       * status of the condition, one of True, False, Unknown.
+       */
+      status: 'True' | 'False' | 'Unknown';
+      /**
+       * type of condition in CamelCase or in foo.example.com/CamelCase.
+       */
+      type: string;
+    }>;
+    /**
+     * locations report the members the service has in each location it reaches,
+     * how many of them are healthy, and whether the location is taking traffic.
+     */
+    locations?: Array<{
+      /**
+       * healthy is how many of this location's members are currently taking
+       * traffic. It falls below members when the edge ejects a member whose
+       * requests are failing.
+       */
+      healthy?: number;
+      /**
+       * members is how many interfaces in this location are members of the
+       * service.
+       */
+      members?: number;
+      /**
+       * name is the location, as it appears in the
+       * networking.datumapis.com/location label on the interfaces.
+       */
+      name: string;
+      /**
+       * serving reports whether this location is in rotation. It goes false when
+       * too few members are healthy for the location to be worth sending traffic
+       * to, which is what moves traffic down each edge's ranking.
+       */
+      serving?: boolean;
+    }>;
+    /**
+     * summary totals the locations below.
+     */
+    summary?: {
+      /**
+       * healthy is how many of those members are currently taking traffic.
+       */
+      healthy?: number;
+      /**
+       * locations is how many locations the service has members in.
+       */
+      locations?: number;
+      /**
+       * members is how many interfaces are members of the service, across every
+       * location.
+       */
+      members?: number;
+    };
+  };
+};
+
+/**
+ * NetworkServiceList is a list of NetworkService
+ */
+export type ComDatumapisNetworkingV1AlphaNetworkServiceList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of networkservices. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComDatumapisNetworkingV1AlphaNetworkService>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
+ * ServingLocation tells a cell which location it serves.
+ *
+ * A cell is a cluster that runs workloads at one physical location. It cannot
+ * tell where it is on its own, so the platform delivers it a ServingLocation:
+ * a read-only copy of a Location, carrying the name and topology of the place
+ * the cell sits in. Everything the cell does that depends on where it is,
+ * such as claiming network addresses, resolves through this object.
+ *
+ * A ServingLocation takes the name of the Location it was copied from. Expect
+ * exactly one on a cell. Two or more means more than one location has been
+ * delivered to the same cell, and the cell refuses to guess between them.
+ *
+ * This object is managed for you. Create and edit Locations on the platform
+ * control plane; the copies follow.
+ */
+export type ComDatumapisNetworkingV1AlphaServingLocation = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ObjectMeta;
+  /**
+   * ServingLocationSpec describes the location a cell serves.
+   */
+  spec?: {
+    /**
+     * Source identifies the Location this copy came from. Use it to tell how
+     * current the copy is: compare it against the Location of the same name to
+     * see whether an edit has reached this cell yet.
+     *
+     * The publisher sets this field. Leave it alone.
+     */
+    source?: {
+      /**
+       * Generation is the metadata.generation of the Location this copy came
+       * from. When it is lower than the Location's current generation, an edit
+       * has not reached this cell yet.
+       */
+      generation?: number;
+      /**
+       * PublishedAt is when the content of this copy last changed. A copy that is
+       * re-checked but not changed keeps its original timestamp, so an old
+       * timestamp means the location has been stable, not that publishing has
+       * stalled.
+       */
+      publishedAt?: string;
+    };
+    /**
+     * Topology describes where in the world this location is. Workloads placed
+     * at this location inherit it, and placement rules that ask for a city or a
+     * region are answered from these keys.
+     *
+     * The map holds arbitrary keys. Some keys are well known:
+     *
+     * topology.datum.net/city-code: IAD
+     * topology.datum.net/region: us-east-1
+     *
+     * You must supply topology.datum.net/city-code, and it must not be empty.
+     * A location with no city code cannot serve placement requests that name a
+     * city, so the API rejects it. Any other key you set is carried through
+     * unchanged and is available to workloads at this location.
+     *
+     * This field copies the topology of the Location it was published from.
+     * Edit the Location, not this copy.
+     */
+    topology: {
+      [key: string]: string;
+    };
+  };
+};
+
+/**
+ * ServingLocationList is a list of ServingLocation
+ */
+export type ComDatumapisNetworkingV1AlphaServingLocationList = {
+  /**
+   * APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+   */
+  apiVersion?: string;
+  /**
+   * List of servinglocations. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md
+   */
+  items: Array<ComDatumapisNetworkingV1AlphaServingLocation>;
+  /**
+   * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  kind?: string;
+  /**
+   * Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+   */
+  metadata?: IoK8sApimachineryPkgApisMetaV1ListMeta;
+};
+
+/**
  * Subnet is the Schema for the subnets API
  */
 export type ComDatumapisNetworkingV1AlphaSubnet = {
@@ -2695,10 +4473,6 @@ export type ComDatumapisNetworkingV1AlphaSubnet = {
        * Name of a datum location
        */
       name: string;
-      /**
-       * Namespace for the datum location
-       */
-      namespace: string;
     };
     /**
      * A subnet's network context
@@ -2806,10 +4580,6 @@ export type ComDatumapisNetworkingV1AlphaSubnetClaim = {
        * Name of a datum location
        */
       name: string;
-      /**
-       * Namespace for the datum location
-       */
-      namespace: string;
     };
     /**
      * The network context to claim a subnet in
@@ -3219,8 +4989,38 @@ export type ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy = {
       };
       /**
        * Conditions describes the status of the Policy with respect to the given Ancestor.
+       *
+       * <gateway:util:excludeFromCRD>
+       *
+       * Notes for implementors:
+       *
+       * Conditions are a listType `map`, which means that they function like a
+       * map with a key of the `type` field _in the k8s apiserver_.
+       *
+       * This means that implementations must obey some rules when updating this
+       * section.
+       *
+       * * Implementations MUST perform a read-modify-write cycle on this field
+       * before modifying it. That is, when modifying this field, implementations
+       * must be confident they have fetched the most recent version of this field,
+       * and ensure that changes they make are on that recent version.
+       * * Implementations MUST NOT remove or reorder Conditions that they are not
+       * directly responsible for. For example, if an implementation sees a Condition
+       * with type `special.io/SomeField`, it MUST NOT remove, change or update that
+       * Condition.
+       * * Implementations MUST always _merge_ changes into Conditions of the same Type,
+       * rather than creating more than one Condition of the same Type.
+       * * Implementations MUST always update the `observedGeneration` field of the
+       * Condition to the `metadata.generation` of the Gateway at the time of update creation.
+       * * If the `observedGeneration` of a Condition is _greater than_ the value the
+       * implementation knows about, then it MUST NOT perform the update on that Condition,
+       * but must wait for a future reconciliation and status update. (The assumption is that
+       * the implementation's copy of the object is stale and an update will be re-triggered
+       * if relevant.)
+       *
+       * </gateway:util:excludeFromCRD>
        */
-      conditions?: Array<{
+      conditions: Array<{
         /**
          * lastTransitionTime is the last time the condition transitioned from one status to another.
          * This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
@@ -3809,10 +5609,14 @@ export type ListNetworkingDatumapisComV1AlphaHttpProxyForAllNamespacesResponses 
 export type ListNetworkingDatumapisComV1AlphaHttpProxyForAllNamespacesResponse =
   ListNetworkingDatumapisComV1AlphaHttpProxyForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaHttpProxyForAllNamespacesResponses];
 
-export type ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesData = {
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationBindingData = {
   body?: never;
   path?: never;
   query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
     /**
      * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
      */
@@ -3838,9 +5642,570 @@ export type ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesData = {
      */
     limit?: number;
     /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationBindingResponse =
+  DeleteNetworkingDatumapisComV1AlphaCollectionLocationBindingResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionLocationBindingResponses];
+
+export type ListNetworkingDatumapisComV1AlphaLocationBindingData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
      * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
      */
     pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings';
+};
+
+export type ListNetworkingDatumapisComV1AlphaLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBindingList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaLocationBindingResponse =
+  ListNetworkingDatumapisComV1AlphaLocationBindingResponses[keyof ListNetworkingDatumapisComV1AlphaLocationBindingResponses];
+
+export type CreateNetworkingDatumapisComV1AlphaLocationBindingData = {
+  body: ComDatumapisNetworkingV1AlphaLocationBinding;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings';
+};
+
+export type CreateNetworkingDatumapisComV1AlphaLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaLocationBinding;
+  /**
+   * Accepted
+   */
+  202: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaLocationBindingResponse =
+  CreateNetworkingDatumapisComV1AlphaLocationBindingResponses[keyof CreateNetworkingDatumapisComV1AlphaLocationBindingResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationBindingData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationBindingResponse =
+  DeleteNetworkingDatumapisComV1AlphaLocationBindingResponses[keyof DeleteNetworkingDatumapisComV1AlphaLocationBindingResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingData = {
+  body?: never;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingResponse =
+  ReadNetworkingDatumapisComV1AlphaLocationBindingResponses[keyof ReadNetworkingDatumapisComV1AlphaLocationBindingResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingResponse =
+  PatchNetworkingDatumapisComV1AlphaLocationBindingResponses[keyof PatchNetworkingDatumapisComV1AlphaLocationBindingResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingData = {
+  body: ComDatumapisNetworkingV1AlphaLocationBinding;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingResponse =
+  ReplaceNetworkingDatumapisComV1AlphaLocationBindingResponses[keyof ReplaceNetworkingDatumapisComV1AlphaLocationBindingResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}/status';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationBindingStatusResponse =
+  ReadNetworkingDatumapisComV1AlphaLocationBindingStatusResponses[keyof ReadNetworkingDatumapisComV1AlphaLocationBindingStatusResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}/status';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationBindingStatusResponse =
+  PatchNetworkingDatumapisComV1AlphaLocationBindingStatusResponses[keyof PatchNetworkingDatumapisComV1AlphaLocationBindingStatusResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingStatusData = {
+  body: ComDatumapisNetworkingV1AlphaLocationBinding;
+  path: {
+    /**
+     * name of the LocationBinding
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locationbindings/{name}/status';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocationBinding;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaLocationBinding;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationBindingStatusResponse =
+  ReplaceNetworkingDatumapisComV1AlphaLocationBindingStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaLocationBindingStatusResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
     /**
      * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
      *
@@ -3881,22 +6246,498 @@ export type ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesData = {
   url: '/apis/networking.datumapis.com/v1alpha/locations';
 };
 
-export type ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesErrors = {
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationErrors = {
   /**
    * Unauthorized
    */
   401: unknown;
 };
 
-export type ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesResponses = {
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionLocationResponse =
+  DeleteNetworkingDatumapisComV1AlphaCollectionLocationResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionLocationResponses];
+
+export type ListNetworkingDatumapisComV1AlphaLocationData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations';
+};
+
+export type ListNetworkingDatumapisComV1AlphaLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaLocationResponses = {
   /**
    * OK
    */
   200: ComDatumapisNetworkingV1AlphaLocationList;
 };
 
-export type ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesResponse =
-  ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaLocationForAllNamespacesResponses];
+export type ListNetworkingDatumapisComV1AlphaLocationResponse =
+  ListNetworkingDatumapisComV1AlphaLocationResponses[keyof ListNetworkingDatumapisComV1AlphaLocationResponses];
+
+export type CreateNetworkingDatumapisComV1AlphaLocationData = {
+  body: ComDatumapisNetworkingV1AlphaLocation;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations';
+};
+
+export type CreateNetworkingDatumapisComV1AlphaLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaLocation;
+  /**
+   * Accepted
+   */
+  202: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaLocationResponse =
+  CreateNetworkingDatumapisComV1AlphaLocationResponses[keyof CreateNetworkingDatumapisComV1AlphaLocationResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaLocationResponse =
+  DeleteNetworkingDatumapisComV1AlphaLocationResponses[keyof DeleteNetworkingDatumapisComV1AlphaLocationResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaLocationData = {
+  body?: never;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationResponse =
+  ReadNetworkingDatumapisComV1AlphaLocationResponses[keyof ReadNetworkingDatumapisComV1AlphaLocationResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaLocationData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationResponse =
+  PatchNetworkingDatumapisComV1AlphaLocationResponses[keyof PatchNetworkingDatumapisComV1AlphaLocationResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationData = {
+  body: ComDatumapisNetworkingV1AlphaLocation;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationResponse =
+  ReplaceNetworkingDatumapisComV1AlphaLocationResponses[keyof ReplaceNetworkingDatumapisComV1AlphaLocationResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaLocationStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}/status';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaLocationStatusResponse =
+  ReadNetworkingDatumapisComV1AlphaLocationStatusResponses[keyof ReadNetworkingDatumapisComV1AlphaLocationStatusResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaLocationStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}/status';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaLocationStatusResponse =
+  PatchNetworkingDatumapisComV1AlphaLocationStatusResponses[keyof PatchNetworkingDatumapisComV1AlphaLocationStatusResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationStatusData = {
+  body: ComDatumapisNetworkingV1AlphaLocation;
+  path: {
+    /**
+     * name of the Location
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/locations/{name}/status';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaLocation;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaLocation;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaLocationStatusResponse =
+  ReplaceNetworkingDatumapisComV1AlphaLocationStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaLocationStatusResponses];
 
 export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedDomainData = {
   body?: never;
@@ -5114,614 +7955,6 @@ export type ReplaceNetworkingDatumapisComV1AlphaNamespacedHttpProxyStatusRespons
 export type ReplaceNetworkingDatumapisComV1AlphaNamespacedHttpProxyStatusResponse =
   ReplaceNetworkingDatumapisComV1AlphaNamespacedHttpProxyStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedHttpProxyStatusResponses];
 
-export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedLocationData = {
-  body?: never;
-  path: {
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
-     */
-    allowWatchBookmarks?: boolean;
-    /**
-     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
-     *
-     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
-     */
-    continue?: string;
-    /**
-     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
-     */
-    fieldSelector?: string;
-    /**
-     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
-     */
-    labelSelector?: string;
-    /**
-     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
-     *
-     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
-     */
-    limit?: number;
-    /**
-     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
-     *
-     * Defaults to unset
-     */
-    resourceVersion?: string;
-    /**
-     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
-     *
-     * Defaults to unset
-     */
-    resourceVersionMatch?: string;
-    /**
-     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
-     *
-     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
-     * is interpreted as "data at least as new as the provided `resourceVersion`"
-     * and the bookmark event is send when the state is synced
-     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
-     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
-     * bookmark event is send when the state is synced at least to the moment
-     * when request started being processed.
-     * - `resourceVersionMatch` set to any other value or unset
-     * Invalid error is returned.
-     *
-     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
-     */
-    sendInitialEvents?: boolean;
-    /**
-     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
-     */
-    timeoutSeconds?: number;
-    /**
-     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
-     */
-    watch?: boolean;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations';
-};
-
-export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: IoK8sApimachineryPkgApisMetaV1Status;
-};
-
-export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedLocationResponse =
-  DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedLocationResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedLocationResponses];
-
-export type ListNetworkingDatumapisComV1AlphaNamespacedLocationData = {
-  body?: never;
-  path: {
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
-     */
-    allowWatchBookmarks?: boolean;
-    /**
-     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
-     *
-     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
-     */
-    continue?: string;
-    /**
-     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
-     */
-    fieldSelector?: string;
-    /**
-     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
-     */
-    labelSelector?: string;
-    /**
-     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
-     *
-     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
-     */
-    limit?: number;
-    /**
-     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
-     *
-     * Defaults to unset
-     */
-    resourceVersion?: string;
-    /**
-     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
-     *
-     * Defaults to unset
-     */
-    resourceVersionMatch?: string;
-    /**
-     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
-     *
-     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
-     * is interpreted as "data at least as new as the provided `resourceVersion`"
-     * and the bookmark event is send when the state is synced
-     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
-     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
-     * bookmark event is send when the state is synced at least to the moment
-     * when request started being processed.
-     * - `resourceVersionMatch` set to any other value or unset
-     * Invalid error is returned.
-     *
-     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
-     */
-    sendInitialEvents?: boolean;
-    /**
-     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
-     */
-    timeoutSeconds?: number;
-    /**
-     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
-     */
-    watch?: boolean;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations';
-};
-
-export type ListNetworkingDatumapisComV1AlphaNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type ListNetworkingDatumapisComV1AlphaNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocationList;
-};
-
-export type ListNetworkingDatumapisComV1AlphaNamespacedLocationResponse =
-  ListNetworkingDatumapisComV1AlphaNamespacedLocationResponses[keyof ListNetworkingDatumapisComV1AlphaNamespacedLocationResponses];
-
-export type CreateNetworkingDatumapisComV1AlphaNamespacedLocationData = {
-  body: ComDatumapisNetworkingV1AlphaLocation;
-  path: {
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
-     */
-    dryRun?: string;
-    /**
-     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
-     */
-    fieldManager?: string;
-    /**
-     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
-     */
-    fieldValidation?: string;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations';
-};
-
-export type CreateNetworkingDatumapisComV1AlphaNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type CreateNetworkingDatumapisComV1AlphaNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-  /**
-   * Created
-   */
-  201: ComDatumapisNetworkingV1AlphaLocation;
-  /**
-   * Accepted
-   */
-  202: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type CreateNetworkingDatumapisComV1AlphaNamespacedLocationResponse =
-  CreateNetworkingDatumapisComV1AlphaNamespacedLocationResponses[keyof CreateNetworkingDatumapisComV1AlphaNamespacedLocationResponses];
-
-export type DeleteNetworkingDatumapisComV1AlphaNamespacedLocationData = {
-  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
-     */
-    dryRun?: string;
-    /**
-     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
-     */
-    gracePeriodSeconds?: number;
-    /**
-     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
-     */
-    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
-    /**
-     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
-     */
-    orphanDependents?: boolean;
-    /**
-     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
-     */
-    propagationPolicy?: string;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}';
-};
-
-export type DeleteNetworkingDatumapisComV1AlphaNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type DeleteNetworkingDatumapisComV1AlphaNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: IoK8sApimachineryPkgApisMetaV1Status;
-  /**
-   * Accepted
-   */
-  202: IoK8sApimachineryPkgApisMetaV1Status;
-};
-
-export type DeleteNetworkingDatumapisComV1AlphaNamespacedLocationResponse =
-  DeleteNetworkingDatumapisComV1AlphaNamespacedLocationResponses[keyof DeleteNetworkingDatumapisComV1AlphaNamespacedLocationResponses];
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationData = {
-  body?: never;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
-     *
-     * Defaults to unset
-     */
-    resourceVersion?: string;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}';
-};
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationResponse =
-  ReadNetworkingDatumapisComV1AlphaNamespacedLocationResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedLocationResponses];
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
-     */
-    dryRun?: string;
-    /**
-     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
-     */
-    fieldManager?: string;
-    /**
-     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
-     */
-    fieldValidation?: string;
-    /**
-     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
-     */
-    force?: boolean;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}';
-};
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationResponse =
-  PatchNetworkingDatumapisComV1AlphaNamespacedLocationResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedLocationResponses];
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationData = {
-  body: ComDatumapisNetworkingV1AlphaLocation;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
-     */
-    dryRun?: string;
-    /**
-     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
-     */
-    fieldManager?: string;
-    /**
-     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
-     */
-    fieldValidation?: string;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}';
-};
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-  /**
-   * Created
-   */
-  201: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationResponse =
-  ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationResponses];
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationStatusData = {
-  body?: never;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
-     *
-     * Defaults to unset
-     */
-    resourceVersion?: string;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}/status';
-};
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationStatusErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type ReadNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponse =
-  ReadNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses];
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationStatusData = {
-  body: IoK8sApimachineryPkgApisMetaV1Patch;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
-     */
-    dryRun?: string;
-    /**
-     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
-     */
-    fieldManager?: string;
-    /**
-     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
-     */
-    fieldValidation?: string;
-    /**
-     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
-     */
-    force?: boolean;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}/status';
-};
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationStatusErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type PatchNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponse =
-  PatchNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses];
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationStatusData = {
-  body: ComDatumapisNetworkingV1AlphaLocation;
-  path: {
-    /**
-     * name of the Location
-     */
-    name: string;
-    /**
-     * object name and auth scope, such as for teams and projects
-     */
-    namespace: string;
-  };
-  query?: {
-    /**
-     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
-     */
-    pretty?: string;
-    /**
-     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
-     */
-    dryRun?: string;
-    /**
-     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
-     */
-    fieldManager?: string;
-    /**
-     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
-     */
-    fieldValidation?: string;
-  };
-  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/locations/{name}/status';
-};
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationStatusErrors = {
-  /**
-   * Unauthorized
-   */
-  401: unknown;
-};
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses = {
-  /**
-   * OK
-   */
-  200: ComDatumapisNetworkingV1AlphaLocation;
-  /**
-   * Created
-   */
-  201: ComDatumapisNetworkingV1AlphaLocation;
-};
-
-export type ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponse =
-  ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedLocationStatusResponses];
-
 export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkBindingData = {
   body?: never;
   path: {
@@ -6938,6 +9171,1223 @@ export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkContextStatusRe
 export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkContextStatusResponse =
   ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkContextStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkContextStatusResponses];
 
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceClaimData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceClaimResponses =
+  {
+    /**
+     * OK
+     */
+    200: IoK8sApimachineryPkgApisMetaV1Status;
+  };
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceClaimResponse =
+  DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceClaimResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceClaimResponses];
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims';
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaimList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponse =
+  ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses[keyof ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses];
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims';
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  /**
+   * Accepted
+   */
+  202: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponse =
+  CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses[keyof CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponse =
+  DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses[keyof DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimData = {
+  body?: never;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponse =
+  ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponse =
+  PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponse =
+  ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}/status';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponse =
+  ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}/status';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponse =
+  PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  path: {
+    /**
+     * name of the NetworkInterfaceClaim
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaceclaims/{name}/status';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaim;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponse =
+  ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceClaimStatusResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceResponse =
+  DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkInterfaceResponses];
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces';
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponse =
+  ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses[keyof ListNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses];
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces';
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  /**
+   * Accepted
+   */
+  202: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponse =
+  CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses[keyof CreateNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponse =
+  DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses[keyof DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceData = {
+  body?: never;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponse =
+  ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponse =
+  PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponse =
+  ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}/status';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponse =
+  ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}/status';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponse =
+  PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  path: {
+    /**
+     * name of the NetworkInterface
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkinterfaces/{name}/status';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterface;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkInterface;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponse =
+  ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkInterfaceStatusResponses];
+
 export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkPolicyData = {
   body?: never;
   path: {
@@ -8153,6 +11603,614 @@ export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkStatusResponses
 
 export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkStatusResponse =
   ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkStatusResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkServiceData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkServiceResponse =
+  DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkServiceResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedNetworkServiceResponses];
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkServiceData = {
+  body?: never;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices';
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkServiceList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponse =
+  ListNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses[keyof ListNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses];
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkServiceData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkService;
+  path: {
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices';
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkService;
+  /**
+   * Accepted
+   */
+  202: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponse =
+  CreateNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses[keyof CreateNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkServiceData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponse =
+  DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses[keyof DeleteNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceData = {
+  body?: never;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponse =
+  ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponse =
+  PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkService;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponse =
+  ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusData = {
+  body?: never;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}/status';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponse =
+  ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses[keyof ReadNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}/status';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponse =
+  PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses[keyof PatchNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusData = {
+  body: ComDatumapisNetworkingV1AlphaNetworkService;
+  path: {
+    /**
+     * name of the NetworkService
+     */
+    name: string;
+    /**
+     * object name and auth scope, such as for teams and projects
+     */
+    namespace: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/namespaces/{namespace}/networkservices/{name}/status';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkService;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaNetworkService;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponse =
+  ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses[keyof ReplaceNetworkingDatumapisComV1AlphaNamespacedNetworkServiceStatusResponses];
 
 export type DeleteNetworkingDatumapisComV1AlphaCollectionNamespacedSubnetClaimData = {
   body?: never;
@@ -10157,6 +14215,184 @@ export type ListNetworkingDatumapisComV1AlphaNetworkContextForAllNamespacesRespo
 export type ListNetworkingDatumapisComV1AlphaNetworkContextForAllNamespacesResponse =
   ListNetworkingDatumapisComV1AlphaNetworkContextForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaNetworkContextForAllNamespacesResponses];
 
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceClaimForAllNamespacesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/networkinterfaceclaims';
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceClaimForAllNamespacesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceClaimForAllNamespacesResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceClaimList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceClaimForAllNamespacesResponse =
+  ListNetworkingDatumapisComV1AlphaNetworkInterfaceClaimForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaNetworkInterfaceClaimForAllNamespacesResponses];
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceForAllNamespacesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/networkinterfaces';
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceForAllNamespacesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceForAllNamespacesResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkInterfaceList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkInterfaceForAllNamespacesResponse =
+  ListNetworkingDatumapisComV1AlphaNetworkInterfaceForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaNetworkInterfaceForAllNamespacesResponses];
+
 export type ListNetworkingDatumapisComV1AlphaNetworkPolicyForAllNamespacesData = {
   body?: never;
   path?: never;
@@ -10334,6 +14570,520 @@ export type ListNetworkingDatumapisComV1AlphaNetworkForAllNamespacesResponses = 
 
 export type ListNetworkingDatumapisComV1AlphaNetworkForAllNamespacesResponse =
   ListNetworkingDatumapisComV1AlphaNetworkForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaNetworkForAllNamespacesResponses];
+
+export type ListNetworkingDatumapisComV1AlphaNetworkServiceForAllNamespacesData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/networkservices';
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkServiceForAllNamespacesErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkServiceForAllNamespacesResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaNetworkServiceList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaNetworkServiceForAllNamespacesResponse =
+  ListNetworkingDatumapisComV1AlphaNetworkServiceForAllNamespacesResponses[keyof ListNetworkingDatumapisComV1AlphaNetworkServiceForAllNamespacesResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionServingLocationData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaCollectionServingLocationResponse =
+  DeleteNetworkingDatumapisComV1AlphaCollectionServingLocationResponses[keyof DeleteNetworkingDatumapisComV1AlphaCollectionServingLocationResponses];
+
+export type ListNetworkingDatumapisComV1AlphaServingLocationData = {
+  body?: never;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * allowWatchBookmarks requests watch events with type "BOOKMARK". Servers that do not implement bookmarks may ignore this flag and bookmarks are sent at the server's discretion. Clients should not assume bookmarks are returned at any specific interval, nor may they assume the server will send any BOOKMARK event during a session. If this is not a watch, this field is ignored.
+     */
+    allowWatchBookmarks?: boolean;
+    /**
+     * The continue option should be set when retrieving more results from the server. Since this value is server defined, clients may only use the continue value from a previous query result with identical query parameters (except for the value of continue) and the server may reject a continue value it does not recognize. If the specified continue value is no longer valid whether due to expiration (generally five to fifteen minutes) or a configuration change on the server, the server will respond with a 410 ResourceExpired error together with a continue token. If the client needs a consistent list, it must restart their list without the continue field. Otherwise, the client may send another list request with the token received with the 410 error, the server will respond with a list starting from the next key, but from the latest snapshot, which is inconsistent from the previous list results - objects that are created, modified, or deleted after the first list request will be included in the response, as long as their keys are after the "next key".
+     *
+     * This field is not supported when watch is true. Clients may start a watch from the last resourceVersion value returned by the server and not miss any modifications.
+     */
+    continue?: string;
+    /**
+     * A selector to restrict the list of returned objects by their fields. Defaults to everything.
+     */
+    fieldSelector?: string;
+    /**
+     * A selector to restrict the list of returned objects by their labels. Defaults to everything.
+     */
+    labelSelector?: string;
+    /**
+     * limit is a maximum number of responses to return for a list call. If more items exist, the server will set the `continue` field on the list metadata to a value that can be used with the same initial query to retrieve the next set of results. Setting a limit may return fewer than the requested amount of items (up to zero items) in the event all requested objects are filtered out and clients should only use the presence of the continue field to determine whether more results are available. Servers may choose not to support the limit argument and will return all of the available results. If limit is specified and the continue field is empty, clients may assume that no more results are available. This field is not supported if watch is true.
+     *
+     * The server guarantees that the objects returned when using continue will be identical to issuing a single list call without a limit - that is, no objects created, modified, or deleted after the first request is issued will be included in any subsequent continued requests. This is sometimes referred to as a consistent snapshot, and ensures that a client that is using limit to receive smaller chunks of a very large result can ensure they see all possible objects. If objects are updated during a chunked list the version of the object that was present at the time the first list result was calculated is returned.
+     */
+    limit?: number;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+    /**
+     * resourceVersionMatch determines how resourceVersion is applied to list calls. It is highly recommended that resourceVersionMatch be set for list calls where resourceVersion is set See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersionMatch?: string;
+    /**
+     * `sendInitialEvents=true` may be set together with `watch=true`. In that case, the watch stream will begin with synthetic events to produce the current state of objects in the collection. Once all such events have been sent, a synthetic "Bookmark" event  will be sent. The bookmark will report the ResourceVersion (RV) corresponding to the set of objects, and be marked with `"k8s.io/initial-events-end": "true"` annotation. Afterwards, the watch stream will proceed as usual, sending watch events corresponding to changes (subsequent to the RV) to objects watched.
+     *
+     * When `sendInitialEvents` option is set, we require `resourceVersionMatch` option to also be set. The semantic of the watch request is as following: - `resourceVersionMatch` = NotOlderThan
+     * is interpreted as "data at least as new as the provided `resourceVersion`"
+     * and the bookmark event is send when the state is synced
+     * to a `resourceVersion` at least as fresh as the one provided by the ListOptions.
+     * If `resourceVersion` is unset, this is interpreted as "consistent read" and the
+     * bookmark event is send when the state is synced at least to the moment
+     * when request started being processed.
+     * - `resourceVersionMatch` set to any other value or unset
+     * Invalid error is returned.
+     *
+     * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
+     */
+    sendInitialEvents?: boolean;
+    /**
+     * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
+     */
+    timeoutSeconds?: number;
+    /**
+     * Watch for changes to the described resources and return them as a stream of add, update, and remove notifications. Specify resourceVersion.
+     */
+    watch?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations';
+};
+
+export type ListNetworkingDatumapisComV1AlphaServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ListNetworkingDatumapisComV1AlphaServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaServingLocationList;
+};
+
+export type ListNetworkingDatumapisComV1AlphaServingLocationResponse =
+  ListNetworkingDatumapisComV1AlphaServingLocationResponses[keyof ListNetworkingDatumapisComV1AlphaServingLocationResponses];
+
+export type CreateNetworkingDatumapisComV1AlphaServingLocationData = {
+  body: ComDatumapisNetworkingV1AlphaServingLocation;
+  path?: never;
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations';
+};
+
+export type CreateNetworkingDatumapisComV1AlphaServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaServingLocation;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaServingLocation;
+  /**
+   * Accepted
+   */
+  202: ComDatumapisNetworkingV1AlphaServingLocation;
+};
+
+export type CreateNetworkingDatumapisComV1AlphaServingLocationResponse =
+  CreateNetworkingDatumapisComV1AlphaServingLocationResponses[keyof CreateNetworkingDatumapisComV1AlphaServingLocationResponses];
+
+export type DeleteNetworkingDatumapisComV1AlphaServingLocationData = {
+  body?: IoK8sApimachineryPkgApisMetaV1DeleteOptions;
+  path: {
+    /**
+     * name of the ServingLocation
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
+     */
+    gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+    /**
+     * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
+     */
+    orphanDependents?: boolean;
+    /**
+     * Whether and how garbage collection will be performed. Either this field or OrphanDependents may be set, but not both. The default policy is decided by the existing finalizer set in the metadata.finalizers and the resource-specific default policy. Acceptable values are: 'Orphan' - orphan the dependents; 'Background' - allow the garbage collector to delete the dependents in the background; 'Foreground' - a cascading policy that deletes all dependents in the foreground.
+     */
+    propagationPolicy?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations/{name}';
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: IoK8sApimachineryPkgApisMetaV1Status;
+  /**
+   * Accepted
+   */
+  202: IoK8sApimachineryPkgApisMetaV1Status;
+};
+
+export type DeleteNetworkingDatumapisComV1AlphaServingLocationResponse =
+  DeleteNetworkingDatumapisComV1AlphaServingLocationResponses[keyof DeleteNetworkingDatumapisComV1AlphaServingLocationResponses];
+
+export type ReadNetworkingDatumapisComV1AlphaServingLocationData = {
+  body?: never;
+  path: {
+    /**
+     * name of the ServingLocation
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * resourceVersion sets a constraint on what resource versions a request may be served from. See https://kubernetes.io/docs/reference/using-api/api-concepts/#resource-versions for details.
+     *
+     * Defaults to unset
+     */
+    resourceVersion?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations/{name}';
+};
+
+export type ReadNetworkingDatumapisComV1AlphaServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaServingLocation;
+};
+
+export type ReadNetworkingDatumapisComV1AlphaServingLocationResponse =
+  ReadNetworkingDatumapisComV1AlphaServingLocationResponses[keyof ReadNetworkingDatumapisComV1AlphaServingLocationResponses];
+
+export type PatchNetworkingDatumapisComV1AlphaServingLocationData = {
+  body: IoK8sApimachineryPkgApisMetaV1Patch;
+  path: {
+    /**
+     * name of the ServingLocation
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint. This field is required for apply requests (application/apply-patch) but optional for non-apply patch types (JsonPatch, MergePatch, StrategicMergePatch).
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+    /**
+     * Force is going to "force" Apply requests. It means user will re-acquire conflicting fields owned by other people. Force flag must be unset for non-apply patch requests.
+     */
+    force?: boolean;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations/{name}';
+};
+
+export type PatchNetworkingDatumapisComV1AlphaServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaServingLocation;
+};
+
+export type PatchNetworkingDatumapisComV1AlphaServingLocationResponse =
+  PatchNetworkingDatumapisComV1AlphaServingLocationResponses[keyof PatchNetworkingDatumapisComV1AlphaServingLocationResponses];
+
+export type ReplaceNetworkingDatumapisComV1AlphaServingLocationData = {
+  body: ComDatumapisNetworkingV1AlphaServingLocation;
+  path: {
+    /**
+     * name of the ServingLocation
+     */
+    name: string;
+  };
+  query?: {
+    /**
+     * If 'true', then the output is pretty printed. Defaults to 'false' unless the user-agent indicates a browser or command-line HTTP tool (curl and wget).
+     */
+    pretty?: string;
+    /**
+     * When present, indicates that modifications should not be persisted. An invalid or unrecognized dryRun directive will result in an error response and no further processing of the request. Valid values are: - All: all dry run stages will be processed
+     */
+    dryRun?: string;
+    /**
+     * fieldManager is a name associated with the actor or entity that is making these changes. The value must be less than or 128 characters long, and only contain printable characters, as defined by https://golang.org/pkg/unicode/#IsPrint.
+     */
+    fieldManager?: string;
+    /**
+     * fieldValidation instructs the server on how to handle objects in the request (POST/PUT/PATCH) containing unknown or duplicate fields. Valid values are: - Ignore: This will ignore any unknown fields that are silently dropped from the object, and will ignore all but the last duplicate field that the decoder encounters. This is the default behavior prior to v1.23. - Warn: This will send a warning via the standard warning response header for each unknown field that is dropped from the object, and for each duplicate field that is encountered. The request will still succeed if there are no other errors, and will only persist the last of any duplicate fields. This is the default in v1.23+ - Strict: This will fail the request with a BadRequest error if any unknown fields would be dropped from the object, or if any duplicate fields are present. The error returned from the server will contain all unknown and duplicate fields encountered.
+     */
+    fieldValidation?: string;
+  };
+  url: '/apis/networking.datumapis.com/v1alpha/servinglocations/{name}';
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaServingLocationErrors = {
+  /**
+   * Unauthorized
+   */
+  401: unknown;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaServingLocationResponses = {
+  /**
+   * OK
+   */
+  200: ComDatumapisNetworkingV1AlphaServingLocation;
+  /**
+   * Created
+   */
+  201: ComDatumapisNetworkingV1AlphaServingLocation;
+};
+
+export type ReplaceNetworkingDatumapisComV1AlphaServingLocationResponse =
+  ReplaceNetworkingDatumapisComV1AlphaServingLocationResponses[keyof ReplaceNetworkingDatumapisComV1AlphaServingLocationResponses];
 
 export type ListNetworkingDatumapisComV1AlphaSubnetClaimForAllNamespacesData = {
   body?: never;

@@ -1,5 +1,6 @@
 import { summarizeBackends } from './backend-summary';
 import { TRAFFIC_PRESENCE_WINDOW_LABEL } from './use-alb-traffic-presence';
+import { useResolvedComputeWorkload } from './use-network-service';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
@@ -20,12 +21,15 @@ import {
   ShieldCheckIcon,
   ShieldIcon,
   ShieldOffIcon,
+  SquareLibrary,
   TriangleAlertIcon,
 } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
+import { Link } from 'react-router';
 
 interface HttpProxyHealthStripProps {
   proxy: HttpProxy;
+  projectId: string;
   /** Whether the viewer can read the TrafficProtectionPolicy at all. */
   canViewWaf: boolean;
   wafPending: boolean;
@@ -70,6 +74,7 @@ function Chip({
  */
 export function HttpProxyHealthStrip({
   proxy,
+  projectId,
   canViewWaf,
   wafPending,
   wafUnavailable,
@@ -82,6 +87,8 @@ export function HttpProxyHealthStrip({
   );
 
   const backends = summarizeBackends(proxy);
+  const computeBackend = useResolvedComputeWorkload(projectId, proxy);
+  const workloadName = computeBackend.workloadName ?? backends.workloadName;
   const hostnameCount = proxy.hostnames?.length ?? 0;
   const wafMode = proxy.trafficProtectionMode;
 
@@ -215,7 +222,20 @@ export function HttpProxyHealthStrip({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-          {backends.count != null ? (
+          {workloadName && computeBackend.href ? (
+            <Link
+              to={computeBackend.href}
+              className="inline-flex"
+              data-e2e="alb-health-compute-workload">
+              <Chip tone="muted" icon={SquareLibrary} tooltip="Compute workload">
+                {workloadName}
+              </Chip>
+            </Link>
+          ) : workloadName ? (
+            <Chip tone="muted" icon={SquareLibrary} tooltip="Compute workload">
+              {workloadName}
+            </Chip>
+          ) : backends.count != null ? (
             <Chip tone="muted" icon={ServerIcon}>
               {backends.count} {backends.count === 1 ? 'backend' : 'backends'}
             </Chip>

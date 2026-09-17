@@ -21,6 +21,7 @@ export {
   type HostnameStatus,
   basicAuthSchema,
   type BasicAuthSchema,
+  COMPUTE_WORKLOAD_NAME_LABEL,
 } from './http-proxy.schema';
 
 // Adapter exports

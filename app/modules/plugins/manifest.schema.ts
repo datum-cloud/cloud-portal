@@ -62,13 +62,14 @@ const navProjectExtensionSchema = z.object({
 
       const mode = props.comingSoonMode ?? 'holding';
       const needsLivePath = !props.comingSoon || mode === 'plugin';
-      if (needsLivePath && !props.path.trim()) {
+      // Empty string is the plugin index (mount root). Whitespace-only is not.
+      if (needsLivePath && props.path !== '' && !props.path.trim()) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message:
             mode === 'plugin'
-              ? 'path is required when comingSoonMode is plugin'
-              : 'path is required',
+              ? 'path must be empty (index) or a mount-relative route when comingSoonMode is plugin'
+              : 'path must be empty (index) or a mount-relative route',
           path: ['path'],
         });
       }
@@ -87,7 +88,10 @@ const navProjectExtensionSchema = z.object({
 const pageProjectExtensionSchema = z.object({
   type: z.literal(EXTENSION_PAGE_PROJECT),
   properties: z.object({
-    path: z.string(),
+    // Empty string is the plugin index (mount root). Whitespace-only is not.
+    path: z.string().refine((path) => path === '' || !!path.trim(), {
+      message: 'path must be empty (index) or a mount-relative route',
+    }),
     component: codeRefSchema,
   }),
   requirements: requirementsSchema,
