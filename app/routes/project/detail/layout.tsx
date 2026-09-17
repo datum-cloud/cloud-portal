@@ -7,6 +7,7 @@ import { useBreakpoint } from '@/hooks/use-breakpoint';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
+import { ProjectHeaderPluginContent } from '@/modules/plugins/client/plugin-header';
 import { pluginHostBindings } from '@/modules/plugins/client/plugin-sdk-bindings';
 import { useActiveServiceEntitlements } from '@/modules/plugins/client/use-active-service-entitlements';
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
@@ -299,11 +300,18 @@ function ProjectDetailLayoutContent({
           bottomBar={<ProjectBottomBar />}
           banner={<SuspensionBar />}
           headerContent={
-            <div
-              className={cn('flex h-full items-center justify-end border-l px-4', {
-                'px-0': breakpoint === 'desktop',
-              })}>
-              {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+            <div className="flex h-full items-center justify-end">
+              {breakpoint === 'desktop' && project?.name && (
+                <div className="border-sidebar-border flex h-full items-center px-4">
+                  <ProjectHeaderPluginContent projectId={project.name} />
+                </div>
+              )}
+              <div
+                className={cn('flex h-full items-center justify-end border-l px-4', {
+                  'px-0': breakpoint === 'desktop',
+                })}>
+                {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+              </div>
             </div>
           }>
           <QuotaWatchBridge scope="project" />

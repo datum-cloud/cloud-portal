@@ -13,10 +13,12 @@
 import {
   EXTENSION_CARD_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
+  EXTENSION_HEADER_PROJECT,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   type CardProjectHomeExtension,
   type DockProjectExtension,
+  type HeaderProjectExtension,
   type NavProjectExtension,
   type PageProjectExtension,
   type PluginExtension,
@@ -53,6 +55,9 @@ function isCardExtension(ext: PluginExtension): ext is CardProjectHomeExtension 
 function isDockExtension(ext: PluginExtension): ext is DockProjectExtension {
   return ext.type === EXTENSION_DOCK_PROJECT;
 }
+function isHeaderExtension(ext: PluginExtension): ext is HeaderProjectExtension {
+  return ext.type === EXTENSION_HEADER_PROJECT;
+}
 
 /** Extract the `portal.page/project` extensions from a manifest. */
 export function getPageExtensions(manifest: ClientPluginManifest): PageProjectExtension[] {
@@ -74,6 +79,11 @@ export function getDockExtensions(manifest: ClientPluginManifest): DockProjectEx
   return manifest.extensions.filter(isDockExtension).sort(byOrderThenTitle);
 }
 
+/** Extract the `portal.header/project` extensions, sorted by `order` then `$codeRef` (no title to tiebreak on — this extension has none). */
+export function getHeaderExtensions(manifest: ClientPluginManifest): HeaderProjectExtension[] {
+  return manifest.extensions.filter(isHeaderExtension).sort(byOrderThenCodeRef);
+}
+
 function byOrderThenTitle(
   a: { properties: { order?: number; title: string } },
   b: { properties: { order?: number; title: string } }
@@ -82,6 +92,16 @@ function byOrderThenTitle(
   const orderB = b.properties.order ?? Number.MAX_SAFE_INTEGER;
   if (orderA !== orderB) return orderA - orderB;
   return a.properties.title.localeCompare(b.properties.title);
+}
+
+function byOrderThenCodeRef(
+  a: { properties: { order?: number; component: { $codeRef: string } } },
+  b: { properties: { order?: number; component: { $codeRef: string } } }
+): number {
+  const orderA = a.properties.order ?? Number.MAX_SAFE_INTEGER;
+  const orderB = b.properties.order ?? Number.MAX_SAFE_INTEGER;
+  if (orderA !== orderB) return orderA - orderB;
+  return a.properties.component.$codeRef.localeCompare(b.properties.component.$codeRef);
 }
 
 /**
