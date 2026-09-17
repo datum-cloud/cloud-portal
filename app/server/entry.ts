@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/error-handler';
 import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
+import { buildWebManifest } from './pwa/manifest';
 import { createApiApp } from './routes/api';
 import type { Variables } from './types';
 // Configure all @hey-api generated clients to use server axios instance
@@ -31,6 +32,8 @@ import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
 import { NONCE, secureHeaders } from 'hono/secure-headers';
+import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { register } from 'prom-client';
 import { RouterContextProvider } from 'react-router';
 import { createHonoServer } from 'react-router-hono-server/bun';
@@ -188,6 +191,8 @@ app.use(
       scriptSrcAttr: [NONCE, ...(isDev ? ["'unsafe-inline'"] : [])],
       // Allow inline styles for third-party widgets
       styleSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.googleapis.com'],
+      manifestSrc: ["'self'"],
+      workerSrc: ["'self'"],
       // Only in production: upgrade HTTP→HTTPS. Omit in dev so Safari (and others) can use http://localhost
       ...(isDev ? {} : { upgradeInsecureRequests: [] }),
     },
@@ -244,6 +249,28 @@ app.get('/robots.txt', (c) =>
     'Cache-Control': 'public, max-age=3600',
   })
 );
+
+app.get('/manifest.webmanifest', (c) =>
+  c.json(buildWebManifest(c.req.url), 200, {
+    'Content-Type': 'application/manifest+json',
+    'Cache-Control': isDev ? 'no-store' : 'public, max-age=3600',
+  })
+);
+
+app.get('/sw.js', async (c) => {
+  for (const relative of ['public/sw.js', 'build/client/sw.js'] as const) {
+    if (!existsSync(relative)) continue;
+    const body = await readFile(relative);
+    return new Response(body, {
+      headers: {
+        'Content-Type': 'application/javascript; charset=utf-8',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+      },
+    });
+  }
+
+  return c.notFound();
+});
 
 /**
  * RFC 8288 Link headers pointing at the machine-readable resources above.

@@ -4,6 +4,11 @@ import { AuthenticationError } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import { createMiddleware } from 'hono/factory';
 
+/** Public, cacheable PWA assets must not pick up a token-refresh Set-Cookie. */
+export function isSessionlessPath(pathname: string): boolean {
+  return pathname === '/manifest.webmanifest' || pathname === '/sw.js';
+}
+
 /**
  * Global session middleware - runs for ALL requests.
  * Sets session in context if valid, handles cookie refresh.
@@ -11,6 +16,11 @@ import { createMiddleware } from 'hono/factory';
  */
 export function sessionMiddleware() {
   return createMiddleware<{ Variables: Variables }>(async (c, next) => {
+    if (isSessionlessPath(c.req.path)) {
+      await next();
+      return;
+    }
+
     const cookieHeader = c.req.header('Cookie') ?? null;
 
     const { session, headers, refreshed } = await sessionManager.getValidSession(cookieHeader);

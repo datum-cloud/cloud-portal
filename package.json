@@ -16,6 +16,7 @@
     "clean": "rm -rf node_modules && rm -rf .react-router && rm -rf build",
     "openapi": "bun scripts/openapi.ts",
     "graphql": "bun run scripts/graphql.ts",
+    "pwa:assets": "bun scripts/pwa-assets.ts",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:e2e": "start-server-and-test dev http://localhost:3000/_healthz 'cypress run'",

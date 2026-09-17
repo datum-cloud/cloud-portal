@@ -32,10 +32,19 @@ export const Header = ({
   headerContent?: React.ReactNode;
 }) => {
   return (
-    <div className="sticky top-0 z-50 flex flex-col">
-      <header className="bg-background border-sidebar-border flex h-12 w-full shrink-0 touch-none items-center justify-between gap-4 border-b px-4">
+    <div className="bg-background sticky top-0 z-50 flex flex-col">
+      {/* Chromium WCO: native title bar is gone; this strip paints `--background`
+          into that space. Height is 0px when overlay is not active. */}
+      <div
+        aria-hidden
+        className="pwa-drag bg-background w-full shrink-0"
+        style={{
+          height: 'max(env(titlebar-area-height, 0px), env(safe-area-inset-top, 0px))',
+        }}
+      />
+      <header className="pwa-drag bg-background border-sidebar-border flex h-12 w-full shrink-0 touch-none items-center justify-between gap-4 border-b px-4">
         {/* Left Section */}
-        <div className="flex flex-1 items-center gap-3">
+        <div className="pwa-no-drag flex flex-1 items-center gap-3">
           {/* Mobile hamburger — skeleton while loading, button when ready */}
           {navItems.length > 0 ? (
             <MobileMenu navItems={navItems} />
@@ -61,7 +70,7 @@ export const Header = ({
           </div>
         </div>
         {/* Right Section */}
-        <div className="border-sidebar-border flex h-full items-center justify-end">
+        <div className="pwa-no-drag border-sidebar-border flex h-full items-center justify-end">
           {headerContent}
           <div className="flex h-full items-center justify-end border-l">
             <div className="flex h-full items-center px-4">

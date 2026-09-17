@@ -39,57 +39,6 @@ const FAVICON_CONFIGS = [
     sizes: 'any',
     filename: 'favicon.ico',
   },
-  // Apple touch icons - all sizes
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '57x57',
-    filename: 'apple-touch-icons/apple-touch-icon-57x57.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '60x60',
-    filename: 'apple-touch-icons/apple-touch-icon-60x60.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '72x72',
-    filename: 'apple-touch-icons/apple-touch-icon-72x72.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '76x76',
-    filename: 'apple-touch-icons/apple-touch-icon-76x76.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '114x114',
-    filename: 'apple-touch-icons/apple-touch-icon-114x114.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '120x120',
-    filename: 'apple-touch-icons/apple-touch-icon-120x120.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '144x144',
-    filename: 'apple-touch-icons/apple-touch-icon-144x144.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '152x152',
-    filename: 'apple-touch-icons/apple-touch-icon-152x152.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '167x167',
-    filename: 'apple-touch-icons/apple-touch-icon-167x167.png',
-  },
-  {
-    rel: 'apple-touch-icon' as const,
-    sizes: '180x180',
-    filename: 'apple-touch-icons/apple-touch-icon-180x180.png',
-  },
 ] as const;
 
 // Microsoft tile configuration (uses meta tags, not link tags)
@@ -129,7 +78,9 @@ export const DynamicFaviconLinks = () => {
     if (typeof document === 'undefined') return;
 
     // Remove existing favicon links to avoid duplicates
-    const existingLinks = document.querySelectorAll('link[rel*="icon"]');
+    // Only swap favicon / apple-touch-icon links. The attribute selector
+    // `rel*="icon"` would also match `apple-touch-startup-image` splash links.
+    const existingLinks = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
     existingLinks.forEach((link) => link.remove());
 
     // Remove existing Microsoft tile meta tags
