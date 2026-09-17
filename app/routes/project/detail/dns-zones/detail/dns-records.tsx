@@ -26,6 +26,8 @@ import {
 } from '@/modules/rbac';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
+  DNS_RECORD_MAX_PAGES,
+  DNS_RECORD_PAGE_SIZE,
   IFlattenedDnsRecord,
   dnsRecordKeys,
   useDeleteDnsRecord,
@@ -567,8 +569,8 @@ export default function DnsRecordsPage() {
       {isTruncated && (
         <Alert className="mb-4" data-e2e="dns-records-truncated-notice">
           <AlertDescription>
-            Showing the first 10,000 record sets. This zone holds more records than the portal can
-            list.
+            Showing the first {(DNS_RECORD_PAGE_SIZE * DNS_RECORD_MAX_PAGES).toLocaleString()}{' '}
+            record sets. This zone holds more records than the portal can list.
           </AlertDescription>
         </Alert>
       )}
