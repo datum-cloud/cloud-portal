@@ -79,6 +79,8 @@ export function TableContent<TData extends RowData>({
       if (target.closest('[data-slot="checkbox"]')) return;
       if (target.closest('[data-slot="actions"]')) return;
       if (target.closest('[data-slot="dt-row-actions"]')) return;
+      // Nested resource links should navigate without also opening the row.
+      if (target.closest('a')) return;
       const tr = target.closest('tbody tr');
       if (!tr) return;
       const tbody = tr.closest('tbody');

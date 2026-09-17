@@ -171,7 +171,7 @@ describe('mergePluginNavIntoTree', () => {
             {
               id: 'compute',
               title: 'Compute',
-              path: 'workloads',
+              path: '',
               section: 'build',
               order: 10,
               comingSoon: true,
@@ -188,7 +188,7 @@ describe('mergePluginNavIntoTree', () => {
     const compute = build?.children?.find((c) => c.title === 'Compute');
     expect(compute?.type).toBe('link');
     expect(compute?.badge?.label).toBe('Soon');
-    expect(compute?.href).toContain('/project/proj-1/services/workloads/workloads');
+    expect(compute?.href).toBe('/project/proj-1/services/workloads');
     expect(compute?.muted).toBe(true);
   });
 
@@ -240,7 +240,7 @@ describe('mergePluginNavIntoTree', () => {
             {
               id: 'compute',
               title: 'Compute',
-              path: 'workloads',
+              path: '',
               section: 'build',
               order: 10,
               comingSoon: true,
@@ -259,7 +259,7 @@ describe('mergePluginNavIntoTree', () => {
     const compute = build?.children?.find((c) => c.title === 'Compute');
     expect(compute?.type).toBe('link');
     expect(compute?.badge).toBeUndefined();
-    expect(compute?.href).toContain('/project/proj-1/services/workloads/workloads');
+    expect(compute?.href).toBe('/project/proj-1/services/workloads');
     expect(compute?.muted).toBeUndefined();
   });
 });

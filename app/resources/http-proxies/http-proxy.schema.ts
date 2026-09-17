@@ -46,6 +46,12 @@ function _validateHostHeaderForSchema(value: string): string | null {
   return null;
 }
 
+/**
+ * Label the compute operator stamps on HTTPProxies (and NetworkServices) it
+ * manages, carrying the owning Workload's name.
+ */
+export const COMPUTE_WORKLOAD_NAME_LABEL = 'compute.datumapis.com/workload-name';
+
 const hostnameStatusConditionSchema = z.object({
   type: z.string(),
   status: z.enum(['True', 'False', 'Unknown']),
@@ -115,6 +121,16 @@ export const httpProxyResourceSchema = z.object({
   hstsHeaderValue: z.string().optional(),
   /** Connector referenced by the backend rule (if any) */
   connector: z.object({ name: z.string() }).optional(),
+  /**
+   * NetworkService backend on the first backend rule (compute-exposed
+   * workloads). Mutually exclusive with `endpoint` / `connector`.
+   */
+  networkService: z.object({ name: z.string(), port: z.string() }).optional(),
+  /**
+   * Compute workload name from `compute.datumapis.com/workload-name` on the
+   * HTTPProxy. When absent the UI may still resolve it from the NetworkService.
+   */
+  workloadName: z.string().optional(),
   /** Whether basic auth is currently enabled (SecurityPolicy exists) */
   basicAuthEnabled: z.boolean().optional(),
   /** Number of configured users (derived from the htpasswd Secret) */

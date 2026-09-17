@@ -188,3 +188,66 @@ describe('toUpdateHttpProxyPayload', () => {
     expect(payload.spec?.hostnames).toEqual(['app.example.com']);
   });
 });
+
+describe('toHttpProxy compute backends', () => {
+  it('reads a networkService backend and workload-name label', () => {
+    const proxy = toHttpProxy({
+      metadata: {
+        name: 'storefront',
+        labels: { 'compute.datumapis.com/workload-name': 'storefront' },
+      },
+      spec: {
+        rules: [{ backends: [{ networkService: { name: 'storefront', port: 'http' } }] }],
+      },
+    } as ComDatumapisNetworkingV1AlphaHttpProxy);
+
+    expect(proxy.networkService).toEqual({ name: 'storefront', port: 'http' });
+    expect(proxy.workloadName).toBe('storefront');
+    expect(proxy.endpoint).toBeUndefined();
+    expect(proxy.origins).toBeUndefined();
+  });
+
+  describe('toUpdateHttpProxyPayload', () => {
+    const proxyWithNetworkService: HttpProxy = {
+      uid: 'u',
+      name: 'storefront',
+      resourceVersion: '1',
+      createdAt: new Date(0),
+      networkService: { name: 'storefront', port: 'http' },
+      workloadName: 'storefront',
+      enableHttpRedirect: false,
+      hsts: false,
+    };
+
+    it('keeps the networkService backend when rules are rebuilt for HSTS', () => {
+      const payload = toUpdateHttpProxyPayload({ hsts: true }, proxyWithNetworkService);
+      const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
+      expect(backendRule?.backends[0]).toEqual({
+        networkService: { name: 'storefront', port: 'http' },
+      });
+      expect(backendRule?.filters).toEqual([hstsFilter]);
+    });
+
+    it('keeps the networkService backend when the redirect toggles', () => {
+      const payload = toUpdateHttpProxyPayload(
+        { enableHttpRedirect: true },
+        proxyWithNetworkService
+      );
+      const rules = payload.spec?.rules ?? [];
+      expect(rules).toHaveLength(2);
+      const backendRule = rules.find((r) => 'backends' in r);
+      expect(backendRule?.backends).toEqual([
+        { networkService: { name: 'storefront', port: 'http' } },
+      ]);
+    });
+
+    it('lets an explicit endpoint replace the networkService backend', () => {
+      const payload = toUpdateHttpProxyPayload(
+        { endpoint: 'https://origin.example.com' },
+        proxyWithNetworkService
+      );
+      const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
+      expect(backendRule?.backends).toEqual([{ endpoint: 'https://origin.example.com' }]);
+    });
+  });
+});

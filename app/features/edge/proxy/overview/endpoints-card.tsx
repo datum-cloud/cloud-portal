@@ -1,5 +1,6 @@
 import { summarizeBackends } from './backend-summary';
 import { OverviewEmptyState } from './overview-empty-state';
+import { useResolvedComputeWorkload } from './use-network-service';
 import { StatusChip } from '@/components/card/status-chip';
 import {
   ProxyZoneRecordsWatch,
@@ -37,6 +38,7 @@ import {
   PencilIcon,
   PlusIcon,
   ServerIcon,
+  SquareLibrary,
   TriangleAlertIcon,
 } from 'lucide-react';
 import { useMemo, useRef, type ReactNode } from 'react';
@@ -178,6 +180,13 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
 
   const systemHostname = proxy.canonicalHostname ?? proxy.status?.hostnames?.[0];
   const backends = summarizeBackends(proxy);
+  const computeBackend = useResolvedComputeWorkload(projectId, proxy);
+  const workloadName = computeBackend.workloadName ?? backends.workloadName;
+  // Without a registered compute plugin the workload has no page to link to;
+  // fall back to the backend section of the Configuration tab.
+  const backendHref = computeBackend.href ?? `${configurationHref}#backends`;
+  const backendLabel = workloadName ?? backends.label;
+  const backendTitle = workloadName ? 'Compute workload' : 'Backend pool';
 
   return (
     <Card
@@ -202,15 +211,15 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
       </CardHeader>
       <CardContent padding="none" className="flex min-h-0 flex-1 flex-col">
         {/* Custom hostnames scroll; the system hostname and backend pool stay pinned below. */}
-        <ul className="divide-border min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain">
+        <ul className="divide-border flex min-h-0 flex-1 flex-col divide-y overflow-y-auto overscroll-contain">
           {hostnames.length === 0 ? (
-            <li className="h-full">
+            <li className="flex min-h-0 flex-1 flex-col">
               {systemHostname ? (
                 <OverviewEmptyState
                   icon={GlobeIcon}
                   title="No custom hostnames"
                   description="Requests are served on the default hostname until you attach your own domain."
-                  className="py-6">
+                  className="min-h-0 flex-1 py-6">
                   <AddCustomHostnameLink
                     projectId={projectId}
                     onClick={() => hostnamesDialogRef.current?.show(proxy)}
@@ -302,14 +311,21 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
 
           <li>
             <Link
-              to={`${configurationHref}#backends`}
-              className="hover:bg-muted/40 flex items-center gap-3 px-(--card-px) py-3 transition-colors">
+              to={backendHref}
+              className="hover:bg-muted/40 flex items-center gap-3 px-(--card-px) py-3 transition-colors"
+              data-e2e="alb-endpoints-backend">
               <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md">
-                <Icon icon={ServerIcon} size={14} className="text-muted-foreground" />
+                <Icon
+                  icon={workloadName ? SquareLibrary : ServerIcon}
+                  size={14}
+                  className="text-muted-foreground"
+                />
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="text-sm font-medium">Backend pool</span>
-                <span className="text-muted-foreground truncate text-xs">{backends.label}</span>
+                <span className="text-sm font-medium">{backendTitle}</span>
+                <span className="text-muted-foreground truncate font-mono text-xs">
+                  {backendLabel}
+                </span>
               </span>
               <Icon icon={ChevronRightIcon} size={16} className="text-muted-foreground shrink-0" />
             </Link>

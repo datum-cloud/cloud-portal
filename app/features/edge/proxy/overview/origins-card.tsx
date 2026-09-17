@@ -3,6 +3,8 @@ import { StatusChip } from '@/components/card/status-chip';
 import { ValueRow } from '@/components/card/value-row';
 import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
+import { isComputeBackend } from '@/features/edge/proxy/overview/compute-backend';
+import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
 import {
   ProxyOriginsDialog,
   type ProxyOriginsDialogRef,
@@ -27,8 +29,9 @@ import {
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { LockIcon, PencilIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
+import { ChevronRightIcon, LockIcon, PencilIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
+import { Link } from 'react-router';
 
 type OriginRow = {
   origin: string;
@@ -47,6 +50,20 @@ function parseOrigin(origin: string): OriginRow {
   }
 }
 
+function ComputeWorkloadRow({ label }: { label: string | undefined }) {
+  return (
+    <>
+      <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md">
+        <Icon icon={ServerIcon} size={14} className="text-muted-foreground" />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-sm font-medium">Compute workload</span>
+        <span className="text-muted-foreground truncate font-mono text-xs">{label}</span>
+      </span>
+    </>
+  );
+}
+
 export const HttpProxyOriginsCard = ({
   proxy,
   projectId,
@@ -62,6 +79,8 @@ export const HttpProxyOriginsCard = ({
     proxy?.connector?.name
   );
   useConnectorWatch(projectId ?? '', proxy?.connector?.name);
+  const computeBackend = useResolvedComputeWorkload(projectId, proxy);
+  const showOriginEditor = Boolean(proxy && projectId && !isComputeBackend(proxy));
 
   const origins = useMemo<OriginRow[]>(() => {
     const list =
@@ -128,7 +147,7 @@ export const HttpProxyOriginsCard = ({
           <Icon icon={ServerIcon} size={16} className="text-secondary" />
           Backend pool
         </CardTitle>
-        {proxy && projectId ? (
+        {showOriginEditor ? (
           <CardAction>
             <PermissionButton
               resource="httpproxies"
@@ -142,7 +161,7 @@ export const HttpProxyOriginsCard = ({
               theme="outline"
               size="xs"
               className="shrink-0"
-              onClick={() => originsDialogRef.current?.show(proxy)}>
+              onClick={() => proxy && originsDialogRef.current?.show(proxy)}>
               <Icon icon={PencilIcon} size={12} />
               Edit origin
             </PermissionButton>
@@ -150,7 +169,32 @@ export const HttpProxyOriginsCard = ({
         ) : null}
       </CardHeader>
       <CardContent padding="none">
-        {origins.length === 0 ? (
+        {origins.length === 0 && computeBackend.isLoading ? (
+          <Skeleton className="mx-(--card-px) my-3.5 h-10 w-full rounded-md" />
+        ) : origins.length === 0 &&
+          (computeBackend.workloadName || computeBackend.networkServiceName) ? (
+          computeBackend.href ? (
+            <Link
+              to={computeBackend.href}
+              className="hover:bg-muted/40 flex items-center gap-3 px-(--card-px) py-3 transition-colors"
+              data-e2e="alb-origins-compute-workload">
+              <ComputeWorkloadRow
+                label={computeBackend.workloadName ?? computeBackend.networkServiceName}
+              />
+              <Icon icon={ChevronRightIcon} size={16} className="text-muted-foreground shrink-0" />
+            </Link>
+          ) : (
+            // No compute plugin registered for this project (or the workload is
+            // still unresolved): show the backend without a dead link.
+            <div
+              className="flex items-center gap-3 px-(--card-px) py-3"
+              data-e2e="alb-origins-compute-workload">
+              <ComputeWorkloadRow
+                label={computeBackend.workloadName ?? computeBackend.networkServiceName}
+              />
+            </div>
+          )
+        ) : origins.length === 0 ? (
           <div className="text-muted-foreground px-(--card-px) py-3.5 text-sm">
             No origin configured. Add one so this load balancer has somewhere to send traffic.
           </div>

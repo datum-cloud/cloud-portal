@@ -55,6 +55,7 @@ export default function HttpProxyOverviewPage() {
       <Col span={24}>
         <HttpProxyHealthStrip
           proxy={effectiveProxy}
+          projectId={projectId}
           canViewWaf={canViewWaf}
           wafPending={wafPending}
           wafUnavailable={wafUnavailable}

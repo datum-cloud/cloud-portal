@@ -6,6 +6,7 @@ import type {
   BasicAuthUser,
 } from './http-proxy.schema';
 import type { TrafficProtectionMode, WafRuleExclusions } from './http-proxy.schema';
+import { COMPUTE_WORKLOAD_NAME_LABEL } from './http-proxy.schema';
 import { buildAttachmentMapsFromPolicies } from './http-proxy.waf-attach';
 import {
   type ComDatumapisNetworkingV1AlphaHttpProxy,
@@ -501,8 +502,8 @@ export function toHttpProxy(
 ): HttpProxy {
   // Find the backend rule (skip redirect rules which have no backends)
   const backendRule = raw.spec?.rules?.find((rule) => rule.backends && rule.backends.length > 0);
-  const backend = backendRule?.backends?.[0] as
-    { endpoint?: string; tls?: { hostname?: string }; connector?: { name: string } } | undefined;
+  const backend = backendRule?.backends?.[0];
+  const workloadName = raw.metadata?.labels?.[COMPUTE_WORKLOAD_NAME_LABEL];
 
   // Extract all origins from all backend rules
   const origins: string[] = [];
@@ -562,6 +563,10 @@ export function toHttpProxy(
     hsts: hstsHeaderValue !== undefined,
     ...(hstsHeaderValue !== undefined && { hstsHeaderValue }),
     ...(backend?.connector && { connector: backend.connector }),
+    ...(backend?.networkService && {
+      networkService: { name: backend.networkService.name, port: backend.networkService.port },
+    }),
+    ...(workloadName && { workloadName }),
     ...(options?.trafficProtectionMode !== undefined && {
       trafficProtectionMode: options.trafficProtectionMode,
     }),
@@ -778,8 +783,16 @@ type BackendRuleFilter =
       type: 'ResponseHeaderModifier';
       responseHeaderModifier: { set: Array<{ name: string; value: string }> };
     };
+/**
+ * A backend is either a URL endpoint (optionally via a connector / with TLS)
+ * or a compute NetworkService reference. Mirrors the API's mutually exclusive
+ * `endpoint` / `networkService` shape.
+ */
+type BackendRuleBackend =
+  | { endpoint: string; tls?: { hostname: string }; connector?: { name: string } }
+  | { networkService: { name: string; port: string } };
 type BackendRule = {
-  backends: Array<{ endpoint: string; tls?: { hostname: string }; connector?: { name: string } }>;
+  backends: BackendRuleBackend[];
   filters?: BackendRuleFilter[];
 };
 
@@ -857,14 +870,33 @@ export function toUpdateHttpProxyPayload(
         });
       }
 
-      const effectiveEndpoint = input.endpoint ?? currentProxy?.endpoint;
-      if (effectiveEndpoint) {
-        // Explicit tlsHostname (including '') means set/clear; omit means preserve.
-        const effectiveTls =
-          input.tlsHostname !== undefined
-            ? input.tlsHostname.trim() || undefined
-            : currentProxy?.tlsHostname;
+      // Explicit tlsHostname (including '') means set/clear; omit means preserve.
+      const effectiveTls =
+        input.tlsHostname !== undefined
+          ? input.tlsHostname.trim() || undefined
+          : currentProxy?.tlsHostname;
 
+      // The backend to re-emit when rules are rebuilt: an explicit endpoint
+      // wins, else preserve whatever the proxy already points at — a compute
+      // NetworkService or an endpoint (with its connector / TLS). Without this
+      // a networkService-backed proxy would lose its backend on any rules edit.
+      const endpointBackend = (endpoint: string): BackendRuleBackend => ({
+        endpoint,
+        ...(effectiveTls && { tls: { hostname: effectiveTls } }),
+        ...(currentProxy?.connector && { connector: currentProxy.connector }),
+      });
+      const effectiveBackend: BackendRuleBackend | undefined =
+        input.endpoint !== undefined
+          ? input.endpoint
+            ? endpointBackend(input.endpoint)
+            : undefined
+          : currentProxy?.networkService?.name
+            ? { networkService: currentProxy.networkService }
+            : currentProxy?.endpoint
+              ? endpointBackend(currentProxy.endpoint)
+              : undefined;
+
+      if (effectiveBackend) {
         // Determine effective host header: explicit input > current proxy value
         // A defined-but-empty string in input means "clear the host header"
         const effectiveHostHeader =
@@ -900,13 +932,8 @@ export function toUpdateHttpProxyPayload(
           });
         }
 
-        const backend: BackendRule['backends'][0] = {
-          endpoint: effectiveEndpoint,
-          ...(effectiveTls && { tls: { hostname: effectiveTls } }),
-          ...(currentProxy?.connector && { connector: currentProxy.connector }),
-        };
         rules.push({
-          backends: [backend],
+          backends: [effectiveBackend],
           ...(backendFilters.length > 0 && { filters: backendFilters }),
         });
       }

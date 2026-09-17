@@ -4,6 +4,11 @@ import { DateTime } from '@/components/date-time';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
+import { listOriginDisplay } from '@/features/edge/proxy/overview/backend-summary';
+import {
+  computeWorkloadHref,
+  useComputePluginSlug,
+} from '@/features/edge/proxy/overview/compute-backend';
 import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
@@ -13,6 +18,7 @@ import {
   GuardedWriteButton,
   useProjectMode,
 } from '@/features/project/read-only';
+import type { ComDatumapisNetworkingV1AlphaNetworkService } from '@/modules/control-plane/networking';
 import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions, usePermission } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -29,6 +35,7 @@ import {
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
+import { useNetworkServices } from '@/resources/network-services';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -39,9 +46,15 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { PlusIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
+import { PlusIcon, ShieldCheckIcon, ShieldOffIcon, SquareLibrary } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
-import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
+import {
+  Link,
+  type LoaderFunctionArgs,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from 'react-router';
 
 const route = defineResourceRoute<HttpProxy[]>({
   type: 'list',
@@ -159,6 +172,25 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
     },
   });
 
+  // Only list NetworkServices when a proxy needs one to name its workload; the
+  // hook additionally gates the fetch on `list networkservices` permission.
+  const needsNetworkServices = useMemo(
+    () => (data ?? []).some((proxy) => Boolean(proxy.networkService?.name && !proxy.workloadName)),
+    [data]
+  );
+  const { data: networkServices } = useNetworkServices(projectId, {
+    enabled: needsNetworkServices,
+  });
+  const computePluginSlug = useComputePluginSlug(projectId);
+  const servicesByName = useMemo(() => {
+    const map = new Map<string, ComDatumapisNetworkingV1AlphaNetworkService>();
+    for (const service of networkServices ?? []) {
+      const name = service.metadata?.name;
+      if (name) map.set(name, service);
+    }
+    return map;
+  }, [networkServices]);
+
   const columns: ColumnDef<HttpProxy>[] = useMemo(
     () => [
       {
@@ -232,9 +264,42 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
       {
         header: 'Origin',
         accessorKey: 'origin',
-        meta: { tooltip: 'Upstream origin URL' },
+        meta: { tooltip: 'Where this load balancer sends traffic' },
         cell: ({ row }) => {
-          return row.original.endpoint;
+          const origin = listOriginDisplay(row.original, servicesByName);
+          if (origin.empty) {
+            return <span className="text-muted-foreground">—</span>;
+          }
+          if (origin.workloadName) {
+            const badge = (
+              <Badge
+                type="quaternary"
+                theme="outline"
+                className="h-6 max-w-full gap-1.5 rounded-xl px-2 text-xs font-normal">
+                <Icon icon={SquareLibrary} size={12} className="shrink-0" />
+                <span className="truncate">{origin.workloadName}</span>
+              </Badge>
+            );
+            // Link only when the compute plugin is mounted for this project;
+            // otherwise the workload page does not exist to navigate to.
+            return (
+              <Tooltip message="Compute workload">
+                {computePluginSlug ? (
+                  <Link
+                    to={computeWorkloadHref(projectId, computePluginSlug, origin.workloadName)}
+                    className="inline-flex max-w-full"
+                    data-e2e="alb-list-compute-workload">
+                    {badge}
+                  </Link>
+                ) : (
+                  <span className="inline-flex max-w-full" data-e2e="alb-list-compute-workload">
+                    {badge}
+                  </span>
+                )}
+              </Tooltip>
+            );
+          }
+          return origin.text;
         },
       },
       {
@@ -344,7 +409,18 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         },
       ]),
     ],
-    [projectId, navigate, confirmDelete, canDelete, canViewWaf, wafPending, wafReady, wafMaps]
+    [
+      projectId,
+      navigate,
+      confirmDelete,
+      canDelete,
+      canViewWaf,
+      wafPending,
+      wafReady,
+      wafMaps,
+      servicesByName,
+      computePluginSlug,
+    ]
   );
 
   return (
