@@ -3,6 +3,7 @@ import {
   toServiceAccountKey,
   toCreateServiceAccountPayload,
   toCreateServiceAccountKeyPayload,
+  withKeySummary,
 } from './service-account.adapter';
 import type {
   ServiceAccount,
@@ -48,20 +49,60 @@ export const serviceAccountKeys = {
 
 const SERVICE_NAME = 'ServiceAccountService';
 
+/**
+ * Every key in the project, grouped by the account email it authenticates.
+ * The key list endpoint is project-wide, so enriching a page of N accounts
+ * costs one request rather than N.
+ *
+ * Returns null when the keys cannot be read at all — no RBAC grant on
+ * serviceaccountkeys, or a failing call. Callers leave the key-derived fields
+ * unknown in that case: an auxiliary lookup must not take down the account
+ * view, and "we could not check" must not be rendered as "no keys".
+ */
+async function fetchKeysByAccountEmail(
+  projectId: string
+): Promise<Map<string, ServiceAccountKey[]> | null> {
+  try {
+    const response = await listIdentityMiloapisComV1Alpha1ServiceAccountKey({
+      baseURL: getProjectScopedBase(projectId),
+    });
+    const data = response.data as GoMiloapisComMiloPkgApisIdentityV1Alpha1ServiceAccountKeyList;
+    const now = new Date();
+    const grouped = new Map<string, ServiceAccountKey[]>();
+    for (const raw of data?.items ?? []) {
+      const email = raw.spec?.serviceAccountUserName;
+      if (!email) continue;
+      grouped.set(email, [...(grouped.get(email) ?? []), toServiceAccountKey(raw, now)]);
+    }
+    return grouped;
+  } catch (error) {
+    logger.error(`${SERVICE_NAME}.fetchKeysByAccountEmail failed`, error as Error);
+    return null;
+  }
+}
+
 export function createServiceAccountService() {
   return {
     async list(projectId: string): Promise<ServiceAccount[]> {
       const startTime = Date.now();
       try {
-        const response = await listIamMiloapisComV1Alpha1ServiceAccount({
-          baseURL: getProjectScopedBase(projectId),
-        });
+        const [response, keysByEmail] = await Promise.all([
+          listIamMiloapisComV1Alpha1ServiceAccount({
+            baseURL: getProjectScopedBase(projectId),
+          }),
+          fetchKeysByAccountEmail(projectId),
+        ]);
         const data = response.data as ComMiloapisIamV1Alpha1ServiceAccountList;
         logger.service(SERVICE_NAME, 'list', {
           input: { projectId },
           duration: Date.now() - startTime,
         });
-        return (data?.items ?? []).map(toServiceAccount);
+        const accounts = (data?.items ?? []).map(toServiceAccount);
+        if (keysByEmail === null) return accounts;
+        const now = new Date();
+        return accounts.map((account) =>
+          withKeySummary(account, keysByEmail.get(account.identityEmail) ?? [], now)
+        );
       } catch (error) {
         logger.error(`${SERVICE_NAME}.list failed`, error as Error);
         throw mapApiError(error);
@@ -71,17 +112,22 @@ export function createServiceAccountService() {
     async get(projectId: string, name: string): Promise<ServiceAccount> {
       const startTime = Date.now();
       try {
-        const response = await readIamMiloapisComV1Alpha1ServiceAccount({
-          baseURL: getProjectScopedBase(projectId),
-          path: { name },
-        });
+        const [response, keysByEmail] = await Promise.all([
+          readIamMiloapisComV1Alpha1ServiceAccount({
+            baseURL: getProjectScopedBase(projectId),
+            path: { name },
+          }),
+          fetchKeysByAccountEmail(projectId),
+        ]);
         const data = response.data as ComMiloapisIamV1Alpha1ServiceAccount;
         if (!data) throw new NotFoundError('Service Account', name);
         logger.service(SERVICE_NAME, 'get', {
           input: { projectId, name },
           duration: Date.now() - startTime,
         });
-        return toServiceAccount(data);
+        const account = toServiceAccount(data);
+        if (keysByEmail === null) return account;
+        return withKeySummary(account, keysByEmail.get(account.identityEmail) ?? []);
       } catch (error) {
         logger.error(`${SERVICE_NAME}.get failed`, error as Error);
         throw mapApiError(error);
@@ -174,9 +220,10 @@ export function createServiceAccountService() {
           input: { projectId, serviceAccountEmail },
           duration: Date.now() - startTime,
         });
+        const now = new Date();
         return (data?.items ?? [])
           .filter((k) => k.spec?.serviceAccountUserName === serviceAccountEmail)
-          .map(toServiceAccountKey);
+          .map((k) => toServiceAccountKey(k, now));
       } catch (error) {
         logger.error(`${SERVICE_NAME}.listKeys failed`, error as Error);
         throw mapApiError(error);

@@ -1,4 +1,3 @@
-import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
@@ -9,6 +8,10 @@ import {
 } from '@/features/project/read-only';
 import { ServiceAccountFormDialog } from '@/features/service-account/form/service-account-form-dialog';
 import type { ServiceAccountFormDialogRef } from '@/features/service-account/form/service-account-form-dialog';
+import {
+  ServiceAccountStatusBadge,
+  serviceAccountStatusLabel,
+} from '@/features/service-account/service-account-status-badge';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -173,14 +176,21 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
         ),
       },
       {
+        id: 'status',
         header: 'Status',
-        accessorKey: 'status',
-        cell: ({ row }) => <BadgeStatus status={row.original.status} />,
+        // Sort and search on the rendered label: `status` alone is the admin
+        // switch, which is not what this column shows.
+        accessorFn: (account: ServiceAccount) => serviceAccountStatusLabel(account),
+        cell: ({ row }) => <ServiceAccountStatusBadge account={row.original} />,
       },
       {
         header: 'Keys',
         accessorKey: 'keyCount',
-        cell: ({ row }) => <span>{row.original.keyCount}</span>,
+        cell: ({ row }) => (
+          <span>
+            {row.original.keyCount ?? <span className="text-muted-foreground">&mdash;</span>}
+          </span>
+        ),
       },
       {
         header: 'Created',

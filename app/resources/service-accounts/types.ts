@@ -1,12 +1,22 @@
 import type { UseCase } from './service-account.schema';
 
+/**
+ * Whether the account currently holds a key it could authenticate with.
+ * Tracked separately from `status`: `status` is the admin switch an operator
+ * sets, this is the outcome of that switch plus the keys that actually exist.
+ */
+export type CredentialState = 'valid' | 'expired' | 'none';
+
 export interface ServiceAccount {
   uid: string;
   name: string;
   displayName?: string;
   identityEmail: string;
   status: 'Active' | 'Disabled';
-  keyCount: number;
+  /** Undefined until the account's keys have been loaded. */
+  credentialState?: CredentialState;
+  /** Undefined until the account's keys have been loaded. */
+  keyCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -16,7 +26,8 @@ export interface ServiceAccountKey {
   name: string;
   keyId: string;
   type: 'datum-managed' | 'user-managed';
-  status: 'Active' | 'Revoked';
+  /** `Revoked` covers a key the auth provider has not issued an ID for yet. */
+  status: 'Active' | 'Expired' | 'Revoked';
   createdAt: string;
   expiresAt?: string;
 }
