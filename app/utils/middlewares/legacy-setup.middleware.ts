@@ -2,7 +2,7 @@ import { type MiddlewareContext, type NextFunction } from './middleware';
 import { isOrgSetupComplete } from '@/features/onboarding/legacy-setup/org-setup-status.server';
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
-import { createProjectService } from '@/resources/projects';
+import { getProjectForRequest } from '@/resources/projects/project-request-cache.server';
 import { paths } from '@/utils/config/paths.config';
 import { getDocumentPathname, getPathWithParams } from '@/utils/helpers/path.helper';
 import { redirect } from 'react-router';
@@ -93,7 +93,8 @@ export async function orgLegacySetupMiddleware(
  * that landing directly on a project URL (e.g. a bookmarked deep link) still
  * enforces the owning org's billing setup. The project is fetched to resolve
  * its owning org id; this only runs on project entry/switch (the layout's
- * shouldRevalidate short-circuits intra-project navigation).
+ * shouldRevalidate short-circuits intra-project navigation). The fetch is
+ * cached on the request context and reused by the layout loader.
  */
 export async function projectLegacySetupMiddleware(
   ctx: MiddlewareContext,
@@ -110,7 +111,9 @@ export async function projectLegacySetupMiddleware(
   }
 
   try {
-    const project = await createProjectService().get(projectId);
+    // Cached on the request context, so the project detail layout loader reuses
+    // this record instead of repeating the identical fetch a moment later.
+    const project = await getProjectForRequest(projectId);
     const orgId = project.organizationId;
     if (!orgId) {
       return next();

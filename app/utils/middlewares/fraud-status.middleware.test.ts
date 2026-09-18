@@ -1,6 +1,6 @@
 import { fraudStatusMiddleware } from './fraud-status.middleware';
 import type { MiddlewareContext } from './middleware';
-import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 
 // loadUser is the seam: every indeterminate-state exit is reachable by
 // controlling what it returns or throws. getSession controls the no-session
@@ -20,13 +20,30 @@ const getUserWithAccessRetry = mock(async () => {
   return access;
 });
 
+// `mock.module` replaces a module wholesale in bun's process-global registry,
+// so any export omitted here becomes undefined for every later test file.
+// Capture the real exports BY VALUE first (the mock mutates the live namespace
+// object in place, so holding the namespace itself would restore the stubs),
+// spread them, and reinstall the snapshot in afterAll.
+const actualCookies = await import('@/utils/cookies');
+const actualRequestContext = await import('@/modules/axios/request-context');
+const realCookies = { ...actualCookies };
+const realRequestContext = { ...actualRequestContext };
+
 mock.module('@/utils/cookies', () => ({
+  ...actualCookies,
   getSession: async () => ({ session }),
 }));
 
 mock.module('@/modules/axios/request-context', () => ({
+  ...actualRequestContext,
   getRequestContext: () => undefined,
 }));
+
+afterAll(() => {
+  mock.module('@/utils/cookies', () => realCookies);
+  mock.module('@/modules/axios/request-context', () => realRequestContext);
+});
 
 const gateOn = () => {
   process.env.EMAIL_VERIFICATION_GATE = 'true';

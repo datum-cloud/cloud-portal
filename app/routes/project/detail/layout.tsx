@@ -21,7 +21,8 @@ import { useApp } from '@/providers/app.provider';
 import { ProjectProvider } from '@/providers/project.provider';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useOrganization } from '@/resources/organizations';
-import { createProjectService, useProject, type Project } from '@/resources/projects';
+import { useProject, type Project } from '@/resources/projects';
+import { getProjectForRequest } from '@/resources/projects/project-request-cache.server';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
@@ -100,7 +101,7 @@ export const loader = withMiddleware(
       scope: 'user',
       paramName: 'projectId',
       notFoundLabel: 'Project',
-      fetch: ({ id }) => createProjectService().get(id),
+      fetch: ({ id }) => getProjectForRequest(id),
       companions: {
         billingEnabled: {
           resource: 'projects',

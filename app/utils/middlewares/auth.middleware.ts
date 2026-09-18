@@ -4,13 +4,18 @@ import {
   resolveUserFraudRedirectPath,
 } from './fraud-redirect';
 import { MiddlewareContext, NextFunction } from './middleware';
-import { getRequestContext } from '@/modules/axios/request-context';
+import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
 import { createOrganizationService } from '@/resources/organizations';
 import { sessionContext } from '@/server/context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession, isAuthenticated } from '@/utils/cookies';
 import { AuthenticationError } from '@/utils/errors';
-import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
+import {
+  appendSetCookieHeaders,
+  getUserWithAccessRetry,
+  loadUserOncePerRequest,
+} from '@/utils/fraud/user-access';
+import { requestCacheKeys } from '@/utils/request-cache-keys';
 import { redirect } from 'react-router';
 
 /**
@@ -23,9 +28,19 @@ import { redirect } from 'react-router';
  * Uses session from load context when available (already validated by Hono
  * sessionMiddleware) to avoid redundant getSession calls and reduce redirect latency.
  */
+/** Injectable upstream reads — see the `deps` note on {@link authMiddleware}. */
+export interface AuthMiddlewareDeps {
+  loadUser?: typeof getUserWithAccessRetry;
+  listOrganizations?: () => Promise<{ items: unknown[] }>;
+}
+
 export async function authMiddleware(
   ctx: MiddlewareContext,
-  next: NextFunction
+  next: NextFunction,
+  // Optional seam, mirroring fraudStatusMiddleware: the upstream reads are
+  // injected rather than mock.module'd, which is process-global in bun and
+  // would leak these stubs into every later suite.
+  deps: AuthMiddlewareDeps = {}
 ): Promise<Response> {
   const { request, context } = ctx;
 
@@ -33,7 +48,7 @@ export async function authMiddleware(
   // Verify session has an actual identity (sub), not just a truthy object
   const contextSession = context?.get(sessionContext);
   if (contextSession?.sub) {
-    const onboardingRedirect = await redirectToOnboardingIfNoOrgs(ctx, contextSession.sub);
+    const onboardingRedirect = await redirectToOnboardingIfNoOrgs(ctx, contextSession.sub, deps);
     if (onboardingRedirect) {
       return onboardingRedirect;
     }
@@ -51,7 +66,7 @@ export async function authMiddleware(
   if (result === true) {
     const { session } = await getSession(request);
     if (session?.sub) {
-      const onboardingRedirect = await redirectToOnboardingIfNoOrgs(ctx, session.sub);
+      const onboardingRedirect = await redirectToOnboardingIfNoOrgs(ctx, session.sub, deps);
       if (onboardingRedirect) {
         return onboardingRedirect;
       }
@@ -92,15 +107,23 @@ const shouldSkipOnboardingRedirect = (pathname: string): boolean => {
 
 async function redirectToOnboardingIfNoOrgs(
   ctx: MiddlewareContext,
-  userId: string
+  userId: string,
+  deps: AuthMiddlewareDeps = {}
 ): Promise<Response | null> {
+  const loadUser = deps.loadUser ?? getUserWithAccessRetry;
+  const listOrganizations =
+    deps.listOrganizations ?? (() => createOrganizationService().list({ limit: 1 }));
   const pathname = new URL(ctx.request.url).pathname;
   if (shouldSkipOnboardingRedirect(pathname)) {
     return null;
   }
 
   const cookieHeader = ctx.request.headers.get('Cookie');
-  const access = await getUserWithAccessRetry(userId, cookieHeader);
+  // Single-flighted, not merely cached afterwards: route loaders run
+  // concurrently with this middleware, so a value written after the await
+  // arrives too late for the loader that needed it. An indeterminate result is
+  // not shared onward — see `loadUserOncePerRequest`.
+  const access = await loadUserOncePerRequest(userId, cookieHeader, loadUser);
 
   if ('error' in access) {
     // Defence in depth, and not load-bearing today: private.layout.tsx runs
@@ -119,8 +142,17 @@ async function redirectToOnboardingIfNoOrgs(
   }
 
   try {
-    const organizations = await createOrganizationService().list({ limit: 1 });
-    if (organizations.items.length > 0) {
+    const organizations = await oncePerRequest(
+      requestCacheKeys.anyOrganizations,
+      listOrganizations
+    );
+    const hasOrganizations = organizations.items.length > 0;
+    // Cached for readers that run after this point; the `oncePerRequest` key
+    // above is what covers the concurrent ones.
+    if (reqCtx) {
+      reqCtx.hasOrganizations = hasOrganizations;
+    }
+    if (hasOrganizations) {
       return null;
     }
 

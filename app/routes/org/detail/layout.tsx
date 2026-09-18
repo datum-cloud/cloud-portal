@@ -15,7 +15,8 @@ import { billingAccountKeys, createBillingAccountService } from '@/resources/bil
 import { createGroupService, groupKeys } from '@/resources/groups';
 import { createInvitationService, invitationKeys } from '@/resources/invitations';
 import { createMemberService, memberKeys } from '@/resources/members';
-import { type Organization, createOrganizationService } from '@/resources/organizations';
+import { type Organization } from '@/resources/organizations';
+import { getOrganizationForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createProjectService, projectKeys } from '@/resources/projects';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
@@ -51,7 +52,7 @@ export const loader = withMiddleware(
       scope: 'user',
       paramName: 'orgId',
       notFoundLabel: 'Organization',
-      fetch: ({ id }) => createOrganizationService().get(id),
+      fetch: ({ id }) => getOrganizationForRequest(id),
       companions: {
         billingEnabled: {
           resource: 'organizations',
