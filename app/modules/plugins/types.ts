@@ -101,6 +101,7 @@ export const EXTENSION_NAV_PROJECT = 'portal.nav/project';
 export const EXTENSION_PAGE_PROJECT = 'portal.page/project';
 export const EXTENSION_CARD_PROJECT_HOME = 'portal.card/project-home';
 export const EXTENSION_DOCK_PROJECT = 'portal.dock/project';
+export const EXTENSION_HEADER_PROJECT = 'portal.header/project';
 
 /** The v1 extension types the host recognizes and renders. */
 export const KNOWN_EXTENSION_TYPES = [
@@ -108,6 +109,7 @@ export const KNOWN_EXTENSION_TYPES = [
   EXTENSION_PAGE_PROJECT,
   EXTENSION_CARD_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
+  EXTENSION_HEADER_PROJECT,
 ] as const;
 
 export type KnownExtensionType = (typeof KNOWN_EXTENSION_TYPES)[number];
@@ -236,6 +238,25 @@ export interface DockProjectExtension {
 }
 
 /**
+ * `portal.header/project` — small, inline content in the persistent top
+ * header, rendered just left of the project search entry. Meant for a brief
+ * hint or link (a badge, a short button), not a card — there is no `title`
+ * and no wrapping chrome; the plugin's component is responsible for its own
+ * compact styling. Every ready plugin's header extensions render inline,
+ * side by side, in `order` (see `ProjectHeaderPluginContent`).
+ */
+export interface HeaderProjectProperties {
+  component: CodeRef;
+  order?: number;
+}
+
+export interface HeaderProjectExtension {
+  type: typeof EXTENSION_HEADER_PROJECT;
+  properties: HeaderProjectProperties;
+  requirements?: PluginExtensionRequirements;
+}
+
+/**
  * An extension type the host does not recognize. Tolerated, not fatal: the
  * registry records it and excludes it from rendering. The `{type, properties,
  * requirements}` envelope keeps growth additive.
@@ -247,7 +268,11 @@ export interface UnknownExtension {
 }
 
 export type KnownPluginExtension =
-  NavProjectExtension | PageProjectExtension | CardProjectHomeExtension | DockProjectExtension;
+  | NavProjectExtension
+  | PageProjectExtension
+  | CardProjectHomeExtension
+  | DockProjectExtension
+  | HeaderProjectExtension;
 
 export type PluginExtension = KnownPluginExtension | UnknownExtension;
 
