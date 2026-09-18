@@ -1,4 +1,9 @@
-import { gateRouteAccess } from './server/check-permission';
+import {
+  canInLoaderBulk,
+  gateRouteAccess,
+  recordGateDenial,
+  type LoaderPermissionCheck,
+} from './server/check-permission';
 import type {
   CompanionDeclaration,
   RunListLoaderInput,
@@ -191,7 +196,18 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
       throw new BadRequestError(`${cfg.paramName} is required`);
     }
 
-    const allowed = await gateRouteAccess(ctx.gateScopeId, {
+    // Every access review this route needs — the route gate plus one per declared
+    // companion — resolved in a single fan-out. Companion gates read only URL
+    // params, never fetched data, so nothing forces them to queue behind the
+    // primary fetch.
+    //
+    // Verdicts are computed here but CONSUMED at the same points as the old
+    // sequential flow (route denial immediately below; companions only after the
+    // primary fetch and the deletion redirect). That is deliberate:
+    // `recordGateDenial` fires only where a gate is actually acted on, so
+    // `rbac_permission_denied_total` keeps counting exactly what it counted when
+    // each gate was its own round trip.
+    const routeCheck: LoaderPermissionCheck = {
       resource: cfg.resource,
       verb: 'get',
       group: cfg.group ?? '',
@@ -201,9 +217,29 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
       // For scope='user' detail routes (e.g. organizations:get), the URL :paramName
       // is the resource name, not a scope identifier. Pass it via check.name.
       name: cfg.scope === 'user' ? id : undefined,
-    });
+    };
 
-    if (!allowed) {
+    // The cast on `cfg.companions` widens each entry's `TCompanionData` generic
+    // to `unknown` so we can iterate uniformly.
+    const companionEntries = Object.entries(cfg.companions ?? {}) as Array<
+      [string, CompanionDeclaration<TData, unknown>]
+    >;
+    const companionChecks: LoaderPermissionCheck[] = companionEntries.map(([, decl]) => ({
+      resource: decl.resource,
+      verb: decl.verb,
+      group: decl.group ?? '',
+      namespace: decl.namespace,
+      scope: decl.scope,
+      projectId: ctx.projectId,
+      name: decl.scope === 'user' ? id : undefined,
+    }));
+
+    const verdicts = await canInLoaderBulk(ctx.gateScopeId, [routeCheck, ...companionChecks]);
+
+    // `?? false` keeps the fail-closed posture explicit rather than incidental,
+    // in case the verdict array is ever shorter than the checks it was built from.
+    if (!(verdicts[0] ?? false)) {
+      recordGateDenial(routeCheck);
       return data({ restricted: true } satisfies DslLoaderData<TData, TCompanions>);
     }
 
@@ -235,72 +271,93 @@ export async function runDetailLoader<TData, TCompanions extends Record<string, 
       }
     }
 
-    // Companion fetches. Each companion is independently gated and fetched:
+    // Companion resolution runs in two passes. Semantics per companion are
+    // unchanged:
     // - Gate denied + `tolerate` → companion = null, no network call made.
     // - Gate denied + `propagate` → throws (programmer-error: a route shouldn't
     //   declare a companion the primary-allowed user cannot access).
     // - Fetch throws + `tolerate` → companion = null, warning logged.
     // - Fetch throws + `propagate` → re-throws (caught by route error boundary).
     //
-    // The cast on `cfg.companions` widens each entry's `TCompanionData` generic
-    // to `unknown` so we can iterate uniformly. The `companions` Record cast is
-    // necessary because TypeScript can't narrow dynamic string-key writes; the
-    // final `as TCompanions` is safe by construction (each key maps 1:1 to the
-    // declared `TCompanions[K]`).
-    const companionEntries = Object.entries(cfg.companions ?? {}) as Array<
-      [string, CompanionDeclaration<TData, unknown>]
-    >;
+    // Why two passes instead of one loop that decides as it goes:
+    // 1. Pass 1 starts every allowed fetch and throws NOTHING. Throwing while a
+    //    sibling fetch is in flight orphans that promise, and its later rejection
+    //    surfaces as a process-level unhandled rejection rather than a route error.
+    // 2. Pass 2 makes every throw/tolerate decision — gate-denied and
+    //    fetch-rejected alike — in declaration order, so the first declared
+    //    failure is the one that escapes, exactly as the old sequential loop
+    //    short-circuited. Splitting the two kinds of failure across the passes
+    //    would let a later gate denial beat an earlier fetch error.
+    // 3. `recordGateDenial` fires in pass 2, so a companion whose verdict was
+    //    resolved but never reached (route denied, primary 404, deletion
+    //    redirect) is never counted as a denial.
+    //
+    // The `companions` Record cast is necessary because TypeScript can't narrow
+    // dynamic string-key writes; the final `as TCompanions` is safe by
+    // construction (each key maps 1:1 to the declared `TCompanions[K]`).
+    type CompanionSlot =
+      | {
+          kind: 'denied';
+          key: string;
+          decl: CompanionDeclaration<TData, unknown>;
+          check: LoaderPermissionCheck;
+        }
+      | { kind: 'fetch'; key: string; decl: CompanionDeclaration<TData, unknown>; at: number };
+
+    const inFlight: Array<Promise<unknown>> = [];
+    const slots: CompanionSlot[] = companionEntries.map(([key, decl], index) => {
+      // verdicts[0] is the route gate, so companion `index` sits at `index + 1`.
+      if (!(verdicts[index + 1] ?? false)) {
+        return { kind: 'denied', key, decl, check: companionChecks[index] };
+      }
+      const at = inFlight.length;
+      // Companions in Phase 2 are same-scope as the parent route. The companion
+      // fetch ctx still types `projectId: string` — fall back to empty string for
+      // non-project scopes (companion declarations on org-/user-scope routes are
+      // not used today).
+      //
+      // Wrapped in `Promise.resolve().then(...)` so a `decl.fetch` that throws
+      // synchronously becomes a rejected promise this pass can carry, rather than
+      // escaping mid-pass and orphaning its siblings.
+      inFlight.push(
+        Promise.resolve().then(() => decl.fetch({ data: fetched, projectId: ctx.projectId ?? '' }))
+      );
+      return { kind: 'fetch', key, decl, at };
+    });
+
+    const settled = await Promise.allSettled(inFlight);
 
     const companions = {} as TCompanions;
 
-    // Companions are fetched sequentially to keep error semantics simple:
-    // the gate-denied + propagate branch (PermissionError) and the
-    // fetch-throws + propagate branch must short-circuit the loop without
-    // observing subsequent companions. If a route ever declares 3+
-    // companions and total round-trip latency becomes user-visible, swap to
-    // Promise.allSettled with post-processing that respects each declaration's
-    // onError mode. Current callers use at most one companion (DNS zone →
-    // domain), so sequential is fine for sub-projects #2-5.
-    for (const [key, decl] of companionEntries) {
-      const companionAllowed = await gateRouteAccess(ctx.gateScopeId, {
-        resource: decl.resource,
-        verb: decl.verb,
-        group: decl.group ?? '',
-        namespace: decl.namespace,
-        scope: decl.scope,
-        projectId: ctx.projectId,
-        name: decl.scope === 'user' ? id : undefined,
-      });
-
-      if (!companionAllowed) {
-        if (decl.onError === 'tolerate') {
-          (companions as Record<string, unknown>)[key] = null;
+    for (const slot of slots) {
+      if (slot.kind === 'denied') {
+        recordGateDenial(slot.check);
+        if (slot.decl.onError === 'tolerate') {
+          (companions as Record<string, unknown>)[slot.key] = null;
           continue;
         }
         throw new PermissionError(
-          `companion '${key}' (${decl.resource}:${decl.verb}) not accessible`
+          `companion '${slot.key}' (${slot.decl.resource}:${slot.decl.verb}) not accessible`
         );
       }
 
-      try {
-        // Companions in Phase 2 are same-scope as the parent route. The
-        // companion fetch ctx still types `projectId: string` — fall back to
-        // empty string for non-project scopes (companion declarations on
-        // org-/user-scope routes are not used today).
-        const result = await decl.fetch({ data: fetched, projectId: ctx.projectId ?? '' });
-        (companions as Record<string, unknown>)[key] = result;
-      } catch (err) {
-        if (decl.onError === 'tolerate') {
-          logger.warn(`runDetailLoader: companion '${key}' fetch failed (tolerated)`, {
-            error: err instanceof Error ? err.message : String(err),
-            resource: decl.resource,
-            verb: decl.verb,
-          });
-          (companions as Record<string, unknown>)[key] = null;
-          continue;
-        }
-        throw err;
+      const outcome = settled[slot.at];
+      if (outcome.status === 'fulfilled') {
+        (companions as Record<string, unknown>)[slot.key] = outcome.value;
+        continue;
       }
+
+      if (slot.decl.onError === 'tolerate') {
+        logger.warn(`runDetailLoader: companion '${slot.key}' fetch failed (tolerated)`, {
+          error: outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason),
+          resource: slot.decl.resource,
+          verb: slot.decl.verb,
+        });
+        (companions as Record<string, unknown>)[slot.key] = null;
+        continue;
+      }
+
+      throw outcome.reason;
     }
 
     // Build response init — start with status, layer in optional headers from cfg.setHeaders.

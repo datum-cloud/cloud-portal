@@ -1,7 +1,7 @@
 import { isOrgSetupCompleteFromLoadResult, type OrgSetupLoadResult } from './org-setup-status';
 import { logger } from '@/modules/logger';
 import { createBillingAccountService } from '@/resources/billing-accounts';
-import { createOrganizationService } from '@/resources/organizations';
+import { getOrganizationForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createPaymentMethodService } from '@/resources/payment-methods';
 import { AuthenticationError, AuthorizationError } from '@/utils/errors';
 
@@ -28,7 +28,9 @@ function handleTransientError(orgId: string, label: string) {
  */
 async function loadOrgSetupInputs(orgId: string): Promise<OrgSetupLoadResult> {
   const [org, billingAccounts, paymentMethods] = await Promise.all([
-    createOrganizationService().get(orgId),
+    // Cached on the request context, so the org detail layout loader reuses this
+    // record instead of repeating the identical fetch a moment later.
+    getOrganizationForRequest(orgId),
     createBillingAccountService()
       .list(orgId)
       .catch(handleTransientError(orgId, 'billing accounts')),

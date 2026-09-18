@@ -20,6 +20,13 @@ function stubServerModulesForCypress(): Plugin {
     [resolve(import.meta.dirname, './app/modules/rbac/server/check-permission.ts')]: `
       export async function canInLoader() { return true; }
       export async function gateRouteAccess() { return true; }
+      // Must return one verdict per input check: the loader reads verdicts by
+      // index and treats a missing entry as a denial, so a short array would
+      // render every component spec's route as restricted.
+      export async function canInLoaderBulk(_organizationId, checks) {
+        return checks.map(() => true);
+      }
+      export function recordGateDenial() {}
     `,
     [resolve(import.meta.dirname, './app/utils/env/env.server.ts')]: `
       export const env = {

@@ -1,9 +1,10 @@
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
-import { getRequestContext } from '@/modules/axios/request-context';
+import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
 import { createUserService } from '@/resources/users';
 import type { User } from '@/resources/users';
 import { AuthService } from '@/utils/auth';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
+import { requestCacheKeys } from '@/utils/request-cache-keys';
 
 export type UserAccessResult =
   { user: User; refreshedHeaders?: Headers } | { error: 'not_found' | 'forbidden' | 'other' };
@@ -152,5 +153,32 @@ export function appendSetCookieHeaders(target: Headers, source?: Headers): void 
     if (key.toLowerCase() === 'set-cookie') {
       target.append('Set-Cookie', value);
     }
+  });
+}
+
+/**
+ * {@link getUserWithAccessRetry}, run at most once per request.
+ *
+ * Both the no-orgs onboarding guard (authMiddleware) and the routes that repeat
+ * that guard for client-side navigations need this user, and React Router runs
+ * their loaders concurrently — so without this they each fetch it. The single
+ * source of truth for the policy lives here rather than at the call sites,
+ * because a shared cache is only correct if every participant agrees on what
+ * may be shared.
+ *
+ * An `{ error }` result is deliberately NOT retained. It is this function's way
+ * of saying "could not determine", and it is returned for a Milo 5xx, a
+ * timeout or a reset — exactly the transient conditions where the second caller
+ * deserves its own attempt. Retaining it would turn one upstream blip into a
+ * forced sign-out, since a caller that reads `error: 'other'` logs the user
+ * out. Callers already awaiting still receive it: they had issued this call.
+ */
+export function loadUserOncePerRequest(
+  userId: string,
+  cookieHeader: string | null,
+  loadUser: typeof getUserWithAccessRetry = getUserWithAccessRetry
+): Promise<UserAccessResult> {
+  return oncePerRequest(requestCacheKeys.userAccess(userId), () => loadUser(userId, cookieHeader), {
+    retain: (access) => !('error' in access),
   });
 }

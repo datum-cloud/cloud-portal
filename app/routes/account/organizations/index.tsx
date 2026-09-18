@@ -7,16 +7,18 @@ import {
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
+import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { createOrganizationService } from '@/resources/organizations';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
-import { createUserService } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, getSession, setAlertClosed } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
+import { loadUserOncePerRequest, type UserAccessResult } from '@/utils/fraud/user-access';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { onboardingEntryPath } from '@/utils/middlewares/fraud-redirect';
+import { requestCacheKeys } from '@/utils/request-cache-keys';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -44,17 +46,40 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
-    const [user, orgs] = await Promise.all([
-      createUserService().get(session.sub),
-      createOrganizationService().list({ limit: 1 }),
+    // authMiddleware fetches exactly these two things on this request — but it
+    // wraps the *parent layout's* loader, which React Router runs concurrently
+    // with this one, so its caches are typically still empty when we arrive.
+    // Joining the same `oncePerRequest` keys shares the in-flight calls instead
+    // of racing them into a duplicate pair. On a client-side navigation that
+    // bypasses the middleware there is nothing in flight and these just fetch —
+    // which is the case the guard below exists for.
+    const reqCtx = getRequestContext();
+
+    const [access, hasOrganizations] = await Promise.all([
+      reqCtx?.cachedUser
+        ? ({ user: reqCtx.cachedUser } as UserAccessResult)
+        : loadUserOncePerRequest(session.sub, request.headers.get('Cookie')),
+      // `??` rather than `||`: a cached `false` is a real answer, not a miss.
+      reqCtx?.hasOrganizations ??
+        oncePerRequest(requestCacheKeys.anyOrganizations, () =>
+          createOrganizationService().list({ limit: 1 })
+        ).then((orgs) => orgs.items.length > 0),
     ]);
+
+    if ('error' in access) {
+      // Same mapping the catch below applied when this was a raw
+      // `userService.get`: 'not_found'/'forbidden' were NotFoundError /
+      // AuthorizationError, anything else fell through to logout.
+      return redirect(access.error === 'other' ? paths.auth.logOut : paths.fraud.verifying);
+    }
+    const { user } = access;
 
     // A user with no orgs belongs in onboarding. This guard handles
     // client-side navigation that bypasses the middleware redirect.
     // Incomplete billing setup is gated when entering a specific org
     // (orgLegacySetupMiddleware), not on this list — users should always
     // see their organizations here.
-    if (orgs.items.length === 0) {
+    if (!hasOrganizations) {
       return redirect(onboardingEntryPath(user));
     }
 
