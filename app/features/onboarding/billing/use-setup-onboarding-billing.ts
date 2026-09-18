@@ -10,9 +10,9 @@ import { retryOnTransientAuthError } from '@/resources/base/utils';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { slugifyBillingAccountName } from '@/resources/billing/_naming';
 import { waitForMembershipRolesApplied } from '@/resources/members';
-import { createOrganizationService } from '@/resources/organizations';
+import { createOrganizationService, organizationKeys } from '@/resources/organizations';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { useMutation, type UseMutationOptions } from '@tanstack/react-query';
+import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
 export interface OnboardingBillingSetup {
   orgId: string;
@@ -38,6 +38,8 @@ export interface SetupOnboardingBillingInput {
 export function useSetupOnboardingBilling(
   options?: UseMutationOptions<OnboardingBillingSetup, Error, SetupOnboardingBillingInput>
 ) {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({ contactInfo, displayNameOverride, existingOrgId, existingSetup }) => {
       const displayName = displayNameOverride?.trim() || orgDisplayNameFromContact(contactInfo);
@@ -162,5 +164,16 @@ export function useSetupOnboardingBilling(
       }
     },
     ...options,
+    // Every branch above either creates the organization or renames it, and the
+    // org list is what the header switcher and /account/organizations render
+    // from. Without this they serve a stale list for the full QUERY_STALE_TIME
+    // window, so a freshly created org appears to be missing. Spread AFTER
+    // `...options` and chained explicitly, so a caller's own onSuccess cannot
+    // replace this one — the same arrangement the organization mutations in
+    // organization.queries.ts use.
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
+      options?.onSuccess?.(...args);
+    },
   });
 }
