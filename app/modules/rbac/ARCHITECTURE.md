@@ -22,10 +22,12 @@ operates at each layer. Each layer has one responsibility and one primitive.
 
 ## Defense-in-depth posture
 
-- **Server gate first.** Every loader calls `gateRouteAccess` for the primary
-  verb (`get` for detail, `list` for listing). Denied users see
-  `RestrictedState` on the first paint with no SSR data leak and no skeleton
-  flash.
+- **Server gate first.** Every loader gates the primary verb (`get` for detail,
+  `list` for listing) before fetching. Denied users see `RestrictedState` on the
+  first paint with no SSR data leak and no skeleton flash. Listing and gate-only
+  routes call `gateRouteAccess`; `runDetailLoader` resolves its route gate and
+  every companion gate through one `canInLoaderBulk` fan-out, so a slow upstream
+  is not multiplied by the number of gates on the route.
 - **Client UX gate always.** Every fetch/watch hook passes an `enabled: canX`
   flag. Buttons are gated by `PermissionButton`. Pencils by
   `PermissionGate mode="disable"`. Cards by `PermissionGate mode="hide"`.
@@ -67,6 +69,10 @@ Enforcement: PR review. E2E regressions per sub-project pin the runtime behavior
 
 All other errors propagate through `withLoaderErrors`.
 
+Companion gates and fetches run concurrently, but every throw/tolerate decision
+is made in declaration order, so the first declared failure is the one that
+escapes — the same error a sequential loop would have surfaced.
+
 ## Loading-state rules
 
 | Place                                     | Loading behavior                                                      | Reasoning                                      |
@@ -96,6 +102,14 @@ layer batches them via `usePermissionCheck`'s bulk endpoint.
 
 ## Telemetry
 
-`observability/metrics.ts` records every `gateRouteAccess` denial. The DSL
-adds no new logs; companion fetch failures use `logger.warn` at the DSL
-boundary, eliminating per-route try/catch logging.
+`observability/metrics.ts` records every route-access denial — via
+`gateRouteAccess` for single-check callers, and via `recordGateDenial` for
+`canInLoaderBulk` callers. The DSL adds no new logs; companion fetch failures
+use `logger.warn` at the DSL boundary, eliminating per-route try/catch logging.
+
+A denial is recorded where a verdict is **acted on**, not where it is issued.
+`runDetailLoader` resolves the route gate and every companion gate in one bulk
+call, so companion verdicts exist before the primary fetch — but a companion
+whose verdict is never reached (route denied, primary 404, deletion redirect) is
+never counted. Denial counts therefore match what they were when each gate was
+its own sequential round trip.

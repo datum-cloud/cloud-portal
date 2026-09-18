@@ -8,7 +8,7 @@
  * The server `loader` does everything trust-sensitive before a single plugin
  * byte reaches the browser — slug → registry resolution, entitlement gating,
  * and per-extension RBAC — and returns only the sanitized `PublicPlugin`. Its
- * server-only imports (`getPlugin`, `gateRouteAccess`) are used exclusively
+ * server-only imports (`getPlugin`, `canInLoaderBulk`) are used exclusively
  * inside `loader`, which React Router's Vite plugin strips from the client
  * bundle along with their now-unused import chains (the same pattern the
  * project-detail layout uses for `runDetailLoader`). The default export is the
@@ -19,7 +19,11 @@ import { getPageExtensions, matchPluginPage } from '@/modules/plugins/client/mat
 import { PluginOutlet } from '@/modules/plugins/client/plugin-outlet';
 import { getPlugin, toPublicPlugin } from '@/modules/plugins/server';
 import type { PluginRegistryEntry } from '@/modules/plugins/types';
-import { gateRouteAccess } from '@/modules/rbac/server/check-permission';
+import {
+  canInLoaderBulk,
+  recordGateDenial,
+  type LoaderPermissionCheck,
+} from '@/modules/rbac/server/check-permission';
 import type { SupportedVerb } from '@/resources/access-review';
 import { AuthorizationError, NotFoundError } from '@/utils/errors/app-error';
 import { withLoaderErrors } from '@/utils/errors/loader';
@@ -71,29 +75,42 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
   // no page extension is not gated here; the client renders in-app 404 for it.
   const match = matchPluginPage(getPageExtensions(entry.manifest), splat);
   if (match) {
-    const permissions = match.page.requirements?.permissions ?? [];
-    for (const permission of permissions) {
-      const allowed = await gateRouteAccess(projectId, {
+    // A manifest declares an unbounded number of permissions, and each one used
+    // to be its own sequential access review — so a slow upstream multiplied
+    // straight through the page load. One fan-out instead.
+    const checks: LoaderPermissionCheck[] = (match.page.requirements?.permissions ?? []).map(
+      (permission) => ({
         resource: permission.resource,
         verb: permission.verb as SupportedVerb,
         group: permission.group,
-        scope: 'project',
+        scope: 'project' as const,
         projectId,
-      });
-      if (!allowed) {
-        if (entry.devMode) {
-          // Dev posture: the service's RBAC may not be deployed remotely, so
-          // surface denial as a warning rather than blocking the load.
-          logger.warn('[plugins] dev plugin RBAC check failed (allowed in dev)', {
-            slug: serviceSlug,
-            resource: permission.resource,
-            verb: permission.verb,
-            group: permission.group,
-          });
-        } else {
-          throw new AuthorizationError('You do not have permission to view this page');
-        }
+      })
+    );
+
+    const verdicts = await canInLoaderBulk(projectId, checks);
+
+    // Verdicts are consumed in declaration order, so the first denial is the one
+    // that throws and later permissions go unrecorded — exactly as the
+    // sequential loop short-circuited. In devMode nothing throws, so every
+    // denial is still warned about individually.
+    for (const [index, check] of checks.entries()) {
+      if (verdicts[index] ?? false) {
+        continue;
       }
+      recordGateDenial(check);
+      if (entry.devMode) {
+        // Dev posture: the service's RBAC may not be deployed remotely, so
+        // surface denial as a warning rather than blocking the load.
+        logger.warn('[plugins] dev plugin RBAC check failed (allowed in dev)', {
+          slug: serviceSlug,
+          resource: check.resource,
+          verb: check.verb,
+          group: check.group,
+        });
+        continue;
+      }
+      throw new AuthorizationError('You do not have permission to view this page');
     }
   }
 
