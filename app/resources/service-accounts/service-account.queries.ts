@@ -1,3 +1,4 @@
+import { preserveKeySummary } from './service-account.adapter';
 import { createServiceAccountService, serviceAccountKeys } from './service-account.service';
 import type {
   ServiceAccount,
@@ -74,7 +75,12 @@ export function useUpdateServiceAccount(
     ...options,
     onSuccess: (...args) => {
       const [data] = args;
-      queryClient.setQueryData(serviceAccountKeys.detail(projectId, name), data);
+      // The PATCH response is a bare ServiceAccount with no key data, so keep
+      // the summary already in cache instead of blanking the status badge.
+      queryClient.setQueryData(
+        serviceAccountKeys.detail(projectId, name),
+        (old: ServiceAccount | undefined) => preserveKeySummary(old, data)
+      );
       queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
@@ -98,7 +104,12 @@ export function useToggleServiceAccount(
     ...options,
     onSuccess: (...args) => {
       const [data, { name }] = args;
-      queryClient.setQueryData(serviceAccountKeys.detail(projectId, name), data);
+      // The PATCH response is a bare ServiceAccount with no key data, so keep
+      // the summary already in cache instead of blanking the status badge.
+      queryClient.setQueryData(
+        serviceAccountKeys.detail(projectId, name),
+        (old: ServiceAccount | undefined) => preserveKeySummary(old, data)
+      );
       queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
@@ -161,6 +172,9 @@ export function useCreateServiceAccountKey(
       queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.detail(projectId, serviceAccountName),
       });
+      // The account's credential state is derived from its keys, so the
+      // listing's status badge and key count are stale until it refetches.
+      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
   });
@@ -185,6 +199,12 @@ export function useRevokeServiceAccountKey(
       queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.keyList(projectId, serviceAccountName),
       });
+      // Revoking the last key leaves the account with no credential at all,
+      // which both the detail badge and the listing need to reflect.
+      queryClient.invalidateQueries({
+        queryKey: serviceAccountKeys.detail(projectId, serviceAccountName),
+      });
+      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
       options?.onSuccess?.(...args);
     },
   });

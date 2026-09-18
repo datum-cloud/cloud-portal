@@ -1,9 +1,9 @@
 import type { ServiceAccountDetailContext } from './layout';
 import { BadgeCopy } from '@/components/badge/badge-copy';
-import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
 import { List, type ListItem } from '@/components/list/list';
 import { NoteCard } from '@/components/note-card/note-card';
+import { ServiceAccountStatusBadge } from '@/features/service-account/service-account-status-badge';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
@@ -38,7 +38,7 @@ export default function ServiceAccountOverviewPage() {
       },
       {
         label: 'Status',
-        content: <BadgeStatus status={account.status} />,
+        content: <ServiceAccountStatusBadge account={account} />,
       },
       {
         label: 'Created',

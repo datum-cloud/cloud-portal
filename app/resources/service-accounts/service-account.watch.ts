@@ -1,5 +1,5 @@
 // app/resources/service-accounts/service-account.watch.ts
-import { toServiceAccount } from './service-account.adapter';
+import { preserveKeySummary, toServiceAccount } from './service-account.adapter';
 import { serviceAccountKeys } from './service-account.service';
 import type { ServiceAccount } from './types';
 import type { ComMiloapisIamV1Alpha1ServiceAccount } from '@/modules/control-plane/iam';
@@ -34,7 +34,8 @@ export function useServiceAccountsWatch(projectId: string, options?: { enabled?:
     updateListCache: (oldData, newItem) => {
       const old = oldData as ServiceAccount[] | undefined;
       if (!old) return [newItem];
-      return old.map((sa) => (sa.name === newItem.name ? newItem : sa));
+      // The event carries no keys, so keep the summary the list fetch derived.
+      return old.map((sa) => (sa.name === newItem.name ? preserveKeySummary(sa, newItem) : sa));
     },
   });
 }
@@ -67,5 +68,7 @@ export function useServiceAccountWatch(
     queryKey: serviceAccountKeys.detail(projectId, name),
     transform: (item) => toServiceAccount(item as ComMiloapisIamV1Alpha1ServiceAccount),
     enabled: options?.enabled ?? true,
+    // The event carries no keys, so keep the summary the detail fetch derived.
+    updateSingleCache: (oldData, newItem) => preserveKeySummary(oldData, newItem),
   });
 }
