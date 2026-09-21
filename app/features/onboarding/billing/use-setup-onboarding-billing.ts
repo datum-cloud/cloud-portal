@@ -167,13 +167,20 @@ export function useSetupOnboardingBilling(
     // Every branch above either creates the organization or renames it, and the
     // org list is what the header switcher and /account/organizations render
     // from. Without this they serve a stale list for the full QUERY_STALE_TIME
-    // window, so a freshly created org appears to be missing. Spread AFTER
-    // `...options` and chained explicitly, so a caller's own onSuccess cannot
-    // replace this one — the same arrangement the organization mutations in
+    // window, so a freshly created org appears to be missing.
+    //
+    // `onSettled`, not `onSuccess`: the rollback path above deliberately LEAVES
+    // the org in place when a billing account already exists, then rethrows. On
+    // that branch the org is real, the mutation rejects, and an onSuccess hook
+    // never fires — the same stale switcher, one branch over. The cost is a
+    // wasted refetch when the org was never created at all.
+    //
+    // Spread AFTER `...options` and chained explicitly, so a caller's own hook
+    // cannot replace this one — the arrangement the organization mutations in
     // organization.queries.ts use.
-    onSuccess: (...args) => {
+    onSettled: (...args) => {
       queryClient.invalidateQueries({ queryKey: organizationKeys.lists() });
-      options?.onSuccess?.(...args);
+      options?.onSettled?.(...args);
     },
   });
 }
