@@ -20,13 +20,6 @@ export interface RequestContext {
    */
   cachedUser?: User;
   /**
-   * Per-request project cache. Written by projectLegacySetupMiddleware, which
-   * fetches the project only to resolve its owning org; read by the project
-   * detail layout loader, which would otherwise repeat the identical call a
-   * moment later. See `getProjectForRequest`
-   * (app/resources/projects/project-request-cache.server.ts).
-   */
-  /**
    * Whether the signed-in user belongs to at least one organization. Written by
    * authMiddleware's no-orgs onboarding guard, which already probes this with a
    * `list({ limit: 1 })`; read by routes that repeat the same guard for
@@ -37,6 +30,13 @@ export interface RequestContext {
    * user's actual organizations must fetch them.
    */
   hasOrganizations?: boolean;
+  /**
+   * Per-request project cache. Written by projectLegacySetupMiddleware, which
+   * fetches the project only to resolve its owning org; read by the project
+   * detail layout loader, which would otherwise repeat the identical call a
+   * moment later. See `getProjectForRequest`
+   * (app/resources/projects/project-request-cache.server.ts).
+   */
   cachedProject?: Project;
   /**
    * Per-request organization cache. Same arrangement as `cachedProject`, between
