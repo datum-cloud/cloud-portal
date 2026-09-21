@@ -3,7 +3,11 @@ import { type MiddlewareContext, type NextFunction } from './middleware';
 import { getRequestContext } from '@/modules/axios/request-context';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
-import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
+import {
+  appendSetCookieHeaders,
+  getUserWithAccessRetry,
+  loadUserOncePerRequest,
+} from '@/utils/fraud/user-access';
 import { redirect } from 'react-router';
 
 /**
@@ -48,7 +52,14 @@ export async function fraudStatusMiddleware(
     let refreshedHeaders: Headers | undefined;
 
     if (!user) {
-      const access = await loadUser(session.sub, request.headers.get('Cookie'));
+      // Single-flighted for the same reason authMiddleware is: `cachedUser`
+      // only covers readers that run after the writer awaited, and nothing
+      // enforces that this middleware runs behind authMiddleware.
+      const access = await loadUserOncePerRequest(
+        session.sub,
+        request.headers.get('Cookie'),
+        loadUser
+      );
 
       if ('error' in access) {
         if (access.error === 'not_found' || access.error === 'forbidden') {
