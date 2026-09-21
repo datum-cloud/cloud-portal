@@ -14,7 +14,12 @@ import {
   type UseMutationOptions,
 } from '@tanstack/react-query';
 
-const organizationsListQueryKey = [...organizationKeys.lists(), 'gateway'] as const;
+/**
+ * Exported for the prefix test in organization.gql-queries.test.ts: list
+ * invalidation targets `organizationKeys.lists()` and only reaches this query
+ * because it is a descendant of it.
+ */
+export const organizationsListQueryKey = [...organizationKeys.lists(), 'gateway'] as const;
 
 /**
  * Hook to fetch the organizations list via the gateway GraphQL API.
