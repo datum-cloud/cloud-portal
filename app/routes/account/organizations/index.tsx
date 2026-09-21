@@ -15,7 +15,11 @@ import { createStripeProviderConfigService } from '@/resources/stripe-provider-c
 import { paths } from '@/utils/config/paths.config';
 import { getAlertState, getSession, setAlertClosed } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
-import { loadUserOncePerRequest, type UserAccessResult } from '@/utils/fraud/user-access';
+import {
+  appendSetCookieHeaders,
+  loadUserOncePerRequest,
+  type UserAccessResult,
+} from '@/utils/fraud/user-access';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { onboardingEntryPath } from '@/utils/middlewares/fraud-redirect';
 import { requestCacheKeys } from '@/utils/request-cache-keys';
@@ -74,13 +78,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     }
     const { user } = access;
 
+    // `getUserWithAccessRetry` force-refreshes the OAuth token on a 403 and
+    // hands back the rotated session cookies. They have to reach the browser or
+    // the next request pays that refresh round trip again, which is the
+    // opposite of what this change is for. Folded into `alertHeaders` because
+    // both exits below already carry it; every other caller of this function
+    // propagates them the same way.
+    appendSetCookieHeaders(alertHeaders, access.refreshedHeaders);
+
     // A user with no orgs belongs in onboarding. This guard handles
     // client-side navigation that bypasses the middleware redirect.
     // Incomplete billing setup is gated when entering a specific org
     // (orgLegacySetupMiddleware), not on this list — users should always
     // see their organizations here.
     if (!hasOrganizations) {
-      return redirect(onboardingEntryPath(user));
+      return redirect(onboardingEntryPath(user), { headers: alertHeaders });
     }
 
     const contactDefaults: Partial<OrgContactInfoValues> = {
