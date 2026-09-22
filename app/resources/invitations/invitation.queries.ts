@@ -120,12 +120,10 @@ export function useResendInvitation(
 
   return useMutation({
     mutationFn: async (name: string) => {
-      // Resend by getting the current invitation and creating a new one
+      // Resend by deleting the existing invitation (whatever its state —
+      // Pending, Declined, or an Accepted one that never granted membership)
+      // and creating a new one in its place.
       const invitation = await service.get(orgId, name);
-
-      if (invitation?.state !== 'Pending') {
-        throw new Error('Invitation is not pending');
-      }
 
       // Check rate limiting - invitation must be older than 10 minutes to resend
       if (invitation?.createdAt) {

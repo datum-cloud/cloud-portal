@@ -51,4 +51,18 @@ describe('parseK8sMessage', () => {
     const result = parseK8sMessage(raw);
     expect(result).to.equal('DNS Zone "example" not found');
   });
+
+  it('does not chop a duplicate-value field error down to the bare value', () => {
+    const raw =
+      'UserInvitation.iam.miloapis.com "org-abc123" is invalid: spec.organizationRef: Duplicate value: "datum"';
+    const result = parseK8sMessage(raw);
+    expect(result).to.equal('Duplicate value: "datum"');
+  });
+
+  it('keeps the trailing detail of a field-invalid error instead of the value alone', () => {
+    const raw =
+      'UserInvitation.iam.miloapis.com "org-abc123" is invalid: spec.email: Invalid value: "user@example.com": the user is already a member of the organization';
+    const result = parseK8sMessage(raw);
+    expect(result).to.equal('The user is already a member of the organization');
+  });
 });
