@@ -68,6 +68,7 @@ export function DashboardLayout({
   banner,
   defaultSidebarOpen,
   headerContent,
+  headerActions,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -111,6 +112,8 @@ export function DashboardLayout({
   defaultSidebarOpen?: boolean;
   /** Optional content rendered between the org/project switcher and the global search entry in the header. */
   headerContent?: React.ReactNode;
+  /** Optional extra icon buttons rendered alongside the built-in help/docs/tasks/notification icons in the header. */
+  headerActions?: React.ReactNode;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -143,6 +146,7 @@ export function DashboardLayout({
         switcherLoading={switcherLoading}
         navItems={navItems}
         headerContent={headerContent}
+        headerActions={headerActions}
       />
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
