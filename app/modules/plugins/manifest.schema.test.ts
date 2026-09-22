@@ -438,6 +438,36 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
+  test('accepts a portal.card/project-home extension gated by requirements.serviceRef', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.card/project-home',
+            properties: { title: 'Compute', component: { $codeRef: 'HomeCard' }, order: 10 },
+            requirements: { serviceRef: 'compute.datumapis.com' },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects requirements.serviceRef when empty', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.card/project-home',
+            properties: { title: 'Compute', component: { $codeRef: 'HomeCard' }, order: 10 },
+            requirements: { serviceRef: '' },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a non-object input', () => {
     expect(validateManifest(null).valid).toBe(false);
     expect(validateManifest('nope').valid).toBe(false);

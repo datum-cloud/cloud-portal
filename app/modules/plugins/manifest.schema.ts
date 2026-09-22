@@ -30,6 +30,7 @@ const permissionSchema = z.object({
 const requirementsSchema = z
   .object({
     permissions: z.array(permissionSchema).optional(),
+    serviceRef: z.string().min(1).optional(),
   })
   .optional();
 
