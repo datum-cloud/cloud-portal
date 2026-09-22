@@ -1,4 +1,5 @@
 import { ContentWrapperProps } from './content-wrapper.types';
+import { useContentScroll } from './use-content-scroll';
 import { Breadcrumb } from '@/components/header';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
@@ -7,8 +8,11 @@ export function ContentWrapper({
   containerClassName,
   contentClassName,
 }: ContentWrapperProps) {
+  const scrollRef = useContentScroll<HTMLDivElement>();
+
   return (
     <div
+      ref={scrollRef}
       className={cn(
         'bg-background mx-auto flex h-full w-full flex-col gap-5 p-4 py-7 md:p-9',
         containerClassName

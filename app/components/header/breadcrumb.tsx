@@ -10,7 +10,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Home } from 'lucide-react';
 import React, { useMemo } from 'react';
-import { useLocation, useMatches } from 'react-router';
+import { Link, useLocation, useMatches } from 'react-router';
 
 /**
  * Type for route handle with breadcrumb options
@@ -105,9 +105,11 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
       <BreadcrumbList className="scrollbar-hide w-full flex-nowrap gap-[5px] overflow-x-auto overflow-y-hidden text-xs whitespace-nowrap *:shrink-0 sm:gap-[5px]">
         <BreadcrumbItem>
           <BreadcrumbLink
-            href="/"
+            asChild
             className="text-primary hover:text-secondary mr-2 cursor-pointer transition-all">
-            <Icon icon={Home} size={16} />
+            <Link to="/">
+              <Icon icon={Home} size={16} />
+            </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
 
@@ -118,9 +120,9 @@ export const Breadcrumb = ({ className }: { className?: string }): React.ReactEl
                 <BreadcrumbPage className="[&>span]:text-foreground">{item.content}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink
-                  href={item.path}
+                  asChild
                   className="[&>span]:text-foreground [&>span]:hover:text-primary cursor-pointer transition-all">
-                  {item.content}
+                  <Link to={item.path}>{item.content}</Link>
                 </BreadcrumbLink>
               )}
             </BreadcrumbItem>

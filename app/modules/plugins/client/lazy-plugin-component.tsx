@@ -2,17 +2,37 @@
  * Shared lazy loader for plugin components (pages and cards) — CLIENT-ONLY.
  *
  * Plugin bundles are client-rendered: the server emits the fallback and the
- * plugin hydrates on the client (see the enhancement's SSR note). The post-mount
- * gate keeps Module Federation's `loadRemote` from ever running during the
- * server render, and the initial client render matches the server's fallback so
- * there is no hydration mismatch.
+ * plugin hydrates on the client (see the enhancement's SSR note). The hydration
+ * snapshot keeps Module Federation's `loadRemote` from ever running during the
+ * server render, and the hydration render matches the server's fallback so
+ * there is no hydration mismatch. On the client, that same render starts the
+ * fetch so it overlaps hydration instead of waiting for an effect.
  *
  * Loading uses React 19's `use()` over a module-level promise cache rather than
  * a render-created `React.lazy`, so component identity is stable and no
  * component is constructed during render.
+ *
+ * The SSR gate is a hydration snapshot, not a mount effect. A mount effect
+ * paints the fallback on every client navigation — including when the bundle
+ * is already cached — and that frame shows up before the plugin's own
+ * skeleton. After hydration, client renders skip the fallback and suspend
+ * only while the bundle is actually in flight.
  */
 import { loadPluginComponent, type PluginRemoteRef } from './federation-host';
-import { Suspense, use, useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { Suspense, use, useSyncExternalStore, type ComponentType, type ReactNode } from 'react';
+
+function subscribeHydrated(): () => void {
+  return () => {};
+}
+
+/** False while rendering the server HTML; true on every client render after hydration. */
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeHydrated,
+    () => true,
+    () => false
+  );
+}
 
 /**
  * Cache of in-flight/resolved plugin component promises, keyed by container
@@ -56,7 +76,7 @@ function ResolvedPluginComponent({
 
 /**
  * Lazily load and render a plugin component by `$codeRef`, showing `fallback`
- * during SSR, before mount, and while the bundle loads. Must be rendered inside
+ * during SSR, hydration, and while the bundle loads. Must be rendered inside
  * a plugin ErrorBoundary — a load or render failure throws to it.
  */
 export function LazyPluginComponent({
@@ -68,10 +88,15 @@ export function LazyPluginComponent({
   codeRef: string;
   fallback: ReactNode;
 }) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const hydrated = useHydrated();
 
-  if (!mounted) return <>{fallback}</>;
+  if (!hydrated) {
+    if (typeof window !== 'undefined') {
+      // Failure is retried when the hydrated render suspends on the same load.
+      void getComponentPromise(pluginRef, codeRef).catch(() => {});
+    }
+    return <>{fallback}</>;
+  }
 
   return (
     <Suspense fallback={fallback}>
