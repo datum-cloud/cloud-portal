@@ -63,7 +63,7 @@ export default function ServiceAccountKeysPage() {
 
   const { canCreate, canDelete } = useResourcePermissions({
     resource: 'serviceaccountkeys',
-    group: 'iam.miloapis.com',
+    group: 'identity.miloapis.com',
     scope: 'project',
     verbs: ['create', 'delete'],
   });
