@@ -14,7 +14,7 @@ export function ContentWrapper({
     <div
       ref={scrollRef}
       className={cn(
-        'bg-background mx-auto flex h-full w-full flex-col gap-5 p-4 py-7 md:p-9',
+        'bg-card mx-auto flex h-full w-full flex-col gap-5 p-4 py-7 md:p-9',
         containerClassName
       )}>
       <Breadcrumb className="mx-auto w-full max-w-[1800px]" />

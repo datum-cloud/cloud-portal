@@ -1,5 +1,5 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
-import { ProjectBottomBar } from '@/features/project-bottom-bar';
+import { ProjectDockTriggers } from '@/features/project-dock';
 import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
@@ -298,7 +298,7 @@ function ProjectDetailLayoutContent({
           currentOrg={currentOrg}
           sidebarLoading={projectLoading}
           switcherLoading={projectLoading || orgLoading}
-          bottomBar={<ProjectBottomBar />}
+          headerActions={<ProjectDockTriggers projectId={project?.name} />}
           banner={<SuspensionBar />}
           headerContent={
             <div className="flex h-full items-center justify-end">

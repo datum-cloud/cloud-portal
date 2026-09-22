@@ -23,6 +23,7 @@ export const Header = ({
   switcherLoading = false,
   navItems = [],
   headerContent,
+  headerActions,
 }: {
   currentProject?: Project;
   currentOrg?: Organization;
@@ -30,6 +31,8 @@ export const Header = ({
   navItems?: NavItem[];
   /** Optional content rendered between the org/project switcher and the global search entry. */
   headerContent?: React.ReactNode;
+  /** Optional extra icon buttons rendered alongside the built-in help/docs/tasks/notification icons. */
+  headerActions?: React.ReactNode;
 }) => {
   return (
     <div className="sticky top-0 z-50 flex flex-col">
@@ -99,6 +102,8 @@ export const Header = ({
 
               {/* Notification Dropdown */}
               <NotificationDropdown defaultTab="invitation" />
+
+              {headerActions}
             </div>
             <div className="border-sidebar-border flex h-full items-center justify-center border-l pl-3">
               <UserDropdown />
