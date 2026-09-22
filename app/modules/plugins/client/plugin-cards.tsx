@@ -11,6 +11,7 @@ import type { PluginRemoteRef } from './federation-host';
 import { LazyPluginComponent } from './lazy-plugin-component';
 import { getCardExtensions } from './match-extension';
 import { PluginErrorBoundary } from './plugin-error-boundary';
+import { useActiveServiceEntitlements } from './use-active-service-entitlements';
 import { useProjectPlugins } from './use-project-plugins';
 import type { CardProjectHomeExtension, PublicPlugin } from '@/modules/plugins/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
@@ -23,7 +24,7 @@ interface HomeCard {
   card: CardProjectHomeExtension;
 }
 
-function collectHomeCards(plugins: PublicPlugin[]): HomeCard[] {
+export function collectHomeCards(plugins: PublicPlugin[]): HomeCard[] {
   return plugins.flatMap((plugin) => {
     const pluginRef: PluginRemoteRef = {
       remoteName: plugin.manifest.name,
@@ -35,13 +36,35 @@ function collectHomeCards(plugins: PublicPlugin[]): HomeCard[] {
 }
 
 /**
+ * A card with `requirements.serviceRef` only renders once the project has an
+ * Active ServiceEntitlement matching that id — otherwise the plugin isn't
+ * entitled yet and the host skips the card entirely (title, chrome, and all)
+ * rather than mounting a component that has nothing to show.
+ */
+export function isEntitled(card: HomeCard, activeServices: ReadonlySet<string>): boolean {
+  const serviceRef = card.card.requirements?.serviceRef?.trim();
+  if (!serviceRef) return true;
+  return activeServices.has(serviceRef);
+}
+
+/**
  * Project-home cards contributed by plugins. Renders nothing until at least one
- * ready plugin declares a `portal.card/project-home` extension, so the home
- * page is unchanged when no plugins are present.
+ * ready, entitled plugin declares a `portal.card/project-home` extension, so
+ * the home page is unchanged when no plugins are present or none are entitled.
  */
 export function ProjectHomePluginCards({ projectId }: { projectId: string }) {
   const { data: plugins } = useProjectPlugins(projectId, { enabled: !!projectId });
-  const cards = useMemo(() => (plugins ? collectHomeCards(plugins) : []), [plugins]);
+  const { data: activeServiceEntitlements } = useActiveServiceEntitlements(projectId, {
+    enabled: !!projectId,
+  });
+  const activeServices = useMemo(
+    () => new Set(activeServiceEntitlements ?? []),
+    [activeServiceEntitlements]
+  );
+  const cards = useMemo(() => {
+    if (!plugins) return [];
+    return collectHomeCards(plugins).filter((card) => isEntitled(card, activeServices));
+  }, [plugins, activeServices]);
 
   if (cards.length === 0) return null;
 

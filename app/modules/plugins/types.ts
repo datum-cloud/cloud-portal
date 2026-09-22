@@ -123,6 +123,15 @@ export interface PluginPermissionRequirement {
 
 export interface PluginExtensionRequirements {
   permissions?: PluginPermissionRequirement[];
+  /**
+   * Canonical service id (`Service.spec.serviceName`, e.g.
+   * `compute.datumapis.com`) whose Active ServiceEntitlement gates this
+   * extension. When set, the host renders the extension only once the
+   * project has an Active ServiceEntitlement matching this id (or the plugin
+   * slug — see {@link NavProjectProperties.serviceRef} for the same match
+   * rule). Omit to render unconditionally (once other requirements pass).
+   */
+  serviceRef?: string;
 }
 
 /**
