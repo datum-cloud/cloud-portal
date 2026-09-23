@@ -47,7 +47,7 @@ export function IdleChip({ className }: { className?: string }) {
       type="muted"
       theme="solid"
       className={cn(
-        'h-5 gap-1.5 rounded-md px-1.5 text-[11px] font-medium whitespace-nowrap',
+        'text-3xs h-5 gap-1.5 rounded-md px-1.5 font-medium whitespace-nowrap',
         className
       )}>
       <span className="bg-muted-foreground/60 size-1.5 rounded-full" aria-hidden="true" />

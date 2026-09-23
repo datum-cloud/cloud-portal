@@ -35,7 +35,7 @@ export function RoleRow({ assignment, isPendingRemove, canManageRoles, onRemove 
           <span className="text-muted-foreground truncate text-xs">{description}</span>
         )}
         {isPendingRemove && (
-          <Badge type="danger" theme="light" className="text-[10px] font-bold uppercase">
+          <Badge type="danger" theme="light" className="text-4xs font-bold uppercase">
             Removed
           </Badge>
         )}

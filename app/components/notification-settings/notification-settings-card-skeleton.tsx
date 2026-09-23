@@ -32,7 +32,7 @@ export function NotificationSettingsCardSkeleton({
                 <Skeleton className="size-4 rounded-sm" />
               </div>
 
-              <div className="text-1xs flex flex-col space-y-0.5 text-left">
+              <div className="text-2xs flex flex-col space-y-0.5 text-left">
                 <Skeleton className="h-3.5 w-40" />
                 {showDescription && <Skeleton className="h-3 w-64" />}
               </div>

@@ -195,7 +195,7 @@ export function AddRoleScreen({
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="scope-select"
-                className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+                className="text-muted-foreground text-3xs font-semibold tracking-wide uppercase">
                 Grant at scope
               </label>
               <Select
@@ -250,12 +250,10 @@ export function AddRoleScreen({
                 {groups.map((group) => (
                   <li key={group.label}>
                     <div className="flex items-center gap-2 px-6 py-2">
-                      <span className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
+                      <span className="text-muted-foreground text-3xs font-semibold tracking-widest uppercase">
                         {group.label}
                       </span>
-                      <span className="text-muted-foreground text-[11px]">
-                        {group.roles.length}
-                      </span>
+                      <span className="text-muted-foreground text-3xs">{group.roles.length}</span>
                     </div>
                     <ul>
                       {group.roles.map((role) => {
@@ -292,7 +290,7 @@ export function AddRoleScreen({
                                 )}
                               </div>
                               {isAssigned && (
-                                <span className="text-muted-foreground shrink-0 text-[10px] font-semibold tracking-wide uppercase">
+                                <span className="text-muted-foreground text-4xs shrink-0 font-semibold tracking-wide uppercase">
                                   Assigned
                                 </span>
                               )}
@@ -313,7 +311,7 @@ export function AddRoleScreen({
           aria-label="Role Preview"
           className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l">
           <header className="border-b px-6 py-4">
-            <h2 className="text-foreground text-[15px] font-semibold">
+            <h2 className="text-foreground text-sm font-semibold">
               {selectedRole ? (selectedRole.displayName ?? selectedRole.name) : 'Role Preview'}
             </h2>
             {selectedRole?.description && (

@@ -83,10 +83,10 @@ function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) 
         <Badge
           type={httpStatusBadgeType(parsed.status)}
           theme="light"
-          className="h-5 w-11 shrink-0 justify-center rounded-md px-0 font-mono text-[11px] font-medium tabular-nums">
+          className="text-3xs h-5 w-11 shrink-0 justify-center rounded-md px-0 font-mono font-medium tabular-nums">
           {parsed.status}
         </Badge>
-        <span className="text-muted-foreground w-12 shrink-0 font-mono text-[11px] font-medium">
+        <span className="text-muted-foreground text-3xs w-12 shrink-0 font-mono font-medium">
           {parsed.method}
         </span>
         <span className="min-w-0 flex-1 truncate font-mono text-xs" title={parsed.path}>

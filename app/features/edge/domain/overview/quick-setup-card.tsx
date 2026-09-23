@@ -90,11 +90,11 @@ export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domai
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-3.5">
-          <p className="text-[14px] font-normal">
+          <p className="text-sm font-normal">
             Skip the manual DNS setup process and let Datum automatically configure your DNS records
             and validate your domain for you.
           </p>
-          <ul className="space-y-[7px] text-[14px] font-normal">
+          <ul className="space-y-[7px] text-sm font-normal">
             {setupItems.map((item, index) => (
               <li className="flex items-start gap-2.5" key={`quick-setup-item-${index}`}>
                 <Icon icon={CheckIcon} className="text-success mt-0.5 size-3.5 shrink-0" />

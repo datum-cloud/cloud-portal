@@ -65,7 +65,7 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <p className="text-[14px] font-normal">
+        <p className="text-sm font-normal">
           To verify domain ownership, use one of the methods below. Once verified, you may remove
           the record from your DNS system. Next verification{' '}
           {domain.status?.verification?.nextVerificationAttempt && (

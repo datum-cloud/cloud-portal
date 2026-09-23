@@ -124,7 +124,7 @@ export const BillingForm = ({
             isLegacySetupResume && 'md:justify-center'
           )}>
           <CardContent className="flex flex-col gap-8 p-0">
-            <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
+            <p className="text-muted-foreground text-2xs text-center tracking-[0.4px] uppercase">
               {stepLabel}
             </p>
 
@@ -138,7 +138,7 @@ export const BillingForm = ({
                     name={orgDisplayName}
                     size="xs"
                     className="size-6 rounded-full"
-                    fallbackClassName="rounded-full text-[10px]"
+                    fallbackClassName="rounded-full text-4xs"
                   />
                   <span className="text-foreground truncate text-sm font-medium">
                     {orgDisplayName}

@@ -54,7 +54,7 @@ export const Account2FACard = () => {
     <Card size="sm" sectioned data-e2e="account-2fa-card">
       <CardHeader size="sm" bordered>
         <CardTitle className="text-sm">Two-factor Authentication</CardTitle>
-        <CardDescription className="text-1xs">
+        <CardDescription className="text-2xs">
           Add an additional layer of security by requiring at least two methods of authentication to
           sign in.
         </CardDescription>

@@ -253,20 +253,20 @@ export const InvoicePreviewCard = () => {
             stale fake addresses would be worse than nothing. */}
         <div className="grid grid-cols-2 gap-6">
           <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-2xs font-semibold tracking-[0.16em] uppercase">
+            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
               From
             </span>
-            <div className="text-foreground text-[11px] leading-relaxed">
+            <div className="text-foreground text-3xs leading-relaxed">
               <p className="font-medium">{SELLER.legalName}</p>
               <p className="text-muted-foreground pt-1">{SELLER.email}</p>
             </div>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-2xs font-semibold tracking-[0.16em] uppercase">
+            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
               Bill to
             </span>
             {hasBillTo ? (
-              <div className="text-foreground text-[11px] leading-relaxed">
+              <div className="text-foreground text-3xs leading-relaxed">
                 {values.businessName && <p className="font-medium">{values.businessName}</p>}
                 {values.name && (
                   <p className={values.businessName ? 'text-muted-foreground' : 'font-medium'}>
@@ -287,7 +287,7 @@ export const InvoicePreviewCard = () => {
                 )}
               </div>
             ) : (
-              <p className="text-muted-foreground text-[11px] italic">
+              <p className="text-muted-foreground text-3xs italic">
                 Fill in the form to see how your details will appear on invoices.
               </p>
             )}
@@ -297,24 +297,24 @@ export const InvoicePreviewCard = () => {
         {/* Invoice meta. Static so the preview communicates "here's a
             full document"; the line items and totals below are
             illustrative rather than authoritative. */}
-        <div className="border-border grid grid-cols-3 gap-4 border-t pt-4 text-[11px]">
+        <div className="border-border text-3xs grid grid-cols-3 gap-4 border-t pt-4">
           <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-2xs font-semibold tracking-[0.16em] uppercase">
+            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
               Invoice #
             </span>
-            <span className="text-foreground text-2xs">{PREVIEW_INVOICE_NUMBER}</span>
+            <span className="text-foreground text-5xs">{PREVIEW_INVOICE_NUMBER}</span>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-2xs font-semibold tracking-[0.16em] uppercase">
+            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
               Issued
             </span>
-            <span className="text-foreground text-2xs">{PREVIEW_ISSUE_DATE}</span>
+            <span className="text-foreground text-5xs">{PREVIEW_ISSUE_DATE}</span>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-2xs font-semibold tracking-[0.16em] uppercase">
+            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
               Due
             </span>
-            <span className="text-foreground text-2xs">{PREVIEW_DUE_DATE}</span>
+            <span className="text-foreground text-5xs">{PREVIEW_DUE_DATE}</span>
           </div>
         </div>
 
@@ -326,25 +326,25 @@ export const InvoicePreviewCard = () => {
             line plus a list of metered usage items, each with its
             own subtotal before rolling up into the grand totals. */}
         <div className="flex flex-col gap-4">
-          <div className="text-muted-foreground text-2xs grid grid-cols-[1fr_auto_auto] gap-4 font-semibold tracking-[0.16em] uppercase">
+          <div className="text-muted-foreground text-5xs grid grid-cols-[1fr_auto_auto] gap-4 font-semibold tracking-[0.16em] uppercase">
             <span>Description</span>
             <span className="text-right">Qty</span>
             <span className="w-20 text-right">Amount</span>
           </div>
           {SAMPLE_INVOICE_SECTIONS.map((section, sectionIdx) => (
             <div key={section.title} className="flex flex-col gap-2">
-              <span className="text-foreground text-2xs font-semibold tracking-[0.16em] uppercase">
+              <span className="text-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
                 {section.title}
               </span>
               <div className="border-border flex flex-col divide-y border-y">
                 {section.items.map((item) => (
                   <div
                     key={item.description}
-                    className="grid grid-cols-[1fr_auto_auto] items-start gap-4 py-2 text-[11px]">
+                    className="text-3xs grid grid-cols-[1fr_auto_auto] items-start gap-4 py-2">
                     <div className="flex flex-col">
                       <span className="text-foreground">{item.description}</span>
                       {item.meta && (
-                        <span className="text-muted-foreground text-2xs">{item.meta}</span>
+                        <span className="text-muted-foreground text-5xs">{item.meta}</span>
                       )}
                     </div>
                     <span className="text-muted-foreground text-right tabular-nums">
@@ -356,7 +356,7 @@ export const InvoicePreviewCard = () => {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-[1fr_auto_auto] items-center gap-4 text-[11px]">
+              <div className="text-3xs grid grid-cols-[1fr_auto_auto] items-center gap-4">
                 <span />
                 <span className="text-muted-foreground text-right">Subtotal</span>
                 <span className="text-foreground w-20 text-right tabular-nums">
@@ -365,7 +365,7 @@ export const InvoicePreviewCard = () => {
               </div>
             </div>
           ))}
-          <div className="border-border flex flex-col gap-1 border-t pt-3 text-[11px]">
+          <div className="border-border text-3xs flex flex-col gap-1 border-t pt-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="text-foreground tabular-nums">{currency(SAMPLE_SUBTOTAL)}</span>

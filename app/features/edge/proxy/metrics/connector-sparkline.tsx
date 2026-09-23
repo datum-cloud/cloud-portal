@@ -108,7 +108,7 @@ export function ConnectorSparkline({
               if (active && payload?.length) {
                 const value = payload[0].value as number;
                 return (
-                  <div className="border-border bg-background text-1xs rounded-md border px-2 py-1 shadow-sm">
+                  <div className="border-border bg-background text-2xs rounded-md border px-2 py-1 shadow-sm">
                     <div className="text-foreground font-medium">{value.toFixed(2)} req/s</div>
                   </div>
                 );

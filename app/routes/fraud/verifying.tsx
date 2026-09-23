@@ -87,13 +87,13 @@ export default function VerifyingPage() {
             </svg>
           </div>
           <h2 className="mb-3 text-center text-xl font-medium">Verifying your account</h2>
-          <p className="text-center text-[14px] leading-5 font-normal">
+          <p className="text-center text-sm leading-5 font-normal">
             We&apos;re running a quick security check. This usually takes less than 30 seconds.
           </p>
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}
-              className="dark:text-foreground dark:hover:text-foreground text-[14px] text-gray-600 underline hover:text-gray-900">
+              className="dark:text-foreground dark:hover:text-foreground text-sm text-gray-600 underline hover:text-gray-900">
               Log out
             </Link>
           </div>

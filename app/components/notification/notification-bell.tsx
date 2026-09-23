@@ -25,7 +25,7 @@ export function NotificationBell({ pendingCount }: NotificationBellProps) {
             data-testid="notification-badge"
             type="tertiary"
             theme="solid"
-            className="bg-primary text-primary-foreground text-2xs absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full p-0 leading-0">
+            className="bg-primary text-primary-foreground text-5xs absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full p-0 leading-0">
             {displayCount}
           </Badge>
         )}

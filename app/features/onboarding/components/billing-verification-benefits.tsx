@@ -50,7 +50,7 @@ export const BillingVerificationBenefits = () => {
                   <p className="text-foreground text-base font-medium opacity-60">
                     {benefit.title}
                   </p>
-                  <p className="text-foreground text-[13px] leading-[18px] opacity-60">
+                  <p className="text-foreground text-xs leading-[18px] opacity-60">
                     {benefit.description}
                   </p>
                 </div>

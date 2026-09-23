@@ -198,7 +198,7 @@ export function SelectDomain({
         <div className="flex flex-col">
           <span>Use &ldquo;{val}&rdquo;</span>
           {parentDomain && (
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-muted-foreground text-3xs">
               subdomain of {parentDomain.value}
             </span>
           )}

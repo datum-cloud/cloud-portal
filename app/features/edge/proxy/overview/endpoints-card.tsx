@@ -89,7 +89,7 @@ function EndpointRow({
 }) {
   return (
     <li className="group/row flex flex-col gap-1.5 px-(--card-px) py-3">
-      <span className="text-muted-foreground text-2xs font-medium tracking-wide uppercase">
+      <span className="text-muted-foreground text-5xs font-medium tracking-wide uppercase">
         {eyebrow}
       </span>
       <div className="flex min-w-0 items-center gap-2">

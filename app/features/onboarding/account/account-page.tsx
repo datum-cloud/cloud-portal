@@ -76,7 +76,7 @@ export const AccountPage = ({
     <OnboardingEntrance>
       <Card className={cn(onboardingCardClassName, 'z-10')}>
         <CardContent className="flex flex-col gap-8 p-0">
-          <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
+          <p className="text-muted-foreground text-2xs text-center tracking-[0.4px] uppercase">
             Step 1 / 2
           </p>
 

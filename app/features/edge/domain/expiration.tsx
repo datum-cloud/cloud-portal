@@ -18,9 +18,7 @@ export const DomainExpiration = ({ expiresAt, showBadge = true }: DomainExpirati
     <div className="flex items-center gap-2">
       <DateTime date={expiresAt} variant="detailed" format="dd MMM yyyy" showTooltip={false} />
       {showBadge && isExpiringSoon && (
-        <Badge
-          type="danger"
-          className="pointer-events-none cursor-default px-1.5 py-0.5 text-[10px]">
+        <Badge type="danger" className="text-4xs pointer-events-none cursor-default px-1.5 py-0.5">
           Expiring soon
         </Badge>
       )}

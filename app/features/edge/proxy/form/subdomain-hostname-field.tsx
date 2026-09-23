@@ -263,7 +263,7 @@ export function SubdomainHostnameField({
           <button
             type="button"
             onClick={() => void switchToSplit()}
-            className="text-muted-foreground hover:text-foreground flex items-center gap-1 self-start text-[11px] underline transition-colors">
+            className="text-muted-foreground hover:text-foreground text-3xs flex items-center gap-1 self-start underline transition-colors">
             <GlobeIcon className="size-3" />
             Use a verified domain
           </button>
@@ -288,7 +288,7 @@ export function SubdomainHostnameField({
               key={s}
               type="button"
               onClick={() => handleSuggestionClick(s)}
-              className="bg-accent hover:bg-accent/80 text-accent-foreground rounded-md px-2 py-0.5 text-[11px] transition-colors">
+              className="bg-accent hover:bg-accent/80 text-accent-foreground text-3xs rounded-md px-2 py-0.5 transition-colors">
               {s}
             </button>
           ))}
@@ -342,7 +342,7 @@ export function SubdomainHostnameField({
         className="px-0.5 pt-0.5 sm:hidden"
         aria-live="polite"
         aria-label="Assembled hostname preview">
-        <p className={cn('text-1xs text-muted-foreground mt-0.5 font-mono wrap-break-word')}>
+        <p className={cn('text-2xs text-muted-foreground mt-0.5 font-mono wrap-break-word')}>
           {splitHostnamePreview}
         </p>
       </div>
@@ -359,7 +359,7 @@ export function SubdomainHostnameField({
       <button
         type="button"
         onClick={switchToCustom}
-        className="text-muted-foreground hover:text-foreground flex items-center gap-1 self-start text-[11px] underline transition-colors">
+        className="text-muted-foreground hover:text-foreground text-3xs flex items-center gap-1 self-start underline transition-colors">
         <GlobeIcon className="size-3" />
         Type a custom hostname
       </button>

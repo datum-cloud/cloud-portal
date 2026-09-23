@@ -103,7 +103,7 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
         meta: (
           <Badge
             type="secondary"
-            className="text-2xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold">
+            className="text-5xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold">
             {group.items.length}
           </Badge>
         ),

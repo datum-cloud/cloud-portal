@@ -39,7 +39,7 @@ export function AvatarStack({ items, max = 4, size = 'xs' }: AvatarStackProps) {
   const visible = items.slice(0, max);
   const overflow = items.length - max;
 
-  const sizeClasses = size === 'xs' ? 'size-6 text-[9px]' : 'size-8 text-[11px]';
+  const sizeClasses = size === 'xs' ? 'size-6 text-5xs' : 'size-8 text-3xs';
 
   return (
     <div className="flex items-center">

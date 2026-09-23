@@ -52,7 +52,7 @@ export function SuspensionBar() {
           className="mt-0.5 size-4 shrink-0 sm:mt-0"
           aria-hidden="true"
         />
-        <p role="status" className="text-1xs leading-relaxed">
+        <p role="status" className="text-2xs leading-relaxed">
           <span className="text-sm font-semibold">This project is suspended</span>
           {phrases ? <> — {phrases}</> : null}
           {since ? (

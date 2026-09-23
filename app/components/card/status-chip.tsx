@@ -25,7 +25,7 @@ export function StatusChip({
       type={tone}
       // Muted/light is near-invisible in light mode; solid muted stays legible.
       theme={tone === 'muted' ? 'solid' : 'light'}
-      className="h-5 gap-1 rounded-md px-1.5 text-[11px] font-medium whitespace-nowrap">
+      className="text-3xs h-5 gap-1 rounded-md px-1.5 font-medium whitespace-nowrap">
       {busy ? <SpinnerIcon size="xs" aria-hidden="true" /> : null}
       {children}
     </Badge>

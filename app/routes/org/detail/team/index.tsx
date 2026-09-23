@@ -319,7 +319,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
                   <Badge
                     type="quaternary"
                     theme="outline"
-                    className="rounded-xl px-2.5 text-[13px] font-normal">
+                    className="rounded-xl px-2.5 text-xs font-normal">
                     You
                   </Badge>
                 )}

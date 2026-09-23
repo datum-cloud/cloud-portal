@@ -51,7 +51,7 @@ export const ProfilePage = ({
       <Card className={cn(onboardingCardClassName, 'z-10')}>
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">What should we call you?</h2>
-          <div className="text-foreground mb-6 flex flex-col gap-2 text-center text-[14px] leading-5 font-normal opacity-80">
+          <div className="text-foreground mb-6 flex flex-col gap-2 text-center text-sm leading-5 font-normal opacity-80">
             <p>Unfortunately, GitHub only tells us your username, not your real name.</p>
             <p>
               And while names like &quot;git_happens5000&quot; and &quot;{givenName}&quot; are super

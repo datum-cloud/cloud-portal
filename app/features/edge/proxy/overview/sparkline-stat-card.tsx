@@ -95,7 +95,7 @@ function PercentileRangeBar({
           />
         ) : null}
       </div>
-      <div className="text-muted-foreground text-2xs flex justify-between tabular-nums">
+      <div className="text-muted-foreground text-5xs flex justify-between tabular-nums">
         <span>{p50 == null ? 'p50 —' : `p50 ${formatValue(p50, format, precision)}`}</span>
         <span>{p99 == null ? 'p99 —' : `p99 ${formatValue(p99, format, precision)}`}</span>
       </div>
@@ -244,7 +244,7 @@ export function SparklineStatCard({
       <CardContent className={cn('flex min-w-0 flex-col gap-2', isLoading && 'invisible')}>
         <div className="flex h-4 items-center justify-between gap-2">
           <span className="text-muted-foreground text-xs font-medium">{title}</span>
-          <span className="text-muted-foreground text-2xs">
+          <span className="text-muted-foreground text-5xs">
             {unavailable ? '\u00a0' : windowLabel}
           </span>
         </div>

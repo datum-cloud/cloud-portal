@@ -9,7 +9,7 @@ export const NotificationCheckboxItem = ({ preference }: RenderItemProps) => {
           <Form.Checkbox className="data-[state=checked]:bg-primary space-x-0 rounded-xl" />
         </div>
 
-        <div className="text-1xs flex flex-col space-y-0.5 text-left">
+        <div className="text-2xs flex flex-col space-y-0.5 text-left">
           <span className="font-medium">{preference.label}</span>
           {preference.description && (
             <span className="text-foreground/80">{preference.description}</span>

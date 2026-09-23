@@ -140,13 +140,13 @@ export function HttpProxyLiveTrafficCard({
             <span className="text-sm font-semibold tabular-nums">
               {stats.peak == null || quiet ? '—' : formatValue(stats.peak, 'requestsPerSecond', 1)}
             </span>
-            <span className="text-muted-foreground text-2xs uppercase">Peak</span>
+            <span className="text-muted-foreground text-5xs uppercase">Peak</span>
           </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold tabular-nums">
               {stats.avg == null || quiet ? '—' : formatValue(stats.avg, 'requestsPerSecond', 1)}
             </span>
-            <span className="text-muted-foreground text-2xs uppercase">Avg</span>
+            <span className="text-muted-foreground text-5xs uppercase">Avg</span>
           </div>
         </CardAction>
       </CardHeader>

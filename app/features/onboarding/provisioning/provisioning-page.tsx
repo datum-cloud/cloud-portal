@@ -207,7 +207,7 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
                       <div className="flex min-w-0 flex-col gap-1">
                         <p
                           className={cn(
-                            'text-foreground text-[13px] leading-[18px]',
+                            'text-foreground text-xs leading-[18px]',
                             !isActive && 'opacity-40'
                           )}>
                           {step.title}

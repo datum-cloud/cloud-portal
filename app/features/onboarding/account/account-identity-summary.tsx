@@ -42,7 +42,7 @@ export const AccountIdentitySummary = ({
       ) : null}
     </div>
     <div className="flex min-w-0 flex-1 flex-col gap-1 text-left">
-      <p className="text-foreground truncate text-[13px] leading-[18px] font-medium">{fullName}</p>
+      <p className="text-foreground truncate text-xs leading-[18px] font-medium">{fullName}</p>
       <p className="text-foreground truncate text-xs leading-4 opacity-60">{email}</p>
     </div>
   </div>

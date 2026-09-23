@@ -362,7 +362,7 @@ export const OrgBillingSetupForm = ({
               data-e2e="create-organization-display-name"
             />
             {!billingReady ? (
-              <p className="text-foreground text-1xs font-normal opacity-60">
+              <p className="text-foreground text-2xs font-normal opacity-60">
                 A friendly name for the organization. Defaults to your business or contact name if
                 left blank.
               </p>
@@ -383,7 +383,7 @@ export const OrgBillingSetupForm = ({
             <div
               className="flex min-w-0 flex-col gap-1 text-left"
               data-e2e="org-billing-contact-summary">
-              <p className="text-foreground text-[13px] leading-[18px] font-medium break-words">
+              <p className="text-foreground text-xs leading-[18px] font-medium break-words">
                 {formatOrgContactPrimaryLine(contactInfo)}
               </p>
               <p className="text-muted-foreground text-xs leading-4 break-words opacity-60">
@@ -413,7 +413,7 @@ export const OrgBillingSetupForm = ({
                 className="flex min-w-0 items-center gap-2.5"
                 data-e2e="org-billing-payment-summary">
                 <CardBrandIcon brand={paymentSummary.brand} />
-                <p className="text-foreground truncate text-[13px] leading-[18px] font-medium">
+                <p className="text-foreground truncate text-xs leading-[18px] font-medium">
                   {paymentSummary.label}
                 </p>
               </div>
@@ -491,7 +491,7 @@ const VerificationField = ({
         className="border-border bg-muted/50 flex h-auto min-h-9 w-full items-center gap-2.5 rounded-md border px-3 py-2"
         data-e2e="org-billing-payment-loading">
         <SpinnerIcon size="xs" aria-hidden="true" />
-        <p className="text-muted-foreground text-[13px] leading-[18px]">Saving payment method…</p>
+        <p className="text-muted-foreground text-xs leading-[18px]">Saving payment method…</p>
       </div>
     ) : isEmpty ? (
       <button
@@ -527,7 +527,7 @@ const VerificationField = ({
       </div>
     )}
     {description && (
-      <p className="text-foreground text-1xs font-normal opacity-60">{description}</p>
+      <p className="text-foreground text-2xs font-normal opacity-60">{description}</p>
     )}
   </div>
 );

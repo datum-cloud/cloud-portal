@@ -97,22 +97,22 @@ const PaymentMethodRow = ({
                 {method.spec?.displayName}
               </span>
               {isDefault && (
-                <Badge type="primary" theme="outline" className="text-2xs font-medium">
+                <Badge type="primary" theme="outline" className="text-5xs font-medium">
                   Default
                 </Badge>
               )}
               {phase && (
-                <Badge type={phase.type} theme="light" className="text-2xs font-medium">
+                <Badge type={phase.type} theme="light" className="text-5xs font-medium">
                   {phase.label}
                 </Badge>
               )}
               {expiryStatus === 'expired' && (
-                <Badge type="danger" theme="light" className="text-2xs font-medium">
+                <Badge type="danger" theme="light" className="text-5xs font-medium">
                   Expired
                 </Badge>
               )}
               {expiryStatus === 'soon' && (
-                <Badge type="warning" theme="light" className="text-2xs font-medium">
+                <Badge type="warning" theme="light" className="text-5xs font-medium">
                   Expires soon
                 </Badge>
               )}

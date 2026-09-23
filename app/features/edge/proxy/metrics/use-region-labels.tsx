@@ -33,7 +33,7 @@ export function useRegionLabels(projectId: string) {
       return (
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           <span className="text-foreground truncate">{name}</span>
-          <span className="text-muted-foreground/70 shrink-0 text-[11px]">{country}</span>
+          <span className="text-muted-foreground/70 text-3xs shrink-0">{country}</span>
         </span>
       );
     },

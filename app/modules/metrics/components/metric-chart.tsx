@@ -544,7 +544,7 @@ export function MetricChart({
   );
 
   const footerLegend = showLegend ? (
-    <div className="text-muted-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-1 pt-1.5 text-[11px] leading-none">
+    <div className="text-muted-foreground text-3xs flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-1 pt-1.5 leading-none">
       {Object.entries(chartConfig).map(([key, item]) => {
         const isHidden = hiddenSeries.has(key);
         return (

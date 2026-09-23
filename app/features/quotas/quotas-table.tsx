@@ -211,7 +211,7 @@ export const QuotasTable = ({
               <span data-e2e={`${e2ePrefix}-group-count`}>
                 <Badge
                   type="secondary"
-                  className="text-2xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold">
+                  className="text-5xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold">
                   {items.length}
                 </Badge>
               </span>

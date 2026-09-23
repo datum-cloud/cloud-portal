@@ -39,14 +39,14 @@ export default function AccountUnderReviewPage() {
       <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">Your account is under review</h2>
-          <p className="text-center text-[14px] leading-5 font-normal">
+          <p className="text-center text-sm leading-5 font-normal">
             Our team is reviewing your account. You&apos;ll receive an email when the review is
             complete.
           </p>
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}
-              className="dark:text-foreground dark:hover:text-foreground text-[14px] text-gray-600 underline hover:text-gray-900">
+              className="dark:text-foreground dark:hover:text-foreground text-sm text-gray-600 underline hover:text-gray-900">
               Log out
             </Link>
           </div>

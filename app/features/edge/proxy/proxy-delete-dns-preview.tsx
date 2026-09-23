@@ -23,7 +23,7 @@ function HostnameGroup({ row }: { row: ProxyDnsHostnameRow }) {
     <li className="flex flex-col gap-1 border-t border-current/15 py-2 first:border-t-0 first:pt-0">
       <span className="truncate text-xs font-semibold">{row.hostname}</span>
 
-      <span className="text-[11px]">
+      <span className="text-3xs">
         {state === 'will-delete' ? (
           <>
             <span className="font-medium">Deleted:</span>{' '}
@@ -35,7 +35,7 @@ function HostnameGroup({ row }: { row: ProxyDnsHostnameRow }) {
       </span>
 
       {row.yourRecords.map((record) => (
-        <span key={`${record.type}-${record.value}`} className="text-[11px]">
+        <span key={`${record.type}-${record.value}`} className="text-3xs">
           <span className="font-medium">Kept:</span> {record.type} → {record.value}
         </span>
       ))}
@@ -81,7 +81,7 @@ export function ProxyDeleteDnsPreview({
       </ul>
 
       {keptCount > 0 && (
-        <span className="text-[11px] opacity-80" data-e2e="dns-kept-note">
+        <span className="text-3xs opacity-80" data-e2e="dns-kept-note">
           Records marked Kept are yours. Deleting the load balancer removes its protection and
           leaves them in place.
         </span>

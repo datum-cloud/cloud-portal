@@ -346,7 +346,7 @@ export const HttpProxyHostnamesCard = ({
                       type="secondary"
                       theme="outline"
                       size="xs"
-                      className="h-6 px-2 text-[11px]"
+                      className="text-3xs h-6 px-2"
                       icon={<Icon icon={ListIcon} size={12} aria-hidden="true" />}>
                       View DNS records
                     </LinkButton>

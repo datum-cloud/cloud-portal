@@ -116,11 +116,11 @@ export default function VerifyEmailPage() {
       <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
           <h2 className="mb-3 text-center text-xl font-medium">Check your email</h2>
-          <p role="status" className="text-center text-[14px] leading-5 font-normal">
+          <p role="status" className="text-center text-sm leading-5 font-normal">
             We sent a verification link to your email address. Open it to continue — this page
             updates on its own once you have.
           </p>
-          <p className="text-muted-foreground mt-4 text-center text-[13px] leading-5">
+          <p className="text-muted-foreground mt-4 text-center text-xs leading-5">
             Didn&apos;t get it? Check your spam folder, or contact{' '}
             <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
               {SUPPORT_EMAIL}
@@ -130,7 +130,7 @@ export default function VerifyEmailPage() {
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}
-              className="dark:text-foreground dark:hover:text-foreground text-[14px] text-gray-600 underline hover:text-gray-900">
+              className="dark:text-foreground dark:hover:text-foreground text-sm text-gray-600 underline hover:text-gray-900">
               Log out
             </Link>
           </div>

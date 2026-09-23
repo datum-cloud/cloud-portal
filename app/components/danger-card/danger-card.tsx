@@ -37,7 +37,7 @@ export const DangerCard = ({
           />
           <div className="text-destructive flex max-w-xl flex-col gap-2">
             <span className="text-sm font-semibold">{title}</span>
-            <span className="text-1xs leading-relaxed font-normal">{description}</span>
+            <span className="text-2xs leading-relaxed font-normal">{description}</span>
           </div>
         </div>
         {!actionHidden && (

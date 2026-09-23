@@ -25,7 +25,7 @@ export function ActivePopTooltipCard({
         <Badge
           type={pop.active ? 'primary' : 'quaternary'}
           theme={pop.active ? 'light' : 'outline'}
-          className="shrink-0 text-[10px] font-normal">
+          className="text-4xs shrink-0 font-normal">
           {pop.active ? 'Traffic' : 'Idle'}
         </Badge>
       </div>

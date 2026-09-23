@@ -29,7 +29,7 @@ const PLATFORM_CHANGES = [
 
 const NOTICE_REVEAL_PROGRESS = 0.35;
 
-const bodyTextClassName = 'text-foreground text-[13px] leading-[18px] opacity-60';
+const bodyTextClassName = 'text-foreground text-xs leading-[18px] opacity-60';
 const linkClassName = 'text-foreground underline underline-offset-2 hover:opacity-80';
 
 /**

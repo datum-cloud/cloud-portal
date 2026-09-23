@@ -74,7 +74,7 @@ export function RolesPanel({
       <header className="flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-2">
           <Icon icon={KeyRoundIcon} className="text-primary size-[18px]" />
-          <h2 className="text-foreground text-[15px] font-semibold">Assigned Roles</h2>
+          <h2 className="text-foreground text-sm font-semibold">Assigned Roles</h2>
           <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-semibold">
             {assignments.length}
           </span>
@@ -110,20 +110,18 @@ export function RolesPanel({
                     icon={group.kind === 'org' ? Building2Icon : FolderIcon}
                     className="text-muted-foreground size-3.5"
                   />
-                  <span className="text-muted-foreground text-[11px] font-semibold tracking-wide">
+                  <span className="text-muted-foreground text-3xs font-semibold tracking-wide">
                     {group.label}
                   </span>
-                  <span className="text-muted-foreground text-[11px]">/</span>
-                  <span className="text-foreground text-[11px] font-semibold">
-                    {group.scopeName}
-                  </span>
+                  <span className="text-muted-foreground text-3xs">/</span>
+                  <span className="text-foreground text-3xs font-semibold">{group.scopeName}</span>
                   {group.kind === 'org' && (
-                    <span className="text-muted-foreground ml-auto text-[10px] font-medium">
+                    <span className="text-muted-foreground text-4xs ml-auto font-medium">
                       Inherited by all projects
                     </span>
                   )}
                   {group.kind === 'project' && (
-                    <span className="bg-muted text-muted-foreground ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-semibold">
+                    <span className="bg-muted text-muted-foreground text-4xs ml-auto rounded-md px-1.5 py-0.5 font-semibold">
                       {group.items.length}
                     </span>
                   )}
