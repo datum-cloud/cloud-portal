@@ -2,6 +2,7 @@ import { SearchResultItem } from './SearchResultItem';
 import type { SearchHit } from '@/resources/search';
 import { CommandEmpty, CommandGroup, CommandItem } from '@datum-cloud/datum-ui/command';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Clock } from 'lucide-react';
 
 interface Props {
@@ -35,11 +36,13 @@ export function SearchEmptyState({
           heading={
             <div className="flex w-full items-center justify-between">
               <span>Recent searches</span>
-              <span
-                className="text-muted-foreground cursor-pointer text-xs transition-all hover:underline"
+              <Text
+                size="xs"
+                textColor="muted"
+                className="cursor-pointer transition-all hover:underline"
                 onClick={onClearRecents}>
                 Clear all
-              </span>
+              </Text>
             </div>
           }>
           {recentQueries.map((q) => (

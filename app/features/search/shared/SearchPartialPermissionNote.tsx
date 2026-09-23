@@ -2,6 +2,7 @@ import { kindDisplayName } from './kindIcon';
 import type { SearchTarget } from '@/resources/search';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ShieldAlert, X } from 'lucide-react';
 
 interface Props {
@@ -30,9 +31,11 @@ export function SearchPartialPermissionNote({ deniedKinds, onDismiss }: Props) {
         : `${names.slice(0, -1).join(', ')}, and ${names.at(-1)}`;
 
   return (
-    <div
+    <Text
+      as="div"
+      size="xs"
       role="status"
-      className="bg-card-warning text-card-warning-foreground mx-2 my-1 flex items-start gap-2 rounded px-3 py-2 text-xs">
+      className="bg-card-warning text-card-warning-foreground mx-2 my-1 flex items-start gap-2 rounded px-3 py-2">
       <Icon icon={ShieldAlert} size={16} className="mt-0.5 size-4 shrink-0" aria-hidden />
       <span className="flex-1">
         Some kinds hidden — you don&apos;t have permission to search <strong>{list}</strong>.
@@ -40,6 +43,6 @@ export function SearchPartialPermissionNote({ deniedKinds, onDismiss }: Props) {
       <Button aria-label="Dismiss permission note" size="xs" type="quaternary" onClick={onDismiss}>
         <Icon icon={X} size={12} className="size-3" aria-hidden />
       </Button>
-    </div>
+    </Text>
   );
 }

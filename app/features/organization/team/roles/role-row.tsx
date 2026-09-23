@@ -25,13 +25,12 @@ export function RoleRow({ assignment, isPendingRemove, canManageRoles, onRemove 
         isPendingRemove && 'bg-destructive/5 opacity-70'
       )}>
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span
-          className={cn(
-            'text-foreground text-sm font-semibold',
-            isPendingRemove && 'text-destructive'
-          )}>
+        <Text
+          weight="semibold"
+          textColor="default"
+          className={cn(isPendingRemove && 'text-destructive')}>
           {roleDisplayName}
-        </span>
+        </Text>
         {description && !isPendingRemove && (
           <Text size="xs" textColor="muted" ellipsis>
             {description}

@@ -50,14 +50,16 @@ export function PermissionsPanel({
 
   if (!hasContent) {
     return (
-      <div
+      <Text
+        as="div"
+        textColor="muted"
         className={cn(
-          'text-muted-foreground flex h-full flex-col items-center justify-center gap-2 px-6 py-12 text-center text-sm',
+          'flex h-full flex-col items-center justify-center gap-2 px-6 py-12 text-center',
           className
         )}
         aria-live="polite">
         <p>No permissions assigned.</p>
-      </div>
+      </Text>
     );
   }
 

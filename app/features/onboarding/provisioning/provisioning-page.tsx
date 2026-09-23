@@ -206,20 +206,20 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
                     <div className="flex items-center gap-4">
                       <StepIcon status={status} />
                       <div className="flex min-w-0 flex-col gap-1">
-                        <p
-                          className={cn(
-                            'text-foreground text-xs leading-[18px]',
-                            !isActive && 'opacity-40'
-                          )}>
+                        <Text
+                          as="p"
+                          size="xs"
+                          textColor="default"
+                          className={cn('leading-[18px]', !isActive && 'opacity-40')}>
                           {step.title}
-                        </p>
-                        <p
-                          className={cn(
-                            'text-foreground text-xs leading-4 opacity-60',
-                            !isActive && 'opacity-40'
-                          )}>
+                        </Text>
+                        <Text
+                          as="p"
+                          size="xs"
+                          textColor="default"
+                          className={cn('leading-4 opacity-60', !isActive && 'opacity-40')}>
                           {step.subtext}
-                        </p>
+                        </Text>
                       </div>
                     </div>
                   </OnboardingStagger>

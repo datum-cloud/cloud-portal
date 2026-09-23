@@ -211,13 +211,13 @@ export function MetricCard({
       isEmpty={!unavailable && !data}>
       <div className="flex flex-col gap-1 px-6 pb-4">
         <div className="flex items-center justify-between">
-          <div
-            className={cn(
-              'text-2xl font-bold',
-              unavailable && 'text-muted-foreground text-sm font-medium'
-            )}>
+          <Text
+            as="div"
+            size={unavailable ? 'sm' : '2xl'}
+            weight={unavailable ? 'medium' : 'bold'}
+            textColor={unavailable ? 'muted' : undefined}>
             {unavailable ? unavailableLabel : formattedValue}
-          </div>
+          </Text>
           {IconComponent}
         </div>
 

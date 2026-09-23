@@ -1,6 +1,7 @@
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -37,18 +38,20 @@ export const TextCopyBox = ({
   };
 
   return (
-    <div
+    <Text
+      as="div"
       className={cn(
-        'group border-input bg-background flex h-10 w-full overflow-hidden rounded-md border text-sm focus-within:outline-hidden',
+        'group border-input bg-background flex h-10 w-full overflow-hidden rounded-md border focus-within:outline-hidden',
         className
       )}>
-      <div
+      <Text
+        as="div"
         className={cn(
-          'flex w-full items-center overflow-hidden px-3 py-2 text-sm opacity-50',
+          'flex w-full items-center overflow-hidden px-3 py-2 opacity-50',
           contentClassName
         )}>
         <span className="truncate">{value}</span>
-      </div>
+      </Text>
       <div className="flex items-center py-2 pr-3">
         {buttonVariant === 'icon-only' ? (
           <button
@@ -72,6 +75,6 @@ export const TextCopyBox = ({
           </Button>
         )}
       </div>
-    </div>
+    </Text>
   );
 };

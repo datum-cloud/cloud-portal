@@ -292,13 +292,11 @@ export function AddRoleScreen({
                                     : 'hover:bg-muted'
                               )}>
                               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                <span
-                                  className={cn(
-                                    'text-sm font-medium',
-                                    isSelected ? 'text-foreground font-semibold' : 'text-foreground'
-                                  )}>
+                                <Text
+                                  weight={isSelected ? 'semibold' : 'medium'}
+                                  textColor="default">
                                   {role.displayName ?? role.name}
-                                </span>
+                                </Text>
                                 {role.description && (
                                   <Text size="xs" textColor="muted">
                                     {role.description}

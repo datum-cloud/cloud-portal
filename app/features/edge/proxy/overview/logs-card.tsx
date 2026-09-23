@@ -98,15 +98,16 @@ function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) 
             {host}
           </Text>
         ) : null}
-        <span
+        <Text
+          size="xs"
           className={cn(
-            'w-14 shrink-0 text-right font-mono text-xs tabular-nums',
+            'w-14 shrink-0 text-right font-mono tabular-nums',
             parsed.durationMs >= 1000 ? 'text-(--color-badge-warning)' : 'text-muted-foreground'
           )}>
           {parsed.durationMs >= 1000
             ? `${(parsed.durationMs / 1000).toFixed(1)}s`
             : `${Math.round(parsed.durationMs)}ms`}
-        </span>
+        </Text>
         <Text size="xs" textColor="muted" className="w-16 shrink-0 text-right tabular-nums">
           {relativeAge(entry.timestamp)}
         </Text>

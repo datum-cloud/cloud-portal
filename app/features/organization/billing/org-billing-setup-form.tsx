@@ -519,10 +519,11 @@ const VerificationField = ({
           'border-border bg-muted/50 flex h-9 w-full items-center justify-center rounded-md border px-3 py-2 transition-colors',
           disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted'
         )}>
-        <span
-          className={cn('text-xs underline', disabled ? 'text-muted-foreground' : 'text-primary')}>
+        <Text
+          size="xs"
+          className={cn('underline', disabled ? 'text-muted-foreground' : 'text-primary')}>
           Enter information
-        </span>
+        </Text>
       </button>
     ) : (
       <div className="bg-card-success flex w-full min-w-0 overflow-hidden rounded-md border border-[#86A182]">

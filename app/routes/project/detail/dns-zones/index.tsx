@@ -36,6 +36,7 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams, useSearchParams } from 'react-router';
@@ -260,11 +261,13 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
             }
             return (
               <Tooltip message="DNS host information is being fetched and will appear shortly.">
-                <span
-                  className="text-muted-foreground animate-pulse text-xs"
+                <Text
+                  size="xs"
+                  textColor="muted"
+                  className="animate-pulse"
                   data-e2e="dns-zone-nameservers">
                   Looking up...
-                </span>
+                </Text>
               </Tooltip>
             );
           }

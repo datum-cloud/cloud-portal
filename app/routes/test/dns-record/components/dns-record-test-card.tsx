@@ -232,9 +232,10 @@ export function DnsRecordTestCard({
 
           {/* Validation Display */}
           {hasBeenValidated && (
-            <div
+            <Text
+              as="div"
               className={cn(
-                'rounded-lg border p-3 text-sm',
+                'rounded-lg border p-3',
                 isValid
                   ? 'border-green-200 bg-green-50 text-green-900'
                   : 'border-red-200 bg-red-50 text-red-900'
@@ -254,7 +255,7 @@ export function DnsRecordTestCard({
                   ))}
                 </ul>
               )}
-            </div>
+            </Text>
           )}
 
           {/* Actions */}

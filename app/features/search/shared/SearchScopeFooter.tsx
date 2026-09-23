@@ -1,6 +1,7 @@
 import type { ActiveProject } from '@/resources/search/search.active-project';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { InfoIcon } from 'lucide-react';
 
 interface Props {
@@ -28,14 +29,17 @@ export function SearchScopeFooter({ project, hasResults = false }: Props) {
   const projectName = <span className="text-foreground font-medium">{project.displayName}</span>;
 
   return (
-    <div
+    <Text
+      as="div"
+      size="xs"
+      textColor="muted"
       role="status"
       aria-label={
         hasResults
           ? `Showing resource results for project ${project.displayName} only`
           : `Searching in project ${project.displayName}`
       }
-      className="text-muted-foreground flex items-center gap-2 border-t px-3 py-2 text-xs">
+      className="flex items-center gap-2 border-t px-3 py-2">
       {/*<KindIcon kind="Project" className="size-3.5 shrink-0 opacity-70" />*/}
       <span>
         {hasResults ? (
@@ -47,6 +51,6 @@ export function SearchScopeFooter({ project, hasResults = false }: Props) {
       <Tooltip message="Resource searching is limited to the current project for most resources types (e.g. Domains and DNS)">
         <Icon icon={InfoIcon} size={13} aria-hidden />
       </Tooltip>
-    </div>
+    </Text>
   );
 }
