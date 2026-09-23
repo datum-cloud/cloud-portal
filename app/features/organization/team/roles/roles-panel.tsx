@@ -3,7 +3,7 @@ import type { UserRoleAssignment, PendingChange } from './roles-editor.types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Building2Icon, FolderIcon, KeyRoundIcon, PlusIcon } from 'lucide-react';
 
 type RolesPanelProps = {
@@ -75,9 +75,9 @@ export function RolesPanel({
       <header className="flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-2">
           <Icon icon={KeyRoundIcon} className="text-primary size-[18px]" />
-          <Text as="h2" weight="semibold" textColor="default">
+          <Title as="h2" level={7} weight="semibold" textColor="default">
             Assigned Roles
-          </Text>
+          </Title>
           <Text
             size="xs"
             weight="semibold"

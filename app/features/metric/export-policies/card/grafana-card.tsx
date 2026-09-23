@@ -1,7 +1,7 @@
 import { GrafanaDialog } from '@/features/metric/export-policies/providers/grafana';
 import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 
 interface ExportPolicyGrafanaCardProps {
@@ -25,9 +25,9 @@ export const ExportPolicyGrafanaCard = ({
             </div>
 
             <div className="space-y-3.5">
-              <Text as="h3" size="lg" weight="medium">
+              <Title as="h3" level={5} weight="medium">
                 Export to Grafana Cloud
-              </Text>
+              </Title>
               <Text as="p" className="max-w-[400px]">
                 Export metrics from your Datum project to Grafana Cloud. Generate credentials,
                 configure secrets, and set up Prometheus at the click of a button.

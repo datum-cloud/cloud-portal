@@ -8,7 +8,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Info, Settings, Trash2, Download, HelpCircle, AlertCircle } from 'lucide-react';
 
 export const tooltipDemoSections = [
@@ -84,9 +84,9 @@ export default function TooltipDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Button Sizes
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Small button tooltip">
                 <Button size="small">Small</Button>
@@ -100,9 +100,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Button Types
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Primary action">
                 <Button type="primary">Primary</Button>
@@ -122,9 +122,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Button Themes
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Solid theme">
                 <Button theme="solid">Solid</Button>
@@ -157,9 +157,9 @@ export default function TooltipDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Icon Buttons
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Settings">
                 <Button size="icon" icon={<Settings className="h-4 w-4" />} />
@@ -176,9 +176,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Icon Elements
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="Click for more information">
                 <Info className="text-muted-foreground h-5 w-5 cursor-help" />
@@ -192,9 +192,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Buttons with Icons
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Add a new item">
                 <Button icon={<Download className="h-4 w-4" />}>Download</Button>
@@ -346,9 +346,9 @@ export default function TooltipDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Truncated Text
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-4">
               <Tooltip message="This is a very long text that gets truncated in the UI">
                 <span className="inline-block max-w-[200px] truncate rounded border px-2 py-1">
@@ -358,9 +358,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Date/Time Tooltips
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="January 15, 2024 at 3:45 PM (UTC)">
                 <time className="cursor-help">2024-01-15</time>
@@ -371,9 +371,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Abbreviations
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="Application Programming Interface">
                 <abbr className="cursor-help underline decoration-dotted">API</abbr>
@@ -387,9 +387,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Status Text
-            </Text>
+            </Title>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="All systems are running normally">
                 <span className="text-success cursor-help">Online</span>

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Download, Heart, Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -63,9 +63,9 @@ export default function ButtonDemo() {
           {['primary', 'secondary', 'tertiary', 'quaternary', 'warning', 'danger', 'success'].map(
             (type) => (
               <div key={type} className="space-y-2">
-                <Text as="h4" weight="medium" className="capitalize">
+                <Title as="h4" level={7} weight="medium" className="capitalize">
                   {type}
-                </Text>
+                </Title>
                 <div className="flex flex-wrap gap-2">
                   <Button type={type as any} theme="solid">
                     Solid
@@ -112,9 +112,9 @@ export default function ButtonDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Small Icon-Only Buttons
-            </Text>
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -156,9 +156,9 @@ export default function ButtonDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Default Icon-Only Buttons
-            </Text>
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -200,9 +200,9 @@ export default function ButtonDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Large Icon-Only Buttons
-            </Text>
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -244,9 +244,9 @@ export default function ButtonDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Icon-Only Loading States
-            </Text>
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -391,9 +391,9 @@ export default function ButtonDemo() {
           {['primary', 'secondary', 'tertiary', 'quaternary', 'warning', 'danger', 'success'].map(
             (type) => (
               <div key={type} className="space-y-2">
-                <Text as="h4" weight="medium" className="capitalize">
+                <Title as="h4" level={7} weight="medium" className="capitalize">
                   {type}
-                </Text>
+                </Title>
                 {['solid', 'light', 'outline', 'borderless'].map((theme) => (
                   <div key={theme} className="flex items-center gap-3">
                     <Text size="xs" weight="medium" textColor="muted" className="w-24 capitalize">

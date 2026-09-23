@@ -1,14 +1,14 @@
 import { GitHubLineIcon } from '@/components/icon/github-line';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 
 export const ExportPolicyComingSoonCard = () => {
   return (
     <Card className="dark:border-card h-full items-center justify-center bg-white/50 p-6 sm:p-8 dark:bg-[#18273A]">
       <CardContent className="flex flex-col items-center justify-center gap-4 px-0 text-center">
-        <Text as="h4" size="lg" weight="medium">
+        <Title as="h4" level={5} weight="medium">
           Looking for other export destinations?
-        </Text>
+        </Title>
         <Text
           as="p"
           weight="normal"

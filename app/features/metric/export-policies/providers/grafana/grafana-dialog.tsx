@@ -6,7 +6,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 import { Link } from 'react-router';
 
@@ -39,9 +39,9 @@ export function GrafanaDialog({ projectId, open, onOpenChange }: GrafanaDialogPr
           <img src="/images/scene-8.png" alt="Export to Grafana Cloud" className="h-auto w-full" />
 
           <div className="flex w-full flex-col items-center gap-3.5">
-            <Text as="h4" size="xl" weight="medium">
+            <Title level={4} weight="medium">
               Export Policy Created
-            </Text>
+            </Title>
             <BadgeCopy
               value={exportPolicy?.name ?? ''}
               text={exportPolicy?.name ?? ''}

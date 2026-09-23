@@ -15,7 +15,7 @@ import {
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { ChartTooltipContent } from '@datum-cloud/datum-ui/chart';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Activity, Server, Globe, Database } from 'lucide-react';
 import { useCallback } from 'react';
 
@@ -65,9 +65,9 @@ const MetricsContent = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <Text as="h1" size="3xl" weight="bold" className="text-gray-900">
+            <Title as="h1" level={2} weight="bold" className="text-gray-900">
               Enhanced Dashboard
-            </Text>
+            </Title>
             <p className="mt-1 text-gray-600">New MetricsToolbar with Dynamic Filters Demo</p>
           </div>
           <Badge type="secondary" className="flex items-center gap-2">

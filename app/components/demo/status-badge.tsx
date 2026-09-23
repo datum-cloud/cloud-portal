@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 
 export const statusBadgeDemoSections = [
   { id: 'status-badge-statuses', label: 'Status Badge Statuses' },
@@ -68,9 +68,9 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Active Status with Custom Labels
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" label="Active" />
               <BadgeStatus status="active" label="Running" />
@@ -78,9 +78,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Success Status with Custom Labels
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="success" label="Ready" />
               <BadgeStatus status="success" label="Completed" />
@@ -88,9 +88,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Pending Status with Custom Labels
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="pending" label="Setting up..." />
               <BadgeStatus status="pending" label="Verifying..." />
@@ -98,9 +98,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Error Status with Custom Labels
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="error" label="Failed" />
               <BadgeStatus status="error" label="Error" />
@@ -148,9 +148,9 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               With Icons
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" showIcon />
               <BadgeStatus status="pending" showIcon />
@@ -163,9 +163,9 @@ export default function BadgeStatusDemo() {
             </Text>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Without Icons (Default)
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" />
               <BadgeStatus status="pending" />
@@ -190,9 +190,9 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Success Status
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus
                 status={{
@@ -210,9 +210,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Pending Status
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus
                 status={{
@@ -230,9 +230,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Error Status
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus
                 status={{
@@ -266,18 +266,18 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Project Status
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" label="Active" />
               <BadgeStatus status="pending" label="Setting up..." />
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Workload Status
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" label="Available" />
               <BadgeStatus status="pending" />
@@ -285,9 +285,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Export Policy Status
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="success" label="Ready" />
               <BadgeStatus status="pending" />
@@ -295,18 +295,18 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Domain Verification
-            </Text>
+            </Title>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="success" label="Verified" />
               <BadgeStatus status="pending" label="Verifying..." />
             </div>
           </div>
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               In Table Cells
-            </Text>
+            </Title>
             <div className="border-input rounded-md border p-4">
               <table className="w-full">
                 <thead>

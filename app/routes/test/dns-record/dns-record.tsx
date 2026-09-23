@@ -12,7 +12,7 @@ import { DnsRecordTestCard } from '@/routes/test/dns-record/components/dns-recor
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 
 /**
@@ -182,9 +182,9 @@ export default function DnsRecordTestPage() {
       <div className="mb-6">
         <div className="mb-2 flex items-center justify-between">
           <div>
-            <Text as="h1" size="2xl" weight="bold">
+            <Title as="h1" level={3} weight="bold">
               DNS Record Type Validation Testing
-            </Text>
+            </Title>
             <Text as="p" textColor="muted" className="mt-1">
               Test validation for all DNS record types with customizable scenarios
             </Text>

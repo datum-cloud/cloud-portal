@@ -15,7 +15,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { BuildingIcon } from 'lucide-react';
 import {
   type LoaderFunctionArgs,
@@ -82,9 +82,9 @@ export default function OrgSetupRequiredRoute() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Text as="h1" size="2xl" weight="semibold">
+            <Title as="h1" level={3} weight="semibold">
               Billing setup required
-            </Text>
+            </Title>
             <Text as="p" textColor="muted">
               <span className="text-foreground font-medium">{orgDisplayName}</span> needs billing
               setup before it can be used, and only an organization owner can complete it.

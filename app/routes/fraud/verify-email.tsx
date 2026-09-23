@@ -9,7 +9,7 @@ import {
   type FraudPollResult,
 } from '@/utils/middlewares/fraud-redirect';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useEffect } from 'react';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
@@ -116,9 +116,9 @@ export default function VerifyEmailPage() {
     <BlankLayout>
       <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
-          <Text as="h2" size="xl" weight="medium" className="mb-3 text-center">
+          <Title as="h2" level={4} weight="medium" className="mb-3 text-center">
             Check your email
-          </Text>
+          </Title>
           <Text as="p" weight="normal" className="text-center leading-5" role="status">
             We sent a verification link to your email address. Open it to continue — this page
             updates on its own once you have.

@@ -11,7 +11,7 @@ import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Dropzone, DropzoneEmptyState } from '@datum-cloud/datum-ui/dropzone';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { AlertCircle, DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -123,9 +123,9 @@ export const DnsRecordImportAction = ({
         <div className="p-4 sm:p-0">
           {/* Import Section */}
           <div className="space-y-4">
-            <Text as="h2" weight="semibold">
+            <Title as="h2" level={7} weight="semibold">
               Import DNS Records
-            </Text>
+            </Title>
 
             {isReadOnly ? (
               <Alert variant="info">
@@ -164,9 +164,9 @@ export const DnsRecordImportAction = ({
 
           {/* Export Section */}
           <div className="mt-6 space-y-4">
-            <Text as="h2" weight="semibold">
+            <Title as="h2" level={7} weight="semibold">
               Export DNS Records
-            </Text>
+            </Title>
 
             <Button
               htmlType="button"

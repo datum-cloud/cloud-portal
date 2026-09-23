@@ -10,7 +10,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Title } from '@datum-cloud/datum-ui/typography';
 import { useNavigate, useParams } from 'react-router';
 
 export const handle = {
@@ -69,18 +69,18 @@ export default function DomainSettingsPage() {
   return (
     <Row gutter={[24, 32]}>
       <Col span={24}>
-        <Text as="h3" size="base" weight="medium" className="mb-4">
+        <Title as="h3" level={6} weight="medium" className="mb-4">
           Coming Soon
-        </Text>
+        </Title>
         <ComingSoonFeatureCard
           title="Global DNS Healthcheck"
           description="Global DNS Healthcheck for nameservers and common record types with details by region"
         />
       </Col>
       <Col span={24}>
-        <Text as="h3" size="base" weight="medium" className="mb-4">
+        <Title as="h3" level={6} weight="medium" className="mb-4">
           Delete Domain
-        </Text>
+        </Title>
         <DangerCard
           title="Warning: This Action is Irreversible"
           description={`This action cannot be undone. Once deleted, the ${domain?.domainName} domain and all associated data will be permanently removed from Datum. `}

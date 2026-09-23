@@ -2,7 +2,7 @@ import { usageSummaryTableColumns } from './usage-summary-table';
 import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { GroupedTable } from '@datum-cloud/datum-ui/grouped-table';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 
 function UsageSummaryTableSkeleton() {
   return (
@@ -58,9 +58,9 @@ function UsageSectionSkeleton({
     return (
       <section className="border-border min-w-0 border-b py-8 last:border-b-0 last:pb-0">
         <div className="mb-6 flex max-w-2xl flex-col gap-2">
-          <Text as="h2" size="base" weight="medium" textColor="default">
+          <Title as="h2" level={6} weight="medium" textColor="default">
             {title}
-          </Text>
+          </Title>
           <Text as="p" textColor="muted" className="leading-relaxed">
             {description}
           </Text>
@@ -73,9 +73,9 @@ function UsageSectionSkeleton({
   return (
     <section className="border-border grid min-w-0 grid-cols-1 gap-6 border-b py-8 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] md:gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-12">
       <div className="flex min-w-0 flex-col gap-2">
-        <Text as="h2" size="base" weight="medium" textColor="default">
+        <Title as="h2" level={6} weight="medium" textColor="default">
           {title}
-        </Text>
+        </Title>
         <Text as="p" textColor="muted" className="leading-relaxed">
           {description}
         </Text>

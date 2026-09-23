@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { HistoryIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -61,9 +61,14 @@ export function HttpProxyMetricsStrip({
     <section className="flex flex-col gap-6" aria-labelledby="alb-live-metrics-heading">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-baseline gap-2">
-          <Text as="h2" weight="semibold" className="shrink-0" id="alb-live-metrics-heading">
+          <Title
+            as="h2"
+            level={7}
+            weight="semibold"
+            className="shrink-0"
+            id="alb-live-metrics-heading">
             Live metrics
-          </Text>
+          </Title>
           {idle ? (
             <Text as="p" size="xs" textColor="muted" ellipsis aria-live="polite">
               <span aria-hidden="true">· </span>

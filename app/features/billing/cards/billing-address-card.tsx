@@ -5,7 +5,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Form, useFormContext } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { type ReactNode } from 'react';
 import { z } from 'zod';
@@ -186,9 +186,9 @@ export const BillingAddressFieldsCard = ({
 
         <div className="border-border space-y-3 border-t pt-5">
           <div className="flex flex-col gap-1">
-            <Text as="h3" weight="medium" textColor="default">
+            <Title as="h3" level={7} weight="medium" textColor="default">
               Tax IDs
-            </Text>
+            </Title>
             <Text as="p" size="xs" textColor="muted">
               Add one entry per tax registration. Only required for registered businesses.
             </Text>

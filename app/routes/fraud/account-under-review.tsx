@@ -5,7 +5,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -39,9 +39,9 @@ export default function AccountUnderReviewPage() {
     <BlankLayout>
       <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
-          <Text as="h2" size="xl" weight="medium" className="mb-3 text-center">
+          <Title as="h2" level={4} weight="medium" className="mb-3 text-center">
             Your account is under review
-          </Text>
+          </Title>
           <Text as="p" weight="normal" className="text-center leading-5">
             Our team is reviewing your account. You&apos;ll receive an email when the review is
             complete.

@@ -14,7 +14,7 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
@@ -85,9 +85,9 @@ export const AccountPage = ({
             Step 1 / 2
           </Text>
 
-          <Text as="h2" size="2xl" weight="semibold" className="text-center">
+          <Title as="h2" level={3} weight="semibold" className="text-center">
             Account information
-          </Text>
+          </Title>
 
           <Form.Root
             name="onboarding-account"

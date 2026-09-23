@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowLeftIcon, BuildingIcon, FolderIcon, SearchIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
@@ -190,14 +190,14 @@ export function AddRoleScreen({
               <Icon icon={ArrowLeftIcon} className="size-4" />
               Back to roles
             </Button>
-            <Text
+            <Title
               as="h2"
-              size="lg"
+              level={5}
               weight="bold"
               textColor="default"
               className="mb-3 tracking-tight">
               Add a Role
-            </Text>
+            </Title>
 
             {/* Scope selector */}
             <div className="flex flex-col gap-1.5">
@@ -331,9 +331,9 @@ export function AddRoleScreen({
           aria-label="Role Preview"
           className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l">
           <header className="border-b px-6 py-4">
-            <Text as="h2" weight="semibold" textColor="default">
+            <Title as="h2" level={7} weight="semibold" textColor="default">
               {selectedRole ? (selectedRole.displayName ?? selectedRole.name) : 'Role Preview'}
-            </Text>
+            </Title>
             {selectedRole?.description && (
               <Text as="p" size="xs" textColor="muted" className="mt-0.5">
                 {selectedRole.description}

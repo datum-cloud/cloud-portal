@@ -5,7 +5,7 @@ import { SecretGeneralCard } from '@/features/secret/form/overview/general-card'
 import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { useSecret, type Secret } from '@/resources/secrets';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Title } from '@datum-cloud/datum-ui/typography';
 import { useParams } from 'react-router';
 
 export default function EditSecret() {
@@ -37,9 +37,9 @@ export default function EditSecret() {
           <EditSecretKeys secret={secret} readOnly={!canUpdate} />
         </Col>
         <Col span={24}>
-          <Text as="h3" size="base" weight="medium" className="mb-4">
+          <Title as="h3" level={6} weight="medium" className="mb-4">
             Delete Secret
-          </Text>
+          </Title>
           <SecretDangerCard secret={(secret ?? {}) as any} actionHidden={!canDelete}>
             {!canDelete && (
               <RestrictedOverlay message="You don't have permission to delete this secret" />

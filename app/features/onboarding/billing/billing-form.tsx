@@ -17,7 +17,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
@@ -134,9 +134,9 @@ export const BillingForm = ({
             </Text>
 
             <div className="flex flex-col items-center gap-3">
-              <Text as="h2" size="2xl" weight="semibold" className="text-center">
+              <Title as="h2" level={3} weight="semibold" className="text-center">
                 {heading}
-              </Text>
+              </Title>
 
               {isLegacySetupResume && orgDisplayName ? (
                 <div className="border-border bg-muted/50 flex max-w-full items-center gap-2 rounded-full border py-1 pr-3 pl-1">

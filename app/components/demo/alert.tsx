@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import {
   AlertCircle,
   CheckCircle,
@@ -392,9 +392,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Multiple Closable Alerts (Interactive)
-            </Text>
+            </Title>
             <Text as="p" textColor="muted">
               Click the X button on any alert below to remove it from the list:
             </Text>
@@ -443,9 +443,9 @@ export default function AlertDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Form Validation Errors
-            </Text>
+            </Title>
             <Alert variant="destructive">
               <AlertCircle className="size-4" />
               <AlertTitle>Validation Failed</AlertTitle>
@@ -460,9 +460,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Success Messages
-            </Text>
+            </Title>
             <Alert variant="success">
               <CheckCircle className="size-4" />
               <AlertTitle>Profile Updated</AlertTitle>
@@ -473,9 +473,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               System Notifications
-            </Text>
+            </Title>
             <Alert variant="info">
               <Info className="size-4" />
               <AlertTitle>Maintenance Scheduled</AlertTitle>
@@ -487,9 +487,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Warning Messages
-            </Text>
+            </Title>
             <Alert variant="warning">
               <TriangleAlert className="size-4" />
               <AlertTitle>Action Required</AlertTitle>
@@ -501,9 +501,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               Error Recovery
-            </Text>
+            </Title>
             <Alert variant="destructive">
               <XCircle className="size-4" />
               <AlertTitle>Connection Lost</AlertTitle>
@@ -515,9 +515,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <Text as="h4" weight="medium">
+            <Title as="h4" level={7} weight="medium">
               In Dialog/Modal
-            </Text>
+            </Title>
             <div className="border-input rounded-md border p-4">
               <Alert variant="warning" className="mb-4">
                 <TriangleAlert className="size-4" />

@@ -21,7 +21,7 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CalendarFold } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
@@ -263,11 +263,11 @@ export default function ProjectHomePage() {
       <Row gutter={[16, 8]}>
         <Col md={12} xs={24}>
           <div className="flex flex-col gap-2">
-            <Text as="h1" size="3xl" textColor="default" className="font-title">
+            <Title as="h1" level={2} textColor="default" className="font-title">
               {isNewUser
                 ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
                 : `Welcome back, ${user?.givenName ?? 'there'}`}
-            </Text>
+            </Title>
             <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
               {isNewUser
                 ? "If you're ready to get going, here are some great places to start..."
@@ -323,9 +323,9 @@ export default function ProjectHomePage() {
       <Row className="shrink-0">
         <Col span={24}>
           <div className="border-card-border dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center rounded-xl border bg-white/50 p-9 pb-8 dark:bg-[#18273A]">
-            <Text as="h2" size="lg" weight="medium" className="mb-2">
+            <Title as="h2" level={5} weight="medium" className="mb-2">
               Datum community
-            </Text>
+            </Title>
             <Text
               as="p"
               weight="normal"

@@ -3,7 +3,7 @@ import type { DatumCredentialsFile } from '@/resources/service-accounts';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { CloseIcon } from '@datum-cloud/datum-ui/icons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CheckIcon, CopyIcon, DownloadIcon, ThumbsUpIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
@@ -217,9 +217,9 @@ export DATUM_PRIVATE_KEY_ID="${credentials.private_key_id}"
       <div className="flex flex-col gap-2 pr-8">
         <div className="flex items-center gap-2.5">
           <ThumbsUpIcon className="text-success size-4 shrink-0" aria-hidden="true" />
-          <Text as="h4" weight="semibold">
+          <Title as="h4" level={7} weight="semibold">
             Key created — save your credentials now!
-          </Text>
+          </Title>
         </div>
         <Text as="p" size="xs" textColor="muted">
           Store these credentials securely. The private key will not be shown again.

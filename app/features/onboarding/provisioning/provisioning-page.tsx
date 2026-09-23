@@ -18,7 +18,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon, ExternalLinkIcon, LoaderCircleIcon, XIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -162,9 +162,9 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
       <div className={cn('bg-card md:bg-transparent', provisioningColumnClassName)}>
         <div className={provisioningColumnContentClassName}>
           <OnboardingEntrance>
-            <Text as="h2" size="2xl" weight="semibold" textColor="default" className="text-center">
+            <Title as="h2" level={3} weight="semibold" textColor="default" className="text-center">
               {projectStepError ? 'Setup failed' : allComplete ? 'Complete!' : 'Thank you!'}
-            </Text>
+            </Title>
           </OnboardingEntrance>
 
           {projectStepError ? (

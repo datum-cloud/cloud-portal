@@ -65,7 +65,7 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { type LoaderFunctionArgs, type MetaFunction, data, useLoaderData } from 'react-router';
 
@@ -241,9 +241,9 @@ const Section = ({
   return (
     <section className="border-border grid grid-cols-1 gap-6 border-b py-8 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,22rem)_1fr] md:gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-12">
       <div className="flex flex-col gap-2">
-        <Text as="h2" size="base" weight="medium" textColor="default">
+        <Title as="h2" level={6} weight="medium" textColor="default">
           {title}
-        </Text>
+        </Title>
         <Text as="p" textColor="muted" className="leading-relaxed">
           {description}
         </Text>
@@ -834,9 +834,9 @@ function AccountBillingAccountDetailPageInner() {
             className="grid grid-cols-1 gap-6 md:grid-cols-[minmax(0,22rem)_1fr] md:items-start md:gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:gap-12">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Text as="h2" size="base" weight="medium" textColor="default">
+                <Title as="h2" level={6} weight="medium" textColor="default">
                   Billing address & Tax IDs
-                </Text>
+                </Title>
                 <Text as="p" textColor="muted" className="leading-relaxed">
                   Changes will be reflected on every upcoming invoice; past invoices are not
                   affected. Tax IDs are only required for registered businesses.

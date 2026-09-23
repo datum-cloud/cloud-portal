@@ -4,7 +4,7 @@ import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: Organization }) => {
@@ -26,9 +26,9 @@ export const OrganizationListCard = ({ org }: { org: Organization }) => {
           {/* Organization Info */}
           <div className="flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2">
-              <Text as="h3" size="lg" weight="semibold" textColor="default" className="leading-5">
+              <Title as="h3" level={5} weight="semibold" textColor="default" className="leading-5">
                 {org?.displayName ?? org?.name ?? ''}
-              </Text>
+              </Title>
             </div>
             <Text as="p" textColor="muted">
               {org?.name}

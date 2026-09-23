@@ -7,7 +7,7 @@ import { GitHubLineIcon } from '@/components/icon/github-line';
 import GoogleIcon from '@/components/icon/google';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import {
   CircleAlertIcon,
   KeyRoundIcon,
@@ -74,9 +74,9 @@ export const GithubEmailTooltip = () => (
   <Tooltip
     message={
       <div className="flex flex-col gap-3.5 p-7">
-        <Text as="h4" weight="semibold" textColor="default">
+        <Title as="h4" level={7} weight="semibold" textColor="default">
           Updating email addresses for GitHub identities
-        </Text>
+        </Title>
         <Text as="p" size="xs" className="text-foreground/80 text-wrap">
           Email addresses for GitHub identities should be updated through GitHub
         </Text>

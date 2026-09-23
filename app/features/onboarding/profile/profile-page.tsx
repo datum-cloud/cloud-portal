@@ -7,7 +7,7 @@ import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -51,9 +51,9 @@ export const ProfilePage = ({
     <OnboardingEntrance>
       <Card className={cn(onboardingCardClassName, 'z-10')}>
         <CardContent className="p-0">
-          <Text as="h2" size="xl" weight="medium" className="mb-3 text-center">
+          <Title as="h2" level={4} weight="medium" className="mb-3 text-center">
             What should we call you?
-          </Text>
+          </Title>
           <Text
             as="div"
             weight="normal"

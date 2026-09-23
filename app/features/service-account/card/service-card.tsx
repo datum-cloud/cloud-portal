@@ -1,6 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
-import { Text } from '@datum-cloud/datum-ui/typography';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { ServerIcon } from 'lucide-react';
 
 interface ServiceCardProps {
@@ -17,9 +17,9 @@ export const ServiceCard = ({ onCreate }: ServiceCardProps) => {
           </div>
 
           <div className="space-y-3.5">
-            <Text as="h3" size="lg" weight="medium">
+            <Title as="h3" level={5} weight="medium">
               Service
-            </Text>
+            </Title>
             <Text as="p" className="max-w-[400px]">
               Give a backend service or workload a stable identity to call Datum APIs without human
               credentials.
