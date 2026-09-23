@@ -6,6 +6,7 @@ import {
 import { DeleteOrganizationDialog } from '@/features/organization/delete-organization-dialog';
 import { helpScoutAPI } from '@/modules/helpscout';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useCallback, useState } from 'react';
 
@@ -29,7 +30,7 @@ const PLATFORM_CHANGES = [
 
 const NOTICE_REVEAL_PROGRESS = 0.35;
 
-const bodyTextClassName = 'text-foreground text-[13px] leading-[18px] opacity-60';
+const bodyTextClassName = 'text-foreground text-xs leading-[18px] opacity-60';
 const linkClassName = 'text-foreground underline underline-offset-2 hover:opacity-80';
 
 /**
@@ -73,7 +74,14 @@ export const BillingLegacyResumeNotice = ({
             {PLATFORM_CHANGES.map((change, index) => (
               <OnboardingStagger key={change.title} visible={contentVisible} index={index + 1}>
                 <div className="flex flex-col gap-0">
-                  <p className="text-foreground text-base font-medium opacity-60">{change.title}</p>
+                  <Text
+                    as="p"
+                    size="base"
+                    weight="medium"
+                    textColor="default"
+                    className="opacity-60">
+                    {change.title}
+                  </Text>
                   <p className={bodyTextClassName}>{change.description}</p>
                 </div>
               </OnboardingStagger>

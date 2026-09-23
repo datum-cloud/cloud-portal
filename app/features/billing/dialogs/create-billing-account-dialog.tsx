@@ -1,5 +1,6 @@
 import { toStringArray } from '@/utils/helpers/form-value.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { z } from 'zod';
 
 /**
@@ -267,7 +268,9 @@ export const CreateBillingAccountDialog = ({
          * about whose details land on the resulting invoices.
          */}
         <div className="flex flex-col gap-3">
-          <div className="text-foreground text-sm font-medium">Account contact</div>
+          <Text as="div" weight="medium" textColor="default">
+            Account contact
+          </Text>
           {hasContactSeed ? (
             <dl className="border-border bg-muted/40 grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1.5 rounded-md border px-4 py-3 text-sm">
               <dt className="text-muted-foreground">Name</dt>
@@ -276,15 +279,15 @@ export const CreateBillingAccountDialog = ({
               <dd className="text-foreground">{defaultContactEmail}</dd>
             </dl>
           ) : (
-            <p className="text-muted-foreground text-sm">
+            <Text as="p" textColor="muted">
               We could not read a contact name and email from your profile. Update your account
               details first, then try again.
-            </p>
+            </Text>
           )}
-          <p className="text-muted-foreground text-xs">
+          <Text as="p" size="xs" textColor="muted">
             Change the contact or add more invoice recipients from the account detail page after the
             account is created.
-          </p>
+          </Text>
         </div>
       </div>
     </Form.Dialog>

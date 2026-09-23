@@ -1,6 +1,7 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { TriangleAlertIcon } from 'lucide-react';
 
 export const DangerCard = ({
@@ -36,8 +37,10 @@ export const DangerCard = ({
             className="text-destructive hidden self-start stroke-1 sm:block"
           />
           <div className="text-destructive flex max-w-xl flex-col gap-2">
-            <span className="text-sm font-semibold">{title}</span>
-            <span className="text-1xs leading-relaxed font-normal">{description}</span>
+            <Text weight="semibold">{title}</Text>
+            <Text size="2xs" className="leading-relaxed">
+              {description}
+            </Text>
           </div>
         </div>
         {!actionHidden && (

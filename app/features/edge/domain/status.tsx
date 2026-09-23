@@ -3,6 +3,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { DOMAIN_VERIFICATION_STATUS, type Domain } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@datum-cloud/datum-ui/hover-card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useMemo } from 'react';
 
@@ -72,7 +73,9 @@ export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] 
         className={cn('w-96', priorityConditions.length > 0 && 'border-amber-200 bg-amber-50')}>
         {priorityConditions.length > 0 ? (
           <div className="space-y-1.5">
-            <p className="text-sm font-semibold text-amber-800">Pending Validation Checks:</p>
+            <Text as="p" weight="semibold" className="text-amber-800">
+              Pending Validation Checks:
+            </Text>
             <ul className="ml-4 list-disc space-y-1">
               {priorityConditions.map((condition) => (
                 <li key={condition.type} className="text-sm text-black">
@@ -86,15 +89,15 @@ export const DomainStatus = ({ domainStatus }: { domainStatus: Domain['status'] 
               ))}
             </ul>
 
-            <p className="text-muted-foreground text-xs">
+            <Text as="p" size="xs" textColor="muted">
               These items are checked every few minutes. If you&apos;ve already made changes, they
               should be resolve shortly;
-            </p>
+            </Text>
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">
+          <Text as="p" textColor="muted">
             Domain verification is in progress. This may take a few minutes.
-          </p>
+          </Text>
         )}
       </HoverCardContent>
     </HoverCard>

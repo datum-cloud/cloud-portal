@@ -222,7 +222,7 @@ export const PastInvoicesCard = ({
                     <TableCell className="h-11 text-sm">{invoice.amount}</TableCell>
                     <TableCell className="h-11 text-sm">{invoice.invoiceNumber}</TableCell>
                     <TableCell className="h-11">
-                      <Badge type={badge.type} theme="light" className="text-2xs uppercase">
+                      <Badge type={badge.type} theme="light" className="text-5xs uppercase">
                         {badge.label}
                       </Badge>
                     </TableCell>

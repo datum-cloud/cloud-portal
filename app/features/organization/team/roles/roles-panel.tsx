@@ -3,6 +3,7 @@ import type { UserRoleAssignment, PendingChange } from './roles-editor.types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Building2Icon, FolderIcon, KeyRoundIcon, PlusIcon } from 'lucide-react';
 
 type RolesPanelProps = {
@@ -74,10 +75,16 @@ export function RolesPanel({
       <header className="flex items-center justify-between border-b px-6 py-4">
         <div className="flex items-center gap-2">
           <Icon icon={KeyRoundIcon} className="text-primary size-[18px]" />
-          <h2 className="text-foreground text-[15px] font-semibold">Assigned Roles</h2>
-          <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs font-semibold">
+          <Title as="h2" level={7} weight="semibold" textColor="default">
+            Assigned Roles
+          </Title>
+          <Text
+            size="xs"
+            weight="semibold"
+            textColor="muted"
+            className="bg-muted rounded-full px-2 py-0.5">
             {assignments.length}
-          </span>
+          </Text>
         </div>
         {canManageRoles ? (
           <Button type="primary" size="small" onClick={onAddRole} aria-label="Add role">
@@ -98,9 +105,9 @@ export function RolesPanel({
 
       <div className="flex-1 overflow-y-auto">
         {assignments.length === 0 ? (
-          <p className="text-muted-foreground px-6 py-6 text-center text-sm">
+          <Text as="p" textColor="muted" className="px-6 py-6 text-center">
             No roles assigned. Click &ldquo;Add Role&rdquo; to get started.
-          </p>
+          </Text>
         ) : (
           <div>
             {groups.map((group) => (
@@ -110,22 +117,28 @@ export function RolesPanel({
                     icon={group.kind === 'org' ? Building2Icon : FolderIcon}
                     className="text-muted-foreground size-3.5"
                   />
-                  <span className="text-muted-foreground text-[11px] font-semibold tracking-wide">
+                  <Text size="3xs" weight="semibold" textColor="muted" className="tracking-wide">
                     {group.label}
-                  </span>
-                  <span className="text-muted-foreground text-[11px]">/</span>
-                  <span className="text-foreground text-[11px] font-semibold">
+                  </Text>
+                  <Text size="3xs" textColor="muted">
+                    /
+                  </Text>
+                  <Text size="3xs" weight="semibold" textColor="default">
                     {group.scopeName}
-                  </span>
+                  </Text>
                   {group.kind === 'org' && (
-                    <span className="text-muted-foreground ml-auto text-[10px] font-medium">
+                    <Text size="4xs" weight="medium" textColor="muted" className="ml-auto">
                       Inherited by all projects
-                    </span>
+                    </Text>
                   )}
                   {group.kind === 'project' && (
-                    <span className="bg-muted text-muted-foreground ml-auto rounded-md px-1.5 py-0.5 text-[10px] font-semibold">
+                    <Text
+                      size="4xs"
+                      weight="semibold"
+                      textColor="muted"
+                      className="bg-muted ml-auto rounded-md px-1.5 py-0.5">
                       {group.items.length}
-                    </span>
+                    </Text>
                   )}
                 </div>
                 <ul>

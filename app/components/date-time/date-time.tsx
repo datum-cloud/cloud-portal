@@ -12,6 +12,7 @@ import type { DateTimeProps, FormatterOptions } from './types';
 import { useApp } from '@/providers/app.provider';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useState } from 'react';
 
@@ -164,7 +165,7 @@ function getTooltipContent(
     ];
 
     return (
-      <div className="space-y-2 text-xs">
+      <Text as="div" size="xs" className="space-y-2">
         {rows.map((row) => (
           <div key={row.label} className="flex items-center justify-between gap-2">
             <span className="font-medium">{row.label}</span>
@@ -172,7 +173,7 @@ function getTooltipContent(
             <span className="text-right">{row.value}</span>
           </div>
         ))}
-      </div>
+      </Text>
     );
   }
 

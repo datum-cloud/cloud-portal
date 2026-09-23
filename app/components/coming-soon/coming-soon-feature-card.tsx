@@ -1,5 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 export const ComingSoonFeatureCard = ({
   title,
@@ -12,10 +13,10 @@ export const ComingSoonFeatureCard = ({
     <Card size="sm">
       <CardContent className="flex items-center justify-between gap-2">
         <div className="flex max-w-[725px] flex-col gap-2">
-          <span className="text-sm font-medium">{title}</span>
-          <span className="text-foreground/80 text-xs leading-relaxed font-normal">
+          <Text weight="medium">{title}</Text>
+          <Text size="xs" className="text-foreground/80 leading-relaxed">
             {description}
-          </span>
+          </Text>
         </div>
         <div>
           <Button

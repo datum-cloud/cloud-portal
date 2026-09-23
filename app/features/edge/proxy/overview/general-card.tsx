@@ -32,6 +32,7 @@ import { Input } from '@datum-cloud/datum-ui/input';
 import { RichTextContent, RichTextEditor } from '@datum-cloud/datum-ui/rich-text-editor';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PencilIcon, SquareLibrary } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -240,7 +241,11 @@ export function HttpProxyGeneralCard({
                   aria-label="Display name"
                   autoFocus
                 />
-                {nameError ? <p className="text-destructive text-xs">{nameError}</p> : null}
+                {nameError ? (
+                  <Text as="p" size="xs" textColor="destructive">
+                    {nameError}
+                  </Text>
+                ) : null}
               </div>
             ) : (
               <span className="truncate">{currentName}</span>

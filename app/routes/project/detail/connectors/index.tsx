@@ -30,6 +30,7 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo, useState } from 'react';
 import {
   ActionFunctionArgs,
@@ -186,7 +187,7 @@ export default route.Page(({ data: loaderData }) => {
             <Tooltip message={status.message} hidden={isOnline}>
               <div className="flex items-center gap-2">
                 <StatusPulseDot variant={isOnline ? 'active' : 'offline'} />
-                <span className="text-sm">{isOnline ? 'Online' : 'Offline'}</span>
+                <Text>{isOnline ? 'Online' : 'Offline'}</Text>
               </div>
             </Tooltip>
           );
@@ -213,7 +214,7 @@ export default route.Page(({ data: loaderData }) => {
         id: 'proxies',
         cell: ({ row }) => {
           const proxiesList = row.original.proxies;
-          if (!proxiesList.length) return <span className="text-muted-foreground text-sm">—</span>;
+          if (!proxiesList.length) return <Text textColor="muted">—</Text>;
           if (proxiesList.length > 2) {
             return (
               <Popover>
@@ -225,9 +226,9 @@ export default route.Page(({ data: loaderData }) => {
                 <PopoverContent
                   align="start"
                   className="max-h-[280px] w-[200px] max-w-[calc(100vw-2rem)] overflow-y-auto p-3">
-                  <p className="text-muted-foreground mb-2 text-xs font-medium">
+                  <Text as="p" size="xs" weight="medium" textColor="muted" className="mb-2">
                     Application Load Balancers
-                  </p>
+                  </Text>
                   <ul className="space-y-1.5">
                     {proxiesList.map((proxy) => (
                       <li key={proxy.name}>
@@ -247,7 +248,7 @@ export default route.Page(({ data: loaderData }) => {
             );
           }
           return (
-            <span className="text-sm">
+            <Text>
               {proxiesList.map((proxy, i) => (
                 <span key={proxy.name}>
                   {i > 0 && <span className="text-muted-foreground"> · </span>}
@@ -261,7 +262,7 @@ export default route.Page(({ data: loaderData }) => {
                   </Link>
                 </span>
               ))}
-            </span>
+            </Text>
           );
         },
       },
@@ -275,7 +276,7 @@ export default route.Page(({ data: loaderData }) => {
           const hostnames = [
             ...new Set(row.original.proxies.flatMap((p) => p.status?.hostnames ?? [])),
           ];
-          if (!hostnames.length) return <span className="text-muted-foreground text-sm">—</span>;
+          if (!hostnames.length) return <Text textColor="muted">—</Text>;
           if (hostnames.length > 2) {
             return (
               <Popover>
@@ -287,7 +288,9 @@ export default route.Page(({ data: loaderData }) => {
                 <PopoverContent
                   align="start"
                   className="max-h-[280px] w-[240px] max-w-[calc(100vw-2rem)] overflow-y-auto p-3">
-                  <p className="text-muted-foreground mb-2 text-xs font-medium">Hostnames</p>
+                  <Text as="p" size="xs" weight="medium" textColor="muted" className="mb-2">
+                    Hostnames
+                  </Text>
                   <ul className="space-y-1.5">
                     {hostnames.map((hostname) => (
                       <li key={hostname}>
@@ -339,7 +342,7 @@ export default route.Page(({ data: loaderData }) => {
               {deviceOs && deviceName ? (
                 <div className="flex items-center gap-1.5">
                   <OsIcon os={deviceOs} size={16} className="shrink-0" />
-                  <span className="truncate text-sm">{deviceName}</span>
+                  <Text ellipsis>{deviceName}</Text>
                 </div>
               ) : (
                 <span>--</span>

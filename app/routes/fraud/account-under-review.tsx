@@ -5,6 +5,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
@@ -38,15 +39,17 @@ export default function AccountUnderReviewPage() {
     <BlankLayout>
       <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
-          <h2 className="mb-3 text-center text-xl font-medium">Your account is under review</h2>
-          <p className="text-center text-[14px] leading-5 font-normal">
+          <Title as="h2" level={4} weight="medium" className="mb-3 text-center">
+            Your account is under review
+          </Title>
+          <Text as="p" weight="normal" className="text-center leading-5">
             Our team is reviewing your account. You&apos;ll receive an email when the review is
             complete.
-          </p>
+          </Text>
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}
-              className="dark:text-foreground dark:hover:text-foreground text-[14px] text-gray-600 underline hover:text-gray-900">
+              className="dark:text-foreground dark:hover:text-foreground text-sm text-gray-600 underline hover:text-gray-900">
               Log out
             </Link>
           </div>

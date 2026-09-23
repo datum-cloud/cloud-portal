@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Download, Heart, Plus, Settings, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -62,7 +63,9 @@ export default function ButtonDemo() {
           {['primary', 'secondary', 'tertiary', 'quaternary', 'warning', 'danger', 'success'].map(
             (type) => (
               <div key={type} className="space-y-2">
-                <h4 className="text-sm font-medium capitalize">{type}</h4>
+                <Title as="h4" level={7} weight="medium" className="capitalize">
+                  {type}
+                </Title>
                 <div className="flex flex-wrap gap-2">
                   <Button type={type as any} theme="solid">
                     Solid
@@ -109,7 +112,9 @@ export default function ButtonDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Small Icon-Only Buttons</h4>
+            <Title as="h4" level={7} weight="medium">
+              Small Icon-Only Buttons
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -151,7 +156,9 @@ export default function ButtonDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Default Icon-Only Buttons</h4>
+            <Title as="h4" level={7} weight="medium">
+              Default Icon-Only Buttons
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -193,7 +200,9 @@ export default function ButtonDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Large Icon-Only Buttons</h4>
+            <Title as="h4" level={7} weight="medium">
+              Large Icon-Only Buttons
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -235,7 +244,9 @@ export default function ButtonDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Icon-Only Loading States</h4>
+            <Title as="h4" level={7} weight="medium">
+              Icon-Only Loading States
+            </Title>
             <div className="flex items-center gap-2">
               <Button
                 type="primary"
@@ -262,9 +273,9 @@ export default function ButtonDemo() {
                 onClick={() => handleLoadingDemo('iconLarge')}
               />
             </div>
-            <p className="text-muted-foreground text-xs">
+            <Text as="p" size="xs" textColor="muted">
               Click icon buttons to see loading states - icons are replaced with spinners
-            </p>
+            </Text>
           </div>
         </CardContent>
       </Card>
@@ -380,12 +391,14 @@ export default function ButtonDemo() {
           {['primary', 'secondary', 'tertiary', 'quaternary', 'warning', 'danger', 'success'].map(
             (type) => (
               <div key={type} className="space-y-2">
-                <h4 className="text-sm font-medium capitalize">{type}</h4>
+                <Title as="h4" level={7} weight="medium" className="capitalize">
+                  {type}
+                </Title>
                 {['solid', 'light', 'outline', 'borderless'].map((theme) => (
                   <div key={theme} className="flex items-center gap-3">
-                    <span className="text-muted-foreground w-24 text-xs font-medium capitalize">
+                    <Text size="xs" weight="medium" textColor="muted" className="w-24 capitalize">
                       {theme}
-                    </span>
+                    </Text>
                     <Button type={type as any} theme={theme as any}>
                       Default (hover me)
                     </Button>

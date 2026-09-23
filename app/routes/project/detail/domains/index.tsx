@@ -46,6 +46,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueryClient } from '@tanstack/react-query';
 import { DownloadIcon, GlobeIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useEffect, useState } from 'react';
@@ -356,7 +357,9 @@ function DomainsInner({
             return (
               <span data-e2e="domain-registrar">
                 <Tooltip message="Registrar information is being fetched and will appear shortly.">
-                  <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+                  <Text size="xs" textColor="muted" className="animate-pulse">
+                    Looking up...
+                  </Text>
                 </Tooltip>
               </span>
             );
@@ -400,7 +403,9 @@ function DomainsInner({
             return (
               <span data-e2e="domain-nameservers">
                 <Tooltip message="DNS host information is being fetched and will appear shortly.">
-                  <span className="text-muted-foreground animate-pulse text-xs">Looking up...</span>
+                  <Text size="xs" textColor="muted" className="animate-pulse">
+                    Looking up...
+                  </Text>
                 </Tooltip>
               </span>
             );

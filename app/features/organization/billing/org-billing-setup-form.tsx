@@ -31,6 +31,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ClockIcon, CheckIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
@@ -362,10 +363,10 @@ export const OrgBillingSetupForm = ({
               data-e2e="create-organization-display-name"
             />
             {!billingReady ? (
-              <p className="text-foreground text-1xs font-normal opacity-60">
+              <Text as="p" size="2xs" weight="normal" textColor="default" className="opacity-60">
                 A friendly name for the organization. Defaults to your business or contact name if
                 left blank.
-              </p>
+              </Text>
             ) : null}
           </div>
         ) : null}
@@ -383,12 +384,17 @@ export const OrgBillingSetupForm = ({
             <div
               className="flex min-w-0 flex-col gap-1 text-left"
               data-e2e="org-billing-contact-summary">
-              <p className="text-foreground text-[13px] leading-[18px] font-medium break-words">
+              <Text
+                as="p"
+                size="xs"
+                weight="medium"
+                textColor="default"
+                className="leading-[18px] break-words">
                 {formatOrgContactPrimaryLine(contactInfo)}
-              </p>
-              <p className="text-muted-foreground text-xs leading-4 break-words opacity-60">
+              </Text>
+              <Text as="p" size="xs" textColor="muted" className="leading-4 break-words opacity-60">
                 {formatOrgContactSecondaryLine(contactInfo)}
-              </p>
+              </Text>
             </div>
           ) : null}
         </VerificationField>
@@ -413,9 +419,15 @@ export const OrgBillingSetupForm = ({
                 className="flex min-w-0 items-center gap-2.5"
                 data-e2e="org-billing-payment-summary">
                 <CardBrandIcon brand={paymentSummary.brand} />
-                <p className="text-foreground truncate text-[13px] leading-[18px] font-medium">
+                <Text
+                  as="p"
+                  size="xs"
+                  weight="medium"
+                  textColor="default"
+                  ellipsis
+                  className="leading-[18px]">
                   {paymentSummary.label}
-                </p>
+                </Text>
               </div>
             ) : null}
           </VerificationField>
@@ -433,10 +445,10 @@ export const OrgBillingSetupForm = ({
             {isCompleting ? 'Starting...' : submitLabel}
           </Button>
 
-          <p className="text-foreground text-xs opacity-80">
+          <Text as="p" size="xs" textColor="default" className="opacity-80">
             <span className="font-semibold">Note:</span> Your card will be authorized, but not
             charged
-          </p>
+          </Text>
         </div>
       </div>
 
@@ -485,13 +497,17 @@ const VerificationField = ({
   children,
 }: VerificationFieldProps) => (
   <div className="flex flex-col gap-2">
-    <p className="text-foreground text-xs font-semibold opacity-80">{label}</p>
+    <Text as="p" size="xs" weight="semibold" textColor="default" className="opacity-80">
+      {label}
+    </Text>
     {isLoading ? (
       <div
         className="border-border bg-muted/50 flex h-auto min-h-9 w-full items-center gap-2.5 rounded-md border px-3 py-2"
         data-e2e="org-billing-payment-loading">
         <SpinnerIcon size="xs" aria-hidden="true" />
-        <p className="text-muted-foreground text-[13px] leading-[18px]">Saving payment method…</p>
+        <Text as="p" size="xs" textColor="muted" className="leading-[18px]">
+          Saving payment method…
+        </Text>
       </div>
     ) : isEmpty ? (
       <button
@@ -503,10 +519,11 @@ const VerificationField = ({
           'border-border bg-muted/50 flex h-9 w-full items-center justify-center rounded-md border px-3 py-2 transition-colors',
           disabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-muted'
         )}>
-        <span
-          className={cn('text-xs underline', disabled ? 'text-muted-foreground' : 'text-primary')}>
+        <Text
+          size="xs"
+          className={cn('underline', disabled ? 'text-muted-foreground' : 'text-primary')}>
           Enter information
-        </span>
+        </Text>
       </button>
     ) : (
       <div className="bg-card-success flex w-full min-w-0 overflow-hidden rounded-md border border-[#86A182]">
@@ -527,7 +544,9 @@ const VerificationField = ({
       </div>
     )}
     {description && (
-      <p className="text-foreground text-1xs font-normal opacity-60">{description}</p>
+      <Text as="p" size="2xs" weight="normal" textColor="default" className="opacity-60">
+        {description}
+      </Text>
     )}
   </div>
 );
@@ -535,8 +554,12 @@ const VerificationField = ({
 const StripePaymentLoading = () => (
   <div className="border-border bg-muted/40 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center">
     <SpinnerIcon size="sm" aria-hidden="true" />
-    <p className="text-foreground text-sm font-medium">Loading payment form…</p>
-    <p className="text-muted-foreground max-w-md text-xs">This usually takes a moment.</p>
+    <Text as="p" weight="medium" textColor="default">
+      Loading payment form…
+    </Text>
+    <Text as="p" size="xs" textColor="muted" className="max-w-md">
+      This usually takes a moment.
+    </Text>
   </div>
 );
 
@@ -544,11 +567,13 @@ const UnconfiguredStripeFallback = () => (
   <div className="flex flex-col gap-3">
     <div className="border-border bg-muted/40 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center">
       <Icon icon={ClockIcon} className="text-muted-foreground size-5" />
-      <p className="text-foreground text-sm font-medium">Card payments aren&apos;t ready yet</p>
-      <p className="text-muted-foreground max-w-md text-xs">
+      <Text as="p" weight="medium" textColor="default">
+        Card payments aren&apos;t ready yet
+      </Text>
+      <Text as="p" size="xs" textColor="muted" className="max-w-md">
         We&apos;re still getting card payments set up for your account. Our team can help if you
         need to get a card on file straight away.
-      </p>
+      </Text>
     </div>
     <Button
       htmlType="button"

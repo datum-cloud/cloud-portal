@@ -1,4 +1,5 @@
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { LockIcon } from 'lucide-react';
 
@@ -21,8 +22,12 @@ export function RestrictedState({
       )}>
       <Icon icon={LockIcon} className="text-muted-foreground size-8 stroke-1" />
       <div className="flex flex-col gap-1">
-        <p className="text-foreground text-sm font-medium">{title}</p>
-        <p className="text-muted-foreground max-w-sm text-sm">{message}</p>
+        <Text as="p" weight="medium" textColor="default">
+          {title}
+        </Text>
+        <Text as="p" textColor="muted" className="max-w-sm">
+          {message}
+        </Text>
       </div>
     </div>
   );

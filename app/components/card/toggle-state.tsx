@@ -1,3 +1,4 @@
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 /**
@@ -16,7 +17,7 @@ export function ToggleState({
   className?: string;
 }) {
   return (
-    <span className={cn('inline-flex items-center gap-2 text-sm', className)}>
+    <Text className={cn('inline-flex items-center gap-2', className)}>
       <span
         aria-hidden="true"
         className={cn(
@@ -25,6 +26,6 @@ export function ToggleState({
         )}
       />
       <span className={on ? undefined : 'text-muted-foreground'}>{on ? onLabel : offLabel}</span>
-    </span>
+    </Text>
   );
 }

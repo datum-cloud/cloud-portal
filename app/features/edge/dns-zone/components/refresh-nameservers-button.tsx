@@ -5,6 +5,7 @@ import { useRefreshDomainRegistration } from '@/resources/domains';
 import { Button, ButtonProps } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { TimerIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -121,9 +122,9 @@ export const RefreshNameserversButton = ({
       {isOnCooldown && (
         <div className="flex items-center gap-1 font-normal">
           <Icon icon={TimerIcon} className="text-ring relative -top-px size-4" />
-          <span className="text-ring text-sm leading-none">
+          <Text className="text-ring leading-none">
             {formatTime(remainingSeconds)} until refresh available
-          </span>
+          </Text>
         </div>
       )}
       <PermissionGate

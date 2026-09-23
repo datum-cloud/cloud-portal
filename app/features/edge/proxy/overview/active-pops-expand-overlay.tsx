@@ -2,6 +2,7 @@ import type { ActivePopMarker } from './active-pops-map';
 import { ActivePopsMap } from './active-pops-map';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { XIcon } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
@@ -237,10 +238,12 @@ export function ActivePopsExpandOverlay({
           }}>
           <div className="border-border/60 flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 sm:px-6">
             <div>
-              <p className="text-base font-semibold">Active regions</p>
-              <p className="text-muted-foreground text-sm">
+              <Text as="p" size="base" weight="semibold">
+                Active regions
+              </Text>
+              <Text as="p" textColor="muted">
                 {activeCount} with traffic · {locationCount} locations
-              </p>
+              </Text>
             </div>
             <Button
               htmlType="button"

@@ -20,6 +20,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon, TrashIcon } from 'lucide-react';
 import { useMemo, useCallback, useRef } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
@@ -152,7 +153,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
                 })
               )
             }>
-            <span className="text-sm font-semibold">{row.original.name}</span>
+            <Text weight="semibold">{row.original.name}</Text>
           </button>
         ),
       },
@@ -162,7 +163,11 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
         enableSorting: false,
         cell: ({ row }) => {
           if (row.original.memberCount === 0) {
-            return <span className="text-muted-foreground text-xs">&mdash;</span>;
+            return (
+              <Text size="xs" textColor="muted">
+                &mdash;
+              </Text>
+            );
           }
           const summaryText = buildMemberSummary(row.original.members, row.original.memberCount);
           return (
@@ -171,7 +176,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
               <Badge type="quaternary" theme="outline" className="rounded-xl px-2 text-xs">
                 {row.original.memberCount}
               </Badge>
-              <span className="text-muted-foreground text-sm">{summaryText}</span>
+              <Text textColor="muted">{summaryText}</Text>
             </div>
           );
         },

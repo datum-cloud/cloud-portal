@@ -19,6 +19,7 @@ import {
 } from '@datum-cloud/datum-ui/command';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, ChevronDown, FolderRoot } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -36,7 +37,9 @@ const ProjectItem = ({ project }: { project: Project }) => {
   );
   return (
     <div className="flex w-full items-center gap-3">
-      <span className="truncate text-xs font-medium">{project?.displayName}</span>
+      <Text size="xs" weight="medium" ellipsis>
+        {project?.displayName}
+      </Text>
       {isSuspended && <SuspendedBadge />}
     </div>
   );
@@ -91,9 +94,9 @@ export const ProjectSwitcher = ({
             size="small"
             className="flex cursor-pointer items-center gap-2.5 border-none p-0 font-normal hover:bg-transparent active:bg-transparent data-[state=open]:bg-transparent">
             <Icon icon={FolderRoot} className="text-icon-primary h-3.5 w-fit" />
-            <span className="truncate text-left text-xs leading-3.5 sm:max-w-36 md:max-w-none">
+            <Text size="xs" ellipsis className="text-left leading-3.5 sm:max-w-36 md:max-w-none">
               {currentProject?.displayName}
-            </span>
+            </Text>
             {isCurrentSuspended && <SuspendedBadge />}
             <Icon
               icon={ChevronDown}
@@ -123,7 +126,7 @@ export const ProjectSwitcher = ({
                   <div className="flex items-center justify-center">
                     <SpinnerIcon size="xs" aria-hidden="true" />
                   </div>
-                  <span className="text-xs">Loading</span>
+                  <Text size="xs">Loading</Text>
                 </CommandItem>
               ) : (
                 <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
@@ -160,7 +163,7 @@ export const ProjectSwitcher = ({
                       )}
                       className="flex items-center gap-2 px-3 py-2">
                       <Icon icon={FolderRoot} className="size-3.5" />
-                      <span className="text-xs">Create project</span>
+                      <Text size="xs">Create project</Text>
                     </Link>
                   </CommandItem>
                 </>

@@ -4,6 +4,7 @@ import { NotificationList } from './notification-list';
 import type { NotificationDropdownProps, NotificationSourceType, NotificationTab } from './types';
 import { useNotifications } from './use-notifications';
 import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useState } from 'react';
 
@@ -63,7 +64,9 @@ export function NotificationDropdown({ defaultTab = 'invitation' }: Notification
       {/* Tab Content */}
       <div className="max-h-[500px] overflow-y-auto">
         {error ? (
-          <div className="text-destructive p-4 text-sm">{error}</div>
+          <Text as="div" textColor="destructive" className="p-4">
+            {error}
+          </Text>
         ) : filteredNotifications.length === 0 ? (
           <NotificationEmpty message={tabs.find((t) => t.id === activeTab)?.emptyMessage} />
         ) : (

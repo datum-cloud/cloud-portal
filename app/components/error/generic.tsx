@@ -3,6 +3,7 @@ import { paths } from '@/utils/config/paths.config';
 import { Button, buttonVariants } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BuildingIcon, FolderIcon, RefreshCcwIcon } from 'lucide-react';
 // import { useEffect, useState } from 'react';
@@ -51,11 +52,16 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
       <CardContent className="flex min-h-[500px] flex-col items-center justify-center gap-6">
         <LogoIcon width={64} className="mb-4" />
         <div className="flex max-w-xl flex-col gap-2">
-          <p data-e2e="error-page-title" className="w-full text-center text-2xl font-bold">
+          <Text
+            as="p"
+            size="2xl"
+            weight="bold"
+            data-e2e="error-page-title"
+            className="w-full text-center">
             {title}
-          </p>
+          </Text>
 
-          <p className="text-muted-foreground text-center text-sm">
+          <Text as="p" textColor="muted" className="text-center">
             {isNotFound ? (
               <>
                 The page or resource you&apos;re looking for doesn&apos;t exist or has been moved.
@@ -77,11 +83,14 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
               support@datum.net
             </Link>
             .
-          </p>
+          </Text>
           {/* {isDebug && ( */}
-          <div className="text-muted-foreground rounded-r-md border-l-4 border-red-500 bg-red-50 p-4 text-center text-sm dark:bg-red-950/20">
+          <Text
+            as="div"
+            textColor="muted"
+            className="rounded-r-md border-l-4 border-red-500 bg-red-50 p-4 text-center dark:bg-red-950/20">
             {message}
-          </div>
+          </Text>
           {/* )} */}
         </div>
         <div className="flex items-center gap-2">

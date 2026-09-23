@@ -3,6 +3,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { XIcon } from 'lucide-react';
 
@@ -24,18 +25,19 @@ export function RoleRow({ assignment, isPendingRemove, canManageRoles, onRemove 
         isPendingRemove && 'bg-destructive/5 opacity-70'
       )}>
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span
-          className={cn(
-            'text-foreground text-sm font-semibold',
-            isPendingRemove && 'text-destructive'
-          )}>
+        <Text
+          weight="semibold"
+          textColor="default"
+          className={cn(isPendingRemove && 'text-destructive')}>
           {roleDisplayName}
-        </span>
+        </Text>
         {description && !isPendingRemove && (
-          <span className="text-muted-foreground truncate text-xs">{description}</span>
+          <Text size="xs" textColor="muted" ellipsis>
+            {description}
+          </Text>
         )}
         {isPendingRemove && (
-          <Badge type="danger" theme="light" className="text-[10px] font-bold uppercase">
+          <Badge type="danger" theme="light" className="text-4xs font-bold uppercase">
             Removed
           </Badge>
         )}

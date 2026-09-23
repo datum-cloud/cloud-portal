@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -64,9 +65,13 @@ const ActionCard = ({
         {isLoading ? (
           <Skeleton className="h-6 w-32 rounded" />
         ) : (
-          <span className="dark:text-card-foreground text-foreground text-center text-base font-semibold">
+          <Text
+            size="base"
+            weight="semibold"
+            textColor="default"
+            className="dark:text-card-foreground text-center">
             {title}
-          </span>
+          </Text>
         )}
 
         {isLoading ? (

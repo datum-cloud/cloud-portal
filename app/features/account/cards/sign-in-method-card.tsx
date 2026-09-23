@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ExternalLinkIcon } from 'lucide-react';
 
 export const AccountSignInMethodSettingsCard = () => {
@@ -40,7 +41,7 @@ export const AccountSignInMethodSettingsCard = () => {
     <Card size="sm" sectioned data-e2e="account-sign-in-methods-card">
       <CardHeader size="sm" bordered>
         <CardTitle className="text-sm">Sign-in Methods</CardTitle>
-        <CardDescription className="text-1xs">
+        <CardDescription className="text-2xs">
           Customize how you access your account. Link your Git profiles and set up passkeys for
           seamless, secure authentication.
         </CardDescription>
@@ -51,9 +52,13 @@ export const AccountSignInMethodSettingsCard = () => {
         ) : isError ? (
           // Never fall through to an empty list: a blank Sign-in Methods card
           // reads as "you have no sign-in methods", which is false and alarming.
-          <p role="alert" className="text-foreground/80 text-1xs px-(--card-px) py-(--card-py)">
+          <Text
+            as="p"
+            size="2xs"
+            className="text-foreground/80 px-(--card-px) py-(--card-py)"
+            role="alert">
             We couldn&apos;t load your sign-in methods. Refresh the page to try again.
-          </p>
+          </Text>
         ) : (
           <div className="divide-stepper-line flex flex-col divide-y">
             {rows.map((row) => (

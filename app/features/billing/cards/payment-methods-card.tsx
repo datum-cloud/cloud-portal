@@ -18,6 +18,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -93,38 +94,38 @@ const PaymentMethodRow = ({
           <CardBrandIcon brand={brand} />
           <div className="flex min-w-0 flex-col gap-0.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-foreground text-sm font-medium">
+              <Text weight="medium" textColor="default">
                 {method.spec?.displayName}
-              </span>
+              </Text>
               {isDefault && (
-                <Badge type="primary" theme="outline" className="text-2xs font-medium">
+                <Badge type="primary" theme="outline" className="text-5xs font-medium">
                   Default
                 </Badge>
               )}
               {phase && (
-                <Badge type={phase.type} theme="light" className="text-2xs font-medium">
+                <Badge type={phase.type} theme="light" className="text-5xs font-medium">
                   {phase.label}
                 </Badge>
               )}
               {expiryStatus === 'expired' && (
-                <Badge type="danger" theme="light" className="text-2xs font-medium">
+                <Badge type="danger" theme="light" className="text-5xs font-medium">
                   Expired
                 </Badge>
               )}
               {expiryStatus === 'soon' && (
-                <Badge type="warning" theme="light" className="text-2xs font-medium">
+                <Badge type="warning" theme="light" className="text-5xs font-medium">
                   Expires soon
                 </Badge>
               )}
             </div>
-            <span className="text-muted-foreground text-xs">
+            <Text size="xs" textColor="muted">
               {brandLabel} •••• {card?.last4 ?? '••••'}
               {card && (
                 <>
                   {' · '}Expires {formatExpiry(card.expiryMonth, card.expiryYear)}
                 </>
               )}
-            </span>
+            </Text>
           </div>
         </div>
 

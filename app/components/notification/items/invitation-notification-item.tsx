@@ -11,6 +11,7 @@ import { getInitials } from '@/utils/helpers/text.helper';
 import { Avatar, AvatarFallback, AvatarImage } from '@datum-cloud/datum-ui/avatar';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -93,7 +94,7 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
         </Avatar>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <div className="text-foreground text-sm leading-snug">
+          <Text as="div" textColor="default" className="leading-snug">
             <strong>{inviterName}</strong> has invited you to join <strong>{orgName}</strong>{' '}
             organization
             {invitation.role ? (
@@ -102,7 +103,7 @@ export function InvitationNotificationItem({ notification }: ResourceNotificatio
                 as <strong>{invitation.role}</strong>
               </>
             ) : null}
-          </div>
+          </Text>
 
           {/* Time + Expiry */}
           {invitation.createdAt && (

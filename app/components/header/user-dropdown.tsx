@@ -19,6 +19,7 @@ import {
 } from '@datum-cloud/datum-ui/dropdown';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CreditCard, LogOut, UserCogIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -84,7 +85,9 @@ export const UserDropdown = ({
             </AvatarFallback>
           </Avatar>
 
-          <p className="text-foreground hidden text-xs font-semibold lg:block">{user?.fullName}</p>
+          <Text as="p" size="xs" weight="semibold" textColor="default" className="hidden lg:block">
+            {user?.fullName}
+          </Text>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -92,10 +95,10 @@ export const UserDropdown = ({
         align="end"
         sideOffset={4}>
         <DropdownMenuLabel className="px-3 py-2 font-normal">
-          <div className="grid flex-1 text-left text-xs">
+          <Text as="div" size="xs" className="grid flex-1 text-left">
             <span className="text-primary truncate font-semibold">{user?.fullName}</span>
             <span className="text-foreground truncate font-medium">{user?.email}</span>
-          </div>
+          </Text>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -106,7 +109,9 @@ export const UserDropdown = ({
               onClick={() => updateTheme(option.value)}>
               <div className="flex items-center gap-2">
                 <Icon icon={option.icon} size={14} absoluteStrokeWidth={false} />
-                <span className="text-foreground text-xs">{option.label}</span>
+                <Text size="xs" textColor="default">
+                  {option.label}
+                </Text>
               </div>
               {currentTheme === option.value && (
                 <Icon icon={CheckIcon} size={16} className="text-primary" strokeWidth={1.5} />
@@ -121,7 +126,9 @@ export const UserDropdown = ({
             onClick={() => navigate(paths.account.settings.general)}>
             <div className="flex items-center gap-2">
               <Icon icon={UserCogIcon} size={14} />
-              <span className="text-foreground text-xs">Account Settings</span>
+              <Text size="xs" textColor="default">
+                Account Settings
+              </Text>
             </div>
           </DropdownMenuItem>
           {billingEnabled && !hideBillingAccount && (
@@ -131,7 +138,9 @@ export const UserDropdown = ({
               onClick={() => navigate(paths.account.billing.root)}>
               <div className="flex items-center gap-2">
                 <Icon icon={CreditCard} size={14} />
-                <span className="text-foreground text-xs">Billing Accounts</span>
+                <Text size="xs" textColor="default">
+                  Billing Accounts
+                </Text>
               </div>
             </DropdownMenuItem>
           )}
@@ -145,7 +154,9 @@ export const UserDropdown = ({
             }}>
             <div className="flex items-center gap-2">
               <Icon icon={LogOut} size={14} />
-              <span className="text-destructive text-xs">Log Out</span>
+              <Text size="xs" textColor="destructive">
+                Log Out
+              </Text>
             </div>
           </DropdownMenuItem>
         </DropdownMenuGroup>

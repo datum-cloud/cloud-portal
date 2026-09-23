@@ -17,6 +17,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
@@ -183,7 +184,9 @@ export const DnsZoneDiscoveryPreview = ({
             transition={{ duration: 0.5 }}>
             <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4.5">
               <SpinnerIcon size="xl" aria-hidden="true" />
-              <p className="text-sm font-semibold">Discovering DNS records...</p>
+              <Text as="p" weight="semibold">
+                Discovering DNS records...
+              </Text>
             </CardContent>
             <CardFooter className="flex justify-center px-5 pb-5">
               <Button htmlType="button" type="quaternary" theme="outline" onClick={handleSkip}>
@@ -254,9 +257,9 @@ export const DnsZoneDiscoveryPreview = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}>
             <CardContent className="flex min-h-[346px] flex-col items-center justify-center gap-4">
-              <p className="text-muted-foreground text-sm">
+              <Text as="p" textColor="muted">
                 No DNS records found from your existing provider.
-              </p>
+              </Text>
               <Button
                 htmlType="button"
                 type="quaternary"

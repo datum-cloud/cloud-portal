@@ -6,6 +6,7 @@ import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useNavigate } from 'react-router';
 
 interface DeleteOrganizationDialogProps {
@@ -46,15 +47,15 @@ function DeleteOrganizationDialogContent({
             <RestrictedOverlay message="You don't have permission to delete this organization" />
           ) : null}
           <div className="flex flex-col gap-3">
-            <p className="text-foreground text-sm">
+            <Text as="p" textColor="default">
               Are you sure you want to delete <strong>{displayLabel}</strong>?
-            </p>
-            <p className="text-foreground text-sm font-medium">
+            </Text>
+            <Text as="p" weight="medium" textColor="default">
               Deleting this organization will also remove its projects
-            </p>
-            <p className="text-muted-foreground text-sm">
+            </Text>
+            <Text as="p" textColor="muted">
               Make sure you have made a backup of your projects if you want to keep your data.
-            </p>
+            </Text>
           </div>
         </Dialog.Body>
         <Dialog.Footer className="border-t">

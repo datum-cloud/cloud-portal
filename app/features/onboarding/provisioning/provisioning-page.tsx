@@ -18,6 +18,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowRightIcon, CheckIcon, ExternalLinkIcon, LoaderCircleIcon, XIcon } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -161,18 +162,18 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
       <div className={cn('bg-card md:bg-transparent', provisioningColumnClassName)}>
         <div className={provisioningColumnContentClassName}>
           <OnboardingEntrance>
-            <h2 className="text-foreground text-center text-2xl font-semibold">
+            <Title as="h2" level={3} weight="semibold" textColor="default" className="text-center">
               {projectStepError ? 'Setup failed' : allComplete ? 'Complete!' : 'Thank you!'}
-            </h2>
+            </Title>
           </OnboardingEntrance>
 
           {projectStepError ? (
             <OnboardingEntrance delay={1}>
               <div className="flex w-full max-w-[311px] flex-col gap-4 text-center">
-                <p className="text-foreground text-sm opacity-80">
+                <Text as="p" textColor="default" className="opacity-80">
                   {projectSetupError?.message ??
                     'We could not finish setting up your first project.'}
-                </p>
+                </Text>
                 <div className="flex flex-col gap-2">
                   <Button
                     htmlType="button"
@@ -205,20 +206,20 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
                     <div className="flex items-center gap-4">
                       <StepIcon status={status} />
                       <div className="flex min-w-0 flex-col gap-1">
-                        <p
-                          className={cn(
-                            'text-foreground text-[13px] leading-[18px]',
-                            !isActive && 'opacity-40'
-                          )}>
+                        <Text
+                          as="p"
+                          size="xs"
+                          textColor="default"
+                          className={cn('leading-[18px]', !isActive && 'opacity-40')}>
                           {step.title}
-                        </p>
-                        <p
-                          className={cn(
-                            'text-foreground text-xs leading-4 opacity-60',
-                            !isActive && 'opacity-40'
-                          )}>
+                        </Text>
+                        <Text
+                          as="p"
+                          size="xs"
+                          textColor="default"
+                          className={cn('leading-4 opacity-60', !isActive && 'opacity-40')}>
                           {step.subtext}
-                        </p>
+                        </Text>
                       </div>
                     </div>
                   </OnboardingStagger>
@@ -362,9 +363,9 @@ export const ProvisioningPage = ({ devBypass = false }: ProvisioningPageProps) =
           delay={1}
           className={cn('relative z-10', provisioningColumnContentClassName, 'gap-8')}>
           <div className="flex flex-col items-center gap-2 text-center">
-            <p className="text-foreground text-2xl font-semibold">
+            <Text as="p" size="2xl" weight="semibold" textColor="default">
               Folks <span className="text-primary">love</span> our CLI!
-            </p>
+            </Text>
             <Link
               to={DATUMCTL_DOWNLOAD_URL}
               target="_blank"

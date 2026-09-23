@@ -39,6 +39,7 @@ import { Form } from '@datum-cloud/datum-ui/form';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue } from '@datum-cloud/datum-ui/task-queue';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueryClient } from '@tanstack/react-query';
 import { FolderRoot, PlusIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -325,12 +326,12 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                       badgeTheme="solid"
                       badgeType="muted"
                     />
-                    <span className="text-muted-foreground text-xs">
+                    <Text size="xs" textColor="muted">
                       Added:{' '}
                       {project.createdAt && (
                         <DateTime date={project.createdAt} format="yyyy-MM-dd" />
                       )}
-                    </span>
+                    </Text>
                   </div>
                 </div>
               )}

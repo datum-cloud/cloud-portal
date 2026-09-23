@@ -11,6 +11,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search as SearchIconLucide, X as XIconLucide } from 'lucide-react';
 import { Children, type ReactNode } from 'react';
@@ -126,9 +127,9 @@ function TableToolbarTools<TData extends RowData>({
             <DataTable.BulkActions<TData>>
               {(selectedRows) => (
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-muted-foreground text-sm" data-slot="dt-selection-count">
+                  <Text textColor="muted" data-slot="dt-selection-count">
                     {selectedRows.length} selected
-                  </span>
+                  </Text>
                   {multiActions.map((action, i) => (
                     <Button
                       key={`${action.label}-${i}`}

@@ -18,6 +18,7 @@ import { Form, useWatch } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { useTaskQueue, createProjectMetadata } from '@datum-cloud/datum-ui/task-queue';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Title } from '@datum-cloud/datum-ui/typography';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, GlobeIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -185,7 +186,9 @@ export const AddDomainsDialog = ({
           </Form.Root>
 
           <div className="mt-6 space-y-4">
-            <h2 className="text-sm font-semibold">Import from file</h2>
+            <Title as="h2" level={7} weight="semibold">
+              Import from file
+            </Title>
             <FileInputButton
               htmlType="button"
               accept={{ 'text/csv': ['.csv'] }}

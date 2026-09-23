@@ -2,6 +2,7 @@ import { useProxyDnsDeletePreview } from '@/features/edge/proxy/hooks/use-proxy-
 import type { ProxyDnsHostnameRow } from '@/features/edge/proxy/utils/delete-dns-preview';
 import type { HttpProxy } from '@/resources/http-proxies';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 /** Headline count. Zero is a normal outcome, not a failure, so it reads as plain English. */
 const DELETE_SUMMARY = (count: number): string => {
@@ -21,9 +22,11 @@ function HostnameGroup({ row }: { row: ProxyDnsHostnameRow }) {
 
   return (
     <li className="flex flex-col gap-1 border-t border-current/15 py-2 first:border-t-0 first:pt-0">
-      <span className="truncate text-xs font-semibold">{row.hostname}</span>
+      <Text size="xs" weight="semibold" ellipsis>
+        {row.hostname}
+      </Text>
 
-      <span className="text-[11px]">
+      <Text size="3xs">
         {state === 'will-delete' ? (
           <>
             <span className="font-medium">Deleted:</span>{' '}
@@ -32,12 +35,12 @@ function HostnameGroup({ row }: { row: ProxyDnsHostnameRow }) {
         ) : (
           <span className="opacity-80">{NO_RECORD_HINT[state]}</span>
         )}
-      </span>
+      </Text>
 
       {row.yourRecords.map((record) => (
-        <span key={`${record.type}-${record.value}`} className="text-[11px]">
+        <Text size="3xs" key={`${record.type}-${record.value}`}>
           <span className="font-medium">Kept:</span> {record.type} → {record.value}
-        </span>
+        </Text>
       ))}
     </li>
   );
@@ -66,13 +69,13 @@ export function ProxyDeleteDnsPreview({
 
   return (
     <div className="flex flex-col gap-2" data-e2e="proxy-delete-dns-preview">
-      <div className="flex items-center gap-1.5 text-xs font-semibold">
+      <Text as="div" size="xs" weight="semibold" className="flex items-center gap-1.5">
         <span data-e2e="dns-preview-summary">
           {DELETE_SUMMARY(deleteCount)}
           {keptCount > 0 && `, ${keptCount} kept`}
         </span>
         {isLoading && <SpinnerIcon size="xs" aria-label="Loading DNS record details" />}
-      </div>
+      </Text>
 
       <ul className="flex flex-col" data-e2e="dns-hostname-list">
         {hostnames.map((row) => (
@@ -81,10 +84,10 @@ export function ProxyDeleteDnsPreview({
       </ul>
 
       {keptCount > 0 && (
-        <span className="text-[11px] opacity-80" data-e2e="dns-kept-note">
+        <Text size="3xs" className="opacity-80" data-e2e="dns-kept-note">
           Records marked Kept are yours. Deleting the load balancer removes its protection and
           leaves them in place.
-        </span>
+        </Text>
       )}
     </div>
   );

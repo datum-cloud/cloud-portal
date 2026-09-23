@@ -13,6 +13,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { jwtDecode } from 'jwt-decode';
 import { Trash2Icon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -92,7 +93,7 @@ export default function AccountActiveSessionsPage() {
         id: 'userAgent',
         meta: { className: 'min-w-[160px]' },
         cell: ({ row }) => (
-          <span className="text-foreground flex items-center justify-between text-xs">
+          <Text size="xs" textColor="default" className="flex items-center justify-between">
             {row.original.userAgent?.formatted ?? '-'}
 
             {row.original.name === currentSession && (
@@ -104,7 +105,7 @@ export default function AccountActiveSessionsPage() {
                 Current session
               </Badge>
             )}
-          </span>
+          </Text>
         ),
       },
       {
@@ -113,7 +114,9 @@ export default function AccountActiveSessionsPage() {
         id: 'location',
         meta: { className: 'min-w-[160px]' },
         cell: ({ row }) => (
-          <span className="text-foreground text-xs">{row.original.location?.formatted ?? '-'}</span>
+          <Text size="xs" textColor="default">
+            {row.original.location?.formatted ?? '-'}
+          </Text>
         ),
       },
 

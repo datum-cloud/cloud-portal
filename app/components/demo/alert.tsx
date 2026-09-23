@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import {
   AlertCircle,
   CheckCircle,
@@ -181,12 +182,12 @@ export default function AlertDemo() {
               </AlertDescription>
             </Alert>
           </div>
-          <div className="text-muted-foreground text-sm">
+          <Text as="div" textColor="muted">
             <p>
               Icons are automatically positioned in the top-left corner and content is padded
               accordingly. Icon colors inherit from the alert variant.
             </p>
-          </div>
+          </Text>
         </CardContent>
       </Card>
 
@@ -289,10 +290,10 @@ export default function AlertDemo() {
                     <li>Performance optimizations</li>
                     <li>New user interface improvements</li>
                   </ul>
-                  <p className="text-sm">
+                  <Text as="p">
                     <strong>Note:</strong> The update will be applied automatically during the next
                     maintenance window.
-                  </p>
+                  </Text>
                 </div>
               </AlertDescription>
             </Alert>
@@ -391,10 +392,12 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Multiple Closable Alerts (Interactive)</h4>
-            <p className="text-muted-foreground text-sm">
+            <Title as="h4" level={7} weight="medium">
+              Multiple Closable Alerts (Interactive)
+            </Title>
+            <Text as="p" textColor="muted">
               Click the X button on any alert below to remove it from the list:
-            </p>
+            </Text>
             <div className="space-y-4">
               {closableAlerts.length > 0 ? (
                 closableAlerts.map((alert) => (
@@ -415,20 +418,20 @@ export default function AlertDemo() {
                   </Alert>
                 ))
               ) : (
-                <p className="text-muted-foreground text-sm">
+                <Text as="p" textColor="muted">
                   All alerts have been dismissed. Refresh the page to see them again.
-                </p>
+                </Text>
               )}
             </div>
           </div>
 
-          <div className="text-muted-foreground text-sm">
+          <Text as="div" textColor="muted">
             <p>
               <strong>Note:</strong> By default, alerts are not closable. Set the{' '}
               <code>closable</code> prop to <code>true</code> and provide an <code>onClose</code>{' '}
               callback to enable the close button.
             </p>
-          </div>
+          </Text>
         </CardContent>
       </Card>
 
@@ -440,7 +443,9 @@ export default function AlertDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Form Validation Errors</h4>
+            <Title as="h4" level={7} weight="medium">
+              Form Validation Errors
+            </Title>
             <Alert variant="destructive">
               <AlertCircle className="size-4" />
               <AlertTitle>Validation Failed</AlertTitle>
@@ -455,7 +460,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Success Messages</h4>
+            <Title as="h4" level={7} weight="medium">
+              Success Messages
+            </Title>
             <Alert variant="success">
               <CheckCircle className="size-4" />
               <AlertTitle>Profile Updated</AlertTitle>
@@ -466,7 +473,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">System Notifications</h4>
+            <Title as="h4" level={7} weight="medium">
+              System Notifications
+            </Title>
             <Alert variant="info">
               <Info className="size-4" />
               <AlertTitle>Maintenance Scheduled</AlertTitle>
@@ -478,7 +487,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Warning Messages</h4>
+            <Title as="h4" level={7} weight="medium">
+              Warning Messages
+            </Title>
             <Alert variant="warning">
               <TriangleAlert className="size-4" />
               <AlertTitle>Action Required</AlertTitle>
@@ -490,7 +501,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Error Recovery</h4>
+            <Title as="h4" level={7} weight="medium">
+              Error Recovery
+            </Title>
             <Alert variant="destructive">
               <XCircle className="size-4" />
               <AlertTitle>Connection Lost</AlertTitle>
@@ -502,7 +515,9 @@ export default function AlertDemo() {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">In Dialog/Modal</h4>
+            <Title as="h4" level={7} weight="medium">
+              In Dialog/Modal
+            </Title>
             <div className="border-input rounded-md border p-4">
               <Alert variant="warning" className="mb-4">
                 <TriangleAlert className="size-4" />
@@ -511,9 +526,9 @@ export default function AlertDemo() {
                   This action cannot be undone. Are you sure you want to proceed?
                 </AlertDescription>
               </Alert>
-              <p className="text-muted-foreground text-sm">
+              <Text as="p" textColor="muted">
                 Alerts work well in dialogs and modals to provide context for user actions.
-              </p>
+              </Text>
             </div>
           </div>
         </CardContent>

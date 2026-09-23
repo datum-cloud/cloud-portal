@@ -1,6 +1,7 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const WaitingPage = ({ title, className }: { title: string; className?: string }) => {
@@ -9,7 +10,9 @@ export const WaitingPage = ({ title, className }: { title: string; className?: s
       <CardContent className="grid min-h-[500px]">
         <div className="flex flex-col items-center justify-center gap-6">
           <LogoIcon width={64} className="mb-4" />
-          <p className="w-full text-center text-2xl font-bold">{title}</p>
+          <Text as="p" size="2xl" weight="bold" className="w-full text-center">
+            {title}
+          </Text>
           <SpinnerIcon size="xl" aria-hidden="true" />
         </div>
       </CardContent>

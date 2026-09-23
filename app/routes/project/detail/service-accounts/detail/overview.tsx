@@ -8,6 +8,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { InfoIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import type { MetaFunction } from 'react-router';
@@ -66,7 +67,7 @@ export default function ServiceAccountOverviewPage() {
           icon={<Icon icon={InfoIcon} className="size-5" />}
           title="About Service Accounts"
           description={
-            <span className="text-sm">
+            <Text>
               Service accounts allow workloads, CI/CD pipelines, and automated systems to
               authenticate with Datum Cloud using short-lived tokens via{' '}
               <a
@@ -77,7 +78,7 @@ export default function ServiceAccountOverviewPage() {
                 RFC 7523
               </a>{' '}
               JWT exchange.
-            </span>
+            </Text>
           }
         />
       </Col>

@@ -14,6 +14,7 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { SelectSeparator } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
@@ -76,11 +77,17 @@ export const AccountPage = ({
     <OnboardingEntrance>
       <Card className={cn(onboardingCardClassName, 'z-10')}>
         <CardContent className="flex flex-col gap-8 p-0">
-          <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
+          <Text
+            as="p"
+            size="2xs"
+            textColor="muted"
+            className="text-center tracking-[0.4px] uppercase">
             Step 1 / 2
-          </p>
+          </Text>
 
-          <h2 className="text-center text-2xl font-semibold">Account information</h2>
+          <Title as="h2" level={3} weight="semibold" className="text-center">
+            Account information
+          </Title>
 
           <Form.Root
             name="onboarding-account"
@@ -114,7 +121,7 @@ export const AccountPage = ({
               </Form.Select>
             </Form.Field>
 
-            <p className="text-foreground text-xs leading-4 opacity-60">
+            <Text as="p" size="xs" textColor="default" className="leading-4 opacity-60">
               By continuing, you agree to Datum&apos;s{' '}
               <Link
                 to="https://datum.net/terms-of-service"
@@ -132,7 +139,7 @@ export const AccountPage = ({
                 Privacy Policy
               </Link>
               , and to receive periodic emails with updates.
-            </p>
+            </Text>
 
             <Form.Submit
               className="w-full"

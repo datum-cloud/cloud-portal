@@ -1,4 +1,5 @@
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { LockIcon } from 'lucide-react';
 
@@ -19,7 +20,9 @@ export function RestrictedOverlay({
       )}>
       <Icon icon={LockIcon} className="text-muted-foreground size-4" />
       {typeof message === 'string' ? (
-        <span className="text-muted-foreground text-sm font-medium">{message}</span>
+        <Text weight="medium" textColor="muted">
+          {message}
+        </Text>
       ) : (
         message
       )}

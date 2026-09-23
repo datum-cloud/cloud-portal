@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ArrowLeftIcon, BuildingIcon, FolderIcon, SearchIcon } from 'lucide-react';
 import { useState, useMemo } from 'react';
@@ -189,13 +190,20 @@ export function AddRoleScreen({
               <Icon icon={ArrowLeftIcon} className="size-4" />
               Back to roles
             </Button>
-            <h2 className="text-foreground mb-3 text-lg font-bold tracking-tight">Add a Role</h2>
+            <Title
+              as="h2"
+              level={5}
+              weight="bold"
+              textColor="default"
+              className="mb-3 tracking-tight">
+              Add a Role
+            </Title>
 
             {/* Scope selector */}
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="scope-select"
-                className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+                className="text-muted-foreground text-3xs font-semibold tracking-wide uppercase">
                 Grant at scope
               </label>
               <Select
@@ -244,18 +252,24 @@ export function AddRoleScreen({
           {/* Role list */}
           <div className="flex-1 overflow-y-auto py-2">
             {groups.length === 0 ? (
-              <p className="text-muted-foreground px-6 py-6 text-center text-sm">No roles found.</p>
+              <Text as="p" textColor="muted" className="px-6 py-6 text-center">
+                No roles found.
+              </Text>
             ) : (
               <ul>
                 {groups.map((group) => (
                   <li key={group.label}>
                     <div className="flex items-center gap-2 px-6 py-2">
-                      <span className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
+                      <Text
+                        size="3xs"
+                        weight="semibold"
+                        textColor="muted"
+                        className="tracking-widest uppercase">
                         {group.label}
-                      </span>
-                      <span className="text-muted-foreground text-[11px]">
+                      </Text>
+                      <Text size="3xs" textColor="muted">
                         {group.roles.length}
-                      </span>
+                      </Text>
                     </div>
                     <ul>
                       {group.roles.map((role) => {
@@ -278,23 +292,25 @@ export function AddRoleScreen({
                                     : 'hover:bg-muted'
                               )}>
                               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                                <span
-                                  className={cn(
-                                    'text-sm font-medium',
-                                    isSelected ? 'text-foreground font-semibold' : 'text-foreground'
-                                  )}>
+                                <Text
+                                  weight={isSelected ? 'semibold' : 'medium'}
+                                  textColor="default">
                                   {role.displayName ?? role.name}
-                                </span>
+                                </Text>
                                 {role.description && (
-                                  <span className="text-muted-foreground text-xs">
+                                  <Text size="xs" textColor="muted">
                                     {role.description}
-                                  </span>
+                                  </Text>
                                 )}
                               </div>
                               {isAssigned && (
-                                <span className="text-muted-foreground shrink-0 text-[10px] font-semibold tracking-wide uppercase">
+                                <Text
+                                  size="4xs"
+                                  weight="semibold"
+                                  textColor="muted"
+                                  className="shrink-0 tracking-wide uppercase">
                                   Assigned
-                                </span>
+                                </Text>
                               )}
                             </button>
                           </li>
@@ -313,18 +329,20 @@ export function AddRoleScreen({
           aria-label="Role Preview"
           className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l">
           <header className="border-b px-6 py-4">
-            <h2 className="text-foreground text-[15px] font-semibold">
+            <Title as="h2" level={7} weight="semibold" textColor="default">
               {selectedRole ? (selectedRole.displayName ?? selectedRole.name) : 'Role Preview'}
-            </h2>
+            </Title>
             {selectedRole?.description && (
-              <p className="text-muted-foreground mt-0.5 text-xs">{selectedRole.description}</p>
+              <Text as="p" size="xs" textColor="muted" className="mt-0.5">
+                {selectedRole.description}
+              </Text>
             )}
           </header>
           <div className="flex-1 overflow-y-auto">
             {isFetchingRole ? (
-              <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
+              <Text as="div" textColor="muted" className="flex h-full items-center justify-center">
                 Loading permissions...
-              </div>
+              </Text>
             ) : (
               <PermissionsPanel
                 permissions={resolvedPermissions}

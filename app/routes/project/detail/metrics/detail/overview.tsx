@@ -9,6 +9,7 @@ import { type ExportPolicy, type IExportPolicyControlResponse } from '@/resource
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
+import { Title } from '@datum-cloud/datum-ui/typography';
 import { MetaFunction } from 'react-router';
 
 export const handle = {
@@ -66,7 +67,9 @@ export default function ExportPolicyOverview() {
           />
         </Col>
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete Policy</h3>
+          <Title as="h3" level={6} weight="medium" className="mb-4">
+            Delete Policy
+          </Title>
           <ExportPolicyDangerCard
             exportPolicy={exportPolicy ?? {}}
             actionHidden={permissionsLoading || !canDelete}>

@@ -27,6 +27,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useParams, type MetaFunction } from 'react-router';
@@ -181,7 +182,9 @@ export default function HttpProxyMetricsPage() {
               ) : undefined
             }>
             {wafPending ? (
-              <p className="text-muted-foreground text-sm">Loading traffic protection…</p>
+              <Text as="p" textColor="muted">
+                Loading traffic protection…
+              </Text>
             ) : wafEnabled && canViewWaf ? (
               <div className="flex flex-col gap-6">
                 <ChartScaleGroup>
@@ -198,16 +201,16 @@ export default function HttpProxyMetricsPage() {
                 <HttpProxyWafTopRules projectId={projectId} proxyId={proxyId} />
               </div>
             ) : wafEnabled ? (
-              <p className="text-muted-foreground text-sm">
+              <Text as="p" textColor="muted">
                 You don&apos;t have permission to view traffic protection metrics.
-              </p>
+              </Text>
             ) : (
-              <p className="text-muted-foreground text-sm">
+              <Text as="p" textColor="muted">
                 Traffic protection is not enabled for this load balancer.{' '}
                 <LinkButton as={Link} type="primary" theme="link" size="link" href={overviewHref}>
                   Configure it on Overview
                 </LinkButton>
-              </p>
+              </Text>
             )}
           </MetricsSection>
         </div>

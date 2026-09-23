@@ -32,6 +32,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ExpandIcon, MapPinIcon } from 'lucide-react';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -336,7 +337,9 @@ export const ActivePopsCard = ({
       fallback={
         <div className="flex size-full items-center justify-center px-6">
           <div className="flex flex-col items-center gap-2">
-            <p className="text-muted-foreground text-sm">Unable to load map.</p>
+            <Text as="p" textColor="muted">
+              Unable to load map.
+            </Text>
             <Button
               htmlType="button"
               type="primary"
@@ -413,17 +416,21 @@ export const ActivePopsCard = ({
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 p-3 sm:p-4">
         <div className="bg-background/80 inline-block rounded-lg px-3 py-2 backdrop-blur-sm">
           {showLocationSkeletons ? (
-            <p className="text-muted-foreground text-xs" aria-live="polite">
+            <Text as="p" size="xs" textColor="muted" aria-live="polite">
               Discovering locations…
-            </p>
+            </Text>
           ) : metricsError && directory.length === 0 ? (
-            <p className="text-muted-foreground text-xs">Unable to load active regions.</p>
+            <Text as="p" size="xs" textColor="muted">
+              Unable to load active regions.
+            </Text>
           ) : directory.length === 0 ? (
-            <p className="text-muted-foreground text-xs">No locations found.</p>
+            <Text as="p" size="xs" textColor="muted">
+              No locations found.
+            </Text>
           ) : (
-            <p className="text-muted-foreground text-xs">
+            <Text as="p" size="xs" textColor="muted">
               {activeCount} with traffic · {directory.length} locations
-            </p>
+            </Text>
           )}
         </div>
       </div>
@@ -483,8 +490,12 @@ export const ActivePopsCard = ({
                 aria-hidden
               />
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="truncate text-sm font-medium">{item.city}</span>
-                <span className="text-muted-foreground truncate text-xs">{item.subtitle}</span>
+                <Text weight="medium" ellipsis>
+                  {item.city}
+                </Text>
+                <Text size="xs" textColor="muted" ellipsis>
+                  {item.subtitle}
+                </Text>
               </span>
               <span className="hidden w-28 shrink-0 items-center sm:flex">
                 <span className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
@@ -495,16 +506,16 @@ export const ActivePopsCard = ({
                 </span>
               </span>
               <span className="flex w-20 shrink-0 flex-col items-end">
-                <span className="text-sm font-medium tabular-nums">
+                <Text weight="medium" className="tabular-nums">
                   {item.active ? formatRps(metrics.rps) : '—'}
-                </span>
-                <span className="text-muted-foreground text-xs tabular-nums">
+                </Text>
+                <Text size="xs" textColor="muted" className="tabular-nums">
                   {item.active
                     ? formatLatency(metrics.latency) !== '—'
                       ? formatLatency(metrics.latency)
                       : formatErrors(metrics.errorRps, metrics.rps)
                     : 'Idle'}
-                </span>
+                </Text>
               </span>
             </button>
           </li>
@@ -546,9 +557,9 @@ export const ActivePopsCard = ({
             <LocationRowSkeleton />
           </ul>
         ) : directory.length === 0 ? (
-          <p className="text-muted-foreground px-(--card-px) py-8 text-center text-sm">
+          <Text as="p" textColor="muted" className="px-(--card-px) py-8 text-center">
             {metricsError ? 'Unable to load active regions.' : 'No locations found.'}
-          </p>
+          </Text>
         ) : noTraffic ? (
           <OverviewEmptyState
             icon={MapPinIcon}

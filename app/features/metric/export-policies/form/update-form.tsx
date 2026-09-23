@@ -33,6 +33,7 @@ import {
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { has } from 'es-toolkit/compat';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import { Fragment, cloneElement, useMemo } from 'react';
@@ -231,8 +232,12 @@ export const ExportPolicyUpdateForm = ({
                       })}
                     </span>
                     <div className="flex flex-col gap-1 pt-1.5">
-                      <p className="text-base leading-tight font-medium">{section.label}</p>
-                      <p className="text-muted-foreground text-sm">{section.description}</p>
+                      <Text as="p" size="base" weight="medium" className="leading-tight">
+                        {section.label}
+                      </Text>
+                      <Text as="p" textColor="muted">
+                        {section.description}
+                      </Text>
                     </div>
                   </li>
                   <div className="flex-1 py-6 pl-7">

@@ -4,6 +4,7 @@ import {
   OnboardingStagger,
 } from '@/features/onboarding/components/onboarding-entrance';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useCallback, useState } from 'react';
 
 const BENEFITS = [
@@ -47,12 +48,17 @@ export const BillingVerificationBenefits = () => {
             {BENEFITS.map((benefit, index) => (
               <OnboardingStagger key={benefit.title} visible={benefitsVisible} index={index}>
                 <div className="flex flex-col gap-0">
-                  <p className="text-foreground text-base font-medium opacity-60">
+                  <Text
+                    as="p"
+                    size="base"
+                    weight="medium"
+                    textColor="default"
+                    className="opacity-60">
                     {benefit.title}
-                  </p>
-                  <p className="text-foreground text-[13px] leading-[18px] opacity-60">
+                  </Text>
+                  <Text as="p" size="xs" textColor="default" className="leading-[18px] opacity-60">
                     {benefit.description}
-                  </p>
+                  </Text>
                 </div>
               </OnboardingStagger>
             ))}

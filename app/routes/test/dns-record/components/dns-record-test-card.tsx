@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 interface DnsRecordTestCardProps {
@@ -211,9 +212,9 @@ export function DnsRecordTestCard({
           <div
             className="rounded-lg border border-gray-200 bg-gray-50 p-4"
             data-testid={`dns-test-form-${recordType}`}>
-            <div className="text-muted-foreground mb-2 text-xs font-medium">
+            <Text as="div" size="xs" weight="medium" textColor="muted" className="mb-2">
               Test Mode - No API calls will be made
-            </div>
+            </Text>
             <DnsRecordForm
               key={scenario.id}
               style="inline"
@@ -231,9 +232,10 @@ export function DnsRecordTestCard({
 
           {/* Validation Display */}
           {hasBeenValidated && (
-            <div
+            <Text
+              as="div"
               className={cn(
-                'rounded-lg border p-3 text-sm',
+                'rounded-lg border p-3',
                 isValid
                   ? 'border-green-200 bg-green-50 text-green-900'
                   : 'border-red-200 bg-red-50 text-red-900'
@@ -253,7 +255,7 @@ export function DnsRecordTestCard({
                   ))}
                 </ul>
               )}
-            </div>
+            </Text>
           )}
 
           {/* Actions */}

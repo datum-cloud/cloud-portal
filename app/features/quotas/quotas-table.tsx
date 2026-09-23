@@ -12,6 +12,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
 import { GroupedTable } from '@datum-cloud/datum-ui/grouped-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ArrowUpIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -116,12 +117,14 @@ export const QuotasTable = ({
               {row.original.displayName}
             </span>
             {row.original.description && (
-              <span
-                className="text-muted-foreground mt-0.5 block text-xs"
+              <Text
+                size="xs"
+                textColor="muted"
+                className="mt-0.5 block"
                 title={row.original.description}
                 data-e2e={`${e2ePrefix}-description`}>
                 {row.original.description}
-              </span>
+              </Text>
             )}
           </div>
         ),
@@ -138,11 +141,13 @@ export const QuotasTable = ({
           }
           const { used, total } = calculateUsage(status);
           return (
-            <span
-              className="text-xs font-semibold whitespace-nowrap"
+            <Text
+              size="xs"
+              weight="semibold"
+              className="whitespace-nowrap"
               data-e2e={`${e2ePrefix}-usage-amount`}>
               {used} / {total}
-            </span>
+            </Text>
           );
         },
       },
@@ -166,11 +171,14 @@ export const QuotasTable = ({
                   data-e2e={`${e2ePrefix}-usage-bar-fill`}
                 />
               </div>
-              <span
-                className="text-muted-foreground text-xs font-medium whitespace-nowrap"
+              <Text
+                size="xs"
+                weight="medium"
+                textColor="muted"
+                className="whitespace-nowrap"
                 data-e2e={`${e2ePrefix}-usage-percentage`}>
                 {percentage}%
-              </span>
+              </Text>
             </div>
           );
         },
@@ -207,11 +215,13 @@ export const QuotasTable = ({
           id: g.group,
           title: (
             <div className="flex items-center gap-2">
-              <span className="text-xs font-medium">{g.group}</span>
+              <Text size="xs" weight="medium">
+                {g.group}
+              </Text>
               <span data-e2e={`${e2ePrefix}-group-count`}>
                 <Badge
                   type="secondary"
-                  className="text-2xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold">
+                  className="text-5xs flex cursor-default items-center gap-1.5 px-1 py-0.5 font-bold">
                   {items.length}
                 </Badge>
               </span>

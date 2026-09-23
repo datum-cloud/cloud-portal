@@ -17,6 +17,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
@@ -124,12 +125,18 @@ export const BillingForm = ({
             isLegacySetupResume && 'md:justify-center'
           )}>
           <CardContent className="flex flex-col gap-8 p-0">
-            <p className="text-muted-foreground text-1xs text-center tracking-[0.4px] uppercase">
+            <Text
+              as="p"
+              size="2xs"
+              textColor="muted"
+              className="text-center tracking-[0.4px] uppercase">
               {stepLabel}
-            </p>
+            </Text>
 
             <div className="flex flex-col items-center gap-3">
-              <h2 className="text-center text-2xl font-semibold">{heading}</h2>
+              <Title as="h2" level={3} weight="semibold" className="text-center">
+                {heading}
+              </Title>
 
               {isLegacySetupResume && orgDisplayName ? (
                 <div className="border-border bg-muted/50 flex max-w-full items-center gap-2 rounded-full border py-1 pr-3 pl-1">
@@ -138,19 +145,19 @@ export const BillingForm = ({
                     name={orgDisplayName}
                     size="xs"
                     className="size-6 rounded-full"
-                    fallbackClassName="rounded-full text-[10px]"
+                    fallbackClassName="rounded-full text-4xs"
                   />
-                  <span className="text-foreground truncate text-sm font-medium">
+                  <Text weight="medium" textColor="default" ellipsis>
                     {orgDisplayName}
-                  </span>
+                  </Text>
                 </div>
               ) : null}
             </div>
 
             {isLegacySetupResume && needsPaymentOnly ? (
-              <p className="text-muted-foreground text-center text-sm">
+              <Text as="p" textColor="muted" className="text-center">
                 Add a payment method to continue using your organization.
-              </p>
+              </Text>
             ) : null}
 
             <OrgBillingSetupForm

@@ -1,3 +1,4 @@
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CircleDotIcon, MinusIcon, XIcon } from 'lucide-react';
 
@@ -49,14 +50,16 @@ export function PermissionsPanel({
 
   if (!hasContent) {
     return (
-      <div
+      <Text
+        as="div"
+        textColor="muted"
         className={cn(
-          'text-muted-foreground flex h-full flex-col items-center justify-center gap-2 px-6 py-12 text-center text-sm',
+          'flex h-full flex-col items-center justify-center gap-2 px-6 py-12 text-center',
           className
         )}
         aria-live="polite">
         <p>No permissions assigned.</p>
-      </div>
+      </Text>
     );
   }
 
@@ -87,7 +90,7 @@ export function PermissionsPanel({
 
   return (
     <div className={cn('flex flex-col gap-4 px-4 py-4', className)} aria-label="Role permissions">
-      <p className="text-muted-foreground text-xs">
+      <Text as="p" size="xs" textColor="muted">
         <span className="text-foreground font-semibold tabular-nums">{permissions.length}</span>{' '}
         {permissions.length === 1 ? 'permission' : 'permissions'}
         {newCount !== null && newCount > 0 && (
@@ -96,10 +99,10 @@ export function PermissionsPanel({
         {loseCount > 0 && (
           <span className="text-destructive ml-1">({loseCount} being removed)</span>
         )}
-      </p>
+      </Text>
 
       {existingSet && (
-        <div className="text-muted-foreground flex items-center gap-4 text-xs">
+        <Text as="div" size="xs" textColor="muted" className="flex items-center gap-4">
           <span className="flex items-center gap-1">
             <CheckIcon className="size-3 stroke-[2.5] text-green-600 dark:text-green-400" />
             New
@@ -112,7 +115,7 @@ export function PermissionsPanel({
             <MinusIcon className="text-border size-3 stroke-[1.5]" />
             Not granted
           </span>
-        </div>
+        </Text>
       )}
 
       <div className="min-w-0 overflow-x-auto">

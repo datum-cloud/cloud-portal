@@ -7,6 +7,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BookOpen, type LucideIcon } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -216,7 +217,9 @@ export function ProjectBottomBar() {
       <div className="bg-sidebar border-sidebar-border relative z-40 flex shrink-0 items-stretch justify-end overflow-hidden border-t">
         {/* Padding lives inside the divider so its border-l spans the full bar height. */}
         <div className="border-sidebar-border flex h-12 items-center gap-1 border-l py-2 pr-2 pl-4">
-          <span className="text-foreground mr-2 text-xs">Developer Tools</span>
+          <Text size="xs" textColor="default" className="mr-2">
+            Developer Tools
+          </Text>
           {dockWidgets.map((widget) => (
             <ToolbarButton
               key={widget.id}

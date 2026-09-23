@@ -30,6 +30,7 @@ import {
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ChevronRightIcon, LockIcon, PencilIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
 import { useMemo, useRef } from 'react';
 import { Link } from 'react-router';
@@ -58,8 +59,10 @@ function BackendRow({ title, label }: { title: string; label: string }) {
         <Icon icon={ServerIcon} size={14} className="text-muted-foreground" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-sm font-medium">{title}</span>
-        <span className="text-muted-foreground truncate font-mono text-xs">{label}</span>
+        <Text weight="medium">{title}</Text>
+        <Text size="xs" textColor="muted" ellipsis className="font-mono">
+          {label}
+        </Text>
       </span>
     </>
   );
@@ -110,7 +113,7 @@ export const HttpProxyOriginsCard = ({
           </Tooltip>
 
           {showDevice && (
-            <div className="text-primary flex min-w-0 items-center gap-1.5 text-sm">
+            <Text as="div" textColor="primary" className="flex min-w-0 items-center gap-1.5">
               <Tooltip
                 message={[connector.deviceName, getOsLabel(connector.deviceOs)]
                   .filter(Boolean)
@@ -122,13 +125,15 @@ export const HttpProxyOriginsCard = ({
                     )}
                     {connector.deviceName ?? getOsLabel(connector.deviceOs)}
                   </span>
-                  <span className="text-primary/80 text-xs">{connector.name}</span>
+                  <Text size="xs" className="text-primary/80">
+                    {connector.name}
+                  </Text>
                 </span>
               </Tooltip>
-            </div>
+            </Text>
           )}
         </div>
-        <p className="text-primary/70 mt-1 p-0 text-xs">
+        <Text as="p" size="xs" className="text-primary/70 mt-1 p-0">
           Connector created via{' '}
           <a
             href={DATUM_DESKTOP_DOWNLOAD_URL}
@@ -137,7 +142,7 @@ export const HttpProxyOriginsCard = ({
             rel="noreferrer">
             Datum Desktop
           </a>
-        </p>
+        </Text>
       </div>
     );
   }, [proxy?.connector, isConnectorLoading, connector]);
@@ -198,9 +203,9 @@ export const HttpProxyOriginsCard = ({
             </div>
           )
         ) : origins.length === 0 ? (
-          <div className="text-muted-foreground px-(--card-px) py-3.5 text-sm">
+          <Text as="div" textColor="muted" className="px-(--card-px) py-3.5">
             No origin configured. Add one so this load balancer has somewhere to send traffic.
-          </div>
+          </Text>
         ) : (
           origins.map((row) => (
             <ValueRow

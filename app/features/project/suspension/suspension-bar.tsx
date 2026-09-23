@@ -5,6 +5,7 @@ import { getSuspensionTier, SuspensionTierKeyLine, type SuspensionTier } from '.
 import { useProjectSuspension } from './use-project-suspension';
 import { DateTime } from '@/components/date-time';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { TriangleAlertIcon } from 'lucide-react';
 
@@ -52,8 +53,8 @@ export function SuspensionBar() {
           className="mt-0.5 size-4 shrink-0 sm:mt-0"
           aria-hidden="true"
         />
-        <p role="status" className="text-1xs leading-relaxed">
-          <span className="text-sm font-semibold">This project is suspended</span>
+        <Text as="p" size="2xs" className="leading-relaxed" role="status">
+          <Text weight="semibold">This project is suspended</Text>
           {phrases ? <> — {phrases}</> : null}
           {since ? (
             <>
@@ -63,7 +64,7 @@ export function SuspensionBar() {
           {'. '}
           {tier === 'operatorGated' ? 'Running work is paused; nothing is deleted. ' : null}
           <SuspensionTierKeyLine tier={tier} />
-        </p>
+        </Text>
       </div>
       <SuspensionCta className="shrink-0 self-end sm:self-auto" />
     </div>

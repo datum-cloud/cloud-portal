@@ -1,4 +1,5 @@
 import type { NotificationEmptyProps } from './types';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Bell } from 'lucide-react';
 
 /**
@@ -8,7 +9,9 @@ export function NotificationEmpty({ message = 'No notifications' }: Notification
   return (
     <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
       <Bell className="text-muted-foreground/30 mb-3 h-12 w-12" />
-      <p className="text-muted-foreground text-sm">{message}</p>
+      <Text as="p" textColor="muted">
+        {message}
+      </Text>
     </div>
   );
 }

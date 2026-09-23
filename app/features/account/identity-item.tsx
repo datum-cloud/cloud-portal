@@ -1,3 +1,4 @@
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ReactNode } from 'react';
 
@@ -51,10 +52,10 @@ export const IdentityItem = ({
         <div className="bg-badge-muted dark:bg-background flex size-[34px] items-center justify-center rounded-xl">
           {icon}
         </div>
-        <div className="text-1xs flex flex-col text-left">
+        <Text as="div" size="2xs" className="flex flex-col text-left">
           <span className="font-medium">{label}</span>
           {sublabel && <span className="text-foreground/80">{sublabel}</span>}
-        </div>
+        </Text>
       </div>
 
       {/* Middle Section */}

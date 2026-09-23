@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { HistoryIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -60,14 +61,19 @@ export function HttpProxyMetricsStrip({
     <section className="flex flex-col gap-6" aria-labelledby="alb-live-metrics-heading">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-baseline gap-2">
-          <h2 id="alb-live-metrics-heading" className="shrink-0 text-sm font-semibold">
+          <Title
+            as="h2"
+            level={7}
+            weight="semibold"
+            className="shrink-0"
+            id="alb-live-metrics-heading">
             Live metrics
-          </h2>
+          </Title>
           {idle ? (
-            <p className="text-muted-foreground truncate text-xs" aria-live="polite">
+            <Text as="p" size="xs" textColor="muted" ellipsis aria-live="polite">
               <span aria-hidden="true">· </span>
               No data yet — metrics start streaming with the first request
-            </p>
+            </Text>
           ) : null}
         </div>
         <Select value={range.value} onValueChange={(v) => onRangeChange(v as OverviewRangeValue)}>

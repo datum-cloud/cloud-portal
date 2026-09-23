@@ -8,6 +8,7 @@ import { openSupportMessage } from '@/utils/open-support-message';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ClockIcon } from 'lucide-react';
 
 // Re-export shared types so consumers can keep importing them from the
@@ -125,11 +126,13 @@ const UnconfiguredBody = ({ onClose }: { onClose: () => void }) => (
     <Dialog.Body className="mb-0 flex flex-col gap-3 px-5 py-6">
       <div className="border-border bg-muted/40 flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center">
         <Icon icon={ClockIcon} className="text-muted-foreground size-5" />
-        <p className="text-foreground text-sm font-medium">Almost there</p>
-        <p className="text-muted-foreground max-w-md text-xs">
+        <Text as="p" weight="medium" textColor="default">
+          Almost there
+        </Text>
+        <Text as="p" size="xs" textColor="muted" className="max-w-md">
           You&apos;ll be able to add a card here soon. In the meantime, if you need to get one on
           file straight away our team is happy to help.
-        </p>
+        </Text>
       </div>
     </Dialog.Body>
     <Dialog.Footer className="border-t">

@@ -6,6 +6,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 import { Link } from 'react-router';
 
@@ -38,7 +39,9 @@ export function GrafanaDialog({ projectId, open, onOpenChange }: GrafanaDialogPr
           <img src="/images/scene-8.png" alt="Export to Grafana Cloud" className="h-auto w-full" />
 
           <div className="flex w-full flex-col items-center gap-3.5">
-            <h4 className="text-xl font-medium">Export Policy Created</h4>
+            <Title level={4} weight="medium">
+              Export Policy Created
+            </Title>
             <BadgeCopy
               value={exportPolicy?.name ?? ''}
               text={exportPolicy?.name ?? ''}
@@ -46,10 +49,10 @@ export function GrafanaDialog({ projectId, open, onOpenChange }: GrafanaDialogPr
               badgeTheme="solid"
               className="py-0 font-mono text-nowrap"
             />
-            <p className="text-center text-sm">
+            <Text as="p" className="text-center">
               Your <strong className="font-semibold">Export to Grafana Cloud</strong> policy is now
               set up. Metrics will start flowing automatically.
-            </p>
+            </Text>
           </div>
 
           <LinkButton

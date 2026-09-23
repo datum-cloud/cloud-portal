@@ -11,6 +11,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Title } from '@datum-cloud/datum-ui/typography';
 import type { MetaFunction } from 'react-router';
 import { useNavigate, useOutletContext, useParams } from 'react-router';
 
@@ -78,13 +79,17 @@ export default function ServiceAccountSettingsPage() {
     <Row type="flex" gutter={[24, 24]}>
       {canPatch && (
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Display Name</h3>
+          <Title as="h3" level={6} weight="medium" className="mb-4">
+            Display Name
+          </Title>
           <DisplayNameFormCard projectId={projectId ?? ''} defaultValue={account} />
         </Col>
       )}
 
       <Col span={24}>
-        <h3 className="mb-4 text-base font-medium">Delete Service Account</h3>
+        <Title as="h3" level={6} weight="medium" className="mb-4">
+          Delete Service Account
+        </Title>
         <DangerCard
           description={`This action cannot be undone. Once deleted, the ${account.name} service account and all associated keys will be permanently removed.`}
           deleteText="Delete Service Account"

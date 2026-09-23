@@ -21,6 +21,7 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CalendarFold } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
@@ -262,16 +263,16 @@ export default function ProjectHomePage() {
       <Row gutter={[16, 8]}>
         <Col md={12} xs={24}>
           <div className="flex flex-col gap-2">
-            <h1 className="font-title text-foreground text-3xl">
+            <Title as="h1" level={2} textColor="default" className="font-title">
               {isNewUser
                 ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
                 : `Welcome back, ${user?.givenName ?? 'there'}`}
-            </h1>
-            <p className="dark:text-card-quaternary text-foreground/60 text-sm font-normal">
+            </Title>
+            <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
               {isNewUser
                 ? "If you're ready to get going, here are some great places to start..."
                 : "Here's an overview of your project."}
-            </p>
+            </Text>
           </div>
         </Col>
         <Col md={12} xs={24}>
@@ -322,10 +323,15 @@ export default function ProjectHomePage() {
       <Row className="shrink-0">
         <Col span={24}>
           <div className="border-card-border dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center rounded-xl border bg-white/50 p-9 pb-8 dark:bg-[#18273A]">
-            <h2 className="mb-2 text-lg font-medium">Datum community</h2>
-            <p className="dark:text-card-quaternary text-foreground/60 text-center text-sm font-normal">
+            <Title as="h2" level={5} weight="medium" className="mb-2">
+              Datum community
+            </Title>
+            <Text
+              as="p"
+              weight="normal"
+              className="dark:text-card-quaternary text-foreground/60 text-center">
               Looking for some help or share some knowledge? We&apos;d love to see you!
-            </p>
+            </Text>
 
             <div className="bg-card border-card-quaternary dark:border-quaternary shadow-tooltip mt-7 flex min-w-[224px] flex-col gap-3.5 rounded-lg border px-6 py-7">
               {communityLinks.map((link) => (
@@ -336,7 +342,9 @@ export default function ProjectHomePage() {
                   rel="noreferrer"
                   className="group flex items-center justify-center gap-3.5">
                   {link.icon}
-                  <span className="text-xs transition-all group-hover:underline">{link.label}</span>
+                  <Text size="xs" className="transition-all group-hover:underline">
+                    {link.label}
+                  </Text>
                 </a>
               ))}
             </div>

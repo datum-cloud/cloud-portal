@@ -31,7 +31,9 @@ function useProjectContextBinding(): PluginProjectContextValue {
     return { project: undefined, org: undefined, isLoading: false, error: null };
   }
   return {
-    project: ctx.project ? { name: ctx.project.name, displayName: ctx.project.displayName } : undefined,
+    project: ctx.project
+      ? { name: ctx.project.name, displayName: ctx.project.displayName }
+      : undefined,
     org: ctx.org ? { name: ctx.org.name, displayName: ctx.org.displayName } : undefined,
     isLoading: ctx.isLoading,
     error: ctx.error,

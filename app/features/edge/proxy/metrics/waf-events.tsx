@@ -18,6 +18,7 @@ import {
 } from '@/modules/metrics';
 import { formatValue } from '@/modules/prometheus';
 import type { TrafficProtectionMode } from '@/resources/http-proxies';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useCallback, useMemo } from 'react';
 
 export { resetGuardedIncrease } from '@/features/edge/proxy/metrics/queries';
@@ -37,10 +38,10 @@ function WafStat({ label, query }: { label: string; query: (ctx: QueryBuilderCon
   });
   const value = data ? formatValue(data.value, 'short-number', 0) : '—';
   return (
-    <div className="text-foreground flex items-center gap-1 text-xs">
+    <Text as="div" size="xs" textColor="default" className="flex items-center gap-1">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-semibold tabular-nums">{value}</span>
-    </div>
+    </Text>
   );
 }
 

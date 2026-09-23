@@ -1,5 +1,6 @@
 import { formatByUnit } from '../usage.format';
 import type { MeterPoint, MeterUnit } from '../usage.types';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { format } from 'date-fns';
 import { Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
@@ -42,12 +43,17 @@ export function UsageSparkline({ apiName, unit, series, className }: UsageSparkl
               const value = typeof payload[0].value === 'number' ? payload[0].value : 0;
               return (
                 <div className="border-border bg-background rounded-md border px-2 py-1 shadow-sm">
-                  <div className="text-muted-foreground text-xs">
+                  <Text as="div" size="xs" textColor="muted">
                     {format(new Date(point.timestamp), 'MMM d, yyyy')}
-                  </div>
-                  <div className="text-foreground text-xs font-medium tabular-nums">
+                  </Text>
+                  <Text
+                    as="div"
+                    size="xs"
+                    weight="medium"
+                    textColor="default"
+                    className="tabular-nums">
                     {formatByUnit(unit, value)}
-                  </div>
+                  </Text>
                 </div>
               );
             }}

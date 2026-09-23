@@ -5,6 +5,7 @@ import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { CloseIcon, Icon } from '@datum-cloud/datum-ui/icons';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { ThumbsUpIcon, Trash2Icon } from 'lucide-react';
 import { useMemo } from 'react';
 import { MetaFunction } from 'react-router';
@@ -33,7 +34,11 @@ export default function AccountActiveSessionsPage() {
         accessorKey: 'name',
         id: 'name',
         cell: ({ row }) => {
-          return <span className="text-xs font-medium">{row.original.name}</span>;
+          return (
+            <Text size="xs" weight="medium">
+              {row.original.name}
+            </Text>
+          );
         },
       },
       {
@@ -74,12 +79,14 @@ export default function AccountActiveSessionsPage() {
         <div className="bg-card-success border-card-success-border relative flex flex-col gap-3.5 rounded-lg border p-6">
           <div className="flex items-center gap-2.5">
             <Icon icon={ThumbsUpIcon} className="text-success relative" size={16} />
-            <h4 className="text-sm font-semibold">Successfully generated a new token!</h4>
+            <Title as="h4" level={7} weight="semibold">
+              Successfully generated a new token!
+            </Title>
           </div>
-          <p className="text-xs">
+          <Text as="p" size="xs">
             Copy this access token and store it in a secure place - you will not be able to see it
             again.
-          </p>
+          </Text>
           <BadgeCopy
             value="sbp_37474d10ded17b81bc932dabd6188cc0dfac05a3"
             text="sbp_37474d10ded17b81bc932dabd6188cc0dfac05a3"

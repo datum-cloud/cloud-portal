@@ -4,6 +4,7 @@ import type { Organization } from '@/resources/organizations';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { Building2, ChevronRight, UserRound } from 'lucide-react';
 
 export const OrganizationListCard = ({ org }: { org: Organization }) => {
@@ -25,15 +26,17 @@ export const OrganizationListCard = ({ org }: { org: Organization }) => {
           {/* Organization Info */}
           <div className="flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2">
-              <h3 className="text-foreground text-lg leading-5 font-semibold">
+              <Title as="h3" level={5} weight="semibold" textColor="default" className="leading-5">
                 {org?.displayName ?? org?.name ?? ''}
-              </h3>
+              </Title>
             </div>
-            <p className="text-muted-foreground text-sm">{org?.name}</p>
+            <Text as="p" textColor="muted">
+              {org?.name}
+            </Text>
             {org?.createdAt && (
-              <div className="text-muted-foreground flex items-center gap-1 text-xs">
+              <Text as="div" size="xs" textColor="muted" className="flex items-center gap-1">
                 <span>Created on</span> <DateTime date={org?.createdAt} format="MMM do, yyyy" />
-              </div>
+              </Text>
             )}
           </div>
         </div>

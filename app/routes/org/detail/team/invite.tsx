@@ -10,6 +10,7 @@ import {
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState, useCallback } from 'react';
 import { type LoaderFunctionArgs, useNavigate, useParams } from 'react-router';
 
@@ -107,9 +108,9 @@ function InviteForm() {
         if (errors.length === 1) {
           const result = errors[0];
           return (
-            <span className="text-muted-foreground text-xs">
+            <Text size="xs" textColor="muted">
               {result.email}: {result.error}
-            </span>
+            </Text>
           );
         }
         return (

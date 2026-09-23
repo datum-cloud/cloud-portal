@@ -1,4 +1,5 @@
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 type ActionBarProps = {
   pendingCount: number;
@@ -25,7 +26,7 @@ export function ActionBar({
       role="region"
       aria-label="Pending changes"
       data-testid="action-bar">
-      <p className="text-muted-foreground text-sm">
+      <Text as="p" textColor="muted">
         <span className="text-foreground font-medium">{pendingCount}</span> pending change
         {pendingCount !== 1 ? 's' : ''}:
         {addCount > 0 && (
@@ -38,7 +39,7 @@ export function ActionBar({
             -{removeCount} role{removeCount !== 1 ? 's' : ''}
           </span>
         )}
-      </p>
+      </Text>
       <div className="flex items-center gap-2">
         <Button
           type="secondary"

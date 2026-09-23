@@ -38,7 +38,7 @@ export const AccountIdentitySettingsCard = () => {
                     sublabel={identity.username}
                     middleContent={
                       // TODO: Enable this when we have a way to get the last used date
-                      // <span className="text-foreground/80 text-center text-xs">Last used Jun 4</span>
+                      // <Text size="xs" className="text-foreground/80 text-center">Last used Jun 4</Text>
                       undefined
                     }
                     rightContent={

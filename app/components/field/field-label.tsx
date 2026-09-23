@@ -1,5 +1,6 @@
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CircleHelp } from 'lucide-react';
 import { useState } from 'react';
@@ -38,7 +39,11 @@ export const FieldLabel = ({
           className
         )}>
         {label}
-        {isRequired && <span className="text-destructive align-super text-sm leading-0">*</span>}
+        {isRequired && (
+          <Text textColor="destructive" className="align-super leading-0">
+            *
+          </Text>
+        )}
       </Label>
       {tooltipInfo && (
         <Tooltip

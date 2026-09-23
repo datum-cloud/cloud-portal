@@ -4,6 +4,7 @@ import {
 } from '@/modules/metrics/context/chart-legend';
 import type { SeriesLegendModifiers } from '@/modules/metrics/utils/series-visibility';
 import type { ChartSeries } from '@/modules/prometheus';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import type { ReactNode } from 'react';
 
@@ -33,10 +34,15 @@ export function SeriesLegend({
 
         if (!onItemClick) {
           return (
-            <div key={item.name} className="text-foreground flex items-center gap-1.5 text-xs">
+            <Text
+              as="div"
+              size="xs"
+              textColor="default"
+              className="flex items-center gap-1.5"
+              key={item.name}>
               <span className="size-2 shrink-0 rounded-full" style={{ backgroundColor: swatch }} />
               {label}
-            </div>
+            </Text>
           );
         }
 
@@ -89,7 +95,9 @@ export function ChartHeading({
   return (
     <div className="flex flex-col items-start gap-1.5">
       <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm font-medium">{title}</p>
+        <Text as="p" weight="medium">
+          {title}
+        </Text>
         {actions}
       </div>
       <SeriesLegend

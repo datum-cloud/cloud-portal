@@ -24,6 +24,7 @@ import {
 import { Switch } from '@datum-cloud/datum-ui/switch';
 import { TagsInput } from '@datum-cloud/datum-ui/tag-input';
 import { Textarea } from '@datum-cloud/datum-ui/textarea';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Globe, Mail, Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -230,7 +231,7 @@ export default function FormFieldsDemo() {
             label="URL Input"
             description="Combine protocol or domain hints with the text field for clarity">
             <InputWithAddons
-              leading={<span className="text-muted-foreground text-sm">https://</span>}
+              leading={<Text textColor="muted">https://</Text>}
               placeholder="my-service.datum.cloud"
             />
           </Field>
@@ -240,7 +241,11 @@ export default function FormFieldsDemo() {
             description="Pair icons and keyboard hints for actionable search experiences">
             <InputWithAddons
               leading={<Search className="text-muted-foreground size-4" />}
-              trailing={<span className="text-muted-foreground text-xs">⌘ K</span>}
+              trailing={
+                <Text size="xs" textColor="muted">
+                  ⌘ K
+                </Text>
+              }
               placeholder="Search clusters, policies, projects..."
             />
           </Field>
@@ -262,12 +267,12 @@ export default function FormFieldsDemo() {
             <InputWithAddons
               type="number"
               placeholder="0.00"
-              leading={<span className="text-muted-foreground text-sm">$</span>}
+              leading={<Text textColor="muted">$</Text>}
               trailing={
-                <div className="text-muted-foreground flex items-center gap-1 text-xs">
+                <Text as="div" size="xs" textColor="muted" className="flex items-center gap-1">
                   <Globe className="size-3.5" />
                   USD
-                </div>
+                </Text>
               }
             />
           </Field>
@@ -361,9 +366,9 @@ export default function FormFieldsDemo() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="switch1">Enable notifications</Label>
-                <p className="text-muted-foreground text-sm">
+                <Text as="p" textColor="muted">
                   {switchChecked ? 'Notifications are enabled' : 'Notifications are disabled'}
-                </p>
+                </Text>
               </div>
               <Switch
                 id="switch1"
@@ -375,7 +380,9 @@ export default function FormFieldsDemo() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="switch2">Dark mode</Label>
-                <p className="text-muted-foreground text-sm">Toggle dark mode theme</p>
+                <Text as="p" textColor="muted">
+                  Toggle dark mode theme
+                </Text>
               </div>
               <Switch id="switch2" defaultChecked />
             </div>
@@ -385,7 +392,9 @@ export default function FormFieldsDemo() {
                 <Label htmlFor="switch3" className="text-muted-foreground">
                   Disabled switch
                 </Label>
-                <p className="text-muted-foreground text-sm">This switch cannot be toggled</p>
+                <Text as="p" textColor="muted">
+                  This switch cannot be toggled
+                </Text>
               </div>
               <Switch id="switch3" disabled />
             </div>
@@ -395,7 +404,9 @@ export default function FormFieldsDemo() {
                 <Label htmlFor="switch4" className="text-muted-foreground">
                   Disabled checked
                 </Label>
-                <p className="text-muted-foreground text-sm">This switch is checked but disabled</p>
+                <Text as="p" textColor="muted">
+                  This switch is checked but disabled
+                </Text>
               </div>
               <Switch id="switch4" checked disabled />
             </div>
@@ -433,7 +444,9 @@ export default function FormFieldsDemo() {
                 </Label>
               </div>
             </RadioGroup>
-            <p className="text-muted-foreground mt-2 text-sm">Selected: {radioValue}</p>
+            <Text as="p" textColor="muted" className="mt-2">
+              Selected: {radioValue}
+            </Text>
           </Field>
 
           <Field label="Disabled Radio Group" description="Radio group with disabled options">
@@ -475,7 +488,9 @@ export default function FormFieldsDemo() {
               </SelectContent>
             </Select>
             {selectValue && (
-              <p className="text-muted-foreground mt-2 text-sm">Selected: {selectValue}</p>
+              <Text as="p" textColor="muted" className="mt-2">
+                Selected: {selectValue}
+              </Text>
             )}
           </Field>
 
@@ -578,9 +593,9 @@ export default function FormFieldsDemo() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="notifications">Enable push notifications</Label>
-                  <p className="text-muted-foreground text-sm">
+                  <Text as="p" textColor="muted">
                     Receive notifications on your device
-                  </p>
+                  </Text>
                 </div>
                 <Switch id="notifications" />
               </div>

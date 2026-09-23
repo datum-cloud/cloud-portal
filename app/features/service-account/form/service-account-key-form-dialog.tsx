@@ -8,6 +8,7 @@ import {
 } from '@/resources/service-accounts';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { KeyRoundIcon, ShieldIcon } from 'lucide-react';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
@@ -62,9 +63,13 @@ function KeyTypeCard({
           className={cn('size-4', selected ? 'text-primary' : 'text-muted-foreground')}
           aria-hidden="true"
         />
-        <span className="text-xs font-semibold">{title}</span>
+        <Text size="xs" weight="semibold">
+          {title}
+        </Text>
       </div>
-      <p className="text-muted-foreground text-xs">{description}</p>
+      <Text as="p" size="xs" textColor="muted">
+        {description}
+      </Text>
     </button>
   );
 }

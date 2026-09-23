@@ -1,6 +1,6 @@
 import { InputName } from '@/components/input-name/input-name';
 import { Form, useWatch, type NormalizedFieldState } from '@datum-cloud/datum-ui/form';
-import { cn } from '@datum-cloud/datum-ui/utils';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 export interface Step1Values {
   name: string;
@@ -36,12 +36,15 @@ function ResourceNameInput({ field, projectId }: ResourceNameInputProps) {
         showTooltip={false}
         required
       />
-      <p className={cn('text-xs', name ? 'text-muted-foreground' : 'text-muted-foreground/50')}>
+      <Text
+        as="p"
+        size="xs"
+        className={name ? 'text-muted-foreground' : 'text-muted-foreground/50'}>
         Identity email:{' '}
         <span className="font-mono">
           {name || '<name>'}@{projectId}.iam.datumapis.com
         </span>
-      </p>
+      </Text>
     </div>
   );
 }

@@ -30,6 +30,7 @@ import {
   type LogTimeRange,
 } from '@datum-cloud/datum-ui/logs';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { formatDistanceToNowStrict } from 'date-fns';
 import { CheckIcon, CopyIcon, LogsIcon, RadioIcon } from 'lucide-react';
@@ -65,12 +66,12 @@ function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) 
   if (parsed.kind !== 'http') {
     return (
       <li className="flex items-center gap-3 px-(--card-px) py-2">
-        <span className="text-muted-foreground min-w-0 flex-1 truncate font-mono text-xs">
+        <Text size="xs" textColor="muted" ellipsis className="min-w-0 flex-1 font-mono">
           {parsed.line}
-        </span>
-        <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+        </Text>
+        <Text size="xs" textColor="muted" className="shrink-0 tabular-nums">
           {relativeAge(entry.timestamp)}
-        </span>
+        </Text>
       </li>
     );
   }
@@ -83,32 +84,33 @@ function RequestRow({ entry, logsHref }: { entry: LogEntry; logsHref: string }) 
         <Badge
           type={httpStatusBadgeType(parsed.status)}
           theme="light"
-          className="h-5 w-11 shrink-0 justify-center rounded-md px-0 font-mono text-[11px] font-medium tabular-nums">
+          className="text-3xs h-5 w-11 shrink-0 justify-center rounded-md px-0 font-mono font-medium tabular-nums">
           {parsed.status}
         </Badge>
-        <span className="text-muted-foreground w-12 shrink-0 font-mono text-[11px] font-medium">
+        <Text size="3xs" weight="medium" textColor="muted" className="w-12 shrink-0 font-mono">
           {parsed.method}
-        </span>
-        <span className="min-w-0 flex-1 truncate font-mono text-xs" title={parsed.path}>
+        </Text>
+        <Text size="xs" ellipsis className="min-w-0 flex-1 font-mono" title={parsed.path}>
           {parsed.path}
-        </span>
+        </Text>
         {host ? (
-          <span className="text-muted-foreground hidden max-w-40 shrink-0 truncate text-xs lg:inline">
+          <Text size="xs" textColor="muted" ellipsis className="hidden max-w-40 shrink-0 lg:inline">
             {host}
-          </span>
+          </Text>
         ) : null}
-        <span
+        <Text
+          size="xs"
           className={cn(
-            'w-14 shrink-0 text-right font-mono text-xs tabular-nums',
+            'w-14 shrink-0 text-right font-mono tabular-nums',
             parsed.durationMs >= 1000 ? 'text-(--color-badge-warning)' : 'text-muted-foreground'
           )}>
           {parsed.durationMs >= 1000
             ? `${(parsed.durationMs / 1000).toFixed(1)}s`
             : `${Math.round(parsed.durationMs)}ms`}
-        </span>
-        <span className="text-muted-foreground w-16 shrink-0 text-right text-xs tabular-nums">
+        </Text>
+        <Text size="xs" textColor="muted" className="w-16 shrink-0 text-right tabular-nums">
           {relativeAge(entry.timestamp)}
-        </span>
+        </Text>
       </Link>
     </li>
   );
@@ -192,11 +194,14 @@ export const HttpProxyLogsCard = ({
             <SpinnerIcon size="sm" />
           </div>
         ) : errorMessage ? (
-          <div className="text-muted-foreground flex h-full items-center justify-center px-(--card-px) text-center text-sm">
+          <Text
+            as="div"
+            textColor="muted"
+            className="flex h-full items-center justify-center px-(--card-px) text-center">
             <Tooltip message={errorMessage}>
               <span>Unable to load recent requests.</span>
             </Tooltip>
-          </div>
+          </Text>
         ) : entries.length === 0 ? (
           <OverviewEmptyState
             icon={RadioIcon}

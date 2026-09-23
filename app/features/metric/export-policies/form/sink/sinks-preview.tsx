@@ -5,6 +5,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Separator } from '@datum-cloud/datum-ui/separator';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { LinkIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -25,9 +26,9 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
                   message={
                     <div className="flex flex-col gap-1">
                       {sink.sources.map((source, idx) => (
-                        <p key={idx} className="text-xs">
+                        <Text as="p" size="xs" key={idx}>
                           {source}
-                        </p>
+                        </Text>
                       ))}
                     </div>
                   }>
@@ -43,7 +44,7 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
 
             {/* Bottom row with sink type specific configuration */}
             {sink.type === ExportPolicySinkTypeEnum.PROMETHEUS && sink.prometheusRemoteWrite && (
-              <div className="text-muted-foreground flex flex-col items-start gap-2 text-sm">
+              <Text as="div" textColor="muted" className="flex flex-col items-start gap-2">
                 <div className="flex items-center gap-2">
                   <span className="font-medium">Prometheus Configuration:</span>
                   <div className="flex items-center gap-2">
@@ -54,17 +55,17 @@ export const SinksPreview = ({ values }: { values: ExportPolicySinksSchema }) =>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <span className="text-xs">
+                  <Text size="xs">
                     Batch: Max Size: {sink.prometheusRemoteWrite.batch.maxSize}, Timeout:{' '}
                     {sink.prometheusRemoteWrite.batch.timeout}s
-                  </span>
+                  </Text>
                   <Separator orientation="vertical" className="h-4" />
-                  <span className="text-xs">
+                  <Text size="xs">
                     Retry: Max Attempts: {sink.prometheusRemoteWrite.retry.maxAttempts}, Backoff:{' '}
                     {sink.prometheusRemoteWrite.retry.backoffDuration}s
-                  </span>
+                  </Text>
                 </div>
-              </div>
+              </Text>
             )}
           </div>
         ),

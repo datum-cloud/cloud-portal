@@ -13,6 +13,7 @@ import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -202,11 +203,13 @@ export function ManageMembersDialog({
                       disabled={!canToggle}
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-foreground truncate text-sm font-medium">{displayName}</p>
+                      <Text as="p" weight="medium" textColor="default" ellipsis>
+                        {displayName}
+                      </Text>
                       {member.user.email && displayName !== member.user.email && (
-                        <p className="text-muted-foreground truncate text-xs">
+                        <Text as="p" size="xs" textColor="muted" ellipsis>
                           {member.user.email}
-                        </p>
+                        </Text>
                       )}
                     </div>
                   </>

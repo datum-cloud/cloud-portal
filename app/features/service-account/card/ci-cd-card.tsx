@@ -1,5 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { GitBranchIcon } from 'lucide-react';
 
 interface CiCdCardProps {
@@ -16,11 +17,13 @@ export const CiCdCard = ({ onCreate }: CiCdCardProps) => {
           </div>
 
           <div className="space-y-3.5">
-            <h3 className="text-lg font-medium">CI/CD Pipeline</h3>
-            <p className="max-w-[400px] text-sm">
+            <Title as="h3" level={5} weight="medium">
+              CI/CD Pipeline
+            </Title>
+            <Text as="p" className="max-w-[400px]">
               Authenticate automated jobs in GitHub Actions, GitLab CI, Jenkins, or any other
               pipeline.
-            </p>
+            </Text>
             <ul className="marker:text-muted-foreground max-w-[400px] list-disc space-y-1.5 pl-5 text-sm">
               <li>Generates a credentials file you store as a CI secret</li>
               <li>Step-by-step setup instructions for GitHub Actions and GitLab CI</li>

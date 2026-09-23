@@ -5,6 +5,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Separator } from '@datum-cloud/datum-ui/separator';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { CodeIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -20,7 +21,9 @@ export const SourcesPreview = ({ values }: { values: ExportPolicySourcesSchema }
             {source.type === ExportPolicySourceTypeEnum.METRICS && source.metricQuery && (
               <Tooltip
                 message={
-                  <p className="font-mono text-xs whitespace-pre-wrap">{source.metricQuery}</p>
+                  <Text as="p" size="xs" className="font-mono whitespace-pre-wrap">
+                    {source.metricQuery}
+                  </Text>
                 }>
                 <Badge
                   type="secondary"

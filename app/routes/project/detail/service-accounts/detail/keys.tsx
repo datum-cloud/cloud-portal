@@ -22,6 +22,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { AlertCircleIcon, Loader2Icon, PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { MetaFunction } from 'react-router';
@@ -187,16 +188,21 @@ export default function ServiceAccountKeysPage() {
 
       {isPolling && (
         <Col span={24}>
-          <div className="border-border bg-muted/50 text-muted-foreground flex items-center gap-2.5 rounded-lg border px-4 py-3 text-sm">
+          <Text
+            as="div"
+            textColor="muted"
+            className="border-border bg-muted/50 flex items-center gap-2.5 rounded-lg border px-4 py-3">
             <Loader2Icon className="size-4 shrink-0 animate-spin" />
             <span>Setting up account identity&hellip; This usually takes a few seconds.</span>
-          </div>
+          </Text>
         </Col>
       )}
 
       {isProvisioningFailed && (
         <Col span={24}>
-          <div className="border-destructive/30 bg-destructive/5 flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm">
+          <Text
+            as="div"
+            className="border-destructive/30 bg-destructive/5 flex items-start gap-2.5 rounded-lg border px-4 py-3">
             <AlertCircleIcon className="text-destructive mt-0.5 size-4 shrink-0" />
             <div className="flex flex-1 flex-col gap-1">
               <span className="text-destructive font-medium">Account provisioning failed</span>
@@ -210,7 +216,7 @@ export default function ServiceAccountKeysPage() {
               onClick={() => window.location.reload()}>
               Retry
             </Button>
-          </div>
+          </Text>
         </Col>
       )}
 

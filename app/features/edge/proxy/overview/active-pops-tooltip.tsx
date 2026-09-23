@@ -1,6 +1,7 @@
 import type { ActivePopMarker } from './active-pops-map';
 import { formatActivePopMetrics } from './active-pops-metrics';
 import { Badge } from '@datum-cloud/datum-ui/badge';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import type { CSSProperties } from 'react';
 
@@ -21,21 +22,27 @@ export function ActivePopTooltipCard({
       )}
       style={style}>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs font-medium">{pop.city}</p>
+        <Text as="p" size="xs" weight="medium">
+          {pop.city}
+        </Text>
         <Badge
           type={pop.active ? 'primary' : 'quaternary'}
           theme={pop.active ? 'light' : 'outline'}
-          className="shrink-0 text-[10px] font-normal">
+          className="text-4xs shrink-0 font-normal">
           {pop.active ? 'Traffic' : 'Idle'}
         </Badge>
       </div>
-      <p className="text-muted-foreground text-xs">{pop.subtitle}</p>
+      <Text as="p" size="xs" textColor="muted">
+        {pop.subtitle}
+      </Text>
       {pop.active ? (
-        <p className="text-muted-foreground text-xs tabular-nums">
+        <Text as="p" size="xs" textColor="muted" className="tabular-nums">
           {formatActivePopMetrics(pop.metrics)}
-        </p>
+        </Text>
       ) : (
-        <p className="text-muted-foreground text-xs">No recent traffic</p>
+        <Text as="p" size="xs" textColor="muted">
+          No recent traffic
+        </Text>
       )}
     </div>
   );

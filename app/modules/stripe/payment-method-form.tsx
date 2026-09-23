@@ -10,6 +10,7 @@ import { Checkbox } from '@datum-cloud/datum-ui/checkbox';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import {
   AddressElement,
   Elements,
@@ -608,21 +609,21 @@ const StripePaymentMethodFormBody = ({
         <label className="flex items-start gap-3">
           <Form.Checkbox disabled={forceDefault} className="mt-0.5" />
           <div className="flex flex-col gap-0.5">
-            <span className="text-foreground text-sm font-medium">
+            <Text weight="medium" textColor="default">
               Set as default payment method
-            </span>
-            <span className="text-muted-foreground text-xs">
+            </Text>
+            <Text size="xs" textColor="muted">
               This card will be charged for upcoming invoices.
-            </span>
+            </Text>
           </div>
         </label>
       </Form.Field>
     ) : null;
 
   const errorAlert = submitError ? (
-    <p className="text-destructive text-sm" role="alert">
+    <Text as="p" textColor="destructive" role="alert">
       {submitError}
-    </p>
+    </Text>
   ) : null;
 
   if (layout === 'embedded') {

@@ -32,6 +32,7 @@ import { FormStepper, FormStep } from '@datum-cloud/datum-ui/form/stepper';
 import type { StepConfig } from '@datum-cloud/datum-ui/form/stepper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { FileIcon, Layers, Terminal } from 'lucide-react';
 import React, { useMemo } from 'react';
@@ -168,8 +169,12 @@ export const ExportPolicyStepperForm = ({
                           )}
                         </span>
                         <div className="flex flex-col gap-1 pt-1.5">
-                          <p className="text-base leading-tight font-medium">{step.label}</p>
-                          <p className="text-muted-foreground text-sm">{step.description}</p>
+                          <Text as="p" size="base" weight="medium" className="leading-tight">
+                            {step.label}
+                          </Text>
+                          <Text as="p" textColor="muted">
+                            {step.description}
+                          </Text>
                         </div>
                       </li>
                       {isActive && !isPending ? (

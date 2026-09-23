@@ -14,6 +14,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 
@@ -50,7 +51,9 @@ export const DomainGeneralCard = ({
         label: 'Registrar',
         content: registrationFetching ? (
           <Tooltip message="Registrar information is being fetched and will appear shortly.">
-            <span className="text-muted-foreground animate-pulse text-sm">Looking up...</span>
+            <Text textColor="muted" className="animate-pulse">
+              Looking up...
+            </Text>
           </Tooltip>
         ) : domain.status?.registration?.registrar?.name ? (
           <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
@@ -70,7 +73,9 @@ export const DomainGeneralCard = ({
         label: 'DNS Host',
         content: nameserversFetching ? (
           <Tooltip message="DNS host information is being fetched and will appear shortly.">
-            <span className="text-muted-foreground animate-pulse text-sm">Looking up...</span>
+            <Text textColor="muted" className="animate-pulse">
+              Looking up...
+            </Text>
           </Tooltip>
         ) : (
           <NameserverChips data={domain?.status?.nameservers} maxVisible={99} wrap />

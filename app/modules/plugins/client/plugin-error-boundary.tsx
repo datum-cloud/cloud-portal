@@ -1,6 +1,7 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { TriangleAlert } from 'lucide-react';
 import { Component, type ReactNode } from 'react';
 
@@ -63,10 +64,12 @@ export class PluginErrorBoundary extends Component<
               <Icon icon={TriangleAlert} className="size-6" />
             </div>
             <div className="flex flex-col gap-1">
-              <p className="text-base font-semibold">This plugin ran into a problem</p>
-              <p className="text-muted-foreground text-sm">
+              <Text as="p" size="base" weight="semibold">
+                This plugin ran into a problem
+              </Text>
+              <Text as="p" textColor="muted">
                 The {name} plugin failed to render. The rest of the portal is unaffected.
-              </p>
+              </Text>
             </div>
             <Button
               htmlType="button"
