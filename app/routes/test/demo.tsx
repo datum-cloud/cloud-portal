@@ -14,6 +14,7 @@ import {
   CollapsibleTrigger,
 } from '@datum-cloud/datum-ui/collapsible';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ChevronRight, Moon, Sun, ChevronsUpDown } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -120,7 +121,9 @@ export default function Demo() {
       <aside className="bg-background sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r p-4">
         <div className="mb-4">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Component Demos</h2>
+            <Text as="h2" size="lg" weight="semibold">
+              Component Demos
+            </Text>
             <div className="flex gap-1">
               <Tooltip message={areAllOpen ? 'Collapse all' : 'Expand all'}>
                 <Button
@@ -144,7 +147,9 @@ export default function Demo() {
               </Tooltip>
             </div>
           </div>
-          <p className="text-muted-foreground text-sm">Navigate to sections</p>
+          <Text as="p" textColor="muted">
+            Navigate to sections
+          </Text>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto">
           <nav className="space-y-2 pb-4">

@@ -27,6 +27,7 @@ import { Input } from '@datum-cloud/datum-ui/input';
 import { Switch } from '@datum-cloud/datum-ui/switch';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { CheckIcon, CopyIcon, LockIcon, PencilIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -309,16 +310,20 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
                   className="font-mono"
                 />
                 {tlsHostnameError ? (
-                  <p className="text-destructive text-xs">{tlsHostnameError}</p>
+                  <Text as="p" size="xs" textColor="destructive">
+                    {tlsHostnameError}
+                  </Text>
                 ) : tlsHostnameRequired ? (
-                  <p className="text-muted-foreground text-xs">
+                  <Text as="p" size="xs" textColor="muted">
                     Required because the origin is addressed by IP over HTTPS.
-                  </p>
+                  </Text>
                 ) : null}
               </div>
             ) : currentTlsHostname ? (
               <>
-                <span className="truncate font-mono text-sm">{currentTlsHostname}</span>
+                <Text ellipsis className="font-mono">
+                  {currentTlsHostname}
+                </Text>
                 <Button
                   type="quaternary"
                   theme="borderless"
@@ -335,9 +340,9 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
               </span>
             ) : origin.host ? (
               <Tooltip message="No override set — the hostname from the origin URL is used">
-                <span className="text-muted-foreground truncate font-mono text-sm">
+                <Text textColor="muted" ellipsis className="font-mono">
                   {origin.host}
-                </span>
+                </Text>
               </Tooltip>
             ) : (
               <span className="text-muted-foreground" aria-label="Not set">
@@ -353,21 +358,21 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
           </FieldLabel>
           <CardFieldValue>
             {certRows.length === 0 ? (
-              <span className="text-muted-foreground text-sm">
+              <Text textColor="muted">
                 The default hostname is served with a Datum-managed certificate. Add a custom
                 hostname to issue one for your own domain.
-              </span>
+              </Text>
             ) : (
               <ul className="flex w-full flex-col gap-2">
                 {certRows.map((row) => (
                   <li
                     key={row.hostname}
                     className="flex min-w-0 items-center justify-between gap-3">
-                    <div className="max-w-full min-w-0 truncate font-mono text-sm">
+                    <Text as="div" ellipsis className="max-w-full min-w-0 font-mono">
                       <Tooltip message={row.hostname}>
                         <span>{row.hostname}</span>
                       </Tooltip>
-                    </div>
+                    </Text>
                     <CertChip row={row} />
                   </li>
                 ))}

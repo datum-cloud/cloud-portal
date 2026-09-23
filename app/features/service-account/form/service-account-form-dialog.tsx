@@ -10,6 +10,7 @@ import {
 } from '@/resources/service-accounts';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
 
@@ -32,12 +33,15 @@ function NamePreview({ projectId }: { projectId: string }) {
   const name = Form.useWatch<string>('name');
 
   return (
-    <p className={cn('mt-1 text-xs', name ? 'text-muted-foreground' : 'text-muted-foreground/50')}>
+    <Text
+      as="p"
+      size="xs"
+      className={cn('mt-1', name ? 'text-muted-foreground' : 'text-muted-foreground/50')}>
       Identity email:{' '}
       <span className="font-mono">
         {name || '<name>'}@{projectId}.iam.datumapis.com
       </span>
-    </p>
+    </Text>
   );
 }
 

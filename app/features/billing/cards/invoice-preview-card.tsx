@@ -3,6 +3,7 @@ import { SITE_CONFIG } from '@/utils/config/site.config';
 import { toObjectArray } from '@/utils/helpers/form-value.helper';
 import { Card } from '@datum-cloud/datum-ui/card';
 import { useWatchAll } from '@datum-cloud/datum-ui/form';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { type CSSProperties, useMemo } from 'react';
 
 /**
@@ -211,11 +212,12 @@ export const InvoicePreviewCard = () => {
           `whitespace-nowrap` + a single huge font size ensures the
           word stays on one line at any preview width — the `Card`'s
           `overflow-hidden` clips the corners. */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 z-10 flex rotate-[-24deg] items-center justify-center text-7xl font-black tracking-[0.3em] text-black/6 uppercase select-none">
+      <Text
+        size="7xl"
+        className="pointer-events-none absolute inset-0 z-10 flex rotate-[-24deg] items-center justify-center font-black tracking-[0.3em] text-black/6 uppercase select-none"
+        aria-hidden="true">
         Preview
-      </span>
+      </Text>
       <div
         className="flex flex-col gap-6 bg-white px-6 py-6"
         // See `LIGHT_TOKEN_OVERRIDES` — force the semantic shadcn
@@ -227,7 +229,9 @@ export const InvoicePreviewCard = () => {
             reads as a "real" document rather than a context-free
             echo of the form. */}
         <div className="flex items-start justify-between gap-4">
-          <span className="text-foreground text-xl font-semibold tracking-tight">Invoice</span>
+          <Text size="xl" weight="semibold" textColor="default" className="tracking-tight">
+            Invoice
+          </Text>
           {/* The inner panel is intentionally `bg-white` regardless of
               theme — invoices are always white paper — so the navy
               brand wordmark stays legible on both light and dark
@@ -253,20 +257,28 @@ export const InvoicePreviewCard = () => {
             stale fake addresses would be worse than nothing. */}
         <div className="grid grid-cols-2 gap-6">
           <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
+            <Text
+              size="5xs"
+              weight="semibold"
+              textColor="muted"
+              className="tracking-[0.16em] uppercase">
               From
-            </span>
-            <div className="text-foreground text-3xs leading-relaxed">
+            </Text>
+            <Text as="div" size="3xs" textColor="default" className="leading-relaxed">
               <p className="font-medium">{SELLER.legalName}</p>
               <p className="text-muted-foreground pt-1">{SELLER.email}</p>
-            </div>
+            </Text>
           </div>
           <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
+            <Text
+              size="5xs"
+              weight="semibold"
+              textColor="muted"
+              className="tracking-[0.16em] uppercase">
               Bill to
-            </span>
+            </Text>
             {hasBillTo ? (
-              <div className="text-foreground text-3xs leading-relaxed">
+              <Text as="div" size="3xs" textColor="default" className="leading-relaxed">
                 {values.businessName && <p className="font-medium">{values.businessName}</p>}
                 {values.name && (
                   <p className={values.businessName ? 'text-muted-foreground' : 'font-medium'}>
@@ -285,11 +297,11 @@ export const InvoicePreviewCard = () => {
                     ))}
                   </div>
                 )}
-              </div>
+              </Text>
             ) : (
-              <p className="text-muted-foreground text-3xs italic">
+              <Text as="p" size="3xs" textColor="muted" className="italic">
                 Fill in the form to see how your details will appear on invoices.
-              </p>
+              </Text>
             )}
           </div>
         </div>
@@ -297,26 +309,44 @@ export const InvoicePreviewCard = () => {
         {/* Invoice meta. Static so the preview communicates "here's a
             full document"; the line items and totals below are
             illustrative rather than authoritative. */}
-        <div className="border-border text-3xs grid grid-cols-3 gap-4 border-t pt-4">
+        <Text as="div" size="3xs" className="border-border grid grid-cols-3 gap-4 border-t pt-4">
           <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
+            <Text
+              size="5xs"
+              weight="semibold"
+              textColor="muted"
+              className="tracking-[0.16em] uppercase">
               Invoice #
-            </span>
-            <span className="text-foreground text-5xs">{PREVIEW_INVOICE_NUMBER}</span>
+            </Text>
+            <Text size="5xs" textColor="default">
+              {PREVIEW_INVOICE_NUMBER}
+            </Text>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
+            <Text
+              size="5xs"
+              weight="semibold"
+              textColor="muted"
+              className="tracking-[0.16em] uppercase">
               Issued
-            </span>
-            <span className="text-foreground text-5xs">{PREVIEW_ISSUE_DATE}</span>
+            </Text>
+            <Text size="5xs" textColor="default">
+              {PREVIEW_ISSUE_DATE}
+            </Text>
           </div>
           <div className="flex flex-col gap-0.5">
-            <span className="text-muted-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
+            <Text
+              size="5xs"
+              weight="semibold"
+              textColor="muted"
+              className="tracking-[0.16em] uppercase">
               Due
-            </span>
-            <span className="text-foreground text-5xs">{PREVIEW_DUE_DATE}</span>
+            </Text>
+            <Text size="5xs" textColor="default">
+              {PREVIEW_DUE_DATE}
+            </Text>
           </div>
-        </div>
+        </Text>
 
         {/* Sample line items, grouped by section (Subscription vs
             Usage). Intentionally static — the goal is to anchor the
@@ -326,25 +356,38 @@ export const InvoicePreviewCard = () => {
             line plus a list of metered usage items, each with its
             own subtotal before rolling up into the grand totals. */}
         <div className="flex flex-col gap-4">
-          <div className="text-muted-foreground text-5xs grid grid-cols-[1fr_auto_auto] gap-4 font-semibold tracking-[0.16em] uppercase">
+          <Text
+            as="div"
+            size="5xs"
+            weight="semibold"
+            textColor="muted"
+            className="grid grid-cols-[1fr_auto_auto] gap-4 tracking-[0.16em] uppercase">
             <span>Description</span>
             <span className="text-right">Qty</span>
             <span className="w-20 text-right">Amount</span>
-          </div>
+          </Text>
           {SAMPLE_INVOICE_SECTIONS.map((section, sectionIdx) => (
             <div key={section.title} className="flex flex-col gap-2">
-              <span className="text-foreground text-5xs font-semibold tracking-[0.16em] uppercase">
+              <Text
+                size="5xs"
+                weight="semibold"
+                textColor="default"
+                className="tracking-[0.16em] uppercase">
                 {section.title}
-              </span>
+              </Text>
               <div className="border-border flex flex-col divide-y border-y">
                 {section.items.map((item) => (
-                  <div
-                    key={item.description}
-                    className="text-3xs grid grid-cols-[1fr_auto_auto] items-start gap-4 py-2">
+                  <Text
+                    as="div"
+                    size="3xs"
+                    className="grid grid-cols-[1fr_auto_auto] items-start gap-4 py-2"
+                    key={item.description}>
                     <div className="flex flex-col">
                       <span className="text-foreground">{item.description}</span>
                       {item.meta && (
-                        <span className="text-muted-foreground text-5xs">{item.meta}</span>
+                        <Text size="5xs" textColor="muted">
+                          {item.meta}
+                        </Text>
                       )}
                     </div>
                     <span className="text-muted-foreground text-right tabular-nums">
@@ -353,19 +396,22 @@ export const InvoicePreviewCard = () => {
                     <span className="text-foreground w-20 text-right tabular-nums">
                       {currency(item.amount)}
                     </span>
-                  </div>
+                  </Text>
                 ))}
               </div>
-              <div className="text-3xs grid grid-cols-[1fr_auto_auto] items-center gap-4">
+              <Text
+                as="div"
+                size="3xs"
+                className="grid grid-cols-[1fr_auto_auto] items-center gap-4">
                 <span />
                 <span className="text-muted-foreground text-right">Subtotal</span>
                 <span className="text-foreground w-20 text-right tabular-nums">
                   {currency(SECTION_SUBTOTALS[sectionIdx])}
                 </span>
-              </div>
+              </Text>
             </div>
           ))}
-          <div className="border-border text-3xs flex flex-col gap-1 border-t pt-3">
+          <Text as="div" size="3xs" className="border-border flex flex-col gap-1 border-t pt-3">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="text-foreground tabular-nums">{currency(SAMPLE_SUBTOTAL)}</span>
@@ -374,11 +420,15 @@ export const InvoicePreviewCard = () => {
               <span className="text-muted-foreground">Tax</span>
               <span className="text-foreground tabular-nums">{currency(SAMPLE_TAX)}</span>
             </div>
-            <div className="border-border mt-1 flex justify-between border-t pt-2 text-xs font-semibold">
+            <Text
+              as="div"
+              size="xs"
+              weight="semibold"
+              className="border-border mt-1 flex justify-between border-t pt-2">
               <span className="text-foreground">Total due</span>
               <span className="text-foreground tabular-nums">{currency(SAMPLE_TOTAL)}</span>
-            </div>
-          </div>
+            </Text>
+          </Text>
         </div>
       </div>
     </Card>

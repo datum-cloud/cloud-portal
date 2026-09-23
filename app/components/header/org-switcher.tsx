@@ -4,6 +4,7 @@ import type { Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Building } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -19,9 +20,9 @@ export const OrganizationSwitcher = ({ currentOrg }: { currentOrg: Organization 
       selectedContent={
         <>
           <Icon icon={Building} className="text-icon-primary h-3.5 w-fit" />
-          <span className="truncate text-xs leading-3.5 sm:max-w-36 md:max-w-none">
+          <Text size="xs" ellipsis className="leading-3.5 sm:max-w-36 md:max-w-none">
             {currentOrg?.displayName ?? currentOrg?.name}
-          </span>
+          </Text>
         </>
       }
       onSelect={(org: Organization) => {

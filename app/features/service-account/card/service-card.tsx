@@ -1,5 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ServerIcon } from 'lucide-react';
 
 interface ServiceCardProps {
@@ -16,11 +17,13 @@ export const ServiceCard = ({ onCreate }: ServiceCardProps) => {
           </div>
 
           <div className="space-y-3.5">
-            <h3 className="text-lg font-medium">Service</h3>
-            <p className="max-w-[400px] text-sm">
+            <Text as="h3" size="lg" weight="medium">
+              Service
+            </Text>
+            <Text as="p" className="max-w-[400px]">
               Give a backend service or workload a stable identity to call Datum APIs without human
               credentials.
-            </p>
+            </Text>
             <ul className="marker:text-muted-foreground max-w-[400px] list-disc space-y-1.5 pl-5 text-sm">
               <li>Mount credentials as a Kubernetes secret or env vars</li>
               <li>Works with any language via JWT assertion exchange</li>

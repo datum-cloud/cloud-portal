@@ -25,6 +25,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { FileQuestion } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link, Route, Routes, useLocation, useParams } from 'react-router';
@@ -60,10 +61,12 @@ function PluginNotFound({ projectId }: { projectId?: string }) {
             <Icon icon={FileQuestion} className="size-6" />
           </div>
           <div className="flex flex-col gap-1">
-            <p className="text-base font-semibold">Page not found</p>
-            <p className="text-muted-foreground text-sm">
+            <Text as="p" size="base" weight="semibold">
+              Page not found
+            </Text>
+            <Text as="p" textColor="muted">
               This service has no page at that address.
-            </p>
+            </Text>
           </div>
           {projectId && (
             <Link to={paths.project.detail.home.replace('[projectId]', projectId)}>

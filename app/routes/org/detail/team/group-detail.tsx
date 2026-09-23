@@ -26,6 +26,7 @@ import { buildOrganizationNamespace } from '@/utils/common';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState, useMemo } from 'react';
 import {
   data,
@@ -372,7 +373,9 @@ function GroupDetailEditor({
               className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l"
               data-testid="permissions-panel">
               <header className="border-b px-6 py-4">
-                <h2 className="text-foreground text-sm font-semibold">Effective Permissions</h2>
+                <Text as="h2" weight="semibold" textColor="default">
+                  Effective Permissions
+                </Text>
               </header>
               <div className="flex-1 overflow-y-auto">
                 <PermissionsPanel

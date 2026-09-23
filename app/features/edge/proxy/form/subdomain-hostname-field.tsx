@@ -5,6 +5,7 @@ import { useDomains } from '@/resources/domains';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { AlertTriangleIcon, GlobeIcon, XIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -314,7 +315,9 @@ export function SubdomainHostnameField({
             placeholder="subdomain (leave blank to use apex)"
             className="text-input-foreground placeholder:text-input-placeholder h-9 min-w-0 flex-1 bg-transparent px-3 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden"
           />
-          <span className="text-muted-foreground hidden items-center text-xs sm:flex">.</span>
+          <Text size="xs" textColor="muted" className="hidden items-center sm:flex">
+            .
+          </Text>
         </div>
         <div className="border-input-border flex min-w-0 items-stretch border-t sm:flex-1 sm:border-t-0">
           <SelectDomain
@@ -342,19 +345,22 @@ export function SubdomainHostnameField({
         className="px-0.5 pt-0.5 sm:hidden"
         aria-live="polite"
         aria-label="Assembled hostname preview">
-        <p className={cn('text-2xs text-muted-foreground mt-0.5 font-mono wrap-break-word')}>
+        <Text as="p" size="2xs" textColor="muted" className="mt-0.5 font-mono wrap-break-word">
           {splitHostnamePreview}
-        </p>
+        </Text>
       </div>
       {isUnverified && (
-        <div className="flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-500">
+        <Text
+          as="div"
+          size="xs"
+          className="flex items-start gap-1.5 text-amber-600 dark:text-amber-500">
           <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
           <span>
             {selectedDomainStatus === ControlPlaneStatus.Pending
               ? 'This domain is being verified — your proxy may not activate until verification is complete.'
               : "This domain is not verified — your proxy won't activate until the domain is verified."}
           </span>
-        </div>
+        </Text>
       )}
       <button
         type="button"

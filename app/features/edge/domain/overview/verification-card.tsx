@@ -5,6 +5,7 @@ import { useCopyToClipboard } from '@datum-cloud/datum-ui/hooks';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { BookOpenIcon, CopyIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -39,7 +40,9 @@ function VerificationBadge({ value }: { value: string }) {
           }
         }}
         className="flex max-w-full min-w-0 cursor-pointer items-center gap-2.5 rounded-md border border-transparent bg-[var(--color-badge-muted)] px-1.5 py-[5px] text-[var(--color-badge-muted-foreground)] transition-colors dark:border-[var(--color-badge-muted)]/20 dark:bg-[var(--color-badge-muted)]/20">
-        <span className="min-w-0 flex-1 truncate font-mono text-xs">{value}</span>
+        <Text size="xs" ellipsis className="min-w-0 flex-1 font-mono">
+          {value}
+        </Text>
         <span className="text-muted-foreground flex shrink-0 items-center justify-center transition-colors">
           <Icon icon={CopyIcon} className="size-3" />
         </span>
@@ -65,7 +68,7 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <p className="text-sm font-normal">
+        <Text as="p" weight="normal">
           To verify domain ownership, use one of the methods below. Once verified, you may remove
           the record from your DNS system. Next verification{' '}
           {domain.status?.verification?.nextVerificationAttempt && (
@@ -77,37 +80,49 @@ export const DomainVerificationCard = ({ domain }: { domain: Domain }) => {
               format="EEEE d MMMM yyyy HH:mm zzz"
             />
           )}
-        </p>
+        </Text>
         <div className="divide-border flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="dark:border-quaternary flex w-full min-w-0 flex-col gap-5 border-b pb-5 sm:w-1/2 sm:border-r sm:border-b-0 sm:pr-7 sm:pb-0">
-            <p className="text-sm font-medium">Add a TXT DNS Record</p>
+            <Text as="p" weight="medium">
+              Add a TXT DNS Record
+            </Text>
             <div className="flex min-w-0 flex-col gap-3.5">
               {dnsRecord?.name && (
                 <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-xs font-normal">Name</span>
+                  <Text size="xs" weight="normal">
+                    Name
+                  </Text>
                   <VerificationBadge value={dnsRecord.name} />
                 </div>
               )}
               {dnsRecord?.content && (
                 <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-xs font-normal">Value</span>
+                  <Text size="xs" weight="normal">
+                    Value
+                  </Text>
                   <VerificationBadge value={dnsRecord.content} />
                 </div>
               )}
             </div>
           </div>
           <div className="flex w-full min-w-0 flex-col gap-5 sm:w-1/2 sm:pl-7">
-            <p className="text-sm font-medium">Create a HTTP Token File</p>
+            <Text as="p" weight="medium">
+              Create a HTTP Token File
+            </Text>
             <div className="flex min-w-0 flex-col gap-3.5">
               {httpToken?.url && (
                 <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-xs font-normal">URL</span>
+                  <Text size="xs" weight="normal">
+                    URL
+                  </Text>
                   <VerificationBadge value={httpToken.url} />
                 </div>
               )}
               {httpToken?.body && (
                 <div className="flex min-w-0 flex-col gap-2">
-                  <span className="text-xs font-normal">Body</span>
+                  <Text size="xs" weight="normal">
+                    Body
+                  </Text>
                   <VerificationBadge value={httpToken.body} />
                 </div>
               )}

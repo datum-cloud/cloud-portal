@@ -1,4 +1,5 @@
 import type { Organization } from '@/resources/organizations';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 export const OrganizationItem = ({
@@ -10,7 +11,9 @@ export const OrganizationItem = ({
 }) => {
   return (
     <div className={cn('flex w-full items-center gap-3', className)}>
-      <span className="truncate text-xs font-medium">{org?.displayName ?? org?.name}</span>
+      <Text size="xs" weight="medium" ellipsis>
+        {org?.displayName ?? org?.name}
+      </Text>
     </div>
   );
 };

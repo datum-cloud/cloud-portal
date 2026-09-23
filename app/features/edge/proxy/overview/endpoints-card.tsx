@@ -28,6 +28,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import {
   CheckIcon,
@@ -89,15 +90,15 @@ function EndpointRow({
 }) {
   return (
     <li className="group/row flex flex-col gap-1.5 px-(--card-px) py-3">
-      <span className="text-muted-foreground text-5xs font-medium tracking-wide uppercase">
+      <Text size="5xs" weight="medium" textColor="muted" className="tracking-wide uppercase">
         {eyebrow}
-      </span>
+      </Text>
       <div className="flex min-w-0 items-center gap-2">
-        <div className="min-w-0 flex-1 truncate font-mono text-sm">
+        <Text as="div" ellipsis className="min-w-0 flex-1 font-mono">
           <Tooltip message={value}>
             <span>{value}</span>
           </Tooltip>
-        </div>
+        </Text>
         {onCopy ? (
           <Button
             type="quaternary"
@@ -226,9 +227,9 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
                   />
                 </OverviewEmptyState>
               ) : (
-                <p className="text-muted-foreground px-(--card-px) py-6 text-center text-sm">
+                <Text as="p" textColor="muted" className="px-(--card-px) py-6 text-center">
                   Hostnames appear here once the load balancer is programmed.
-                </p>
+                </Text>
               )}
             </li>
           ) : null}
@@ -322,10 +323,10 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
                 />
               </span>
               <span className="flex min-w-0 flex-1 flex-col">
-                <span className="text-sm font-medium">{backendTitle}</span>
-                <span className="text-muted-foreground truncate font-mono text-xs">
+                <Text weight="medium">{backendTitle}</Text>
+                <Text size="xs" textColor="muted" ellipsis className="font-mono">
                   {backendLabel}
-                </span>
+                </Text>
               </span>
               <Icon icon={ChevronRightIcon} size={16} className="text-muted-foreground shrink-0" />
             </Link>

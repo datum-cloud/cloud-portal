@@ -53,6 +53,7 @@ import {
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, ArrowUpIcon, FolderRoot, PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -391,8 +392,10 @@ export default function OrgBillingSwitcherPage() {
             className="text-foreground hover:text-primary inline-flex items-center gap-2 font-medium transition-colors">
             <Icon icon={FolderRoot} className="text-icon-primary size-3.5" />
             <div className="flex flex-col">
-              <span className="text-sm">{row.original.projectDisplayName}</span>
-              <span className="text-muted-foreground text-xs">{row.original.projectName}</span>
+              <Text>{row.original.projectDisplayName}</Text>
+              <Text size="xs" textColor="muted">
+                {row.original.projectName}
+              </Text>
             </div>
           </Link>
         ),
@@ -403,7 +406,11 @@ export default function OrgBillingSwitcherPage() {
         accessorFn: (row) => row.billingAccountName,
         cell: ({ row }) => {
           if (!row.original.billingAccountName) {
-            return <span className="text-muted-foreground text-xs">Not set</span>;
+            return (
+              <Text size="xs" textColor="muted">
+                Not set
+              </Text>
+            );
           }
           const account = accountByName.get(row.original.billingAccountName);
           if (account?.metadata?.name) {

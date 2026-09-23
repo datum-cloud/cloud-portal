@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@datum-cloud/datum-ui/table';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo } from 'react';
 
 interface HttpProxyWafTopRulesProps {
@@ -209,15 +210,25 @@ export const HttpProxyWafTopRules = ({ projectId, proxyId }: HttpProxyWafTopRule
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm font-medium">Top Triggered Rules</p>
-        {crsVersion ? <p className="text-muted-foreground text-xs">{crsVersion}</p> : null}
+        <Text as="p" weight="medium">
+          Top Triggered Rules
+        </Text>
+        {crsVersion ? (
+          <Text as="p" size="xs" textColor="muted">
+            {crsVersion}
+          </Text>
+        ) : null}
       </div>
       {isLoading ? (
         <div className="bg-muted h-32 animate-pulse rounded-md" />
       ) : error ? (
-        <p className="text-muted-foreground text-sm">Unable to load rule events.</p>
+        <Text as="p" textColor="muted">
+          Unable to load rule events.
+        </Text>
       ) : rows.length === 0 ? (
-        <p className="text-muted-foreground text-sm">No rule events in this time window.</p>
+        <Text as="p" textColor="muted">
+          No rule events in this time window.
+        </Text>
       ) : (
         <div className="scrollbar-hide overflow-x-auto rounded-md border">
           <Table>
@@ -237,8 +248,10 @@ export const HttpProxyWafTopRules = ({ projectId, proxyId }: HttpProxyWafTopRule
                 <TableRow key={row.ruleId} className="hover:bg-muted/50">
                   <TableCell>
                     <div className="flex flex-col gap-0.5">
-                      <span className="text-sm">{row.name}</span>
-                      <span className="text-muted-foreground font-mono text-xs">{row.ruleId}</span>
+                      <Text>{row.name}</Text>
+                      <Text size="xs" textColor="muted" className="font-mono">
+                        {row.ruleId}
+                      </Text>
                     </div>
                   </TableCell>
                   <TableCell>{row.category ?? '—'}</TableCell>

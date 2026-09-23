@@ -14,6 +14,7 @@ import {
   type PrometheusQueryOptions,
 } from '@/modules/prometheus';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import React, { useMemo } from 'react';
@@ -221,16 +222,16 @@ export function MetricCard({
         </div>
 
         {showTrend && trendIcon && trendText && (
-          <div className="text-muted-foreground flex items-center gap-1 text-xs">
+          <Text as="div" size="xs" textColor="muted" className="flex items-center gap-1">
             {trendIcon}
             <span>{trendText}</span>
             <span>from last period</span>
-          </div>
+          </Text>
         )}
         {data?.timestamp && (
-          <div className="text-muted-foreground text-xs">
+          <Text as="div" size="xs" textColor="muted">
             Updated {new Date(data.timestamp).toLocaleTimeString()}
-          </div>
+          </Text>
         )}
       </div>
     </BaseMetric>

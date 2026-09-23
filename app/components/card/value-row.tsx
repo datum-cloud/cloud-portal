@@ -1,6 +1,7 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -29,11 +30,11 @@ export function ValueRow({
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         {/* min-h-7 matches the action control so the hostname and menu share a midline. */}
         <div className="flex min-h-7 min-w-0 items-center">
-          <div className="min-w-0 truncate font-mono text-sm">
+          <Text as="div" ellipsis className="min-w-0 font-mono">
             <Tooltip message={value}>
               <span>{value}</span>
             </Tooltip>
-          </div>
+          </Text>
         </div>
         {status ? <div className="flex flex-wrap items-center gap-1.5">{status}</div> : null}
       </div>

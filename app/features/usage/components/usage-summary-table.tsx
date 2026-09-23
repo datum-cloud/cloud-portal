@@ -8,6 +8,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { GroupedTable } from '@datum-cloud/datum-ui/grouped-table';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo } from 'react';
 
 interface UsageSummaryTableProps {
@@ -29,7 +30,9 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
             <QuotaIndicator used={row.original.used} limit={row.original.limit} />
             <div className="min-w-0 flex-1 overflow-hidden">
               <Tooltip message={row.original.label}>
-                <span className="block truncate text-sm">{row.original.label}</span>
+                <Text ellipsis className="block">
+                  {row.original.label}
+                </Text>
               </Tooltip>
             </div>
           </div>
@@ -54,9 +57,9 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
         accessorFn: (row) => row.used,
         size: 108,
         cell: ({ row }) => (
-          <span className="text-muted-foreground block truncate text-right text-sm tabular-nums">
+          <Text textColor="muted" ellipsis className="block text-right tabular-nums">
             {formatUsagePair(row.original.unit, row.original.used, row.original.limit)}
-          </span>
+          </Text>
         ),
       },
       {
@@ -73,9 +76,9 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
           );
           return (
             <Tooltip message={rate}>
-              <span className="text-muted-foreground block truncate text-right text-sm tabular-nums">
+              <Text textColor="muted" ellipsis className="block text-right tabular-nums">
                 {rate}
-              </span>
+              </Text>
             </Tooltip>
           );
         },
@@ -86,9 +89,13 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
         accessorFn: (row) => row.spend ?? 0,
         size: 112,
         cell: ({ row }) => (
-          <span className="text-foreground block truncate text-right text-sm font-medium tabular-nums">
+          <Text
+            weight="medium"
+            textColor="default"
+            ellipsis
+            className="block text-right tabular-nums">
             {formatCurrency(row.original.spend, row.original.currencyCode)}
-          </span>
+          </Text>
         ),
       },
     ],

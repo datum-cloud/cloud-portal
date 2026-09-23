@@ -29,6 +29,7 @@ import {
   StepperControls,
 } from '@datum-cloud/datum-ui/form/stepper';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ChevronDownIcon, ExternalLinkIcon } from 'lucide-react';
 import { z } from 'zod';
 
@@ -253,10 +254,12 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                 <div className="divide-stepper-line divide-y">
                   <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-col gap-1.5">
-                      <p className="text-sm font-medium">Create a Grafana Cloud account</p>
-                      <p className="text-xs opacity-60">
+                      <Text as="p" weight="medium">
+                        Create a Grafana Cloud account
+                      </Text>
+                      <Text as="p" size="xs" className="opacity-60">
                         If you don&apos;t have an account, create one to get started.
-                      </p>
+                      </Text>
                     </div>
 
                     <LinkButton
@@ -274,10 +277,12 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                   </div>
                   <div className="flex flex-col gap-4 p-5">
                     <div className="flex flex-col gap-1.5">
-                      <p className="text-sm font-medium">Enter Grafana instance URL</p>
-                      <p className="text-xs opacity-60">
+                      <Text as="p" weight="medium">
+                        Enter Grafana instance URL
+                      </Text>
+                      <Text as="p" size="xs" className="opacity-60">
                         Navigate to the instance you want to integrate and paste the URL below.
-                      </p>
+                      </Text>
                     </div>
                     <Form.Field name="instanceUrl" required>
                       <Form.Input
@@ -296,7 +301,9 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                 <div className="divide-stepper-line divide-y">
                   <div className="flex flex-col gap-4 p-5">
                     <div className="flex flex-col gap-1.5">
-                      <p className="text-sm font-medium">Open the generated connection URL</p>
+                      <Text as="p" weight="medium">
+                        Open the generated connection URL
+                      </Text>
                     </div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                       <TextCopyBox
@@ -321,21 +328,26 @@ export function GrafanaForm({ projectId, onClose, onSuccess }: GrafanaFormProps)
                     <NoteCard
                       size="sm"
                       description={
-                        <div className="text-secondary dark:text-secondary-foreground text-xs">
+                        <Text
+                          as="div"
+                          size="xs"
+                          className="text-secondary dark:text-secondary-foreground">
                           The link opens the connection flow for your instance. After you create or
                           select an API token, Grafana will show the Prometheus remote_write YAML
                           you need to copy and paste below.
-                        </div>
+                        </Text>
                       }
                     />
                   </div>
                   <div className="flex flex-col gap-4 p-5">
                     <div className="flex flex-col gap-1.5">
-                      <p className="text-sm font-medium">Configure Prometheus remote_write </p>
-                      <p className="text-xs opacity-60">
+                      <Text as="p" weight="medium">
+                        Configure Prometheus remote_write{' '}
+                      </Text>
+                      <Text as="p" size="xs" className="opacity-60">
                         Paste in your remote_write YAML to automatically generate the required Datum
                         Secret and ExportPolicy resources
-                      </p>
+                      </Text>
                     </div>
                     <Form.Field name="prometheusConfig">
                       <PrometheusConfigEditor />

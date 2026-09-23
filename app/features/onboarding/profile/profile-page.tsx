@@ -7,6 +7,7 @@ import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -50,14 +51,20 @@ export const ProfilePage = ({
     <OnboardingEntrance>
       <Card className={cn(onboardingCardClassName, 'z-10')}>
         <CardContent className="p-0">
-          <h2 className="mb-3 text-center text-xl font-medium">What should we call you?</h2>
-          <div className="text-foreground mb-6 flex flex-col gap-2 text-center text-sm leading-5 font-normal opacity-80">
+          <Text as="h2" size="xl" weight="medium" className="mb-3 text-center">
+            What should we call you?
+          </Text>
+          <Text
+            as="div"
+            weight="normal"
+            textColor="default"
+            className="mb-6 flex flex-col gap-2 text-center leading-5 opacity-80">
             <p>Unfortunately, GitHub only tells us your username, not your real name.</p>
             <p>
               And while names like &quot;git_happens5000&quot; and &quot;{givenName}&quot; are super
               rad, we&apos;d love to know what to actually call you.
             </p>
-          </div>
+          </Text>
 
           <Form.Root
             name="onboarding-profile"

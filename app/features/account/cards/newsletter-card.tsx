@@ -3,6 +3,7 @@ import { useUpdateUserPreferences } from '@/resources/users';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Switch } from '@datum-cloud/datum-ui/switch';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useEffect, useState } from 'react';
 
 export const AccountNewsletterSettingsCard = () => {
@@ -32,9 +33,9 @@ export const AccountNewsletterSettingsCard = () => {
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label className="text-sm leading-5 font-medium">Newsletter</Label>
-            <p className="text-muted-foreground text-sm">
+            <Text as="p" textColor="muted">
               Receive updates about new features and product announcements
-            </p>
+            </Text>
           </div>
           <Switch checked={emailNewsletter} onCheckedChange={updatePreferences} />
         </div>

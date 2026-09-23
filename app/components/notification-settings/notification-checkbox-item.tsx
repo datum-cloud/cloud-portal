@@ -1,5 +1,6 @@
 import type { RenderItemProps } from './types';
 import { Form } from '@datum-cloud/datum-ui/form';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 export const NotificationCheckboxItem = ({ preference }: RenderItemProps) => {
   return (
@@ -9,12 +10,12 @@ export const NotificationCheckboxItem = ({ preference }: RenderItemProps) => {
           <Form.Checkbox className="data-[state=checked]:bg-primary space-x-0 rounded-xl" />
         </div>
 
-        <div className="text-2xs flex flex-col space-y-0.5 text-left">
+        <Text as="div" size="2xs" className="flex flex-col space-y-0.5 text-left">
           <span className="font-medium">{preference.label}</span>
           {preference.description && (
             <span className="text-foreground/80">{preference.description}</span>
           )}
-        </div>
+        </Text>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import { FieldLabel } from './field-label';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 interface FieldProps {
@@ -34,7 +35,11 @@ export const Field = ({
         />
       )}
       {children}
-      {description && <p className="text-ring text-xs text-wrap">{description}</p>}
+      {description && (
+        <Text as="p" size="xs" className="text-ring text-wrap">
+          {description}
+        </Text>
+      )}
       {errors && (
         <ul
           className={cn(

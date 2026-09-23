@@ -3,6 +3,7 @@ import { useUpdateSecret } from '@/resources/secrets';
 import { isBase64, toBase64 } from '@/utils/helpers/text.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useImperativeHandle, useRef, useState } from 'react';
 import { z } from 'zod';
 
@@ -90,8 +91,12 @@ export const EditKeyValueDialog = ({
       submitTextLoading="Saving...">
       <div className="space-y-4 px-5">
         <div>
-          <span className="text-foreground/80 text-xs font-semibold">Key</span>
-          <p className="mt-1 text-sm">{keyId}</p>
+          <Text size="xs" weight="semibold" className="text-foreground/80">
+            Key
+          </Text>
+          <Text as="p" className="mt-1">
+            {keyId}
+          </Text>
         </div>
         <Form.Field name="value" label="Value" required>
           <Form.Textarea placeholder="value" className="min-h-20" rows={1} />

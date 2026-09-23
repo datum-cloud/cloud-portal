@@ -1,4 +1,5 @@
 import type { ActivePopMarker } from './active-pops-map';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { geoMercator } from 'd3-geo';
 import { useMemo, useState } from 'react';
 
@@ -110,8 +111,12 @@ export function ActivePopsFlatMap({ regionsWithCoords, hoveredRegion, onHoverReg
             top: `${tooltipTop}%`,
             transform: `translate(${flipX ? 'calc(-100% - 10px)' : '10px'}, ${flipY ? 'calc(-100% - 10px)' : '10px'})`,
           }}>
-          <p className="text-xs font-medium">{tooltipPop.city}</p>
-          <p className="text-muted-foreground text-xs">{tooltipPop.subtitle}</p>
+          <Text as="p" size="xs" weight="medium">
+            {tooltipPop.city}
+          </Text>
+          <Text as="p" size="xs" textColor="muted">
+            {tooltipPop.subtitle}
+          </Text>
         </div>
       )}
     </div>

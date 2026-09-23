@@ -9,6 +9,7 @@ import {
   type FraudPollResult,
 } from '@/utils/middlewares/fraud-redirect';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useEffect } from 'react';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
@@ -115,18 +116,20 @@ export default function VerifyEmailPage() {
     <BlankLayout>
       <Card className="bg-card text-foreground z-10 w-full max-w-full p-3 sm:max-w-sm sm:p-4 md:p-6 lg:p-8 xl:p-11">
         <CardContent className="p-0">
-          <h2 className="mb-3 text-center text-xl font-medium">Check your email</h2>
-          <p role="status" className="text-center text-sm leading-5 font-normal">
+          <Text as="h2" size="xl" weight="medium" className="mb-3 text-center">
+            Check your email
+          </Text>
+          <Text as="p" weight="normal" className="text-center leading-5" role="status">
             We sent a verification link to your email address. Open it to continue — this page
             updates on its own once you have.
-          </p>
-          <p className="text-muted-foreground mt-4 text-center text-xs leading-5">
+          </Text>
+          <Text as="p" size="xs" textColor="muted" className="mt-4 text-center leading-5">
             Didn&apos;t get it? Check your spam folder, or contact{' '}
             <a href={`mailto:${SUPPORT_EMAIL}`} className="underline">
               {SUPPORT_EMAIL}
             </a>
             .
-          </p>
+          </Text>
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}

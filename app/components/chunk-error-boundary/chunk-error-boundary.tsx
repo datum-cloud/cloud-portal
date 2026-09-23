@@ -1,3 +1,4 @@
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Component, type ReactNode } from 'react';
 
 interface ChunkErrorBoundaryProps {
@@ -42,7 +43,9 @@ export class ChunkErrorBoundary extends Component<
         this.props.fallback ?? (
           <div className="bg-muted flex h-64 w-full items-center justify-center rounded-lg border">
             <div className="flex flex-col items-center gap-2">
-              <p className="text-muted-foreground text-sm">Failed to load component.</p>
+              <Text as="p" textColor="muted">
+                Failed to load component.
+              </Text>
               <button
                 type="button"
                 onClick={() => window.location.reload()}

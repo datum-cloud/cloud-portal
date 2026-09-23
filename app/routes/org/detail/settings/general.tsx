@@ -6,6 +6,7 @@ import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import { type Organization } from '@/resources/organizations';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { type LoaderFunctionArgs } from 'react-router';
 
 const route = defineResourceRoute({
@@ -51,7 +52,9 @@ function GeneralForm() {
 
         {organization.type !== 'Personal' && (
           <Col span={24}>
-            <h3 className="mb-4 text-base font-medium">Delete Organization</h3>
+            <Text as="h3" size="base" weight="medium" className="mb-4">
+              Delete Organization
+            </Text>
             <OrganizationDangerCard organization={organization} />
           </Col>
         )}

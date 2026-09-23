@@ -8,6 +8,7 @@ import { useDomain, useDomainWatch, type Domain } from '@/resources/domains';
 import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { InfoIcon, RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { useParams } from 'react-router';
@@ -76,7 +77,7 @@ export default function DnsZoneNameserversPage() {
             }
             description={
               <div className="flex max-w-full flex-col gap-5 sm:max-w-[810px]">
-                <span className="text-sm">
+                <Text>
                   {nameserverSetup.isPartiallySetup ? (
                     <>
                       You have configured {nameserverSetup.setupCount} of{' '}
@@ -90,7 +91,7 @@ export default function DnsZoneNameserversPage() {
                       {registrar} and replace the existing nameservers to match the following:
                     </>
                   )}
-                </span>
+                </Text>
                 {dnsZone?.status?.nameservers &&
                   (dnsZone?.status?.nameservers ?? [])?.length > 0 && (
                     <div className="flex flex-wrap items-center gap-3 sm:gap-4">

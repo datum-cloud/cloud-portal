@@ -3,6 +3,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useEffect } from 'react';
 import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
 
@@ -86,10 +87,12 @@ export default function VerifyingPage() {
               />
             </svg>
           </div>
-          <h2 className="mb-3 text-center text-xl font-medium">Verifying your account</h2>
-          <p className="text-center text-sm leading-5 font-normal">
+          <Text as="h2" size="xl" weight="medium" className="mb-3 text-center">
+            Verifying your account
+          </Text>
+          <Text as="p" weight="normal" className="text-center leading-5">
             We&apos;re running a quick security check. This usually takes less than 30 seconds.
-          </p>
+          </Text>
           <div className="mt-6 text-center">
             <Link
               to={paths.auth.logOut}

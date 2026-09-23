@@ -22,6 +22,7 @@ import {
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon, Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Check } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -172,18 +173,18 @@ export default function InvitationPage() {
         </CardHeader>
 
         <CardContent className="space-y-6 px-9">
-          <p className="text-center text-base font-normal break-words">
+          <Text as="p" size="base" weight="normal" className="text-center break-words">
             <strong>
               {invitation.inviterUser?.displayName || invitation.invitedBy || 'Someone'}
             </strong>{' '}
             has invited you to join{' '}
             <strong>{invitation.organization?.displayName || invitation.organizationName}</strong>{' '}
             organization
-          </p>
+          </Text>
         </CardContent>
         <CardFooter className="flex flex-col gap-3 px-9 pt-6">
           {!isEmailMatch ? (
-            <div className="text-center text-sm leading-relaxed">
+            <Text as="div" className="text-center leading-relaxed">
               <p className="font-semibold">
                 Your email address {currentUser?.email} does not match the email address this
                 invitation was sent to.
@@ -198,7 +199,7 @@ export default function InvitationPage() {
                 and then sign in or create a new account using the same email address used in the
                 invitation.
               </p>
-            </div>
+            </Text>
           ) : (
             <>
               <Button
@@ -239,12 +240,12 @@ export default function InvitationPage() {
       </Card>
 
       {/* Footer Text */}
-      <p className="text-muted-foreground mt-12 text-center text-sm">
+      <Text as="p" textColor="muted" className="mt-12 text-center">
         Need help? Contact{' '}
         <Link to={`mailto:support@datum.net`} className="underline">
           support@datum.net
         </Link>
-      </p>
+      </Text>
     </BlankLayout>
   );
 }

@@ -1,5 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardFooter, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 interface CreditsCardProps {
   balance: string;
@@ -12,7 +13,9 @@ export const CreditsCard = ({ balance, onRedeem, onTopUp }: CreditsCardProps) =>
     <Card size="sm" sectioned>
       <CardContent className="flex flex-col gap-2">
         <CardTitle className="text-sm">Balance</CardTitle>
-        <p className="text-foreground text-2xl font-medium">{balance}</p>
+        <Text as="p" size="2xl" weight="medium" textColor="default">
+          {balance}
+        </Text>
       </CardContent>
       <CardFooter bordered className="flex justify-end gap-2">
         <Button

@@ -11,6 +11,7 @@ import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { Dropzone, DropzoneEmptyState } from '@datum-cloud/datum-ui/dropzone';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { ResponsiveDropdown } from '@datum-cloud/datum-ui/responsive-dropdown';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { AlertCircle, DownloadIcon, FileTextIcon, Import, Info, PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -122,7 +123,9 @@ export const DnsRecordImportAction = ({
         <div className="p-4 sm:p-0">
           {/* Import Section */}
           <div className="space-y-4">
-            <h2 className="text-sm font-semibold">Import DNS Records</h2>
+            <Text as="h2" weight="semibold">
+              Import DNS Records
+            </Text>
 
             {isReadOnly ? (
               <Alert variant="info">
@@ -148,10 +151,10 @@ export const DnsRecordImportAction = ({
                     />
                   }
                   description={
-                    <p className="text-foreground text-xs font-normal">
+                    <Text as="p" size="xs" weight="normal" textColor="default">
                       <span className="underline">Select a file</span> or drag it here <br /> (BIND
                       format only)
-                    </p>
+                    </Text>
                   }
                 />
                 <DropzoneStateContent state={dropzoneState} errorMessage={errorMessage} />
@@ -161,7 +164,9 @@ export const DnsRecordImportAction = ({
 
           {/* Export Section */}
           <div className="mt-6 space-y-4">
-            <h2 className="text-sm font-semibold">Export DNS Records</h2>
+            <Text as="h2" weight="semibold">
+              Export DNS Records
+            </Text>
 
             <Button
               htmlType="button"
@@ -314,7 +319,9 @@ export const DnsRecordImportAction = ({
                     <ImportResultTable details={importResult.details} />
                   </>
                 ) : (
-                  <p className="text-muted-foreground text-sm">No import details available.</p>
+                  <Text as="p" textColor="muted">
+                    No import details available.
+                  </Text>
                 )}
               </Dialog.Body>
               <Dialog.Footer className="border-t-0">

@@ -1,5 +1,6 @@
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -30,9 +31,13 @@ export function OverviewEmptyState({
         <Icon icon={icon} size={18} className="text-muted-foreground" aria-hidden="true" />
       </span>
       <div className="flex flex-col gap-1">
-        <p className="text-sm font-medium">{title}</p>
+        <Text as="p" weight="medium">
+          {title}
+        </Text>
         {description ? (
-          <p className="text-muted-foreground max-w-xs text-xs">{description}</p>
+          <Text as="p" size="xs" textColor="muted" className="max-w-xs">
+            {description}
+          </Text>
         ) : null}
       </div>
       {children}

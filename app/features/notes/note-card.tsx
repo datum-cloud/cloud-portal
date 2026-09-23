@@ -3,6 +3,7 @@ import type { Note } from '@/resources/notes/note.schema';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-editor';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PencilIcon, Trash2Icon } from 'lucide-react';
 
 interface NoteCardProps {
@@ -17,9 +18,9 @@ export function NoteCard({ note, creatorDisplay, isOwner, onEdit, onDelete }: No
   return (
     <div className="border-border bg-card rounded-lg border p-3">
       <div className="flex items-start justify-between gap-2">
-        <div className="line-clamp-3 flex min-w-0 flex-1 items-start text-sm">
+        <Text as="div" className="line-clamp-3 flex min-w-0 flex-1 items-start">
           <RichTextContent content={note.content} />
-        </div>
+        </Text>
         {isOwner && (
           <div className="flex shrink-0 items-center gap-1">
             <Button

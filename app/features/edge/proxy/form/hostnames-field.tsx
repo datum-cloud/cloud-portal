@@ -2,6 +2,7 @@ import { SubdomainHostnameField } from '@/features/edge/proxy/form/subdomain-hos
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Form, useFormContext } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 
@@ -24,10 +25,12 @@ export const ProxyHostnamesField = forwardRef<HTMLDivElement, ProxyHostnamesFiel
     return (
       <div ref={ref} className="flex flex-col gap-2">
         <div className="flex flex-col gap-0.5">
-          <span className="text-xs font-semibold">Hostnames</span>
-          <span className="text-muted-foreground text-xs">
+          <Text size="xs" weight="semibold">
+            Hostnames
+          </Text>
+          <Text size="xs" textColor="muted">
             The domains that should point to this Application Load Balancer.
-          </span>
+          </Text>
         </div>
 
         <Form.FieldArray name="hostnames">

@@ -4,6 +4,7 @@ import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Paragraph } from '@datum-cloud/datum-ui/typography';
 import { RefreshCcwIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -26,7 +27,7 @@ export const TaskNameserverCard = ({
         <CardTitle className="text-sm">Point Your Nameservers at Datum</CardTitle>
       </CardHeader>
       <CardContent className="max-w-4xl">
-        <p className="text-sm leading-relaxed">
+        <Paragraph>
           {dnsHost ? (
             <>
               This DNS zone is currently hosted by {dnsHost}, however for optimum performance we
@@ -40,7 +41,7 @@ export const TaskNameserverCard = ({
               your domain&apos;s current DNS provider and change the nameservers to these:
             </>
           )}
-        </p>
+        </Paragraph>
 
         <div className="mt-6 flex items-center gap-4">
           {(dnsZone?.status?.nameservers as string[] | undefined)?.map(

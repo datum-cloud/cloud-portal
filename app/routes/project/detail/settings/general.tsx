@@ -5,6 +5,7 @@ import { runRouteGate } from '@/modules/rbac/run-resource-loader';
 import { useProjectContext } from '@/providers/project.provider';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { type LoaderFunctionArgs } from 'react-router';
 
 const route = defineResourceRoute({
@@ -53,7 +54,9 @@ function GeneralForm() {
         </Col>
 
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete Project</h3>
+          <Text as="h3" size="base" weight="medium" className="mb-4">
+            Delete Project
+          </Text>
           <ProjectDangerCard project={project} />
         </Col>
       </Row>

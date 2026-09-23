@@ -7,6 +7,7 @@ import { GitHubLineIcon } from '@/components/icon/github-line';
 import GoogleIcon from '@/components/icon/google';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import {
   CircleAlertIcon,
   KeyRoundIcon,
@@ -73,12 +74,12 @@ export const GithubEmailTooltip = () => (
   <Tooltip
     message={
       <div className="flex flex-col gap-3.5 p-7">
-        <h4 className="text-foreground text-sm font-semibold">
+        <Text as="h4" weight="semibold" textColor="default">
           Updating email addresses for GitHub identities
-        </h4>
-        <p className="text-foreground/80 text-xs text-wrap">
+        </Text>
+        <Text as="p" size="xs" className="text-foreground/80 text-wrap">
           Email addresses for GitHub identities should be updated through GitHub
-        </p>
+        </Text>
         <ul className="text-foreground/80 list-outside list-decimal space-y-3.5 pl-4 text-xs text-wrap">
           <li>Log out of Datum</li>
           <li>Change your Primary Email in GitHub (your primary email)</li>
@@ -92,7 +93,9 @@ export const GithubEmailTooltip = () => (
     arrowClassName="fill-card">
     <div className="pointer flex cursor-pointer items-center gap-2.5">
       <Icon icon={CircleAlertIcon} size={12} className="text-primary" />
-      <span className="text-primary text-xs underline">How to update your GitHub email</span>
+      <Text size="xs" textColor="primary" className="underline">
+        How to update your GitHub email
+      </Text>
     </div>
   </Tooltip>
 );

@@ -4,6 +4,7 @@ import { transformForRecharts, type FormattedMetricData } from '@/modules/promet
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 
@@ -73,7 +74,9 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
     return (
       <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
         <Tooltip message="You don't have permission to view metrics">
-          <span className="text-muted-foreground text-xs">&mdash;</span>
+          <Text size="xs" textColor="muted">
+            &mdash;
+          </Text>
         </Tooltip>
       </div>
     );
@@ -82,7 +85,9 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
   if (!data || error || chartData.length === 0) {
     return (
       <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
-        <span className="text-muted-foreground text-xs">No data</span>
+        <Text size="xs" textColor="muted">
+          No data
+        </Text>
       </div>
     );
   }
@@ -102,9 +107,12 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
               if (active && payload && payload.length) {
                 const value = payload[0].value as number;
                 return (
-                  <div className="border-border bg-background text-2xs rounded-md border px-2 py-1 shadow-sm">
+                  <Text
+                    as="div"
+                    size="2xs"
+                    className="border-border bg-background rounded-md border px-2 py-1 shadow-sm">
                     <div className="text-foreground font-medium">{value.toFixed(2)} req/s</div>
-                  </div>
+                  </Text>
                 );
               }
               return null;

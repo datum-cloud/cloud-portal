@@ -18,6 +18,7 @@ import {
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Building, CheckIcon, ChevronDown, FolderRoot, Settings2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -98,7 +99,7 @@ function OrgSwitcherSheet({
               <div className="flex items-center justify-center">
                 <SpinnerIcon size="xs" aria-hidden="true" />
               </div>
-              <span className="text-xs">Loading...</span>
+              <Text size="xs">Loading...</Text>
             </CommandItem>
           ) : (
             <CommandGroup className="px-0 py-0">
@@ -197,7 +198,7 @@ function ProjectSwitcherSheet({
               <div className="flex items-center justify-center">
                 <SpinnerIcon size="xs" aria-hidden="true" />
               </div>
-              <span className="text-xs">Loading...</span>
+              <Text size="xs">Loading...</Text>
             </CommandItem>
           ) : (
             <CommandGroup className="px-0 py-0">
@@ -209,7 +210,9 @@ function ProjectSwitcherSheet({
                     key={project.uid}
                     onSelect={() => handleSelect(project)}
                     className="cursor-pointer justify-between px-3 py-2.5">
-                    <span className="truncate text-xs font-medium">{project.displayName}</span>
+                    <Text size="xs" weight="medium" ellipsis>
+                      {project.displayName}
+                    </Text>
                     {isSelected && <Icon icon={CheckIcon} className="text-primary size-4" />}
                   </CommandItem>
                 );
@@ -275,7 +278,9 @@ export function MobileSwitcherBar({
             className="flex min-h-[36px] w-full items-center gap-2 px-4 py-1.5"
             aria-label="Switch organization">
             <Icon icon={Building} className="text-muted-foreground size-3.5 shrink-0" />
-            <span className="text-foreground truncate text-xs font-medium">{orgName}</span>
+            <Text size="xs" weight="medium" textColor="default" ellipsis>
+              {orgName}
+            </Text>
             <Icon icon={ChevronDown} className="text-muted-foreground ml-auto size-3.5 shrink-0" />
           </button>
         )}
@@ -293,9 +298,9 @@ export function MobileSwitcherBar({
               className="border-sidebar-border flex min-h-[36px] w-full items-center gap-2 border-t px-4 py-1.5"
               aria-label="Switch project">
               <Icon icon={FolderRoot} className="text-muted-foreground size-3.5 shrink-0" />
-              <span className="text-foreground truncate text-xs font-medium">
+              <Text size="xs" weight="medium" textColor="default" ellipsis>
                 {currentProject.displayName}
-              </span>
+              </Text>
               <Icon
                 icon={ChevronDown}
                 className="text-muted-foreground ml-auto size-3.5 shrink-0"

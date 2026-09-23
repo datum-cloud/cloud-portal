@@ -12,6 +12,7 @@ import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { MobileSheet } from '@datum-cloud/datum-ui/mobile-sheet';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Separator } from '@datum-cloud/datum-ui/separator';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { CheckIcon, XCircle, ChevronDown, XIcon, WandSparkles } from 'lucide-react';
@@ -360,7 +361,7 @@ export const MultiSelect = ({
               </div>
             ) : (
               <div className="flex w-full items-center justify-between px-2">
-                <span className="text-muted-foreground text-sm">{placeholder}</span>
+                <Text textColor="muted">{placeholder}</Text>
                 <ChevronDown className="text-muted-foreground mx-1 h-4 cursor-pointer" />
               </div>
             )}
@@ -412,9 +413,9 @@ export const MultiSelect = ({
                         <span className="flex min-w-0 flex-col">
                           <span>{option.label}</span>
                           {option.description ? (
-                            <span className="text-muted-foreground text-xs">
+                            <Text size="xs" textColor="muted">
                               {option.description}
-                            </span>
+                            </Text>
                           ) : null}
                         </span>
                       </CommandItem>
@@ -423,7 +424,7 @@ export const MultiSelect = ({
                 </CommandGroup>
               ) : (
                 <CommandItem disabled className="px-4 py-2.5">
-                  <span className="text-xs">{emptyContent}</span>
+                  <Text size="xs">{emptyContent}</Text>
                 </CommandItem>
               )}
               {actions && (
@@ -533,9 +534,9 @@ export const MultiSelect = ({
                         <span className="flex min-w-0 flex-col">
                           <span>{option.label}</span>
                           {option.description ? (
-                            <span className="text-muted-foreground text-xs">
+                            <Text size="xs" textColor="muted">
                               {option.description}
-                            </span>
+                            </Text>
                           ) : null}
                         </span>
                       </CommandItem>
@@ -544,7 +545,7 @@ export const MultiSelect = ({
                 </CommandGroup>
               ) : (
                 <CommandItem disabled className="px-4 py-2.5">
-                  <span className="text-xs">{emptyContent}</span>
+                  <Text size="xs">{emptyContent}</Text>
                 </CommandItem>
               )}
               {actions && (

@@ -3,6 +3,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { XIcon } from 'lucide-react';
 
@@ -32,7 +33,9 @@ export function RoleRow({ assignment, isPendingRemove, canManageRoles, onRemove 
           {roleDisplayName}
         </span>
         {description && !isPendingRemove && (
-          <span className="text-muted-foreground truncate text-xs">{description}</span>
+          <Text size="xs" textColor="muted" ellipsis>
+            {description}
+          </Text>
         )}
         {isPendingRemove && (
           <Badge type="danger" theme="light" className="text-4xs font-bold uppercase">

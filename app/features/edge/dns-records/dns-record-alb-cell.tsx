@@ -4,6 +4,7 @@ import { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { EyeIcon, ShieldCheckIcon, ShieldOffIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -131,5 +132,9 @@ export function DnsRecordAlbCell({
     );
   }
 
-  return <span className="text-muted-foreground text-xs">DNS only</span>;
+  return (
+    <Text size="xs" textColor="muted">
+      DNS only
+    </Text>
+  );
 }

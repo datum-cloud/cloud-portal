@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { AlertCircle, CheckCircle, XCircle, Star, Info } from 'lucide-react';
 
 export const badgeDemoSections = [
@@ -61,7 +62,9 @@ export default function BadgeDemo() {
             'success',
           ].map((type) => (
             <div key={type} className="space-y-2">
-              <h4 className="text-sm font-medium capitalize">{type}</h4>
+              <Text as="h4" weight="medium" className="capitalize">
+                {type}
+              </Text>
               <div className="flex flex-wrap gap-2">
                 <Badge type={type as any} theme="solid">
                   Solid
@@ -199,7 +202,9 @@ export default function BadgeDemo() {
         <CardContent className="space-y-6">
           {['solid', 'outline', 'light'].map((theme) => (
             <div key={theme} className="space-y-2">
-              <h4 className="text-sm font-medium capitalize">{theme} theme</h4>
+              <Text as="h4" weight="medium" className="capitalize">
+                {theme} theme
+              </Text>
               <div className="flex flex-wrap gap-3">
                 {[
                   'primary',
@@ -234,7 +239,9 @@ export default function BadgeDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Tags</h4>
+            <Text as="h4" weight="medium">
+              Tags
+            </Text>
             <div className="flex flex-wrap gap-2">
               <Badge type="primary" theme="outline">
                 React
@@ -251,7 +258,9 @@ export default function BadgeDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Notifications</h4>
+            <Text as="h4" weight="medium">
+              Notifications
+            </Text>
             <div className="flex flex-wrap gap-2">
               <Badge type="danger">3</Badge>
               <Badge type="primary">12</Badge>
@@ -259,7 +268,9 @@ export default function BadgeDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">User Roles</h4>
+            <Text as="h4" weight="medium">
+              User Roles
+            </Text>
             <div className="flex flex-wrap gap-2">
               <Badge type="primary">Admin</Badge>
               <Badge type="secondary">Member</Badge>
@@ -269,7 +280,9 @@ export default function BadgeDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Content Status</h4>
+            <Text as="h4" weight="medium">
+              Content Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <Badge type="success" className="gap-1">
                 <CheckCircle className="h-3 w-3" />

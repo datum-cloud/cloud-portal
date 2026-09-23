@@ -8,6 +8,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Users } from 'lucide-react';
 
 export type ResourceTooltipProps = {
@@ -53,7 +54,9 @@ export const ResourceKindTooltip = ({ resourceKind }: ResourceKindTooltipProps) 
         <div>
           <strong>Kind:</strong> {resourceKind?.kind}
         </div>
-        <div className="text-muted-foreground text-sm">Applies to all resources of this kind</div>
+        <Text as="div" textColor="muted">
+          Applies to all resources of this kind
+        </Text>
       </div>
     }>
     <span className="cursor-help break-words whitespace-normal">{resourceKind?.kind}</span>
@@ -101,7 +104,9 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
         <div className="space-y-4">
           {users.length > 0 && (
             <div>
-              <div className="mb-2 text-sm font-semibold">Users ({users.length})</div>
+              <Text as="div" weight="semibold" className="mb-2">
+                Users ({users.length})
+              </Text>
               <ul className="ml-6 list-disc space-y-1 text-sm">
                 {users.map((user) => (
                   <li key={`user-${user.name}`}>
@@ -121,7 +126,9 @@ export const renderSubjectsCell = (subjects: PolicyBinding['subjects']) => {
 
           {groups.length > 0 && (
             <div>
-              <div className="mb-2 text-sm font-semibold">Groups ({groups.length})</div>
+              <Text as="div" weight="semibold" className="mb-2">
+                Groups ({groups.length})
+              </Text>
               <ul className="ml-6 list-disc space-y-1 text-sm">
                 {groups.map((group) => (
                   <li key={`group-${group.name}`}>

@@ -33,6 +33,7 @@ import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.help
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PlusIcon } from 'lucide-react';
 import { useCallback, useMemo, useRef } from 'react';
 import { LoaderFunctionArgs, useLocation, useNavigate, useParams } from 'react-router';
@@ -171,7 +172,9 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
                 {row.original.displayName || row.original.name}
               </span>
             </Tooltip>
-            <span className="text-muted-foreground text-xs">{row.original.identityEmail}</span>
+            <Text size="xs" textColor="muted">
+              {row.original.identityEmail}
+            </Text>
           </div>
         ),
       },

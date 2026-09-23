@@ -18,6 +18,7 @@ import { DataTable, useDataTableSelection } from '@datum-cloud/datum-ui/data-tab
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { InfoIcon, ListFilter, LockIcon } from 'lucide-react';
 import { useEffect, useMemo, useRef } from 'react';
 import type { ReactNode } from 'react';
@@ -227,7 +228,7 @@ function useDnsRecordColumns(
                   side="bottom"
                   message={exchange}
                   contentClassName="max-w-96 overflow-x-auto">
-                  <span className="truncate text-sm">{exchange}</span>
+                  <Text ellipsis>{exchange}</Text>
                 </Tooltip>
                 <Tooltip
                   side="bottom"
@@ -254,17 +255,17 @@ function useDnsRecordColumns(
                   side="bottom"
                   message={formattedValue}
                   contentClassName="max-w-96 overflow-x-auto">
-                  <span className="truncate text-sm">
+                  <Text ellipsis>
                     {soa.mname} {soa.rname} {soa.refresh || 0} {soa.retry || 0} {soa.expire || 0}{' '}
                     {soa.ttl || 0}
-                  </span>
+                  </Text>
                 </Tooltip>
               );
             } catch {
               // Fallback if JSON parsing fails
               return (
                 <Tooltip side="bottom" message={value} contentClassName="max-w-96 overflow-x-auto">
-                  <span className="truncate text-sm">{value}</span>
+                  <Text ellipsis>{value}</Text>
                 </Tooltip>
               );
             }
@@ -272,7 +273,7 @@ function useDnsRecordColumns(
 
           return (
             <Tooltip side="bottom" message={value} contentClassName="max-w-96 overflow-x-auto">
-              <span className="truncate text-sm">{value}</span>
+              <Text ellipsis>{value}</Text>
             </Tooltip>
           );
         },
@@ -298,7 +299,7 @@ function useDnsRecordColumns(
         accessorKey: 'ttl',
         size: 100,
         cell: ({ row }) => {
-          return <span className="text-sm">{formatTTL(row.original.ttl)}</span>;
+          return <Text>{formatTTL(row.original.ttl)}</Text>;
         },
         meta: {
           sortPath: 'ttl',

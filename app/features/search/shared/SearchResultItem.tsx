@@ -2,6 +2,7 @@ import { KindIcon, kindDisplayName } from './kindIcon';
 import { kindToHref } from './kindToHref';
 import type { SearchHit } from '@/resources/search';
 import { CommandItem } from '@datum-cloud/datum-ui/command';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Link } from 'react-router';
 
 interface Props {
@@ -46,12 +47,16 @@ export function SearchResultItem({ hit, onSelect, showTenant, showIcon = true }:
         {showIcon && <KindIcon kind={hit.kind} className="size-4 shrink-0 opacity-70" />}
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate">{primary}</span>
-          {secondary && <span className="text-muted-foreground truncate text-xs">{secondary}</span>}
+          {secondary && (
+            <Text size="xs" textColor="muted" ellipsis>
+              {secondary}
+            </Text>
+          )}
         </div>
         {showTenant && hit.tenant.name && hit.tenant.type !== 'platform' && (
-          <span className="text-muted-foreground max-w-[8rem] shrink-0 truncate text-xs">
+          <Text size="xs" textColor="muted" ellipsis className="max-w-[8rem] shrink-0">
             {hit.tenant.name}
-          </span>
+          </Text>
         )}
       </Link>
     </CommandItem>

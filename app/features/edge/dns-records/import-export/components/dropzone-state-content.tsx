@@ -1,5 +1,6 @@
 import { DropzoneContent } from '@datum-cloud/datum-ui/dropzone';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { TriangleAlert } from 'lucide-react';
 
 // =============================================================================
@@ -26,7 +27,9 @@ export const DropzoneStateContent = ({ state, errorMessage }: DropzoneStateConte
       <DropzoneContent
         icon={<SpinnerIcon size="xl" aria-hidden="true" />}
         description={
-          <p className="text-muted-foreground text-xs font-normal">Parsing zone file...</p>
+          <Text as="p" size="xs" weight="normal" textColor="muted">
+            Parsing zone file...
+          </Text>
         }
       />
     );
@@ -39,9 +42,9 @@ export const DropzoneStateContent = ({ state, errorMessage }: DropzoneStateConte
           <Icon icon={TriangleAlert} className="text-destructive mb-3 size-9! stroke-1" size={36} />
         }
         description={
-          <p className="text-destructive text-xs font-normal">
+          <Text as="p" size="xs" weight="normal" textColor="destructive">
             {errorMessage || 'Failed to parse file'}
-          </p>
+          </Text>
         }
       />
     );

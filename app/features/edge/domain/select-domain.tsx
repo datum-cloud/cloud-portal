@@ -12,6 +12,7 @@ import { Autocomplete } from '@datum-cloud/datum-ui/autocomplete';
 import { Button } from '@datum-cloud/datum-ui/button';
 import type { AutocompleteOption, AutocompleteProps } from '@datum-cloud/datum-ui/form';
 import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { AlertTriangleIcon, CheckIcon, PlusIcon } from 'lucide-react';
@@ -41,7 +42,9 @@ function DomainOptionContent({
   return (
     <div className="flex w-full cursor-pointer items-center justify-between gap-2">
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="truncate text-xs">{option.label}</span>
+        <Text size="xs" ellipsis>
+          {option.label}
+        </Text>
         {statusConfig && (
           <BadgeStatus status={statusConfig.badgeStatus} label={statusConfig.label} />
         )}
@@ -198,9 +201,9 @@ export function SelectDomain({
         <div className="flex flex-col">
           <span>Use &ldquo;{val}&rdquo;</span>
           {parentDomain && (
-            <span className="text-muted-foreground text-3xs">
+            <Text size="3xs" textColor="muted">
               subdomain of {parentDomain.value}
-            </span>
+            </Text>
           )}
         </div>
       );
@@ -245,14 +248,17 @@ export function SelectDomain({
         {...rest}
       />
       {!compact && isUnverified && (
-        <div className="flex items-start gap-1.5 pt-1 text-xs text-amber-600 dark:text-amber-500">
+        <Text
+          as="div"
+          size="xs"
+          className="flex items-start gap-1.5 pt-1 text-amber-600 dark:text-amber-500">
           <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
           <span>
             {selectedOption.domainStatus === ControlPlaneStatus.Pending
               ? 'This domain is being verified — your proxy may not activate until verification is complete.'
               : "This domain is not verified — your proxy won't activate until the domain is verified."}
           </span>
-        </div>
+        </Text>
       )}
       {(!compact || showAddDomain) && !creatable && (
         <DomainFormDialog

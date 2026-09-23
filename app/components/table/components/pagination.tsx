@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@datum-cloud/datum-ui/select';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DEFAULT_SIMPLE_PAGE_SIZES = [10, 20, 30, 50] as const;
@@ -69,7 +70,7 @@ function SimplePagination() {
       data-slot="dt-pagination"
       aria-label="Table pagination"
       className="datum-ui-data-table__pagination flex flex-wrap items-center justify-between gap-3 px-2 py-4">
-      <div className="text-muted-foreground flex items-center gap-2 text-sm">
+      <Text as="div" textColor="muted" className="flex items-center gap-2">
         <span>Rows per page</span>
         <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
           <SelectTrigger className="h-8 w-[72px]">
@@ -83,9 +84,9 @@ function SimplePagination() {
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </Text>
       <div className="flex items-center gap-3">
-        <span className="text-muted-foreground text-sm">Page {pageIndex + 1}</span>
+        <Text textColor="muted">Page {pageIndex + 1}</Text>
         <div className="flex items-center gap-1">
           <Button
             type="primary"

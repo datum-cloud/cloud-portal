@@ -6,6 +6,7 @@ import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Label } from '@datum-cloud/datum-ui/label';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { Search, X } from 'lucide-react';
 import { useQueryState } from 'nuqs';
@@ -85,7 +86,11 @@ export function MetricsFilterSearch({
         )}
       </div>
 
-      {description && <p className="text-muted-foreground text-xs">{description}</p>}
+      {description && (
+        <Text as="p" size="xs" textColor="muted">
+          {description}
+        </Text>
+      )}
     </div>
   );
 }

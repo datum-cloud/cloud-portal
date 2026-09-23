@@ -19,6 +19,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { SettingsNav, SettingsNavItem, SettingsNavLabel } from '@datum-cloud/datum-ui/settings-nav';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import {
   GlobeIcon,
   KeyRoundIcon,
@@ -283,7 +284,9 @@ export default function HttpProxyConfigurationPage() {
         </section>
 
         <section id="danger" className="scroll-mt-24">
-          <h3 className="mb-4 text-base font-medium">Delete Application Load Balancer</h3>
+          <Text as="h3" size="base" weight="medium" className="mb-4">
+            Delete Application Load Balancer
+          </Text>
           <DangerCard
             deleteText="Delete Application Load Balancer"
             loading={isDeleting}

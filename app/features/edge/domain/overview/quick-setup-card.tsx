@@ -7,6 +7,7 @@ import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMutation } from '@tanstack/react-query';
 import { CheckIcon, CloudLightningIcon } from 'lucide-react';
 
@@ -90,10 +91,10 @@ export const QuickSetupCard = ({ projectId, domain }: { projectId: string; domai
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-3.5">
-          <p className="text-sm font-normal">
+          <Text as="p" weight="normal">
             Skip the manual DNS setup process and let Datum automatically configure your DNS records
             and validate your domain for you.
-          </p>
+          </Text>
           <ul className="space-y-[7px] text-sm font-normal">
             {setupItems.map((item, index) => (
               <li className="flex items-start gap-2.5" key={`quick-setup-item-${index}`}>

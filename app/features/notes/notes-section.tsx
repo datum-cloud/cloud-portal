@@ -10,6 +10,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-clo
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueries } from '@tanstack/react-query';
 import { NotepadText, PlusIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -110,13 +111,19 @@ export function NotesSection({ projectId, subjectRef }: NotesSectionProps) {
               <LoaderOverlay message="Loading notes..." className="relative inset-auto" />
             </div>
           ) : error ? (
-            <p className="text-muted-foreground flex min-h-[120px] items-center justify-center text-center text-sm">
+            <Text
+              as="p"
+              textColor="muted"
+              className="flex min-h-[120px] items-center justify-center text-center">
               Failed to load notes. Please refresh the page to try again.
-            </p>
+            </Text>
           ) : (sorted ?? []).length === 0 ? (
-            <p className="text-muted-foreground flex min-h-[120px] items-center justify-center text-center text-sm">
+            <Text
+              as="p"
+              textColor="muted"
+              className="flex min-h-[120px] items-center justify-center text-center">
               No notes yet.
-            </p>
+            </Text>
           ) : (
             <div className="flex flex-col gap-3">
               {sorted.map((n) => (

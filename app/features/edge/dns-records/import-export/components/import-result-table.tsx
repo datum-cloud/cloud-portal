@@ -3,6 +3,7 @@ import { formatTTL, type ImportDetail } from '@/utils/helpers/dns-record.helper'
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckCircle2, XCircle, AlertCircle, MinusCircle } from 'lucide-react';
 import { useMemo } from 'react';
@@ -93,7 +94,7 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
             const [preference, exchange] = value.split('|');
             return (
               <div className="flex items-center gap-2">
-                <span className="text-sm break-all">{exchange}</span>
+                <Text className="break-all">{exchange}</Text>
                 <Tooltip
                   side="bottom"
                   message="Priority of mail servers defined by MX records. Lowest value = highest priority."
@@ -114,18 +115,18 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
             try {
               const soa = JSON.parse(value);
               return (
-                <span className="text-sm break-all">
+                <Text className="break-all">
                   {soa.mname} {soa.rname} {soa.refresh || 0} {soa.retry || 0} {soa.expire || 0}{' '}
                   {soa.ttl || 0}
-                </span>
+                </Text>
               );
             } catch {
               // Fallback if JSON parsing fails
-              return <span className="text-sm break-all">{value}</span>;
+              return <Text className="break-all">{value}</Text>;
             }
           }
 
-          return <span className="text-sm break-all">{value}</span>;
+          return <Text className="break-all">{value}</Text>;
         },
       },
       {
@@ -133,7 +134,7 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
         accessorKey: 'ttl',
         size: 100,
         cell: ({ row }) => {
-          return <span className="text-sm">{formatTTL(row.original.ttl)}</span>;
+          return <Text>{formatTTL(row.original.ttl)}</Text>;
         },
       },
       {
@@ -148,13 +149,15 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-1.5">
                 <Icon icon={StatusIcon} className={cn('size-4', statusConfig.className)} />
-                <span className={cn('text-xs font-medium', statusConfig.className)}>
+                <Text size="xs" weight="medium" className={statusConfig.className}>
                   {statusConfig.label}
-                </span>
+                </Text>
               </div>
               {/* Show message for failed and skipped records */}
               {message && action !== 'created' && (
-                <span className="text-muted-foreground pl-5.5 text-xs text-wrap">{message}</span>
+                <Text size="xs" textColor="muted" className="pl-5.5 text-wrap">
+                  {message}
+                </Text>
               )}
             </div>
           );

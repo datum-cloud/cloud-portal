@@ -11,6 +11,7 @@ import {
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
@@ -95,10 +96,10 @@ function PercentileRangeBar({
           />
         ) : null}
       </div>
-      <div className="text-muted-foreground text-5xs flex justify-between tabular-nums">
+      <Text as="div" size="5xs" textColor="muted" className="flex justify-between tabular-nums">
         <span>{p50 == null ? 'p50 —' : `p50 ${formatValue(p50, format, precision)}`}</span>
         <span>{p99 == null ? 'p99 —' : `p99 ${formatValue(p99, format, precision)}`}</span>
-      </div>
+      </Text>
     </div>
   );
 }
@@ -243,24 +244,33 @@ export function SparklineStatCard({
       ) : null}
       <CardContent className={cn('flex min-w-0 flex-col gap-2', isLoading && 'invisible')}>
         <div className="flex h-4 items-center justify-between gap-2">
-          <span className="text-muted-foreground text-xs font-medium">{title}</span>
-          <span className="text-muted-foreground text-5xs">
+          <Text size="xs" weight="medium" textColor="muted">
+            {title}
+          </Text>
+          <Text size="5xs" textColor="muted">
             {unavailable ? '\u00a0' : windowLabel}
-          </span>
+          </Text>
         </div>
-        <div className="text-foreground flex h-8 items-center text-2xl font-semibold tabular-nums">
+        <Text
+          as="div"
+          size="2xl"
+          weight="semibold"
+          textColor="default"
+          className="flex h-8 items-center tabular-nums">
           {unavailable ? (
-            <span className="text-muted-foreground text-sm font-medium">{unavailableLabel}</span>
+            <Text weight="medium" textColor="muted">
+              {unavailableLabel}
+            </Text>
           ) : denied ? (
             <Tooltip message="You don't have permission to view metrics">
-              <span className="text-muted-foreground text-sm">&mdash;</span>
+              <Text textColor="muted">&mdash;</Text>
             </Tooltip>
           ) : showIdle ? (
             <span className="text-muted-foreground">—</span>
           ) : (
             (headline ?? '—')
           )}
-        </div>
+        </Text>
         <div className="h-8 w-full">
           {denied ? null : showIdle ? (
             <div className="flex h-full items-center" aria-hidden="true">

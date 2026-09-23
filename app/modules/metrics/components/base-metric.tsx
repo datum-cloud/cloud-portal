@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import React from 'react';
 
 // Deterministic heights so the skeleton doesn't shift on re-render
@@ -47,7 +48,9 @@ export function BaseMetric({
   const containerStyle = height ? { height } : {};
 
   const DefaultEmptyState = (
-    <p className="text-muted-foreground text-sm">No data recorded in this period.</p>
+    <Text as="p" textColor="muted">
+      No data recorded in this period.
+    </Text>
   );
 
   const renderContent = () => {
@@ -69,11 +72,13 @@ export function BaseMetric({
 
     if (error) {
       return (
-        <div
-          className="text-muted-foreground flex w-full items-center justify-center p-4 text-center text-sm"
+        <Text
+          as="div"
+          textColor="muted"
+          className="flex w-full items-center justify-center p-4 text-center"
           style={containerStyle}>
           {formatMetricError(error)}
-        </div>
+        </Text>
       );
     }
 

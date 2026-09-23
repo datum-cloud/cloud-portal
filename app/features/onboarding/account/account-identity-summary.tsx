@@ -3,6 +3,7 @@ import GoogleIcon from '@/components/icon/google';
 import type { LastLoginProviderValue } from '@/resources/users';
 import { getInitials } from '@/utils/helpers/text.helper';
 import { Avatar, AvatarFallback, AvatarImage } from '@datum-cloud/datum-ui/avatar';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 export interface AccountIdentitySummaryProps {
   fullName: string;
@@ -42,8 +43,18 @@ export const AccountIdentitySummary = ({
       ) : null}
     </div>
     <div className="flex min-w-0 flex-1 flex-col gap-1 text-left">
-      <p className="text-foreground truncate text-xs leading-[18px] font-medium">{fullName}</p>
-      <p className="text-foreground truncate text-xs leading-4 opacity-60">{email}</p>
+      <Text
+        as="p"
+        size="xs"
+        weight="medium"
+        textColor="default"
+        ellipsis
+        className="leading-[18px]">
+        {fullName}
+      </Text>
+      <Text as="p" size="xs" textColor="default" ellipsis className="leading-4 opacity-60">
+        {email}
+      </Text>
     </div>
   </div>
 );

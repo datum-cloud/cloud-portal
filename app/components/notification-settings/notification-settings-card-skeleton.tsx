@@ -1,5 +1,6 @@
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 export interface NotificationSettingsCardSkeletonProps {
   title: string;
@@ -32,10 +33,10 @@ export function NotificationSettingsCardSkeleton({
                 <Skeleton className="size-4 rounded-sm" />
               </div>
 
-              <div className="text-2xs flex flex-col space-y-0.5 text-left">
+              <Text as="div" size="2xs" className="flex flex-col space-y-0.5 text-left">
                 <Skeleton className="h-3.5 w-40" />
                 {showDescription && <Skeleton className="h-3 w-64" />}
-              </div>
+              </Text>
             </div>
           </div>
         ))}

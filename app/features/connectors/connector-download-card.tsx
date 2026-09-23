@@ -4,6 +4,7 @@ import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { CloseIcon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { DownloadIcon } from 'lucide-react';
 
 type DesktopOs = 'windows' | 'macos' | 'linux';
@@ -59,11 +60,13 @@ export function ConnectorDownloadCard({ onDismiss }: ConnectorDownloadCardProps)
             <OsIcon os={os} size={24} className="text-muted-foreground" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium">Start a connector</p>
-            <p className="text-muted-foreground mt-0.5 text-xs">
+            <Text as="p" weight="medium">
+              Start a connector
+            </Text>
+            <Text as="p" size="xs" textColor="muted" className="mt-0.5">
               Download Datum Desktop for <strong>{osLabel}</strong> to run a connector on this
               device.
-            </p>
+            </Text>
             <LinkButton
               type="primary"
               theme="solid"

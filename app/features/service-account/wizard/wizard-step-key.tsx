@@ -3,6 +3,7 @@ import type { UseCase } from '@/resources/service-accounts';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { Switch } from '@datum-cloud/datum-ui/switch';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { addDays, format } from 'date-fns';
 import { KeyRoundIcon, ShieldIcon } from 'lucide-react';
@@ -42,7 +43,9 @@ function ExpirationField({ useCase }: ExpirationFieldProps) {
             <div className="flex items-center justify-between gap-4">
               <div className="flex flex-col gap-0.5">
                 <Label className="text-sm font-medium">Set expiration date</Label>
-                <p className="text-muted-foreground text-xs">{description}</p>
+                <Text as="p" size="xs" textColor="muted">
+                  {description}
+                </Text>
               </div>
               <Switch
                 checked={hasExpiration}
@@ -131,9 +134,13 @@ function KeyTypeCard({
           className={cn('size-4', selected ? 'text-primary' : 'text-muted-foreground')}
           aria-hidden="true"
         />
-        <span className="text-xs font-semibold">{title}</span>
+        <Text size="xs" weight="semibold">
+          {title}
+        </Text>
       </div>
-      <p className="text-muted-foreground text-xs">{description}</p>
+      <Text as="p" size="xs" textColor="muted">
+        {description}
+      </Text>
     </button>
   );
 }

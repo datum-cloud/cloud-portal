@@ -12,6 +12,7 @@ import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import {
   CircleCheckIcon,
@@ -217,8 +218,12 @@ export function HttpProxyHealthStrip({
             {headline.icon}
           </span>
           <div className="flex min-w-0 flex-col">
-            <span className="truncate text-sm font-semibold">{headline.title}</span>
-            <span className="text-muted-foreground truncate text-xs">{headline.detail}</span>
+            <Text weight="semibold" ellipsis>
+              {headline.title}
+            </Text>
+            <Text size="xs" textColor="muted" ellipsis>
+              {headline.detail}
+            </Text>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">

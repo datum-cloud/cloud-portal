@@ -9,6 +9,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useNavigate, useParams } from 'react-router';
 
 export const handle = {
@@ -66,12 +67,16 @@ export default function DnsZoneSettingsPage() {
     <div className="flex w-full flex-col gap-8">
       <Row gutter={[0, 24]}>
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Zone Description</h3>
+          <Text as="h3" size="base" weight="medium" className="mb-4">
+            Zone Description
+          </Text>
           <DescriptionFormCard projectId={projectId} defaultValue={dnsZone} />
         </Col>
 
         <Col span={24}>
-          <h3 className="mb-4 text-base font-medium">Delete Zone</h3>
+          <Text as="h3" size="base" weight="medium" className="mb-4">
+            Delete Zone
+          </Text>
           <DangerCard
             title="Warning: This Action is Irreversible"
             description={`This action cannot be undone. Once deleted, the ${dnsZone?.domainName} zone and all associated data will be permanently removed. `}

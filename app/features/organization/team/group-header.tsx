@@ -8,6 +8,7 @@ import { buildOrganizationNamespace } from '@/utils/common';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { UsersRoundIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -46,8 +47,10 @@ export function GroupHeader({ group, orgId }: GroupHeaderProps) {
         </div>
 
         <div className="flex flex-col gap-1">
-          <h1 className="text-foreground text-lg font-semibold">{group.name}</h1>
-          <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+          <Text as="h1" size="lg" weight="semibold" textColor="default">
+            {group.name}
+          </Text>
+          <Text as="div" textColor="muted" className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="font-medium">Group</span>
             <span className="bg-border inline-block size-1 rounded-full" />
             <span>
@@ -72,7 +75,7 @@ export function GroupHeader({ group, orgId }: GroupHeaderProps) {
               onClick={() => setDialogOpen(true)}>
               Manage Members
             </PermissionButton>
-          </div>
+          </Text>
         </div>
       </div>
 

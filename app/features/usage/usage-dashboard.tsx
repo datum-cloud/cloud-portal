@@ -11,6 +11,7 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BarChart3Icon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -43,8 +44,12 @@ const Section = ({
     return (
       <section className="border-border min-w-0 border-b py-8 last:border-b-0 last:pb-0">
         <div className="mb-6 flex max-w-2xl flex-col gap-2">
-          <h2 className="text-foreground text-base font-medium">{title}</h2>
-          <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+          <Text as="h2" size="base" weight="medium" textColor="default">
+            {title}
+          </Text>
+          <Text as="p" textColor="muted" className="leading-relaxed">
+            {description}
+          </Text>
         </div>
         {children}
       </section>
@@ -54,8 +59,12 @@ const Section = ({
   return (
     <section className="border-border grid min-w-0 grid-cols-1 gap-6 border-b py-8 last:border-b-0 last:pb-0 md:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] md:gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-12">
       <div className="flex min-w-0 flex-col gap-2">
-        <h2 className="text-foreground text-base font-medium">{title}</h2>
-        <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+        <Text as="h2" size="base" weight="medium" textColor="default">
+          {title}
+        </Text>
+        <Text as="p" textColor="muted" className="leading-relaxed">
+          {description}
+        </Text>
       </div>
       <div className="flex min-w-0 flex-col gap-4">{children}</div>
     </section>
@@ -66,8 +75,12 @@ function EmptyState({ title, body }: { title: string; body: React.ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-24 text-center">
       <Icon icon={BarChart3Icon} className="text-muted-foreground size-10" />
-      <p className="text-lg font-medium">{title}</p>
-      <p className="text-muted-foreground max-w-sm text-sm">{body}</p>
+      <Text as="p" size="lg" weight="medium">
+        {title}
+      </Text>
+      <Text as="p" textColor="muted" className="max-w-sm">
+        {body}
+      </Text>
     </div>
   );
 }
@@ -103,10 +116,17 @@ function UsagePageHeader({
       </div>
       {totalSpend !== undefined ? (
         <div className="shrink-0 text-left lg:text-right">
-          <p className="text-muted-foreground text-xs">Total spend this period</p>
-          <p className="text-foreground text-xl font-semibold tabular-nums sm:text-2xl">
+          <Text as="p" size="xs" textColor="muted">
+            Total spend this period
+          </Text>
+          <Text
+            as="p"
+            size="xl"
+            weight="semibold"
+            textColor="default"
+            className="tabular-nums sm:text-2xl">
             {formatCurrency(totalSpend, currencyCode)}
-          </p>
+          </Text>
         </div>
       ) : null}
     </div>

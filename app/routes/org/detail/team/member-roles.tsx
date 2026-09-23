@@ -25,6 +25,7 @@ import { buildOrganizationNamespace } from '@/utils/common';
 import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState, useMemo } from 'react';
 import {
   data,
@@ -379,8 +380,10 @@ function MemberRolesEditor({
           avatarOnly
         />
         <div className="flex flex-col gap-1">
-          <h1 className="text-foreground text-lg font-semibold">{memberFullName}</h1>
-          <div className="text-muted-foreground flex items-center gap-3 text-sm">
+          <Text as="h1" size="lg" weight="semibold" textColor="default">
+            {memberFullName}
+          </Text>
+          <Text as="div" textColor="muted" className="flex items-center gap-3">
             {member?.user?.email && <span>{member.user.email}</span>}
             {member?.user?.email && <span className="bg-border inline-block size-1 rounded-full" />}
             <span className="font-medium">User account</span>
@@ -390,7 +393,7 @@ function MemberRolesEditor({
                 <span className="font-medium">{orgDisplayName}</span>
               </>
             )}
-          </div>
+          </Text>
         </div>
       </div>
 
@@ -433,7 +436,9 @@ function MemberRolesEditor({
               className="bg-card flex flex-col overflow-hidden border-t md:w-3/5 md:border-t-0 md:border-l"
               data-testid="permissions-panel">
               <header className="border-b px-6 py-4">
-                <h2 className="text-foreground text-sm font-semibold">Effective Permissions</h2>
+                <Text as="h2" weight="semibold" textColor="default">
+                  Effective Permissions
+                </Text>
               </header>
               <div className="flex-1 overflow-y-auto">
                 <PermissionsPanel

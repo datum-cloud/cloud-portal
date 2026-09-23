@@ -11,6 +11,7 @@ import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Autocomplete, type AutocompleteOption } from '@datum-cloud/datum-ui/autocomplete';
 import { Label } from '@datum-cloud/datum-ui/label';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { useCallback, useEffect, useMemo } from 'react';
@@ -165,7 +166,11 @@ export function MetricsFilterSelect({
         />
       )}
 
-      {description && <p className="text-muted-foreground text-xs">{description}</p>}
+      {description && (
+        <Text as="p" size="xs" textColor="muted">
+          {description}
+        </Text>
+      )}
     </div>
   );
 }

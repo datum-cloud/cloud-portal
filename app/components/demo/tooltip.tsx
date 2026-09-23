@@ -8,6 +8,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Info, Settings, Trash2, Download, HelpCircle, AlertCircle } from 'lucide-react';
 
 export const tooltipDemoSections = [
@@ -69,9 +70,9 @@ export default function TooltipDemo() {
               <Button type="quaternary">Very Slow</Button>
             </Tooltip>
           </div>
-          <p className="text-muted-foreground text-xs">
+          <Text as="p" size="xs" textColor="muted">
             Hover over each button to experience different delay timings
-          </p>
+          </Text>
         </CardContent>
       </Card>
 
@@ -83,7 +84,9 @@ export default function TooltipDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Button Sizes</h4>
+            <Text as="h4" weight="medium">
+              Button Sizes
+            </Text>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Small button tooltip">
                 <Button size="small">Small</Button>
@@ -97,7 +100,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Button Types</h4>
+            <Text as="h4" weight="medium">
+              Button Types
+            </Text>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Primary action">
                 <Button type="primary">Primary</Button>
@@ -117,7 +122,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Button Themes</h4>
+            <Text as="h4" weight="medium">
+              Button Themes
+            </Text>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Solid theme">
                 <Button theme="solid">Solid</Button>
@@ -150,7 +157,9 @@ export default function TooltipDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Icon Buttons</h4>
+            <Text as="h4" weight="medium">
+              Icon Buttons
+            </Text>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Settings">
                 <Button size="icon" icon={<Settings className="h-4 w-4" />} />
@@ -167,7 +176,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Icon Elements</h4>
+            <Text as="h4" weight="medium">
+              Icon Elements
+            </Text>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="Click for more information">
                 <Info className="text-muted-foreground h-5 w-5 cursor-help" />
@@ -181,7 +192,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Buttons with Icons</h4>
+            <Text as="h4" weight="medium">
+              Buttons with Icons
+            </Text>
             <div className="flex flex-wrap items-center gap-2">
               <Tooltip message="Add a new item">
                 <Button icon={<Download className="h-4 w-4" />}>Download</Button>
@@ -208,9 +221,9 @@ export default function TooltipDemo() {
               message={
                 <div className="space-y-1">
                   <p className="font-semibold">Additional Information</p>
-                  <p className="text-xs">
+                  <Text as="p" size="xs">
                     This tooltip contains formatted content with multiple lines
-                  </p>
+                  </Text>
                 </div>
               }>
               <Button>Rich Content</Button>
@@ -232,7 +245,9 @@ export default function TooltipDemo() {
               message={
                 <div className="space-y-1">
                   <p className="font-semibold">Status: Active</p>
-                  <p className="text-success text-xs">All systems operational</p>
+                  <Text as="p" size="xs" textColor="success">
+                    All systems operational
+                  </Text>
                 </div>
               }>
               <Info className="text-primary h-5 w-5 cursor-help" />
@@ -273,8 +288,12 @@ export default function TooltipDemo() {
                 message={
                   <div className="space-y-1">
                     <p className="font-semibold">API Key Requirements</p>
-                    <p className="text-xs">Must be 32 characters long</p>
-                    <p className="text-xs">Starts with &apos;sk-&apos; prefix</p>
+                    <Text as="p" size="xs">
+                      Must be 32 characters long
+                    </Text>
+                    <Text as="p" size="xs">
+                      Starts with &apos;sk-&apos; prefix
+                    </Text>
                   </div>
                 }>
                 <AlertCircle className="text-warning h-4 w-4 cursor-help" />
@@ -313,9 +332,9 @@ export default function TooltipDemo() {
               </span>
             </Tooltip>
           </div>
-          <p className="text-muted-foreground text-xs">
+          <Text as="p" size="xs" textColor="muted">
             Note: Wrap disabled buttons in a span to enable tooltip functionality
-          </p>
+          </Text>
         </CardContent>
       </Card>
 
@@ -327,7 +346,9 @@ export default function TooltipDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Truncated Text</h4>
+            <Text as="h4" weight="medium">
+              Truncated Text
+            </Text>
             <div className="flex flex-wrap gap-4">
               <Tooltip message="This is a very long text that gets truncated in the UI">
                 <span className="inline-block max-w-[200px] truncate rounded border px-2 py-1">
@@ -337,7 +358,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Date/Time Tooltips</h4>
+            <Text as="h4" weight="medium">
+              Date/Time Tooltips
+            </Text>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="January 15, 2024 at 3:45 PM (UTC)">
                 <time className="cursor-help">2024-01-15</time>
@@ -348,7 +371,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Abbreviations</h4>
+            <Text as="h4" weight="medium">
+              Abbreviations
+            </Text>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="Application Programming Interface">
                 <abbr className="cursor-help underline decoration-dotted">API</abbr>
@@ -362,7 +387,9 @@ export default function TooltipDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Status Text</h4>
+            <Text as="h4" weight="medium">
+              Status Text
+            </Text>
             <div className="flex flex-wrap items-center gap-4">
               <Tooltip message="All systems are running normally">
                 <span className="text-success cursor-help">Online</span>

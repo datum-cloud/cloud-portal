@@ -16,6 +16,7 @@ import {
   StepperNavigation,
 } from '@datum-cloud/datum-ui/form/stepper';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { addDays, format } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
 import { useMemo, useState } from 'react';
@@ -177,9 +178,12 @@ export function CreateServiceAccountWizard({
 
               {accountCreateError && (
                 <div className="border-stepper-line border-b px-5 py-4">
-                  <div className="border-destructive/30 bg-destructive/5 text-destructive rounded-md border px-4 py-3 text-sm">
+                  <Text
+                    as="div"
+                    textColor="destructive"
+                    className="border-destructive/30 bg-destructive/5 rounded-md border px-4 py-3">
                     {accountCreateError}
-                  </div>
+                  </Text>
                 </div>
               )}
 
@@ -217,9 +221,9 @@ export function CreateServiceAccountWizard({
                     role="status"
                     aria-label="Wizard orchestration progress">
                     <SpinnerIcon size="xl" aria-hidden="true" />
-                    <p className="text-foreground text-sm font-semibold">
+                    <Text as="p" weight="semibold" textColor="default">
                       {RUNNING_MESSAGE[state.phase]}
-                    </p>
+                    </Text>
                   </motion.div>
                 )}
 

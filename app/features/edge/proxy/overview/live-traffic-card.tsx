@@ -18,6 +18,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { ActivityIcon } from 'lucide-react';
 import { useMemo } from 'react';
@@ -137,16 +138,20 @@ export function HttpProxyLiveTrafficCard({
         </CardDescription>
         <CardAction className="flex items-start gap-4 text-right">
           <div className="flex flex-col">
-            <span className="text-sm font-semibold tabular-nums">
+            <Text weight="semibold" className="tabular-nums">
               {stats.peak == null || quiet ? '—' : formatValue(stats.peak, 'requestsPerSecond', 1)}
-            </span>
-            <span className="text-muted-foreground text-5xs uppercase">Peak</span>
+            </Text>
+            <Text size="5xs" textColor="muted" className="uppercase">
+              Peak
+            </Text>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold tabular-nums">
+            <Text weight="semibold" className="tabular-nums">
               {stats.avg == null || quiet ? '—' : formatValue(stats.avg, 'requestsPerSecond', 1)}
-            </span>
-            <span className="text-muted-foreground text-5xs uppercase">Avg</span>
+            </Text>
+            <Text size="5xs" textColor="muted" className="uppercase">
+              Avg
+            </Text>
           </div>
         </CardAction>
       </CardHeader>
@@ -159,12 +164,12 @@ export function HttpProxyLiveTrafficCard({
           ) : denied ? (
             <div className="absolute inset-0 flex items-center justify-center">
               <Tooltip message="You don't have permission to view metrics">
-                <span className="text-muted-foreground text-sm">Metrics unavailable</span>
+                <Text textColor="muted">Metrics unavailable</Text>
               </Tooltip>
             </div>
           ) : error ? (
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-muted-foreground text-sm">Unable to load traffic.</span>
+              <Text textColor="muted">Unable to load traffic.</Text>
             </div>
           ) : quiet ? (
             <OverviewEmptyState

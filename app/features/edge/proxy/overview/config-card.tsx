@@ -39,6 +39,7 @@ import {
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { PencilIcon, ShieldIcon } from 'lucide-react';
 import { useState } from 'react';
 
@@ -276,7 +277,9 @@ export const HttpProxyConfigCard = ({
                     <SelectItem key={option.value} value={option.value}>
                       <span className="flex flex-col items-start">
                         <span>{option.label}</span>
-                        <span className="text-muted-foreground text-xs">{option.description}</span>
+                        <Text size="xs" textColor="muted">
+                          {option.description}
+                        </Text>
                       </span>
                     </SelectItem>
                   ))}
@@ -316,9 +319,9 @@ export const HttpProxyConfigCard = ({
                         <SelectItem key={option.value} value={String(option.value)}>
                           <span className="flex flex-col items-start">
                             <span>{getParanoiaLevelLabel(option.value)}</span>
-                            <span className="text-muted-foreground text-xs">
+                            <Text size="xs" textColor="muted">
                               {option.description}
-                            </span>
+                            </Text>
                           </span>
                         </SelectItem>
                       ))}
@@ -352,9 +355,7 @@ export const HttpProxyConfigCard = ({
                   disabled={saving}
                 />
               ) : (
-                <span className="text-muted-foreground text-sm">
-                  Enable protection to choose rule categories
-                </span>
+                <Text textColor="muted">Enable protection to choose rule categories</Text>
               )
             ) : (
               (wafUnavailableValue ??
@@ -372,9 +373,9 @@ export const HttpProxyConfigCard = ({
                       message={OWASP_CRS_CATEGORIES.filter((c) => currentDisabledIds.includes(c.id))
                         .map((c) => c.label)
                         .join(', ')}>
-                      <span className="text-muted-foreground text-xs">
+                      <Text size="xs" textColor="muted">
                         · {excludedCount} excluded
-                      </span>
+                      </Text>
                     </Tooltip>
                   ) : null}
                 </div>
@@ -403,11 +404,15 @@ export const HttpProxyConfigCard = ({
                   className="font-mono"
                 />
                 {hostHeaderError ? (
-                  <p className="text-destructive text-xs">{hostHeaderError}</p>
+                  <Text as="p" size="xs" textColor="destructive">
+                    {hostHeaderError}
+                  </Text>
                 ) : null}
               </div>
             ) : currentHostHeader ? (
-              <span className="truncate font-mono text-sm">{currentHostHeader}</span>
+              <Text ellipsis className="font-mono">
+                {currentHostHeader}
+              </Text>
             ) : (
               <span className="text-muted-foreground" aria-label="Not set">
                 &mdash;

@@ -1,5 +1,6 @@
 import { DateTime } from '@/components/date-time';
 import { toChartLabelDate } from '@/modules/metrics/utils/chart-axis';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import type { ReactNode } from 'react';
 
 type TooltipItem = {
@@ -28,9 +29,9 @@ export function MetricsChartTooltip({
 
   return (
     <div className="border-border/50 bg-background min-w-[13rem] rounded-lg border px-3.5 py-2.5 shadow-xl">
-      <div className="text-muted-foreground mb-2 text-xs">
+      <Text as="div" size="xs" textColor="muted" className="mb-2">
         <DateTime date={toChartLabelDate(label)} />
-      </div>
+      </Text>
       <div className="flex flex-col gap-2">
         {items.map((item) => {
           const name = String(item.name ?? '');

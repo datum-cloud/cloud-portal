@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
+import { Text } from '@datum-cloud/datum-ui/typography';
 
 export const statusBadgeDemoSections = [
   { id: 'status-badge-statuses', label: 'Status Badge Statuses' },
@@ -36,7 +37,7 @@ export default function BadgeStatusDemo() {
             <BadgeStatus status="inactive" />
             <BadgeStatus status="success" />
           </div>
-          <div className="text-muted-foreground text-sm">
+          <Text as="div" textColor="muted">
             <p>Each status has centralized color configuration in STATUS_CONFIG:</p>
             <ul className="mt-2 ml-6 list-disc space-y-1">
               <li>
@@ -55,7 +56,7 @@ export default function BadgeStatusDemo() {
                 <strong>success</strong> - Green (success theme, light)
               </li>
             </ul>
-          </div>
+          </Text>
         </CardContent>
       </Card>
 
@@ -67,7 +68,9 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Active Status with Custom Labels</h4>
+            <Text as="h4" weight="medium">
+              Active Status with Custom Labels
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" label="Active" />
               <BadgeStatus status="active" label="Running" />
@@ -75,7 +78,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Success Status with Custom Labels</h4>
+            <Text as="h4" weight="medium">
+              Success Status with Custom Labels
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="success" label="Ready" />
               <BadgeStatus status="success" label="Completed" />
@@ -83,7 +88,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Pending Status with Custom Labels</h4>
+            <Text as="h4" weight="medium">
+              Pending Status with Custom Labels
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="pending" label="Setting up..." />
               <BadgeStatus status="pending" label="Verifying..." />
@@ -91,7 +98,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Error Status with Custom Labels</h4>
+            <Text as="h4" weight="medium">
+              Error Status with Custom Labels
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="error" label="Failed" />
               <BadgeStatus status="error" label="Error" />
@@ -125,9 +134,9 @@ export default function BadgeStatusDemo() {
             />
             <BadgeStatus status="success" tooltipText="Operation completed successfully" />
           </div>
-          <div className="text-muted-foreground text-sm">
+          <Text as="div" textColor="muted">
             <p>Tooltips are automatically disabled for active status by default.</p>
-          </div>
+          </Text>
         </CardContent>
       </Card>
 
@@ -139,30 +148,34 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">With Icons</h4>
+            <Text as="h4" weight="medium">
+              With Icons
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" showIcon />
               <BadgeStatus status="pending" showIcon />
               <BadgeStatus status="error" showIcon />
               <BadgeStatus status="success" showIcon />
             </div>
-            <p className="text-muted-foreground text-xs">
+            <Text as="p" size="xs" textColor="muted">
               Note: Only pending status has an icon defined (spinning loader). Other statuses will
               show no icon even when showIcon is true.
-            </p>
+            </Text>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Without Icons (Default)</h4>
+            <Text as="h4" weight="medium">
+              Without Icons (Default)
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" />
               <BadgeStatus status="pending" />
               <BadgeStatus status="error" />
               <BadgeStatus status="success" />
             </div>
-            <p className="text-muted-foreground text-xs">
+            <Text as="p" size="xs" textColor="muted">
               By default, showIcon is false. Icons are only shown when explicitly enabled and
               defined in STATUS_CONFIG.
-            </p>
+            </Text>
           </div>
         </CardContent>
       </Card>
@@ -177,7 +190,9 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Success Status</h4>
+            <Text as="h4" weight="medium">
+              Success Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus
                 status={{
@@ -195,7 +210,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Pending Status</h4>
+            <Text as="h4" weight="medium">
+              Pending Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus
                 status={{
@@ -213,7 +230,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Error Status</h4>
+            <Text as="h4" weight="medium">
+              Error Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus
                 status={{
@@ -230,12 +249,12 @@ export default function BadgeStatusDemo() {
               />
             </div>
           </div>
-          <div className="text-muted-foreground text-sm">
+          <Text as="div" textColor="muted">
             <p>
               The status message from IControlPlaneStatus is automatically used as tooltip text when
               no custom tooltipText is provided.
             </p>
-          </div>
+          </Text>
         </CardContent>
       </Card>
 
@@ -247,14 +266,18 @@ export default function BadgeStatusDemo() {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Project Status</h4>
+            <Text as="h4" weight="medium">
+              Project Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" label="Active" />
               <BadgeStatus status="pending" label="Setting up..." />
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Workload Status</h4>
+            <Text as="h4" weight="medium">
+              Workload Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="active" label="Available" />
               <BadgeStatus status="pending" />
@@ -262,7 +285,9 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Export Policy Status</h4>
+            <Text as="h4" weight="medium">
+              Export Policy Status
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="success" label="Ready" />
               <BadgeStatus status="pending" />
@@ -270,14 +295,18 @@ export default function BadgeStatusDemo() {
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">Domain Verification</h4>
+            <Text as="h4" weight="medium">
+              Domain Verification
+            </Text>
             <div className="flex flex-wrap gap-2">
               <BadgeStatus status="success" label="Verified" />
               <BadgeStatus status="pending" label="Verifying..." />
             </div>
           </div>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium">In Table Cells</h4>
+            <Text as="h4" weight="medium">
+              In Table Cells
+            </Text>
             <div className="border-input rounded-md border p-4">
               <table className="w-full">
                 <thead>

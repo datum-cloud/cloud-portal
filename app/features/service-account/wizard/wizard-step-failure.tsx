@@ -1,5 +1,6 @@
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { CircleAlertIcon } from 'lucide-react';
 import { motion } from 'motion/react';
 import type { ReactNode } from 'react';
@@ -38,8 +39,12 @@ export function WizardStepFailure({
       <Icon icon={CircleAlertIcon} className="text-destructive size-16" aria-hidden="true" />
 
       <div className="flex flex-col items-center gap-1.5">
-        <span className="text-foreground text-lg font-semibold">{title}</span>
-        <p className="text-muted-foreground max-w-md text-sm">{description}</p>
+        <Text size="lg" weight="semibold" textColor="default">
+          {title}
+        </Text>
+        <Text as="p" textColor="muted" className="max-w-md">
+          {description}
+        </Text>
       </div>
 
       <div className="flex items-center gap-3">

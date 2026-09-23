@@ -13,6 +13,7 @@ import {
 import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { jwtDecode } from 'jwt-decode';
 import { LoaderFunctionArgs, redirect } from 'react-router';
 
@@ -117,8 +118,12 @@ export default function AuthCallbackPage() {
 
       <>
         <SpinnerIcon size="lg" aria-hidden="true" />
-        <h2 className="text-xl font-semibold">Authenticating...</h2>
-        <p className="text-muted-foreground text-sm">Setting up your account...</p>
+        <Text as="h2" size="xl" weight="semibold">
+          Authenticating...
+        </Text>
+        <Text as="p" textColor="muted">
+          Setting up your account...
+        </Text>
       </>
     </div>
   );

@@ -33,6 +33,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { MoreActions, type ActionItem } from '@datum-cloud/datum-ui/more-actions';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import {
   CopyIcon,
   GlobeIcon,
@@ -251,10 +252,13 @@ export const HttpProxyHostnamesCard = ({
       <CardContent padding="none">
         <div>
           {rows.length === 0 ? (
-            <div className="text-muted-foreground border-card-border mx-(--card-px) border-b py-3.5 text-sm">
+            <Text
+              as="div"
+              textColor="muted"
+              className="border-card-border mx-(--card-px) border-b py-3.5">
               No custom hostnames yet. Requests are served on the default hostname until you attach
               your own domain.
-            </div>
+            </Text>
           ) : null}
 
           {rows.map((row) => (

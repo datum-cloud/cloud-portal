@@ -4,6 +4,7 @@ import {
 } from '@/features/edge/proxy/overview/enrich-active-pops';
 import { usePermission } from '@/modules/rbac';
 import { useLocations } from '@/resources/locations';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useCallback, useMemo, type ReactNode } from 'react';
 
 const EMPTY_LEGEND_LABELS: Record<string, string> = {};
@@ -33,7 +34,9 @@ export function useRegionLabels(projectId: string) {
       return (
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           <span className="text-foreground truncate">{name}</span>
-          <span className="text-muted-foreground/70 text-3xs shrink-0">{country}</span>
+          <Text size="3xs" className="text-muted-foreground/70 shrink-0">
+            {country}
+          </Text>
         </span>
       );
     },

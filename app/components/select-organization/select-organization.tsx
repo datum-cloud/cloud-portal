@@ -15,6 +15,7 @@ import {
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Popover, PopoverContent, PopoverTrigger } from '@datum-cloud/datum-ui/popover';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { BuildingIcon, CheckIcon, ChevronDown, Settings2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -92,7 +93,7 @@ export const SelectOrganization = ({
                 <div className="flex items-center justify-center">
                   <SpinnerIcon size="xs" aria-hidden="true" />
                 </div>
-                <span className="text-xs">Loading...</span>
+                <Text size="xs">Loading...</Text>
               </CommandItem>
             ) : (
               <CommandGroup className="max-h-[300px] overflow-y-auto px-0 py-0">
@@ -129,7 +130,7 @@ export const SelectOrganization = ({
                       })}
                       className="flex items-center gap-2 px-3 py-2">
                       <Icon icon={Settings2} className="size-3.5" />
-                      <span className="text-xs">Organization settings</span>
+                      <Text size="xs">Organization settings</Text>
                     </Link>
                   </CommandItem>
                 )}
@@ -138,7 +139,7 @@ export const SelectOrganization = ({
                     to={paths.account.organizations.root}
                     className="flex items-center gap-2 px-3 py-2">
                     <Icon icon={BuildingIcon} className="size-3.5" />
-                    <span className="text-xs">Organizations</span>
+                    <Text size="xs">Organizations</Text>
                   </Link>
                 </CommandItem>
               </>

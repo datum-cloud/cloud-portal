@@ -1,6 +1,7 @@
 import type { RowAction, RowData } from '../types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { isValidElement, createElement, type ComponentType, type ReactNode } from 'react';
 
@@ -54,7 +55,7 @@ export function InlineActions<TData extends RowData>({
             data-e2e={action['data-e2e']}
             className={cn('h-7 px-2', action.className)}>
             {renderIcon(action.icon)}
-            {showLabel && <span className="text-xs">{action.label}</span>}
+            {showLabel && <Text size="xs">{action.label}</Text>}
           </Button>
         );
 

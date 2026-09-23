@@ -6,6 +6,7 @@ import type { FilterOption } from '@/modules/metrics/types/metrics.type';
 import { createMetricsParser } from '@/modules/metrics/utils/url-parsers';
 import { Label } from '@datum-cloud/datum-ui/label';
 import { RadioGroup, RadioGroupItem } from '@datum-cloud/datum-ui/radio-group';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { useEffect } from 'react';
@@ -75,14 +76,20 @@ export function MetricsFilterRadio({
                 <span>{option.label}</span>
               </div>
               {option.description && (
-                <div className="text-muted-foreground mt-1 text-xs">{option.description}</div>
+                <Text as="div" size="xs" textColor="muted" className="mt-1">
+                  {option.description}
+                </Text>
               )}
             </Label>
           </div>
         ))}
       </RadioGroup>
 
-      {description && <p className="text-muted-foreground text-xs">{description}</p>}
+      {description && (
+        <Text as="p" size="xs" textColor="muted">
+          {description}
+        </Text>
+      )}
     </div>
   );
 }

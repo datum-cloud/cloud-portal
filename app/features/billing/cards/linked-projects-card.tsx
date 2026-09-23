@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@datum-cloud/datum-ui/table';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { FolderRoot } from 'lucide-react';
 import { Link } from 'react-router';
@@ -57,11 +58,13 @@ export const LinkedProjectsCard = ({ bindings }: LinkedProjectsCardProps) => {
       <Card size="sm" sectioned>
         <CardContent className="border-border bg-muted/30 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-5 py-10 text-center">
           <Icon icon={FolderRoot} className="text-muted-foreground size-5" />
-          <p className="text-foreground text-sm font-medium">No projects linked yet</p>
-          <p className="text-muted-foreground max-w-md text-xs">
+          <Text as="p" weight="medium" textColor="default">
+            No projects linked yet
+          </Text>
+          <Text as="p" size="xs" textColor="muted" className="max-w-md">
             Open a project&apos;s settings and pick this billing account to start funnelling its
             usage and invoices here.
-          </p>
+          </Text>
         </CardContent>
       </Card>
     );

@@ -49,6 +49,7 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueries } from '@tanstack/react-query';
 import { Building, PlusIcon, Trash2Icon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -540,9 +541,9 @@ export default function AccountBillingAccountsPage() {
             <span className="font-medium">
               {getBillingAccountDisplayName(row.original.account)}
             </span>
-            <span className="text-muted-foreground text-xs">
+            <Text size="xs" textColor="muted">
               {row.original.account.metadata?.name}
-            </span>
+            </Text>
           </div>
         ),
       },
@@ -552,14 +553,16 @@ export default function AccountBillingAccountsPage() {
         accessorFn: (row) => row.orgDisplayName ?? row.orgId ?? '',
         cell: ({ row }) => {
           if (!row.original.orgId) {
-            return <span className="text-muted-foreground text-xs">Unknown</span>;
+            return (
+              <Text size="xs" textColor="muted">
+                Unknown
+              </Text>
+            );
           }
           return (
             <div className="flex items-center gap-2">
               <Icon icon={Building} className="text-icon-primary size-3.5" />
-              <span className="text-foreground text-sm">
-                {row.original.orgDisplayName ?? row.original.orgId}
-              </span>
+              <Text textColor="default">{row.original.orgDisplayName ?? row.original.orgId}</Text>
             </div>
           );
         },
@@ -576,7 +579,11 @@ export default function AccountBillingAccountsPage() {
           const linkedCount =
             row.original.account.status?.linkedProjectsCount ?? row.original.projectLabels.length;
           if (linkedCount === 0) {
-            return <span className="text-muted-foreground text-xs">No linked projects</span>;
+            return (
+              <Text size="xs" textColor="muted">
+                No linked projects
+              </Text>
+            );
           }
           return (
             <ChipsOverflow items={row.original.projectLabels} maxVisible={2} theme="outline" />
@@ -589,16 +596,24 @@ export default function AccountBillingAccountsPage() {
         cell: ({ row }) => {
           const ref = row.original.account.spec?.defaultPaymentMethodRef?.name;
           if (!ref) {
-            return <span className="text-muted-foreground text-xs">Not set</span>;
+            return (
+              <Text size="xs" textColor="muted">
+                Not set
+              </Text>
+            );
           }
           const card = row.original.defaultPaymentMethod?.status?.details?.card;
           if (!card?.last4) {
-            return <span className="text-muted-foreground text-xs">{ref}</span>;
+            return (
+              <Text size="xs" textColor="muted">
+                {ref}
+              </Text>
+            );
           }
           return (
             <div className="flex items-center gap-2">
               <CardBrandIcon brand={normalizeCardBrand(card.brand)} />
-              <span className="text-foreground text-sm">•••• {card.last4}</span>
+              <Text textColor="default">•••• {card.last4}</Text>
             </div>
           );
         },

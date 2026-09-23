@@ -1,4 +1,5 @@
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 
 interface IdentityItemSkeletonProps {
@@ -41,12 +42,12 @@ export const IdentityItemSkeleton = ({
             </div>
 
             {/* Label + Sublabel skeleton - matches: text-2xs flex flex-col space-y-0.5 text-left */}
-            <div className="text-2xs flex flex-col space-y-0.5 text-left">
+            <Text as="div" size="2xs" className="flex flex-col space-y-0.5 text-left">
               {/* Label skeleton - matches: font-medium */}
               <Skeleton className="h-3.5 w-24" />
               {/* Sublabel skeleton - matches: text-foreground/80 */}
               <Skeleton className="h-3 w-40" />
-            </div>
+            </Text>
           </div>
 
           {/* Right Section - matches: flex items-center justify-end gap-10 */}

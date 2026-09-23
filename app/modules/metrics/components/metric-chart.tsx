@@ -44,6 +44,7 @@ import {
 import { useApp } from '@/providers/app.provider';
 import { getBrowserTimezone } from '@/utils/helpers/timezone.helper';
 import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/datum-ui/chart';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { useQueryState } from 'nuqs';
 import { ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
@@ -544,7 +545,11 @@ export function MetricChart({
   );
 
   const footerLegend = showLegend ? (
-    <div className="text-muted-foreground text-3xs flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-1 pt-1.5 leading-none">
+    <Text
+      as="div"
+      size="3xs"
+      textColor="muted"
+      className="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 px-1 pt-1.5 leading-none">
       {Object.entries(chartConfig).map(([key, item]) => {
         const isHidden = hiddenSeries.has(key);
         return (
@@ -571,7 +576,7 @@ export function MetricChart({
           </button>
         );
       })}
-    </div>
+    </Text>
   ) : null;
 
   return (

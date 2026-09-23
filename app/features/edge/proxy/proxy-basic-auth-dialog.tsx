@@ -14,6 +14,7 @@ import { Input } from '@datum-cloud/datum-ui/input';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
 import { Switch } from '@datum-cloud/datum-ui/switch';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { Eye, EyeOff, PlusIcon, TrashIcon, TriangleAlert } from 'lucide-react';
 import { forwardRef, useCallback, useMemo, useImperativeHandle, useState } from 'react';
 
@@ -143,7 +144,7 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                     setEnabled(checked);
                   }}
                 />
-                <span className="text-sm">{enabled ? 'Enabled' : 'Disabled'}</span>
+                <Text>{enabled ? 'Enabled' : 'Disabled'}</Text>
               </div>
             )}
           </Form.Field>
@@ -161,9 +162,9 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
                 </Alert>
               )}
 
-              <p className="text-muted-foreground text-xs">
+              <Text as="p" size="xs" textColor="muted">
                 Passwords must be re-entered to save changes.
-              </p>
+              </Text>
 
               <Form.FieldArray name="users">
                 {({ fields, append, remove }) => (

@@ -4,6 +4,7 @@ import { humanizeDimension } from '../usage.view';
 import { QuotaIndicator } from './quota-ring';
 import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -92,27 +93,36 @@ export function MeterCard({ meter }: MeterCardProps) {
     <Card size="sm" sectioned className="@container h-full min-w-0 overflow-hidden">
       <CardHeader className="flex flex-col items-stretch gap-2 space-y-0 px-4 pt-4 pb-0 @sm:px-5 @sm:pt-5">
         <div className="flex min-w-0 items-start justify-between gap-3">
-          <h3 className="text-foreground min-w-0 text-base leading-snug font-medium">
+          <Text
+            as="h3"
+            size="base"
+            weight="medium"
+            textColor="default"
+            className="min-w-0 leading-snug">
             {meter.label}
-          </h3>
+          </Text>
           <div className="flex shrink-0 items-center gap-2">
-            <span className="text-foreground text-sm font-medium tabular-nums">
+            <Text weight="medium" textColor="default" className="tabular-nums">
               {formatUsagePair(meter.unit, meter.used, meter.limit)}
-            </span>
+            </Text>
             <QuotaIndicator used={meter.used} limit={meter.limit} size={24} />
           </div>
         </div>
         {meter.description || showRate ? (
           <div className="flex min-w-0 items-baseline justify-between gap-3">
             {meter.description ? (
-              <p className="text-muted-foreground line-clamp-2 min-w-0 text-sm leading-relaxed">
+              <Text as="p" textColor="muted" className="line-clamp-2 min-w-0 leading-relaxed">
                 {meter.description}
-              </p>
+              </Text>
             ) : (
               <span aria-hidden="true" />
             )}
             {showRate ? (
-              <p className="text-muted-foreground shrink-0 text-right text-xs leading-relaxed tabular-nums">
+              <Text
+                as="p"
+                size="xs"
+                textColor="muted"
+                className="shrink-0 text-right leading-relaxed tabular-nums">
                 {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
                 {(meter.spend ?? 0) > 0 ? (
                   <>
@@ -122,7 +132,7 @@ export function MeterCard({ meter }: MeterCardProps) {
                     </span>
                   </>
                 ) : null}
-              </p>
+              </Text>
             ) : null}
           </div>
         ) : null}
@@ -153,13 +163,13 @@ export function MeterCard({ meter }: MeterCardProps) {
 
       <CardContent className="min-w-0 px-4 pt-4 pb-4 @sm:px-5 @sm:pb-5">
         {isBreakdownView && !isStackedChart ? (
-          <div className="text-muted-foreground flex h-[220px] items-center justify-center text-sm">
+          <Text as="div" textColor="muted" className="flex h-[220px] items-center justify-center">
             No {activeTab.toLowerCase()} breakdown recorded in this period.
-          </div>
+          </Text>
         ) : chartData.length === 0 ? (
-          <div className="text-muted-foreground flex h-[220px] items-center justify-center text-sm">
+          <Text as="div" textColor="muted" className="flex h-[220px] items-center justify-center">
             No usage recorded in this period.
-          </div>
+          </Text>
         ) : (
           <ResponsiveContainer key={activeTab} width="100%" height={isStackedChart ? 248 : 220}>
             <BarChart
@@ -198,16 +208,19 @@ export function MeterCard({ meter }: MeterCardProps) {
                     .filter((entry) => typeof entry.value === 'number' && entry.value > 0);
                   return (
                     <div className="border-border bg-background rounded-md border px-2.5 py-1.5 shadow-sm">
-                      <div className="text-muted-foreground text-xs">
+                      <Text as="div" size="xs" textColor="muted">
                         {format(new Date(label as number), 'MMM d, yyyy')}
-                      </div>
+                      </Text>
                       {isStackedChart && stack ? (
                         stackedRows.length > 0 ? (
                           <div className="mt-1 flex flex-col gap-0.5">
                             {stackedRows.map((entry) => (
-                              <div
-                                key={entry.dataKey as string}
-                                className="text-foreground flex items-center gap-1.5 text-xs">
+                              <Text
+                                as="div"
+                                size="xs"
+                                textColor="default"
+                                className="flex items-center gap-1.5"
+                                key={entry.dataKey as string}>
                                 <span
                                   className="size-2 shrink-0 rounded-[2px]"
                                   style={{ backgroundColor: entry.color }}
@@ -221,22 +234,27 @@ export function MeterCard({ meter }: MeterCardProps) {
                                     typeof entry.value === 'number' ? entry.value : 0
                                   )}
                                 </span>
-                              </div>
+                              </Text>
                             ))}
                           </div>
                         ) : (
-                          <div className="text-foreground mt-1 text-xs font-medium">
+                          <Text
+                            as="div"
+                            size="xs"
+                            weight="medium"
+                            textColor="default"
+                            className="mt-1">
                             {formatByUnit(meter.unit, 0)}
-                          </div>
+                          </Text>
                         )
                       ) : (
-                        <div className="text-foreground text-xs font-medium">
+                        <Text as="div" size="xs" weight="medium" textColor="default">
                           {meter.label}:{' '}
                           {formatByUnit(
                             meter.unit,
                             typeof payload[0].value === 'number' ? payload[0].value : 0
                           )}
-                        </div>
+                        </Text>
                       )}
                     </div>
                   );

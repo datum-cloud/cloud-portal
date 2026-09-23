@@ -12,6 +12,7 @@ import { DnsRecordTestCard } from '@/routes/test/dns-record/components/dns-recor
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useState } from 'react';
 
 /**
@@ -181,10 +182,12 @@ export default function DnsRecordTestPage() {
       <div className="mb-6">
         <div className="mb-2 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">DNS Record Type Validation Testing</h1>
-            <p className="text-muted-foreground mt-1 text-sm">
+            <Text as="h1" size="2xl" weight="bold">
+              DNS Record Type Validation Testing
+            </Text>
+            <Text as="p" textColor="muted" className="mt-1">
               Test validation for all DNS record types with customizable scenarios
-            </p>
+            </Text>
           </div>
           <Badge type="primary" theme="outline" className="h-fit">
             Test Mode
@@ -192,7 +195,7 @@ export default function DnsRecordTestPage() {
         </div>
 
         {/* How to Use - Moved to top */}
-        <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm">
+        <Text as="div" className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
           <h3 className="mb-2 font-semibold">How to Use:</h3>
           <ul className="text-muted-foreground list-inside list-disc space-y-1">
             <li>Each card shows a form with all fields for that DNS record type</li>
@@ -201,7 +204,7 @@ export default function DnsRecordTestPage() {
             <li>Download scenarios as JSON, customize them, and import to replace all scenarios</li>
             <li>All validation happens client-side - no API calls are made</li>
           </ul>
-        </div>
+        </Text>
 
         {/* Toolbar */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
