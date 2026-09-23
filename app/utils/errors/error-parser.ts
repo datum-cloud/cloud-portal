@@ -22,6 +22,22 @@ const ADMISSION_WEBHOOK_PATTERN = /^admission webhook "[^"]+" denied the request
  */
 const K8S_NOT_FOUND_PATTERN = /^(\w+)\.[\w.-]+ "([^"]+)" not found$/;
 
+/**
+ * A bare dotted field path segment, e.g. `spec.organizationRef` — noise that
+ * precedes the actual field-validation message, never the message itself.
+ */
+const FIELD_PATH_PATTERN = /^[\w]+(?:\.[\w]+)+$/;
+
+/**
+ * K8s field-validation messages ("Invalid value: \"x\": <detail>",
+ * "Duplicate value: \"x\"") interleave the offending value between two
+ * colons. When there IS a trailing detail, prefer it over the label/value
+ * noise; when there isn't (a bare Duplicate value error has none), leave the
+ * label + value in place since it's the only content the API gave us.
+ */
+const VALUE_ERROR_PREFIX_PATTERN =
+  /^(?:Invalid|Duplicate|Required|Forbidden|NotSupported|TooLong|TooMany) value: "[^"]*": (.+)$/;
+
 function capitalize(str: string): string {
   if (!str) return str;
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -33,9 +49,14 @@ function capitalize(str: string): string {
  * K8s messages are often nested with colons:
  *   admission webhook "x" denied the request: resource.group.com "name" is reason: actual message
  *
- * This parser walks backwards through colon-separated segments, skipping
- * admission webhook prefixes and K8s resource path segments, and returns
- * the deepest meaningful segment.
+ * This walks FORWARD through colon-separated segments, stripping only
+ * recognized noise prefixes (admission webhook wrapper, resource path,
+ * bare field path) from the front, then returns everything that's left —
+ * rejoined with ": " so a colon inside the actual message (e.g. "Invalid
+ * value: \"x\": already a member") is never mistaken for more noise and
+ * silently dropped. A previous backwards-walk implementation returned only
+ * the last segment, which chopped messages like that down to a bare quoted
+ * value with no explanation.
  *
  * Uses shared resource labels from `resource-labels` for
  * humanizing "not found" messages.
@@ -43,39 +64,34 @@ function capitalize(str: string): string {
 export function parseK8sMessage(raw: string): string {
   if (!raw) return raw;
 
-  // Split on ": " to handle nested K8s messages
   const segments = raw.split(': ');
 
-  // Single segment — check for K8s not-found pattern
-  if (segments.length === 1) {
-    const notFoundMatch = raw.match(K8S_NOT_FOUND_PATTERN);
-    if (notFoundMatch) {
-      const label = getResourceLabel(notFoundMatch[1]);
-      return `${label} "${notFoundMatch[2]}" not found`;
-    }
-    return raw;
-  }
-
-  // Walk backwards to find the first meaningful segment
-  for (let i = segments.length - 1; i >= 0; i--) {
+  let i = 0;
+  while (i < segments.length - 1) {
     const segment = segments[i].trim();
-
-    // Humanize K8s "not found" resource path before skipping
-    const notFoundMatch = segment.match(K8S_NOT_FOUND_PATTERN);
-    if (notFoundMatch) {
-      const label = getResourceLabel(notFoundMatch[1]);
-      return `${label} "${notFoundMatch[2]}" not found`;
+    if (
+      ADMISSION_WEBHOOK_PATTERN.test(segment) ||
+      K8S_RESOURCE_PATH_PATTERN.test(segment) ||
+      FIELD_PATH_PATTERN.test(segment)
+    ) {
+      i++;
+      continue;
     }
-
-    // Skip other K8s resource path segments (e.g., "is forbidden")
-    if (K8S_RESOURCE_PATH_PATTERN.test(segment)) continue;
-
-    // Skip admission webhook prefixes
-    if (ADMISSION_WEBHOOK_PATTERN.test(segment)) continue;
-
-    return capitalize(segment);
+    break;
   }
 
-  // Fallback: return the last segment capitalized
-  return capitalize(segments[segments.length - 1].trim());
+  const landed = segments[i].trim();
+  const notFoundMatch = landed.match(K8S_NOT_FOUND_PATTERN);
+  if (notFoundMatch) {
+    const label = getResourceLabel(notFoundMatch[1]);
+    return `${label} "${notFoundMatch[2]}" not found`;
+  }
+
+  let remaining = segments.slice(i).join(': ').trim();
+  const valueErrorMatch = remaining.match(VALUE_ERROR_PREFIX_PATTERN);
+  if (valueErrorMatch) {
+    remaining = valueErrorMatch[1];
+  }
+
+  return capitalize(remaining);
 }

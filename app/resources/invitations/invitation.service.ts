@@ -19,7 +19,39 @@ import { logger } from '@/modules/logger';
 import type { ServiceOptions } from '@/resources/base/types';
 import { getOrgScopedBase, getUserScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
+import { AppError } from '@/utils/errors/app-error';
 import { mapApiError } from '@/utils/errors/error-mapper';
+
+/**
+ * The webhook rejects a duplicate UserInvitation (same email + org) with a
+ * bare `field.Duplicate` error, which carries no explanatory text of its
+ * own (see `error-parser.ts`) — only the structured cause code identifies
+ * it. Rewrite it here into something an admin can act on, since the
+ * underlying resource may not even be visible on the team page (e.g. an
+ * expired-then-accepted invitation that granted no membership).
+ */
+function friendlyCreateError(error: unknown): AppError {
+  const mapped = mapApiError(error);
+  const isDuplicateInvitation = mapped.details?.some(
+    (detail) => detail.code === 'FieldValueDuplicate'
+  );
+
+  if (isDuplicateInvitation) {
+    return new AppError(
+      'An invitation already exists for this email in this organization. Cancel it before sending a new one.',
+      {
+        code: mapped.code,
+        status: mapped.status,
+        requestId: mapped.requestId,
+        details: mapped.details,
+        cause: mapped,
+        captureToSentry: false,
+      }
+    );
+  }
+
+  return mapped;
+}
 
 export const invitationKeys = {
   all: ['invitations'] as const,
@@ -37,7 +69,11 @@ const SERVICE_NAME = 'InvitationService';
 export function createInvitationService() {
   return {
     /**
-     * List all pending invitations in an organization
+     * List all invitations in an organization, in any state. A UserInvitation
+     * is never automatically cleaned up once it leaves Pending, and the
+     * webhook blocks a re-invite against ANY existing record for that email
+     * regardless of state — so a non-pending row still needs to be visible
+     * and cancellable, not just pending ones.
      */
     async list(organizationId: string, _options?: ServiceOptions): Promise<Invitation[]> {
       const startTime = Date.now();
@@ -67,12 +103,7 @@ export function createInvitationService() {
 
       const data = response.data as ComMiloapisIamV1Alpha1UserInvitationList;
 
-      // Filter only pending invitations
-      const filteredItems = (data?.items ?? []).filter(
-        (invitation) => invitation.spec?.state === 'Pending'
-      );
-
-      return toInvitationList(filteredItems).items;
+      return toInvitationList(data?.items ?? []).items;
     },
 
     /**
@@ -182,7 +213,7 @@ export function createInvitationService() {
         return invitation;
       } catch (error) {
         logger.error(`${SERVICE_NAME}.create failed`, error as Error);
-        throw mapApiError(error);
+        throw friendlyCreateError(error);
       }
     },
 

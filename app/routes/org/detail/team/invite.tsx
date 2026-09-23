@@ -102,23 +102,24 @@ function InviteForm() {
       // Helper to format count with proper pluralization
       const formatCount = (count: number) => `${count} ${pluralize(count)}`;
 
-      // Error list component for toast descriptions
+      // Error list component for toast descriptions. Uses the toast's own
+      // error foreground color instead of `text-muted-foreground` — the
+      // muted gray has poor contrast against the red error background and
+      // was nearly unreadable.
       const ErrorList = (errors: InvitationResult[]) => {
         if (errors.length === 1) {
           const result = errors[0];
           return (
-            <span className="text-muted-foreground text-xs">
-              {result.email}: {result.error}
+            <span className="text-toast-error-foreground text-xs">
+              <span className="font-medium">{result.email}</span>: {result.error}
             </span>
           );
         }
         return (
-          <ul className="list-inside list-disc text-xs">
+          <ul className="text-toast-error-foreground list-inside list-disc text-xs">
             {errors.map((result, index) => (
               <li key={index}>
-                <span className="text-muted-foreground">
-                  {result.email}: {result.error}
-                </span>
+                <span className="font-medium">{result.email}</span>: {result.error}
               </li>
             ))}
           </ul>

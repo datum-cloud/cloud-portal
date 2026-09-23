@@ -122,19 +122,21 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
     }));
   }, [members]);
 
-  // Transform invitations to team members format
+  // Transform invitations to team members format. Every invitation is shown,
+  // not just Pending ones: the create webhook blocks a re-invite against ANY
+  // existing UserInvitation for that email regardless of state, so a
+  // non-pending row (expired, or accepted without granting membership) still
+  // needs to be visible with a way to cancel it.
   const invitationTeamMembers: ITeamMember[] = useMemo(() => {
-    return invitations
-      .filter((invitation) => invitation.state === 'Pending')
-      .map((invitation) => ({
-        id: invitation.name,
-        fullName: invitation.email ?? '',
-        email: invitation.email ?? '',
-        roles: invitation.role ? [{ name: invitation.role, namespace: 'datum-cloud' }] : [],
-        invitationState: invitation.state,
-        type: 'invitation' as const,
-        name: invitation.name,
-      }));
+    return invitations.map((invitation) => ({
+      id: invitation.name,
+      fullName: invitation.email ?? '',
+      email: invitation.email ?? '',
+      roles: invitation.role ? [{ name: invitation.role, namespace: 'datum-cloud' }] : [],
+      invitationState: invitation.state,
+      type: 'invitation' as const,
+      name: invitation.name,
+    }));
   }, [invitations]);
 
   // Combine members and invitations
@@ -351,13 +353,14 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
           ) : null,
       },
       createActionsColumn<ITeamMember>((row) => [
-        // Resend invitation (for pending invites only)
+        // Resend invitation (any invitation row — resend clears a stale
+        // blocking record too, not just pending ones)
         {
           key: 'resend',
           label: 'Resend',
           display: 'inline',
           icon: <Icon icon={Redo2Icon} className="size-4" />,
-          hidden: row.type !== 'invitation' || row.invitationState !== 'Pending' || !canResend,
+          hidden: row.type !== 'invitation' || !canResend,
           onClick: (r) => resendInvitation(r.id),
           'data-e2e': 'resend-invitation-button',
         },
