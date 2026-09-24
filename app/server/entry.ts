@@ -11,6 +11,8 @@ import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
 import { createApiApp } from './routes/api';
+import { createWebsiteRoutes } from './routes/website';
+import { createWebsiteLoginRoute } from './routes/website/login';
 import type { Variables } from './types';
 // Configure all @hey-api generated clients to use server axios instance
 // This allows generated OpenAPI functions to work on server-side
@@ -210,6 +212,17 @@ if (isDevSessionEnabled()) {
   app.route('/api/auth', createDevSessionRoutes());
   console.info('[plugins] dev session exchange enabled at POST /api/auth/dev-session');
 }
+
+// ============================================================================
+// Website routes (datum.net session signal; registered BEFORE the guarded /api)
+// ============================================================================
+// session-status must answer anonymous visitors with { signedIn: false }, so it
+// cannot sit behind the blanket auth guard. CORS and CSRF live in the group.
+//
+// /login is mounted separately, ahead of the group: it's a top-level browser
+// navigation with no Origin header, so it can never pass the group's CORS check.
+app.route('/api/website/login', createWebsiteLoginRoute());
+app.route('/api/website', createWebsiteRoutes());
 
 // ============================================================================
 // API Routes (sub-app with its own middleware + 404 handling)
