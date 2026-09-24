@@ -94,25 +94,62 @@ export async function clearRedirectIntent(
 }
 
 /**
- * Validates if a redirect path is safe to use
- * @param path Path to validate
- * @returns true if the path is safe to redirect to
+ * The portal's own origin, used to decide whether a relative redirect target
+ * stays on this site once a browser resolves it.
  */
-export function isValidRedirectPath(path: string): boolean {
-  // Only allow relative paths (no external domains)
-  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//')) {
-    return false;
+const APP_ORIGIN = new URL(env.public.appUrl).origin;
+
+/**
+ * Validates if a redirect target is safe to use: either a relative internal
+ * path, or an absolute URL whose origin is on the allowlist (the website's
+ * sign-in links send an absolute `returnTo`, since they navigate from a
+ * different origin than cloud-portal).
+ *
+ * Relative targets are resolved against {@link APP_ORIGIN} rather than checked
+ * by prefix. Prefix matching cannot enumerate every off-site spelling: `//`,
+ * `/\`, `/\/` and `/\@` all parse as an authority under the WHATWG rules that
+ * browsers follow, so only a real parse rejects all of them.
+ *
+ * @param target Path or absolute URL to validate
+ * @param allowedOrigins Absolute-URL origins allowed as redirect targets
+ * @returns true if the target is safe to redirect to
+ */
+export function isValidRedirectTarget(target: string, allowedOrigins: string[]): boolean {
+  if (target.startsWith('http://') || target.startsWith('https://')) {
+    try {
+      const url = new URL(target);
+      return url.username === '' && url.password === '' && allowedOrigins.includes(url.origin);
+    } catch {
+      return false;
+    }
   }
 
-  // Must start with /
-  if (!path.startsWith('/')) {
+  if (!target.startsWith('/')) return false;
+
+  let resolved: URL;
+  try {
+    resolved = new URL(target, APP_ORIGIN);
+  } catch {
     return false;
   }
+  if (resolved.origin !== APP_ORIGIN) return false;
 
-  // Exclude auth routes to prevent redirect loops
+  // Exclude auth routes to prevent redirect loops. Checked against the parsed
+  // pathname so encoded or dot-segment spellings normalize first.
+  const path = resolved.pathname;
   if (path.startsWith('/auth/') || path.startsWith('/login') || path.startsWith('/logout')) {
     return false;
   }
 
   return true;
+}
+
+/**
+ * Backwards-compatible alias: relative internal paths only, no absolute
+ * website URLs allowed.
+ * @param path Path to validate
+ * @returns true if the path is safe to redirect to
+ */
+export function isValidRedirectPath(path: string): boolean {
+  return isValidRedirectTarget(path, []);
 }
