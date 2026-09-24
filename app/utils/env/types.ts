@@ -70,6 +70,12 @@ export interface ServerEnv {
   grafanaUrl?: string;
   helpscoutSecretKey?: string;
 
+  // Optional: Website API CORS (datum.net marketing site)
+  /** Secure-mode secret for the datum.net Beacon. Signs /api/website/profile identities. */
+  websiteHelpscoutSecretKey?: string;
+  /** Exact origins allowed to call /api/website/* with credentials. Empty disables the routes. */
+  websiteOrigins: string[];
+
   // Optional: Assistant ("Patch") A2A backend — see app/server/routes/assistant-chat.ts
   assistantA2aUrl?: string;
 

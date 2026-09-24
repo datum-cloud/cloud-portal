@@ -1,6 +1,7 @@
 // app/utils/env/env.server.ts
 import { resolveAuthUiOrigin } from './auth-ui-origin';
 import { omitBlankEnv } from './omit-blank-env';
+import { parseOriginList } from './origins';
 import type { Env } from './types';
 import { z } from 'zod';
 
@@ -131,6 +132,14 @@ const serverSchema = z.object({
   // ─────────────────────────────────────────────────────────
   GRAFANA_URL: urlSchemaOptional(),
   HELPSCOUT_SECRET_KEY: isProdEnv ? z.string().min(1) : z.string().optional(),
+
+  // Secure-mode secret for the datum.net HelpScout Beacon (a different Beacon from the portal's).
+  WEBSITE_HELPSCOUT_SECRET_KEY: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
+  // Optional: Website API CORS (datum.net marketing site)
+  // ─────────────────────────────────────────────────────────
+  WEBSITE_ORIGINS: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Assistant ("Patch") A2A backend
@@ -269,6 +278,8 @@ export const env: Env = {
     cloudvalidTemplateId: data.CLOUDVALID_TEMPLATE_ID,
     grafanaUrl: data.GRAFANA_URL,
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
+    websiteHelpscoutSecretKey: data.WEBSITE_HELPSCOUT_SECRET_KEY,
+    websiteOrigins: parseOriginList(data.WEBSITE_ORIGINS, { requireHttps: isProdEnv }),
     assistantA2aUrl: data.ASSISTANT_A2A_URL,
     otelExporterEndpoint: data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelExporterTimeout: data.OTEL_EXPORTER_TIMEOUT,

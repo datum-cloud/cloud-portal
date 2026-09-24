@@ -1,3 +1,4 @@
+import { resolvePostLoginDestination } from './post-login-destination';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { authenticator } from '@/modules/auth/auth.server';
 import { AUTH_CONFIG, AuthService, readEmailVerified } from '@/utils/auth';
@@ -7,9 +8,9 @@ import {
   clearRedirectIntent,
   getRedirectIntent,
   getSession,
-  isValidRedirectPath,
   setIdTokenSession,
 } from '@/utils/cookies';
+import { env } from '@/utils/env/env.server';
 import { AuthenticationError } from '@/utils/errors';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
@@ -87,15 +88,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Get the intended redirect destination
     const redirectIntent = await getRedirectIntent(request);
-    let destination = paths.account.organizations.root; // default fallback
+    const destination = resolvePostLoginDestination(
+      redirectIntent?.path,
+      env.server.websiteOrigins,
+      paths.account.organizations.root // default fallback
+    );
 
     if (redirectIntent?.path) {
-      // Validate it's a safe internal path
-      const isValid = isValidRedirectPath(redirectIntent.path);
-      if (isValid) {
-        destination = redirectIntent.path;
-      }
-
       // Clear the redirect intent (one-time use)
       const clearHeaders = await clearRedirectIntent(request);
       headers = combineHeaders(headers, clearHeaders.headers);
