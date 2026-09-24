@@ -232,13 +232,13 @@ export function HttpProxyHealthStrip({
               to={computeBackend.href}
               className="inline-flex"
               data-e2e="alb-health-compute-workload">
-              <Chip tone="muted" icon={SquareLibrary} tooltip="Compute workload">
-                {workloadName}
+              <Chip tone="muted" icon={SquareLibrary} tooltip={`${workloadName}`}>
+                View workload
               </Chip>
             </Link>
           ) : workloadName ? (
             <Chip tone="muted" icon={SquareLibrary} tooltip="Compute workload">
-              {workloadName}
+              Workload: {workloadName}
             </Chip>
           ) : backends.count != null ? (
             <Chip tone="muted" icon={ServerIcon}>
