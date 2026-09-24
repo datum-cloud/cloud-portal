@@ -41,7 +41,11 @@ describe('buildSessionStatus', () => {
     const status = await buildSessionStatus('u1', deps());
     expect(status).toEqual({
       signedIn: true,
-      user: { displayName: 'Yahya Fakhroji', email: 'yahya@example.com', avatarUrl: 'https://a/x.png' },
+      user: {
+        displayName: 'Yahya Fakhroji',
+        email: 'yahya@example.com',
+        avatarUrl: 'https://a/x.png',
+      },
       org: { name: 'acme-1a2b', displayName: 'Acme' },
       dashboardUrl: 'https://cloud.datum.net/org/acme-1a2b/projects',
       state: 'active',
@@ -70,7 +74,11 @@ describe('buildSessionStatus', () => {
     const status = await buildSessionStatus('u1', deps({ listOrganizations: async () => [] }));
     expect(status).toEqual({
       signedIn: true,
-      user: { displayName: 'Yahya Fakhroji', email: 'yahya@example.com', avatarUrl: 'https://a/x.png' },
+      user: {
+        displayName: 'Yahya Fakhroji',
+        email: 'yahya@example.com',
+        avatarUrl: 'https://a/x.png',
+      },
       dashboardUrl: 'https://cloud.datum.net/onboarding',
       state: 'new',
     });

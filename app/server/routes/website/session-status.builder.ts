@@ -13,9 +13,7 @@ export type SessionStatus =
     };
 
 export interface SessionStatusDeps {
-  getUser(
-    sub: string
-  ): Promise<{
+  getUser(sub: string): Promise<{
     givenName?: string;
     familyName?: string;
     fullName?: string;
