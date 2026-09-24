@@ -263,7 +263,12 @@ export default function ProjectHomePage() {
       <Row gutter={[16, 8]}>
         <Col md={12} xs={24}>
           <div className="flex flex-col gap-2">
-            <Title as="h1" level={2} textColor="default" className="font-title">
+            <Title
+              as="h1"
+              level={2}
+              weight="normal"
+              textColor="default"
+              className="font-title tracking-normal">
               {isNewUser
                 ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
                 : `Welcome back, ${user?.givenName ?? 'there'}`}
