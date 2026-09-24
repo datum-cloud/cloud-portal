@@ -6,7 +6,7 @@ export type SessionStatus =
   | { signedIn: false }
   | {
       signedIn: true;
-      user: { displayName: string; email?: string; avatarUrl?: string };
+      user: { id: string; displayName: string; email?: string; avatarUrl?: string };
       org?: { name: string; displayName: string };
       dashboardUrl: string;
       state?: 'new' | 'active';
@@ -66,7 +66,8 @@ export async function buildSessionStatus(
     settle(deps.listOrganizations(), deps.timeoutMs),
   ]);
 
-  const user: { displayName: string; email?: string; avatarUrl?: string } = {
+  const user: { id: string; displayName: string; email?: string; avatarUrl?: string } = {
+    id: sub,
     displayName: fullDisplayName(rawUser ?? {}),
   };
   if (rawUser?.email) user.email = rawUser.email;

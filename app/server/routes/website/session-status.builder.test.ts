@@ -42,6 +42,7 @@ describe('buildSessionStatus', () => {
     expect(status).toEqual({
       signedIn: true,
       user: {
+        id: 'u1',
         displayName: 'Yahya Fakhroji',
         email: 'yahya@example.com',
         avatarUrl: 'https://a/x.png',
@@ -75,6 +76,7 @@ describe('buildSessionStatus', () => {
     expect(status).toEqual({
       signedIn: true,
       user: {
+        id: 'u1',
         displayName: 'Yahya Fakhroji',
         email: 'yahya@example.com',
         avatarUrl: 'https://a/x.png',
@@ -94,7 +96,7 @@ describe('buildSessionStatus', () => {
       })
     );
     expect(status.signedIn).toBe(true);
-    expect(status.signedIn && status.user).toEqual({ displayName: '' });
+    expect(status.signedIn && status.user).toEqual({ id: 'u1', displayName: '' });
   });
 
   test('omits email when the user record has none', async () => {
@@ -102,7 +104,7 @@ describe('buildSessionStatus', () => {
       'u1',
       deps({ getUser: async () => ({ givenName: 'Ada', familyName: 'Lovelace' }) })
     );
-    expect(status.signedIn && status.user).toEqual({ displayName: 'Ada Lovelace' });
+    expect(status.signedIn && status.user).toEqual({ id: 'u1', displayName: 'Ada Lovelace' });
   });
 
   test('a failing project lookup drops state but keeps the org dashboard link', async () => {
