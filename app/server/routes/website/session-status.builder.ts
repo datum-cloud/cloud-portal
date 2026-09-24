@@ -6,7 +6,7 @@ export type SessionStatus =
   | { signedIn: false }
   | {
       signedIn: true;
-      user: { displayName: string; avatarUrl?: string };
+      user: { displayName: string; email?: string; avatarUrl?: string };
       org?: { name: string; displayName: string };
       dashboardUrl: string;
       state?: 'new' | 'active';
@@ -15,7 +15,13 @@ export type SessionStatus =
 export interface SessionStatusDeps {
   getUser(
     sub: string
-  ): Promise<{ givenName?: string; familyName?: string; fullName?: string; avatarUrl?: string }>;
+  ): Promise<{
+    givenName?: string;
+    familyName?: string;
+    fullName?: string;
+    email?: string;
+    avatarUrl?: string;
+  }>;
   listOrganizations(): Promise<Array<{ name: string; displayName: string }>>;
   hasProjects(orgName: string): Promise<boolean>;
   /** Org name from the portal's last-used-org cookie, or null. */
@@ -34,16 +40,14 @@ export function pickOrganization<T extends { name: string }>(
   return memberships.find((o) => o.name === preferred) ?? memberships[0];
 }
 
-export function shortDisplayName(u: {
+/** The full name as the portal shows it; the website decides how to truncate it. */
+export function fullDisplayName(u: {
   givenName?: string;
   familyName?: string;
   fullName?: string;
 }): string {
-  const given = u.givenName?.trim();
-  const family = u.familyName?.trim();
-  if (given && family) return `${given} ${family[0].toUpperCase()}.`;
-  if (given) return given;
-  return u.fullName?.trim() ?? '';
+  const joined = [u.givenName?.trim(), u.familyName?.trim()].filter(Boolean).join(' ');
+  return joined || (u.fullName?.trim() ?? '');
 }
 
 /**
@@ -64,9 +68,10 @@ export async function buildSessionStatus(
     settle(deps.listOrganizations(), deps.timeoutMs),
   ]);
 
-  const user: { displayName: string; avatarUrl?: string } = {
-    displayName: shortDisplayName(rawUser ?? {}),
+  const user: { displayName: string; email?: string; avatarUrl?: string } = {
+    displayName: fullDisplayName(rawUser ?? {}),
   };
+  if (rawUser?.email) user.email = rawUser.email;
   if (rawUser?.avatarUrl) user.avatarUrl = rawUser.avatarUrl;
 
   const memberships = orgs ?? [];
