@@ -166,6 +166,13 @@ export interface TrafficClassLimiterOptions {
   penaltyBox?: PenaltyBox;
   /** Defaults to RATE_LIMIT_ENFORCE_BROWSER_ORIGIN === 'true'. */
   enforceBrowserOrigin?: boolean;
+  /**
+   * Defaults to `hasBrowserOrigin`. Callers that have already verified the
+   * origin by another means (e.g. a CORS allowlist that runs ahead of this
+   * middleware) can supply their own signal so same-site-but-allowed traffic
+   * is not miscounted as non-browser.
+   */
+  isBrowserOrigin?: (c: Ctx) => boolean;
 }
 
 const CLASS_HEADER = 'X-RateLimit-Class';
@@ -205,6 +212,7 @@ export function trafficClassLimiter(
     options.penaltyBox ?? (redis ? createRedisPenaltyBox(redis) : createMemoryPenaltyBox());
   const enforceBrowserOrigin =
     options.enforceBrowserOrigin ?? process.env.RATE_LIMIT_ENFORCE_BROWSER_ORIGIN === 'true';
+  const isBrowserOrigin = options.isBrowserOrigin ?? hasBrowserOrigin;
 
   const reject = async (c: Ctx, bucket: RateLimitBucket, retryAfter: number): Promise<never> => {
     const route = resolveRouteGroup(c.req.path);
@@ -229,7 +237,7 @@ export function trafficClassLimiter(
         path: c.req.path,
         clientIp: getClientIP(c),
         userAgent: c.req.header('User-Agent'),
-        browserOrigin: hasBrowserOrigin(c),
+        browserOrigin: isBrowserOrigin(c),
         retryAfter,
         penalised,
       });
@@ -258,7 +266,7 @@ export function trafficClassLimiter(
     const path = c.req.path;
     const cls = resolveTrafficClass(path);
 
-    if (!hasBrowserOrigin(c)) {
+    if (!isBrowserOrigin(c)) {
       const route = resolveRouteGroup(path);
       apiNonBrowserRequestsTotal.inc({ route });
       logger.debug('[rate-limit] request without browser fetch metadata', {
