@@ -199,6 +199,29 @@ export interface NavProjectProperties {
    * omitted.
    */
   serviceRef?: string;
+  /**
+   * Optional nested items. When non-empty, the host renders this item as a
+   * collapsible parent (no link of its own) and {@link path} is not used as a
+   * destination — keep declaring it so older hosts, which ignore `children`,
+   * still render a plain link. Coming Soon applies to the parent: children are
+   * rendered only when the item is live or {@link comingSoonMode} is `plugin`,
+   * since the `holding` and `external` modes have no live destination yet.
+   */
+  children?: NavProjectChild[];
+}
+
+/** A nested `portal.nav/project` item. Text-only: the host renders no child icons. */
+export interface NavProjectChild {
+  title: string;
+  /**
+   * Path relative to the plugin's mount point. Required unless the child has
+   * its own non-empty {@link children}, in which case it is a collapsible
+   * parent with no link.
+   */
+  path?: string;
+  /** Order among siblings. */
+  order?: number;
+  children?: NavProjectChild[];
 }
 
 export interface NavProjectExtension {

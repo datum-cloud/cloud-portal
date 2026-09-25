@@ -1,4 +1,5 @@
 import type { ProjectNavSection } from './types';
+import { AppWindowIcon, CableIcon, EarthIcon, HardDriveIcon, type LucideIcon } from 'lucide-react';
 
 /**
  * Planned (not-yet-live) services shown in the project sidebar with a
@@ -23,6 +24,8 @@ export type PlannedService = {
   roadmapUrl?: string;
   /** Order within the section (alongside live items). */
   order: number;
+  /** Row icon; section headers are text-only. */
+  icon: LucideIcon;
 };
 
 export const PLANNED_SERVICES: PlannedService[] = [
@@ -33,6 +36,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     description: 'Global server load balancing across regions and providers.',
     roadmapUrl: 'https://www.datum.net/platform/deliver#global-load-balancer',
     order: 40,
+    icon: EarthIcon,
   },
   {
     id: 'object-storage',
@@ -41,6 +45,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     description: 'Durable object storage for application data and assets.',
     roadmapUrl: 'https://www.datum.net/platform/build#object-storage',
     order: 20,
+    icon: HardDriveIcon,
   },
   {
     id: 'edge-apps',
@@ -49,6 +54,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     description: 'Deploy applications at the edge, close to your users.',
     roadmapUrl: 'https://www.datum.net/platform/build#edge-apps',
     order: 30,
+    icon: AppWindowIcon,
   },
   {
     id: 'interconnects',
@@ -57,6 +63,7 @@ export const PLANNED_SERVICES: PlannedService[] = [
     description: 'Dedicated connectivity between Datum and your networks.',
     roadmapUrl: 'https://www.datum.net/platform/connect#interconnect',
     order: 30,
+    icon: CableIcon,
   },
 ];
 
