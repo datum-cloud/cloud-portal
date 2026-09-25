@@ -8,13 +8,19 @@
  *   while Coming Soon follows `comingSoonMode` (`holding` default → host page,
  *   `plugin` → mount path, `external` → roadmapUrl). Once entitled, render the
  *   live plugin mount `path` with no badge.
- * - Nested items are text-only (no icons); category / plugin-group parents keep icons
+ * - Non-empty `children` → collapsible parent (no link) whose children link to
+ *   their own mount-relative paths, at any depth. While Coming Soon, children
+ *   are kept only in `plugin` mode; `holding` / `external` render the parent as
+ *   a plain Coming Soon link as before.
+ * - Items placed in a host section show their manifest icon (section headers are
+ *   text-only). Items under a plugin group, and deeper children, are text-only.
  */
 import type { SectionNavItem } from './build-project-nav';
 import { comingSoonHref } from './coming-soon';
 import { COMING_SOON_BADGE, isProjectNavSection, type ProjectNavSection } from './types';
+import { resolvePluginIcon } from '@/modules/plugins/client/icon-map';
 import { getNavExtensions } from '@/modules/plugins/client/match-extension';
-import type { NavProjectProperties, PublicPlugin } from '@/modules/plugins/types';
+import type { NavProjectChild, NavProjectProperties, PublicPlugin } from '@/modules/plugins/types';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import type { NavItem } from '@datum-cloud/datum-ui/app-navigation';
@@ -102,6 +108,59 @@ function comingSoonNavItem(
   };
 }
 
+function byOrder(a: OrderedNavChild, b: OrderedNavChild): number {
+  return a.order - b.order;
+}
+
+/** Map declared nav children to text-only NavItems; `muted` follows the parent's Coming Soon state. */
+function childNavItems(
+  projectId: string,
+  slug: string,
+  children: readonly NavProjectChild[],
+  muted: boolean
+): OrderedNavChild[] {
+  return children
+    .map((child): OrderedNavChild => {
+      const base = {
+        title: child.title,
+        order: child.order ?? Number.MAX_SAFE_INTEGER,
+        ...(muted ? { muted: true } : {}),
+      };
+      if (child.children && child.children.length > 0) {
+        return {
+          ...base,
+          href: null,
+          type: 'collapsible',
+          children: childNavItems(projectId, slug, child.children, muted),
+        };
+      }
+      return { ...base, href: pluginHref(projectId, slug, child.path ?? ''), type: 'link' };
+    })
+    .sort(byOrder);
+}
+
+/**
+ * Turn `item` into a collapsible parent when the extension declares children.
+ * Coming Soon parents only nest in `plugin` mode, the one mode that has live
+ * plugin destinations to point the children at.
+ */
+function withChildren(
+  item: OrderedNavChild,
+  projectId: string,
+  plugin: PublicPlugin,
+  props: NavProjectProperties,
+  showComingSoon: boolean
+): OrderedNavChild {
+  if (!props.children || props.children.length === 0) return item;
+  if (showComingSoon && comingSoonModeOf(props) !== 'plugin') return item;
+  return {
+    ...item,
+    href: null,
+    type: 'collapsible',
+    children: childNavItems(projectId, plugin.slug, props.children, showComingSoon),
+  };
+}
+
 function contributionsForPlugins(
   plugins: PublicPlugin[],
   projectId: string,
@@ -118,18 +177,24 @@ function contributionsForPlugins(
       // Soft-launch: Coming Soon until entitled; live path once Active.
       const showComingSoon = nav.properties.comingSoon === true && !entitled;
 
+      const item: OrderedNavChild = showComingSoon
+        ? comingSoonNavItem(projectId, plugin, nav)
+        : {
+            title: nav.properties.title,
+            href: pluginHref(projectId, plugin.slug, nav.properties.path),
+            type: 'link',
+            order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
+          };
+
+      const withNested = withChildren(item, projectId, plugin, nav.properties, showComingSoon);
       out.push({
         plugin,
         section,
-        // Nested under a category or plugin group — text-only (no child icons).
-        item: showComingSoon
-          ? comingSoonNavItem(projectId, plugin, nav)
-          : {
-              title: nav.properties.title,
-              href: pluginHref(projectId, plugin.slug, nav.properties.path),
-              type: 'link',
-              order: nav.properties.order ?? Number.MAX_SAFE_INTEGER,
-            },
+        // Items under a host section carry their manifest icon (section headers are
+        // text-only); items under a plugin group stay text-only.
+        item: section
+          ? { ...withNested, icon: resolvePluginIcon(nav.properties.icon) }
+          : withNested,
       });
     }
   }
