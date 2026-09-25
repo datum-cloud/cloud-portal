@@ -13,6 +13,7 @@ import { requestContextMiddleware } from './middleware/request-context';
 import { createApiApp } from './routes/api';
 import { createWebsiteRoutes } from './routes/website';
 import { createWebsiteLoginRoute } from './routes/website/login';
+import { createWebsiteLogoutRoute } from './routes/website/logout';
 import type { Variables } from './types';
 // Configure all @hey-api generated clients to use server axios instance
 // This allows generated OpenAPI functions to work on server-side
@@ -219,9 +220,11 @@ if (isDevSessionEnabled()) {
 // session-status must answer anonymous visitors with { signedIn: false }, so it
 // cannot sit behind the blanket auth guard. CORS and CSRF live in the group.
 //
-// /login is mounted separately, ahead of the group: it's a top-level browser
-// navigation with no Origin header, so it can never pass the group's CORS check.
+// /login and /logout are mounted separately, ahead of the group: each is a
+// top-level browser navigation with no Origin header, so neither can ever pass
+// the group's CORS check.
 app.route('/api/website/login', createWebsiteLoginRoute());
+app.route('/api/website/logout', createWebsiteLogoutRoute());
 app.route('/api/website', createWebsiteRoutes());
 
 // ============================================================================
