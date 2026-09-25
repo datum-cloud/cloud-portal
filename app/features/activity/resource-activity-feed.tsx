@@ -110,6 +110,9 @@ export function ResourceActivityFeed({
   // mismatched URL can't override what the route's path already implies.
   const initialFilters = useMemo(() => {
     const fromUrl = effectiveUrlSync ? parseActivityFilters(searchParams) : {};
+    // parseActivityFilters fills in 'human' when the URL has no changeSource,
+    // which would replace this route's default and hide system activity.
+    if (!searchParams.has('changeSource')) delete fromUrl.changeSource;
     return {
       changeSource,
       ...fromUrl,
