@@ -75,6 +75,12 @@ export interface ServerEnv {
   websiteHelpscoutSecretKey?: string;
   /** Exact origins allowed to call /api/website/* with credentials. Empty disables the routes. */
   websiteOrigins: string[];
+  /**
+   * Sent as the end_session `post_logout_redirect_uri` by /api/website/logout. MUST be
+   * registered on the Zitadel OIDC client's Post Logout URIs or Zitadel returns 400; leave
+   * unset to fall back to the IdP's default logout page.
+   */
+  websitePostLogoutRedirectUri?: string;
 
   // Optional: Assistant ("Patch") A2A backend — see app/server/routes/assistant-chat.ts
   assistantA2aUrl?: string;
