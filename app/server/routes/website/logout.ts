@@ -1,7 +1,7 @@
 import { zitadelIssuer } from '@/modules/auth/strategies/zitadel.server';
 import { rateLimiter } from '@/server/middleware/rate-limit';
 import type { Variables } from '@/server/types';
-import { AuthService, destroyAllAuthCookies, destroyLocalSessions } from '@/utils/auth';
+import { AuthService, destroyAllAuthCookies } from '@/utils/auth';
 import { buildEndSessionUrl } from '@/utils/auth/auth.service';
 import { getIdTokenSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
@@ -37,12 +37,23 @@ export function createWebsiteLogoutRoute(options: WebsiteLogoutRouteOptions = {}
   // its own.
   logout.use('*', rateLimiter({ limit: LOGOUT_REQUESTS_PER_MINUTE }));
 
+  // Every path that skips Zitadel lands here. The portal's own logout falls
+  // back to the portal login page, but a visitor who clicked sign out on
+  // datum.net expects to stay on datum.net, so that fallback is never used.
+  const fallbackUrl = postLogoutRedirectUri ?? `${appUrl}/`;
+
+  const clearCookiesAndRedirect = async (request: Request, location: string) => {
+    const headers = await destroyAllAuthCookies(request);
+    headers.set('Location', location);
+    return new Response(null, { status: 302, headers });
+  };
+
   logout.get('/', async (c) => {
     const request = c.req.raw;
 
     // Nothing to revoke: send the visitor straight back to where a completed
     // logout would have landed them anyway.
-    if (!c.get('session')) return c.redirect(postLogoutRedirectUri ?? `${appUrl}/`, 302);
+    if (!c.get('session')) return c.redirect(fallbackUrl, 302);
 
     try {
       const { idToken } = await getIdTokenSession(request);
@@ -58,14 +69,10 @@ export function createWebsiteLogoutRoute(options: WebsiteLogoutRouteOptions = {}
       });
 
       // No idToken means no RP-initiated logout; local cookies still go.
-      if (!endSessionUrl) return destroyLocalSessions(request);
-
-      const headers = await destroyAllAuthCookies(request);
-      headers.set('Location', endSessionUrl);
-      return new Response(null, { status: 302, headers });
+      return clearCookiesAndRedirect(request, endSessionUrl ?? fallbackUrl);
     } catch (error) {
       console.error('[Auth] Error during website sign out process:', error);
-      return destroyLocalSessions(request);
+      return clearCookiesAndRedirect(request, fallbackUrl);
     }
   });
 
