@@ -17,10 +17,14 @@ export function KeyValueFieldArray({ name = 'variables' }: KeyValueFieldArrayPro
           <div className="space-y-3">
             {fields.map((field, index) => (
               <div key={field.key} className="flex items-start gap-2">
+                {/* min-w-0: the value column's Textarea sizes to its content
+                    (field-sizing-content), and a flex item defaults to
+                    min-width:auto — so a long value grows that column and
+                    squeezes this one down to a few characters. */}
                 <Form.Field
                   name={`${name}.${index}.key`}
                   label={index === 0 ? 'Key' : undefined}
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                   required>
                   {({ control }) => (
                     <Input
@@ -39,7 +43,7 @@ export function KeyValueFieldArray({ name = 'variables' }: KeyValueFieldArrayPro
                 <Form.Field
                   name={`${name}.${index}.value`}
                   label={index === 0 ? 'Value' : undefined}
-                  className="flex-1"
+                  className="min-w-0 flex-1"
                   required>
                   {({ control }) => (
                     <Textarea
@@ -48,7 +52,7 @@ export function KeyValueFieldArray({ name = 'variables' }: KeyValueFieldArrayPro
                       onBlur={control.blur}
                       onFocus={control.focus}
                       placeholder="value"
-                      className="min-h-10"
+                      className="max-h-40 min-h-10"
                       rows={1}
                     />
                   )}
