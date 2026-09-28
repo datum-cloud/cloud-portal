@@ -52,7 +52,7 @@ export function KeyValueFieldArray({ name = 'variables' }: KeyValueFieldArrayPro
                       onBlur={control.blur}
                       onFocus={control.focus}
                       placeholder="value"
-                      className="min-h-10"
+                      className="max-h-40 min-h-10"
                       rows={1}
                     />
                   )}

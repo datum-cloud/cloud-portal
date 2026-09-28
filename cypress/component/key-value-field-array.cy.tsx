@@ -60,4 +60,26 @@ describe('KeyValueFieldArray', () => {
       });
     });
   });
+  it('caps its height and scrolls when the value is many lines', () => {
+    mountFieldArray();
+
+    const pem = Array.from(
+      { length: 16 },
+      () => 'MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj'
+    ).join('\n');
+
+    cy.get('textarea[placeholder="value"]').type(pem, {
+      delay: 0,
+      parseSpecialCharSequences: false,
+    });
+
+    // Uncapped, field-sizing-content takes this to ~658px — taller than the
+    // dialog it sits in. Capped, the content overflows into the textarea's
+    // own scroll instead of stretching the form.
+    cy.get('textarea[placeholder="value"]').should(($value) => {
+      const el = $value[0];
+      expect(el.getBoundingClientRect().height).to.be.at.most(160);
+      expect(el.scrollHeight).to.be.greaterThan(el.clientHeight);
+    });
+  });
 });
