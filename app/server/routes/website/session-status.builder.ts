@@ -7,7 +7,7 @@ export type SessionStatus =
   | {
       signedIn: true;
       user: { id: string; displayName: string; email?: string; avatarUrl?: string };
-      org?: { name: string; displayName: string };
+      org?: { name: string; displayName: string; hasProjects?: boolean };
       dashboardUrl: string;
       state?: 'new' | 'active';
     };
@@ -84,11 +84,21 @@ export async function buildSessionStatus(
   const projectsUrl = `${deps.appUrl}${getPathWithParams(paths.org.detail.projects.root, { orgId: org.name })}`;
   const hasProjects = await settle(deps.hasProjects(org.name), Math.max(0, deadline - now()));
 
+  // A timed-out or failed lookup leaves `hasProjects` off the org entirely.
+  // Defaulting it to false would tell the website "no projects" whenever Milo
+  // blips, and it would render the wrong call to action on that basis.
   if (hasProjects === undefined) {
     return { signedIn: true, user, org, dashboardUrl: projectsUrl };
   }
+  const orgWithProjects = { ...org, hasProjects };
   if (!hasProjects) {
-    return { signedIn: true, user, org, dashboardUrl: onboardingUrl, state: 'new' };
+    return {
+      signedIn: true,
+      user,
+      org: orgWithProjects,
+      dashboardUrl: onboardingUrl,
+      state: 'new',
+    };
   }
-  return { signedIn: true, user, org, dashboardUrl: projectsUrl, state: 'active' };
+  return { signedIn: true, user, org: orgWithProjects, dashboardUrl: projectsUrl, state: 'active' };
 }

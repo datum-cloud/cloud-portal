@@ -3,9 +3,10 @@ import { UsageDashboardSkeleton } from './components/usage-dashboard-skeleton';
 import { UsageSummaryTable } from './components/usage-summary-table';
 import { UsageToolbar } from './components/usage-toolbar';
 import { formatCurrency } from './usage.format';
-import type { UsageProjectOption } from './usage.types';
+import type { UsageDisplayNameOption, UsageProjectOption } from './usage.types';
 import { toUsageView } from './usage.view';
 import { useOrgUsageDashboard } from '@/modules/billing/usage.queries';
+import { useHttpProxies } from '@/resources/http-proxies';
 import { useProjects, filterActiveProjects } from '@/resources/projects';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -179,6 +180,18 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
     enabled: !!orgId,
   });
 
+  const albsQuery = useHttpProxies(selectedProject === 'all' ? '' : selectedProject, {
+    staleTime: QUERY_STALE_TIME,
+  });
+  const albs: UsageDisplayNameOption[] = useMemo(
+    () =>
+      (albsQuery.data ?? []).map((proxy) => ({
+        name: proxy.name,
+        displayName: proxy.chosenName ?? '',
+      })),
+    [albsQuery.data]
+  );
+
   const result = dashboard?.usage;
   const billingCycles = dashboard?.billingCycles ?? [];
   const isRefetching = isFetching && !isLoading;
@@ -281,7 +294,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
     );
   }
 
-  const view = toUsageView(result, projects);
+  const view = toUsageView(result, projects, albs);
 
   if (!view) {
     return (

@@ -187,7 +187,11 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
   // fall back to the backend section of the Configuration tab.
   const backendHref = computeBackend.href ?? `${configurationHref}#backends`;
   const backendLabel = workloadName ?? backends.label;
-  const backendTitle = workloadName ? 'Compute workload' : 'Backend pool';
+  const backendTitle = computeBackend.workloadMissing
+    ? 'Compute workload not found'
+    : workloadName
+      ? 'Compute workload'
+      : 'Backend pool';
 
   return (
     <Card

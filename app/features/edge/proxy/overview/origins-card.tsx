@@ -85,7 +85,12 @@ export const HttpProxyOriginsCard = ({
   useConnectorWatch(projectId ?? '', proxy?.connector?.name);
   const computeBackend = useResolvedComputeWorkload(projectId, proxy);
   const backendSummary = proxy ? summarizeBackends(proxy, computeBackend.workloadName) : undefined;
-  const showOriginEditor = Boolean(proxy && projectId && !isComputeBackend(proxy));
+  // A compute backend is managed from the workload side — except once its
+  // workload is gone, when an origin is the only way to route traffic again.
+  // Saving an endpoint replaces the NetworkService backend (see the update adapter).
+  const showOriginEditor = Boolean(
+    proxy && projectId && (!isComputeBackend(proxy) || computeBackend.workloadMissing)
+  );
 
   const origins = useMemo<OriginRow[]>(() => {
     const list =
@@ -170,7 +175,7 @@ export const HttpProxyOriginsCard = ({
               className="shrink-0"
               onClick={() => proxy && originsDialogRef.current?.show(proxy)}>
               <Icon icon={PencilIcon} size={12} />
-              Edit origin
+              {computeBackend.workloadMissing ? 'Set origin' : 'Edit origin'}
             </PermissionButton>
           </CardAction>
         ) : null}
@@ -191,13 +196,19 @@ export const HttpProxyOriginsCard = ({
               <Icon icon={ChevronRightIcon} size={16} className="text-muted-foreground shrink-0" />
             </Link>
           ) : (
-            // No compute plugin registered (or the workload is still unresolved):
-            // show the backend without a dead link.
+            // No compute plugin registered, the workload is still unresolved, or
+            // it was deleted: show the backend without a dead link.
             <div
               className="flex items-center gap-3 px-(--card-px) py-3"
               data-e2e="alb-origins-compute-workload">
               <BackendRow
-                title={backendSummary.workloadName ? 'Compute workload' : 'Backend'}
+                title={
+                  computeBackend.workloadMissing
+                    ? 'Compute workload not found'
+                    : backendSummary.workloadName
+                      ? 'Compute workload'
+                      : 'Backend'
+                }
                 label={backendSummary.label}
               />
             </div>

@@ -7,7 +7,9 @@ import {
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
@@ -96,6 +98,16 @@ export function HttpProxyHealthStrip({
   const headline = (() => {
     switch (status.status) {
       case ControlPlaneStatus.Success:
+        if (computeBackend.workloadMissing) {
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title: 'No backend available',
+            detail: `Workload ${workloadName} was deleted. Redeploy it to reconnect.`,
+            ring: 'bg-(--color-badge-warning)/10',
+          };
+        }
         if (idle) {
           const createdAt = proxy.createdAt?.getTime();
           const isNew = createdAt == null || Date.now() - createdAt < FIRST_REQUEST_AGE_MS;
@@ -227,7 +239,23 @@ export function HttpProxyHealthStrip({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-          {workloadName && computeBackend.href ? (
+          {workloadName && computeBackend.workloadMissing ? (
+            // The headline already says the workload is gone; the chip is the way out.
+            <Link
+              to={`${getPathWithParams(paths.project.detail.proxy.detail.configuration, {
+                projectId,
+                proxyId: proxy.name,
+              })}#backends`}
+              className="inline-flex"
+              data-e2e="alb-health-set-origin">
+              <Chip
+                tone="muted"
+                icon={ServerIcon}
+                tooltip={`Send this load balancer's traffic to another origin, or redeploy ${workloadName}`}>
+                Set origin
+              </Chip>
+            </Link>
+          ) : workloadName && computeBackend.href ? (
             <Link
               to={computeBackend.href}
               className="inline-flex"
