@@ -58,10 +58,12 @@ export interface UsageSummaryRow {
   groupId: string;
 }
 
-export interface UsageProjectOption {
+export interface UsageDisplayNameOption {
   name: string;
   displayName: string;
 }
+
+export type UsageProjectOption = UsageDisplayNameOption;
 
 export interface UsageBillingCycleOption {
   value: 'current' | 'previous';
