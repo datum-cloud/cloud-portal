@@ -5,6 +5,7 @@
  */
 import { ucumToMeterUnit } from './usage.format';
 import type {
+  UsageDisplayNameOption,
   UsageGroupSection,
   UsageMeter,
   UsageProjectOption,
@@ -16,8 +17,14 @@ function sumSeries(values: { value: number }[]): number {
   return values.reduce((acc, point) => acc + point.value, 0);
 }
 
+const DIMENSION_LABELS: Record<string, string> = {
+  httproute_name: 'ALB',
+};
+
 /** `projectId` → `Project`; `region` → `Region`; `model_name` → `Model Name`. */
 export function humanizeDimension(dimension: string): string {
+  const label = DIMENSION_LABELS[dimension];
+  if (label) return label;
   return dimension
     .replace(/\.?id$/i, '')
     .replace(/[-_]+/g, ' ')
@@ -26,18 +33,19 @@ export function humanizeDimension(dimension: string): string {
     .trim();
 }
 
-const PROJECT_BREAKDOWN_DIMENSION = 'project_name';
+type GroupDisplayNames = Partial<Record<string, Map<string, string>>>;
 
-function projectDisplayName(
-  projectName: string,
-  projects: UsageProjectOption[] | undefined
-): string {
-  return projects?.find((project) => project.name === projectName)?.displayName ?? projectName;
+function displayNameMap(options: UsageDisplayNameOption[] | undefined): Map<string, string> {
+  return new Map(
+    (options ?? [])
+      .filter((option) => option.displayName)
+      .map((option) => [option.name, option.displayName])
+  );
 }
 
 function toUsageMeter(
   meter: MeterSeries,
-  projects?: UsageProjectOption[],
+  groupDisplayNames: GroupDisplayNames,
   currencyCode = 'USD'
 ): UsageMeter {
   const unit = ucumToMeterUnit(meter.unit);
@@ -45,17 +53,17 @@ function toUsageMeter(
   const limit = meter.limit ?? 0;
   const breakdowns = (meter.breakdowns ?? [])
     .filter((b) => b.series.length > 0)
-    .map((breakdown) =>
-      breakdown.dimension === PROJECT_BREAKDOWN_DIMENSION
-        ? {
-            ...breakdown,
-            series: breakdown.series.map((series) => ({
-              ...series,
-              groupValue: projectDisplayName(series.groupValue, projects),
-            })),
-          }
-        : breakdown
-    );
+    .map((breakdown) => {
+      const displayNames = groupDisplayNames[breakdown.dimension];
+      if (!displayNames?.size) return breakdown;
+      return {
+        ...breakdown,
+        series: breakdown.series.map((series) => ({
+          ...series,
+          groupValue: displayNames.get(series.groupValue) ?? series.groupValue,
+        })),
+      };
+    });
   const tabs = ['Total', ...breakdowns.map((b) => humanizeDimension(b.dimension))];
 
   return {
@@ -86,9 +94,15 @@ export interface UsageView {
 /** Build the dashboard view from live loader data. */
 export function toUsageView(
   result: UsageFetchResult,
-  projects?: UsageProjectOption[]
+  projects?: UsageProjectOption[],
+  albs?: UsageDisplayNameOption[]
 ): UsageView | null {
   if (!result.groups?.length) return null;
+
+  const groupDisplayNames: GroupDisplayNames = {
+    project_name: displayNameMap(projects),
+    httproute_name: displayNameMap(albs),
+  };
 
   const currencyCode = result.currencyCode ?? 'USD';
   const meterByName = new Map(result.meters.map((m) => [m.meterApiName, m]));
@@ -98,7 +112,7 @@ export function toUsageView(
       const meters = group.meterApiNames
         .map((name) => meterByName.get(name))
         .filter((m): m is MeterSeries => Boolean(m))
-        .map((meter) => toUsageMeter(meter, projects, currencyCode));
+        .map((meter) => toUsageMeter(meter, groupDisplayNames, currencyCode));
       return {
         id: group.id,
         title: group.title,
