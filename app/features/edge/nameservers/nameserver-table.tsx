@@ -89,7 +89,7 @@ export const NameserverTable = ({
       data={data}
       title={title}
       actions={titleActions ? [titleActions] : undefined}
-      empty={emptyMessage ?? 'No nameservers found'}
+      empty={emptyMessage ?? 'no nameservers found'}
       pagination={false}
       className={className}
     />

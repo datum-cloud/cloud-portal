@@ -372,7 +372,7 @@ function CardListItems<TData>({
     const msg = error instanceof Error ? error.message : String(error);
     return (
       <div className={className} {...rest}>
-        <EmptyContent title={`Something went wrong: ${msg}`} className="w-full" />
+        <EmptyContent title={`something went wrong: ${msg}`} className="w-full" />
       </div>
     );
   }
@@ -381,7 +381,7 @@ function CardListItems<TData>({
     if (searchQuery !== '') {
       return (
         <div className={className} {...rest}>
-          <EmptyContent title="Try adjusting your search or filters" className="w-full" />
+          <EmptyContent title="try adjusting your search or filters" className="w-full" />
         </div>
       );
     }
@@ -419,7 +419,7 @@ function CardListItems<TData>({
     }
     return (
       <div className={className} {...rest}>
-        <EmptyContent title="No results." className="w-full" />
+        <EmptyContent title="no results." className="w-full" />
       </div>
     );
   }

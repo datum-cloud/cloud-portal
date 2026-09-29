@@ -173,7 +173,7 @@ export const ImportResultTable = ({ details }: ImportResultTableProps) => {
       data={details}
       pagination={false}
       urlSync={false}
-      empty="No import results"
+      empty="no import results"
       className="max-h-[400px] rounded-xl"
     />
   );

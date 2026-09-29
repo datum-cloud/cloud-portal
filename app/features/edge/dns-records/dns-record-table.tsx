@@ -473,7 +473,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
           />
         ),
       }}
-      empty="No DNS records found."
+      empty="no DNS records found."
     />
   );
 }

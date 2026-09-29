@@ -542,7 +542,7 @@ export default function OrgBillingSwitcherPage() {
         getRowId={(row) => row.projectName}
         actions={multiBillingAccountsEnabled ? [createAction] : [requestMoreAccountsAction]}
         empty={{
-          title: 'No projects in this organization yet',
+          title: 'no projects in this organization yet',
           description:
             'Create a project under this organization to assign it a billing account and start tracking usage.',
         }}

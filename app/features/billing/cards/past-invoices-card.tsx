@@ -193,7 +193,7 @@ export const PastInvoicesCard = ({
       <CardContent padding="none">
         {searchMiss ? (
           <EmptyContent
-            title="Try adjusting your search or filters"
+            title="try adjusting your search or filters"
             className="w-full rounded-none border-0"
           />
         ) : (

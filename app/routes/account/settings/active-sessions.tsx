@@ -165,7 +165,7 @@ export default function AccountActiveSessionsPage() {
       columns={columns}
       data={sessionsData}
       loading={isLoading}
-      empty="No active sessions found."
+      empty="no active sessions found."
     />
   );
 }

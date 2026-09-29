@@ -17,7 +17,7 @@ import type { ReactNode } from 'react';
  */
 export function resolveEmpty(empty?: string | EmptyContentConfig): ReactNode {
   if (!empty) {
-    return <EmptyContent title="No items found" className="w-full" />;
+    return <EmptyContent title="no items found" className="w-full" />;
   }
   if (typeof empty === 'string') {
     return <EmptyContent title={empty} className="w-full" />;
@@ -71,7 +71,7 @@ export function resolveError(errorContent?: ReactNode | ErrorRenderer): ErrorRen
   return function DefaultErrorContent(err, refetch) {
     return (
       <EmptyContent
-        title="Failed to load"
+        title="failed to load"
         subtitle={err.message}
         actions={[{ as: 'button', label: 'Retry', onClick: refetch }]}
         className="w-full"

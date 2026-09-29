@@ -158,7 +158,7 @@ function BindingsPanel({ orgId }: { orgId: string }) {
         <PolicyBindingTable
           bindings={bindings}
           empty={{
-            title: 'No roles found',
+            title: 'no roles found',
             actions: [
               {
                 label: 'Grant role on this project',
