@@ -1,6 +1,7 @@
 import { parseCodeRef, pickCodeRefExport } from './code-ref';
 import {
   getCardExtensions,
+  getColumnExtensions,
   getDockExtensions,
   getNavExtensions,
   getPageExtensions,
@@ -10,6 +11,7 @@ import {
 } from './match-extension';
 import {
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
@@ -207,6 +209,34 @@ describe('getCardExtensions', () => {
       },
     ]);
     expect(getCardExtensions(m).map((c) => c.properties.title)).toEqual(['First', 'Second']);
+  });
+});
+
+describe('getColumnExtensions', () => {
+  it('returns only column extensions, sorted by order then title', () => {
+    const m = manifest([
+      {
+        type: EXTENSION_CARD_PROJECT_HOME,
+        properties: { title: 'A card', component: { $codeRef: 'Card' }, order: 0 },
+      },
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'Zeta', component: { $codeRef: 'Z' }, order: 1 },
+      },
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'Last', component: { $codeRef: 'L' } },
+      },
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'Alpha', component: { $codeRef: 'A' }, order: 1 },
+      },
+    ]);
+    expect(getColumnExtensions(m).map((c) => c.properties.title)).toEqual([
+      'Alpha',
+      'Zeta',
+      'Last',
+    ]);
   });
 });
 

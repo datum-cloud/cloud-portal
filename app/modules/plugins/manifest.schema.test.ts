@@ -453,6 +453,87 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(true);
   });
 
+  test('accepts a portal.column/project-home extension', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: {
+              title: 'Workloads',
+              path: '/',
+              component: { $codeRef: 'HomeColumn' },
+              order: 10,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+    if (result.valid) expect(result.unknownExtensionTypes).toEqual([]);
+  });
+
+  test('accepts a portal.column/project-home extension without a path', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: 'Workloads', component: { $codeRef: 'HomeColumn' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects a portal.column/project-home extension without a title', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: '', component: { $codeRef: 'HomeColumn' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects a portal.column/project-home $codeRef to an undeclared module', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: {},
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: 'Workloads', component: { $codeRef: 'Missing' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects a whitespace-only portal.column/project-home path', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: 'Workloads', path: '  ', component: { $codeRef: 'HomeColumn' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects requirements.serviceRef when empty', () => {
     const result = validateManifest(
       baseManifest({
