@@ -11,6 +11,15 @@ import {
 } from '@/resources/http-proxies';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
 
+/**
+ * Passive health checks are hidden for now: on staging the HTTPProxy's
+ * healthCheck reaches a BackendTrafficPolicy but never the edge's Envoy
+ * clusters (no tenant cluster reports outlier-detection stats), so a failing
+ * endpoint is never ejected. Showing the setting would promise behaviour the
+ * platform doesn't deliver. Flip this once ejection is confirmed working.
+ */
+export const SHOW_HEALTH_CHECKS = false;
+
 /** Stacked-bar and legend colours, in backend order. Repeats past five. */
 export const BACKEND_COLORS = [
   'var(--primary)',

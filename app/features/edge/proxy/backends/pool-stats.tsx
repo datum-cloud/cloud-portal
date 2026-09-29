@@ -1,4 +1,4 @@
-import { resolvedPassive, type BackendRow } from './backend-pool';
+import { resolvedPassive, SHOW_HEALTH_CHECKS, type BackendRow } from './backend-pool';
 import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
 import {
   DEFAULT_OVERVIEW_RANGE,
@@ -94,7 +94,8 @@ export function HttpProxyPoolStats({
   );
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+    <div
+      className={`grid grid-cols-2 gap-4 sm:gap-6 ${SHOW_HEALTH_CHECKS ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
       <PoolStatCard
         title="Backends"
         value={rows.length}
@@ -105,19 +106,26 @@ export function HttpProxyPoolStats({
         value={`${receiving} / ${rows.length}`}
         detail={drained === 0 ? 'all backends weighted' : `${drained} drained at weight 0`}
       />
-      <PoolStatCard
-        title="Throughput"
-        value={throughputValue}
-        unit={typeof throughputValue === 'string' ? 'req/s' : undefined}
-        detail={idle ? 'no requests yet' : 'across pool · last 5m'}
-      />
-      <PoolStatCard
-        title="Outlier detection"
-        value={passive ? 'On' : 'Off'}
-        detail={
-          passive ? `ejects after ${passive.consecutive5xxErrors} × 5xx` : 'endpoints never ejected'
-        }
-      />
+      {/* Three cards on a two-column phone grid: Throughput takes the full row. */}
+      <div className={SHOW_HEALTH_CHECKS ? undefined : 'col-span-2 lg:col-span-1'}>
+        <PoolStatCard
+          title="Throughput"
+          value={throughputValue}
+          unit={typeof throughputValue === 'string' ? 'req/s' : undefined}
+          detail={idle ? 'no requests yet' : 'across pool · last 5m'}
+        />
+      </div>
+      {SHOW_HEALTH_CHECKS ? (
+        <PoolStatCard
+          title="Outlier detection"
+          value={passive ? 'On' : 'Off'}
+          detail={
+            passive
+              ? `ejects after ${passive.consecutive5xxErrors} × 5xx`
+              : 'endpoints never ejected'
+          }
+        />
+      ) : null}
     </div>
   );
 }
