@@ -44,7 +44,7 @@ export interface BackendRow {
   kindLabel?: string;
   /** Where the title links: a compute workload's page, when the plugin is mounted. */
   href?: string;
-  /** Reached over Datum's private network rather than the public internet. */
+  /** Reached over Galactic VPC (a workload's or instance's network), not the public internet. */
   privateNetwork?: boolean;
   scheme?: 'http' | 'https';
   isIp: boolean;
@@ -137,9 +137,9 @@ function describe(
     }
     case 'instance':
       return {
-        title: backend.instance?.name ?? 'VPC instance',
-        address: `VPC instance · port ${backend.instance?.port ?? '—'}`,
-        kindLabel: 'VPC',
+        title: backend.instance?.name ?? 'Instance',
+        address: `Galactic VPC · port ${backend.instance?.port ?? '—'}`,
+        kindLabel: 'Instance',
         privateNetwork: true,
         isIp: false,
       };

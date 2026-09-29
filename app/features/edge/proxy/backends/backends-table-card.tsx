@@ -57,9 +57,9 @@ function TransportChips({ row }: { row: BackendRow }) {
       ) : row.privateNetwork ? (
         <StatusChip
           tone="muted"
-          tooltip="Reached over Datum's private network, not the public internet">
+          tooltip="Reached over Galactic VPC, Datum's private network, not the public internet">
           <Icon icon={NetworkIcon} size={10} aria-hidden="true" />
-          Private network
+          Galactic VPC
         </StatusChip>
       ) : (
         // Only meaningful as an empty column cell; the mobile line just omits it.
