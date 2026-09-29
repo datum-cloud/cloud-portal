@@ -15,9 +15,12 @@ import { PermissionButton } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
 import { type HttpProxy } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardAction,
@@ -91,6 +94,16 @@ export const HttpProxyOriginsCard = ({
   const showOriginEditor = Boolean(
     proxy && projectId && (!isComputeBackend(proxy) || computeBackend.workloadMissing)
   );
+  // The single-origin editor would replace the whole pool; a weighted pool is
+  // managed on the Backends tab instead.
+  const multiBackend = (proxy?.backends?.length ?? 0) > 1;
+  const backendsHref =
+    proxy && projectId
+      ? getPathWithParams(paths.project.detail.proxy.detail.backends, {
+          projectId,
+          proxyId: proxy.name,
+        })
+      : undefined;
 
   const origins = useMemo<OriginRow[]>(() => {
     const list =
@@ -159,7 +172,20 @@ export const HttpProxyOriginsCard = ({
           <Icon icon={ServerIcon} size={16} className="text-secondary" />
           Backend pool
         </CardTitle>
-        {showOriginEditor ? (
+        {multiBackend && backendsHref ? (
+          <CardAction>
+            <LinkButton
+              as={Link}
+              href={backendsHref}
+              type="secondary"
+              theme="outline"
+              size="xs"
+              className="shrink-0">
+              Manage backends
+              <Icon icon={ChevronRightIcon} size={12} />
+            </LinkButton>
+          </CardAction>
+        ) : showOriginEditor ? (
           <CardAction>
             <PermissionButton
               resource="httpproxies"
