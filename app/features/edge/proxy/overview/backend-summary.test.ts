@@ -1,7 +1,7 @@
 import { listOriginDisplay, summarizeBackends } from './backend-summary';
 import { COMPUTE_WORKLOAD_NAME_LABEL } from './compute-backend';
 import type { ComDatumapisNetworkingV1AlphaNetworkService } from '@/modules/control-plane/networking';
-import type { HttpProxy } from '@/resources/http-proxies';
+import { toHttpProxyBackend, type HttpProxy } from '@/resources/http-proxies';
 import { describe, expect, it } from 'bun:test';
 
 function proxy(overrides: Partial<HttpProxy> = {}): HttpProxy {
@@ -15,6 +15,22 @@ function proxy(overrides: Partial<HttpProxy> = {}): HttpProxy {
 }
 
 describe('summarizeBackends', () => {
+  it('counts every backend in a pool, including ones without an endpoint URL', () => {
+    expect(
+      summarizeBackends(
+        proxy({
+          endpoint: 'https://a.vercel.app',
+          origins: ['https://a.vercel.app', 'https://b.vercel.app'],
+          backends: [
+            toHttpProxyBackend({ endpoint: 'https://a.vercel.app' }),
+            toHttpProxyBackend({ endpoint: 'https://b.vercel.app' }),
+            toHttpProxyBackend({ networkService: { name: 'tester', port: 'http' } }),
+          ],
+        })
+      )
+    ).toEqual({ count: 3, label: '3 backends' });
+  });
+
   it('names a single endpoint origin', () => {
     expect(summarizeBackends(proxy({ endpoint: 'https://origin.example.com' }))).toEqual({
       count: 1,

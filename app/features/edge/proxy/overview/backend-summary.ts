@@ -25,6 +25,12 @@ export function summarizeBackends(
   proxy: HttpProxy,
   workloadName: string | undefined = proxy.workloadName
 ): BackendSummary {
+  // A pool is counted from every backend on it, not just the endpoint URLs:
+  // origins leaves out compute, connector and VPC backends, which have none.
+  const pool = proxy.backends?.length ?? 0;
+  if (pool > 1) {
+    return { count: pool, label: `${pool} backends` };
+  }
   const origins = proxy.origins ?? (proxy.endpoint ? [proxy.endpoint] : []);
   if (origins.length > 0) {
     return {

@@ -3,6 +3,7 @@ import { StatusChip } from '@/components/card/status-chip';
 import { ValueRow } from '@/components/card/value-row';
 import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
+import { toBackendRows } from '@/features/edge/proxy/backends/backend-pool';
 import { summarizeBackends } from '@/features/edge/proxy/overview/backend-summary';
 import { isComputeBackend } from '@/features/edge/proxy/overview/compute-backend';
 import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
@@ -42,6 +43,9 @@ type OriginRow = {
   origin: string;
   scheme: 'https' | 'http' | undefined;
   isIp: boolean;
+  /** Set for a backend with no endpoint URL (compute, VPC), named by its resource. */
+  kindLabel?: string;
+  copyable: boolean;
 };
 
 function parseOrigin(origin: string): OriginRow {
@@ -49,9 +53,9 @@ function parseOrigin(origin: string): OriginRow {
     const url = new URL(origin);
     const scheme =
       url.protocol === 'https:' ? 'https' : url.protocol === 'http:' ? 'http' : undefined;
-    return { origin, scheme, isIp: isIPAddress(url.hostname) };
+    return { origin, scheme, isIp: isIPAddress(url.hostname), copyable: true };
   } catch {
-    return { origin, scheme: undefined, isIp: false };
+    return { origin, scheme: undefined, isIp: false, copyable: true };
   }
 }
 
@@ -106,6 +110,21 @@ export const HttpProxyOriginsCard = ({
       : undefined;
 
   const origins = useMemo<OriginRow[]>(() => {
+    // A pool lists every backend: origins only holds endpoint URLs, so a
+    // compute or VPC backend would otherwise go missing from the card.
+    if ((proxy?.backends?.length ?? 0) > 1) {
+      return toBackendRows(proxy?.backends).map((row) =>
+        row.backend.endpoint
+          ? parseOrigin(row.backend.endpoint)
+          : {
+              origin: row.title,
+              scheme: undefined,
+              isIp: false,
+              kindLabel: row.kindLabel,
+              copyable: false,
+            }
+      );
+    }
     const list =
       proxy?.origins && proxy.origins.length > 0
         ? proxy.origins
@@ -113,7 +132,7 @@ export const HttpProxyOriginsCard = ({
           ? [proxy.endpoint]
           : [];
     return list.map(parseOrigin);
-  }, [proxy?.origins, proxy?.endpoint]);
+  }, [proxy?.backends, proxy?.origins, proxy?.endpoint]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy?.connector) return null;
@@ -244,14 +263,15 @@ export const HttpProxyOriginsCard = ({
             No origin configured. Add one so this load balancer has somewhere to send traffic.
           </Text>
         ) : (
-          origins.map((row) => (
+          origins.map((row, index) => (
             <ValueRow
-              key={row.origin}
+              key={`${index}-${row.origin}`}
               value={row.origin}
               copied={isCopied(row.origin)}
-              onCopy={() => void copy(row.origin, { withToast: true })}
+              onCopy={row.copyable ? () => void copy(row.origin, { withToast: true }) : undefined}
               status={
                 <>
+                  {row.kindLabel ? <StatusChip tone="muted">{row.kindLabel}</StatusChip> : null}
                   {row.scheme === 'https' ? (
                     <StatusChip tone="success" tooltip="Traffic to this origin is encrypted">
                       <Icon icon={LockIcon} size={10} aria-hidden="true" />
