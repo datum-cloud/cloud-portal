@@ -1,49 +1,23 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import DiscordIcon from '@/components/icon/discord';
 import { GitHubLineIcon } from '@/components/icon/github-line';
-import { ActionCard } from '@/features/project/dashboard';
-import { AIEdgeIllustration } from '@/features/project/illustrations/ai-edge';
-import { DnsIllustration } from '@/features/project/illustrations/dns';
-import { DomainIllustration } from '@/features/project/illustrations/domain';
-import { MetricsIllustration } from '@/features/project/illustrations/metrics';
+import { HomeColumns } from '@/features/project/home/home-columns';
+import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
-import { useResourcePermissions } from '@/modules/rbac';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
-import { useDnsZones } from '@/resources/dns-zones';
-import { useDomains } from '@/resources/domains';
-import { useExportPolicies } from '@/resources/export-policies';
-import { useHttpProxies } from '@/resources/http-proxies';
 import NotFound from '@/routes/not-found';
-import { paths } from '@/utils/config/paths.config';
-import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CalendarFold } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
-
-type DashboardCardConfig = {
-  key: string;
-  isCompleted: boolean;
-  isLoading: boolean;
-  canCreate: boolean;
-  illustration: ReactNode;
-  completedTitle: string;
-  pendingTitle: string;
-  buttonLabel: string;
-  viewPath: string;
-  createPath: string;
-  analyticsAction: (typeof AnalyticsAction)[keyof typeof AnalyticsAction];
-};
 
 type CommunityLink = {
   href: string;
@@ -56,6 +30,26 @@ type CommunityLink = {
 // ---------------------------------------------------------------------------
 
 const NEW_USER_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+
+const COMMUNITY_LINKS: CommunityLink[] = [
+  {
+    href: 'https://link.datum.net/events',
+    icon: (
+      <Icon icon={CalendarFold} size={16} className="dark:text-icon-tertiary text-icon-primary" />
+    ),
+    label: 'Huddles & meetups',
+  },
+  {
+    href: 'https://link.datum.net/discord',
+    icon: <DiscordIcon className="dark:text-icon-tertiary text-icon-primary size-4" />,
+    label: 'Join us on Discord',
+  },
+  {
+    href: 'https://github.com/datum-cloud',
+    icon: <GitHubLineIcon className="dark:text-icon-tertiary text-icon-primary size-4" />,
+    label: 'Find us on GitHub',
+  },
+];
 
 // ---------------------------------------------------------------------------
 // Route config
@@ -73,67 +67,8 @@ export const handle = {
 export default function ProjectHomePage() {
   const { project, isLoading } = useProjectContext();
   const { trackAction } = useAnalytics();
-  const navigate = useNavigate();
   const { user } = useApp();
   const firstProjectViewTrackedRef = useRef(false);
-
-  const { data: httpProxies = [], isLoading: httpProxiesLoading } = useHttpProxies(
-    project?.name ?? '',
-    { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
-  );
-  const { data: domains = [], isLoading: domainsLoading } = useDomains(project?.name ?? '', {
-    staleTime: QUERY_STALE_TIME,
-    refetchOnMount: false,
-  });
-  const { data: dnsZones = [], isLoading: dnsZonesLoading } = useDnsZones(
-    project?.name ?? '',
-    undefined,
-    { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
-  );
-  const { data: exportPolicies = [], isLoading: exportPoliciesLoading } = useExportPolicies(
-    project?.name ?? '',
-    { staleTime: QUERY_STALE_TIME, refetchOnMount: false }
-  );
-
-  const {
-    canCreate: canCreateAiEdge,
-    canCreateDomain,
-    canCreateDnsZone,
-    canCreateExportPolicy,
-  } = useResourcePermissions({
-    resource: 'httpproxies',
-    group: 'networking.datumapis.com',
-    scope: 'project',
-    verbs: ['create'],
-    subResources: [
-      {
-        resource: 'domains',
-        group: 'networking.datumapis.com',
-        scope: 'project',
-        alias: 'domain',
-        verbs: ['create'],
-      },
-      {
-        resource: 'dnszones',
-        group: 'dns.networking.miloapis.com',
-        scope: 'project',
-        alias: 'dnsZone',
-        verbs: ['create'],
-      },
-      {
-        resource: 'exportpolicies',
-        group: 'telemetry.miloapis.com',
-        scope: 'project',
-        alias: 'exportPolicy',
-        verbs: ['create'],
-      },
-    ],
-  });
-
-  const hasAiEdge = httpProxies.length > 0;
-  const hasDomains = domains.length > 0;
-  const hasDnsZones = dnsZones.length > 0;
-  const hasMetrics = exportPolicies.length > 0;
 
   const isNewUser = Boolean(
     user?.createdAt && Date.now() - new Date(user.createdAt).getTime() < NEW_USER_THRESHOLD_MS
@@ -155,108 +90,6 @@ export default function ProjectHomePage() {
 
   const projectName = project.name;
 
-  const cards: DashboardCardConfig[] = [
-    {
-      key: 'ai-edge',
-      isCompleted: hasAiEdge,
-      isLoading: httpProxiesLoading,
-      canCreate: canCreateAiEdge,
-      illustration: <AIEdgeIllustration variant={hasAiEdge ? 'completed' : 'default'} />,
-      completedTitle: 'Application Load Balancer deployed',
-      pendingTitle: canCreateAiEdge
-        ? 'Deploy an Application Load Balancer'
-        : 'Application Load Balancer',
-      buttonLabel: 'Go to Application Load Balancer',
-      viewPath: getPathWithParams(paths.project.detail.proxy.root, { projectId: projectName }),
-      createPath: getPathWithParams(
-        paths.project.detail.proxy.root,
-        { projectId: projectName },
-        new URLSearchParams({ action: 'create' })
-      ),
-      analyticsAction: AnalyticsAction.AddProxy,
-    },
-    {
-      key: 'domains',
-      isCompleted: hasDomains,
-      isLoading: domainsLoading,
-      canCreate: canCreateDomain,
-      illustration: <DomainIllustration variant={hasDomains ? 'completed' : 'default'} />,
-      completedTitle: 'Domains added',
-      pendingTitle: canCreateDomain ? 'Add a Domain' : 'Domains',
-      buttonLabel: 'Go to Domains',
-      viewPath: getPathWithParams(paths.project.detail.domains.root, { projectId: projectName }),
-      createPath: getPathWithParams(
-        paths.project.detail.domains.root,
-        { projectId: projectName },
-        new URLSearchParams({ action: 'create' })
-      ),
-      analyticsAction: AnalyticsAction.AddDomain,
-    },
-    {
-      key: 'dns',
-      isCompleted: hasDnsZones,
-      isLoading: dnsZonesLoading,
-      canCreate: canCreateDnsZone,
-      illustration: <DnsIllustration variant={hasDnsZones ? 'completed' : 'default'} />,
-      completedTitle: 'DNS migrated',
-      pendingTitle: canCreateDnsZone ? 'Migrate DNS to Datum' : 'DNS',
-      buttonLabel: 'Go to DNS',
-      viewPath: getPathWithParams(paths.project.detail.dnsZones.root, { projectId: projectName }),
-      createPath: getPathWithParams(
-        paths.project.detail.dnsZones.root,
-        { projectId: projectName },
-        new URLSearchParams({ action: 'create' })
-      ),
-      analyticsAction: AnalyticsAction.TransferDnsToDatum,
-    },
-    {
-      key: 'metrics',
-      isCompleted: hasMetrics,
-      isLoading: exportPoliciesLoading,
-      canCreate: canCreateExportPolicy,
-      illustration: <MetricsIllustration variant={hasMetrics ? 'completed' : 'default'} />,
-      completedTitle: 'Metrics sent to Grafana',
-      pendingTitle: canCreateExportPolicy ? 'Send metrics to Grafana' : 'Metrics',
-      buttonLabel: 'Go to Metrics',
-      viewPath: getPathWithParams(paths.project.detail.metrics.root, { projectId: projectName }),
-      createPath: getPathWithParams(
-        paths.project.detail.metrics.new,
-        { projectId: projectName },
-        new URLSearchParams({ action: 'create', provider: 'grafana' })
-      ),
-      analyticsAction: AnalyticsAction.CreateExportPolicy,
-    },
-  ];
-
-  const handleCardClick = (card: DashboardCardConfig) => {
-    if (card.isCompleted || !card.canCreate) {
-      navigate(card.viewPath);
-    } else {
-      trackAction(card.analyticsAction);
-      navigate(card.createPath);
-    }
-  };
-
-  const communityLinks: CommunityLink[] = [
-    {
-      href: 'https://link.datum.net/events',
-      icon: (
-        <Icon icon={CalendarFold} size={20} className="dark:text-icon-tertiary text-icon-primary" />
-      ),
-      label: 'Huddles & meetups',
-    },
-    {
-      href: 'https://link.datum.net/discord',
-      icon: <DiscordIcon className="dark:text-icon-tertiary text-icon-primary size-5" />,
-      label: 'Join us on Discord',
-    },
-    {
-      href: 'https://github.com/datum-cloud',
-      icon: <GitHubLineIcon className="dark:text-icon-tertiary text-icon-primary size-5" />,
-      label: 'Find us on GitHub',
-    },
-  ];
-
   return (
     <div className="mx-auto flex w-full flex-col gap-8">
       {/* Header */}
@@ -274,9 +107,7 @@ export default function ProjectHomePage() {
                 : `Welcome back, ${user?.givenName ?? 'there'}`}
             </Title>
             <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
-              {isNewUser
-                ? "If you're ready to get going, here are some great places to start..."
-                : "Here's an overview of your project."}
+              Search your project, or pick up where you left off.
             </Text>
           </div>
         </Col>
@@ -293,82 +124,55 @@ export default function ProjectHomePage() {
         </Col>
       </Row>
 
-      {/* Action cards */}
-      <Row
-        type="flex"
-        gutter={[
-          { xs: 8, sm: 16, md: 24, xl: 32 },
-          { xs: 8, sm: 16, md: 24, xl: 32 },
-        ]}>
-        {cards.map((card) => (
-          <Col
-            key={card.key}
-            xs={24}
-            sm={12}
-            md={12}
-            xl={6}
-            className="min-h-[320px] sm:min-h-[380px]">
-            <ActionCard
-              isCompleted={card.isCompleted}
-              isLoading={card.isLoading}
-              image={card.illustration}
-              className="h-full"
-              title={card.isCompleted ? card.completedTitle : card.pendingTitle}
-              onClick={() => handleCardClick(card)}
-              buttonLabel={card.buttonLabel}
-            />
-          </Col>
-        ))}
-      </Row>
+      {/* Search (the header search is hidden on this page) */}
+      <ProjectSearchBar variant="hero" />
+
+      {/* Resource columns */}
+      <HomeColumns projectId={projectName} />
 
       {/* Plugin-contributed project-home cards (portal.card/project-home) */}
       <ProjectHomePluginCards projectId={projectName} />
 
       {/* Community */}
-      <Row className="shrink-0">
-        <Col span={24}>
-          <div className="border-card-border dark:border-card relative flex h-auto min-h-[300px] w-full flex-col items-center justify-center rounded-xl border bg-white/50 p-9 pb-8 dark:bg-[#18273A]">
-            <Title as="h2" level={5} weight="medium" className="mb-2">
+      <div className="border-card-border dark:border-card flex items-stretch gap-6 overflow-hidden rounded-xl border bg-white/50 px-6 dark:bg-[#18273A]">
+        <img
+          src="/images/scene-9.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none hidden h-auto w-[60px] shrink-0 self-end pt-4 select-none sm:block"
+        />
+        <div className="flex flex-1 flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-1">
+            <Title as="h2" level={6} weight="medium">
               Datum community
             </Title>
-            <Text
-              as="p"
-              weight="normal"
-              className="dark:text-card-quaternary text-foreground/60 text-center">
-              Looking for some help or share some knowledge? We&apos;d love to see you!
+            <Text as="p" size="xs" className="dark:text-card-quaternary text-foreground/60">
+              Looking for some help or want to share some knowledge? We&apos;d love to see you!
             </Text>
-
-            <div className="bg-card border-card-quaternary dark:border-quaternary shadow-tooltip mt-7 flex min-w-[224px] flex-col gap-3.5 rounded-lg border px-6 py-7">
-              {communityLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group flex items-center justify-center gap-3.5">
-                  {link.icon}
-                  <Text size="xs" className="transition-all group-hover:underline">
-                    {link.label}
-                  </Text>
-                </a>
-              ))}
-            </div>
-
-            <img
-              src="/images/scene-9.png"
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-0 left-1/2 hidden h-auto max-w-[70px] -translate-x-[calc(50%+120px)] select-none sm:block"
-            />
-            <img
-              src="/images/scene-10.png"
-              alt=""
-              aria-hidden="true"
-              className="pointer-events-none absolute right-1/2 bottom-0 hidden h-auto max-w-[80px] translate-x-[calc(50%+125px)] select-none sm:block sm:max-w-[110px] sm:translate-x-[calc(50%+145px)]"
-            />
           </div>
-        </Col>
-      </Row>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            {COMMUNITY_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center gap-2">
+                {link.icon}
+                <Text size="xs" className="transition-all group-hover:underline">
+                  {link.label}
+                </Text>
+              </a>
+            ))}
+          </div>
+        </div>
+        <img
+          src="/images/scene-10.png"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none hidden h-auto w-[100px] shrink-0 self-end pt-4 select-none md:block"
+        />
+      </div>
     </div>
   );
 }

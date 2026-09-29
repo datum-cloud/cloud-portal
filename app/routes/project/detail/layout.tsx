@@ -43,6 +43,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
+  matchPath,
   Outlet,
   useFetcher,
   useLoaderData,
@@ -194,6 +195,11 @@ function ProjectDetailLayoutContent({
   const fromOnboarding =
     (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding === true;
   const breakpoint = useBreakpoint();
+  // The home page renders its own large search box, so the header one is hidden there.
+  const isHomeRoute = !!matchPath(
+    paths.project.detail.home.replace('[projectId]', ':projectId'),
+    location.pathname
+  );
   const seededOrgId = companions.organizationId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -313,12 +319,14 @@ function ProjectDetailLayoutContent({
                     <ProjectHeaderPluginContent projectId={project.name} />
                   </div>
                 )}
-                <div
-                  className={cn('flex h-full items-center justify-end border-l px-4', {
-                    'px-0': breakpoint === 'desktop',
-                  })}>
-                  {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
-                </div>
+                {!isHomeRoute && (
+                  <div
+                    className={cn('flex h-full items-center justify-end border-l px-4', {
+                      'px-0': breakpoint === 'desktop',
+                    })}>
+                    {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+                  </div>
+                )}
               </div>
             }>
             <QuotaWatchBridge scope="project" />
