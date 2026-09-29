@@ -10,6 +10,7 @@ import { errorHandler } from './middleware/error-handler';
 import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
 import { requestContextMiddleware } from './middleware/request-context';
+import { secureHeadersMiddleware } from './middleware/secure-headers';
 import { createApiApp } from './routes/api';
 import { createWebsiteRoutes } from './routes/website';
 import { createWebsiteLoginRoute } from './routes/website/login';
@@ -21,7 +22,8 @@ import type { Variables } from './types';
 import { configureServerClient } from '@/modules/control-plane/setup.server';
 import { ensureFeatureFlagProvider } from '@/modules/feature-flags/setup.server';
 import { Logger } from '@/modules/logger';
-import { initPluginRegistry } from '@/modules/plugins/server';
+import { getPlugins, initPluginRegistry } from '@/modules/plugins/server';
+import { createPluginCspResolver } from '@/modules/plugins/server/csp';
 import { createDevSessionRoutes, isDevSessionEnabled } from '@/modules/plugins/server/dev-session';
 import { createPluginRoutes } from '@/modules/plugins/server/routes';
 import { ensureRbacMetrics } from '@/modules/rbac/observability/metrics';
@@ -33,7 +35,6 @@ import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
 import { requestId } from 'hono/request-id';
-import { NONCE, secureHeaders } from 'hono/secure-headers';
 import { register } from 'prom-client';
 import { RouterContextProvider } from 'react-router';
 import { createHonoServer } from 'react-router-hono-server/bun';
@@ -116,86 +117,12 @@ app.use('*', requestContextMiddleware()); // Sets up AsyncLocalStorage for token
 
 const isDev = process.env.NODE_ENV === 'development';
 
-// Disable CSP in development - Vite HMR and React devtools need inline scripts
 app.use(
   '*',
-  secureHeaders({
-    // Equivalent to xPoweredBy: false - Hono doesn't send x-powered-by by default
-    xFrameOptions: 'SAMEORIGIN', // Part of frame-src: self
-    xContentTypeOptions: 'nosniff',
-    referrerPolicy: 'same-origin', // Matches your Helmet config
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: {
-      reportTo: isDev ? '/' : undefined,
-      defaultSrc: ["'self'"],
-      connectSrc: [
-        "'self'",
-        ...(isDev ? ['ws:'] : []),
-        env.public.apiUrl ?? '',
-        'https://*.sentry.io',
-        'https://*.datum.net',
-        'https://*.cloudfront.net',
-        'https://*.helpscout.net',
-        'https://app.rybbit.io', // Rybbit
-        'https://api.stripe.com',
-        'https://maps.googleapis.com', // Maps JS / legacy Places
-        'https://places.googleapis.com', // Places API (New) autocomplete RPC
-      ],
-      fontSrc: [
-        "'self'",
-        "'unsafe-inline'",
-        'https://*.jsdelivr.net',
-        'https://*.gstatic.com',
-        'https://*.helpscout.net',
-      ],
-      frameSrc: [
-        "'self'",
-        'https://*.sentry.io',
-        'https://*.datum.net',
-        'https://*.cloudfront.net',
-        'https://*.helpscout.net',
-        'https://js.stripe.com',
-        'https://hooks.stripe.com',
-      ],
-      imgSrc: [
-        "'self'",
-        'data:',
-        'https://*.googleusercontent.com', // Google user avatars
-        'https://*.githubusercontent.com', // GitHub user avatars
-        'https://avatars.githubusercontent.com', // GitHub avatars (alternative domain)
-        'https://*.cloudfront.net',
-        'https://*.cartocdn.com', // Leaflet map tiles (CARTO basemaps - basemaps.cartocdn.com)
-        'https://*.basemaps.cartocdn.com', // Tile subdomains (a.basemaps, b.basemaps, etc.)
-        'https://*.stripe.com',
-      ],
-      // Allow scripts - in dev mode, allow unsafe-inline and unsafe-eval for Vite HMR
-      scriptSrc: [
-        "'strict-dynamic'",
-        "'self'",
-        NONCE,
-        'https://maps.googleapis.com',
-        'https://*.gstatic.com',
-        ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
-      ],
-      scriptSrcElem: [
-        "'strict-dynamic'",
-        "'self'",
-        'https://js.sentry-cdn.com',
-        'https://browser.sentry-cdn.com',
-        'https://js.stripe.com',
-        'https://maps.googleapis.com',
-        'https://*.gstatic.com',
-        NONCE,
-        ...(isDev ? ["'unsafe-inline'", "'unsafe-eval'"] : []),
-      ],
-      scriptSrcAttr: [NONCE, ...(isDev ? ["'unsafe-inline'"] : [])],
-      // Allow inline styles for third-party widgets
-      styleSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.googleapis.com'],
-      // Only in production: upgrade HTTP→HTTPS. Omit in dev so Safari (and others) can use http://localhost
-      ...(isDev ? {} : { upgradeInsecureRequests: [] }),
-    },
-    // Disable HSTS in dev so Safari doesn't force HTTPS for localhost
-    strictTransportSecurity: !isDev,
+  secureHeadersMiddleware({
+    isDev,
+    apiUrl: env.public.apiUrl,
+    getPluginCspAdditions: createPluginCspResolver(getPlugins),
   })
 );
 
