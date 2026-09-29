@@ -468,6 +468,55 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
+  function navWithChildren(children: unknown) {
+    return baseManifest({
+      exposedModules: {},
+      extensions: [
+        {
+          type: 'portal.nav/project',
+          properties: {
+            id: 'compute',
+            title: 'Compute',
+            icon: 'server',
+            path: '/',
+            section: 'build',
+            children,
+          },
+        },
+      ],
+    });
+  }
+
+  test('keeps nested portal.nav/project children through validation', () => {
+    const children = [
+      { title: 'Workloads', path: '' },
+      { title: 'Advanced', order: 20, children: [{ title: 'Quotas', path: 'advanced/quotas' }] },
+    ];
+    const result = validateManifest(navWithChildren(children));
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      const nav = result.manifest.extensions[0] as { properties: { children?: unknown } };
+      expect(nav.properties.children).toEqual(children);
+    }
+  });
+
+  test('rejects a nav child with neither a path nor children', () => {
+    expect(validateManifest(navWithChildren([{ title: 'Workloads' }])).valid).toBe(false);
+  });
+
+  test('rejects a nav child with a whitespace-only path', () => {
+    expect(validateManifest(navWithChildren([{ title: 'Workloads', path: '  ' }])).valid).toBe(
+      false
+    );
+  });
+
+  test('rejects a nested nav child with an empty title', () => {
+    const result = validateManifest(
+      navWithChildren([{ title: 'Advanced', children: [{ title: '', path: 'x' }] }])
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a non-object input', () => {
     expect(validateManifest(null).valid).toBe(false);
     expect(validateManifest('nope').valid).toBe(false);
