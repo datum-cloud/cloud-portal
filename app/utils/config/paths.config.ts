@@ -126,6 +126,7 @@ export const paths = {
           activity: '/project/[projectId]/alb/[proxyId]/activity',
         },
       },
+      addDomain: '/project/[projectId]/add-domain',
       domains: {
         root: '/project/[projectId]/domains',
         detail: {

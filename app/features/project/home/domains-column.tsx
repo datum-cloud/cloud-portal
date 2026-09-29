@@ -27,11 +27,7 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
   });
 
   const listHref = getPathWithParams(paths.project.detail.domains.root, { projectId });
-  const createHref = getPathWithParams(
-    paths.project.detail.domains.root,
-    { projectId },
-    new URLSearchParams({ action: 'create' })
-  );
+  const createHref = getPathWithParams(paths.project.detail.addDomain, { projectId });
 
   return (
     <ResourceColumn
