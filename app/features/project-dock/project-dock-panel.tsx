@@ -1,4 +1,5 @@
 import { useProjectDock } from './project-dock-context';
+import { useDockWidth } from './use-dock-width';
 import { LazyPluginComponent } from '@/modules/plugins/client/lazy-plugin-component';
 import { PluginErrorBoundary } from '@/modules/plugins/client/plugin-error-boundary';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -41,13 +42,15 @@ function DockPanelSkeleton() {
  * Docked right-hand column for the open `portal.dock/project` widget. It sits
  * beside the page content (which narrows to make room) instead of overlaying
  * it; below `md` it covers the content area, since there is no room for both.
- * It slides in and out from the right with the sidebar's easing.
+ * It slides in and out from the right with the sidebar's easing, and its left
+ * edge can be dragged to resize it (see `useDockWidth`).
  *
  * Widgets stay mounted (via `Activity`) once opened, so closing the panel or
  * switching widgets keeps their state, e.g. an in-progress chat.
  */
 export function ProjectDockPanel() {
   const { widgets, activeWidgetId, close } = useProjectDock();
+  const { width, resizing, min, max, handleProps } = useDockWidth();
   const widgetsEverOpened = useRef(new Set<string>());
   // Keep showing the last widget while the panel slides closed.
   const lastWidgetId = useRef<string | null>(null);
@@ -68,15 +71,41 @@ export function ProjectDockPanel() {
       aria-label={shownWidget?.title ?? 'Panel'}
       aria-hidden={!open}
       inert={!open}
+      style={{ '--dock-width': `${width}px` } as React.CSSProperties}
       className={cn(
         'bg-background fixed inset-x-0 top-12 bottom-0 z-40 overflow-hidden',
         'transition-[translate,width] duration-[260ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none',
+        // Track the pointer directly while dragging the resize handle.
+        resizing && 'transition-none',
         // Desktop: in the layout's flex row, widening from 0 so the content narrows with it.
         'md:static md:z-auto md:shrink-0 md:translate-x-0',
-        open ? 'translate-x-0 md:w-[32rem]' : 'pointer-events-none translate-x-full md:w-0'
+        open ? 'translate-x-0 md:w-(--dock-width)' : 'pointer-events-none translate-x-full md:w-0'
       )}>
       {/* Fixed width so the widget doesn't reflow while the column animates. */}
-      <div className="relative flex h-full w-full flex-col border-l md:w-[32rem]">
+      <div className="relative flex h-full w-full flex-col border-l md:w-(--dock-width)">
+        <div
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize panel"
+          aria-valuenow={width}
+          aria-valuemin={min}
+          aria-valuemax={max}
+          tabIndex={0}
+          {...handleProps}
+          className={cn(
+            // Inside the edge: the aside clips anything hanging past it.
+            'absolute inset-y-0 left-0 z-20 hidden w-1.5 cursor-col-resize touch-none outline-none md:block',
+            // Thin line over the border that lights up on hover, focus and drag.
+            'after:bg-primary after:absolute after:inset-y-0 after:left-0 after:w-0.5 after:opacity-0 after:transition-opacity',
+            'hover:after:opacity-100 focus-visible:after:opacity-100',
+            resizing && 'after:opacity-100'
+          )}>
+          {/* Always-visible grip so the edge reads as draggable before hover. */}
+          <span
+            aria-hidden
+            className="bg-border absolute top-1/2 left-0.5 h-10 w-1 -translate-y-1/2 rounded-full"
+          />
+        </div>
         <Tooltip message="Close" side="left">
           <Button
             type="quaternary"
