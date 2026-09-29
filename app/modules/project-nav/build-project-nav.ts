@@ -1,9 +1,11 @@
 /**
- * Build the project sidebar as collapsible service categories (Deliver / Build /
- * Connect / Observe / Project Settings) for enhancement #849.
+ * Build the project sidebar as service categories (Deliver / Build / Connect /
+ * Observe) plus a collapsible Project Settings section, for enhancement #849.
+ * Service categories are always-open `group` sections; nested items with
+ * children (e.g. a plugin's Compute) stay collapsible.
  *
- * Category parents keep icons; nested children are text-only (plus optional
- * Coming Soon badges) so the expanded rail stays scannable.
+ * Service category headers are text-only; their items carry the icons.
+ * Project Settings is a collapsible parent with an icon and text-only children.
  */
 import { comingSoonHref } from './coming-soon';
 import { plannedServicesForSection } from './planned-services';
@@ -21,12 +23,15 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import type { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import type { QueryClient } from '@tanstack/react-query';
 import {
-  BoxesIcon,
+  ActivityIcon,
   ChartSplineIcon,
+  GaugeIcon,
   GlobeIcon,
   HomeIcon,
-  NetworkIcon,
+  PlugIcon,
   SettingsIcon,
+  SignpostIcon,
+  SplitIcon,
 } from 'lucide-react';
 
 export type BuildProjectNavOptions = {
@@ -54,6 +59,7 @@ function plannedChildren(projectId: string, section: ProjectNavSection): Ordered
         title: service.title,
         href: null,
         type: 'link' as const,
+        icon: service.icon,
         muted: true,
         disabled: true,
         badge: COMING_SOON_BADGE,
@@ -64,6 +70,7 @@ function plannedChildren(projectId: string, section: ProjectNavSection): Ordered
       title: service.title,
       href: comingSoonHref(projectId, service.id),
       type: 'link' as const,
+      icon: service.icon,
       muted: true,
       badge: COMING_SOON_BADGE,
       order: service.order,
@@ -79,15 +86,14 @@ function sortChildren(children: OrderedChild[]): OrderedChild[] {
 function category(
   title: string,
   sectionId: ProjectNavSection,
-  icon: NavItem['icon'],
   children: OrderedChild[],
   extras?: Partial<NavItem>
 ): SectionNavItem {
   return {
     title,
     href: null,
-    type: 'collapsible',
-    icon,
+    // Always open, no toggle, text-only header. Project Settings overrides via `extras`.
+    type: 'group',
     sectionId,
     children: sortChildren(children),
     ...extras,
@@ -137,11 +143,11 @@ export function buildProjectNavTree(
     category(
       'Deliver',
       'deliver',
-      GlobeIcon,
       [
         {
           title: 'Domains',
           order: 10,
+          icon: GlobeIcon,
           href: getPathWithParams(paths.project.detail.domains.root, { projectId }),
           type: 'link',
           disabled: !isReady,
@@ -157,6 +163,7 @@ export function buildProjectNavTree(
         {
           title: 'DNS',
           order: 20,
+          icon: SignpostIcon,
           href: getPathWithParams(paths.project.detail.dnsZones.root, { projectId }),
           type: 'link',
           disabled: !isReady,
@@ -172,6 +179,7 @@ export function buildProjectNavTree(
         {
           title: 'ALB',
           order: 30,
+          icon: SplitIcon,
           href: getPathWithParams(paths.project.detail.proxy.root, { projectId }),
           type: 'link',
           disabled: !isReady,
@@ -188,12 +196,13 @@ export function buildProjectNavTree(
       ],
       { showSeparatorAbove: true }
     ),
-    category('Build', 'build', BoxesIcon, [...plannedChildren(projectId, 'build')]),
-    category('Connect', 'connect', NetworkIcon, [
+    category('Build', 'build', [...plannedChildren(projectId, 'build')]),
+    category('Connect', 'connect', [
       ...plannedChildren(projectId, 'connect').filter((child) => child.order < 20),
       {
         title: 'Connectors',
         order: 20,
+        icon: PlugIcon,
         href: getPathWithParams(paths.project.detail.connectors.root, { projectId }),
         type: 'link',
         disabled: !isReady,
@@ -208,10 +217,11 @@ export function buildProjectNavTree(
       },
       ...plannedChildren(projectId, 'connect').filter((child) => child.order > 20),
     ]),
-    category('Observe', 'observe', ChartSplineIcon, [
+    category('Observe', 'observe', [
       {
         title: 'Activity',
         order: 10,
+        icon: ActivityIcon,
         href: getPathWithParams(paths.project.detail.activity, { projectId }),
         type: 'link',
         disabled: !isReady,
@@ -219,6 +229,7 @@ export function buildProjectNavTree(
       {
         title: 'Usage',
         order: 15,
+        icon: GaugeIcon,
         href: getPathWithParams(paths.project.detail.usage, { projectId }),
         type: 'link',
         disabled: !isReady,
@@ -240,6 +251,7 @@ export function buildProjectNavTree(
       {
         title: 'Metrics Export',
         order: 20,
+        icon: ChartSplineIcon,
         href: getPathWithParams(paths.project.detail.metrics.root, { projectId }),
         type: 'link',
         disabled: !isReady,
@@ -257,7 +269,6 @@ export function buildProjectNavTree(
     category(
       'Project Settings',
       'settings',
-      SettingsIcon,
       [
         {
           title: 'General',
@@ -305,7 +316,7 @@ export function buildProjectNavTree(
             : undefined,
         },
       ],
-      { showSeparatorAbove: true }
+      { showSeparatorAbove: true, type: 'collapsible', icon: SettingsIcon }
     ),
   ];
 }

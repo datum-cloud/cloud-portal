@@ -38,6 +38,33 @@ const codeRefSchema = z.object({
   $codeRef: z.string().min(1),
 });
 
+const mountRelativePathSchema = z.string().refine((path) => path === '' || !!path.trim(), {
+  message: 'path must be empty (index) or a mount-relative route',
+});
+
+type NavProjectChildInput = {
+  title: string;
+  path?: string;
+  order?: number;
+  children?: NavProjectChildInput[];
+};
+
+// A leaf needs a path; a child with its own non-empty children is a
+// collapsible parent and may omit it.
+const navProjectChildSchema: z.ZodType<NavProjectChildInput> = z.lazy(() =>
+  z
+    .object({
+      title: z.string().min(1),
+      path: mountRelativePathSchema.optional(),
+      order: z.number().optional(),
+      children: z.array(navProjectChildSchema).optional(),
+    })
+    .refine((child) => child.path !== undefined || (child.children?.length ?? 0) > 0, {
+      message: 'path is required unless the item has children',
+      path: ['path'],
+    })
+);
+
 const navProjectExtensionSchema = z.object({
   type: z.literal(EXTENSION_NAV_PROJECT),
   properties: z
@@ -53,6 +80,7 @@ const navProjectExtensionSchema = z.object({
       description: z.string().optional(),
       roadmapUrl: z.string().url().optional(),
       serviceRef: z.string().min(1).optional(),
+      children: z.array(navProjectChildSchema).optional(),
     })
     .superRefine((props, ctx) => {
       if (props.comingSoonMode !== undefined && props.comingSoon !== true) {
@@ -92,9 +120,7 @@ const pageProjectExtensionSchema = z.object({
   type: z.literal(EXTENSION_PAGE_PROJECT),
   properties: z.object({
     // Empty string is the plugin index (mount root). Whitespace-only is not.
-    path: z.string().refine((path) => path === '' || !!path.trim(), {
-      message: 'path must be empty (index) or a mount-relative route',
-    }),
+    path: mountRelativePathSchema,
     component: codeRefSchema,
   }),
   requirements: requirementsSchema,
