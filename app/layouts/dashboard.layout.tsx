@@ -69,6 +69,7 @@ export function DashboardLayout({
   defaultSidebarOpen,
   headerContent,
   headerActions,
+  sidePanel,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -114,6 +115,11 @@ export function DashboardLayout({
   headerContent?: React.ReactNode;
   /** Optional extra icon buttons rendered alongside the built-in help/docs/tasks/notification icons in the header. */
   headerActions?: React.ReactNode;
+  /**
+   * Optional right-hand column beside the content (below the header). The
+   * content narrows to make room rather than being overlaid.
+   */
+  sidePanel?: React.ReactNode;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -192,6 +198,7 @@ export function DashboardLayout({
           </DashboardContent>
           {bottomBar}
         </SidebarInset>
+        {sidePanel}
       </SidebarProvider>
     </div>
   );

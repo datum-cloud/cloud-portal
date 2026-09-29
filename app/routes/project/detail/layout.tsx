@@ -1,5 +1,9 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
-import { ProjectDockTriggers } from '@/features/project-dock';
+import {
+  ProjectDockPanel,
+  ProjectDockProvider,
+  ProjectDockTriggers,
+} from '@/features/project-dock';
 import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
@@ -291,33 +295,36 @@ function ProjectDetailLayoutContent({
   return (
     <ProjectProvider value={projectContextValue}>
       <PortalPluginHostProvider bindings={pluginHostBindings}>
-        <DashboardLayout
-          navItems={navItems}
-          sidebarCollapsible="icon"
-          currentProject={currentProject}
-          currentOrg={currentOrg}
-          sidebarLoading={projectLoading}
-          switcherLoading={projectLoading || orgLoading}
-          headerActions={<ProjectDockTriggers projectId={project?.name} />}
-          banner={<SuspensionBar />}
-          headerContent={
-            <div className="flex h-full items-center justify-end">
-              {breakpoint === 'desktop' && project?.name && (
-                <div className="border-sidebar-border flex h-full items-center px-4">
-                  <ProjectHeaderPluginContent projectId={project.name} />
+        <ProjectDockProvider projectId={project?.name}>
+          <DashboardLayout
+            navItems={navItems}
+            sidebarCollapsible="icon"
+            currentProject={currentProject}
+            currentOrg={currentOrg}
+            sidebarLoading={projectLoading}
+            switcherLoading={projectLoading || orgLoading}
+            headerActions={<ProjectDockTriggers />}
+            sidePanel={<ProjectDockPanel />}
+            banner={<SuspensionBar />}
+            headerContent={
+              <div className="flex h-full items-center justify-end">
+                {breakpoint === 'desktop' && project?.name && (
+                  <div className="border-sidebar-border flex h-full items-center px-4">
+                    <ProjectHeaderPluginContent projectId={project.name} />
+                  </div>
+                )}
+                <div
+                  className={cn('flex h-full items-center justify-end border-l px-4', {
+                    'px-0': breakpoint === 'desktop',
+                  })}>
+                  {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
                 </div>
-              )}
-              <div
-                className={cn('flex h-full items-center justify-end border-l px-4', {
-                  'px-0': breakpoint === 'desktop',
-                })}>
-                {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
               </div>
-            </div>
-          }>
-          <QuotaWatchBridge scope="project" />
-          <Outlet />
-        </DashboardLayout>
+            }>
+            <QuotaWatchBridge scope="project" />
+            <Outlet />
+          </DashboardLayout>
+        </ProjectDockProvider>
       </PortalPluginHostProvider>
     </ProjectProvider>
   );
