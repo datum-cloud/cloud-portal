@@ -29,6 +29,8 @@ import {
   useDeleteDomain,
   useDomains,
   useDomainsWatch,
+  getRefreshCooldownMessage,
+  getRefreshCooldownRemaining,
   useRefreshDomainRegistration,
   domainKeys,
 } from '@/resources/domains';
@@ -63,6 +65,7 @@ type FormattedDomain = {
   status: Domain['status'];
   statusType: 'verified' | 'pending';
   dnsZone?: DnsZone;
+  lastRefreshAttempt?: string;
 };
 
 type DomainsListData = { domains: Domain[]; dnsZones: DnsZone[] };
@@ -207,6 +210,7 @@ function DomainsInner({
       status: domain.status,
       statusType: domain.status?.verified ? 'verified' : 'pending',
       dnsZone: dnsZoneMap.get(domain.domainName),
+      lastRefreshAttempt: domain.desiredRegistrationRefreshAttempt,
     }));
   }, [domains, dnsZoneMap]);
 
@@ -454,8 +458,12 @@ function DomainsInner({
         {
           label: 'Refresh',
           hidden: () => !canUpdate,
-          disabled: () => isReadOnly,
-          tooltip: () => (isReadOnly ? (readOnlyReason ?? '') : ''),
+          disabled: (row) => isReadOnly || getRefreshCooldownRemaining(row.lastRefreshAttempt) > 0,
+          tooltip: (row) => {
+            if (isReadOnly) return readOnlyReason ?? '';
+            const remaining = getRefreshCooldownRemaining(row.lastRefreshAttempt);
+            return remaining > 0 ? getRefreshCooldownMessage(remaining) : '';
+          },
           onClick: (row) => handleRefreshDomain(row),
         },
         {
