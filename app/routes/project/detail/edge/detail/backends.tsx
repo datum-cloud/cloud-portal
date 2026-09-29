@@ -14,6 +14,7 @@ import { HttpProxyBackendsTableCard } from '@/features/edge/proxy/backends/backe
 import { HttpProxyHealthChecksCard } from '@/features/edge/proxy/backends/health-checks-card';
 import { HttpProxyPoolStats } from '@/features/edge/proxy/backends/pool-stats';
 import { HttpProxyTrafficDistributionCard } from '@/features/edge/proxy/backends/traffic-distribution-card';
+import { useComputeServiceInfo } from '@/features/edge/proxy/backends/use-compute-service-info';
 import { useAlbTrafficPresence } from '@/features/edge/proxy/overview/use-alb-traffic-presence';
 import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
 import { PermissionButton, useGuardedRouteData, usePermission } from '@/modules/rbac';
@@ -71,7 +72,11 @@ export default function HttpProxyBackendsPage() {
     }
   );
 
-  const rows = useMemo(() => toBackendRows(current?.backends), [current?.backends]);
+  const computeServices = useComputeServiceInfo(projectId);
+  const rows = useMemo(
+    () => toBackendRows(current?.backends, { services: computeServices }),
+    [current?.backends, computeServices]
+  );
 
   if (!current) throw new NotFoundError('Application Load Balancer', proxyId);
 

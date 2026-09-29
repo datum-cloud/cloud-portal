@@ -26,6 +26,7 @@ import {
   CheckIcon,
   CopyIcon,
   LockIcon,
+  NetworkIcon,
   PauseIcon,
   PencilIcon,
   SearchIcon,
@@ -34,6 +35,7 @@ import {
   Trash2Icon,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 
 const EDIT_DENIED = "You don't have permission to edit this Application Load Balancer";
 const HEAD = 'text-muted-foreground text-3xs h-9 font-semibold uppercase';
@@ -51,6 +53,13 @@ function TransportChips({ row }: { row: BackendRow }) {
         <StatusChip tone="warning" tooltip="Traffic between Datum and this origin is not encrypted">
           <Icon icon={ShieldOffIcon} size={10} aria-hidden="true" />
           HTTP
+        </StatusChip>
+      ) : row.privateNetwork ? (
+        <StatusChip
+          tone="muted"
+          tooltip="Reached over Datum's private network, not the public internet">
+          <Icon icon={NetworkIcon} size={10} aria-hidden="true" />
+          Private network
         </StatusChip>
       ) : (
         // Only meaningful as an empty column cell; the mobile line just omits it.
@@ -296,9 +305,17 @@ export function HttpProxyBackendsTableCard({
                       />
                       <div className="flex min-w-0 flex-col gap-0.5">
                         <div className="flex min-w-0 items-center gap-1.5">
-                          <Text size="sm" weight="medium" ellipsis>
-                            {row.title}
-                          </Text>
+                          {row.href ? (
+                            <Link
+                              to={row.href}
+                              className="min-w-0 truncate text-sm font-medium hover:underline">
+                              {row.title}
+                            </Link>
+                          ) : (
+                            <Text size="sm" weight="medium" ellipsis>
+                              {row.title}
+                            </Text>
+                          )}
                           {row.kindLabel ? (
                             <StatusChip tone="muted">{row.kindLabel}</StatusChip>
                           ) : null}

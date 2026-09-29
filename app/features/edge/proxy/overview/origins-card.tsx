@@ -4,6 +4,7 @@ import { ValueRow } from '@/components/card/value-row';
 import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { toBackendRows } from '@/features/edge/proxy/backends/backend-pool';
+import { useComputeServiceInfo } from '@/features/edge/proxy/backends/use-compute-service-info';
 import { summarizeBackends } from '@/features/edge/proxy/overview/backend-summary';
 import { isComputeBackend } from '@/features/edge/proxy/overview/compute-backend';
 import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
@@ -109,11 +110,16 @@ export const HttpProxyOriginsCard = ({
         })
       : undefined;
 
+  // Only worth fetching when a pool has a workload backend to describe.
+  const computeServices = useComputeServiceInfo(
+    projectId,
+    (proxy?.backends ?? []).some((backend) => backend.kind === 'networkService')
+  );
   const origins = useMemo<OriginRow[]>(() => {
     // A pool lists every backend: origins only holds endpoint URLs, so a
     // compute or VPC backend would otherwise go missing from the card.
     if ((proxy?.backends?.length ?? 0) > 1) {
-      return toBackendRows(proxy?.backends).map((row) =>
+      return toBackendRows(proxy?.backends, { services: computeServices }).map((row) =>
         row.backend.endpoint
           ? parseOrigin(row.backend.endpoint)
           : {
@@ -132,7 +138,7 @@ export const HttpProxyOriginsCard = ({
           ? [proxy.endpoint]
           : [];
     return list.map(parseOrigin);
-  }, [proxy?.backends, proxy?.origins, proxy?.endpoint]);
+  }, [proxy?.backends, proxy?.origins, proxy?.endpoint, computeServices]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy?.connector) return null;

@@ -53,7 +53,42 @@ describe('toBackendRows', () => {
       toHttpProxyBackend({ networkService: { name: 'web', port: 'http' }, weight: 0 }),
     ]);
     expect(rows[0]).toMatchObject({ title: 'blue.fly.dev', scheme: 'https', share: 100 });
-    expect(rows[1]).toMatchObject({ title: 'web', kindLabel: 'Compute', drained: true, share: 0 });
+    expect(rows[1]).toMatchObject({ title: 'web', kindLabel: 'Workload', drained: true, share: 0 });
+  });
+
+  it('names a workload backend by its workload and says what runs behind it', () => {
+    const rows = toBackendRows(
+      [toHttpProxyBackend({ networkService: { name: 'tester-svc', port: 'http' } })],
+      {
+        services: new Map([
+          [
+            'tester-svc',
+            {
+              workloadName: 'alb-lb-tester',
+              healthy: 2,
+              members: 3,
+              locations: ['us-central-1'],
+              ports: { http: 3000 },
+              href: '/project/p/services/workloads/alb-lb-tester',
+            },
+          ],
+        ]),
+      }
+    );
+    expect(rows[0]).toMatchObject({
+      title: 'alb-lb-tester',
+      address: '2/3 instances healthy · us-central-1 · port 3000',
+      kindLabel: 'Workload',
+      href: '/project/p/services/workloads/alb-lb-tester',
+      privateNetwork: true,
+    });
+  });
+
+  it('falls back to the port name when the service is unknown', () => {
+    const rows = toBackendRows([
+      toHttpProxyBackend({ networkService: { name: 'gone', port: 'http' } }),
+    ]);
+    expect(rows[0]).toMatchObject({ title: 'gone', address: 'port http' });
   });
 });
 

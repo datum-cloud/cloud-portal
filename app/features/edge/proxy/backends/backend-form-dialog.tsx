@@ -103,7 +103,7 @@ function backendSchema(otherWeight: number, originLocked: boolean) {
       }
       if (!originLocked && data.originType === 'networkService') {
         if (!data.serviceName) {
-          ctx.addIssue({ code: 'custom', message: 'Choose a service', path: ['serviceName'] });
+          ctx.addIssue({ code: 'custom', message: 'Choose a workload', path: ['serviceName'] });
         } else if (!data.servicePort) {
           ctx.addIssue({ code: 'custom', message: 'Choose a port', path: ['servicePort'] });
         }
@@ -473,7 +473,7 @@ export const BackendFormDialog = forwardRef<
               ) : (
                 // One row at every width, the same height as the address field.
                 <div className="grid grid-cols-[1fr_7rem] gap-3 sm:grid-cols-[1fr_10rem]">
-                  <Form.Field name="serviceName" label="Service" required>
+                  <Form.Field name="serviceName" label="Workload" required>
                     {({ control }) => (
                       // One wrapper: Select renders a hidden native <select> after its
                       // trigger, and Form.Field's space-y-2 would give the trigger a
@@ -490,10 +490,10 @@ export const BackendFormDialog = forwardRef<
                             <SelectValue
                               placeholder={
                                 servicesLoading
-                                  ? 'Loading services…'
+                                  ? 'Loading workloads…'
                                   : services.length === 0
-                                    ? 'No compute services in this project'
-                                    : 'Choose a service'
+                                    ? 'No workloads serving HTTP in this project'
+                                    : 'Choose a workload'
                               }
                             />
                           </SelectTrigger>
@@ -503,7 +503,8 @@ export const BackendFormDialog = forwardRef<
                               const workload = workloadNameFromNetworkService(service);
                               return (
                                 <SelectItem key={name} value={name}>
-                                  {workload && workload !== name ? `${workload} · ${name}` : name}
+                                  {/* The workload, not the NetworkService behind it, which users never create. */}
+                                  {workload ?? name}
                                 </SelectItem>
                               );
                             })}

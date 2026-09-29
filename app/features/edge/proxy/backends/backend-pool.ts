@@ -39,9 +39,13 @@ export interface BackendRow {
   backend: HttpProxyBackend;
   /** Primary label: the origin's hostname, or the referenced resource. */
   title: string;
-  /** Secondary label: the full endpoint URL or reference. */
+  /** Secondary label: the full endpoint URL, or what's behind a workload or VPC backend. */
   address: string;
   kindLabel?: string;
+  /** Where the title links: a compute workload's page, when the plugin is mounted. */
+  href?: string;
+  /** Reached over Datum's private network rather than the public internet. */
+  privateNetwork?: boolean;
   scheme?: 'http' | 'https';
   isIp: boolean;
   weight: number;
@@ -51,6 +55,48 @@ export interface BackendRow {
   shareLabel: string;
   drained: boolean;
   color: string;
+}
+
+/**
+ * What the portal knows about the compute service behind a workload backend,
+ * keyed by service name. Resolved by the caller (useComputeServiceInfo) so this
+ * module stays free of data fetching.
+ */
+export type ComputeServiceInfo = {
+  workloadName?: string;
+  healthy?: number;
+  members?: number;
+  locations: string[];
+  /** Port numbers by name; a backend references one by name. */
+  ports: Readonly<Record<string, number>>;
+  href?: string;
+};
+
+export type BackendRowContext = {
+  services?: ReadonlyMap<string, ComputeServiceInfo>;
+};
+
+/** "3/3 instances healthy · us-central-1 · port 3000", from what's known. */
+export function describeComputeService(
+  info: ComputeServiceInfo | undefined,
+  portName: string | undefined
+): string {
+  const parts: string[] = [];
+  if (info?.members !== undefined) {
+    parts.push(
+      info.members === 0
+        ? 'No instances'
+        : `${info.healthy ?? 0}/${info.members} ${info.members === 1 ? 'instance' : 'instances'} healthy`
+    );
+  }
+  if (info && info.locations.length > 0) {
+    parts.push(
+      info.locations.length <= 2 ? info.locations.join(', ') : `${info.locations.length} locations`
+    );
+  }
+  const port = (portName && info?.ports[portName]) ?? portName;
+  if (port !== undefined) parts.push(`port ${port}`);
+  return parts.join(' · ') || 'Datum compute';
 }
 
 function parseUrl(endpoint: string | undefined): URL | undefined {
@@ -63,26 +109,38 @@ function parseUrl(endpoint: string | undefined): URL | undefined {
 }
 
 function describe(
-  backend: HttpProxyBackend
-): Pick<BackendRow, 'title' | 'address' | 'kindLabel' | 'scheme' | 'isIp'> {
+  backend: HttpProxyBackend,
+  context: BackendRowContext
+): Pick<
+  BackendRow,
+  'title' | 'address' | 'kindLabel' | 'scheme' | 'isIp' | 'href' | 'privateNetwork'
+> {
   const url = parseUrl(backend.endpoint);
   const scheme =
     url?.protocol === 'https:' ? 'https' : url?.protocol === 'http:' ? 'http' : undefined;
   const isIp = url ? isIPAddress(url.hostname) : false;
 
   switch (backend.kind) {
-    case 'networkService':
+    case 'networkService': {
+      // Named by the workload, not the NetworkService behind it, which isn't
+      // something users create or see.
+      const name = backend.networkService?.name;
+      const info = name ? context.services?.get(name) : undefined;
       return {
-        title: backend.networkService?.name ?? 'Compute workload',
-        address: `NetworkService · port ${backend.networkService?.port ?? '—'}`,
-        kindLabel: 'Compute',
+        title: info?.workloadName ?? name ?? 'Workload',
+        address: describeComputeService(info, backend.networkService?.port),
+        kindLabel: 'Workload',
+        href: info?.href,
+        privateNetwork: true,
         isIp: false,
       };
+    }
     case 'instance':
       return {
         title: backend.instance?.name ?? 'VPC instance',
-        address: `EndpointSlice · port ${backend.instance?.port ?? '—'}`,
+        address: `VPC instance · port ${backend.instance?.port ?? '—'}`,
         kindLabel: 'VPC',
+        privateNetwork: true,
         isIp: false,
       };
     case 'connector':
@@ -147,14 +205,17 @@ export function shareLabels(shares: number[]): string[] {
   return rounded.map((value, index) => (value === 0 && shares[index] > 0 ? '<1%' : `${value}%`));
 }
 
-export function toBackendRows(backends: HttpProxyBackend[] | undefined): BackendRow[] {
+export function toBackendRows(
+  backends: HttpProxyBackend[] | undefined,
+  context: BackendRowContext = {}
+): BackendRow[] {
   const list = backends ?? [];
   const shares = weightShares(list.map((b) => b.weight));
   const labels = shareLabels(shares);
   return list.map((backend, index) => ({
     index,
     backend,
-    ...describe(backend),
+    ...describe(backend, context),
     weight: backend.weight,
     share: shares[index],
     shareLabel: labels[index],
