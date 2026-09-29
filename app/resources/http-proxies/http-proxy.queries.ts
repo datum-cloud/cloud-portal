@@ -1,3 +1,4 @@
+import { toBackendPayload, toHttpProxyBackend } from './http-proxy.adapter';
 import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
 import {
   createHttpProxyService,
@@ -184,6 +185,17 @@ export function useUpdateHttpProxy(
             tlsHostname: input.tlsHostname.trim() || undefined,
           }),
           ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
+          ...(input.backends !== undefined && {
+            backends: input.backends.map((backend) =>
+              toHttpProxyBackend(toBackendPayload(backend))
+            ),
+          }),
+          ...(input.loadBalancer !== undefined && {
+            loadBalancer: input.loadBalancer ?? undefined,
+          }),
+          ...(input.healthCheck !== undefined && {
+            healthCheck: input.healthCheck?.passive ? input.healthCheck : undefined,
+          }),
           ...(input.enableHttpRedirect !== undefined && {
             enableHttpRedirect: input.enableHttpRedirect,
           }),

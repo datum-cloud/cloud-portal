@@ -5,8 +5,15 @@ import type {
   UpdateHttpProxyInput,
   BasicAuthUser,
 } from './http-proxy.schema';
-import type { TrafficProtectionMode, WafRuleExclusions } from './http-proxy.schema';
-import { COMPUTE_WORKLOAD_NAME_LABEL } from './http-proxy.schema';
+import type {
+  HttpProxyBackend,
+  HttpProxyBackendInput,
+  HttpProxyHealthCheck,
+  HttpProxyLoadBalancer,
+  TrafficProtectionMode,
+  WafRuleExclusions,
+} from './http-proxy.schema';
+import { COMPUTE_WORKLOAD_NAME_LABEL, HTTP_PROXY_DEFAULT_WEIGHT } from './http-proxy.schema';
 import { buildAttachmentMapsFromPolicies } from './http-proxy.waf-attach';
 import {
   type ComDatumapisNetworkingV1AlphaHttpProxy,
@@ -248,6 +255,98 @@ export function extractHostHeader(raw: ComDatumapisNetworkingV1AlphaHttpProxy): 
     if (hostEntry) return hostEntry.value;
   }
   return '';
+}
+
+type RawBackend = NonNullable<
+  NonNullable<
+    NonNullable<ComDatumapisNetworkingV1AlphaHttpProxy['spec']>['rules']
+  >[number]['backends']
+>[number];
+
+/** Map one `spec.rules[].backends[]` entry to the portal's backend model. */
+export function toHttpProxyBackend(raw: RawBackend): HttpProxyBackend {
+  const kind: HttpProxyBackend['kind'] = raw.instance
+    ? 'instance'
+    : raw.networkService
+      ? 'networkService'
+      : raw.connector
+        ? 'connector'
+        : 'endpoint';
+  return {
+    kind,
+    ...(raw.endpoint && { endpoint: raw.endpoint }),
+    ...(raw.connector && { connector: { name: raw.connector.name } }),
+    ...(raw.networkService && {
+      networkService: { name: raw.networkService.name, port: raw.networkService.port },
+    }),
+    ...(raw.instance && { instance: { name: raw.instance.name, port: raw.instance.port } }),
+    ...(raw.tls?.hostname && { tlsHostname: raw.tls.hostname }),
+    weight: raw.weight ?? HTTP_PROXY_DEFAULT_WEIGHT,
+    raw: raw as Record<string, unknown>,
+  };
+}
+
+/** Every backend on the backend rule (the first rule with backends), in spec order. */
+export function extractBackends(raw: ComDatumapisNetworkingV1AlphaHttpProxy): HttpProxyBackend[] {
+  const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
+  return (backendRule?.backends ?? []).map(toHttpProxyBackend);
+}
+
+export function extractLoadBalancer(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): HttpProxyLoadBalancer | undefined {
+  const lb = raw.spec?.loadBalancer;
+  if (!lb?.type) return undefined;
+  return {
+    type: lb.type,
+    ...(lb.consistentHash && {
+      consistentHash: {
+        type: lb.consistentHash.type,
+        ...(lb.consistentHash.header && { header: lb.consistentHash.header }),
+      },
+    }),
+  };
+}
+
+export function extractHealthCheck(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): HttpProxyHealthCheck | undefined {
+  const passive = raw.spec?.healthCheck?.passive;
+  if (!raw.spec?.healthCheck) return undefined;
+  return {
+    ...(passive && {
+      passive: {
+        ...(passive.consecutive5xxErrors !== undefined && {
+          consecutive5xxErrors: passive.consecutive5xxErrors,
+        }),
+        ...(passive.baseEjectionTime !== undefined && {
+          baseEjectionTime: passive.baseEjectionTime,
+        }),
+        ...(passive.maxEjectionPercent !== undefined && {
+          maxEjectionPercent: passive.maxEjectionPercent,
+        }),
+      },
+    }),
+  };
+}
+
+/**
+ * The API entry for a backend the portal writes. An edited endpoint keeps the
+ * rest of its original entry (filters, connector) and only swaps the fields
+ * the form owns; a pass-through entry is re-emitted with at most a new weight.
+ */
+export function toBackendPayload(input: HttpProxyBackendInput): Record<string, unknown> {
+  if ('endpoint' in input) {
+    const { tls: _tls, ...rest } = input.raw ?? {};
+    const tlsHostname = input.tlsHostname?.trim();
+    return {
+      ...rest,
+      endpoint: input.endpoint,
+      ...(tlsHostname && { tls: { hostname: tlsHostname } }),
+      ...(input.weight !== undefined && { weight: input.weight }),
+    };
+  }
+  return { ...input.raw, ...(input.weight !== undefined && { weight: input.weight }) };
 }
 
 /**
@@ -539,6 +638,9 @@ export function toHttpProxy(
   // FR-4: classify the underlying resource so callers can decide between
   // editable form and read-only banner without re-reading the raw resource.
   const complexity = classifyHttpProxyComplexity(raw);
+  const backends = extractBackends(raw);
+  const loadBalancer = extractLoadBalancer(raw);
+  const healthCheck = extractHealthCheck(raw);
 
   return {
     uid: raw.metadata?.uid ?? '',
@@ -554,6 +656,9 @@ export function toHttpProxy(
     hostnames: raw.spec?.hostnames,
     tlsHostname: backend?.tls?.hostname,
     ...(hostHeader && { hostHeader }),
+    ...(backends.length > 0 && { backends }),
+    ...(loadBalancer && { loadBalancer }),
+    ...(healthCheck && { healthCheck }),
     complexity,
     status: raw.status,
     canonicalHostname: raw.status?.canonicalHostname,
@@ -788,12 +893,20 @@ type BackendRuleFilter =
  * or a compute NetworkService reference. Mirrors the API's mutually exclusive
  * `endpoint` / `networkService` shape.
  */
-type BackendRuleBackend =
+type BackendRuleBackend = (
   | { endpoint: string; tls?: { hostname: string }; connector?: { name: string } }
-  | { networkService: { name: string; port: string } };
+  | { networkService: { name: string; port: string } }
+) & { weight?: number };
 type BackendRule = {
-  backends: BackendRuleBackend[];
+  // Entries preserved from the live resource are re-emitted verbatim.
+  backends: Array<BackendRuleBackend | Record<string, unknown>>;
   filters?: BackendRuleFilter[];
+};
+
+/** `spec.loadBalancer` as written: nulls clear stale keys under merge-patch. */
+type LoadBalancerPatch = {
+  type: HttpProxyLoadBalancer['type'];
+  consistentHash: { type: 'SourceIP' | 'Header'; header: string | null } | null;
 };
 
 export type HttpProxyUpdatePayload = {
@@ -803,8 +916,40 @@ export type HttpProxyUpdatePayload = {
   spec?: {
     hostnames?: string[];
     rules?: Array<BackendRule | RedirectRule>;
+    loadBalancer?: LoadBalancerPatch | null;
+    healthCheck?: HttpProxyHealthCheck | null;
   };
 };
+
+/**
+ * Merge-patch recurses into objects, so switching away from ConsistentHash
+ * (or from Header hashing) must null the keys the new type forbids, or the
+ * API's CEL rules reject the merged result.
+ */
+function toLoadBalancerPatch(lb: HttpProxyLoadBalancer): LoadBalancerPatch {
+  const hash = lb.type === 'ConsistentHash' ? lb.consistentHash : undefined;
+  return {
+    type: lb.type,
+    consistentHash: hash
+      ? {
+          type: hash.type,
+          header: hash.type === 'Header' ? (hash.header?.trim() ?? null) : null,
+        }
+      : null,
+  };
+}
+
+/** Same reason: emit every passive field so no stale value survives the merge. */
+function toHealthCheckPatch(hc: HttpProxyHealthCheck): HttpProxyHealthCheck | null {
+  if (!hc.passive) return null;
+  return {
+    passive: {
+      consecutive5xxErrors: hc.passive.consecutive5xxErrors,
+      baseEjectionTime: hc.passive.baseEjectionTime,
+      maxEjectionPercent: hc.passive.maxEjectionPercent,
+    },
+  };
+}
 
 /** True when the merge-patch would change HTTPProxy metadata or spec. */
 export function httpProxyPatchTouchesResource(payload: HttpProxyUpdatePayload): boolean {
@@ -836,17 +981,31 @@ export function toUpdateHttpProxyPayload(
     input.enableHttpRedirect !== undefined ||
     input.hsts !== undefined ||
     input.hostHeader !== undefined ||
+    input.backends !== undefined ||
     // TLS lives on the backend rule — rebuild rules when it changes even if
     // endpoint/redirect/hostHeader are untouched (e.g. hostnames dialog save).
     input.tlsHostname !== undefined;
 
-  let spec: { hostnames?: string[]; rules?: Array<BackendRule | RedirectRule> } | undefined;
+  let spec: HttpProxyUpdatePayload['spec'];
 
-  if (hasRulesChange || input.hostnames !== undefined) {
+  if (
+    hasRulesChange ||
+    input.hostnames !== undefined ||
+    input.loadBalancer !== undefined ||
+    input.healthCheck !== undefined
+  ) {
     spec = {};
 
     if (input.hostnames !== undefined) {
       spec.hostnames = input.hostnames;
+    }
+
+    if (input.loadBalancer !== undefined) {
+      spec.loadBalancer = input.loadBalancer ? toLoadBalancerPatch(input.loadBalancer) : null;
+    }
+
+    if (input.healthCheck !== undefined) {
+      spec.healthCheck = input.healthCheck ? toHealthCheckPatch(input.healthCheck) : null;
     }
 
     if (hasRulesChange) {
@@ -885,18 +1044,34 @@ export function toUpdateHttpProxyPayload(
         ...(effectiveTls && { tls: { hostname: effectiveTls } }),
         ...(currentProxy?.connector && { connector: currentProxy.connector }),
       });
-      const effectiveBackend: BackendRuleBackend | undefined =
-        input.endpoint !== undefined
-          ? input.endpoint
-            ? endpointBackend(input.endpoint)
-            : undefined
-          : currentProxy?.networkService?.name
-            ? { networkService: currentProxy.networkService }
-            : currentProxy?.endpoint
-              ? endpointBackend(currentProxy.endpoint)
-              : undefined;
 
-      if (effectiveBackend) {
+      // Every backend in the pool survives a rebuild. An explicit pool wins;
+      // an explicit endpoint is the single-origin editor replacing the pool;
+      // otherwise re-emit what is there, applying a TLS hostname change to
+      // the first backend, which is the one `tlsHostname` describes.
+      const preserved = currentProxy?.backends?.map((backend, index) => {
+        if (index !== 0 || input.tlsHostname === undefined || !backend.endpoint) {
+          return backend.raw;
+        }
+        const { tls: _tls, ...rest } = backend.raw;
+        return effectiveTls ? { ...rest, tls: { hostname: effectiveTls } } : rest;
+      });
+      const effectiveBackends: BackendRule['backends'] =
+        input.backends !== undefined
+          ? input.backends.map(toBackendPayload)
+          : input.endpoint !== undefined
+            ? input.endpoint
+              ? [endpointBackend(input.endpoint)]
+              : []
+            : preserved && preserved.length > 0
+              ? preserved
+              : currentProxy?.networkService?.name
+                ? [{ networkService: currentProxy.networkService }]
+                : currentProxy?.endpoint
+                  ? [endpointBackend(currentProxy.endpoint)]
+                  : [];
+
+      if (effectiveBackends.length > 0) {
         // Determine effective host header: explicit input > current proxy value
         // A defined-but-empty string in input means "clear the host header"
         const effectiveHostHeader =
@@ -933,7 +1108,7 @@ export function toUpdateHttpProxyPayload(
         }
 
         rules.push({
-          backends: [effectiveBackend],
+          backends: effectiveBackends,
           ...(backendFilters.length > 0 && { filters: backendFilters }),
         });
       }
