@@ -10,10 +10,10 @@ import { Link } from 'react-router';
 
 /**
  * Every column body is the same fixed height: room for HOME_COLUMN_LIMIT
- * rows of `h-10` plus the body padding. Skeletons, empty states and loaded
- * rows all fill it, so nothing on the page moves as columns load.
+ * rows of `h-10`. Skeletons, empty states and loaded rows all fill it, so
+ * nothing on the page moves as columns load.
  */
-const COLUMN_BODY_CLASS = 'h-53 p-1.5';
+const COLUMN_BODY_CLASS = 'h-50';
 
 /** One row of a column body. Rows share this height so a full column fits exactly. */
 export const COLUMN_ROW_CLASS = 'flex h-10 items-center gap-2 rounded-md px-2';
@@ -36,9 +36,8 @@ export type ResourceColumnSuggestion = {
 };
 
 /**
- * The card every project home column shares: a header with a heading that
- * links to the full list, an optional count and action, and a fixed-height
- * body. Plugin columns render their own body inside it.
+ * The frame every project home column shares: a heading that links to the
+ * full list, an optional count and action, and a fixed-height body. Plugin columns render their own body inside it.
  */
 export function ResourceColumnFrame({
   title,
@@ -66,11 +65,11 @@ export function ResourceColumnFrame({
 
   return (
     <section
-      className="bg-card border-border flex min-w-0 flex-col overflow-hidden rounded-xl border"
+      className="flex min-w-0 flex-col gap-2"
       data-testid={testId}
       aria-labelledby={headingId}
       aria-busy={isLoading}>
-      <header className="border-border flex h-12 shrink-0 items-center justify-between gap-2 border-b pr-2 pl-4">
+      <header className="flex h-7 shrink-0 items-center justify-between gap-2">
         <h2 id={headingId} className="flex min-w-0 items-center gap-2">
           {href ? (
             <Link

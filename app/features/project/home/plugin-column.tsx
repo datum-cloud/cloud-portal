@@ -20,7 +20,7 @@ export function ProjectHomePluginColumn({
       title={title}
       href={href}
       testId={`project-home-plugin-${plugin.slug}`}
-      // Plugin bodies set their own height, so they scroll inside the fixed-height card.
+      // Plugin bodies set their own height, so they scroll inside the fixed-height body.
       bodyClassName="overflow-y-auto">
       <PluginErrorBoundary
         slug={plugin.slug}

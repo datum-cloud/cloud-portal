@@ -128,11 +128,7 @@ export default function ProjectHomePage() {
       <ProjectHealth projectId={projectName} />
 
       {/* Resource columns */}
-      <HomeColumns
-        projectId={projectName}
-        projectDisplayName={projectDisplayName}
-        orgId={project.organizationId}
-      />
+      <HomeColumns projectId={projectName} />
 
       {/* Plugin-contributed project-home cards (portal.card/project-home) */}
       <ProjectHomePluginCards projectId={projectName} />

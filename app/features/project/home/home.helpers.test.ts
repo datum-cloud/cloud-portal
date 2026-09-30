@@ -1,13 +1,9 @@
 import {
   attentionItems,
-  domainsWithoutZone,
-  formatCompactCurrency,
-  formatCompactUsage,
   HOME_COLUMN_LIMIT,
   newestFirst,
   shortTimeAgo,
   toRecentItems,
-  topMeters,
   topQuotas,
   type QuotaItem,
 } from './home.helpers';
@@ -150,21 +146,6 @@ describe('topQuotas', () => {
   });
 });
 
-describe('topMeters', () => {
-  it('orders by spend, then usage, then label', () => {
-    const meters = topMeters(
-      [
-        { label: 'idle', used: 0 },
-        { label: 'busy', used: 50 },
-        { label: 'paid', used: 1, spend: 2 },
-        { label: 'also-busy', used: 50 },
-      ],
-      3
-    );
-    expect(meters.map((m) => m.label)).toEqual(['paid', 'also-busy', 'busy']);
-  });
-});
-
 const ready = { conditions: [{ type: 'Ready', status: 'True' }] };
 const notReady = { conditions: [{ type: 'Ready', status: 'False', message: 'Waiting' }] };
 
@@ -238,32 +219,6 @@ describe('attentionItems', () => {
       "new.com isn't verified",
       'Gateways is at 95% of its quota',
     ]);
-  });
-});
-
-describe('domainsWithoutZone', () => {
-  it('returns domains with no matching zone, newest first, ignoring case', () => {
-    const result = domainsWithoutZone(
-      [domain('old', '2026-01-01'), domain('zoned', '2026-02-01'), domain('new', '2026-03-01')],
-      [zone('ZONED.com')]
-    );
-    expect(result.map((d) => d.name)).toEqual(['new', 'old']);
-  });
-});
-
-describe('formatCompactUsage', () => {
-  it('shortens large counts and long durations', () => {
-    expect(formatCompactUsage('count', 130_003)).toBe('130K');
-    expect(formatCompactUsage('count', 8_512)).toBe('8,512');
-    expect(formatCompactUsage('duration', 8580.1 * 86_400)).toBe('8.6K d');
-    expect(formatCompactUsage('duration', 90)).toBe('1.5m');
-  });
-});
-
-describe('formatCompactCurrency', () => {
-  it('keeps cents for small amounts and compacts large ones', () => {
-    expect(formatCompactCurrency(12.5)).toBe('$12.50');
-    expect(formatCompactCurrency(7_164_070_564.5)).toBe('$7.16B');
   });
 });
 

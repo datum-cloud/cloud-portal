@@ -1,7 +1,5 @@
 import { resolveResourceDisplayName, resolveServiceName } from '@/features/quotas/service-catalog';
 import { kindToHref } from '@/features/search/shared/kindToHref';
-import { formatBytes, formatCurrency, formatDuration } from '@/features/usage/usage.format';
-import type { MeterUnit } from '@/features/usage/usage.types';
 import { isServiceVisible } from '@/modules/entitlements/entitled-services';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import { ControlPlaneStatus } from '@/resources/base';
@@ -107,21 +105,6 @@ export function topQuotas(
       ];
     })
     .sort((a, b) => b.percentage - a.percentage || a.label.localeCompare(b.label))
-    .slice(0, limit);
-}
-
-/**
- * Meters to show in the Usage column: the ones costing the most this period,
- * then the most used, so idle meters sink to the bottom.
- */
-export function topMeters<T extends { label: string; used: number; spend?: number }>(
-  rows: readonly T[],
-  limit: number
-): T[] {
-  return [...rows]
-    .sort(
-      (a, b) => (b.spend ?? 0) - (a.spend ?? 0) || b.used - a.used || a.label.localeCompare(b.label)
-    )
     .slice(0, limit);
 }
 
@@ -241,63 +224,6 @@ export function attentionItems({
     ...items.filter((item) => item.severity === 'error'),
     ...items.filter((item) => item.severity === 'warning'),
   ];
-}
-
-/**
- * Domains that have no DNS zone yet, offered as one-click suggestions in the
- * DNS zones column.
- */
-export function domainsWithoutZone(
-  domains: readonly Domain[],
-  zones: readonly DnsZone[]
-): Domain[] {
-  const zoned = new Set(zones.map((zone) => zone.domainName.toLowerCase()));
-  return newestFirst(domains, domains.length).filter(
-    (domain) => !zoned.has(domain.domainName.toLowerCase())
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Compact numbers
-// ---------------------------------------------------------------------------
-
-const compactNumber = new Intl.NumberFormat('en-US', {
-  notation: 'compact',
-  maximumFractionDigits: 1,
-});
-
-/**
- * A meter value short enough for a narrow column: `130K`, `1.41 PB`, `8.6K d`.
- * Values that are already short keep the Usage page's formatting.
- */
-export function formatCompactUsage(unit: MeterUnit, value: number): string {
-  switch (unit) {
-    case 'bytes':
-      return formatBytes(value);
-    case 'duration': {
-      const days = value / 86_400;
-      return days >= 1000 ? `${compactNumber.format(days)} d` : formatDuration(value);
-    }
-    default:
-      return value >= 10_000 ? compactNumber.format(value) : value.toLocaleString('en-US');
-  }
-}
-
-/** `$7.16B` for large totals; exact cents below 100,000. */
-export function formatCompactCurrency(amount: number | undefined, currencyCode = 'USD'): string {
-  if (amount === undefined || Number.isNaN(amount) || amount < 100_000) {
-    return formatCurrency(amount, currencyCode);
-  }
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currencyCode,
-      notation: 'compact',
-      maximumFractionDigits: 2,
-    }).format(amount);
-  } catch {
-    return formatCurrency(amount, currencyCode);
-  }
 }
 
 /** `now`, `5m`, `3h`, `2d`, `6w`: short enough for a column row. */
