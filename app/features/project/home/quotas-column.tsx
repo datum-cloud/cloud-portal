@@ -1,12 +1,11 @@
-import { topQuotas } from './home.helpers';
+import { HOME_COLUMN_LIMIT } from './home.helpers';
 import {
   COLUMN_ROW_CLASS,
   ResourceColumnEmpty,
   ResourceColumnFrame,
   ResourceColumnSkeleton,
 } from './resource-column';
-import { useAllowanceBuckets } from '@/resources/allowance-buckets';
-import { useResourceRegistrations } from '@/resources/resource-registrations';
+import { useProjectQuotas } from './use-project-quotas';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -23,13 +22,8 @@ function barColor(percentage: number): string {
 
 /** The project's quotas, fullest first, as small usage bars. */
 export function QuotasColumn({ projectId }: { projectId: string }) {
-  const buckets = useAllowanceBuckets('project', projectId);
-  // Registrations only add display names and hide Feature flags, so a failed
-  // fetch falls back to raw resource types rather than failing the column.
-  const registrations = useResourceRegistrations('project', projectId);
-
-  const isLoading = buckets.isLoading || registrations.isLoading;
-  const items = topQuotas(buckets.data ?? [], registrations.data ?? []);
+  const { quotas, isLoading, isError } = useProjectQuotas(projectId);
+  const items = quotas.slice(0, HOME_COLUMN_LIMIT);
 
   return (
     <ResourceColumnFrame
@@ -39,7 +33,7 @@ export function QuotasColumn({ projectId }: { projectId: string }) {
       testId="project-home-quotas">
       {isLoading ? (
         <ResourceColumnSkeleton label="Quotas" />
-      ) : buckets.isError ? (
+      ) : isError ? (
         <ResourceColumnEmpty icon={<Icon icon={ShieldCheck} size={18} aria-hidden />}>
           Quotas aren&apos;t available for this project right now.
         </ResourceColumnEmpty>

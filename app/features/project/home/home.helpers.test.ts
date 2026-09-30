@@ -109,7 +109,8 @@ describe('topQuotas', () => {
   it('orders fullest first, ties by label', () => {
     const items = topQuotas(
       [bucket('b', 1, 10), bucket('a', 5, 10), bucket('c', 5, 10)],
-      [registration('a', { displayName: 'Alpha' }), registration('c', { displayName: 'Charlie' })]
+      [registration('a', { displayName: 'Alpha' }), registration('c', { displayName: 'Charlie' })],
+      null
     );
     expect(items.map((i) => i.label)).toEqual(['Alpha', 'Charlie', 'b']);
     expect(items[0]).toMatchObject({ used: 5, limit: 10, percentage: 50 });
@@ -118,19 +119,34 @@ describe('topQuotas', () => {
   it('drops Feature registrations and buckets without a limit', () => {
     const items = topQuotas(
       [bucket('flag', 0, 1), bucket('unlimited', 3, 0), bucket('kept', 1, 4)],
-      [registration('flag', { type: 'Feature' })]
+      [registration('flag', { type: 'Feature' })],
+      null
     );
     expect(items.map((i) => i.key)).toEqual(['uid-kept']);
   });
 
+  it('hides gated services the project is not entitled to', () => {
+    const buckets = [bucket('workloads', 1, 10), bucket('gateways', 1, 10)];
+    const registrations = [registration('workloads', { service: 'compute.datumapis.com' })];
+
+    expect(topQuotas(buckets, registrations, new Set()).map((i) => i.key)).toEqual([
+      'uid-gateways',
+    ]);
+    expect(
+      topQuotas(buckets, registrations, new Set(['compute.datumapis.com'])).map((i) => i.key)
+    ).toEqual(['uid-gateways', 'uid-workloads']);
+    // Unknown entitlements hide nothing.
+    expect(topQuotas(buckets, registrations, null)).toHaveLength(2);
+  });
+
   it('caps the percentage at 100', () => {
-    const [item] = topQuotas([bucket('over', 15, 10)], []);
+    const [item] = topQuotas([bucket('over', 15, 10)], [], null);
     expect(item.percentage).toBe(100);
   });
 
   it('caps at the column limit', () => {
     const many = Array.from({ length: 8 }, (_, i) => bucket(`r${i}`, i, 10));
-    expect(topQuotas(many, [])).toHaveLength(HOME_COLUMN_LIMIT);
+    expect(topQuotas(many, [], null)).toHaveLength(HOME_COLUMN_LIMIT);
   });
 });
 

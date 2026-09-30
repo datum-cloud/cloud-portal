@@ -8,7 +8,9 @@ import { QuotasColumn } from './quotas-column';
 import { UsageColumn } from './usage-column';
 import { useProjectHomePluginColumns } from '@/modules/plugins/client/plugin-columns';
 
-const GRID_CLASS = 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3';
+// Container queries follow the content column, which narrows when a dock
+// panel is open, not the viewport.
+const GRID_CLASS = 'grid grid-cols-1 gap-4 @xl/main:grid-cols-2 @4xl/main:grid-cols-3';
 
 /**
  * The project home page's columns, in two rows of three. The first row is

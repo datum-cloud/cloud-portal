@@ -1,9 +1,8 @@
-import { attentionItems, topQuotas, type AttentionItem } from './home.helpers';
-import { useAllowanceBuckets } from '@/resources/allowance-buckets';
+import { attentionItems, type AttentionItem } from './home.helpers';
+import { useProjectQuotas } from './use-project-quotas';
 import { useDnsZones } from '@/resources/dns-zones';
 import { useDomains } from '@/resources/domains';
 import { useHttpProxies } from '@/resources/http-proxies';
-import { useResourceRegistrations } from '@/resources/resource-registrations';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
@@ -39,22 +38,16 @@ export function ProjectHealth({ projectId }: { projectId: string }) {
   const domains = useDomains(projectId, LIST_OPTIONS);
   const zones = useDnsZones(projectId, undefined, LIST_OPTIONS);
   const proxies = useHttpProxies(projectId, LIST_OPTIONS);
-  const buckets = useAllowanceBuckets('project', projectId);
-  const registrations = useResourceRegistrations('project', projectId);
+  const quotas = useProjectQuotas(projectId);
 
-  const isLoading =
-    domains.isLoading ||
-    zones.isLoading ||
-    proxies.isLoading ||
-    buckets.isLoading ||
-    registrations.isLoading;
+  const isLoading = domains.isLoading || zones.isLoading || proxies.isLoading || quotas.isLoading;
 
   const items = attentionItems({
     projectId,
     domains: domains.data ?? [],
     zones: zones.data ?? [],
     proxies: proxies.data ?? [],
-    quotas: topQuotas(buckets.data ?? [], registrations.data ?? [], Infinity),
+    quotas: quotas.quotas,
   });
   const [first] = items;
   const hasErrors = items.some((item) => item.severity === 'error');
@@ -80,7 +73,7 @@ export function ProjectHealth({ projectId }: { projectId: string }) {
             <Text size="sm" weight="medium">
               Everything looks healthy
             </Text>
-            <Text size="sm" textColor="muted" className="hidden truncate md:block">
+            <Text size="sm" textColor="muted" className="hidden truncate @3xl/main:block">
               Domains, DNS, load balancers and quotas are all in good shape.
             </Text>
           </>
@@ -92,7 +85,7 @@ export function ProjectHealth({ projectId }: { projectId: string }) {
             </Text>
             <Link
               to={first.href}
-              className="text-muted-foreground hover:text-foreground hidden min-w-0 truncate text-sm underline-offset-2 hover:underline sm:block">
+              className="text-muted-foreground hover:text-foreground hidden min-w-0 truncate text-sm underline-offset-2 hover:underline @xl/main:block">
               {first.label}
             </Link>
             {items.length > 1 && (

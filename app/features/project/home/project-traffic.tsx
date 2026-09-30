@@ -71,7 +71,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
           {description}
         </Text>
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
         <SparklineStatCard
           title="Requests served"
           query={projectRpsQuery(projectId, STEP)}

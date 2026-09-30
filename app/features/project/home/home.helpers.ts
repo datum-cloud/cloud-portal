@@ -1,7 +1,8 @@
-import { resolveResourceDisplayName } from '@/features/quotas/service-catalog';
+import { resolveResourceDisplayName, resolveServiceName } from '@/features/quotas/service-catalog';
 import { kindToHref } from '@/features/search/shared/kindToHref';
 import { formatBytes, formatCurrency, formatDuration } from '@/features/usage/usage.format';
 import type { MeterUnit } from '@/features/usage/usage.types';
+import { isServiceVisible } from '@/modules/entitlements/entitled-services';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import { ControlPlaneStatus } from '@/resources/base';
 import type { DnsZone } from '@/resources/dns-zones';
@@ -64,18 +65,30 @@ export type QuotaItem = {
 };
 
 /**
- * Quotas closest to their limit, for the Quotas column. Feature
- * registrations (on/off flags with no countable usage) and buckets without a
- * limit are dropped, since there is nothing to fill a bar with.
+ * Quotas closest to their limit, for the Quotas column and health bar.
+ * Dropped: Feature registrations (on/off flags with no countable usage),
+ * buckets without a limit, and gated services the project isn't entitled
+ * to, matching the Quotas page. `entitledServiceIds` of `null` means
+ * entitlements are unknown and nothing is hidden for that reason.
  */
 export function topQuotas(
   buckets: readonly AllowanceBucket[],
   registrations: readonly ResourceRegistration[],
+  entitledServiceIds: ReadonlySet<string> | null,
   limit = HOME_COLUMN_LIMIT
 ): QuotaItem[] {
   const byType = new Map(registrations.map((r) => [r.resourceType, r]));
   return buckets
-    .filter((bucket) => byType.get(bucket.resourceType)?.type !== 'Feature')
+    .filter((bucket) => {
+      const registration = byType.get(bucket.resourceType);
+      return (
+        registration?.type !== 'Feature' &&
+        isServiceVisible(
+          resolveServiceName(registration?.service, bucket.resourceType),
+          entitledServiceIds
+        )
+      );
+    })
     .flatMap((bucket): QuotaItem[] => {
       const bucketLimit = bucket.status?.limit ?? 0;
       if (bucketLimit <= 0) return [];
