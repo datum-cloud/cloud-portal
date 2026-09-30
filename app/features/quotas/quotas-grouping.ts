@@ -12,8 +12,6 @@ export interface QuotaRow {
   resourceType: string;
   displayName: string;
   group: string;
-  /** Reverse-DNS owner service, when known; drives entitlement visibility. */
-  serviceName?: string;
   percentage: number;
 }
 
@@ -65,23 +63,39 @@ export interface QuotaTableRow extends QuotaRow {
   description?: string;
 }
 
+export interface QuotaScope {
+  buckets: AllowanceBucket[];
+  registrations: Record<string, ResourceRegistration>;
+}
+
 /**
  * Drop buckets whose owning service is entitlement-gated and not entitled in
- * this scope. Meant for route loaders, so hidden rows never reach the client.
- * Returns the input array untouched when entitlements are unknown (`null`).
+ * this scope, and the registrations that only described those buckets. Meant
+ * for route loaders, so hidden rows never reach the client. Returns the
+ * inputs untouched when entitlements are unknown (`null`) or nothing is hidden.
  */
-export function filterBucketsByEntitlement(
+export function filterQuotasByEntitlement(
   buckets: AllowanceBucket[],
   registrations: Record<string, ResourceRegistration>,
   entitledServiceIds: ReadonlySet<string> | null
-): AllowanceBucket[] {
-  if (entitledServiceIds === null) return buckets;
-  return buckets.filter((bucket) =>
+): QuotaScope {
+  if (entitledServiceIds === null) return { buckets, registrations };
+
+  const kept = buckets.filter((bucket) =>
     isServiceVisible(
       resolveServiceName(registrations[bucket.resourceType]?.service, bucket.resourceType),
       entitledServiceIds
     )
   );
+  if (kept.length === buckets.length) return { buckets, registrations };
+
+  const keptTypes = new Set(kept.map((bucket) => bucket.resourceType));
+  return {
+    buckets: kept,
+    registrations: Object.fromEntries(
+      Object.entries(registrations).filter(([resourceType]) => keptTypes.has(resourceType))
+    ),
+  };
 }
 
 /**
@@ -102,7 +116,6 @@ export function buildQuotaRows(
         resourceType: bucket.resourceType,
         displayName: resolveResourceDisplayName(registration?.displayName, bucket.resourceType),
         group: resolveServiceDisplayName(registration?.service, bucket.resourceType),
-        serviceName: resolveServiceName(registration?.service, bucket.resourceType),
         percentage,
         description: registration?.description,
         bucket,

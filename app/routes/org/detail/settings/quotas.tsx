@@ -1,4 +1,4 @@
-import { filterBucketsByEntitlement } from '@/features/quotas/quotas-grouping';
+import { filterQuotasByEntitlement } from '@/features/quotas/quotas-grouping';
 import { QuotasTable } from '@/features/quotas/quotas-table';
 import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { useGuardedRouteData } from '@/modules/rbac';
@@ -66,10 +66,7 @@ export const loader = (args: LoaderFunctionArgs) =>
       const entitled = await resolveEntitledServiceIds(
         projectsList.items.map((project) => project.name)
       );
-      return {
-        buckets: filterBucketsByEntitlement(buckets, registrations, entitled),
-        registrations,
-      };
+      return filterQuotasByEntitlement(buckets, registrations, entitled);
     },
   });
 export const meta = route.meta;

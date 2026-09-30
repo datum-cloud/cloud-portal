@@ -1,4 +1,4 @@
-import { filterBucketsByEntitlement } from '@/features/quotas/quotas-grouping';
+import { filterQuotasByEntitlement } from '@/features/quotas/quotas-grouping';
 import { QuotasTable } from '@/features/quotas/quotas-table';
 import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -50,10 +50,7 @@ export const loader = (args: LoaderFunctionArgs) =>
         registrations[r.resourceType] = r;
       }
       // Gated services this project is not entitled to never reach the client.
-      return {
-        buckets: filterBucketsByEntitlement(buckets, registrations, entitled),
-        registrations,
-      };
+      return filterQuotasByEntitlement(buckets, registrations, entitled);
     },
   });
 export const meta = route.meta;

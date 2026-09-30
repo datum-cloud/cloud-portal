@@ -1,6 +1,6 @@
 import {
   buildQuotaRows,
-  filterBucketsByEntitlement,
+  filterQuotasByEntitlement,
   groupQuotas,
   type QuotaRow,
 } from './quotas-grouping';
@@ -59,36 +59,40 @@ const registrations: Record<string, ResourceRegistration> = {
   } as ResourceRegistration,
 };
 
-describe('filterBucketsByEntitlement', () => {
+describe('filterQuotasByEntitlement', () => {
   const buckets = [
     bucket('compute.datumapis.com/vcpus'),
     bucket('dns.networking.miloapis.com/dnszones'),
     bucket('billing.miloapis.com/billingaccount/count'),
   ];
 
-  it('drops gated services the scope is not entitled to and keeps the rest', () => {
-    const kept = filterBucketsByEntitlement(
+  it('drops gated services the scope is not entitled to, with their registrations', () => {
+    const kept = filterQuotasByEntitlement(
       buckets,
       registrations,
       new Set(['networking.datumapis.com'])
     );
-    expect(kept.map((b) => b.resourceType)).toEqual([
+    expect(kept.buckets.map((b) => b.resourceType)).toEqual([
       'dns.networking.miloapis.com/dnszones',
       'billing.miloapis.com/billingaccount/count',
     ]);
+    expect(Object.keys(kept.registrations)).toEqual(['dns.networking.miloapis.com/dnszones']);
   });
 
   it('keeps a gated service the scope is entitled to', () => {
-    const kept = filterBucketsByEntitlement(
+    const kept = filterQuotasByEntitlement(
       buckets,
       registrations,
       new Set(['compute.datumapis.com'])
     );
-    expect(kept).toHaveLength(3);
+    expect(kept.buckets).toHaveLength(3);
+    expect(kept.registrations).toBe(registrations);
   });
 
-  it('returns the same array when entitlements are unknown', () => {
-    expect(filterBucketsByEntitlement(buckets, registrations, null)).toBe(buckets);
+  it('returns the inputs untouched when entitlements are unknown', () => {
+    const kept = filterQuotasByEntitlement(buckets, registrations, null);
+    expect(kept.buckets).toBe(buckets);
+    expect(kept.registrations).toBe(registrations);
   });
 });
 
@@ -106,23 +110,12 @@ describe('buildQuotaRows', () => {
       'compute.datumapis.com/vcpus',
       'dns.networking.miloapis.com/dnszones',
     ]);
-    expect(rows[0]).toMatchObject({
-      serviceName: 'compute.datumapis.com',
-      group: 'Compute',
-      displayName: 'vCPUs',
-      percentage: 80,
-    });
-    expect(rows[1]).toMatchObject({
-      serviceName: 'dns.networking.miloapis.com',
-      group: 'DNS',
-      displayName: 'DNS Zones',
-      percentage: 25,
-    });
+    expect(rows[0]).toMatchObject({ group: 'Compute', displayName: 'vCPUs', percentage: 80 });
+    expect(rows[1]).toMatchObject({ group: 'DNS', displayName: 'DNS Zones', percentage: 25 });
   });
 
-  it('files unknown owners under Other with no service name', () => {
+  it('files unknown owners under Other', () => {
     const [row] = buildQuotaRows([bucket('mystery.example.com/things')], {});
     expect(row.group).toBe('Other');
-    expect(row.serviceName).toBeUndefined();
   });
 });
