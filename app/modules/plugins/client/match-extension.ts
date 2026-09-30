@@ -158,3 +158,8 @@ export function matchPluginPage(pages: PageProjectExtension[], splat: string): P
 
   return { page, params: winner.params };
 }
+
+/** Whether the matched page asked to render without the dashboard chrome. */
+export function isBarePage(match: PageMatch | null): boolean {
+  return match?.page.properties.layout === 'bare';
+}

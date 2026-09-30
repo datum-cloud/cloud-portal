@@ -123,6 +123,7 @@ const pageProjectExtensionSchema = z.object({
     // Empty string is the plugin index (mount root). Whitespace-only is not.
     path: mountRelativePathSchema,
     component: codeRefSchema,
+    layout: z.enum(['default', 'bare']).optional(),
   }),
   requirements: requirementsSchema,
 });

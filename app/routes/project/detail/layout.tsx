@@ -8,6 +8,7 @@ import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { BareLayout } from '@/layouts/bare.layout';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
@@ -27,6 +28,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { useOrganization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { getProjectForRequest } from '@/resources/projects/project-request-cache.server';
+import type { loader as pluginMountLoader } from '@/routes/project/detail/services/plugin-mount';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
@@ -50,6 +52,7 @@ import {
   useLocation,
   useNavigate,
   useParams,
+  useRouteLoaderData,
 } from 'react-router';
 
 /**
@@ -206,6 +209,7 @@ function ProjectDetailLayoutContent({
   const sessionFetcher = useFetcher({ key: 'session-cookies' });
   const lastSessionProjectRef = useRef<string | null>(null);
   const { organization: appOrg, setOrganization, setProject } = useApp();
+  const bare = useRouteLoaderData<typeof pluginMountLoader>('plugin-mount')?.bare === true;
 
   const {
     data: project,
@@ -248,9 +252,9 @@ function ProjectDetailLayoutContent({
     [project, org, projectLoading, projectError, projectErrorDetail]
   );
 
-  const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name });
+  const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name && !bare });
   const { data: activeServiceEntitlements } = useActiveServiceEntitlements(project?.name, {
-    enabled: !!project?.name,
+    enabled: !!project?.name && !bare,
   });
 
   const navItems: NavItem[] = useMemo(() => {
@@ -284,12 +288,13 @@ function ProjectDetailLayoutContent({
   }, [project, setProject]);
 
   useEffect(() => {
+    if (bare) return;
     const oid = org?.name ?? appOrg?.name;
     if (project?.name && oid && lastSessionProjectRef.current !== project.name) {
       lastSessionProjectRef.current = project.name;
       sessionFetcher.submit({ projectId: project.name, orgId: oid }, { method: 'POST' });
     }
-  }, [project?.name, org?.name, appOrg?.name, sessionFetcher]);
+  }, [bare, project?.name, org?.name, appOrg?.name, sessionFetcher]);
 
   if (projectError && projectId) {
     return null;
@@ -297,6 +302,18 @@ function ProjectDetailLayoutContent({
 
   const currentOrg = org ?? appOrg;
   const currentProject = project ?? undefined;
+
+  if (bare) {
+    return (
+      <ProjectProvider value={projectContextValue}>
+        <PortalPluginHostProvider bindings={pluginHostBindings}>
+          <BareLayout>
+            <Outlet />
+          </BareLayout>
+        </PortalPluginHostProvider>
+      </ProjectProvider>
+    );
+  }
 
   return (
     <ProjectProvider value={projectContextValue}>

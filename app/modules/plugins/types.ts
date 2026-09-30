@@ -237,11 +237,18 @@ export interface NavProjectExtension {
   requirements?: PluginExtensionRequirements;
 }
 
+/**
+ * How the portal frames a plugin page. `bare` drops the dashboard chrome
+ * (sidebar, header, dock) so the page fills the window, e.g. a pop-out console.
+ */
+export type PageProjectLayout = 'default' | 'bare';
+
 /** `portal.page/project` — routed page under the plugin mount. */
 export interface PageProjectProperties {
   /** Path relative to the mount point; supports params and nesting. */
   path: string;
   component: CodeRef;
+  layout?: PageProjectLayout;
 }
 
 export interface PageProjectExtension {

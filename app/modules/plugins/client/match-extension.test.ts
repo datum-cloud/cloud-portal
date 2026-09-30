@@ -5,6 +5,7 @@ import {
   getDockExtensions,
   getNavExtensions,
   getPageExtensions,
+  isBarePage,
   matchPluginPage,
   normalizePagePath,
   type ClientPluginManifest,
@@ -313,5 +314,25 @@ describe('pickCodeRefExport', () => {
   it('returns undefined for a null module', () => {
     const result = pickCodeRefExport<() => null>(null, parseCodeRef('Mod'));
     expect(result).toBeUndefined();
+  });
+});
+
+describe('isBarePage', () => {
+  const shell: PageProjectExtension = {
+    type: EXTENSION_PAGE_PROJECT,
+    properties: { path: 'instances/:name/shell', component: { $codeRef: 'Shell' }, layout: 'bare' },
+  };
+  const all = [pageExt('instances'), pageExt('instances/:name'), shell];
+
+  it('is true when the matched page declares a bare layout', () => {
+    expect(isBarePage(matchPluginPage(all, 'instances/web-0/shell'))).toBe(true);
+  });
+
+  it('is false for pages without a layout', () => {
+    expect(isBarePage(matchPluginPage(all, 'instances/web-0'))).toBe(false);
+  });
+
+  it('is false when nothing matches', () => {
+    expect(isBarePage(matchPluginPage(all, 'nope/x/y/z'))).toBe(false);
   });
 });
