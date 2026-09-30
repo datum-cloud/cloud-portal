@@ -97,7 +97,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       <Form.Dialog
         open={open}
         onOpenChange={setOpen}
-        title="New Application Load Balancer"
+        title="Add an Application Load Balancer"
         description="Put your apps, API's, and agents behind a secure, global proxy."
         schema={httpProxySchema}
         defaultValues={defaultValues}

@@ -187,7 +187,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
     setOpenDialog(false); // Close dialog immediately
 
     let failureMessage = '';
-    const taskTitle = `Create project "${formData.description}"`;
+    const taskTitle = `Add project "${formData.description}"`;
 
     enqueue({
       title: taskTitle,
@@ -302,7 +302,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                     data-e2e="create-project-button"
                     className="w-full sm:w-auto"
                     icon={<Icon icon={PlusIcon} className="size-4" />}>
-                    Create project
+                    Add project
                   </PermissionButton>
                 </QuotaGuard>
               }>
@@ -371,7 +371,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
               action={
                 canCreateProject
                   ? {
-                      label: 'Create project',
+                      label: 'Add project',
                       onClick: () => setOpenDialog(true),
                       icon: <Icon icon={PlusIcon} className="size-4" />,
                       iconPosition: 'start',
@@ -416,7 +416,7 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
       <Form.Dialog
         open={openDialog}
         onOpenChange={setOpenDialog}
-        title="Create a Project"
+        title="Add a Project"
         description="Add a project to manage your resources and services."
         schema={projectFormSchema}
         defaultValues={{

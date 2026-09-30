@@ -66,7 +66,7 @@ export const CreateOrganizationDialog = ({
       <Dialog.Content className="w-full sm:max-w-lg">
         <Dialog.Header
           className="mb-0 border-b"
-          title="Create organization"
+          title="Add an Organization"
           description="Add contact and billing details to set up a new organization."
           onClose={onClose}
         />

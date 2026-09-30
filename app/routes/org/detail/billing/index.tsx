@@ -527,7 +527,7 @@ export default function OrgBillingSwitcherPage() {
       className="w-full sm:w-auto"
       onClick={() => setOpenCreateDialog(true)}
       icon={<Icon icon={PlusIcon} className="size-4" />}>
-      Create billing account
+      Add billing account
     </PermissionButton>
   );
 
