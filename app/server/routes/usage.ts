@@ -1,5 +1,9 @@
 import type { Variables } from '../types';
-import { loadOrgUsageDashboard } from '@/modules/billing/usage.server';
+import {
+  loadOrgUsageDashboard,
+  resolveUsageProjectSelection,
+} from '@/modules/billing/usage.server';
+import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { createProjectService } from '@/resources/projects';
 import { Hono } from 'hono';
 
@@ -22,10 +26,19 @@ usage.get('/', async (c) => {
     .catch(() => ({ items: [], hasMore: false, nextCursor: null }));
   const projectNames = projectsList.items.map((project) => project.name);
 
+  // Entitlements are per project. A single selected project scopes the
+  // lookup to it; "all" (or an unknown value) unions every project in the org
+  // so a service any project can use stays visible in the org-wide view.
+  const projectParam = c.req.query('project');
+  const selectedProject = resolveUsageProjectSelection(projectParam, projectNames);
+  const scopedProjects = selectedProject === 'all' ? projectNames : [selectedProject];
+  const entitledServiceIds = await resolveEntitledServiceIds(scopedProjects);
+
   const dashboard = await loadOrgUsageDashboard(orgId, {
-    projectParam: c.req.query('project'),
+    projectParam,
     cycleParam: c.req.query('cycle'),
     projectNames,
+    entitledServiceIds,
   });
 
   return c.json(dashboard);
