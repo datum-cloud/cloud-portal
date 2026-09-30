@@ -27,7 +27,7 @@ const result: UsageFetchResult = {
 
 describe('filterUsageByEntitlement', () => {
   test('drops gated groups the scope is not entitled to, with their meters', () => {
-    const filtered = filterUsageByEntitlement(result, new Set(['assistant.miloapis.com']));
+    const filtered = filterUsageByEntitlement(result, new Set(['networking.datumapis.com']));
     expect(filtered.groups?.map((g) => g.id)).toEqual([
       'networking.datumapis.com',
       'assistant.miloapis.com',

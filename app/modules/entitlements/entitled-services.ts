@@ -2,13 +2,13 @@
  * INTERIM set of services a project must hold an Active ServiceEntitlement
  * for before it can use them. Usage and quota views hide these services when
  * the scope is not entitled; everything else (platform services such as
- * billing or resourcemanager) always shows. Replace with the catalog's own
+ * billing or resourcemanager, and the assistant, which every project can use
+ * without an entitlement today) always shows. Replace with the catalog's own
  * gating signal once `services.miloapis.com` Services are readable through
  * the end-user IAM proxy.
  */
 const GATED_SERVICES: ReadonlySet<string> = new Set([
   'compute.datumapis.com',
-  'assistant.miloapis.com',
   'interconnect.datumapis.com',
 ]);
 

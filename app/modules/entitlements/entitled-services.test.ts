@@ -89,15 +89,15 @@ describe('isServiceVisible', () => {
 });
 
 describe('isGatedService', () => {
-  test('treats compute, the assistant and interconnect as entitlement-gated', () => {
+  test('treats compute and interconnect as entitlement-gated', () => {
     expect(isGatedService('compute.datumapis.com')).toBe(true);
-    expect(isGatedService('assistant.miloapis.com')).toBe(true);
     expect(isGatedService('interconnect.datumapis.com')).toBe(true);
   });
 
-  test('never gates platform services or a missing owner', () => {
+  test('never gates platform services, the assistant, or a missing owner', () => {
     expect(isGatedService('billing.miloapis.com')).toBe(false);
     expect(isGatedService('networking.datumapis.com')).toBe(false);
+    expect(isGatedService('assistant.miloapis.com')).toBe(false);
     expect(isGatedService(undefined)).toBe(false);
   });
 });
