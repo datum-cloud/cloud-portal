@@ -438,6 +438,34 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
+  function pageWithLayout(layout: unknown) {
+    return baseManifest({
+      extensions: [
+        {
+          type: 'portal.page/project',
+          properties: {
+            path: 'instances/:name/shell',
+            component: { $codeRef: 'InstanceList' },
+            layout,
+          },
+        },
+      ],
+    });
+  }
+
+  test('accepts a portal.page/project extension with a bare layout', () => {
+    const result = validateManifest(pageWithLayout('bare'));
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      const page = result.manifest.extensions[0] as { properties: { layout?: string } };
+      expect(page.properties.layout).toBe('bare');
+    }
+  });
+
+  test('rejects a portal.page/project extension with an unknown layout', () => {
+    expect(validateManifest(pageWithLayout('fullscreen')).valid).toBe(false);
+  });
+
   test('accepts a portal.card/project-home extension gated by requirements.serviceRef', () => {
     const result = validateManifest(
       baseManifest({
