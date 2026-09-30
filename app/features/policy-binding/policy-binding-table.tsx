@@ -52,7 +52,7 @@ export const PolicyBindingTable = ({
       description={tableTitle?.description}
       actions={actions}
       onRowClick={onRowClick}
-      empty={empty ?? 'No roles found.'}
+      empty={empty ?? 'no roles found'}
     />
   );
 };

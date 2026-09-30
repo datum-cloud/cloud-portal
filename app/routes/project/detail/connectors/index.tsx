@@ -368,7 +368,7 @@ export default route.Page(({ data: loaderData }) => {
       data={tableData}
       title="Connectors"
       search="Search"
-      empty="No connectors found"
+      empty="no connectors found"
       headerExtra={
         isDownloadVisible ? <ConnectorDownloadCard onDismiss={handleDismissDownload} /> : undefined
       }

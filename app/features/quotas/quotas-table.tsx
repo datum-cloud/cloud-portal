@@ -223,7 +223,7 @@ export const QuotasTable = ({
         searchFn={quotaSearchFn}
         getRowId={(row) => row.resourceType}
         groupHeaderClassName="bg-background text-foreground h-[42px] border-r px-4 py-3 text-xs font-medium transition-all dark:bg-white/2 dark:hover:bg-white/5"
-        empty={<EmptyContent title="No quotas found" />}
+        empty={<EmptyContent title="no quotas found" />}
       />
     </div>
   );
