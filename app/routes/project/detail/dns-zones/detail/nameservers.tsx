@@ -74,9 +74,11 @@ export default function DnsZoneNameserversPage() {
           <NoteCard
             icon={<Icon icon={InfoIcon} className="size-5" />}
             title={
-              nameserverSetup.isPartiallySetup
-                ? 'Nameserver Setup Incomplete'
-                : 'Your DNS Zone is Hosted Elsewhere'
+              awaitingVerification
+                ? 'Verify Your Domain First'
+                : nameserverSetup.isPartiallySetup
+                  ? 'Nameserver Setup Incomplete'
+                  : 'Your DNS Zone is Hosted Elsewhere'
             }
             description={
               <div className="flex max-w-full flex-col gap-5 sm:max-w-[810px]">
