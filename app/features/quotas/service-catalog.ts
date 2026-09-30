@@ -60,6 +60,18 @@ const RESOURCE_TYPE_BRIDGE: Record<string, string> = {
 };
 
 /**
+ * Resolve the reverse-DNS service that owns a quota. Prefers the
+ * server-authored owner reference, then the interim resourceType bridge.
+ * Undefined when neither knows the owner.
+ */
+export function resolveServiceName(
+  owner: string | undefined,
+  resourceType: string
+): string | undefined {
+  return owner ?? RESOURCE_TYPE_BRIDGE[resourceType];
+}
+
+/**
  * Display name for a reverse-DNS service domain from the catalog map.
  * Undefined when the service is not registered here yet.
  */
@@ -72,7 +84,7 @@ export function catalogServiceDisplayName(serviceName: string): string | undefin
  * reference, then the interim resourceType bridge, then the Other group.
  */
 export function resolveServiceDisplayName(owner: string | undefined, resourceType: string): string {
-  const serviceName = owner ?? RESOURCE_TYPE_BRIDGE[resourceType];
+  const serviceName = resolveServiceName(owner, resourceType);
   if (!serviceName) {
     return OTHER_GROUP;
   }

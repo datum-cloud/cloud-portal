@@ -114,6 +114,8 @@ const portalPluginJsonEntrySchema = z.object({
       featureFlag: z.string().optional(),
     })
     .optional(),
+
+  contentSecurityPolicy: z.array(z.string()).optional(),
 });
 
 const portalPluginsJsonSchema = z.array(portalPluginJsonEntrySchema);
@@ -140,6 +142,7 @@ function jsonEntryToSpec(entry: PortalPluginJsonEntry): PortalPluginSpec {
       entitlement: entry.visibility?.entitlement ?? 'None',
       featureFlag: entry.visibility?.featureFlag,
     },
+    contentSecurityPolicy: entry.contentSecurityPolicy,
   };
 }
 

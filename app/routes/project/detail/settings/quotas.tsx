@@ -1,4 +1,6 @@
+import { filterQuotasByEntitlement } from '@/features/quotas/quotas-grouping';
 import { QuotasTable } from '@/features/quotas/quotas-table';
+import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { useProjectContext } from '@/providers/project.provider';
@@ -36,17 +38,19 @@ export const loader = (args: LoaderFunctionArgs) =>
     group: 'quota.miloapis.com',
     scope: 'project',
     fetch: async ({ projectId }) => {
-      const [buckets, registrationList] = await Promise.all([
+      const [buckets, registrationList, entitled] = await Promise.all([
         createAllowanceBucketService().list('project', projectId!),
         createResourceRegistrationService()
           .list('project', projectId!)
           .catch(() => []),
+        resolveEntitledServiceIds([projectId!]),
       ]);
       const registrations: Record<string, ResourceRegistration> = {};
       for (const r of registrationList) {
         registrations[r.resourceType] = r;
       }
-      return { buckets, registrations };
+      // Gated services this project is not entitled to never reach the client.
+      return filterQuotasByEntitlement(buckets, registrations, entitled);
     },
   });
 export const meta = route.meta;

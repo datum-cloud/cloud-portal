@@ -132,6 +132,20 @@ spec:
                     featureFlag:
                       type: string
                       description: Optional OpenFeature flag key gating visibility.
+                contentSecurityPolicy:
+                  type: array
+                  maxItems: 16
+                  description: |-
+                    Additions to the portal's Content-Security-Policy, one
+                    "<directive> <source>..." entry each. The portal applies
+                    only script-src 'wasm-unsafe-eval' and connect-src
+                    https:// or wss:// exact hostnames; anything else is
+                    ignored and logged. Additions apply to every page of the
+                    portal, not only this plugin's, so each one is a
+                    portal-wide trust decision.
+                  items:
+                    type: string
+                    maxLength: 2048
             status:
               type: object
               description: Observed state, written by the portal server.
