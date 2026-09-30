@@ -9,15 +9,23 @@
  * - `script-src 'wasm-unsafe-eval'` — permits compiling WebAssembly only. Unlike
  *   `'unsafe-eval'` it does not re-enable `eval()`, `new Function()` or
  *   string timers, so JavaScript injection stays blocked.
- * - `worker-src 'self'` — same-origin workers (served by the asset proxy).
  * - `connect-src https://<host>` / `wss://<host>` — exact hostnames only: no
  *   wildcards, ports, paths or other schemes.
+ *
+ * The document policy is set once for the whole single-page app, so additions
+ * from any plugin apply to every authenticated page: a `connect-src` host one
+ * plugin declares is reachable from all of them. Accepting a declaration is a
+ * portal-wide trust decision made in service-catalog review.
+ *
+ * `worker-src` is deliberately not allowlisted: an explicit value would stop
+ * the fallback to `script-src` on every page, blocking the `blob:` worker
+ * Sentry Replay uses. Same-origin plugin workers already load through that
+ * fallback.
  */
 import type { PluginRegistryEntry } from '../types';
 
 export interface PluginCspAdditions {
   scriptSrc: string[];
-  workerSrc: string[];
   connectSrc: string[];
 }
 
@@ -28,22 +36,16 @@ const CONNECT_SOURCE = new RegExp(`^(?:https|wss)://${HOSTNAME}$`);
 
 const ALLOWED: Record<string, { key: AllowedDirective; allows: (source: string) => boolean }> = {
   'script-src': { key: 'scriptSrc', allows: (s) => s === "'wasm-unsafe-eval'" },
-  'worker-src': { key: 'workerSrc', allows: (s) => s === "'self'" },
   'connect-src': { key: 'connectSrc', allows: (s) => CONNECT_SOURCE.test(s) },
 };
 
 export const EMPTY_PLUGIN_CSP_ADDITIONS: PluginCspAdditions = Object.freeze({
   scriptSrc: [],
-  workerSrc: [],
   connectSrc: [],
 }) as PluginCspAdditions;
 
 function isEmptyPluginCspAdditions(additions: PluginCspAdditions): boolean {
-  return (
-    additions.scriptSrc.length === 0 &&
-    additions.workerSrc.length === 0 &&
-    additions.connectSrc.length === 0
-  );
+  return additions.scriptSrc.length === 0 && additions.connectSrc.length === 0;
 }
 
 /**
@@ -56,7 +58,6 @@ export function collectPluginCspAdditions(
 ): PluginCspAdditions {
   const sets: Record<AllowedDirective, Set<string>> = {
     scriptSrc: new Set(),
-    workerSrc: new Set(),
     connectSrc: new Set(),
   };
   const reject = (slug: string, value: unknown, reason: string) =>
@@ -93,7 +94,6 @@ export function collectPluginCspAdditions(
 
   return {
     scriptSrc: [...sets.scriptSrc].sort(),
-    workerSrc: [...sets.workerSrc].sort(),
     connectSrc: [...sets.connectSrc].sort(),
   };
 }

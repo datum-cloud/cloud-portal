@@ -42,7 +42,6 @@ describe('secureHeadersMiddleware', () => {
   test('applies plugin additions and keeps the nonce and strict-dynamic', async () => {
     const { header, nonces } = await policy(() => ({
       scriptSrc: ["'wasm-unsafe-eval'"],
-      workerSrc: ["'self'"],
       connectSrc: [`https://${RELAY}`, `wss://${RELAY}`],
     }));
 
@@ -52,7 +51,7 @@ describe('secureHeadersMiddleware', () => {
     expect(scriptSrc).not.toContain("'unsafe-eval'");
     expect(scriptSrc).not.toContain("'unsafe-inline'");
     expect(directive(header, 'script-src-elem')).not.toContain("'wasm-unsafe-eval'");
-    expect(directive(header, 'worker-src')).toEqual(["'self'"]);
+    expect(header).not.toContain('worker-src');
     expect(directive(header, 'connect-src')).toEqual(
       expect.arrayContaining(["'self'", `https://${RELAY}`, `wss://${RELAY}`])
     );

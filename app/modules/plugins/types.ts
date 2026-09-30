@@ -92,7 +92,12 @@ export interface PortalPluginSpec {
   suspend: boolean;
   assets: PluginAssets;
   visibility: PluginVisibility;
-  /** Rarely needed; assets are same-origin proxied. */
+  /**
+   * Rarely needed; assets are same-origin proxied. Entries are
+   * `"<directive> <source>..."`, filtered by the allowlist in `server/csp.ts`.
+   * Applied to every page of the portal, not just the plugin's own, so each
+   * addition is a portal-wide trust decision made in service-catalog review.
+   */
   contentSecurityPolicy?: string[];
 }
 

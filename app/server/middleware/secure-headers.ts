@@ -87,7 +87,6 @@ function buildSecureHeaders(
       scriptSrcAttr: [NONCE, ...(isDev ? ["'unsafe-inline'"] : [])],
       // Allow inline styles for third-party widgets
       styleSrc: ["'self'", "'unsafe-inline'", 'https://*.jsdelivr.net', 'https://*.googleapis.com'],
-      ...(plugins.workerSrc.length > 0 ? { workerSrc: plugins.workerSrc } : {}),
       // Only in production: upgrade HTTP→HTTPS. Omit in dev so Safari (and others) can use http://localhost
       ...(isDev ? {} : { upgradeInsecureRequests: [] }),
     },

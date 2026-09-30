@@ -21,12 +21,10 @@ describe('collectPluginCspAdditions', () => {
   test('applies the allowlisted additions', () => {
     const { additions, warn } = collect([
       "script-src 'wasm-unsafe-eval'",
-      "worker-src 'self'",
       `connect-src https://${RELAY} wss://${RELAY}`,
     ]);
     expect(additions).toEqual({
       scriptSrc: ["'wasm-unsafe-eval'"],
-      workerSrc: ["'self'"],
       connectSrc: [`https://${RELAY}`, `wss://${RELAY}`],
     });
     expect(warn).not.toHaveBeenCalled();
@@ -38,8 +36,8 @@ describe('collectPluginCspAdditions', () => {
     "script-src 'unsafe-hashes'",
     'script-src https://cdn.example.com',
     "script-src 'nonce-abc'",
+    "worker-src 'self'",
     "worker-src 'self' blob:",
-    'worker-src https://cdn.example.com',
     'connect-src *',
     'connect-src https://*.datumconnect.net',
     'connect-src https://*',
@@ -58,10 +56,7 @@ describe('collectPluginCspAdditions', () => {
     'connect-src',
   ])('rejects %p', (entry) => {
     const { additions, warn } = collect([entry]);
-    const allowed = entry === "worker-src 'self' blob:" ? ["'self'"] : [];
-    expect(additions.scriptSrc).toEqual([]);
-    expect(additions.connectSrc).toEqual([]);
-    expect(additions.workerSrc).toEqual(allowed);
+    expect(additions).toEqual(EMPTY_PLUGIN_CSP_ADDITIONS);
     expect(warn).toHaveBeenCalled();
   });
 
@@ -99,7 +94,7 @@ describe('createPluginCspResolver', () => {
   });
 
   test('reparses and logs only when declarations change', () => {
-    let plugins = [entry('compute', ["script-src 'unsafe-eval'", "worker-src 'self'"])];
+    let plugins = [entry('compute', ["script-src 'unsafe-eval'", `connect-src https://${RELAY}`])];
     const warn = mock(() => {});
     const resolve = createPluginCspResolver(() => plugins, { warn });
 
