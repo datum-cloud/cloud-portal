@@ -31,6 +31,7 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import {
+  type DnsZoneActivationReason,
   getDnsZoneDelegationState,
   getDnsZoneErrorGuidance,
   isDnsZoneErrored,
@@ -78,8 +79,8 @@ interface DnsZoneWithComputed extends DnsZone {
     errorDescription?: string;
     hasNameservers: boolean;
     isLoading: boolean;
-    /** Zone is healthy but the domain does not point at Datum yet (issue #1461). */
-    isDelegationPending: boolean;
+    /** Why a healthy zone is not live yet: domain verification or nameserver delegation (issue #1461). */
+    activationReason: DnsZoneActivationReason | null;
   };
 }
 
@@ -171,7 +172,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
             : undefined,
           hasNameservers,
           isLoading: !hasNameservers && !hasError,
-          isDelegationPending: getDnsZoneDelegationState(zone, { hasError }).isPending,
+          activationReason: getDnsZoneDelegationState(zone, { hasError }).reason,
         },
       };
     });
@@ -237,7 +238,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         header: 'Zone Name',
         accessorKey: 'domainName',
         cell: ({ row }) => {
-          const { status, errorDescription, isDelegationPending } = row.original._computed;
+          const { status, errorDescription, activationReason } = row.original._computed;
 
           return (
             <div className="flex items-center gap-2" data-e2e="dns-zone-card">
@@ -251,13 +252,21 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
                 statusMessage={errorDescription ?? status.message}
                 errorReasons={null}
               />
-              {isDelegationPending && (
-                <span data-e2e="dns-zone-delegation-pending">
+              {activationReason && (
+                <span data-e2e={`dns-zone-pending-${activationReason}`}>
                   <BadgeStatus
                     status={ControlPlaneStatus.Pending}
-                    label="Awaiting nameservers"
+                    label={
+                      activationReason === 'domainVerification'
+                        ? 'Awaiting verification'
+                        : 'Awaiting nameservers'
+                    }
                     showTooltip
-                    tooltipText="Records stay in Validating until this domain's nameservers point at Datum. Open the zone for the values to set at your registrar."
+                    tooltipText={
+                      activationReason === 'domainVerification'
+                        ? 'Records stay in Validating until you verify you own this domain. Open the zone for the link to the verification record.'
+                        : "Records stay in Validating until this domain's nameservers point at Datum. Open the zone for the values to set at your registrar."
+                    }
                     className="rounded-lg px-2 py-0.5"
                   />
                 </span>

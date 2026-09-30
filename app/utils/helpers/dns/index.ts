@@ -16,6 +16,7 @@ export {
 export {
   getDnsZoneDelegationState,
   getNameserverSetupStatus,
+  type DnsZoneActivationReason,
   type IDnsZoneDelegationState,
   type INameserverSetupStatus,
 } from './nameserver.helper';

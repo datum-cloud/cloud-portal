@@ -5,7 +5,7 @@ import { NameserverTable } from '@/features/edge/nameservers';
 import { useGuardedRouteData } from '@/modules/rbac';
 import type { DnsZone } from '@/resources/dns-zones';
 import { useDomain, useDomainWatch, type Domain } from '@/resources/domains';
-import { getNameserverSetupStatus } from '@/utils/helpers/dns-record.helper';
+import { getDnsZoneDelegationState, getNameserverSetupStatus } from '@/utils/helpers/dns';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
@@ -45,6 +45,7 @@ export default function DnsZoneNameserversPage() {
 
   const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
   const datumNameservers: string[] = dnsZone?.status?.nameservers ?? [];
+  const awaitingVerification = getDnsZoneDelegationState(dnsZone).reason === 'domainVerification';
 
   return (
     <Row gutter={[0, 32]}>
@@ -80,7 +81,13 @@ export default function DnsZoneNameserversPage() {
             description={
               <div className="flex max-w-full flex-col gap-5 sm:max-w-[810px]">
                 <Text>
-                  {datumNameservers.length === 0 ? (
+                  {awaitingVerification ? (
+                    <>
+                      Datum assigns nameservers to this zone once you verify that you own the
+                      domain. Complete verification from the domain page, then come back here to
+                      point {registrarLabel} at them.
+                    </>
+                  ) : datumNameservers.length === 0 ? (
                     <>
                       Datum is still assigning nameservers to this zone. Once they are ready they
                       will appear here, and you can then point {registrarLabel} at them.

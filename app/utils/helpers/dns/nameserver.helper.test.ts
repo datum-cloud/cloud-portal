@@ -10,14 +10,25 @@ function zone(overrides: {
   hasDomain?: boolean;
   programmed?: 'True' | 'False' | 'Unknown';
   reason?: string;
+  accepted?: { status: 'True' | 'False'; reason: string };
 }): DnsZone {
-  const { datumNs = DATUM_NS, domainNs, hasDomain = true, programmed = 'True', reason } = overrides;
+  const {
+    datumNs = DATUM_NS,
+    domainNs,
+    hasDomain = true,
+    programmed = 'True',
+    reason,
+    accepted,
+  } = overrides;
   return {
     name: 'example-com',
     domainName: 'example.com',
     status: {
       nameservers: datumNs,
-      conditions: [{ type: 'Programmed', status: programmed, reason, message: reason ?? '' }],
+      conditions: [
+        { type: 'Programmed', status: programmed, reason, message: reason ?? '' },
+        ...(accepted ? [{ type: 'Accepted', ...accepted, message: '' }] : []),
+      ],
       domainRef: hasDomain
         ? {
             name: 'example-com',
@@ -47,7 +58,33 @@ describe('getDnsZoneDelegationState', () => {
   test('is pending when the domain still points at another DNS host', () => {
     const state = getDnsZoneDelegationState(zone({ domainNs: ['dns1.registrar.com'] }));
     expect(state.isPending).toBe(true);
+    expect(state.reason).toBe('nameserverDelegation');
     expect(state.datumNameservers).toEqual(DATUM_NS);
+  });
+
+  test('is pending on domain verification while the platform withholds nameservers', () => {
+    const state = getDnsZoneDelegationState(
+      zone({
+        datumNs: [],
+        domainNs: ['ns3.cloudflare.com'],
+        programmed: 'Unknown',
+        accepted: { status: 'False', reason: 'PendingDomainVerification' },
+      })
+    );
+    expect(state.isPending).toBe(true);
+    expect(state.reason).toBe('domainVerification');
+    expect(state.domainName).toBe('example-com');
+  });
+
+  test('reports verification before delegation when both are outstanding', () => {
+    const state = getDnsZoneDelegationState(
+      zone({ domainNs: [], accepted: { status: 'False', reason: 'PendingDomainVerification' } })
+    );
+    expect(state.reason).toBe('domainVerification');
+  });
+
+  test('has no reason once the zone is fully set up', () => {
+    expect(getDnsZoneDelegationState(zone({ domainNs: DATUM_NS })).reason).toBeNull();
   });
 
   test('is pending when the domain has no nameservers at all yet', () => {

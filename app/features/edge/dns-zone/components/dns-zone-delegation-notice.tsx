@@ -18,12 +18,14 @@ interface DnsZoneDelegationNoticeProps {
 }
 
 /**
- * Detail-page notice for a zone whose domain still points at another DNS host.
+ * Detail-page notice for a healthy zone that cannot serve traffic yet.
  *
- * Nothing is broken in this state, so the error banner stays silent, yet every
- * record in the zone sits in "Validating" until the operator changes
- * nameservers at their registrar. This tells them so on whichever tab they
- * land on, with the exact values to copy and a link to the full instructions.
+ * Two states qualify and neither is an error, so the error banner stays
+ * silent while every record sits in "Validating": the platform is waiting for
+ * the operator to verify they own the domain, or Datum has assigned
+ * nameservers and the domain still points at another DNS host. This says
+ * which one applies on whichever tab they land on, and links to where the fix
+ * happens (the domain page, or the Nameservers tab with values to copy).
  *
  * Renders nothing once delegation is complete, while the domain's nameservers
  * are still being looked up, or when the zone is errored.
@@ -59,6 +61,34 @@ export function DnsZoneDelegationNotice({
     projectId,
     dnsZoneId: zoneName,
   });
+
+  if (delegation.reason === 'domainVerification') {
+    const domainHref = getPathWithParams(paths.project.detail.domains.detail.overview, {
+      projectId,
+      domainId: delegation.domainName ?? '',
+    });
+    const domainLabel = currentZone?.domainName ?? 'this domain';
+    return (
+      <Alert variant="info" className={className} data-e2e="dns-zone-verification-notice">
+        <Icon icon={InfoIcon} className="size-4" />
+        <AlertTitle className="text-sm">Verify domain ownership to activate this zone</AlertTitle>
+        <AlertDescription>
+          <div className="flex flex-col gap-3">
+            <span>
+              Records stay in Validating until you prove you own {domainLabel}. Datum assigns
+              nameservers to the zone once verification passes. The domain page has the verification
+              record to add.
+            </span>
+            <div>
+              <LinkButton as={Link} href={domainHref} size="xs" type="secondary" theme="outline">
+                Verify domain
+              </LinkButton>
+            </div>
+          </div>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <Alert variant="info" className={className} data-e2e="dns-zone-delegation-notice">
