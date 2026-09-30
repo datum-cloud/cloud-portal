@@ -60,25 +60,6 @@ const RESOURCE_TYPE_BRIDGE: Record<string, string> = {
 };
 
 /**
- * INTERIM set of services a project must hold an Active ServiceEntitlement
- * for before it can use them. Usage and quota views hide these services when
- * the scope is not entitled; everything else (platform services such as
- * billing or resourcemanager) always shows. Replace with the catalog's own
- * gating signal once `services.miloapis.com` Services are readable through
- * the end-user IAM proxy.
- */
-const GATED_SERVICES: ReadonlySet<string> = new Set([
-  'compute.datumapis.com',
-  'assistant.miloapis.com',
-  'interconnect.datumapis.com',
-]);
-
-/** True when a service only becomes usable through an Active ServiceEntitlement. */
-export function isGatedService(serviceName: string | undefined): boolean {
-  return !!serviceName && GATED_SERVICES.has(serviceName);
-}
-
-/**
  * Resolve the reverse-DNS service that owns a quota. Prefers the
  * server-authored owner reference, then the interim resourceType bridge.
  * Undefined when neither knows the owner.

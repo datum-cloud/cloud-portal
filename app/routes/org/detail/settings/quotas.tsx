@@ -1,3 +1,4 @@
+import { filterBucketsByEntitlement } from '@/features/quotas/quotas-grouping';
 import { QuotasTable } from '@/features/quotas/quotas-table';
 import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { useGuardedRouteData } from '@/modules/rbac';
@@ -23,11 +24,6 @@ interface QuotasLoaderData {
    * the wire; rebuilt client-side.
    */
   registrations: Record<string, ResourceRegistration>;
-  /**
-   * Union of Active entitlement service ids across the org's projects; null
-   * when unknown so gated services stay visible (fail open).
-   */
-  entitledServiceIds: string[] | null;
 }
 
 const route = defineResourceRoute<QuotasLoaderData>({
@@ -65,11 +61,15 @@ export const loader = (args: LoaderFunctionArgs) =>
         registrations[r.resourceType] = r;
       }
       // Entitlements are per project; the org view shows a gated service when
-      // any project in the org is entitled to it.
+      // any project in the org is entitled to it. Hidden rows never reach the
+      // client.
       const entitled = await resolveEntitledServiceIds(
         projectsList.items.map((project) => project.name)
       );
-      return { buckets, registrations, entitledServiceIds: entitled ? [...entitled] : null };
+      return {
+        buckets: filterBucketsByEntitlement(buckets, registrations, entitled),
+        registrations,
+      };
     },
   });
 export const meta = route.meta;
@@ -85,7 +85,6 @@ export default route.Page(({ data }) => {
     <QuotasTable
       data={data.buckets}
       registrations={data.registrations}
-      entitledServiceIds={data.entitledServiceIds}
       resourceType="organization"
       resource={org}
     />

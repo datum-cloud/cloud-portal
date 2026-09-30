@@ -462,7 +462,7 @@ export async function fetchOrgUsage(
   };
 }
 
-function resolveUsageProjectSelection(
+export function resolveUsageProjectSelection(
   projectParam: string | null | undefined,
   projectNames: string[]
 ): string {

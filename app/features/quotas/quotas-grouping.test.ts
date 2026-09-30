@@ -1,4 +1,11 @@
-import { groupQuotas, type QuotaRow } from './quotas-grouping';
+import {
+  buildQuotaRows,
+  filterBucketsByEntitlement,
+  groupQuotas,
+  type QuotaRow,
+} from './quotas-grouping';
+import type { AllowanceBucket } from '@/resources/allowance-buckets';
+import type { ResourceRegistration } from '@/resources/resource-registrations';
 import { describe, expect, it } from 'bun:test';
 
 const row = (partial: Partial<QuotaRow>): QuotaRow => ({
@@ -25,5 +32,97 @@ describe('groupQuotas', () => {
       row({ group: 'DNS', displayName: 'DNS Record Sets', percentage: 80 }),
     ]);
     expect(groups[0].items.map((i) => i.displayName)).toEqual(['DNS Record Sets', 'DNS Zones']);
+  });
+});
+
+const bucket = (resourceType: string, allocated = 0, limit = 10): AllowanceBucket =>
+  ({ name: resourceType, resourceType, status: { allocated, limit } }) as AllowanceBucket;
+
+const registrations: Record<string, ResourceRegistration> = {
+  'compute.datumapis.com/vcpus': {
+    name: 'vcpus',
+    resourceType: 'compute.datumapis.com/vcpus',
+    type: 'Entity',
+    service: 'compute.datumapis.com',
+  } as ResourceRegistration,
+  'dns.networking.miloapis.com/dnszones': {
+    name: 'dnszones',
+    resourceType: 'dns.networking.miloapis.com/dnszones',
+    type: 'Entity',
+    displayName: 'DNS Zones',
+  } as ResourceRegistration,
+  'core.miloapis.com/flag': {
+    name: 'flag',
+    resourceType: 'core.miloapis.com/flag',
+    type: 'Feature',
+    service: 'core.miloapis.com',
+  } as ResourceRegistration,
+};
+
+describe('filterBucketsByEntitlement', () => {
+  const buckets = [
+    bucket('compute.datumapis.com/vcpus'),
+    bucket('dns.networking.miloapis.com/dnszones'),
+    bucket('billing.miloapis.com/billingaccount/count'),
+  ];
+
+  it('drops gated services the scope is not entitled to and keeps the rest', () => {
+    const kept = filterBucketsByEntitlement(
+      buckets,
+      registrations,
+      new Set(['networking.datumapis.com'])
+    );
+    expect(kept.map((b) => b.resourceType)).toEqual([
+      'dns.networking.miloapis.com/dnszones',
+      'billing.miloapis.com/billingaccount/count',
+    ]);
+  });
+
+  it('keeps a gated service the scope is entitled to', () => {
+    const kept = filterBucketsByEntitlement(
+      buckets,
+      registrations,
+      new Set(['compute.datumapis.com'])
+    );
+    expect(kept).toHaveLength(3);
+  });
+
+  it('returns the same array when entitlements are unknown', () => {
+    expect(filterBucketsByEntitlement(buckets, registrations, null)).toBe(buckets);
+  });
+});
+
+describe('buildQuotaRows', () => {
+  it('skips Feature registrations and resolves service, group and usage', () => {
+    const rows = buildQuotaRows(
+      [
+        bucket('compute.datumapis.com/vcpus', 8, 10),
+        bucket('dns.networking.miloapis.com/dnszones', 1, 4),
+        bucket('core.miloapis.com/flag'),
+      ],
+      registrations
+    );
+    expect(rows.map((r) => r.resourceType)).toEqual([
+      'compute.datumapis.com/vcpus',
+      'dns.networking.miloapis.com/dnszones',
+    ]);
+    expect(rows[0]).toMatchObject({
+      serviceName: 'compute.datumapis.com',
+      group: 'Compute',
+      displayName: 'vCPUs',
+      percentage: 80,
+    });
+    expect(rows[1]).toMatchObject({
+      serviceName: 'dns.networking.miloapis.com',
+      group: 'DNS',
+      displayName: 'DNS Zones',
+      percentage: 25,
+    });
+  });
+
+  it('files unknown owners under Other with no service name', () => {
+    const [row] = buildQuotaRows([bucket('mystery.example.com/things')], {});
+    expect(row.group).toBe('Other');
+    expect(row.serviceName).toBeUndefined();
   });
 });

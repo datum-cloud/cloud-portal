@@ -1,3 +1,4 @@
+import { filterBucketsByEntitlement } from '@/features/quotas/quotas-grouping';
 import { QuotasTable } from '@/features/quotas/quotas-table';
 import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -21,8 +22,6 @@ export const shouldRevalidate = skipRevalidateWithinSameProject;
 interface ProjectQuotasLoaderData {
   buckets: AllowanceBucket[];
   registrations: Record<string, ResourceRegistration>; // keyed by resourceType
-  /** Active entitlement service ids for this project; null when unknown (fail open). */
-  entitledServiceIds: string[] | null;
 }
 
 const route = defineResourceRoute<ProjectQuotasLoaderData>({
@@ -50,7 +49,11 @@ export const loader = (args: LoaderFunctionArgs) =>
       for (const r of registrationList) {
         registrations[r.resourceType] = r;
       }
-      return { buckets, registrations, entitledServiceIds: entitled ? [...entitled] : null };
+      // Gated services this project is not entitled to never reach the client.
+      return {
+        buckets: filterBucketsByEntitlement(buckets, registrations, entitled),
+        registrations,
+      };
     },
   });
 export const meta = route.meta;
@@ -68,7 +71,6 @@ export default route.Page(({ data }) => {
       <QuotasTable
         data={data.buckets}
         registrations={data.registrations}
-        entitledServiceIds={data.entitledServiceIds}
         resourceType="project"
         resource={project}
       />

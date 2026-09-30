@@ -1,12 +1,6 @@
 import { buildQuotaIncreaseRequest, isBucketExhausted } from './build-quota-increase-request';
-import { groupQuotas, type QuotaRow } from './quotas-grouping';
-import {
-  resolveServiceName,
-  resolveResourceDisplayName,
-  resolveServiceDisplayName,
-} from './service-catalog';
+import { buildQuotaRows, calculateUsage, groupQuotas, type QuotaTableRow } from './quotas-grouping';
 import { type ColumnDef, sortableHeader, TableSearch } from '@/components/table';
-import { isServiceVisible } from '@/modules/entitlements/entitled-services';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -23,11 +17,6 @@ import { useCallback, useMemo, useState } from 'react';
 
 const NEAR_LIMIT = 90;
 
-const calculateUsage = (usage: { allocated: number; limit: number }) => {
-  const percentage = usage.limit > 0 ? Math.round((usage.allocated / usage.limit) * 100) : 0;
-  return { used: usage.allocated, total: usage.limit, percentage };
-};
-
 const getProgressBarColor = (percentage: number, limit: number) => {
   if (limit === 0) {
     return 'bg-gray-400'; // Gray for no limit set
@@ -41,12 +30,6 @@ const getProgressBarColor = (percentage: number, limit: number) => {
   return 'bg-red-500'; // Red for critical (90-100%)
 };
 
-/** Internal row model: the grouping `QuotaRow` joined to its bucket + registration. */
-interface QuotaTableRow extends QuotaRow {
-  bucket: AllowanceBucket;
-  description?: string;
-}
-
 const quotaSearchFn = (row: QuotaTableRow, query: string): boolean => {
   const s = query.toLowerCase();
   return row.displayName.toLowerCase().includes(s) || row.resourceType.toLowerCase().includes(s);
@@ -55,7 +38,6 @@ const quotaSearchFn = (row: QuotaTableRow, query: string): boolean => {
 export const QuotasTable = ({
   data,
   registrations,
-  entitledServiceIds = null,
   resourceType,
   resource,
 }: {
@@ -69,44 +51,12 @@ export const QuotasTable = ({
    * degraded-fetch path) keep every row, ungrouped under "Other".
    */
   registrations?: Record<string, ResourceRegistration>;
-  /**
-   * Active entitlement service ids for the scope, from the route loader.
-   * Gated services (see `isGatedService`) are hidden unless listed here.
-   * `null` or omitted means unknown, and every row stays visible.
-   */
-  entitledServiceIds?: string[] | null;
   resourceType: 'organization' | 'project';
   resource: Organization | Project;
 }) => {
   const regs = registrations ?? {};
-  const entitled = useMemo(
-    () => (entitledServiceIds ? new Set(entitledServiceIds) : null),
-    [entitledServiceIds]
-  );
 
-  const tableRows = useMemo<QuotaTableRow[]>(() => {
-    return data
-      .filter((b) => regs[b.resourceType]?.type !== 'Feature')
-      .filter((b) =>
-        isServiceVisible(
-          resolveServiceName(regs[b.resourceType]?.service, b.resourceType),
-          entitled
-        )
-      )
-      .map((b) => {
-        const reg = regs[b.resourceType];
-        const { percentage } = calculateUsage(b.status ?? { allocated: 0, limit: 0 });
-        return {
-          resourceType: b.resourceType,
-          displayName: resolveResourceDisplayName(reg?.displayName, b.resourceType),
-          group: resolveServiceDisplayName(reg?.service, b.resourceType),
-          serviceName: resolveServiceName(reg?.service, b.resourceType),
-          percentage,
-          description: reg?.description,
-          bucket: b,
-        };
-      });
-  }, [data, regs, entitled]);
+  const tableRows = useMemo(() => buildQuotaRows(data, regs), [data, regs]);
 
   const groups = useMemo(() => groupQuotas(tableRows), [tableRows]);
 

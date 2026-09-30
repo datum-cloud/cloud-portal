@@ -1,5 +1,6 @@
 import {
   entitlementServiceIds,
+  isGatedService,
   isServiceVisible,
   unionActiveServiceIds,
 } from './entitled-services';
@@ -84,5 +85,19 @@ describe('isServiceVisible', () => {
 
   test('fails open when entitlements are unknown', () => {
     expect(isServiceVisible('compute.datumapis.com', null)).toBe(true);
+  });
+});
+
+describe('isGatedService', () => {
+  test('treats compute, the assistant and interconnect as entitlement-gated', () => {
+    expect(isGatedService('compute.datumapis.com')).toBe(true);
+    expect(isGatedService('assistant.miloapis.com')).toBe(true);
+    expect(isGatedService('interconnect.datumapis.com')).toBe(true);
+  });
+
+  test('never gates platform services or a missing owner', () => {
+    expect(isGatedService('billing.miloapis.com')).toBe(false);
+    expect(isGatedService('networking.datumapis.com')).toBe(false);
+    expect(isGatedService(undefined)).toBe(false);
   });
 });
