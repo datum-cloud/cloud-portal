@@ -18,7 +18,7 @@ const route = defineResourceRoute({
   type: 'gate',
   restrictedTitle: 'Access restricted',
   restrictedMessage: "You don't have permission to create service accounts.",
-  metaTitle: 'Create a Service Account',
+  metaTitle: 'Add a Service Account',
 });
 
 export const loader = (args: LoaderFunctionArgs) =>

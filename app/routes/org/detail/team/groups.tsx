@@ -215,7 +215,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
           actions: [
             {
               type: 'button',
-              label: 'Create Group',
+              label: 'Add group',
               onClick: () => groupFormDialogRef.current?.show(),
               icon: <Icon icon={PlusIcon} className="size-3" />,
               disabled: !canCreate,
@@ -234,7 +234,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
             onClick={() => groupFormDialogRef.current?.show()}
             className="w-full sm:w-auto">
             <Icon icon={PlusIcon} className="size-4" />
-            Create Group
+            Add group
           </PermissionButton>,
         ]}
       />

@@ -163,7 +163,7 @@ export const ProjectSwitcher = ({
                       )}
                       className="flex items-center gap-2 px-3 py-2">
                       <Icon icon={FolderRoot} className="size-3.5" />
-                      <Text size="xs">Create project</Text>
+                      <Text size="xs">Add project</Text>
                     </Link>
                   </CommandItem>
                 </>
