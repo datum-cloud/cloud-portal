@@ -2,13 +2,13 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import DiscordIcon from '@/components/icon/discord';
 import { GitHubLineIcon } from '@/components/icon/github-line';
 import { HomeColumns } from '@/features/project/home/home-columns';
+import { ProjectHealth } from '@/features/project/home/project-health';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
 import { useProjectContext } from '@/providers/project.provider';
 import NotFound from '@/routes/not-found';
-import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CalendarFold } from 'lucide-react';
@@ -89,68 +89,65 @@ export default function ProjectHomePage() {
   }
 
   const projectName = project.name;
+  const projectDisplayName = project.displayName || project.name;
+  const greeting = isNewUser
+    ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
+    : `Welcome back, ${user?.givenName ?? 'there'}.`;
 
   return (
-    <div className="mx-auto flex w-full flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
       {/* Header */}
-      <Row gutter={[16, 8]}>
-        <Col md={12} xs={24}>
-          <div className="flex flex-col gap-2">
-            <Title
-              as="h1"
-              level={2}
-              weight="normal"
-              textColor="default"
-              className="font-title tracking-normal">
-              {isNewUser
-                ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
-                : `Welcome back, ${user?.givenName ?? 'there'}`}
-            </Title>
-            <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
-              Search your project, or pick up where you left off.
-            </Text>
-          </div>
-        </Col>
-        <Col md={12} xs={24}>
-          <div className="flex justify-start sm:justify-end">
-            <BadgeCopy
-              value={project.name ?? ''}
-              text={project.name ?? ''}
-              badgeTheme="solid"
-              badgeType="muted"
-              className="bg-table-accent"
-            />
-          </div>
-        </Col>
-      </Row>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+        <div className="flex min-w-0 flex-col gap-2">
+          <Title
+            as="h1"
+            level={2}
+            weight="normal"
+            textColor="default"
+            className="font-title tracking-normal break-words">
+            {projectDisplayName}
+          </Title>
+          <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
+            {greeting} Search your project, or pick up where you left off.
+          </Text>
+        </div>
+        <BadgeCopy
+          value={projectName}
+          text={projectName}
+          badgeTheme="solid"
+          badgeType="muted"
+          className="bg-table-accent shrink-0 self-start"
+        />
+      </div>
 
       {/* Search (the header search is hidden on this page) */}
       <ProjectSearchBar variant="hero" />
 
+      {/* Anything that needs someone to act */}
+      <ProjectHealth projectId={projectName} />
+
       {/* Resource columns */}
-      <HomeColumns projectId={projectName} />
+      <HomeColumns
+        projectId={projectName}
+        projectDisplayName={projectDisplayName}
+        orgId={project.organizationId}
+      />
 
       {/* Plugin-contributed project-home cards (portal.card/project-home) */}
       <ProjectHomePluginCards projectId={projectName} />
 
       {/* Community */}
-      <div className="border-card-border dark:border-card flex items-stretch gap-6 overflow-hidden rounded-xl border bg-white/50 px-6 dark:bg-[#18273A]">
-        <img
-          src="/images/scene-9.png"
-          alt=""
-          aria-hidden="true"
-          className="pointer-events-none hidden h-auto w-[60px] shrink-0 self-end pt-4 select-none sm:block"
-        />
-        <div className="flex flex-1 flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-1">
+      <div className="bg-muted/40 flex items-stretch gap-6 overflow-hidden rounded-xl px-5 dark:bg-[#18273A]">
+        <div className="flex flex-1 flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
+          <div className="flex min-w-0 flex-col gap-0.5">
             <Title as="h2" level={6} weight="medium">
               Datum community
             </Title>
             <Text as="p" size="xs" className="dark:text-card-quaternary text-foreground/60">
-              Looking for some help or want to share some knowledge? We&apos;d love to see you!
+              Get help or share what you know. We&apos;d love to see you.
             </Text>
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
             {COMMUNITY_LINKS.map((link) => (
               <a
                 key={link.href}
@@ -159,7 +156,7 @@ export default function ProjectHomePage() {
                 rel="noreferrer"
                 className="group flex items-center gap-2">
                 {link.icon}
-                <Text size="xs" className="transition-all group-hover:underline">
+                <Text size="xs" className="whitespace-nowrap transition-all group-hover:underline">
                   {link.label}
                 </Text>
               </a>
@@ -170,7 +167,7 @@ export default function ProjectHomePage() {
           src="/images/scene-10.png"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none hidden h-auto w-[100px] shrink-0 self-end pt-4 select-none md:block"
+          className="pointer-events-none hidden h-auto w-[84px] shrink-0 self-end pt-3 select-none lg:block"
         />
       </div>
     </div>

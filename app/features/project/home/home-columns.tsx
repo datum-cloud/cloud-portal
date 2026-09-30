@@ -1,41 +1,56 @@
+import { ActivityColumn } from './activity-column';
+import { AlbsColumn } from './albs-column';
+import { DnsZonesColumn } from './dns-zones-column';
 import { DomainsColumn } from './domains-column';
 import { ProjectHomePluginColumn } from './plugin-column';
-import { RecentsColumn } from './recents-column';
-import { ResourceColumnSkeleton } from './resource-column';
-import { WorkloadsColumn } from './workloads-column';
+import { ProjectTraffic } from './project-traffic';
+import { QuotasColumn } from './quotas-column';
+import { UsageColumn } from './usage-column';
 import { useProjectHomePluginColumns } from '@/modules/plugins/client/plugin-columns';
-import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+
+const GRID_CLASS = 'grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3';
 
 /**
- * The project home page's row of resource lists: Domains, then any
- * plugin-contributed columns, then Recents. Columns are at least 16rem wide
- * and wrap onto new rows as the page narrows, so plugins can keep adding
- * them. Until a plugin provides a column, a Workloads placeholder holds the
- * middle slot.
+ * The project home page's columns, in two rows of three. The first row is
+ * what's in the project: Domains, DNS zones, any plugin-contributed columns,
+ * then Activity. The second is how it's running, under the day's traffic
+ * totals: load balancers, usage and quotas.
+ *
+ * Plugin columns render once the plugin list resolves (the project layout
+ * has usually loaded it already) and wrap onto extra rows, so plugins can
+ * keep adding them.
  */
-export function HomeColumns({ projectId }: { projectId: string }) {
-  const { columns, isLoading } = useProjectHomePluginColumns(projectId);
+export function HomeColumns({
+  projectId,
+  projectDisplayName,
+  orgId,
+}: {
+  projectId: string;
+  projectDisplayName: string;
+  orgId: string;
+}) {
+  const { columns } = useProjectHomePluginColumns(projectId);
 
   return (
-    <div className="grid grid-cols-[repeat(auto-fit,minmax(16rem,1fr))] gap-8">
-      <DomainsColumn projectId={projectId} />
-      {isLoading ? (
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-6 w-24 rounded" />
-          <ResourceColumnSkeleton label="columns" />
-        </div>
-      ) : columns.length > 0 ? (
-        columns.map((column) => (
+    <div className="flex flex-col gap-4">
+      <div className={GRID_CLASS}>
+        <DomainsColumn projectId={projectId} />
+        <DnsZonesColumn projectId={projectId} />
+        {columns.map((column) => (
           <ProjectHomePluginColumn
             key={`${column.plugin.slug}:${column.column.properties.component.$codeRef}`}
             projectId={projectId}
             column={column}
           />
-        ))
-      ) : (
-        <WorkloadsColumn />
-      )}
-      <RecentsColumn projectId={projectId} />
+        ))}
+        <ActivityColumn projectId={projectId} />
+      </div>
+      <ProjectTraffic projectId={projectId} />
+      <div className={GRID_CLASS}>
+        <AlbsColumn projectId={projectId} />
+        <UsageColumn projectId={projectId} projectDisplayName={projectDisplayName} orgId={orgId} />
+        <QuotasColumn projectId={projectId} />
+      </div>
     </div>
   );
 }

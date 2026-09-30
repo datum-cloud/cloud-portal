@@ -1,5 +1,10 @@
-import { topDomains } from './home.helpers';
-import { ResourceColumn, ResourceColumnEmpty } from './resource-column';
+import { isHealthy, newestFirst } from './home.helpers';
+import {
+  ResourceColumn,
+  ResourceColumnAddAction,
+  ResourceColumnEmpty,
+  ResourceColumnEmptyAction,
+} from './resource-column';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { useResourcePermissions } from '@/modules/rbac';
 import { useDomains } from '@/resources/domains';
@@ -7,8 +12,7 @@ import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Globe, Plus } from 'lucide-react';
-import { Link } from 'react-router';
+import { Globe } from 'lucide-react';
 
 export function DomainsColumn({ projectId }: { projectId: string }) {
   const { data: domains = [], isLoading } = useDomains(projectId, {
@@ -29,22 +33,18 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
     new URLSearchParams({ action: 'create' })
   );
 
-  const addLink = canCreate && (
-    <Link
-      to={createHref}
-      className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 px-2 text-xs transition-colors">
-      <Icon icon={Plus} size={12} aria-hidden />
-      Add domain
-    </Link>
-  );
-
   return (
     <ResourceColumn
       title="Domains"
       href={listHref}
+      count={domains.length}
+      action={
+        canCreate &&
+        domains.length > 0 && <ResourceColumnAddAction href={createHref} label="Add domain" />
+      }
       isLoading={isLoading}
       testId="project-home-domains"
-      items={topDomains(domains).map((domain) => ({
+      items={newestFirst(domains).map((domain) => ({
         key: domain.uid,
         label: domain.domainName,
         href: getPathWithParams(paths.project.detail.domains.detail.root, {
@@ -52,12 +52,21 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
           domainId: domain.name,
         }),
         icon: <Icon icon={Globe} size={14} className="text-icon-quaternary shrink-0" aria-hidden />,
-        meta: <DomainStatus domainStatus={domain.status} />,
+        // Verified is the normal state, so only a problem gets a badge.
+        meta: !isHealthy(domain.status) && <DomainStatus domainStatus={domain.status} />,
       }))}
       emptyState={
-        <ResourceColumnEmpty action={addLink}>No domains in this project yet.</ResourceColumnEmpty>
+        <ResourceColumnEmpty
+          icon={<Icon icon={Globe} size={18} aria-hidden />}
+          title="Add your first domain"
+          action={
+            canCreate && (
+              <ResourceColumnEmptyAction href={createHref}>Add domain</ResourceColumnEmptyAction>
+            )
+          }>
+          Verify a domain you own to route traffic and issue certificates for it.
+        </ResourceColumnEmpty>
       }
-      footer={domains.length > 0 && addLink}
     />
   );
 }

@@ -16,7 +16,12 @@ export function ProjectHomePluginColumn({
   const href = path === undefined ? undefined : pluginHref(projectId, plugin.slug, path);
 
   return (
-    <ResourceColumnFrame title={title} href={href} testId={`project-home-plugin-${plugin.slug}`}>
+    <ResourceColumnFrame
+      title={title}
+      href={href}
+      testId={`project-home-plugin-${plugin.slug}`}
+      // Plugin bodies set their own height, so they scroll inside the fixed-height card.
+      bodyClassName="overflow-y-auto">
       <PluginErrorBoundary
         slug={plugin.slug}
         displayName={plugin.displayName}

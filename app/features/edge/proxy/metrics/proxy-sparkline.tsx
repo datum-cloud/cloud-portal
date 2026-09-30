@@ -5,12 +5,15 @@ import { ChartContainer, ChartTooltip, type ChartConfig } from '@datum-cloud/dat
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useMemo } from 'react';
 import { Area, AreaChart } from 'recharts';
 
 interface ProxySparklineProps {
   projectId: string;
   proxyId: string;
+  /** Width override. Defaults to the ALB table's 200px minimum. */
+  className?: string;
 }
 
 const chartConfig: ChartConfig = {
@@ -20,7 +23,12 @@ const chartConfig: ChartConfig = {
   },
 };
 
-export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
+export function ProxySparkline({ projectId, proxyId, className }: ProxySparklineProps) {
+  const wrapperClassName = cn(
+    'flex h-8 w-full min-w-[200px] items-center justify-center px-1.5',
+    className
+  );
+
   // Fetch metrics for the last hour
   const endTime = useMemo(() => new Date(), []);
   const startTime = useMemo(() => {
@@ -64,7 +72,7 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
+      <div className={wrapperClassName}>
         <SpinnerIcon size="sm" />
       </div>
     );
@@ -72,7 +80,7 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
 
   if (error?.statusCode === 403 || error?.statusCode === 401) {
     return (
-      <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
+      <div className={wrapperClassName}>
         <Tooltip message="You don't have permission to view metrics">
           <Text size="xs" textColor="muted">
             &mdash;
@@ -84,7 +92,7 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
 
   if (!data || error || chartData.length === 0) {
     return (
-      <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
+      <div className={wrapperClassName}>
         <Text size="xs" textColor="muted">
           No data
         </Text>
@@ -93,7 +101,7 @@ export function ProxySparkline({ projectId, proxyId }: ProxySparklineProps) {
   }
 
   return (
-    <div className="flex h-8 w-full min-w-[200px] items-center justify-center px-1.5">
+    <div className={wrapperClassName}>
       <ChartContainer config={chartConfig} className="h-full w-full">
         <AreaChart data={chartData} margin={{ top: 2, right: 0, left: 0, bottom: 2 }}>
           <defs>

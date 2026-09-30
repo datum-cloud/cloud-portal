@@ -100,7 +100,7 @@ export function ProjectSearchBar({ variant = 'header' }: { variant?: ProjectSear
                 setOpen(true);
               }}
               onFocus={() => setOpen(true)}
-              placeholder={isHero ? 'Search this project' : 'Search'}
+              placeholder={isHero ? 'Search domains, DNS zones, load balancers…' : 'Search'}
               aria-keyshortcuts={os === 'macos' ? 'Meta+K' : 'Control+K'}
               className={cn(
                 'h-full border-none bg-transparent pr-0',
