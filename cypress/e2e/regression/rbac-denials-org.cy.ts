@@ -92,7 +92,7 @@ describe('RBAC denials — org area (client-side gates, live)', () => {
     cy.login();
   });
 
-  it.skip('projects "Create project" disabled when projects:create denied (requires seed org)', () => {
+  it.skip('projects "Add project" disabled when projects:create denied (requires seed org)', () => {
     interceptOrgSSAR(['projects:create']);
     cy.visit(`/org/${ORG}/projects`, { failOnStatusCode: false });
     cy.wait('@bulkCheck');
@@ -106,11 +106,11 @@ describe('RBAC denials — org area (client-side gates, live)', () => {
     cy.get('[data-e2e="invite-member-button"]', { timeout: 10000 }).should('be.disabled');
   });
 
-  it.skip('groups "Create Group" disabled when groups:create denied (requires seed org)', () => {
+  it.skip('groups "Add group" disabled when groups:create denied (requires seed org)', () => {
     interceptOrgSSAR(['groups:create']);
     cy.visit(`/org/${ORG}/team/groups`, { failOnStatusCode: false });
     cy.wait('@bulkCheck');
-    cy.contains('button', 'Create Group').should('be.disabled');
+    cy.contains('button', 'Add group').should('be.disabled');
   });
 });
 

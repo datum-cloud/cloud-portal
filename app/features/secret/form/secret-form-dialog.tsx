@@ -91,7 +91,7 @@ export const SecretFormDialog = forwardRef<SecretFormDialogRef>((_props, ref) =>
     <Form.Dialog
       open={open}
       onOpenChange={setOpen}
-      title="New Secret"
+      title="Add a Secret"
       description="Create a new secret to store sensitive key-value pairs. Values will be base64-encoded automatically."
       schema={secretCreateSchema}
       defaultValues={{

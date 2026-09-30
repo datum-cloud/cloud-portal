@@ -179,7 +179,7 @@ function ProjectSwitcherSheet({
             to={getPathWithParams(paths.org.detail.projects.root, { orgId }, { action: 'create' })}
             className="flex items-center gap-2 text-xs font-medium">
             <Icon icon={FolderRoot} className="size-3.5" />
-            Create project
+            Add project
           </Link>
         ) : null
       }>

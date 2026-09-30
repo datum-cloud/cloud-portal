@@ -31,9 +31,11 @@ const DashboardContent = ({
   }, []);
 
   return (
+    // `@container/main` lets pages lay out by the space they actually get, which
+    // shrinks when a side panel is docked, rather than by the viewport.
     <div
       className={cn(
-        'min-h-0 min-w-0 flex-1 transition-opacity duration-75',
+        '@container/main min-h-0 min-w-0 flex-1 transition-opacity duration-75',
         !isReady && 'opacity-0',
         isReady && 'opacity-100'
       )}>

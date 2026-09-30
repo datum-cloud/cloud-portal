@@ -237,7 +237,7 @@ export default function ServiceAccountKeysPage() {
                     title={isPolling ? 'Waiting for account provisioning to complete' : undefined}
                     onClick={() => keyFormDialogRef.current?.show()}>
                     <Icon icon={PlusIcon} className="size-4" />
-                    Add Key
+                    Add key
                   </Button>,
                 ]
               : []

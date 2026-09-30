@@ -41,7 +41,7 @@ export const ExportPolicyGrafanaCard = ({
                 size="small"
                 className="font-semibold"
                 onClick={() => setOpen(true)}>
-                Create an export policy
+                Add export policy
               </Button>
               <LinkButton
                 type="secondary"

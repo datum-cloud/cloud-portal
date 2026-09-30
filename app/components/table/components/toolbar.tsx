@@ -122,7 +122,8 @@ function TableToolbarTools<TData extends RowData>({
       </div>
       {hasRight && (
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:shrink-0 sm:justify-end">
-          {filters}
+          {/* Selection state and its actions lead the row so a destructive bulk
+              action never sits between a filter and the page-level actions. */}
           {multiActions && multiActions.length > 0 && (
             <DataTable.BulkActions<TData>>
               {(selectedRows) => (
@@ -148,6 +149,7 @@ function TableToolbarTools<TData extends RowData>({
               )}
             </DataTable.BulkActions>
           )}
+          {filters}
           {actionsArray && Children.toArray(actionsArray)}
         </div>
       )}

@@ -681,7 +681,7 @@ export default function AccountBillingAccountsPage() {
       disabled={definitivelyDenied}
       onClick={() => setOpenCreateDialog(true)}
       icon={<Icon icon={PlusIcon} className="size-4" />}>
-      Create billing account
+      Add billing account
     </Button>
   );
   const createAction = definitivelyDenied ? (

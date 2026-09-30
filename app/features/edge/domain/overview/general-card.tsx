@@ -3,6 +3,7 @@ import { DateTime } from '@/components/date-time';
 import { List, ListItem } from '@/components/list/list';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
+import { RegistrarBadge } from '@/features/edge/domain/registrar-badge';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { useResourcePermissions } from '@/modules/rbac';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
@@ -10,7 +11,6 @@ import type { DnsZone } from '@/resources/dns-zones';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Badge } from '@datum-cloud/datum-ui/badge';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
@@ -55,18 +55,11 @@ export const DomainGeneralCard = ({
               Looking up...
             </Text>
           </Tooltip>
-        ) : domain.status?.registration?.registrar?.name ? (
-          <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
-            {domain.status?.registration?.registrar?.name}
-          </Badge>
-        ) : domain.status?.registration ? (
-          <Tooltip message="Registrar information is not publicly available. This is common when WHOIS privacy protection is enabled.">
-            <Badge type="quaternary" theme="outline" className="rounded-xl text-sm font-normal">
-              Private
-            </Badge>
-          </Tooltip>
         ) : (
-          '-'
+          <RegistrarBadge
+            registration={domain.status?.registration}
+            className="rounded-xl text-sm font-normal"
+          />
         ),
       },
       {

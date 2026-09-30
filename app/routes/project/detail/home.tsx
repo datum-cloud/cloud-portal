@@ -96,8 +96,9 @@ export default function ProjectHomePage() {
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+      {/* Header. Its `/main` container queries follow the content column, which
+          narrows when a dock panel is open, not the viewport. */}
+      <div className="flex flex-col gap-3 @3xl/main:flex-row @3xl/main:items-start @3xl/main:justify-between @3xl/main:gap-6">
         <div className="flex min-w-0 flex-col gap-2">
           <Title
             as="h1"
@@ -138,7 +139,7 @@ export default function ProjectHomePage() {
 
       {/* Community */}
       <div className="bg-muted/40 flex items-stretch gap-6 overflow-hidden rounded-xl px-5 dark:bg-[#18273A]">
-        <div className="flex flex-1 flex-col gap-3 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
+        <div className="flex flex-1 flex-col gap-3 py-4 @3xl/main:flex-row @3xl/main:items-center @3xl/main:justify-between @3xl/main:gap-6">
           <div className="flex min-w-0 flex-col gap-0.5">
             <Title as="h2" level={6} weight="medium">
               Datum community
@@ -167,7 +168,7 @@ export default function ProjectHomePage() {
           src="/images/scene-10.png"
           alt=""
           aria-hidden="true"
-          className="pointer-events-none hidden h-auto w-[84px] shrink-0 self-end pt-3 select-none lg:block"
+          className="pointer-events-none hidden h-auto w-[84px] shrink-0 self-end pt-3 select-none @4xl/main:block"
         />
       </div>
     </div>
