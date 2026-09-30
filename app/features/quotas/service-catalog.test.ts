@@ -1,7 +1,9 @@
 import {
   catalogServiceDisplayName,
+  isGatedService,
   resolveResourceDisplayName,
   resolveServiceDisplayName,
+  resolveServiceName,
   OTHER_GROUP,
 } from './service-catalog';
 import { describe, expect, it } from 'bun:test';
@@ -68,5 +70,37 @@ describe('resolveResourceDisplayName', () => {
     expect(resolveResourceDisplayName(undefined, 'unknown.example.com/widgets')).toBe(
       'unknown.example.com/widgets'
     );
+  });
+});
+
+describe('resolveServiceName', () => {
+  it('prefers the owner reference over the bridge', () => {
+    expect(resolveServiceName('compute.datumapis.com', 'gateway.networking.k8s.io/gateways')).toBe(
+      'compute.datumapis.com'
+    );
+  });
+
+  it('falls back to the interim resourceType bridge', () => {
+    expect(resolveServiceName(undefined, 'dns.networking.miloapis.com/dnszones')).toBe(
+      'dns.networking.miloapis.com'
+    );
+  });
+
+  it('returns undefined when neither source knows the owner', () => {
+    expect(resolveServiceName(undefined, 'mystery.example.com/things')).toBeUndefined();
+  });
+});
+
+describe('isGatedService', () => {
+  it('treats compute and the assistant as entitlement-gated', () => {
+    expect(isGatedService('compute.datumapis.com')).toBe(true);
+    expect(isGatedService('assistant.miloapis.com')).toBe(true);
+  });
+
+  it('never gates platform services', () => {
+    expect(isGatedService('billing.miloapis.com')).toBe(false);
+    expect(isGatedService('resourcemanager.miloapis.com')).toBe(false);
+    expect(isGatedService('networking.datumapis.com')).toBe(false);
+    expect(isGatedService(undefined)).toBe(false);
   });
 });
