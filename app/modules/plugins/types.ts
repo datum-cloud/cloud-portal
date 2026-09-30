@@ -108,6 +108,7 @@ export interface PortalPluginSpec {
 export const EXTENSION_NAV_PROJECT = 'portal.nav/project';
 export const EXTENSION_PAGE_PROJECT = 'portal.page/project';
 export const EXTENSION_CARD_PROJECT_HOME = 'portal.card/project-home';
+export const EXTENSION_COLUMN_PROJECT_HOME = 'portal.column/project-home';
 export const EXTENSION_DOCK_PROJECT = 'portal.dock/project';
 export const EXTENSION_HEADER_PROJECT = 'portal.header/project';
 
@@ -116,6 +117,7 @@ export const KNOWN_EXTENSION_TYPES = [
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_HEADER_PROJECT,
 ] as const;
@@ -261,6 +263,32 @@ export interface CardProjectHomeExtension {
   requirements?: PluginExtensionRequirements;
 }
 
+/**
+ * `portal.column/project-home` — a column in the project home page's row of
+ * resource lists, next to the host's Domains and Recents columns. The host
+ * draws the column heading (`title`, linking to `path` under the plugin
+ * mount when given), the loading skeleton and the error boundary; the
+ * plugin's component renders only the body (rows or an empty/enable state).
+ *
+ * Unlike `portal.card/project-home`, a column is usually declared without
+ * `requirements.serviceRef`, so it can render an "enable this service" state
+ * for projects that are not entitled yet. When `serviceRef` is declared, it
+ * gates the column the same way it gates a card.
+ */
+export interface ColumnProjectHomeProperties {
+  title: string;
+  component: CodeRef;
+  /** Mount-relative path the heading links to. Empty string is the plugin index. */
+  path?: string;
+  order?: number;
+}
+
+export interface ColumnProjectHomeExtension {
+  type: typeof EXTENSION_COLUMN_PROJECT_HOME;
+  properties: ColumnProjectHomeProperties;
+  requirements?: PluginExtensionRequirements;
+}
+
 /** `portal.dock/project` — widget in the project bottom dock. */
 export interface DockProjectProperties {
   id: string;
@@ -311,6 +339,7 @@ export type KnownPluginExtension =
   | NavProjectExtension
   | PageProjectExtension
   | CardProjectHomeExtension
+  | ColumnProjectHomeExtension
   | DockProjectExtension
   | HeaderProjectExtension;
 

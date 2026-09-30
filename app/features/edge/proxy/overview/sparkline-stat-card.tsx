@@ -133,7 +133,12 @@ export function SparklineStatCard({
   const isPercentiles = visual === 'percentiles';
   const resolvedStep = step ?? (isPercentiles ? '1h' : '1m');
   const windowLabel = rangeLabel ?? 'Last 1h';
-  const gradientId = useMemo(() => `spark-${title.replace(/\s+/g, '-').toLowerCase()}`, [title]);
+  // SVG `url(#id)` references break on characters like `(` or `+`, which
+  // leaves the area filled black, so keep the id to letters, digits and dashes.
+  const gradientId = useMemo(
+    () => `spark-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    [title]
+  );
 
   const {
     data: chartData,

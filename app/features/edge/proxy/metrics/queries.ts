@@ -349,3 +349,49 @@ export function albWafTopRulesQuery(scope: AlbQueryScope, window: string, top = 
     `)`
   );
 }
+
+// ---------------------------------------------------------------------------
+// Project-wide totals (every ALB in a project), for the project home page
+// ---------------------------------------------------------------------------
+
+function projectTrafficSelector(projectId: string, customLabels: Record<string, string> = {}) {
+  return buildPrometheusLabelSelector({
+    baseLabels: {
+      resourcemanager_datumapis_com_project_name: projectId,
+      gateway_namespace: 'default',
+    },
+    customLabels: { [REGION_LABEL]: '!=""', ...customLabels },
+  });
+}
+
+/** Requests per second across every ALB in the project. */
+export function projectRpsQuery(projectId: string, timeWindow: string): string {
+  return `sum(rate(${ENVOY_RQ_METRIC}${projectTrafficSelector(projectId)}[${timeWindow}]))`;
+}
+
+/** Total requests across every ALB in the project over `window`. */
+export function projectRequestCountQuery(projectId: string, window: string): string {
+  return `sum(${resetGuardedIncrease(ENVOY_RQ_METRIC, projectTrafficSelector(projectId), window)})`;
+}
+
+/**
+ * Share of 4xx/5xx responses across the project. The `> 0` guard drops the
+ * result when there was no traffic, so an idle project reads 0% rather than NaN.
+ */
+export function projectErrorRateQuery(projectId: string, timeWindow: string): string {
+  const errors = projectTrafficSelector(projectId, { envoy_response_code: '=~"[45].."' });
+  const all = projectTrafficSelector(projectId);
+  return (
+    `(sum(rate(${ENVOY_RQ_METRIC}${errors}[${timeWindow}])) or vector(0))` +
+    ` / (sum(rate(${ENVOY_RQ_METRIC}${all}[${timeWindow}])) > 0)`
+  );
+}
+
+/** Requests the WAF blocked or dropped across the project over `window`. */
+export function projectWafBlockedQuery(projectId: string, window: string): string {
+  const selector = buildPrometheusLabelSelector({
+    baseLabels: { resourcemanager_datumapis_com_project_name: projectId },
+    customLabels: { [REGION_LABEL]: '!=""', coraza_outcome: '=~"blocked|dropped"' },
+  });
+  return `sum(${resetGuardedIncrease(CORAZA_EVENTS_METRIC, selector, window)})`;
+}
