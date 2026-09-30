@@ -1,7 +1,12 @@
 import { buildQuotaIncreaseRequest, isBucketExhausted } from './build-quota-increase-request';
 import { groupQuotas, type QuotaRow } from './quotas-grouping';
-import { resolveResourceDisplayName, resolveServiceDisplayName } from './service-catalog';
+import {
+  resolveServiceName,
+  resolveResourceDisplayName,
+  resolveServiceDisplayName,
+} from './service-catalog';
 import { type ColumnDef, sortableHeader, TableSearch } from '@/components/table';
+import { isServiceVisible } from '@/modules/entitlements/entitled-services';
 import type { AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
@@ -50,6 +55,7 @@ const quotaSearchFn = (row: QuotaTableRow, query: string): boolean => {
 export const QuotasTable = ({
   data,
   registrations,
+  entitledServiceIds = null,
   resourceType,
   resource,
 }: {
@@ -63,14 +69,30 @@ export const QuotasTable = ({
    * degraded-fetch path) keep every row, ungrouped under "Other".
    */
   registrations?: Record<string, ResourceRegistration>;
+  /**
+   * Active entitlement service ids for the scope, from the route loader.
+   * Gated services (see `isGatedService`) are hidden unless listed here.
+   * `null` or omitted means unknown, and every row stays visible.
+   */
+  entitledServiceIds?: string[] | null;
   resourceType: 'organization' | 'project';
   resource: Organization | Project;
 }) => {
   const regs = registrations ?? {};
+  const entitled = useMemo(
+    () => (entitledServiceIds ? new Set(entitledServiceIds) : null),
+    [entitledServiceIds]
+  );
 
   const tableRows = useMemo<QuotaTableRow[]>(() => {
     return data
       .filter((b) => regs[b.resourceType]?.type !== 'Feature')
+      .filter((b) =>
+        isServiceVisible(
+          resolveServiceName(regs[b.resourceType]?.service, b.resourceType),
+          entitled
+        )
+      )
       .map((b) => {
         const reg = regs[b.resourceType];
         const { percentage } = calculateUsage(b.status ?? { allocated: 0, limit: 0 });
@@ -78,12 +100,13 @@ export const QuotasTable = ({
           resourceType: b.resourceType,
           displayName: resolveResourceDisplayName(reg?.displayName, b.resourceType),
           group: resolveServiceDisplayName(reg?.service, b.resourceType),
+          serviceName: resolveServiceName(reg?.service, b.resourceType),
           percentage,
           description: reg?.description,
           bucket: b,
         };
       });
-  }, [data, regs]);
+  }, [data, regs, entitled]);
 
   const groups = useMemo(() => groupQuotas(tableRows), [tableRows]);
 

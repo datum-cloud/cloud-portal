@@ -4,6 +4,8 @@ export interface QuotaRow {
   resourceType: string;
   displayName: string;
   group: string;
+  /** Reverse-DNS owner service, when known; drives entitlement visibility. */
+  serviceName?: string;
   percentage: number;
 }
 
