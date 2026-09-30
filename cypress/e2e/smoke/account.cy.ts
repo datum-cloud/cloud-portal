@@ -47,7 +47,7 @@ describe('Load account settings', () => {
     // the React Query fetch.
     cy.get('body', { timeout: 10000 }).should(($body) => {
       const hasTable = $body.find('table').length > 0;
-      const hasEmpty = $body.text().includes('no active sessions found.');
+      const hasEmpty = $body.text().includes('no active sessions found');
       expect(hasTable || hasEmpty, 'sessions table or empty-state card').to.be.true;
     });
 

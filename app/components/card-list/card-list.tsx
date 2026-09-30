@@ -419,7 +419,7 @@ function CardListItems<TData>({
     }
     return (
       <div className={className} {...rest}>
-        <EmptyContent title="no results." className="w-full" />
+        <EmptyContent title="no results" className="w-full" />
       </div>
     );
   }
