@@ -4,6 +4,7 @@ import { DnsRecordStatus } from './dns-record-status';
 import { isRowLocked } from './utils';
 import {
   type ColumnDef,
+  type MultiAction,
   type RowData,
   Table,
   TagFilter,
@@ -95,6 +96,11 @@ interface DnsRecordTableFullProps extends DnsRecordTableBaseProps {
   editDisabledReason?: string;
   /** Optional additional row actions appended after the built-in Edit action */
   extraRowActions?: ActionItem<IFlattenedDnsRecord>[];
+  /**
+   * Bulk actions shown in the toolbar once rows are selected. Passing a
+   * non-empty array turns on row checkboxes.
+   */
+  multiActions?: MultiAction<IFlattenedDnsRecord>[];
   /** Called after a successful inline create/edit submit */
   onFormSuccess?: (mode: 'create' | 'edit') => void;
 }
@@ -383,6 +389,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
     canEdit = true,
     editDisabledReason,
     extraRowActions = [],
+    multiActions,
     onFormSuccess,
   } = props as DnsRecordTableFullProps;
 
@@ -438,6 +445,7 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
       title={tableTitle?.title}
       description={tableTitle?.description}
       actions={toolbarActions}
+      multiActions={multiActions}
       filters={toolbarFilters}
       // Sync the multi-select Type filter to a `?type=A,MX` URL param so
       // the filter survives reload/share, matching the existing nuqs
