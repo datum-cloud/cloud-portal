@@ -31,9 +31,11 @@ const DashboardContent = ({
   }, []);
 
   return (
+    // `@container/main` lets pages lay out by the space they actually get, which
+    // shrinks when a side panel is docked, rather than by the viewport.
     <div
       className={cn(
-        'min-h-0 min-w-0 flex-1 transition-opacity duration-75',
+        '@container/main min-h-0 min-w-0 flex-1 transition-opacity duration-75',
         !isReady && 'opacity-0',
         isReady && 'opacity-100'
       )}>
@@ -68,6 +70,8 @@ export function DashboardLayout({
   banner,
   defaultSidebarOpen,
   headerContent,
+  headerActions,
+  sidePanel,
 }: {
   children: React.ReactNode;
   navItems: NavItem[];
@@ -111,6 +115,13 @@ export function DashboardLayout({
   defaultSidebarOpen?: boolean;
   /** Optional content rendered between the org/project switcher and the global search entry in the header. */
   headerContent?: React.ReactNode;
+  /** Optional extra icon buttons rendered alongside the built-in help/docs/tasks/notification icons in the header. */
+  headerActions?: React.ReactNode;
+  /**
+   * Optional right-hand column beside the content (below the header). The
+   * content narrows to make room rather than being overlaid.
+   */
+  sidePanel?: React.ReactNode;
 }) {
   const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
@@ -143,6 +154,7 @@ export function DashboardLayout({
         switcherLoading={switcherLoading}
         navItems={navItems}
         headerContent={headerContent}
+        headerActions={headerActions}
       />
 
       {/* Sidebar + Content area below header - flex-1 min-h-0 so only this area scrolls on mobile */}
@@ -188,6 +200,7 @@ export function DashboardLayout({
           </DashboardContent>
           {bottomBar}
         </SidebarInset>
+        {sidePanel}
       </SidebarProvider>
     </div>
   );
