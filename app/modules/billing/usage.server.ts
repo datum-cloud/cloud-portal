@@ -1,4 +1,5 @@
 import { amberfloMeterApiName } from './amberflo-meter-api-name';
+import { filterUsageByEntitlement } from './usage-entitlements';
 import { resolveMeterGroup } from './usage-groups';
 import { loadCatalogUsagePricing } from './usage-pricing.server';
 import { enrichMetersWithCatalogSpend } from './usage-spend';
@@ -479,9 +480,14 @@ export async function loadOrgUsageDashboard(
     projectParam?: string | null;
     cycleParam?: string | null;
     projectNames?: string[];
+    /**
+     * Active entitlement ids for the projects in scope. `null` or omitted
+     * means unknown, and gated services stay visible.
+     */
+    entitledServiceIds?: ReadonlySet<string> | null;
   } = {}
 ): Promise<OrgUsageDashboardData> {
-  const { projectParam, cycleParam, projectNames = [] } = options;
+  const { projectParam, cycleParam, projectNames = [], entitledServiceIds = null } = options;
   const selectedProject = resolveUsageProjectSelection(projectParam, projectNames);
 
   const scopedBillingAccount = await resolveBillingAccountForUsageScope(
@@ -498,10 +504,13 @@ export async function loadOrgUsageDashboard(
   }));
   const range = { startSec: selectedCycleWindow.startSec, endSec: selectedCycleWindow.endSec };
 
-  const usage = await fetchOrgUsage(orgId, {
-    range,
-    projectId: selectedProject === 'all' ? undefined : selectedProject,
-  });
+  const usage = filterUsageByEntitlement(
+    await fetchOrgUsage(orgId, {
+      range,
+      projectId: selectedProject === 'all' ? undefined : selectedProject,
+    }),
+    entitledServiceIds
+  );
 
   return {
     usage,
