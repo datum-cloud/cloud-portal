@@ -183,7 +183,7 @@ export default function AccountOrganizations() {
                   data-e2e="create-organization-button"
                   className="w-full sm:w-auto"
                   icon={<Icon icon={PlusIcon} className="size-4" />}>
-                  Create organization
+                  Add organization
                 </Button>
               }>
               <CardList.Search<Organization>

@@ -1,6 +1,15 @@
-import { mergeRecordSetIntoListCache, updateDnsRecordListCache } from './dns-record.adapter';
+import {
+  matchesDeleteCriterion,
+  mergeRecordSetIntoListCache,
+  updateDnsRecordListCache,
+} from './dns-record.adapter';
 import { createDnsRecordManager, type ImportResult } from './dns-record.manager';
-import type { DnsRecordSet, DnsRecordListResult, CreateDnsRecordSchema } from './dns-record.schema';
+import type {
+  DeleteDnsRecordCriterion,
+  DnsRecordSet,
+  DnsRecordListResult,
+  CreateDnsRecordSchema,
+} from './dns-record.schema';
 import { createDnsRecordService, dnsRecordKeys } from './dns-record.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
@@ -131,13 +140,66 @@ export function useUpdateDnsRecord(
 }
 
 // Input type for delete mutation - needs record identification
-export type DeleteDnsRecordInput = {
+export type DeleteDnsRecordInput = DeleteDnsRecordCriterion & {
   recordSetName: string;
-  recordType: string;
-  name: string; // subdomain/record name
-  value: string;
-  ttl?: number | null;
 };
+
+export type BulkDeleteDnsRecordsInput = {
+  recordSetName: string;
+  criteria: DeleteDnsRecordCriterion[];
+};
+
+/**
+ * Remove several records from one RecordSet in a single write.
+ *
+ * Bulk delete calls this once per RecordSet. Per-record deletes against the
+ * same set would race on the set's record list; see
+ * `DnsRecordManager.removeRecords`. Cache handling mirrors `useDeleteDnsRecord`:
+ * the matching flattened rows are dropped immediately rather than waiting on
+ * a refetch.
+ */
+export function useBulkDeleteDnsRecords(
+  projectId: string,
+  dnsZoneId: string,
+  options?: UseMutationOptions<void, Error, BulkDeleteDnsRecordsInput>
+) {
+  const queryClient = useQueryClient();
+
+  return useGuardedMutation({
+    operation: 'delete',
+    mutationFn: (input: BulkDeleteDnsRecordsInput) =>
+      createDnsRecordManager()
+        .removeRecords(projectId, input.recordSetName, input.criteria)
+        .then(() => undefined),
+    ...options,
+    onMutate: async (...args) => {
+      await queryClient.cancelQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+      return options?.onMutate?.(...args);
+    },
+    onSuccess: async (...args) => {
+      const [, input] = args;
+      const listKey = dnsRecordKeys.list(projectId, dnsZoneId);
+      await queryClient.cancelQueries({ queryKey: listKey });
+      await queryClient.cancelQueries({
+        queryKey: dnsRecordKeys.detail(projectId, input.recordSetName),
+      });
+
+      queryClient.setQueryData<DnsRecordListResult>(listKey, (old) => {
+        if (!old) return old;
+        return updateDnsRecordListCache(old, (records) =>
+          records.filter(
+            (record) =>
+              record.recordSetName !== input.recordSetName ||
+              !input.criteria.some((criterion) => matchesDeleteCriterion(record, criterion))
+          )
+        );
+      });
+
+      options?.onSuccess?.(...args);
+      void invalidateAllowanceBuckets(queryClient);
+    },
+  });
+}
 
 export function useDeleteDnsRecord(
   projectId: string,
@@ -171,15 +233,10 @@ export function useDeleteDnsRecord(
       queryClient.setQueryData<DnsRecordListResult>(listKey, (old) => {
         if (!old) return old;
         return updateDnsRecordListCache(old, (records) =>
-          records.filter((record) => {
-            if (record.recordSetName !== input.recordSetName) return true;
-            if (record.type !== input.recordType) return true;
-            if (record.name !== input.name) return true;
-            if (record.value !== input.value) return true;
-            const recordTtl = record.ttl ?? null;
-            const inputTtl = input.ttl ?? null;
-            return recordTtl !== inputTtl;
-          })
+          records.filter(
+            (record) =>
+              record.recordSetName !== input.recordSetName || !matchesDeleteCriterion(record, input)
+          )
         );
       });
 

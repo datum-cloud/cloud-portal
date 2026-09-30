@@ -121,13 +121,16 @@ export {
   useCreateDnsRecord,
   useUpdateDnsRecord,
   useDeleteDnsRecord,
+  useBulkDeleteDnsRecords,
   useBulkImportDnsRecords,
   type BulkImportOptions,
   type BulkImportInput,
   type ImportRecordDetail,
   type UpdateDnsRecordInput,
   type DeleteDnsRecordInput,
+  type BulkDeleteDnsRecordsInput,
 } from './dns-record.queries';
+export type { DeleteDnsRecordCriterion } from './dns-record.schema';
 
 // Watch hooks exports
 export { useDnsRecordsWatch, useDnsRecordWatch } from './dns-record.watch';

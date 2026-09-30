@@ -334,7 +334,7 @@ Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainab
   cy.get('[data-e2e^="organization-card"]', { timeout: 10_000 }).first().should('be.visible');
   cy.get('[data-e2e="create-organization-button"]').should('be.visible').click();
 
-  cy.contains('Create organization', { timeout: 10_000 }).should('be.visible');
+  cy.contains('Add an Organization', { timeout: 10_000 }).should('be.visible');
 
   completeOrgBillingSetup(displayName);
 
@@ -406,11 +406,11 @@ Cypress.Commands.add(
         return;
       }
 
-      // Fresh org empty state uses a generic "Create project" button without data-e2e.
-      cy.contains('button', /^Create project$/i, { timeout: 30_000 })
+      // Fresh org empty state uses a generic "Add project" button without data-e2e.
+      cy.contains('button', /^Add project$/i, { timeout: 30_000 })
         .should('be.visible')
         .and('not.be.disabled');
-      cy.contains('button', /^Create project$/i).click();
+      cy.contains('button', /^Add project$/i).click();
     });
     cy.get('[data-e2e="create-project-name-input"]').type(displayName);
 
@@ -475,7 +475,7 @@ function submitCreateAndExpectSuccess(displayName: string): void {
           .should('not.be.disabled')
           .click();
       } else {
-        cy.contains('button', /^Create project$/i, { timeout: 30_000 })
+        cy.contains('button', /^Add project$/i, { timeout: 30_000 })
           .should('not.be.disabled')
           .click();
       }

@@ -11,7 +11,7 @@ export default function ServiceAccountsListingLayout() {
   const navItems: SubNavigationTab[] = useMemo(() => {
     return [
       {
-        label: 'Create a Service Account',
+        label: 'Add a Service Account',
         href: getPathWithParams(paths.project.detail.serviceAccounts.new, {
           projectId,
         }),

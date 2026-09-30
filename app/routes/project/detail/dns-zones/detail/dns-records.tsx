@@ -9,6 +9,7 @@ import {
   DnsRecordModalForm,
   DnsRecordModalFormRef,
 } from '@/features/edge/dns-records/dns-record-modal-form';
+import { useBulkDeleteAction } from '@/features/edge/dns-records/hooks/use-bulk-delete-action';
 import { DnsRecordImportAction } from '@/features/edge/dns-records/import-export/dns-record-import-action';
 import {
   findProxyByEndpoint,
@@ -489,6 +490,14 @@ export default function DnsRecordsPage() {
     },
   ];
 
+  // Bulk delete lives in the toolbar once rows are selected. Hidden entirely
+  // (no checkboxes) when the user cannot delete or the project is read-only.
+  const multiActions = useBulkDeleteAction({
+    projectId,
+    dnsZoneId,
+    enabled: canDeleteRecord && !isReadOnly,
+  });
+
   // Desktop layout is the SSR-safe fallback (inline panel mode)
   // Mobile layout (modal mode) resolves on the client after breakpoint check
   const desktopLayout = (
@@ -508,6 +517,7 @@ export default function DnsRecordsPage() {
         projectId={projectId}
         dnsZoneId={dnsZoneId}
         zoneDomain={zoneDomain}
+        multiActions={multiActions}
         renderAlbCell={(record) => (
           <DnsRecordAlbCell
             record={record}
@@ -592,6 +602,7 @@ export default function DnsRecordsPage() {
               projectId={projectId}
               dnsZoneId={dnsZoneId}
               zoneDomain={zoneDomain}
+              multiActions={multiActions}
               renderAlbCell={(record) => (
                 <DnsRecordAlbCell
                   record={record}

@@ -1,5 +1,9 @@
 import type { DeleteDnsRecordInput } from './dns-record.queries';
-import type { CreateDnsRecordSchema, DnsRecordSet } from './dns-record.schema';
+import type {
+  CreateDnsRecordSchema,
+  DeleteDnsRecordCriterion,
+  DnsRecordSet,
+} from './dns-record.schema';
 import type { DnsRecordService } from './dns-record.service';
 import { createDnsRecordService } from './dns-record.service';
 import { logger } from '@/modules/logger';
@@ -260,67 +264,85 @@ export class DnsRecordManager {
   }
 
   /**
-   * Remove a single record from a RecordSet
-   * Deletes entire RecordSet if it's the last record
+   * Remove one record from its RecordSet. Thin wrapper over
+   * {@link removeRecords}, so single and bulk delete share one write path.
    */
   async removeRecord(
     projectId: string,
     criteria: DeleteDnsRecordInput
   ): Promise<{ action: 'recordRemoved' | 'recordSetDeleted' }> {
+    const { recordSetName, ...criterion } = criteria;
+    const { action } = await this.removeRecords(projectId, recordSetName, [criterion]);
+    return { action: action === 'recordSetDeleted' ? 'recordSetDeleted' : 'recordRemoved' };
+  }
+
+  /**
+   * Remove several records from one RecordSet in a single read and a single
+   * write.
+   *
+   * `removeRecord` reads the set, filters one entry and writes the set back.
+   * Running it once per record against the same set races: two callers each
+   * read the full list and the last write wins, so one deletion silently
+   * survives. Bulk delete groups its selection by set and calls this instead.
+   *
+   * Every criterion must match, otherwise nothing is written and a
+   * {@link RecordNotFoundError} names the first miss. When the selection
+   * covers every record in the set, the set itself is deleted.
+   */
+  async removeRecords(
+    projectId: string,
+    recordSetName: string,
+    criteria: DeleteDnsRecordCriterion[]
+  ): Promise<{ action: 'recordsRemoved' | 'recordSetDeleted'; removed: number }> {
     const startTime = Date.now();
 
     try {
-      // Get the RecordSet
-      const recordSet = await this.service.get(projectId, criteria.recordSetName);
+      const recordSet = await this.service.get(projectId, recordSetName);
       const records = recordSet.records || [];
 
-      // Find the record to delete
-      const recordIndex = findRecordIndex(records, criteria.recordType, {
-        name: criteria.name,
-        value: criteria.value,
-        ttl: criteria.ttl === null ? null : criteria.ttl,
-      });
-
-      if (recordIndex === -1) {
-        throw new RecordNotFoundError(
-          `Record not found: ${criteria.name} (${criteria.recordType})`
-        );
+      const indexesToRemove = new Set<number>();
+      for (const criterion of criteria) {
+        const index = findRecordIndex(records, criterion.recordType, {
+          name: criterion.name,
+          value: criterion.value,
+          ttl: criterion.ttl ?? null,
+        });
+        if (index === -1) {
+          throw new RecordNotFoundError(
+            `Record not found: ${criterion.name} (${criterion.recordType})`
+          );
+        }
+        indexesToRemove.add(index);
       }
 
-      // Remove the record from the array
-      const remaining = records.filter((_, i) => i !== recordIndex);
+      const remaining = records.filter((_, i) => !indexesToRemove.has(i));
+      const removed = indexesToRemove.size;
 
       if (remaining.length === 0) {
-        // Last record - DELETE the entire RecordSet
-        await this.service.delete(projectId, criteria.recordSetName);
-
-        logger.info('DNS RecordSet deleted (last record removed)', {
+        await this.service.delete(projectId, recordSetName);
+        logger.info('DNS RecordSet deleted (all records removed)', {
           projectId,
-          recordSetName: criteria.recordSetName,
-          recordType: criteria.recordType,
+          recordSetName,
+          removed,
           duration: Date.now() - startTime,
         });
-
-        return { action: 'recordSetDeleted' };
-      } else {
-        // More records remain - PATCH to remove just this record
-        await this.service.update(projectId, criteria.recordSetName, { records: remaining });
-
-        logger.info('DNS record removed from RecordSet', {
-          projectId,
-          recordSetName: criteria.recordSetName,
-          recordType: criteria.recordType,
-          recordName: criteria.name,
-          remainingRecords: remaining.length,
-          duration: Date.now() - startTime,
-        });
-
-        return { action: 'recordRemoved' };
+        return { action: 'recordSetDeleted', removed };
       }
-    } catch (error) {
-      logger.error('Failed to remove DNS record', error as Error, {
+
+      await this.service.update(projectId, recordSetName, { records: remaining });
+      logger.info('DNS records removed from RecordSet', {
         projectId,
-        criteria,
+        recordSetName,
+        removed,
+        remainingRecords: remaining.length,
+        duration: Date.now() - startTime,
+      });
+      return { action: 'recordsRemoved', removed };
+    } catch (error) {
+      logger.error('Failed to remove DNS records', error as Error, {
+        projectId,
+        recordSetName,
+        count: criteria.length,
       });
       throw error;
     }
