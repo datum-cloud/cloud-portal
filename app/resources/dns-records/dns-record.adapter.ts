@@ -1,4 +1,5 @@
 import {
+  DeleteDnsRecordCriterion,
   type DnsRecordSet,
   type DnsRecordSetList,
   type DnsRecordListResult,
@@ -166,6 +167,23 @@ export function removeRecordSetFromListCache(
  * mutation or watch event must edit its rows without claiming the listing
  * suddenly became complete (or incomplete).
  */
+/**
+ * Does a flattened row describe the record a delete criterion points at?
+ * Missing ttl on either side counts as null so a row read from the API and a
+ * criterion built from the form compare equal.
+ */
+export function matchesDeleteCriterion(
+  record: { type: string; name: string; value: string; ttl?: number | null },
+  criterion: DeleteDnsRecordCriterion
+): boolean {
+  return (
+    record.type === criterion.recordType &&
+    record.name === criterion.name &&
+    record.value === criterion.value &&
+    (record.ttl ?? null) === (criterion.ttl ?? null)
+  );
+}
+
 export function updateDnsRecordListCache(
   old: DnsRecordListResult | undefined,
   update: (records: FlattenedDnsRecord[]) => FlattenedDnsRecord[] | undefined
