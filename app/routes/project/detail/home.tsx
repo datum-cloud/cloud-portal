@@ -259,55 +259,41 @@ export default function ProjectHomePage() {
 
   return (
     <div className="mx-auto flex w-full flex-col gap-8">
-      {/* Header */}
-      <Row gutter={[16, 8]}>
-        <Col md={12} xs={24}>
-          <div className="flex flex-col gap-2">
-            <Title
-              as="h1"
-              level={2}
-              weight="normal"
-              textColor="default"
-              className="font-title tracking-normal">
-              {isNewUser
-                ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
-                : `Welcome back, ${user?.givenName ?? 'there'}`}
-            </Title>
-            <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
-              {isNewUser
-                ? "If you're ready to get going, here are some great places to start..."
-                : "Here's an overview of your project."}
-            </Text>
-          </div>
-        </Col>
-        <Col md={12} xs={24}>
-          <div className="flex justify-start sm:justify-end">
-            <BadgeCopy
-              value={project.name ?? ''}
-              text={project.name ?? ''}
-              badgeTheme="solid"
-              badgeType="muted"
-              className="bg-table-accent"
-            />
-          </div>
-        </Col>
-      </Row>
+      {/* Header. Its `/main` container queries follow the content column, which
+          narrows when a dock panel is open, not the viewport. */}
+      <div className="flex flex-col gap-x-4 gap-y-2 @3xl/main:flex-row @3xl/main:items-start @3xl/main:justify-between">
+        <div className="flex flex-col gap-2">
+          <Title
+            as="h1"
+            level={2}
+            weight="normal"
+            textColor="default"
+            className="font-title tracking-normal">
+            {isNewUser
+              ? `Hey ${user?.givenName ?? 'there'}, glad to have you!`
+              : `Welcome back, ${user?.givenName ?? 'there'}`}
+          </Title>
+          <Text as="p" weight="normal" className="dark:text-card-quaternary text-foreground/60">
+            {isNewUser
+              ? "If you're ready to get going, here are some great places to start..."
+              : "Here's an overview of your project."}
+          </Text>
+        </div>
+        <div className="flex shrink-0 justify-start">
+          <BadgeCopy
+            value={project.name ?? ''}
+            text={project.name ?? ''}
+            badgeTheme="solid"
+            badgeType="muted"
+            className="bg-table-accent"
+          />
+        </div>
+      </div>
 
       {/* Action cards */}
-      <Row
-        type="flex"
-        gutter={[
-          { xs: 8, sm: 16, md: 24, xl: 32 },
-          { xs: 8, sm: 16, md: 24, xl: 32 },
-        ]}>
+      <div className="grid grid-cols-1 gap-2 @xl/main:grid-cols-2 @xl/main:gap-4 @3xl/main:gap-6 @6xl/main:grid-cols-4 @6xl/main:gap-8">
         {cards.map((card) => (
-          <Col
-            key={card.key}
-            xs={24}
-            sm={12}
-            md={12}
-            xl={6}
-            className="min-h-[320px] sm:min-h-[380px]">
+          <div key={card.key} className="min-h-[320px] @xl/main:min-h-[380px]">
             <ActionCard
               isCompleted={card.isCompleted}
               isLoading={card.isLoading}
@@ -317,9 +303,9 @@ export default function ProjectHomePage() {
               onClick={() => handleCardClick(card)}
               buttonLabel={card.buttonLabel}
             />
-          </Col>
+          </div>
         ))}
-      </Row>
+      </div>
 
       {/* Plugin-contributed project-home cards (portal.card/project-home) */}
       <ProjectHomePluginCards projectId={projectName} />
