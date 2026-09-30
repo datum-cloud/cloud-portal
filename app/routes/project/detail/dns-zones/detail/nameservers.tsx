@@ -38,11 +38,13 @@ export default function DnsZoneNameserversPage() {
     return domain?.status?.nameservers?.[0]?.ips?.[0]?.registrantName;
   }, [domain]);
 
-  const registrar = useMemo(() => {
-    return domain?.status?.registration?.registrar?.name;
-  }, [domain]);
+  // Registrar names often end in a period ("NameCheap, Inc.") so the copy below
+  // never places its own period directly after the name.
+  const registrarLabel = domain?.status?.registration?.registrar?.name ?? 'your domain registrar';
+  const dnsHostLabel = dnsHost ?? 'another DNS provider';
 
   const nameserverSetup = useMemo(() => getNameserverSetupStatus(dnsZone), [dnsZone]);
+  const datumNameservers: string[] = dnsZone?.status?.nameservers ?? [];
 
   return (
     <Row gutter={[0, 32]}>
@@ -78,34 +80,38 @@ export default function DnsZoneNameserversPage() {
             description={
               <div className="flex max-w-full flex-col gap-5 sm:max-w-[810px]">
                 <Text>
-                  {nameserverSetup.isPartiallySetup ? (
+                  {datumNameservers.length === 0 ? (
+                    <>
+                      Datum is still assigning nameservers to this zone. Once they are ready they
+                      will appear here, and you can then point {registrarLabel} at them.
+                    </>
+                  ) : nameserverSetup.isPartiallySetup ? (
                     <>
                       You have configured {nameserverSetup.setupCount} of{' '}
-                      {nameserverSetup.totalCount} Datum nameservers. For optimal DNS performance
-                      and redundancy, please add all nameservers at {registrar}.
+                      {nameserverSetup.totalCount} Datum nameservers. For redundancy, add the
+                      remaining ones at {registrarLabel} so the list matches the following:
                     </>
                   ) : (
                     <>
-                      This DNS zone is currently hosted by {dnsHost} and the underlying domain is
-                      registered at {registrar}. To use Datum nameservers, you&apos;ll want to visit{' '}
-                      {registrar} and replace the existing nameservers to match the following:
+                      This DNS zone is currently hosted by {dnsHostLabel}. The underlying domain is
+                      registered with {registrarLabel}, so to use Datum nameservers, sign in there
+                      and replace the existing nameservers with the following:
                     </>
                   )}
                 </Text>
-                {dnsZone?.status?.nameservers &&
-                  (dnsZone?.status?.nameservers ?? [])?.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                      {dnsZone?.status?.nameservers?.map((nameserver: string, index: number) => (
-                        <BadgeCopy
-                          key={`nameserver-${index}`}
-                          value={nameserver ?? ''}
-                          text={nameserver ?? ''}
-                          badgeTheme="solid"
-                          badgeType="quaternary"
-                        />
-                      ))}
-                    </div>
-                  )}
+                {datumNameservers.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                    {datumNameservers.map((nameserver) => (
+                      <BadgeCopy
+                        key={nameserver}
+                        value={nameserver}
+                        text={nameserver}
+                        badgeTheme="solid"
+                        badgeType="quaternary"
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
             }
           />
