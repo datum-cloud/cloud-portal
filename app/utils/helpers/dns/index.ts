@@ -13,7 +13,12 @@ export {
 } from './constants';
 
 // Nameserver helpers
-export { getNameserverSetupStatus, type INameserverSetupStatus } from './nameserver.helper';
+export {
+  getDnsZoneDelegationState,
+  getNameserverSetupStatus,
+  type IDnsZoneDelegationState,
+  type INameserverSetupStatus,
+} from './nameserver.helper';
 
 // DNS setup validation helpers
 export { getDnsSetupStatus, type IDnsSetupStatus, type IDnsSetupRule } from './dns-setup.helper';

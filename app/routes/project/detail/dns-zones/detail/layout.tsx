@@ -1,4 +1,5 @@
 import { type SubNavigationTab } from '@/components/sub-navigation';
+import { DnsZoneDelegationNotice } from '@/features/edge/dns-zone/components/dns-zone-delegation-notice';
 import { DnsZoneErrorBanner } from '@/features/edge/dns-zone/components/dns-zone-error-banner';
 import { SubLayout } from '@/layouts';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
@@ -9,7 +10,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
 import { useMemo } from 'react';
-import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
+import { type LoaderFunctionArgs, Outlet, useLocation, useParams } from 'react-router';
 
 type DnsZoneDetailCompanions = { domain: Domain | null };
 
@@ -73,6 +74,13 @@ export const shouldRevalidate = skipRevalidateWithinSameProjectResource('dnsZone
 
 export default route.Page(({ data: dnsZone }) => {
   const { projectId = '' } = useParams<{ projectId: string }>();
+  const { pathname } = useLocation();
+  const nameserversHref = getPathWithParams(paths.project.detail.dnsZones.detail.nameservers, {
+    projectId,
+    dnsZoneId: dnsZone?.name ?? '',
+  });
+  // The Nameservers tab already carries the full delegation walkthrough.
+  const isNameserversTab = pathname.replace(/\/$/, '') === nameserversHref;
   const navItems: SubNavigationTab[] = useMemo(
     () => [
       {
@@ -110,6 +118,9 @@ export default route.Page(({ data: dnsZone }) => {
   return (
     <SubLayout title={dnsZone?.domainName} navItems={navItems}>
       <DnsZoneErrorBanner zone={dnsZone} className="mb-6" />
+      {!isNameserversTab && (
+        <DnsZoneDelegationNotice zone={dnsZone} projectId={projectId} className="mb-6" />
+      )}
       <Outlet />
     </SubLayout>
   );

@@ -1,4 +1,5 @@
 import { BadgeProgrammingError } from '@/components/badge/badge-programming-error';
+import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
@@ -16,7 +17,7 @@ import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
-import { IExtendedControlPlaneStatus } from '@/resources/base';
+import { ControlPlaneStatus, IExtendedControlPlaneStatus } from '@/resources/base';
 import {
   type DnsZone,
   createDnsZoneService,
@@ -29,7 +30,11 @@ import { useRefreshDomainRegistration } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { getDnsZoneErrorGuidance, isDnsZoneErrored } from '@/utils/helpers/dns';
+import {
+  getDnsZoneDelegationState,
+  getDnsZoneErrorGuidance,
+  isDnsZoneErrored,
+} from '@/utils/helpers/dns';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
@@ -73,6 +78,8 @@ interface DnsZoneWithComputed extends DnsZone {
     errorDescription?: string;
     hasNameservers: boolean;
     isLoading: boolean;
+    /** Zone is healthy but the domain does not point at Datum yet (issue #1461). */
+    isDelegationPending: boolean;
   };
 }
 
@@ -164,6 +171,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
             : undefined,
           hasNameservers,
           isLoading: !hasNameservers && !hasError,
+          isDelegationPending: getDnsZoneDelegationState(zone, { hasError }).isPending,
         },
       };
     });
@@ -229,7 +237,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
         header: 'Zone Name',
         accessorKey: 'domainName',
         cell: ({ row }) => {
-          const { status, errorDescription } = row.original._computed;
+          const { status, errorDescription, isDelegationPending } = row.original._computed;
 
           return (
             <div className="flex items-center gap-2" data-e2e="dns-zone-card">
@@ -243,6 +251,17 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
                 statusMessage={errorDescription ?? status.message}
                 errorReasons={null}
               />
+              {isDelegationPending && (
+                <span data-e2e="dns-zone-delegation-pending">
+                  <BadgeStatus
+                    status={ControlPlaneStatus.Pending}
+                    label="Awaiting nameservers"
+                    showTooltip
+                    tooltipText="Records stay in Validating until this domain's nameservers point at Datum. Open the zone for the values to set at your registrar."
+                    className="rounded-lg px-2 py-0.5"
+                  />
+                </span>
+              )}
             </div>
           );
         },

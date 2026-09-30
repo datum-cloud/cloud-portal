@@ -1,3 +1,4 @@
+import { getDnsZoneErrorState } from './dns-zone-error.helper';
 import type { DnsZone } from '@/resources/dns-zones';
 import { IDnsNameserver } from '@/resources/domains';
 
@@ -40,4 +41,51 @@ export function getNameserverSetupStatus(dnsZone?: DnsZone): INameserverSetupSta
     setupCount,
     totalCount,
   };
+}
+
+export interface IDnsZoneDelegationState {
+  /**
+   * True when the zone is healthy but the domain's nameservers do not yet point
+   * at Datum, so records in the zone stay in "Validating" until the operator
+   * acts at their registrar.
+   */
+  isPending: boolean;
+  /** Datum nameservers the operator must configure. Empty while Datum is still assigning them. */
+  datumNameservers: string[];
+  setup: INameserverSetupStatus;
+}
+
+/**
+ * Decide whether a DNS zone is waiting on the operator to delegate nameservers.
+ *
+ * This is the "nothing is wrong, but nothing will work until you act" state
+ * that the error banner deliberately ignores. It is pending only when:
+ * - the zone is not errored (errors have their own banner),
+ * - the zone is backed by a domain and the domain's current nameservers have
+ *   been looked up (an unknown list is "still looking up", not "wrong"),
+ * - Datum has assigned nameservers to the zone, and
+ * - not every Datum nameserver appears in the domain's current list.
+ *
+ * Callers that already ran the zone through `transformControlPlaneStatus`
+ * (the list page does, per row) can pass `hasError` to skip a second pass.
+ */
+export function getDnsZoneDelegationState(
+  dnsZone?: DnsZone | null,
+  options?: { hasError?: boolean }
+): IDnsZoneDelegationState {
+  const setup = getNameserverSetupStatus(dnsZone ?? undefined);
+  const datumNameservers: string[] = dnsZone?.status?.nameservers ?? [];
+  const hasError = options?.hasError ?? (dnsZone ? getDnsZoneErrorState(dnsZone).hasError : false);
+
+  if (!dnsZone || hasError) {
+    return { isPending: false, datumNameservers, setup };
+  }
+
+  const hasDomain = !!dnsZone.status?.domainRef?.name;
+  const domainNameserversKnown = Array.isArray(dnsZone.status?.domainRef?.status?.nameservers);
+
+  const isPending =
+    hasDomain && domainNameserversKnown && datumNameservers.length > 0 && !setup.isFullySetup;
+
+  return { isPending, datumNameservers, setup };
 }
