@@ -235,11 +235,14 @@ export function HttpProxyBackendsTableCard({
       label: 'Remove backend',
       icon: <Icon icon={Trash2Icon} className="size-4" />,
       variant: 'destructive',
-      disabled: editBlocked || rows.length <= 1,
-      tooltip: () =>
+      // A deploy would only put the workload's own backend back.
+      disabled: (row) => editBlocked || rows.length <= 1 || row.workloadOwned,
+      tooltip: (row) =>
         rows.length <= 1
           ? 'A load balancer needs at least one backend'
-          : blockedTooltip('Remove backend'),
+          : row.workloadOwned
+            ? 'Each deploy adds this backend back. Drain it to stop its traffic.'
+            : blockedTooltip('Remove backend'),
       onClick: (row) => void removeBackend(row),
     },
   ];

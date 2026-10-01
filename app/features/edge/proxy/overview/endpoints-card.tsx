@@ -182,16 +182,22 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
   const systemHostname = proxy.canonicalHostname ?? proxy.status?.hostnames?.[0];
   const backends = summarizeBackends(proxy);
   const computeBackend = useResolvedComputeWorkload(projectId, proxy);
-  const workloadName = computeBackend.workloadName ?? backends.workloadName;
+  // A pool is described as a pool even when a workload published the proxy:
+  // its other backends are as much the destination as the workload is.
+  const pooled = (backends.count ?? 0) > 1;
+  const workloadName = pooled ? undefined : (computeBackend.workloadName ?? backends.workloadName);
   // Without a registered compute plugin the workload has no page to link to;
   // fall back to the backend section of the Configuration tab.
-  const backendHref = computeBackend.href ?? `${configurationHref}#backends`;
+  const backendHref = pooled
+    ? getPathWithParams(paths.project.detail.proxy.detail.backends, { projectId, proxyId })
+    : (computeBackend.href ?? `${configurationHref}#backends`);
   const backendLabel = workloadName ?? backends.label;
-  const backendTitle = computeBackend.workloadMissing
-    ? 'Compute workload not found'
-    : workloadName
-      ? 'Compute workload'
-      : 'Backend pool';
+  const backendTitle =
+    !pooled && computeBackend.workloadMissing
+      ? 'Compute workload not found'
+      : workloadName
+        ? 'Compute workload'
+        : 'Backend pool';
 
   return (
     <Card

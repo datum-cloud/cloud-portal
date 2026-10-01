@@ -55,6 +55,12 @@ export interface BackendRow {
   shareLabel: string;
   drained: boolean;
   color: string;
+  /**
+   * The backend a compute workload publishes its URL through. Every deploy
+   * points it back at the workload's HTTP port, and puts it back if it's gone,
+   * so its target and its place in the pool aren't the portal's to change.
+   */
+  workloadOwned: boolean;
 }
 
 /**
@@ -74,7 +80,28 @@ export type ComputeServiceInfo = {
 
 export type BackendRowContext = {
   services?: ReadonlyMap<string, ComputeServiceInfo>;
+  /** The workload that manages the proxy, when one does. */
+  managingWorkload?: string;
 };
+
+/** Why the managing workload's own backend can't be repointed or removed. */
+export const WORKLOAD_BACKEND_REASON =
+  'Each deploy points this backend at its workload’s HTTP port, so only its weight can change here.';
+
+/**
+ * A workload names the NetworkService behind its URL after itself (compute's
+ * url.ResourceName), which is how a deploy finds its backend in the pool.
+ */
+export function isWorkloadOwnedBackend(
+  backend: HttpProxyBackend,
+  managingWorkload: string | undefined
+): boolean {
+  return (
+    !!managingWorkload &&
+    backend.kind === 'networkService' &&
+    backend.networkService?.name === managingWorkload
+  );
+}
 
 /** "3/3 instances healthy · us-central-1 · port 3000", from what's known. */
 export function describeComputeService(
@@ -221,6 +248,7 @@ export function toBackendRows(
     shareLabel: labels[index],
     drained: backend.weight === 0,
     color: backendColor(index),
+    workloadOwned: isWorkloadOwnedBackend(backend, context.managingWorkload),
   }));
 }
 
@@ -244,15 +272,15 @@ export function poolWith(
 }
 
 /**
- * Why the pool can't be edited from the portal, or undefined when it can.
- * Each case is a shape the rules rebuild would change or the API would reject.
+ * Why the pool can't be edited from the portal, or undefined when it can: a
+ * shape the rules rebuild would change or the API would reject.
+ *
+ * A workload-managed proxy is editable. Deploys only repoint the workload's
+ * own backend and set the hostnames, keeping everything else (compute #395).
  */
-export function poolLockReason(proxy: HttpProxy, computeManaged: boolean): string | undefined {
+export function poolLockReason(proxy: HttpProxy): string | undefined {
   if (proxy.complexity === 'advanced') {
     return 'This load balancer uses routing rules or backend filters the portal can’t edit without changing them. Manage it with datumctl or kubectl.';
-  }
-  if (computeManaged) {
-    return 'This load balancer is managed by its compute workload. Change the workload to change its backends.';
   }
   return undefined;
 }

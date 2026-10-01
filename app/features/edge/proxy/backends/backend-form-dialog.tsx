@@ -1,4 +1,5 @@
 import {
+  WORKLOAD_BACKEND_REASON,
   formatShare,
   poolWith,
   suggestedWeight as suggestWeight,
@@ -319,10 +320,12 @@ export const BackendFormDialog = forwardRef<
     enabled: open,
   });
 
-  // Connector and VPC instance backends can't be recreated from this form, so
-  // only their traffic settings are editable.
+  // Connector and VPC instance backends can't be recreated from this form, and
+  // a deploy repoints a workload's own backend, so only their weight is editable.
   const originLocked =
-    !!editing && editing.backend.kind !== 'endpoint' && editing.backend.kind !== 'networkService';
+    !!editing &&
+    (editing.workloadOwned ||
+      (editing.backend.kind !== 'endpoint' && editing.backend.kind !== 'networkService'));
   const otherWeight = useMemo(
     () =>
       toBackendRows(proxy.backends)
@@ -420,9 +423,11 @@ export const BackendFormDialog = forwardRef<
       onOpenChange={setOpen}
       title={editing ? 'Edit backend' : 'Add backend'}
       description={
-        editing
-          ? 'Change where this backend points and how much traffic it receives.'
-          : 'Add a target to this load balancer’s pool.'
+        originLocked
+          ? 'Change how much traffic this backend receives.'
+          : editing
+            ? 'Change where this backend points and how much traffic it receives.'
+            : 'Add a target to this load balancer’s pool.'
       }
       schema={schema}
       defaultValues={defaultValues}
@@ -441,6 +446,11 @@ export const BackendFormDialog = forwardRef<
               <Text size="xs" textColor="muted" className="font-mono break-all">
                 {editing.title} · {editing.address}
               </Text>
+              {editing.workloadOwned ? (
+                <Text size="xs" textColor="muted" className="mt-1 text-pretty">
+                  {WORKLOAD_BACKEND_REASON}
+                </Text>
+              ) : null}
             </div>
           ) : (
             <>

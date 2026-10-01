@@ -5,6 +5,7 @@ import {
   formatShare,
   GATEWAY_DURATION_PATTERN,
   hostOverrideConflict,
+  poolLockReason,
   poolWith,
   shareLabels,
   suggestedWeight,
@@ -82,6 +83,25 @@ describe('toBackendRows', () => {
       href: '/project/p/services/workloads/alb-lb-tester',
       privateNetwork: true,
     });
+  });
+
+  it('marks only the managing workload’s own backend as workload-owned', () => {
+    const rows = toBackendRows(
+      [
+        toHttpProxyBackend({ networkService: { name: 'api', port: 'http' } }),
+        toHttpProxyBackend({ networkService: { name: 'worker', port: 'http' } }),
+        blue,
+      ],
+      { managingWorkload: 'api' }
+    );
+    expect(rows.map((row) => row.workloadOwned)).toEqual([true, false, false]);
+  });
+
+  it('marks nothing workload-owned when no workload manages the proxy', () => {
+    const rows = toBackendRows([
+      toHttpProxyBackend({ networkService: { name: 'api', port: 'http' } }),
+    ]);
+    expect(rows[0].workloadOwned).toBe(false);
   });
 
   it('falls back to the port name when the service is unknown', () => {
@@ -168,5 +188,15 @@ describe('shareLabels', () => {
   it('keeps slivers visible and drained backends at 0%', () => {
     expect(shareLabels([99.6, 0.4, 0])).toEqual(['100%', '<1%', '0%']);
     expect(shareLabels([0, 0])).toEqual(['0%', '0%']);
+  });
+});
+
+describe('poolLockReason', () => {
+  it('leaves a workload-published pool editable', () => {
+    expect(poolLockReason(proxy({ workloadName: 'api' }))).toBeUndefined();
+  });
+
+  it('locks a proxy with rules the portal can’t rebuild', () => {
+    expect(poolLockReason(proxy({ complexity: 'advanced' }))).toContain('datumctl or kubectl');
   });
 });

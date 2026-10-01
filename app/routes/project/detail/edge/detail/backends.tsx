@@ -72,18 +72,20 @@ export default function HttpProxyBackendsPage() {
     }
   );
 
+  // A compute-labelled proxy is published by its workload, whose deploys keep
+  // its own backend in the pool; once the workload is gone nothing does.
+  const managingWorkload =
+    current?.workloadName && !computeBackend.workloadMissing ? current.workloadName : undefined;
+
   const computeServices = useComputeServiceInfo(projectId);
   const rows = useMemo(
-    () => toBackendRows(current?.backends, { services: computeServices }),
-    [current?.backends, computeServices]
+    () => toBackendRows(current?.backends, { services: computeServices, managingWorkload }),
+    [current?.backends, computeServices, managingWorkload]
   );
 
   if (!current) throw new NotFoundError('Application Load Balancer', proxyId);
 
-  // A compute-labelled proxy is reconciled by its workload; once the workload
-  // is gone the pool is the user's again.
-  const computeManaged = !!current.workloadName && !computeBackend.workloadMissing;
-  const lockReason = poolLockReason(current, computeManaged);
+  const lockReason = poolLockReason(current);
   const addBlocked = lockReason ?? addBackendBlockReason(current);
   const configurationHref = getPathWithParams(paths.project.detail.proxy.detail.configuration, {
     projectId,
@@ -142,9 +144,17 @@ export default function HttpProxyBackendsPage() {
         <Alert variant="info">
           <InfoIcon className="size-4" />
           <AlertTitle>Backends are read-only here</AlertTitle>
+          <AlertDescription>{lockReason}</AlertDescription>
+        </Alert>
+      ) : managingWorkload ? (
+        <Alert variant="info">
+          <InfoIcon className="size-4" />
+          <AlertTitle>Published by the {managingWorkload} workload</AlertTitle>
           <AlertDescription>
-            {lockReason}
-            {computeManaged && computeBackend.href ? (
+            Deploys keep the backends, weights and algorithm you set here, and point{' '}
+            {managingWorkload}’s own backend at its HTTP port. Deleting the workload deletes this
+            load balancer.
+            {computeBackend.href ? (
               <>
                 {' '}
                 <Link to={computeBackend.href} className="underline">
