@@ -2,7 +2,6 @@ import {
   attentionItems,
   HOME_COLUMN_LIMIT,
   newestFirst,
-  shortTimeAgo,
   toRecentItems,
   topQuotas,
   type QuotaItem,
@@ -219,18 +218,5 @@ describe('attentionItems', () => {
       "new.com isn't verified",
       'Gateways is at 95% of its quota',
     ]);
-  });
-});
-
-describe('shortTimeAgo', () => {
-  const now = new Date('2026-09-30T12:00:00Z');
-  const ago = (ms: number) => shortTimeAgo(new Date(now.getTime() - ms), now);
-
-  it('picks the largest whole unit', () => {
-    expect(ago(30_000)).toBe('now');
-    expect(ago(5 * 60_000)).toBe('5m');
-    expect(ago(3 * 3_600_000)).toBe('3h');
-    expect(ago(2 * 86_400_000)).toBe('2d');
-    expect(ago(15 * 86_400_000)).toBe('2w');
   });
 });

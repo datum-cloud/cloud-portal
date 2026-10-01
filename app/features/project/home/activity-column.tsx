@@ -1,22 +1,14 @@
-import { shortTimeAgo, toRecentItems, type RecentItem } from './home.helpers';
-import {
-  COLUMN_ROW_CLASS,
-  ResourceColumnBody,
-  ResourceColumnEmpty,
-  ResourceColumnFrame,
-  ResourceColumnSkeleton,
-} from './resource-column';
-import { useProjectActivityClient } from '@/features/activity';
+import { toRecentItems, type RecentItem } from './home.helpers';
+import { ResourceColumnBody, ResourceColumnEmpty, ResourceColumnFrame } from './resource-column';
+import { ResourceActivityFeed, useProjectActivityClient } from '@/features/activity';
 import { KindIcon, kindDisplayName } from '@/features/search/shared/kindIcon';
 import { readRecents } from '@/resources/search/search.recents';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { ActivityFeedSummary } from '@datum-cloud/activity-ui';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { useQuery } from '@tanstack/react-query';
-import { Activity, History } from 'lucide-react';
+import { History } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type ActivityTab = 'changes' | 'recents';
@@ -38,6 +30,7 @@ export function ActivityColumn({ projectId }: { projectId: string }) {
       title="Activity"
       href={getPathWithParams(paths.project.detail.activity, { projectId })}
       testId="project-home-activity"
+      bodyClassName="h-auto"
       action={
         <div role="group" aria-label="Show" className="bg-muted flex rounded-md p-0.5">
           {TABS.map((option) => (
@@ -57,77 +50,31 @@ export function ActivityColumn({ projectId }: { projectId: string }) {
           ))}
         </div>
       }>
-      {tab === 'changes' ? (
-        <RecentChanges projectId={projectId} />
-      ) : (
-        <Recents projectId={projectId} />
-      )}
+      {tab === 'changes' ? <RecentChanges /> : <Recents projectId={projectId} />}
     </ResourceColumnFrame>
   );
 }
 
-/** The five most recent changes people made, newest first. */
-function RecentChanges({ projectId }: { projectId: string }) {
+/**
+ * Changes people made in the last week, in the same day-grouped digest the
+ * project Activity page shows, with repeated changes collapsed into one row.
+ * The search and filter bar stay on the Activity page, and filters are never
+ * written to the home page URL.
+ */
+function RecentChanges() {
   const { client, resourceLinkResolver } = useProjectActivityClient();
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ['project-home-activity', projectId],
-    queryFn: async () => {
-      const query = await client.createActivityQuery({
-        startTime: 'now-7d',
-        endTime: 'now',
-        filter: 'spec.changeSource == "human"',
-        limit: 5,
-      });
-      return query.status?.results ?? [];
-    },
-    staleTime: 30_000,
-    retry: 1,
-  });
 
-  const emptyIcon = <Icon icon={Activity} size={18} aria-hidden />;
-
-  if (isLoading) return <ResourceColumnSkeleton label="Activity" />;
-  if (isError) {
-    return (
-      <ResourceColumnEmpty icon={emptyIcon}>
-        Activity isn&apos;t available right now.
-      </ResourceColumnEmpty>
-    );
-  }
-  if (!data?.length) {
-    return (
-      <ResourceColumnEmpty icon={emptyIcon} title="Quiet week">
-        Changes people make in this project will show up here.
-      </ResourceColumnEmpty>
-    );
-  }
-
-  const now = new Date();
   return (
-    <ul className="flex flex-col">
-      {data.map((activity) => {
-        const timestamp = activity.metadata?.creationTimestamp;
-        return (
-          <li key={activity.metadata?.uid ?? activity.metadata?.name} className={COLUMN_ROW_CLASS}>
-            <div className="min-w-0 flex-1 truncate">
-              <ActivityFeedSummary
-                summary={activity.spec.summary}
-                links={activity.spec.links}
-                resourceLinkResolver={resourceLinkResolver}
-              />
-            </div>
-            {timestamp && (
-              <time
-                dateTime={timestamp}
-                title={new Date(timestamp).toLocaleString()}
-                className="text-muted-foreground shrink-0 text-xs tabular-nums">
-                {shortTimeAgo(new Date(timestamp), now)}
-              </time>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <ResourceActivityFeed
+      client={client}
+      resourceLinkResolver={resourceLinkResolver}
+      changeSource="human"
+      compact={false}
+      variant="digest"
+      pageSize={10}
+      urlSync={false}
+      feedProps={{ showFilters: false }}
+    />
   );
 }
 
