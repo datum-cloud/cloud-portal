@@ -71,7 +71,7 @@ export function LoadBalancersColumn({ projectId }: { projectId: string }) {
               <ResourceColumnEmptyAction href={createHref}>Add ALB</ResourceColumnEmptyAction>
             )
           }>
-          Run a proxy at Datum&apos;s edge that routes traffic for your domains to your services.
+          Run a proxy at Datum&apos;s edge that routes traffic to your services.
         </ResourceColumnEmpty>
       }
     />
