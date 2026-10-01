@@ -1,5 +1,6 @@
 import { ActivityColumn } from './activity-column';
 import { DomainsColumn } from './domains-column';
+import { LoadBalancersColumn } from './load-balancers-column';
 import { ProjectHomePluginColumn } from './plugin-column';
 import { ProjectTraffic } from './project-traffic';
 import { ResourceColumnSkeleton } from './resource-column';
@@ -9,8 +10,9 @@ import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 
 /**
  * The project home page's columns: Domains, any plugin-contributed columns,
- * then Activity, above the day's traffic totals. Until a plugin provides a
- * column, a Workloads placeholder holds the middle slot.
+ * then ALB, above the day's traffic totals, with Activity in its own
+ * full-width row below. Until a plugin provides a column, a Workloads
+ * placeholder holds the middle slot.
  *
  * Plugin columns wrap onto extra rows, so plugins can keep adding them.
  * Container queries follow the content column, which narrows when a dock
@@ -39,9 +41,10 @@ export function HomeColumns({ projectId }: { projectId: string }) {
         ) : (
           <WorkloadsColumn />
         )}
-        <ActivityColumn projectId={projectId} />
+        <LoadBalancersColumn projectId={projectId} />
       </div>
       <ProjectTraffic projectId={projectId} />
+      <ActivityColumn projectId={projectId} />
     </div>
   );
 }
