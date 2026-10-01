@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { NameserverChips } from '@/components/nameserver-chips';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
+import { DomainDeleteSummary } from '@/features/edge/domain/domain-delete-summary';
 import { showDomainInUseToast } from '@/features/edge/domain/domain-in-use-toast';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { useDomainExport } from '@/features/edge/domain/export';
@@ -221,7 +222,7 @@ function DomainsInner({
 
   const [searchParams, setSearchParams] = useSearchParams();
   const { confirm } = useConfirmationDialog();
-  const { enqueue, showSummary } = useTaskQueue();
+  const { enqueue, showSummary, closeSummary } = useTaskQueue();
   const { project, organization } = useApp();
   const [addOpen, setAddOpen] = useState(false);
   const { handleExport } = useDomainExport();
@@ -556,7 +557,11 @@ function DomainsInner({
                       type: 'quaternary' as const,
                       theme: 'outline' as const,
                       size: 'xs' as const,
-                      onClick: () =>
+                      onClick: () => {
+                        // Zone per domain, so rows blocked by a zone can link to it.
+                        const zoneByDomain = Object.fromEntries(
+                          items.map((item) => [item.id, item.data?.dnsZone?.name])
+                        );
                         showSummary(
                           taskTitle,
                           items.map((item) => ({
@@ -564,8 +569,22 @@ function DomainsInner({
                             label: item.data?.domainName ?? item.id,
                             status: item.status === 'failed' ? 'failed' : 'success',
                             message: item.message,
-                          }))
-                        ),
+                          })),
+                          {
+                            renderContent: (summaryItems) => (
+                              <DomainDeleteSummary
+                                items={summaryItems}
+                                zoneByDomain={zoneByDomain}
+                                projectId={projectId ?? ''}
+                                onNavigate={(href) => {
+                                  closeSummary();
+                                  navigate(href);
+                                }}
+                              />
+                            ),
+                          }
+                        );
+                      },
                     },
                   ]
                 : []),
