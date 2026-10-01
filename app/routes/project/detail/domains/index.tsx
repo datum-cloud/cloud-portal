@@ -3,6 +3,7 @@ import { useConfirmationDialog } from '@/components/confirmation-dialog/confirma
 import { NameserverChips } from '@/components/nameserver-chips';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
+import { showDomainInUseToast } from '@/features/edge/domain/domain-in-use-toast';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { useDomainExport } from '@/features/edge/domain/export';
 import { DomainStatus } from '@/features/edge/domain/status';
@@ -36,6 +37,10 @@ import {
 } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import {
+  formatDomainDeleteError,
+  isDomainInUseByDnsZoneError,
+} from '@/utils/errors/domain-in-use-error';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import {
   createProjectListClientLoader,
@@ -266,6 +271,14 @@ function DomainsInner({
           try {
             await deleteDomainMutation.mutateAsync(domain?.name ?? '');
           } catch (error) {
+            if (isDomainInUseByDnsZoneError(error)) {
+              showDomainInUseToast({
+                projectId: projectId ?? '',
+                dnsZoneName: domain.dnsZone?.name,
+                navigate,
+              });
+              return;
+            }
             toast.error('Domain', {
               description: (error as Error).message || 'Failed to delete domain',
             });
@@ -273,7 +286,7 @@ function DomainsInner({
         },
       });
     },
-    [confirm, deleteDomainMutation]
+    [confirm, deleteDomainMutation, navigate, projectId]
   );
 
   const handleRefreshDomain = useCallback(
@@ -524,7 +537,15 @@ function DomainsInner({
           itemConcurrency: 2,
           getItemId: (d) => d.name,
           processItem: async (domain) => {
-            await deleteDomainMutation.mutateAsync(domain.name);
+            try {
+              await deleteDomainMutation.mutateAsync(domain.name);
+            } catch (error) {
+              // The task summary shows the thrown message, so swap in the friendly copy.
+              if (isDomainInUseByDnsZoneError(error)) {
+                throw new Error(formatDomainDeleteError(error));
+              }
+              throw error;
+            }
           },
           completionActions: (_result, { failed, items }) => {
             return [
