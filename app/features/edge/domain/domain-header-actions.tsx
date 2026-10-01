@@ -1,4 +1,5 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { showDomainInUseToast } from '@/features/edge/domain/domain-in-use-toast';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { type DnsZone } from '@/resources/dns-zones';
@@ -12,6 +13,7 @@ import {
   useRefreshDomainRegistration,
 } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
+import { isDomainInUseByDnsZoneError } from '@/utils/errors/domain-in-use-error';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -55,6 +57,10 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
       );
     },
     onError: (error) => {
+      if (isDomainInUseByDnsZoneError(error)) {
+        showDomainInUseToast({ projectId, dnsZoneName: dnsZone?.name, navigate });
+        return;
+      }
       showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
     },
   });
