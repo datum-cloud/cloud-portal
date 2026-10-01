@@ -95,6 +95,52 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(true);
   });
 
+  test('accepts a portal.dock/project extension that handles its own close', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'ChatDock' },
+              handlesClose: true,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      const [dock] = result.manifest.extensions;
+      expect(dock.properties).toMatchObject({ handlesClose: true });
+    }
+  });
+
+  test('rejects a portal.dock/project extension with a non-boolean handlesClose', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'ChatDock' },
+              handlesClose: 'yes',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a portal.dock/project extension missing required properties', () => {
     const result = validateManifest(
       baseManifest({

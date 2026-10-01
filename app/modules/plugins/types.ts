@@ -304,6 +304,19 @@ export interface DockProjectProperties {
   icon: string;
   component: CodeRef;
   order?: number;
+  /**
+   * The widget renders its own close control. The host then drops the close
+   * button it otherwise overlays on the panel's top-right corner, which would
+   * sit on top of the widget's own header controls. Every dock widget is
+   * mounted with {@link DockWidgetProps} either way.
+   */
+  handlesClose?: boolean;
+}
+
+/** Props the host mounts every `portal.dock/project` component with. */
+export interface DockWidgetProps {
+  /** Closes the dock panel. */
+  onClose: () => void;
 }
 
 export interface DockProjectExtension {

@@ -22,6 +22,8 @@ export interface DockWidgetDescriptor {
   plugin: PublicPlugin;
   pluginRef: PluginRemoteRef;
   codeRef: string;
+  /** The widget renders its own close control, so the panel drops its overlay one. */
+  handlesClose: boolean;
 }
 
 function collectDockWidgets(plugins: PublicPlugin[]): DockWidgetDescriptor[] {
@@ -39,6 +41,7 @@ function collectDockWidgets(plugins: PublicPlugin[]): DockWidgetDescriptor[] {
         plugin,
         pluginRef,
         codeRef: dock.properties.component.$codeRef,
+        handlesClose: dock.properties.handlesClose ?? false,
       })
     );
   });
