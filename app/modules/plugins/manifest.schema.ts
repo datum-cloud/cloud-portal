@@ -158,6 +158,7 @@ const dockProjectExtensionSchema = z.object({
     icon: z.string().min(1),
     component: codeRefSchema,
     order: z.number().optional(),
+    handlesClose: z.boolean().optional(),
   }),
   requirements: requirementsSchema,
 });

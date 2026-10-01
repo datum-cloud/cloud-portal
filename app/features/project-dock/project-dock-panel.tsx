@@ -2,6 +2,7 @@ import { useProjectDock } from './project-dock-context';
 import { useDockWidth } from './use-dock-width';
 import { LazyPluginComponent } from '@/modules/plugins/client/lazy-plugin-component';
 import { PluginErrorBoundary } from '@/modules/plugins/client/plugin-error-boundary';
+import type { DockWidgetProps } from '@/modules/plugins/types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
@@ -10,28 +11,30 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 import { XIcon } from 'lucide-react';
 import { Activity, Suspense, useRef } from 'react';
 
-// Mirrors a chat-like widget's rail + empty-state layout (history collapsed by
-// default) so the lazy-load fallback matches what most dock widgets mount in.
+// Mirrors a chat-like widget's vertical layout (top bar + empty state, history
+// closed) so the lazy-load fallback matches what most dock widgets mount in.
 function DockPanelSkeleton() {
   return (
-    <div className="bg-background flex h-full w-full overflow-hidden">
-      <div className="flex w-12 shrink-0 flex-col items-center gap-1 border-r py-3">
-        <Skeleton className="size-9 rounded-md" />
-        <Skeleton className="size-9 rounded-md" />
+    <div className="bg-background flex h-full w-full flex-col overflow-hidden">
+      <div className="flex h-12 shrink-0 items-center gap-2 border-b px-2">
+        <Skeleton className="size-7 rounded-md" />
+        <Skeleton className="h-4 w-32 rounded" />
+        <Skeleton className="ml-auto size-7 rounded-md" />
+        <Skeleton className="size-7 rounded-md" />
       </div>
 
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-8">
-        <div className="mb-8 flex flex-col items-center">
-          <Skeleton className="mb-4 size-16 rounded-full" />
-          <Skeleton className="h-8 w-64 rounded-lg" />
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-4 py-6">
+        <div className="mb-6 flex flex-col items-center">
+          <Skeleton className="mb-3 size-12 rounded-full" />
+          <Skeleton className="h-7 w-48 rounded-lg" />
         </div>
 
         <Skeleton className="h-24 w-full rounded-2xl" />
 
         <div className="mt-4 flex flex-col gap-1">
-          <Skeleton className="h-12 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
         </div>
       </div>
     </div>
@@ -47,6 +50,10 @@ function DockPanelSkeleton() {
  *
  * Widgets stay mounted (via `Activity`) once opened, so closing the panel or
  * switching widgets keeps their state, e.g. an in-progress chat.
+ *
+ * Every widget gets an `onClose` prop. One that declares `handlesClose` renders
+ * its own close control, so the panel drops the one it otherwise overlays on its
+ * top-right corner, where it would sit on top of the widget's header controls.
  */
 export function ProjectDockPanel() {
   const { widgets, activeWidgetId, close } = useProjectDock();
@@ -65,6 +72,7 @@ export function ProjectDockPanel() {
   const open = activeWidgetId !== null;
   const shownWidgetId = activeWidgetId ?? lastWidgetId.current;
   const shownWidget = widgets.find((widget) => widget.id === shownWidgetId);
+  const widgetProps: DockWidgetProps = { onClose: close };
 
   return (
     <aside
@@ -106,17 +114,19 @@ export function ProjectDockPanel() {
             className="bg-border absolute top-1/2 left-0.5 h-10 w-1 -translate-y-1/2 rounded-full"
           />
         </div>
-        <Tooltip message="Close" side="left">
-          <Button
-            type="quaternary"
-            theme="borderless"
-            size="small"
-            onClick={close}
-            aria-label="Close panel"
-            className="hover:bg-sidebar-accent absolute top-2 right-2 z-10 h-7 w-7 rounded-lg p-0">
-            <Icon icon={XIcon} className="text-icon-header size-4" />
-          </Button>
-        </Tooltip>
+        {!shownWidget?.handlesClose && (
+          <Tooltip message="Close" side="left">
+            <Button
+              type="quaternary"
+              theme="borderless"
+              size="small"
+              onClick={close}
+              aria-label="Close panel"
+              className="hover:bg-sidebar-accent absolute top-2 right-2 z-10 h-7 w-7 rounded-lg p-0">
+              <Icon icon={XIcon} className="text-icon-header size-4" />
+            </Button>
+          </Tooltip>
+        )}
         <div className="relative min-h-0 flex-1 overflow-hidden">
           {widgets.map(
             (widget) =>
@@ -130,6 +140,7 @@ export function ProjectDockPanel() {
                       <LazyPluginComponent
                         pluginRef={widget.pluginRef}
                         codeRef={widget.codeRef}
+                        componentProps={widgetProps}
                         fallback={<DockPanelSkeleton />}
                       />
                     </Suspense>

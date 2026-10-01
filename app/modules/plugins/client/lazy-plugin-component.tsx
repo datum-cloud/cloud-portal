@@ -62,16 +62,18 @@ function getComponentPromise(
 function ResolvedPluginComponent({
   pluginRef,
   codeRef,
+  componentProps,
 }: {
   pluginRef: PluginRemoteRef;
   codeRef: string;
+  componentProps?: object;
 }) {
   const Component = use(getComponentPromise(pluginRef, codeRef));
   // Rendering a runtime-resolved component is the whole point of the plugin
   // system; the module-level promise cache keeps this identity stable, which
   // `react-hooks/static-components` cannot infer — hence the scoped disable.
   // eslint-disable-next-line react-hooks/static-components
-  return <Component />;
+  return <Component {...componentProps} />;
 }
 
 /**
@@ -82,10 +84,13 @@ function ResolvedPluginComponent({
 export function LazyPluginComponent({
   pluginRef,
   codeRef,
+  componentProps,
   fallback,
 }: {
   pluginRef: PluginRemoteRef;
   codeRef: string;
+  /** Props for the plugin component, for extension points that define some (dock widgets). */
+  componentProps?: object;
   fallback: ReactNode;
 }) {
   const hydrated = useHydrated();
@@ -100,7 +105,11 @@ export function LazyPluginComponent({
 
   return (
     <Suspense fallback={fallback}>
-      <ResolvedPluginComponent pluginRef={pluginRef} codeRef={codeRef} />
+      <ResolvedPluginComponent
+        pluginRef={pluginRef}
+        codeRef={codeRef}
+        componentProps={componentProps}
+      />
     </Suspense>
   );
 }
