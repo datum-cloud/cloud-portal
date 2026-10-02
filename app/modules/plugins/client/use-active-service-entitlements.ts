@@ -12,6 +12,7 @@
  * the entitlement was written). Entitlement `metadata.name` is NOT used —
  * it is an opaque object name like `my-project--compute-miloapis-com`.
  */
+import { entitlementServiceIds } from '@/modules/entitlements/entitled-services';
 import { getProjectScopedBase } from '@/resources/base/utils';
 import { serviceEntitlementKeys } from '@/resources/service-entitlements';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
@@ -27,21 +28,6 @@ type RawServiceEntitlementList = {
 };
 
 export { serviceEntitlementKeys };
-
-/**
- * Collect the identifiers a plugin `serviceRef` may match for an Active
- * entitlement. Prefer the controller-stamped canonical `status.serviceName`.
- */
-function entitlementServiceIds(
-  item: NonNullable<RawServiceEntitlementList['items']>[number]
-): string[] {
-  const ids: string[] = [];
-  const canonical = item.status?.serviceName?.trim();
-  const ref = item.spec?.serviceRef?.name?.trim();
-  if (canonical) ids.push(canonical);
-  if (ref && ref !== canonical) ids.push(ref);
-  return ids;
-}
 
 /**
  * Fetch Active ServiceEntitlement service ids for a project.

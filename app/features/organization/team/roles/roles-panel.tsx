@@ -89,14 +89,14 @@ export function RolesPanel({
         {canManageRoles ? (
           <Button type="primary" size="small" onClick={onAddRole} aria-label="Add role">
             <Icon icon={PlusIcon} className="size-3.5" />
-            Add Role
+            Add role
           </Button>
         ) : (
           <Tooltip message="You don't have permission to manage roles" side="left">
             <span>
               <Button type="primary" size="small" disabled aria-label="Add role">
                 <Icon icon={PlusIcon} className="size-3.5" />
-                Add Role
+                Add role
               </Button>
             </span>
           </Tooltip>

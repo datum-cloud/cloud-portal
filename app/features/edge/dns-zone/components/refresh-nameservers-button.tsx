@@ -1,14 +1,17 @@
 import { ReadOnlyGuard } from '@/features/project/read-only';
 import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionGate } from '@/modules/rbac';
-import { useRefreshDomainRegistration } from '@/resources/domains';
+import {
+  formatRefreshCooldown,
+  useRefreshCooldown,
+  useRefreshDomainRegistration,
+} from '@/resources/domains';
 import { Button, ButtonProps } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { TimerIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
 
 interface ToastMessage {
   title: string;
@@ -35,27 +38,6 @@ const defaultErrorMessage: ToastMessage = {
   description: 'Failed to refresh nameservers',
 };
 
-const COOLDOWN_SECONDS = 5 * 60; // 5 minutes
-
-const calculateRemainingSeconds = (lastRefreshAttempt?: string): number => {
-  if (!lastRefreshAttempt) return 0;
-
-  const lastAttemptTime = new Date(lastRefreshAttempt).getTime();
-  if (isNaN(lastAttemptTime)) return 0;
-
-  const now = Date.now();
-  const elapsedSeconds = Math.floor((now - lastAttemptTime) / 1000);
-  const remaining = COOLDOWN_SECONDS - elapsedSeconds;
-
-  return remaining > 0 ? remaining : 0;
-};
-
-const formatTime = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
-};
-
 export const RefreshNameserversButton = ({
   domainName,
   projectId,
@@ -71,31 +53,7 @@ export const RefreshNameserversButton = ({
   containerClassName,
   ...buttonProps
 }: RefreshNameserversButtonProps) => {
-  const [remainingSeconds, setRemainingSeconds] = useState(() =>
-    calculateRemainingSeconds(lastRefreshAttempt)
-  );
-
-  useEffect(() => {
-    // Recalculate when lastRefreshAttempt changes
-    setRemainingSeconds(calculateRemainingSeconds(lastRefreshAttempt));
-  }, [lastRefreshAttempt]);
-
-  useEffect(() => {
-    if (remainingSeconds <= 0) return;
-
-    const interval = setInterval(() => {
-      const newRemaining = calculateRemainingSeconds(lastRefreshAttempt);
-      setRemainingSeconds(newRemaining);
-
-      if (newRemaining <= 0) {
-        clearInterval(interval);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [lastRefreshAttempt, remainingSeconds]);
-
-  const isOnCooldown = remainingSeconds > 0;
+  const { remainingSeconds, isOnCooldown } = useRefreshCooldown(lastRefreshAttempt);
 
   const refreshMutation = useRefreshDomainRegistration(projectId, {
     onSuccess: () => {
@@ -123,7 +81,7 @@ export const RefreshNameserversButton = ({
         <div className="flex items-center gap-1 font-normal">
           <Icon icon={TimerIcon} className="text-ring relative -top-px size-4" />
           <Text className="text-ring leading-none">
-            {formatTime(remainingSeconds)} until refresh available
+            {formatRefreshCooldown(remainingSeconds)} until refresh available
           </Text>
         </div>
       )}

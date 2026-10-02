@@ -267,7 +267,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
               navigate(getPathWithParams(paths.project.detail.serviceAccounts.new, { projectId }))
             }>
             <Icon icon={PlusIcon} className="size-4" />
-            Create a Service Account
+            Add service account
           </GuardedWriteButton>,
         ]}
         empty={{
@@ -278,7 +278,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
           actions: [
             {
               type: 'button',
-              label: 'Create a Service Account',
+              label: 'Add service account',
               icon: <Icon icon={PlusIcon} className="size-3" />,
               onClick: () =>
                 navigate(

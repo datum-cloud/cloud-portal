@@ -1,14 +1,7 @@
 import type { UserActiveSession } from './user.schema';
 import { userKeys } from './user.service';
-import { createGqlClient } from '@/modules/graphql/client';
-import {
-  generateQueryOp,
-  generateMutationOp,
-  type ExtendedSession,
-  type ExtendedSessionRequest,
-  type QueryRequest,
-  type MutationRequest,
-} from '@/modules/graphql/generated';
+import { runGqlMutation, runGqlQuery } from '@/modules/graphql/client';
+import type { ExtendedSession, ExtendedSessionRequest } from '@/modules/graphql/generated';
 import { logger } from '@/modules/logger';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
@@ -72,17 +65,16 @@ export function createUserGqlService() {
       const startTime = Date.now();
 
       try {
-        const client = createGqlClient({ type: 'user', userId });
+        const data = await runGqlQuery(
+          'UserSessions',
+          { sessions: sessionSelection },
+          {
+            type: 'user',
+            userId,
+          }
+        );
 
-        const op = generateQueryOp({
-          sessions: sessionSelection,
-        } satisfies QueryRequest);
-
-        const result = await client.query(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
-
-        const items = (result.data?.sessions ?? []) as ExtendedSession[];
+        const items = (data?.sessions ?? []) as ExtendedSession[];
 
         logger.service(SERVICE_NAME, 'listSessions', {
           input: { userId },
@@ -100,17 +92,16 @@ export function createUserGqlService() {
       const startTime = Date.now();
 
       try {
-        const client = createGqlClient({ type: 'user', userId });
+        const data = await runGqlMutation(
+          'DeleteSession',
+          { deleteSession: [{ id: sessionId }] },
+          {
+            type: 'user',
+            userId,
+          }
+        );
 
-        const op = generateMutationOp({
-          deleteSession: [{ id: sessionId }],
-        } satisfies MutationRequest);
-
-        const result = await client.mutation(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
-
-        if (result.data?.deleteSession !== true) {
+        if (data?.deleteSession !== true) {
           throw new Error(`Failed to revoke session ${sessionId}`);
         }
 

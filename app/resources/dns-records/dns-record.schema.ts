@@ -619,6 +619,18 @@ export interface IFlattenedDnsRecordMeta {
  * schema. Any flattenedDnsRecordSchema.parse() returns only FlattenedDnsRecord and will strip
  * these; use this type where the record has been enriched with proxy/lock state.
  */
+/**
+ * Identifies one record inside a RecordSet for deletion. Used by the single
+ * and bulk delete paths; the RecordSet is named separately.
+ */
+export type DeleteDnsRecordCriterion = {
+  recordType: string;
+  /** Subdomain / record name */
+  name: string;
+  value: string;
+  ttl?: number | null;
+};
+
 export interface IFlattenedDnsRecordComputed {
   /** True when a proxy exists for this record's hostname (computed in UI from same-zone records) */
   hasProxyForThisRecord?: boolean;

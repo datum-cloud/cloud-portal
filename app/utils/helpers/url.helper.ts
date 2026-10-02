@@ -48,3 +48,33 @@ export function parseEndpoint(endpoint?: string): {
 
   return { protocol, endpointHost };
 }
+
+/**
+ * Normalize a URL reported by an external source (RDAP/WHOIS registrar
+ * records, for example) into something safe to put in an anchor `href`.
+ *
+ * Registrar URLs arrive in every shape: `https://www.namecheap.com`,
+ * `http://namecheap.com/`, or a bare `www.namecheap.com`. Bare hosts get
+ * `https://` prepended. Anything that is not http(s) once parsed (javascript:,
+ * data:, mailto:, garbage) returns `null` so the caller falls back to plain
+ * text instead of rendering a dangerous link.
+ *
+ * The host must contain a dot. That deliberately rejects bare words such as
+ * "Private" that show up in registrar fields, and as a side effect also
+ * rejects `localhost` and IPv6 literals, which never identify a registrar.
+ */
+export function toExternalHref(raw?: string | null): string | null {
+  const trimmed = raw?.trim();
+  if (!trimmed) return null;
+
+  const candidate = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+    if (!url.hostname.includes('.')) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}

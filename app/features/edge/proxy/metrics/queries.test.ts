@@ -8,6 +8,10 @@ import {
   albWafIncreaseQuery,
   albWafTopRulesQuery,
   createStatusClassFilter,
+  projectErrorRateQuery,
+  projectRequestCountQuery,
+  projectRpsQuery,
+  projectWafBlockedQuery,
   resetGuardedIncrease,
   toStatusClassPatterns,
 } from './queries';
@@ -124,5 +128,32 @@ describe('alb query builders', () => {
     expect(query).toContain('sum by (coraza_rule_severity)');
     expect(query).toContain('label_replace(sum_over_time(');
     expect(query).toContain('"coraza_rule_severity","unknown","coraza_rule_severity","^$"');
+  });
+});
+
+describe('project-wide query builders', () => {
+  it('covers every gateway in the project', () => {
+    for (const query of [
+      projectRpsQuery('proj', '30m'),
+      projectRequestCountQuery('proj', '24h'),
+      projectErrorRateQuery('proj', '30m'),
+      projectWafBlockedQuery('proj', '24h'),
+    ]) {
+      expect(query).toContain('resourcemanager_datumapis_com_project_name="proj"');
+      expect(query).not.toContain('gateway_name=');
+    }
+  });
+
+  it('guards the error rate against a project with no traffic', () => {
+    const query = projectErrorRateQuery('proj', '24h');
+    const [numerator, denominator] = query.split(' / ');
+    expect(numerator).toContain('envoy_response_code=~"[45].."');
+    expect(numerator).toContain('or vector(0)');
+    expect(denominator).not.toContain('envoy_response_code');
+    expect(denominator).toEndWith('> 0)');
+  });
+
+  it('counts only blocked and dropped WAF events', () => {
+    expect(projectWafBlockedQuery('proj', '24h')).toContain('coraza_outcome=~"blocked|dropped"');
   });
 });

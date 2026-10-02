@@ -210,7 +210,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
             navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId }))
           }>
           <Icon icon={PlusIcon} className="size-4" />
-          Create an export policy
+          Add export policy
         </PermissionButton>,
       ]}
       empty={{
@@ -221,7 +221,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
         actions: [
           {
             type: 'button',
-            label: 'Create an export policy',
+            label: 'Add export policy',
             icon: <Icon icon={PlusIcon} className="size-3" />,
             onClick: () =>
               navigate(getPathWithParams(paths.project.detail.metrics.new, { projectId })),

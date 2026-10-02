@@ -1,15 +1,18 @@
 import { parseCodeRef, pickCodeRefExport } from './code-ref';
 import {
   getCardExtensions,
+  getColumnExtensions,
   getDockExtensions,
   getNavExtensions,
   getPageExtensions,
+  isBarePage,
   matchPluginPage,
   normalizePagePath,
   type ClientPluginManifest,
 } from './match-extension';
 import {
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
@@ -210,6 +213,34 @@ describe('getCardExtensions', () => {
   });
 });
 
+describe('getColumnExtensions', () => {
+  it('returns only column extensions, sorted by order then title', () => {
+    const m = manifest([
+      {
+        type: EXTENSION_CARD_PROJECT_HOME,
+        properties: { title: 'A card', component: { $codeRef: 'Card' }, order: 0 },
+      },
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'Zeta', component: { $codeRef: 'Z' }, order: 1 },
+      },
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'Last', component: { $codeRef: 'L' } },
+      },
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'Alpha', component: { $codeRef: 'A' }, order: 1 },
+      },
+    ]);
+    expect(getColumnExtensions(m).map((c) => c.properties.title)).toEqual([
+      'Alpha',
+      'Zeta',
+      'Last',
+    ]);
+  });
+});
+
 describe('getDockExtensions', () => {
   it('returns dock extensions sorted by order then title', () => {
     const m = manifest([
@@ -283,5 +314,25 @@ describe('pickCodeRefExport', () => {
   it('returns undefined for a null module', () => {
     const result = pickCodeRefExport<() => null>(null, parseCodeRef('Mod'));
     expect(result).toBeUndefined();
+  });
+});
+
+describe('isBarePage', () => {
+  const shell: PageProjectExtension = {
+    type: EXTENSION_PAGE_PROJECT,
+    properties: { path: 'instances/:name/shell', component: { $codeRef: 'Shell' }, layout: 'bare' },
+  };
+  const all = [pageExt('instances'), pageExt('instances/:name'), shell];
+
+  it('is true when the matched page declares a bare layout', () => {
+    expect(isBarePage(matchPluginPage(all, 'instances/web-0/shell'))).toBe(true);
+  });
+
+  it('is false for pages without a layout', () => {
+    expect(isBarePage(matchPluginPage(all, 'instances/web-0'))).toBe(false);
+  });
+
+  it('is false when nothing matches', () => {
+    expect(isBarePage(matchPluginPage(all, 'nope/x/y/z'))).toBe(false);
   });
 });

@@ -481,7 +481,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
             data-e2e="create-alb-button"
             onClick={() => proxyFormRef.current?.show()}>
             <Icon icon={PlusIcon} className="size-4" />
-            New
+            Add load balancer
           </GuardedWriteButton>,
         ]}
       />

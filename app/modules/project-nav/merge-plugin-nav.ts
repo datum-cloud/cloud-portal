@@ -46,7 +46,8 @@ export type MergePluginNavOptions = {
   activeServiceEntitlements?: ReadonlySet<string> | readonly string[];
 };
 
-function pluginHref(projectId: string, slug: string, navPath: string): string {
+/** Absolute href for a mount-relative plugin path (empty or `/` is the plugin index). */
+export function pluginHref(projectId: string, slug: string, navPath: string): string {
   const root = getPathWithParams(paths.project.detail.services.plugin, {
     projectId,
     serviceSlug: slug,

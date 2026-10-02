@@ -123,12 +123,17 @@ Three things must stay in lockstep:
 
 ### Shared singletons
 
-The host provides exactly four shared singletons via Module Federation:
-`react`, `react-dom`, `react-router`, and `@tanstack/react-query` — backed by
-the host's own instances, so the host always wins and the plugin renders with
-the host's exact React, router, and query client. `vite.config.ts` marks the
-ones this sample uses (`react`, `react-dom`, `react-router`) `singleton: true`
-with the host's majors (react 19, react-router 7). Declare shared deps in the
+The host provides shared singletons via Module Federation — `react`,
+`react-dom` (plus `react-dom/client`), `react-router`, `@tanstack/react-query`,
+`@datum-cloud/portal-plugin-sdk`, and a curated set of `@datum-cloud/datum-ui`
+subpaths (see `DATUM_UI_SHARED` in
+[`federation-host.ts`](../../app/modules/plugins/client/federation-host.ts)) —
+backed by the host's own instances, so the host always wins and the plugin
+renders with the host's exact React, router, query client, and design system.
+`vite.config.ts` marks the ones this sample uses (`react`, `react-dom`,
+`react-router`, `@tanstack/react-query`, and the datum-ui `badge`, `button`,
+`card`, `separator`, and `skeleton` subpaths) `singleton: true`, with the host's
+majors for the framework packages. Declare shared deps in the
 `shared` block — do **not** externalize them (`import: false`), which breaks the
 shared-scope negotiation. Never bundle your own React — two React instances
 break hooks. Components read route params with `useParams()` from the shared
@@ -136,10 +141,12 @@ break hooks. Components read route params with `useParams()` from the shared
 
 Only share what you import: if your plugin uses React Query, add
 `'@tanstack/react-query': { singleton: true, requiredVersion: '^5.0.0' }` to get
-the host's client for free. Do **not** add `@datum-cloud/datum-ui` or the plugin
-SDK to `shared` in v1 — the host does not provide them as singletons yet, so a
-plugin that imports datum-ui simply bundles its own copy (fine, as long as its
-CSS ships).
+the host's client for free. Share datum-ui per subpath
+(`'@datum-cloud/datum-ui/badge': { singleton: true, requiredVersion: false }`),
+and only subpaths the host lists in `DATUM_UI_SHARED`; anything else is bundled
+into your plugin (fine, as long as its CSS ships). Keep your local
+`@datum-cloud/datum-ui` on the same major as the portal's, so the types you
+build against match the components the host serves at runtime.
 
 Exposed components are referenced by `$codeRef`: a bare name (`"SamplePage"`)
 resolves the module's **default export**; `"Module.export"`

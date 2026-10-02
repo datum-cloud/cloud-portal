@@ -174,6 +174,21 @@ describe('parsePortalPluginsJson', () => {
     expect(specs[0].visibility.featureFlag).toBe('compute-plugin');
   });
 
+  test('carries contentSecurityPolicy through to the spec', () => {
+    const { specs, errors } = parsePortalPluginsJson(
+      JSON.stringify([
+        {
+          slug: 'compute',
+          assets: { baseURL: 'http://localhost:7777' },
+          contentSecurityPolicy: ["script-src 'wasm-unsafe-eval'"],
+        },
+      ])
+    );
+
+    expect(errors).toEqual([]);
+    expect(specs[0].contentSecurityPolicy).toEqual(["script-src 'wasm-unsafe-eval'"]);
+  });
+
   test('returns empty for undefined/blank input', () => {
     expect(parsePortalPluginsJson(undefined).specs).toEqual([]);
     expect(parsePortalPluginsJson('   ').specs).toEqual([]);

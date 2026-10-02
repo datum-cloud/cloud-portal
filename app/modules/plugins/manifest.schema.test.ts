@@ -95,6 +95,52 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(true);
   });
 
+  test('accepts a portal.dock/project extension that handles its own close', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'ChatDock' },
+              handlesClose: true,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      const [dock] = result.manifest.extensions;
+      expect(dock.properties).toMatchObject({ handlesClose: true });
+    }
+  });
+
+  test('rejects a portal.dock/project extension with a non-boolean handlesClose', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { ChatDock: './src/widgets/chat-dock.tsx' },
+        extensions: [
+          {
+            type: 'portal.dock/project',
+            properties: {
+              id: 'assistant-chat',
+              title: 'Patch AI',
+              icon: 'brain',
+              component: { $codeRef: 'ChatDock' },
+              handlesClose: 'yes',
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a portal.dock/project extension missing required properties', () => {
     const result = validateManifest(
       baseManifest({
@@ -438,6 +484,34 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(false);
   });
 
+  function pageWithLayout(layout: unknown) {
+    return baseManifest({
+      extensions: [
+        {
+          type: 'portal.page/project',
+          properties: {
+            path: 'instances/:name/shell',
+            component: { $codeRef: 'InstanceList' },
+            layout,
+          },
+        },
+      ],
+    });
+  }
+
+  test('accepts a portal.page/project extension with a bare layout', () => {
+    const result = validateManifest(pageWithLayout('bare'));
+    expect(result.valid).toBe(true);
+    if (result.valid) {
+      const page = result.manifest.extensions[0] as { properties: { layout?: string } };
+      expect(page.properties.layout).toBe('bare');
+    }
+  });
+
+  test('rejects a portal.page/project extension with an unknown layout', () => {
+    expect(validateManifest(pageWithLayout('fullscreen')).valid).toBe(false);
+  });
+
   test('accepts a portal.card/project-home extension gated by requirements.serviceRef', () => {
     const result = validateManifest(
       baseManifest({
@@ -451,6 +525,87 @@ describe('validateManifest', () => {
       })
     );
     expect(result.valid).toBe(true);
+  });
+
+  test('accepts a portal.column/project-home extension', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: {
+              title: 'Workloads',
+              path: '/',
+              component: { $codeRef: 'HomeColumn' },
+              order: 10,
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+    if (result.valid) expect(result.unknownExtensionTypes).toEqual([]);
+  });
+
+  test('accepts a portal.column/project-home extension without a path', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: 'Workloads', component: { $codeRef: 'HomeColumn' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+  });
+
+  test('rejects a portal.column/project-home extension without a title', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: '', component: { $codeRef: 'HomeColumn' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects a portal.column/project-home $codeRef to an undeclared module', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: {},
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: 'Workloads', component: { $codeRef: 'Missing' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  test('rejects a whitespace-only portal.column/project-home path', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { HomeColumn: './src/cards/home-column.tsx' },
+        extensions: [
+          {
+            type: 'portal.column/project-home',
+            properties: { title: 'Workloads', path: '  ', component: { $codeRef: 'HomeColumn' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
   });
 
   test('rejects requirements.serviceRef when empty', () => {

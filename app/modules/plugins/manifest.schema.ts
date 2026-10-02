@@ -3,8 +3,8 @@
  *
  * Contract rules enforced here (see `docs/enhancements/portal-plugin-system.md`):
  * - Known extension types (`portal.nav/project`, `portal.page/project`,
- *   `portal.card/project-home`, `portal.dock/project`, `portal.header/project`)
- *   are strictly validated.
+ *   `portal.card/project-home`, `portal.column/project-home`,
+ *   `portal.dock/project`, `portal.header/project`) are strictly validated.
  * - Unknown extension types are *tolerated*, not fatal: they parse through a
  *   permissive shape and are reported so the caller can record a status note.
  * - Every `$codeRef` on a known extension must reference a declared
@@ -12,6 +12,7 @@
  */
 import {
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_HEADER_PROJECT,
   EXTENSION_NAV_PROJECT,
@@ -122,6 +123,7 @@ const pageProjectExtensionSchema = z.object({
     // Empty string is the plugin index (mount root). Whitespace-only is not.
     path: mountRelativePathSchema,
     component: codeRefSchema,
+    layout: z.enum(['default', 'bare']).optional(),
   }),
   requirements: requirementsSchema,
 });
@@ -136,6 +138,18 @@ const cardProjectHomeExtensionSchema = z.object({
   requirements: requirementsSchema,
 });
 
+const columnProjectHomeExtensionSchema = z.object({
+  type: z.literal(EXTENSION_COLUMN_PROJECT_HOME),
+  properties: z.object({
+    title: z.string().min(1),
+    component: codeRefSchema,
+    // Empty string is the plugin index (mount root). Whitespace-only is not.
+    path: mountRelativePathSchema.optional(),
+    order: z.number().optional(),
+  }),
+  requirements: requirementsSchema,
+});
+
 const dockProjectExtensionSchema = z.object({
   type: z.literal(EXTENSION_DOCK_PROJECT),
   properties: z.object({
@@ -144,6 +158,7 @@ const dockProjectExtensionSchema = z.object({
     icon: z.string().min(1),
     component: codeRefSchema,
     order: z.number().optional(),
+    handlesClose: z.boolean().optional(),
   }),
   requirements: requirementsSchema,
 });
@@ -177,6 +192,7 @@ const extensionSchema = z.union([
   navProjectExtensionSchema,
   pageProjectExtensionSchema,
   cardProjectHomeExtensionSchema,
+  columnProjectHomeExtensionSchema,
   dockProjectExtensionSchema,
   headerProjectExtensionSchema,
   unknownExtensionSchema,

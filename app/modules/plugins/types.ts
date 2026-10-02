@@ -92,7 +92,12 @@ export interface PortalPluginSpec {
   suspend: boolean;
   assets: PluginAssets;
   visibility: PluginVisibility;
-  /** Rarely needed; assets are same-origin proxied. */
+  /**
+   * Rarely needed; assets are same-origin proxied. Entries are
+   * `"<directive> <source>..."`, filtered by the allowlist in `server/csp.ts`.
+   * Applied to every page of the portal, not just the plugin's own, so each
+   * addition is a portal-wide trust decision made in service-catalog review.
+   */
   contentSecurityPolicy?: string[];
 }
 
@@ -103,6 +108,7 @@ export interface PortalPluginSpec {
 export const EXTENSION_NAV_PROJECT = 'portal.nav/project';
 export const EXTENSION_PAGE_PROJECT = 'portal.page/project';
 export const EXTENSION_CARD_PROJECT_HOME = 'portal.card/project-home';
+export const EXTENSION_COLUMN_PROJECT_HOME = 'portal.column/project-home';
 export const EXTENSION_DOCK_PROJECT = 'portal.dock/project';
 export const EXTENSION_HEADER_PROJECT = 'portal.header/project';
 
@@ -111,6 +117,7 @@ export const KNOWN_EXTENSION_TYPES = [
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   EXTENSION_CARD_PROJECT_HOME,
+  EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_HEADER_PROJECT,
 ] as const;
@@ -230,11 +237,18 @@ export interface NavProjectExtension {
   requirements?: PluginExtensionRequirements;
 }
 
+/**
+ * How the portal frames a plugin page. `bare` drops the dashboard chrome
+ * (sidebar, header, dock) so the page fills the window, e.g. a pop-out console.
+ */
+export type PageProjectLayout = 'default' | 'bare';
+
 /** `portal.page/project` — routed page under the plugin mount. */
 export interface PageProjectProperties {
   /** Path relative to the mount point; supports params and nesting. */
   path: string;
   component: CodeRef;
+  layout?: PageProjectLayout;
 }
 
 export interface PageProjectExtension {
@@ -256,6 +270,32 @@ export interface CardProjectHomeExtension {
   requirements?: PluginExtensionRequirements;
 }
 
+/**
+ * `portal.column/project-home` — a column in the project home page's row of
+ * resource lists, next to the host's Domains and Recents columns. The host
+ * draws the column heading (`title`, linking to `path` under the plugin
+ * mount when given), the loading skeleton and the error boundary; the
+ * plugin's component renders only the body (rows or an empty/enable state).
+ *
+ * Unlike `portal.card/project-home`, a column is usually declared without
+ * `requirements.serviceRef`, so it can render an "enable this service" state
+ * for projects that are not entitled yet. When `serviceRef` is declared, it
+ * gates the column the same way it gates a card.
+ */
+export interface ColumnProjectHomeProperties {
+  title: string;
+  component: CodeRef;
+  /** Mount-relative path the heading links to. Empty string is the plugin index. */
+  path?: string;
+  order?: number;
+}
+
+export interface ColumnProjectHomeExtension {
+  type: typeof EXTENSION_COLUMN_PROJECT_HOME;
+  properties: ColumnProjectHomeProperties;
+  requirements?: PluginExtensionRequirements;
+}
+
 /** `portal.dock/project` — widget in the project bottom dock. */
 export interface DockProjectProperties {
   id: string;
@@ -264,6 +304,19 @@ export interface DockProjectProperties {
   icon: string;
   component: CodeRef;
   order?: number;
+  /**
+   * The widget renders its own close control. The host then drops the close
+   * button it otherwise overlays on the panel's top-right corner, which would
+   * sit on top of the widget's own header controls. Every dock widget is
+   * mounted with {@link DockWidgetProps} either way.
+   */
+  handlesClose?: boolean;
+}
+
+/** Props the host mounts every `portal.dock/project` component with. */
+export interface DockWidgetProps {
+  /** Closes the dock panel. */
+  onClose: () => void;
 }
 
 export interface DockProjectExtension {
@@ -306,6 +359,7 @@ export type KnownPluginExtension =
   | NavProjectExtension
   | PageProjectExtension
   | CardProjectHomeExtension
+  | ColumnProjectHomeExtension
   | DockProjectExtension
   | HeaderProjectExtension;
 

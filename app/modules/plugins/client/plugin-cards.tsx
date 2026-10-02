@@ -69,7 +69,7 @@ export function ProjectHomePluginCards({ projectId }: { projectId: string }) {
   if (cards.length === 0) return null;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-3">
       {cards.map(({ plugin, pluginRef, card }) => (
         <Card key={`${plugin.slug}:${card.properties.component.$codeRef}`}>
           <CardHeader>

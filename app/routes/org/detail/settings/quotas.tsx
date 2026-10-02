@@ -1,9 +1,12 @@
+import { filterQuotasByEntitlement } from '@/features/quotas/quotas-grouping';
 import { QuotasTable } from '@/features/quotas/quotas-table';
+import { resolveEntitledServiceIds } from '@/modules/entitlements/entitled-services.server';
 import { useGuardedRouteData } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { createAllowanceBucketService, type AllowanceBucket } from '@/resources/allowance-buckets';
 import type { Organization } from '@/resources/organizations';
+import { createProjectService } from '@/resources/projects';
 import {
   createResourceRegistrationService,
   type ResourceRegistration,
@@ -44,17 +47,26 @@ export const loader = (args: LoaderFunctionArgs) =>
       // to the previous behaviour (every row rendered as countable),
       // which is the right fallback when the registrations endpoint
       // is unhealthy.
-      const [buckets, registrationList] = await Promise.all([
+      const [buckets, registrationList, projectsList] = await Promise.all([
         createAllowanceBucketService().list('organization', orgId!),
         createResourceRegistrationService()
           .list('organization', orgId!)
           .catch(() => []),
+        createProjectService()
+          .list(orgId!)
+          .catch(() => ({ items: [] })),
       ]);
       const registrations: Record<string, ResourceRegistration> = {};
       for (const r of registrationList) {
         registrations[r.resourceType] = r;
       }
-      return { buckets, registrations };
+      // Entitlements are per project; the org view shows a gated service when
+      // any project in the org is entitled to it. Hidden rows never reach the
+      // client.
+      const entitled = await resolveEntitledServiceIds(
+        projectsList.items.map((project) => project.name)
+      );
+      return filterQuotasByEntitlement(buckets, registrations, entitled);
     },
   });
 export const meta = route.meta;

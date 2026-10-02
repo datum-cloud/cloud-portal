@@ -1,6 +1,7 @@
 import { NameserverChips } from '@/components/nameserver-chips';
 import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
+import { RegistrarBadge } from '@/features/edge/domain/registrar-badge';
 import { IDnsNameserver, IDnsRegistration } from '@/resources/domains';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import type { ReactNode } from 'react';
@@ -68,13 +69,7 @@ export const NameserverTable = ({
         header: 'Registrar',
         accessorKey: 'registrar',
         enableSorting: false,
-        cell: () => {
-          return (
-            <Badge type="quaternary" theme="outline">
-              {registration?.registrar?.name ?? '-'}
-            </Badge>
-          );
-        },
+        cell: () => <RegistrarBadge registration={registration} />,
       },
       ...(rowActions && rowActions.length > 0
         ? [createActionsColumn<IDnsNameserver>(rowActions)]
@@ -89,7 +84,7 @@ export const NameserverTable = ({
       data={data}
       title={title}
       actions={titleActions ? [titleActions] : undefined}
-      empty={emptyMessage ?? 'No nameservers found'}
+      empty={emptyMessage ?? 'no nameservers found'}
       pagination={false}
       className={className}
     />

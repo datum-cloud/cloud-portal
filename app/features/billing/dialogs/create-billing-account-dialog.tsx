@@ -183,7 +183,7 @@ export const CreateBillingAccountDialog = ({
     <Form.Dialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Create a billing account"
+      title="Add a billing account"
       description="We'll use the contact details on your profile to set up the account. You can add payment methods, billing address, and extra invoice recipients from the account page once it's created."
       schema={createBillingAccountSchema}
       // The schema's `invoiceEmails` declares an output type of

@@ -10,7 +10,9 @@ export function MinimalLayout({
   className?: string;
 }) {
   return (
-    <div className="mx-auto flex h-full w-full flex-col">
+    // Fixed viewport height (as in DashboardLayout): the body is `h-auto`, so `h-full`
+    // would collapse to the content and leave the card background short of the fold.
+    <div className="mx-auto flex h-svh w-full flex-col overflow-hidden">
       <Header />
 
       <ContentWrapper

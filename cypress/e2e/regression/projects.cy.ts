@@ -7,7 +7,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * List page
  * [data-e2e="project-card"]               Project row
  * [data-e2e="project-card-id-copy"]       Resource ID badge inside a project row
- * [data-e2e="create-project-button"]      "Create project" button
+ * [data-e2e="create-project-button"]      "Add project" button
  *
  * Create dialog
  * [data-e2e="create-project-name-input"]  Project name input

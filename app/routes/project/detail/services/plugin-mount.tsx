@@ -15,7 +15,11 @@
  * client render surface — `<PluginOutlet>`.
  */
 import { logger } from '@/modules/logger';
-import { getPageExtensions, matchPluginPage } from '@/modules/plugins/client/match-extension';
+import {
+  getPageExtensions,
+  isBarePage,
+  matchPluginPage,
+} from '@/modules/plugins/client/match-extension';
 import { PluginOutlet } from '@/modules/plugins/client/plugin-outlet';
 import { getPlugin, toPublicPlugin } from '@/modules/plugins/server';
 import type { PluginRegistryEntry } from '@/modules/plugins/types';
@@ -119,7 +123,7 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
     throw new NotFoundError('Service', serviceSlug);
   }
 
-  return data({ plugin });
+  return data({ plugin, bare: isBarePage(match) });
 });
 
 export const meta: MetaFunction<typeof loader> = ({ loaderData }) => {

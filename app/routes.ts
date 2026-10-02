@@ -112,7 +112,9 @@ export default [
         // runtime, so the compiled route tree never changes per plugin (see
         // docs/enhancements/portal-plugin-system.md, "Loading plugins in the
         // portal"). The `services/` prefix avoids collisions with host routes.
-        route('services/:serviceSlug/*', 'routes/project/detail/services/plugin-mount.tsx'),
+        route('services/:serviceSlug/*', 'routes/project/detail/services/plugin-mount.tsx', {
+          id: 'plugin-mount',
+        }),
 
         // Settings
         layout('routes/project/detail/settings/layout.tsx', [

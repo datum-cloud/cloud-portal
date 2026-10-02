@@ -127,7 +127,7 @@ export const ServiceAccountKeyFormDialog = forwardRef<
     <Form.Dialog
       open={open}
       onOpenChange={setOpen}
-      title="New Key"
+      title="Add a Key"
       description="Add a new authentication key to this service account."
       schema={serviceAccountKeyCreateSchema}
       defaultValues={KEY_FORM_DEFAULTS}

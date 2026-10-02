@@ -1,9 +1,14 @@
 import { RestrictedState } from '@/components/restricted-state/restricted-state';
-import { ProjectBottomBar } from '@/features/project-bottom-bar';
+import {
+  ProjectDockPanel,
+  ProjectDockProvider,
+  ProjectDockTriggers,
+} from '@/features/project-dock';
 import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
+import { BareLayout } from '@/layouts/bare.layout';
 import { DashboardLayout } from '@/layouts/dashboard.layout';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
@@ -23,6 +28,7 @@ import { ControlPlaneStatus } from '@/resources/base';
 import { useOrganization } from '@/resources/organizations';
 import { useProject, type Project } from '@/resources/projects';
 import { getProjectForRequest } from '@/resources/projects/project-request-cache.server';
+import type { loader as pluginMountLoader } from '@/routes/project/detail/services/plugin-mount';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { setOrgSession, setProjectSession } from '@/utils/cookies';
@@ -39,12 +45,14 @@ import { useEffect, useMemo, useRef } from 'react';
 import {
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
+  matchPath,
   Outlet,
   useFetcher,
   useLoaderData,
   useLocation,
   useNavigate,
   useParams,
+  useRouteLoaderData,
 } from 'react-router';
 
 /**
@@ -190,12 +198,18 @@ function ProjectDetailLayoutContent({
   const fromOnboarding =
     (location.state as { fromOnboarding?: boolean } | null)?.fromOnboarding === true;
   const breakpoint = useBreakpoint();
+  // The home page renders its own large search box, so the header one is hidden there.
+  const isHomeRoute = !!matchPath(
+    paths.project.detail.home.replace('[projectId]', ':projectId'),
+    location.pathname
+  );
   const seededOrgId = companions.organizationId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const sessionFetcher = useFetcher({ key: 'session-cookies' });
   const lastSessionProjectRef = useRef<string | null>(null);
   const { organization: appOrg, setOrganization, setProject } = useApp();
+  const bare = useRouteLoaderData<typeof pluginMountLoader>('plugin-mount')?.bare === true;
 
   const {
     data: project,
@@ -238,9 +252,9 @@ function ProjectDetailLayoutContent({
     [project, org, projectLoading, projectError, projectErrorDetail]
   );
 
-  const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name });
+  const { data: plugins } = useProjectPlugins(project?.name, { enabled: !!project?.name && !bare });
   const { data: activeServiceEntitlements } = useActiveServiceEntitlements(project?.name, {
-    enabled: !!project?.name,
+    enabled: !!project?.name && !bare,
   });
 
   const navItems: NavItem[] = useMemo(() => {
@@ -274,12 +288,13 @@ function ProjectDetailLayoutContent({
   }, [project, setProject]);
 
   useEffect(() => {
+    if (bare) return;
     const oid = org?.name ?? appOrg?.name;
     if (project?.name && oid && lastSessionProjectRef.current !== project.name) {
       lastSessionProjectRef.current = project.name;
       sessionFetcher.submit({ projectId: project.name, orgId: oid }, { method: 'POST' });
     }
-  }, [project?.name, org?.name, appOrg?.name, sessionFetcher]);
+  }, [bare, project?.name, org?.name, appOrg?.name, sessionFetcher]);
 
   if (projectError && projectId) {
     return null;
@@ -288,36 +303,53 @@ function ProjectDetailLayoutContent({
   const currentOrg = org ?? appOrg;
   const currentProject = project ?? undefined;
 
+  if (bare) {
+    return (
+      <ProjectProvider value={projectContextValue}>
+        <PortalPluginHostProvider bindings={pluginHostBindings}>
+          <BareLayout>
+            <Outlet />
+          </BareLayout>
+        </PortalPluginHostProvider>
+      </ProjectProvider>
+    );
+  }
+
   return (
     <ProjectProvider value={projectContextValue}>
       <PortalPluginHostProvider bindings={pluginHostBindings}>
-        <DashboardLayout
-          navItems={navItems}
-          sidebarCollapsible="icon"
-          currentProject={currentProject}
-          currentOrg={currentOrg}
-          sidebarLoading={projectLoading}
-          switcherLoading={projectLoading || orgLoading}
-          bottomBar={<ProjectBottomBar />}
-          banner={<SuspensionBar />}
-          headerContent={
-            <div className="flex h-full items-center justify-end">
-              {breakpoint === 'desktop' && project?.name && (
-                <div className="border-sidebar-border flex h-full items-center px-4">
-                  <ProjectHeaderPluginContent projectId={project.name} />
-                </div>
-              )}
-              <div
-                className={cn('flex h-full items-center justify-end border-l px-4', {
-                  'px-0': breakpoint === 'desktop',
-                })}>
-                {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+        <ProjectDockProvider projectId={project?.name}>
+          <DashboardLayout
+            navItems={navItems}
+            sidebarCollapsible="icon"
+            currentProject={currentProject}
+            currentOrg={currentOrg}
+            sidebarLoading={projectLoading}
+            switcherLoading={projectLoading || orgLoading}
+            headerActions={<ProjectDockTriggers />}
+            sidePanel={<ProjectDockPanel />}
+            banner={<SuspensionBar />}
+            headerContent={
+              <div className="flex h-full items-center justify-end">
+                {breakpoint === 'desktop' && project?.name && (
+                  <div className="border-sidebar-border flex h-full items-center px-4">
+                    <ProjectHeaderPluginContent projectId={project.name} />
+                  </div>
+                )}
+                {!isHomeRoute && (
+                  <div
+                    className={cn('flex h-full items-center justify-end border-l px-4', {
+                      'px-0': breakpoint === 'desktop',
+                    })}>
+                    {breakpoint === 'desktop' ? <ProjectSearchBar /> : <SearchEntry />}
+                  </div>
+                )}
               </div>
-            </div>
-          }>
-          <QuotaWatchBridge scope="project" />
-          <Outlet />
-        </DashboardLayout>
+            }>
+            <QuotaWatchBridge scope="project" />
+            <Outlet />
+          </DashboardLayout>
+        </ProjectDockProvider>
       </PortalPluginHostProvider>
     </ProjectProvider>
   );

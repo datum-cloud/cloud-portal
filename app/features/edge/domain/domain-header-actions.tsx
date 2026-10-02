@@ -1,19 +1,25 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { showDomainInUseToast } from '@/features/edge/domain/domain-in-use-toast';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { type DnsZone } from '@/resources/dns-zones';
 import {
   type Domain,
+  getRefreshCooldownMessage,
   useDeleteDomain,
   useDomain,
   useDomainWatch,
+  useRefreshCooldown,
   useRefreshDomainRegistration,
 } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
+import { isDomainInUseByDnsZoneError } from '@/utils/errors/domain-in-use-error';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { GlobeIcon, RefreshCcwIcon, TrashIcon } from 'lucide-react';
 import { useNavigate } from 'react-router';
 
@@ -38,6 +44,9 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
   });
 
   const effectiveDomain = liveDomain ?? domain;
+  const { remainingSeconds, isOnCooldown } = useRefreshCooldown(
+    effectiveDomain?.desiredRegistrationRefreshAttempt
+  );
 
   const deleteDomainMutation = useDeleteDomain(projectId, {
     onSuccess: () => {
@@ -48,6 +57,10 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
       );
     },
     onError: (error) => {
+      if (isDomainInUseByDnsZoneError(error)) {
+        showDomainInUseToast({ projectId, dnsZoneName: dnsZone?.name, navigate });
+        return;
+      }
       showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
     },
   });
@@ -137,16 +150,26 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
   return (
     <div className="flex w-full items-center gap-2 sm:w-auto">
       {canUpdate && (
-        <Button
-          type="secondary"
-          theme="outline"
-          size="small"
-          loading={refreshDomainMutation.isPending}
-          onClick={handleRefreshDomain}
-          aria-label="Refresh domain">
-          <Icon icon={RefreshCcwIcon} size={14} />
-          <span className="hidden sm:inline">Refresh</span>
-        </Button>
+        <Tooltip message={getRefreshCooldownMessage(remainingSeconds)} hidden={!isOnCooldown}>
+          <span
+            aria-disabled={isOnCooldown}
+            className={cn(
+              'inline-block',
+              isOnCooldown && 'cursor-not-allowed [&>*]:pointer-events-none'
+            )}>
+            <Button
+              type="secondary"
+              theme="outline"
+              size="small"
+              loading={refreshDomainMutation.isPending}
+              disabled={isOnCooldown}
+              onClick={handleRefreshDomain}
+              aria-label="Refresh domain">
+              <Icon icon={RefreshCcwIcon} size={14} />
+              <span className="hidden sm:inline">Refresh</span>
+            </Button>
+          </span>
+        </Tooltip>
       )}
       {(dnsZone ? canViewDnsZones : canCreateDnsZones) && (
         <Button
