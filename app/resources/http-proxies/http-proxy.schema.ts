@@ -68,32 +68,78 @@ export const hostnameStatusSchema = z.object({
 
 export type HostnameStatus = z.infer<typeof hostnameStatusSchema>;
 
-const urlBackendSchema = z.object({
-  endpoint: z.string(),
-  weight: z.number().int().min(0).optional(),
-  tlsHostname: z.string().optional(),
+/** Most backends one rule accepts (`spec.rules[].backends` MaxItems). */
+export const HTTP_PROXY_MAX_BACKENDS = 16;
+/** Weight the API applies when a backend omits one. */
+export const HTTP_PROXY_DEFAULT_WEIGHT = 1;
+/** Upper bound on `weight` (`spec.rules[].backends[].weight` Maximum). */
+export const HTTP_PROXY_MAX_WEIGHT = 1_000_000;
+
+/**
+ * One entry in the backend rule's `backends`. `kind` says which of the
+ * mutually exclusive targets is set; `raw` is the entry exactly as the API
+ * returned it so a rules rebuild can re-emit fields the portal doesn't edit
+ * (backend filters, instance refs) instead of dropping them.
+ */
+export const httpProxyBackendSchema = z.object({
+  kind: z.enum(['endpoint', 'connector', 'networkService', 'instance']),
+  endpoint: z.string().optional(),
   connector: z.object({ name: z.string() }).optional(),
+  networkService: z.object({ name: z.string(), port: z.string() }).optional(),
+  instance: z.object({ name: z.string(), port: z.number() }).optional(),
+  tlsHostname: z.string().optional(),
+  /** Effective weight: the API default of 1 when the entry omits it. */
+  weight: z.number().int().min(0),
+  raw: z.record(z.string(), z.unknown()),
 });
-
-const serviceBackendSchema = z.object({
-  networkService: z.object({ name: z.string(), port: z.string() }),
-  weight: z.number().int().min(0).optional(),
-});
-
-/** One backend: a URL endpoint, or a NetworkService and one of its named ports. */
-export const httpProxyBackendSchema = z.union([urlBackendSchema, serviceBackendSchema]);
 
 export type HttpProxyBackend = z.infer<typeof httpProxyBackendSchema>;
-export type HttpProxyUrlBackend = z.infer<typeof urlBackendSchema>;
-export type HttpProxyServiceBackend = z.infer<typeof serviceBackendSchema>;
 
-/** True when the backend references a NetworkService rather than a URL. */
-export function isServiceBackend(
-  backend: HttpProxyBackend | HttpProxyBackendInput
-): backend is
-  HttpProxyServiceBackend | Extract<HttpProxyBackendInput, { networkService: unknown }> {
-  return 'networkService' in backend;
-}
+export const httpProxyLoadBalancerTypeSchema = z.enum([
+  'RoundRobin',
+  'Random',
+  'LeastRequest',
+  'ConsistentHash',
+]);
+export type HttpProxyLoadBalancerType = z.infer<typeof httpProxyLoadBalancerTypeSchema>;
+
+export const httpProxyLoadBalancerSchema = z.object({
+  type: httpProxyLoadBalancerTypeSchema,
+  consistentHash: z
+    .object({
+      type: z.enum(['SourceIP', 'Header']),
+      header: z.string().optional(),
+    })
+    .optional(),
+});
+export type HttpProxyLoadBalancer = z.infer<typeof httpProxyLoadBalancerSchema>;
+
+/** Passive (outlier detection) defaults the API applies to unset fields. */
+export const PASSIVE_HEALTH_CHECK_DEFAULTS = {
+  consecutive5xxErrors: 5,
+  baseEjectionTime: '30s',
+  maxEjectionPercent: 50,
+} as const;
+
+export const httpProxyPassiveHealthCheckSchema = z.object({
+  consecutive5xxErrors: z.number().int().min(1).optional(),
+  baseEjectionTime: z.string().optional(),
+  maxEjectionPercent: z.number().int().min(1).max(100).optional(),
+});
+export type HttpProxyPassiveHealthCheck = z.infer<typeof httpProxyPassiveHealthCheckSchema>;
+
+export const httpProxyHealthCheckSchema = z.object({
+  passive: httpProxyPassiveHealthCheckSchema.optional(),
+});
+export type HttpProxyHealthCheck = z.infer<typeof httpProxyHealthCheckSchema>;
+
+/**
+ * A backend the portal writes. Endpoint origins are the only kind the portal
+ * creates; other kinds are carried through by passing their `raw` entry.
+ */
+export type HttpProxyBackendInput =
+  | { endpoint: string; tlsHostname?: string; weight?: number; raw?: Record<string, unknown> }
+  | { raw: Record<string, unknown>; weight?: number };
 
 // HTTP Proxy resource schema (from API)
 export const httpProxyResourceSchema = z.object({
@@ -104,34 +150,6 @@ export const httpProxyResourceSchema = z.object({
   createdAt: z.coerce.date(),
   endpoint: z.string().optional(),
   origins: z.array(z.string()).optional(),
-  /**
-   * Backends on the first backend rule, in order: URL endpoints and
-   * NetworkService references. Weights are relative within that rule (unset
-   * means 1, 0 means no traffic). `networkService` below still names a lone
-   * NetworkService backend for the compute flows.
-   */
-  backends: z.array(httpProxyBackendSchema).optional(),
-  /** How requests are spread across a rule's backends. Unset means Envoy's default. */
-  loadBalancer: z
-    .object({
-      type: z.enum(['RoundRobin', 'Random', 'LeastRequest', 'ConsistentHash']),
-      consistentHash: z
-        .object({ type: z.enum(['SourceIP', 'Header']), header: z.string().optional() })
-        .optional(),
-    })
-    .optional(),
-  /** Passive (outlier-detection) health checking across every backend. */
-  healthCheck: z
-    .object({
-      passive: z
-        .object({
-          consecutive5xxErrors: z.number().int().optional(),
-          baseEjectionTime: z.string().optional(),
-          maxEjectionPercent: z.number().int().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
   hostnames: z.array(z.string()).optional(),
   tlsHostname: z.string().optional(),
   status: z.any().optional(),
@@ -204,6 +222,15 @@ export const httpProxyResourceSchema = z.object({
    * Empty / undefined means "no override" (forward the incoming Host unchanged).
    */
   hostHeader: z.string().optional(),
+  /**
+   * Every backend on the backend rule, in spec order. `endpoint`, `connector`,
+   * `networkService` and `tlsHostname` above mirror the first entry.
+   */
+  backends: z.array(httpProxyBackendSchema).optional(),
+  /** `spec.loadBalancer`; undefined means Envoy's default algorithm. */
+  loadBalancer: httpProxyLoadBalancerSchema.optional(),
+  /** `spec.healthCheck`; undefined means every endpoint is treated as healthy. */
+  healthCheck: httpProxyHealthCheckSchema.optional(),
   /**
    * Form-editability classification of the underlying resource (FR-4):
    * - 'simple'    — no rule-level filters; safe to edit via form
@@ -289,43 +316,8 @@ export type CreateHttpProxyInput = {
   hostHeader?: string;
 };
 
-/**
- * A load-balancer update. It goes out as a merge patch, so a nested `null`
- * removes a field the server would otherwise keep: `consistentHash` when
- * switching away from ConsistentHash, `header` when hashing on source IP.
- */
-export type HttpProxyLoadBalancerPatch = {
-  type: NonNullable<HttpProxy['loadBalancer']>['type'];
-  consistentHash?: { type: 'SourceIP' | 'Header'; header?: string | null } | null;
-};
-
-/** One backend as the backends editor writes it. */
-export type HttpProxyBackendInput =
-  | {
-      endpoint: string;
-      /** Relative weight within the rule. Omit for the API default of 1. */
-      weight?: number;
-      /** SNI / certificate hostname. Omit or '' to use the endpoint's hostname. */
-      tlsHostname?: string;
-    }
-  | {
-      /** NetworkService in the same project and the name of one of its ports. */
-      networkService: { name: string; port: string };
-      weight?: number;
-    };
-
 export type UpdateHttpProxyInput = {
   endpoint?: string;
-  /**
-   * Replace the backend rule's URL backends with this list, in order. Takes
-   * precedence over `endpoint` / `tlsHostname`. A connector on the current
-   * proxy is kept when the list has exactly one entry.
-   */
-  backends?: HttpProxyBackendInput[];
-  /** Set the load-balancing algorithm, or `null` to remove it (Envoy default). */
-  loadBalancer?: HttpProxyLoadBalancerPatch | null;
-  /** Set passive health checking, or `null` to remove it. */
-  healthCheck?: NonNullable<HttpProxy['healthCheck']> | null;
   hostnames?: string[];
   tlsHostname?: string;
   /**
@@ -368,6 +360,15 @@ export type UpdateHttpProxyInput = {
    * undefined means "don't change the host header".
    */
   hostHeader?: string;
+  /**
+   * Replace the backend rule's pool. Takes precedence over `endpoint` /
+   * `tlsHostname`, which only address a single-backend proxy.
+   */
+  backends?: HttpProxyBackendInput[];
+  /** Set the algorithm, or `null` to fall back to Envoy's default. */
+  loadBalancer?: HttpProxyLoadBalancer | null;
+  /** Set health checking, or `null` to remove it. */
+  healthCheck?: HttpProxyHealthCheck | null;
 };
 
 const userEntrySchema = z.object({

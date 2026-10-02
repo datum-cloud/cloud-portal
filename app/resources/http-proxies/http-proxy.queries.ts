@@ -1,5 +1,5 @@
+import { toBackendPayload, toHttpProxyBackend } from './http-proxy.adapter';
 import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
-import { isServiceBackend } from './http-proxy.schema';
 import {
   createHttpProxyService,
   httpProxyKeys,
@@ -184,37 +184,18 @@ export function useUpdateHttpProxy(
           ...(input.tlsHostname !== undefined && {
             tlsHostname: input.tlsHostname.trim() || undefined,
           }),
+          ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
           ...(input.backends !== undefined && {
-            backends: input.backends.map((backend) => {
-              const weight = backend.weight !== undefined ? { weight: backend.weight } : {};
-              if (isServiceBackend(backend))
-                return { networkService: backend.networkService, ...weight };
-              const tlsHostname = backend.tlsHostname?.trim();
-              return { endpoint: backend.endpoint, ...weight, ...(tlsHostname && { tlsHostname }) };
-            }),
-            origins: input.backends.flatMap((backend) =>
-              isServiceBackend(backend) ? [] : [backend.endpoint]
+            backends: input.backends.map((backend) =>
+              toHttpProxyBackend(toBackendPayload(backend))
             ),
           }),
           ...(input.loadBalancer !== undefined && {
-            loadBalancer: input.loadBalancer
-              ? {
-                  type: input.loadBalancer.type,
-                  ...(input.loadBalancer.consistentHash && {
-                    consistentHash: {
-                      type: input.loadBalancer.consistentHash.type,
-                      ...(input.loadBalancer.consistentHash.header && {
-                        header: input.loadBalancer.consistentHash.header,
-                      }),
-                    },
-                  }),
-                }
-              : undefined,
+            loadBalancer: input.loadBalancer ?? undefined,
           }),
           ...(input.healthCheck !== undefined && {
-            healthCheck: input.healthCheck ?? undefined,
+            healthCheck: input.healthCheck?.passive ? input.healthCheck : undefined,
           }),
-          ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
           ...(input.enableHttpRedirect !== undefined && {
             enableHttpRedirect: input.enableHttpRedirect,
           }),

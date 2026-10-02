@@ -4,12 +4,16 @@ import type {
   CreateHttpProxyInput,
   UpdateHttpProxyInput,
   BasicAuthUser,
-  HttpProxyLoadBalancerPatch,
+} from './http-proxy.schema';
+import type {
   HttpProxyBackend,
   HttpProxyBackendInput,
+  HttpProxyHealthCheck,
+  HttpProxyLoadBalancer,
+  TrafficProtectionMode,
+  WafRuleExclusions,
 } from './http-proxy.schema';
-import type { TrafficProtectionMode, WafRuleExclusions } from './http-proxy.schema';
-import { COMPUTE_WORKLOAD_NAME_LABEL, isServiceBackend } from './http-proxy.schema';
+import { COMPUTE_WORKLOAD_NAME_LABEL, HTTP_PROXY_DEFAULT_WEIGHT } from './http-proxy.schema';
 import { buildAttachmentMapsFromPolicies } from './http-proxy.waf-attach';
 import {
   type ComDatumapisNetworkingV1AlphaHttpProxy,
@@ -102,14 +106,8 @@ export function classifyHttpProxyComplexity(
   const backendRule = backendRules[0];
   if (!backendRule) return 'simple';
 
-  // The rules rebuild re-emits URL backends (any number, optionally one via a
-  // connector) or a single NetworkService. Anything else would be dropped.
-  const backends = backendRule.backends ?? [];
-  if (backends.some((b) => b.instance || (!b.endpoint && !b.networkService))) return 'advanced';
-  // The API already requires a connector backend to be alone in its rule.
-  if (backends.length > 1 && backends.some((b) => b.connector)) return 'advanced';
-
-  // The rebuild writes a catch-all rule, so a narrower match would be widened.
+  // The rules rebuild writes a catch-all backend rule, so a narrower match
+  // (e.g. PathPrefix /api) would be widened to every request.
   if (!isCatchAllMatch(backendRule.matches)) return 'advanced';
 
   // Any backend-level filter → advanced
@@ -280,6 +278,98 @@ export function extractHostHeader(raw: ComDatumapisNetworkingV1AlphaHttpProxy): 
     if (hostEntry) return hostEntry.value;
   }
   return '';
+}
+
+type RawBackend = NonNullable<
+  NonNullable<
+    NonNullable<ComDatumapisNetworkingV1AlphaHttpProxy['spec']>['rules']
+  >[number]['backends']
+>[number];
+
+/** Map one `spec.rules[].backends[]` entry to the portal's backend model. */
+export function toHttpProxyBackend(raw: RawBackend): HttpProxyBackend {
+  const kind: HttpProxyBackend['kind'] = raw.instance
+    ? 'instance'
+    : raw.networkService
+      ? 'networkService'
+      : raw.connector
+        ? 'connector'
+        : 'endpoint';
+  return {
+    kind,
+    ...(raw.endpoint && { endpoint: raw.endpoint }),
+    ...(raw.connector && { connector: { name: raw.connector.name } }),
+    ...(raw.networkService && {
+      networkService: { name: raw.networkService.name, port: raw.networkService.port },
+    }),
+    ...(raw.instance && { instance: { name: raw.instance.name, port: raw.instance.port } }),
+    ...(raw.tls?.hostname && { tlsHostname: raw.tls.hostname }),
+    weight: raw.weight ?? HTTP_PROXY_DEFAULT_WEIGHT,
+    raw: raw as Record<string, unknown>,
+  };
+}
+
+/** Every backend on the backend rule (the first rule with backends), in spec order. */
+export function extractBackends(raw: ComDatumapisNetworkingV1AlphaHttpProxy): HttpProxyBackend[] {
+  const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
+  return (backendRule?.backends ?? []).map(toHttpProxyBackend);
+}
+
+export function extractLoadBalancer(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): HttpProxyLoadBalancer | undefined {
+  const lb = raw.spec?.loadBalancer;
+  if (!lb?.type) return undefined;
+  return {
+    type: lb.type,
+    ...(lb.consistentHash && {
+      consistentHash: {
+        type: lb.consistentHash.type,
+        ...(lb.consistentHash.header && { header: lb.consistentHash.header }),
+      },
+    }),
+  };
+}
+
+export function extractHealthCheck(
+  raw: ComDatumapisNetworkingV1AlphaHttpProxy
+): HttpProxyHealthCheck | undefined {
+  const passive = raw.spec?.healthCheck?.passive;
+  if (!raw.spec?.healthCheck) return undefined;
+  return {
+    ...(passive && {
+      passive: {
+        ...(passive.consecutive5xxErrors !== undefined && {
+          consecutive5xxErrors: passive.consecutive5xxErrors,
+        }),
+        ...(passive.baseEjectionTime !== undefined && {
+          baseEjectionTime: passive.baseEjectionTime,
+        }),
+        ...(passive.maxEjectionPercent !== undefined && {
+          maxEjectionPercent: passive.maxEjectionPercent,
+        }),
+      },
+    }),
+  };
+}
+
+/**
+ * The API entry for a backend the portal writes. An edited endpoint keeps the
+ * rest of its original entry (filters, connector) and only swaps the fields
+ * the form owns; a pass-through entry is re-emitted with at most a new weight.
+ */
+export function toBackendPayload(input: HttpProxyBackendInput): Record<string, unknown> {
+  if ('endpoint' in input) {
+    const { tls: _tls, ...rest } = input.raw ?? {};
+    const tlsHostname = input.tlsHostname?.trim();
+    return {
+      ...rest,
+      endpoint: input.endpoint,
+      ...(tlsHostname && { tls: { hostname: tlsHostname } }),
+      ...(input.weight !== undefined && { weight: input.weight }),
+    };
+  }
+  return { ...input.raw, ...(input.weight !== undefined && { weight: input.weight }) };
 }
 
 /**
@@ -551,29 +641,6 @@ export function toHttpProxy(
     }
   }
 
-  // URL and NetworkService backends on the backend rule, with the fields the
-  // UI shows. Instance backends aren't modelled (they classify as advanced).
-  const backends = (backendRule?.backends ?? []).flatMap((item): HttpProxyBackend[] => {
-    const weight = item.weight !== undefined ? { weight: item.weight } : {};
-    if (item.networkService) {
-      return [
-        {
-          networkService: { name: item.networkService.name, port: item.networkService.port },
-          ...weight,
-        },
-      ];
-    }
-    if (!item.endpoint) return [];
-    return [
-      {
-        endpoint: item.endpoint,
-        ...weight,
-        ...(item.tls?.hostname && { tlsHostname: item.tls.hostname }),
-        ...(item.connector?.name && { connector: { name: item.connector.name } }),
-      },
-    ];
-  });
-
   // Check if HTTP redirect is enabled by looking for a redirect rule.
   // Rule has no backends (undefined or []) and a filter that redirects to HTTPS (301/302).
   const hasRedirectRule = raw.spec?.rules?.some((rule) => {
@@ -594,6 +661,9 @@ export function toHttpProxy(
   // FR-4: classify the underlying resource so callers can decide between
   // editable form and read-only banner without re-reading the raw resource.
   const complexity = classifyHttpProxyComplexity(raw);
+  const backends = extractBackends(raw);
+  const loadBalancer = extractLoadBalancer(raw);
+  const healthCheck = extractHealthCheck(raw);
 
   return {
     uid: raw.metadata?.uid ?? '',
@@ -606,12 +676,12 @@ export function toHttpProxy(
     updatedAt: extractUpdatedAt(raw),
     endpoint: backend?.endpoint,
     origins: origins.length > 0 ? origins : undefined,
-    backends: backends.length > 0 ? backends : undefined,
-    ...(raw.spec?.loadBalancer && { loadBalancer: raw.spec.loadBalancer }),
-    ...(raw.spec?.healthCheck && { healthCheck: raw.spec.healthCheck }),
     hostnames: raw.spec?.hostnames,
     tlsHostname: backend?.tls?.hostname,
     ...(hostHeader && { hostHeader }),
+    ...(backends.length > 0 && { backends }),
+    ...(loadBalancer && { loadBalancer }),
+    ...(healthCheck && { healthCheck }),
     complexity,
     status: raw.status,
     canonicalHostname: raw.status?.canonicalHostname,
@@ -846,17 +916,20 @@ type BackendRuleFilter =
  * or a compute NetworkService reference. Mirrors the API's mutually exclusive
  * `endpoint` / `networkService` shape.
  */
-type BackendRuleBackend =
-  | {
-      endpoint: string;
-      weight?: number;
-      tls?: { hostname: string };
-      connector?: { name: string };
-    }
-  | { networkService: { name: string; port: string }; weight?: number };
+type BackendRuleBackend = (
+  | { endpoint: string; tls?: { hostname: string }; connector?: { name: string } }
+  | { networkService: { name: string; port: string } }
+) & { weight?: number };
 type BackendRule = {
-  backends: BackendRuleBackend[];
+  // Entries preserved from the live resource are re-emitted verbatim.
+  backends: Array<BackendRuleBackend | Record<string, unknown>>;
   filters?: BackendRuleFilter[];
+};
+
+/** `spec.loadBalancer` as written: nulls clear stale keys under merge-patch. */
+type LoadBalancerPatch = {
+  type: HttpProxyLoadBalancer['type'];
+  consistentHash: { type: 'SourceIP' | 'Header'; header: string | null } | null;
 };
 
 export type HttpProxyUpdatePayload = {
@@ -866,11 +939,40 @@ export type HttpProxyUpdatePayload = {
   spec?: {
     hostnames?: string[];
     rules?: Array<BackendRule | RedirectRule>;
-    /** `null` (here or nested) is a merge-patch delete. */
-    loadBalancer?: HttpProxyLoadBalancerPatch | null;
-    healthCheck?: NonNullable<HttpProxy['healthCheck']> | null;
+    loadBalancer?: LoadBalancerPatch | null;
+    healthCheck?: HttpProxyHealthCheck | null;
   };
 };
+
+/**
+ * Merge-patch recurses into objects, so switching away from ConsistentHash
+ * (or from Header hashing) must null the keys the new type forbids, or the
+ * API's CEL rules reject the merged result.
+ */
+function toLoadBalancerPatch(lb: HttpProxyLoadBalancer): LoadBalancerPatch {
+  const hash = lb.type === 'ConsistentHash' ? lb.consistentHash : undefined;
+  return {
+    type: lb.type,
+    consistentHash: hash
+      ? {
+          type: hash.type,
+          header: hash.type === 'Header' ? (hash.header?.trim() ?? null) : null,
+        }
+      : null,
+  };
+}
+
+/** Same reason: emit every passive field so no stale value survives the merge. */
+function toHealthCheckPatch(hc: HttpProxyHealthCheck): HttpProxyHealthCheck | null {
+  if (!hc.passive) return null;
+  return {
+    passive: {
+      consecutive5xxErrors: hc.passive.consecutive5xxErrors,
+      baseEjectionTime: hc.passive.baseEjectionTime,
+      maxEjectionPercent: hc.passive.maxEjectionPercent,
+    },
+  };
+}
 
 /** True when the merge-patch would change HTTPProxy metadata or spec. */
 export function httpProxyPatchTouchesResource(payload: HttpProxyUpdatePayload): boolean {
@@ -898,64 +1000,40 @@ export function toUpdateHttpProxyPayload(
   const metadata = Object.keys(annotations).length > 0 ? { annotations } : undefined;
 
   const hasRulesChange =
-    input.backends !== undefined ||
     input.endpoint !== undefined ||
     input.enableHttpRedirect !== undefined ||
     input.hsts !== undefined ||
     input.hostHeader !== undefined ||
+    input.backends !== undefined ||
     // TLS lives on the backend rule — rebuild rules when it changes even if
     // endpoint/redirect/hostHeader are untouched (e.g. hostnames dialog save).
     input.tlsHostname !== undefined;
 
   // The rebuild below writes the rules from `currentProxy`. Without it, the
-  // redirect, Host, HSTS, TLS, and connector settings would all be lost.
+  // redirect, Host, HSTS, TLS settings and the backend pool would all be lost.
   if (hasRulesChange && !currentProxy) {
     throw new Error(
       'Could not load the current Application Load Balancer settings. Reload the page and try again.'
     );
   }
 
-  // The rebuild below writes a single backend rule. On a proxy the portal
-  // can't model (several backend rules, custom filters) that would silently
-  // drop whatever it doesn't understand, so refuse instead.
+  // The rebuild writes a single catch-all backend rule. On a proxy the portal
+  // can't model (several backend rules, path-specific matches, backend
+  // filters) that would silently drop whatever it doesn't understand.
   if (hasRulesChange && currentProxy?.complexity === 'advanced') {
     throw new Error(
-      'This Application Load Balancer splits its backends across several routing rules or uses custom filters, which the portal cannot edit. Change it with datumctl or kubectl.'
+      'This Application Load Balancer uses routing rules or backend filters the portal can’t edit without changing them. Manage it with datumctl or kubectl.'
     );
   }
-
-  const currentBackends = currentProxy?.backends ?? [];
-  if (input.backends !== undefined) {
-    if (input.backends.length === 0) {
-      throw new Error('An Application Load Balancer needs at least one backend.');
-    }
-    if (
-      currentProxy?.connector &&
-      (input.backends.length > 1 || input.backends.some(isServiceBackend))
-    ) {
-      throw new Error(
-        'A connector backend must be the only backend. Remove the connector to add more backends.'
-      );
-    }
-  } else if (
-    currentBackends.length > 1 &&
-    (input.endpoint !== undefined || input.tlsHostname !== undefined)
-  ) {
-    // A single origin or TLS hostname can't say which of several backends it means.
-    throw new Error(
-      'This Application Load Balancer has several backends. Edit them together in the backends dialog.'
-    );
-  }
-
-  const touchesSpec =
-    hasRulesChange ||
-    input.hostnames !== undefined ||
-    input.loadBalancer !== undefined ||
-    input.healthCheck !== undefined;
 
   let spec: HttpProxyUpdatePayload['spec'];
 
-  if (touchesSpec) {
+  if (
+    hasRulesChange ||
+    input.hostnames !== undefined ||
+    input.loadBalancer !== undefined ||
+    input.healthCheck !== undefined
+  ) {
     spec = {};
 
     if (input.hostnames !== undefined) {
@@ -963,11 +1041,11 @@ export function toUpdateHttpProxyPayload(
     }
 
     if (input.loadBalancer !== undefined) {
-      spec.loadBalancer = input.loadBalancer;
+      spec.loadBalancer = input.loadBalancer ? toLoadBalancerPatch(input.loadBalancer) : null;
     }
 
     if (input.healthCheck !== undefined) {
-      spec.healthCheck = input.healthCheck;
+      spec.healthCheck = input.healthCheck ? toHealthCheckPatch(input.healthCheck) : null;
     }
 
     if (hasRulesChange) {
@@ -1006,42 +1084,32 @@ export function toUpdateHttpProxyPayload(
         ...(effectiveTls && { tls: { hostname: effectiveTls } }),
         ...(currentProxy?.connector && { connector: currentProxy.connector }),
       });
-      const singleBackend: BackendRuleBackend | undefined =
-        input.endpoint !== undefined
-          ? input.endpoint
-            ? endpointBackend(input.endpoint)
-            : undefined
-          : currentProxy?.networkService?.name
-            ? { networkService: currentProxy.networkService }
-            : currentProxy?.endpoint
-              ? endpointBackend(currentProxy.endpoint)
-              : undefined;
-      // An explicit list wins; otherwise several current backends are kept as
-      // they are, and a single backend goes through the endpoint logic above.
-      const toRuleBackend = (
-        backend: HttpProxyBackend | HttpProxyBackendInput,
-        connector: { name: string } | undefined
-      ): BackendRuleBackend => {
-        const weight = backend.weight !== undefined ? { weight: backend.weight } : {};
-        // NetworkService backends are always plain HTTP: no TLS, no connector.
-        if (isServiceBackend(backend)) return { networkService: backend.networkService, ...weight };
-        const tlsHostname = backend.tlsHostname?.trim();
-        return {
-          endpoint: backend.endpoint,
-          ...weight,
-          ...(tlsHostname && { tls: { hostname: tlsHostname } }),
-          ...(connector && { connector }),
-        };
-      };
-      const effectiveBackends: BackendRuleBackend[] = input.backends
-        ? input.backends.map((backend) => toRuleBackend(backend, currentProxy?.connector))
-        : currentBackends.length > 1
-          ? currentBackends.map((backend) =>
-              toRuleBackend(backend, isServiceBackend(backend) ? undefined : backend.connector)
-            )
-          : singleBackend
-            ? [singleBackend]
-            : [];
+
+      // Every backend in the pool survives a rebuild. An explicit pool wins;
+      // an explicit endpoint is the single-origin editor replacing the pool;
+      // otherwise re-emit what is there, applying a TLS hostname change to
+      // the first backend, which is the one `tlsHostname` describes.
+      const preserved = currentProxy?.backends?.map((backend, index) => {
+        if (index !== 0 || input.tlsHostname === undefined || !backend.endpoint) {
+          return backend.raw;
+        }
+        const { tls: _tls, ...rest } = backend.raw;
+        return effectiveTls ? { ...rest, tls: { hostname: effectiveTls } } : rest;
+      });
+      const effectiveBackends: BackendRule['backends'] =
+        input.backends !== undefined
+          ? input.backends.map(toBackendPayload)
+          : input.endpoint !== undefined
+            ? input.endpoint
+              ? [endpointBackend(input.endpoint)]
+              : []
+            : preserved && preserved.length > 0
+              ? preserved
+              : currentProxy?.networkService?.name
+                ? [{ networkService: currentProxy.networkService }]
+                : currentProxy?.endpoint
+                  ? [endpointBackend(currentProxy.endpoint)]
+                  : [];
 
       if (effectiveBackends.length > 0) {
         // Determine effective host header: explicit input > current proxy value
