@@ -1,7 +1,10 @@
 import { buildScopedPath, buildProxyPath } from './endpoints';
+import { generateMutationOp, generateQueryOp } from './generated';
+import type { FieldsSelection, Mutation, MutationRequest, Query, QueryRequest } from './generated';
 import type { GqlScope } from './types';
 import { gatedFetch } from '@/modules/rate-limit';
 import { env } from '@/utils/env';
+import { mapApiError } from '@/utils/errors/error-mapper';
 import { createClient, cacheExchange, fetchExchange } from '@urql/core';
 import type { Client as UrqlClient, SSRExchange } from '@urql/core';
 
@@ -79,6 +82,41 @@ export function createGqlClient(scope: GqlScope, ssr?: SSRExchange): UrqlClient 
     exchanges: [cacheExchange, ...(ssr ? [ssr] : []), fetchExchange],
     fetch: gatedFetch,
   });
+}
+
+/**
+ * Builds a named GraphQL query with genql and runs it on a scoped urql client,
+ * returning the result typed from the selection.
+ *
+ * Every operation is named via the required `name` argument, so none can go out
+ * as `Anonymous` (the gateway's slow-query traces group unnamed ops together).
+ * This also carries genql's `FieldsSelection` type through urql, so callers get
+ * a typed result instead of `any`. It is the only place `generateQueryOp` is
+ * called.
+ */
+export async function runGqlQuery<R extends QueryRequest>(
+  name: string,
+  request: R,
+  scope: GqlScope
+): Promise<FieldsSelection<Query, R> | null> {
+  const client = createGqlClient(scope);
+  const op = generateQueryOp({ __name: name, ...request });
+  const result = await client.query(op.query, op.variables).toPromise();
+  if (result.error) throw mapApiError(result.error);
+  return (result.data as FieldsSelection<Query, R> | undefined) ?? null;
+}
+
+/** Mutation counterpart of {@link runGqlQuery}; the only place `generateMutationOp` is called. */
+export async function runGqlMutation<R extends MutationRequest>(
+  name: string,
+  request: R,
+  scope: GqlScope
+): Promise<FieldsSelection<Mutation, R> | null> {
+  const client = createGqlClient(scope);
+  const op = generateMutationOp({ __name: name, ...request });
+  const result = await client.mutation(op.query, op.variables).toPromise();
+  if (result.error) throw mapApiError(result.error);
+  return (result.data as FieldsSelection<Mutation, R> | undefined) ?? null;
 }
 
 export type { GqlScope } from './types';
