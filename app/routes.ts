@@ -107,6 +107,9 @@ export default [
 
         route('home', 'routes/project/detail/home.tsx'),
 
+        // Full-page add-domain flow (replacing the Domains list dialog piece by piece)
+        route('add-domain', 'routes/project/detail/add-domain.tsx'),
+
         // Service plugins — permanent catch-all mount for dynamically-loaded
         // service UI plugins. Plugin routes resolve inside this mount at
         // runtime, so the compiled route tree never changes per plugin (see
