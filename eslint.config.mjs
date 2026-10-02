@@ -97,4 +97,27 @@ export default [
       },
     },
   },
+  {
+    // GraphQL operations are built only inside runGqlQuery / runGqlMutation
+    // (app/modules/graphql/client.ts), which name every op via a required
+    // argument — so none can go out as `Anonymous` and lose slow-query tracing.
+    // Everything else calls those helpers, never the raw genql builder. See #1590.
+    files: ['**/*.ts', '**/*.tsx'],
+    ignores: ['app/modules/graphql/client.ts', 'app/modules/graphql/generated/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@/modules/graphql/generated',
+              importNames: ['generateQueryOp', 'generateMutationOp'],
+              message:
+                'Build GraphQL operations with runGqlQuery / runGqlMutation (they name every op); do not call the raw genql builder. See #1590.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 ];

@@ -1,15 +1,17 @@
 import { toOrganizationFromMembership } from './organization.adapter';
 import type { Organization, OrganizationList } from './organization.schema';
 import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
-import { createGqlClient } from '@/modules/graphql/client';
-import { generateQueryOp } from '@/modules/graphql/generated';
-import type { com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest } from '@/modules/graphql/generated';
+import { createGqlClient, runGqlQuery } from '@/modules/graphql/client';
+import type {
+  QueryRequest,
+  com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
+} from '@/modules/graphql/generated';
 import { logger } from '@/modules/logger';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
 const SERVICE_NAME = 'OrganizationGatewayService';
 
-const membershipListOp = generateQueryOp({
+const membershipListRequest = {
   listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
     {},
     {
@@ -33,7 +35,7 @@ const membershipListOp = generateQueryOp({
       metadata: { continue: true },
     } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
   ],
-});
+} satisfies QueryRequest;
 
 export type GatewayOrgMember = {
   name: string;
@@ -114,18 +116,15 @@ export function createOrganizationGatewayService() {
      */
     async listAll(): Promise<OrganizationList> {
       const startTime = Date.now();
-      const userClient = createGqlClient({ type: 'user', userId: 'me' });
 
       try {
-        const membershipResult = await userClient
-          .query(membershipListOp.query, membershipListOp.variables)
-          .toPromise();
-
-        if (membershipResult.error) throw mapApiError(membershipResult.error);
+        const data = await runGqlQuery('OrganizationMembershipList', membershipListRequest, {
+          type: 'user',
+          userId: 'me',
+        });
 
         const raw =
-          membershipResult.data
-            ?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
+          data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
 
         const orgs = sortOrganizations(
           (

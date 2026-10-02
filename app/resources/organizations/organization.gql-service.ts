@@ -10,11 +10,8 @@ import type {
   ComMiloapisResourcemanagerV1Alpha1Organization,
   ComMiloapisResourcemanagerV1Alpha1OrganizationMembership,
 } from '@/modules/control-plane/resource-manager';
-import { createGqlClient } from '@/modules/graphql/client';
-import { generateQueryOp, generateMutationOp } from '@/modules/graphql/generated';
+import { runGqlMutation, runGqlQuery } from '@/modules/graphql/client';
 import type {
-  QueryRequest,
-  MutationRequest,
   com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
   com_miloapis_resourcemanager_v1alpha1_OrganizationRequest,
 } from '@/modules/graphql/generated';
@@ -50,7 +47,7 @@ const organizationSelection = {
 
 /**
  * GraphQL service for organizations.
- * Uses URQL with generateQueryOp/generateMutationOp for GraphQL operations.
+ * Uses the named runGqlQuery / runGqlMutation helpers for GraphQL operations.
  */
 export function createOrganizationGqlService() {
   return {
@@ -59,43 +56,41 @@ export function createOrganizationGqlService() {
 
       try {
         // Use user scope like REST API - 'me' gets resolved by the API
-        const client = createGqlClient({ type: 'user', userId: 'me' });
-
-        const op = generateQueryOp({
-          listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
-            {}, // variables
-            {
-              items: {
-                metadata: {
-                  uid: true,
-                  name: true,
-                  namespace: true,
-                  creationTimestamp: true,
-                  resourceVersion: true,
-                  labels: true,
-                  annotations: true,
+        const result = await runGqlQuery(
+          'OrganizationMemberships',
+          {
+            listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces: [
+              {}, // variables
+              {
+                items: {
+                  metadata: {
+                    uid: true,
+                    name: true,
+                    namespace: true,
+                    creationTimestamp: true,
+                    resourceVersion: true,
+                    labels: true,
+                    annotations: true,
+                  },
+                  spec: {
+                    organizationRef: { name: true },
+                    roles: { name: true, namespace: true },
+                    userRef: { name: true },
+                  },
+                  status: {
+                    organization: { displayName: true, type: true },
+                    conditions: { reason: true, status: true, type: true },
+                  },
                 },
-                spec: {
-                  organizationRef: { name: true },
-                  roles: { name: true, namespace: true },
-                  userRef: { name: true },
-                },
-                status: {
-                  organization: { displayName: true, type: true },
-                  conditions: { reason: true, status: true, type: true },
-                },
-              },
-              metadata: { continue: true, remainingItemCount: true },
-            } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
-          ],
-        } satisfies QueryRequest);
-
-        const result = await client.query(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
+                metadata: { continue: true, remainingItemCount: true },
+              } satisfies com_miloapis_resourcemanager_v1alpha1_OrganizationMembershipListRequest,
+            ],
+          },
+          { type: 'user', userId: 'me' }
+        );
 
         const data =
-          result.data?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
+          result?.listResourcemanagerMiloapisComV1alpha1OrganizationMembershipForAllNamespaces;
 
         if (!data?.items) {
           return { items: [], nextCursor: null, hasMore: false };
@@ -139,17 +134,15 @@ export function createOrganizationGqlService() {
       const startTime = Date.now();
 
       try {
-        const client = createGqlClient({ type: 'org', orgId: name });
+        const result = await runGqlQuery(
+          'Organization',
+          {
+            readResourcemanagerMiloapisComV1alpha1Organization: [{ name }, organizationSelection],
+          },
+          { type: 'org', orgId: name }
+        );
 
-        const op = generateQueryOp({
-          readResourcemanagerMiloapisComV1alpha1Organization: [{ name }, organizationSelection],
-        } satisfies QueryRequest);
-
-        const result = await client.query(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
-
-        const data = result.data?.readResourcemanagerMiloapisComV1alpha1Organization;
+        const data = result?.readResourcemanagerMiloapisComV1alpha1Organization;
 
         if (!data) {
           throw new NotFoundError('Organization', name);
@@ -171,31 +164,29 @@ export function createOrganizationGqlService() {
       const startTime = Date.now();
 
       try {
-        const client = createGqlClient({ type: 'global' });
-
-        const op = generateMutationOp({
-          createResourcemanagerMiloapisComV1alpha1Organization: [
-            {
-              input: {
-                metadata: {
-                  name: input.name,
-                  annotations: {
-                    'kubernetes.io/display-name': input.displayName,
-                    ...(input.description && { 'kubernetes.io/description': input.description }),
+        const result = await runGqlMutation(
+          'OrganizationCreate',
+          {
+            createResourcemanagerMiloapisComV1alpha1Organization: [
+              {
+                input: {
+                  metadata: {
+                    name: input.name,
+                    annotations: {
+                      'kubernetes.io/display-name': input.displayName,
+                      ...(input.description && { 'kubernetes.io/description': input.description }),
+                    },
                   },
+                  spec: { type: input.type },
                 },
-                spec: { type: input.type },
               },
-            },
-            organizationSelection,
-          ],
-        } satisfies MutationRequest);
+              organizationSelection,
+            ],
+          },
+          { type: 'global' }
+        );
 
-        const result = await client.mutation(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
-
-        const data = result.data?.createResourcemanagerMiloapisComV1alpha1Organization;
+        const data = result?.createResourcemanagerMiloapisComV1alpha1Organization;
 
         if (!data) {
           throw new Error('Failed to create organization');
@@ -217,30 +208,28 @@ export function createOrganizationGqlService() {
       const startTime = Date.now();
 
       try {
-        const client = createGqlClient({ type: 'org', orgId: name });
-
-        const op = generateMutationOp({
-          patchResourcemanagerMiloapisComV1alpha1Organization: [
-            {
-              name,
-              input: {
-                metadata: {
-                  annotations: {
-                    ...(input.displayName && { 'kubernetes.io/display-name': input.displayName }),
-                    ...(input.description && { 'kubernetes.io/description': input.description }),
+        const result = await runGqlMutation(
+          'OrganizationUpdate',
+          {
+            patchResourcemanagerMiloapisComV1alpha1Organization: [
+              {
+                name,
+                input: {
+                  metadata: {
+                    annotations: {
+                      ...(input.displayName && { 'kubernetes.io/display-name': input.displayName }),
+                      ...(input.description && { 'kubernetes.io/description': input.description }),
+                    },
                   },
                 },
               },
-            },
-            organizationSelection,
-          ],
-        } satisfies MutationRequest);
+              organizationSelection,
+            ],
+          },
+          { type: 'org', orgId: name }
+        );
 
-        const result = await client.mutation(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
-
-        const data = result.data?.patchResourcemanagerMiloapisComV1alpha1Organization;
+        const data = result?.patchResourcemanagerMiloapisComV1alpha1Organization;
 
         if (!data) {
           throw new Error('Failed to update organization');
@@ -262,15 +251,13 @@ export function createOrganizationGqlService() {
       const startTime = Date.now();
 
       try {
-        const client = createGqlClient({ type: 'org', orgId: name });
-
-        const op = generateMutationOp({
-          deleteResourcemanagerMiloapisComV1alpha1Organization: [{ name }, { status: true }],
-        } satisfies MutationRequest);
-
-        const result = await client.mutation(op.query, op.variables).toPromise();
-
-        if (result.error) throw mapApiError(result.error);
+        await runGqlMutation(
+          'OrganizationDelete',
+          {
+            deleteResourcemanagerMiloapisComV1alpha1Organization: [{ name }, { status: true }],
+          },
+          { type: 'org', orgId: name }
+        );
 
         logger.service(SERVICE_NAME, 'delete', {
           input: { name },
