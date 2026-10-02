@@ -68,6 +68,33 @@ export const hostnameStatusSchema = z.object({
 
 export type HostnameStatus = z.infer<typeof hostnameStatusSchema>;
 
+const urlBackendSchema = z.object({
+  endpoint: z.string(),
+  weight: z.number().int().min(0).optional(),
+  tlsHostname: z.string().optional(),
+  connector: z.object({ name: z.string() }).optional(),
+});
+
+const serviceBackendSchema = z.object({
+  networkService: z.object({ name: z.string(), port: z.string() }),
+  weight: z.number().int().min(0).optional(),
+});
+
+/** One backend: a URL endpoint, or a NetworkService and one of its named ports. */
+export const httpProxyBackendSchema = z.union([urlBackendSchema, serviceBackendSchema]);
+
+export type HttpProxyBackend = z.infer<typeof httpProxyBackendSchema>;
+export type HttpProxyUrlBackend = z.infer<typeof urlBackendSchema>;
+export type HttpProxyServiceBackend = z.infer<typeof serviceBackendSchema>;
+
+/** True when the backend references a NetworkService rather than a URL. */
+export function isServiceBackend(
+  backend: HttpProxyBackend | HttpProxyBackendInput
+): backend is
+  HttpProxyServiceBackend | Extract<HttpProxyBackendInput, { networkService: unknown }> {
+  return 'networkService' in backend;
+}
+
 // HTTP Proxy resource schema (from API)
 export const httpProxyResourceSchema = z.object({
   uid: z.string(),
@@ -77,6 +104,34 @@ export const httpProxyResourceSchema = z.object({
   createdAt: z.coerce.date(),
   endpoint: z.string().optional(),
   origins: z.array(z.string()).optional(),
+  /**
+   * Backends on the first backend rule, in order: URL endpoints and
+   * NetworkService references. Weights are relative within that rule (unset
+   * means 1, 0 means no traffic). `networkService` below still names a lone
+   * NetworkService backend for the compute flows.
+   */
+  backends: z.array(httpProxyBackendSchema).optional(),
+  /** How requests are spread across a rule's backends. Unset means Envoy's default. */
+  loadBalancer: z
+    .object({
+      type: z.enum(['RoundRobin', 'Random', 'LeastRequest', 'ConsistentHash']),
+      consistentHash: z
+        .object({ type: z.enum(['SourceIP', 'Header']), header: z.string().optional() })
+        .optional(),
+    })
+    .optional(),
+  /** Passive (outlier-detection) health checking across every backend. */
+  healthCheck: z
+    .object({
+      passive: z
+        .object({
+          consecutive5xxErrors: z.number().int().optional(),
+          baseEjectionTime: z.string().optional(),
+          maxEjectionPercent: z.number().int().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
   hostnames: z.array(z.string()).optional(),
   tlsHostname: z.string().optional(),
   status: z.any().optional(),
@@ -234,8 +289,43 @@ export type CreateHttpProxyInput = {
   hostHeader?: string;
 };
 
+/**
+ * A load-balancer update. It goes out as a merge patch, so a nested `null`
+ * removes a field the server would otherwise keep: `consistentHash` when
+ * switching away from ConsistentHash, `header` when hashing on source IP.
+ */
+export type HttpProxyLoadBalancerPatch = {
+  type: NonNullable<HttpProxy['loadBalancer']>['type'];
+  consistentHash?: { type: 'SourceIP' | 'Header'; header?: string | null } | null;
+};
+
+/** One backend as the backends editor writes it. */
+export type HttpProxyBackendInput =
+  | {
+      endpoint: string;
+      /** Relative weight within the rule. Omit for the API default of 1. */
+      weight?: number;
+      /** SNI / certificate hostname. Omit or '' to use the endpoint's hostname. */
+      tlsHostname?: string;
+    }
+  | {
+      /** NetworkService in the same project and the name of one of its ports. */
+      networkService: { name: string; port: string };
+      weight?: number;
+    };
+
 export type UpdateHttpProxyInput = {
   endpoint?: string;
+  /**
+   * Replace the backend rule's URL backends with this list, in order. Takes
+   * precedence over `endpoint` / `tlsHostname`. A connector on the current
+   * proxy is kept when the list has exactly one entry.
+   */
+  backends?: HttpProxyBackendInput[];
+  /** Set the load-balancing algorithm, or `null` to remove it (Envoy default). */
+  loadBalancer?: HttpProxyLoadBalancerPatch | null;
+  /** Set passive health checking, or `null` to remove it. */
+  healthCheck?: NonNullable<HttpProxy['healthCheck']> | null;
   hostnames?: string[];
   tlsHostname?: string;
   /**

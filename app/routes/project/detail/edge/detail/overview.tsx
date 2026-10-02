@@ -5,6 +5,7 @@ import { HttpProxyHealthStrip } from '@/features/edge/proxy/overview/health-stri
 import { HttpProxyLiveTrafficCard } from '@/features/edge/proxy/overview/live-traffic-card';
 import { HttpProxyLogsCard } from '@/features/edge/proxy/overview/logs-card';
 import { HttpProxyMetricsStrip } from '@/features/edge/proxy/overview/metrics-strip';
+import { HttpProxyOriginsCard } from '@/features/edge/proxy/overview/origins-card';
 import {
   DEFAULT_OVERVIEW_RANGE,
   type OverviewRangeValue,
@@ -16,7 +17,7 @@ import { useGuardedRouteData } from '@/modules/rbac';
 import { type HttpProxy, useHttpProxy } from '@/resources/http-proxies';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { NotFoundError } from '@/utils/errors';
-import { Col, Row } from '@datum-cloud/datum-ui/grid';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useState } from 'react';
 import { useParams } from 'react-router';
 
@@ -24,7 +25,7 @@ import { useParams } from 'react-router';
  * Operational dashboard for one ALB: status, live metrics, traffic, and the
  * recent request feed. Editing and deletion live on the Configuration tab.
  */
-/** Height of the four dashboard panels below the metrics strip. */
+/** Height of the fixed-size dashboard panels (feed height on small screens too). */
 const PANEL_HEIGHT = 'h-[27rem]';
 
 export default function HttpProxyOverviewPage() {
@@ -51,55 +52,75 @@ export default function HttpProxyOverviewPage() {
   const defaultHostname = effectiveProxy.canonicalHostname ?? effectiveProxy.status?.hostnames?.[0];
 
   return (
-    <Row type="flex" gutter={[24, 24]}>
-      <Col span={24}>
-        <HttpProxyHealthStrip
-          proxy={effectiveProxy}
-          projectId={projectId}
-          canViewWaf={canViewWaf}
-          wafPending={wafPending}
-          wafUnavailable={wafUnavailable}
-          idle={traffic.idle}
-        />
-      </Col>
-      <Col span={24}>
-        <HttpProxyMetricsStrip
-          projectId={projectId}
-          proxyId={resourceName}
-          range={range}
-          onRangeChange={setRangeValue}
-          showWaf={wafEnabled}
-          wafPending={wafPending}
-          idle={traffic.idle}
-        />
-      </Col>
-      {/* Fixed row heights: the chart fills its card and the lists scroll
-          inside theirs instead of growing the page. */}
-      <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <HttpProxyLiveTrafficCard
-          projectId={projectId}
-          proxyId={resourceName}
-          range={range}
-          idle={traffic.idle}
-        />
-      </Col>
-      <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <HttpProxyEndpointsCard proxy={effectiveProxy} projectId={projectId} proxyId={proxyId} />
-      </Col>
-      <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <MetricsProvider>
-          <ActivePopsCard projectId={projectId} proxyId={resourceName} />
-        </MetricsProvider>
-      </Col>
-      <Col span={24} lg={12} className={PANEL_HEIGHT}>
-        <HttpProxyLogsCard
-          projectId={projectId}
-          proxyId={resourceName}
-          range={range}
-          idle={traffic.idle}
-          defaultHostname={defaultHostname}
-        />
-      </Col>
-    </Row>
+    <div className="flex flex-col gap-4">
+      <HttpProxyHealthStrip
+        proxy={effectiveProxy}
+        projectId={projectId}
+        canViewWaf={canViewWaf}
+        wafPending={wafPending}
+        wafUnavailable={wafUnavailable}
+        idle={traffic.idle}
+      />
+      {/* Two columns on lg: hostnames, backend pool, and the request feed on
+          the left; traffic chart, stat cards, and locations on the right. The
+          left wrapper is `display: contents` below lg so a single column can
+          stack the feed last instead of right after the backend pool. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="contents lg:col-start-1 lg:row-span-3 lg:row-start-1 lg:flex lg:flex-col lg:gap-4">
+          {/* shrink-0: both cards clip overflow, so flex would squash them. */}
+          <div className="shrink-0">
+            <HttpProxyEndpointsCard proxy={effectiveProxy} projectId={projectId} />
+          </div>
+          <div className="shrink-0">
+            <HttpProxyOriginsCard
+              proxy={effectiveProxy}
+              projectId={projectId}
+              className="border-0"
+            />
+          </div>
+          {/* On lg the feed fills whatever height the right column leaves.
+              Absolute so its rows scroll inside instead of stretching the grid. */}
+          <div
+            className={cn(
+              PANEL_HEIGHT,
+              'relative order-last lg:order-none lg:h-auto lg:min-h-80 lg:flex-1'
+            )}>
+            <div className="absolute inset-0">
+              <HttpProxyLogsCard
+                projectId={projectId}
+                proxyId={resourceName}
+                range={range}
+                idle={traffic.idle}
+                defaultHostname={defaultHostname}
+              />
+            </div>
+          </div>
+        </div>
+        <div className={cn(PANEL_HEIGHT, 'lg:col-start-2')}>
+          <HttpProxyLiveTrafficCard
+            projectId={projectId}
+            proxyId={resourceName}
+            range={range}
+            onRangeChange={setRangeValue}
+            idle={traffic.idle}
+          />
+        </div>
+        <div className="lg:col-start-2">
+          <HttpProxyMetricsStrip
+            projectId={projectId}
+            proxyId={resourceName}
+            range={range}
+            showWaf={wafEnabled}
+            wafPending={wafPending}
+            idle={traffic.idle}
+          />
+        </div>
+        <div className={cn(PANEL_HEIGHT, 'lg:col-start-2')}>
+          <MetricsProvider>
+            <ActivePopsCard projectId={projectId} proxyId={resourceName} />
+          </MetricsProvider>
+        </div>
+      </div>
+    </div>
   );
 }

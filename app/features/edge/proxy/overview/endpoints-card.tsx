@@ -1,6 +1,3 @@
-import { summarizeBackends } from './backend-summary';
-import { OverviewEmptyState } from './overview-empty-state';
-import { useResolvedComputeWorkload } from './use-network-service';
 import { StatusChip } from '@/components/card/status-chip';
 import {
   ProxyZoneRecordsWatch,
@@ -22,38 +19,23 @@ import {
   getDnsRecordProgrammedDisplay,
   isHostnameDnsInFlight,
 } from '@/resources/http-proxies';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
+import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import {
-  CheckIcon,
-  ChevronRightIcon,
-  CopyIcon,
-  GlobeIcon,
-  LockIcon,
-  PencilIcon,
-  PlusIcon,
-  ServerIcon,
-  SquareLibrary,
-  TriangleAlertIcon,
-} from 'lucide-react';
+import { CheckIcon, CopyIcon, ExternalLinkIcon, PlusIcon, TriangleAlertIcon } from 'lucide-react';
 import { useMemo, useRef, type ReactNode } from 'react';
-import { Link } from 'react-router';
 
 interface HttpProxyEndpointsCardProps {
   proxy: HttpProxy;
   projectId: string;
-  proxyId: string;
 }
 
 const ADD_HOSTNAME_DENIED = "You don't have permission to edit this Application Load Balancer";
 
-function AddCustomHostnameLink({ projectId, onClick }: { projectId: string; onClick: () => void }) {
+function AddHostnameButton({ projectId, onClick }: { projectId: string; onClick: () => void }) {
   const { hasPermission, isLoading } = usePermission('httpproxies', 'patch', {
     group: 'networking.datumapis.com',
     namespace: 'default',
@@ -61,7 +43,7 @@ function AddCustomHostnameLink({ projectId, onClick }: { projectId: string; onCl
     projectId,
   });
   const denied = !isLoading && !hasPermission;
-  const link = (
+  const button = (
     <button
       type="button"
       disabled={denied}
@@ -69,20 +51,18 @@ function AddCustomHostnameLink({ projectId, onClick }: { projectId: string; onCl
       className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline disabled:opacity-50"
       data-e2e="alb-endpoints-add-hostname">
       <Icon icon={PlusIcon} size={12} aria-hidden="true" />
-      Add a custom hostname
+      Add hostname
     </button>
   );
-  return denied ? <Tooltip message={ADD_HOSTNAME_DENIED}>{link}</Tooltip> : link;
+  return denied ? <Tooltip message={ADD_HOSTNAME_DENIED}>{button}</Tooltip> : button;
 }
 
 function EndpointRow({
-  eyebrow,
   value,
   chips,
   onCopy,
   copied,
 }: {
-  eyebrow: string;
   value: string;
   chips: ReactNode;
   onCopy?: () => void;
@@ -90,9 +70,6 @@ function EndpointRow({
 }) {
   return (
     <li className="group/row flex flex-col gap-1.5 px-(--card-px) py-3">
-      <Text size="5xs" weight="medium" textColor="muted" className="tracking-wide uppercase">
-        {eyebrow}
-      </Text>
       <div className="flex min-w-0 items-center gap-2">
         <Text as="div" ellipsis className="min-w-0 flex-1 font-mono">
           <Tooltip message={value}>
@@ -120,18 +97,13 @@ function EndpointRow({
 }
 
 /**
- * Read-only endpoint summary: custom hostnames with their programming state,
- * the default (Datum-managed) hostname, and a link through to the backend pool. Editing
- * lives on the Configuration tab.
+ * Hostname summary: the default (Datum-managed) hostname up top and custom
+ * hostnames with their programming state below it. Adding a hostname opens the
+ * hostnames dialog; everything else is edited on the Configuration tab.
  */
-export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyEndpointsCardProps) {
+export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsCardProps) {
   const [, copy, isCopied] = useCopyToClipboard();
   const hostnamesDialogRef = useRef<ProxyHostnamesConfigDialogRef>(null);
-
-  const configurationHref = getPathWithParams(paths.project.detail.proxy.detail.configuration, {
-    projectId,
-    proxyId,
-  });
 
   const customHostnames = useMemo(() => proxy.hostnames ?? [], [proxy.hostnames]);
   const pollZoneRecords = useRef(true);
@@ -180,67 +152,82 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
   pollZoneRecords.current = hostnames.some((item) => item.dns === 'pending' && !item.dnsIssue);
 
   const systemHostname = proxy.canonicalHostname ?? proxy.status?.hostnames?.[0];
-  const backends = summarizeBackends(proxy);
-  const computeBackend = useResolvedComputeWorkload(projectId, proxy);
-  const workloadName = computeBackend.workloadName ?? backends.workloadName;
-  // Without a registered compute plugin the workload has no page to link to;
-  // fall back to the backend section of the Configuration tab.
-  const backendHref = computeBackend.href ?? `${configurationHref}#backends`;
-  const backendLabel = workloadName ?? backends.label;
-  const backendTitle = computeBackend.workloadMissing
-    ? 'Compute workload not found'
-    : workloadName
-      ? 'Compute workload'
-      : 'Backend pool';
 
   return (
     <Card
       size="sm"
       sectioned
-      className="flex h-full flex-col overflow-hidden"
+      className="flex h-full flex-col overflow-hidden border-0"
       data-e2e="alb-endpoints">
-      <CardHeader size="sm" bordered>
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <Icon icon={GlobeIcon} size={16} className="text-secondary" />
-          Endpoints
-        </CardTitle>
-        <CardAction>
-          <Link
-            to={`${configurationHref}#hostnames`}
-            className="text-primary inline-flex items-center gap-1 text-xs font-medium hover:underline"
-            data-e2e="alb-endpoints-manage">
-            <Icon icon={PencilIcon} size={12} aria-hidden="true" />
-            Manage
-          </Link>
-        </CardAction>
-      </CardHeader>
       <CardContent padding="none" className="flex min-h-0 flex-1 flex-col">
-        {/* Custom hostnames scroll; the system hostname and backend pool stay pinned below. */}
-        <ul className="divide-border flex min-h-0 flex-1 flex-col divide-y overflow-y-auto overscroll-contain">
+        {/* The default hostname is what most users need, so it leads and stays
+            pinned; custom hostnames scroll beneath it. */}
+        <div className="border-border flex shrink-0 flex-col gap-2 border-b px-(--card-px) py-4">
+          <Text size="5xs" weight="medium" textColor="muted" className="tracking-wide uppercase">
+            Default hostname
+          </Text>
+          {systemHostname ? (
+            <div className="flex min-w-0 items-center gap-1">
+              <Text
+                as="div"
+                size="base"
+                weight="medium"
+                ellipsis
+                className="min-w-0 flex-1 font-mono"
+                data-e2e="alb-endpoints-default-hostname">
+                <Tooltip message={systemHostname}>
+                  <span>{systemHostname}</span>
+                </Tooltip>
+              </Text>
+              <Button
+                type="quaternary"
+                theme="borderless"
+                size="xs"
+                className="text-muted-foreground size-7 shrink-0 p-0"
+                aria-label={`Copy ${systemHostname}`}
+                onClick={() => copy(systemHostname, { withToast: true })}>
+                <Icon icon={isCopied(systemHostname) ? CheckIcon : CopyIcon} size={14} />
+              </Button>
+              <Tooltip message="Open in a new tab">
+                <a
+                  href={`https://${systemHostname}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Open ${systemHostname} in a new tab`}
+                  className="text-muted-foreground hover:text-foreground hover:bg-muted flex size-7 shrink-0 items-center justify-center rounded-md transition-colors">
+                  <Icon icon={ExternalLinkIcon} size={14} />
+                </a>
+              </Tooltip>
+            </div>
+          ) : (
+            <Text size="sm" textColor="muted">
+              Appears once the load balancer is programmed.
+            </Text>
+          )}
+        </div>
+
+        <div className="flex shrink-0 items-center justify-between gap-2 px-(--card-px) pt-3">
+          <Text size="5xs" weight="medium" textColor="muted" className="tracking-wide uppercase">
+            Custom hostnames{hostnames.length > 0 ? ` · ${hostnames.length}` : ''}
+          </Text>
+          <AddHostnameButton
+            projectId={projectId}
+            onClick={() => hostnamesDialogRef.current?.show(proxy)}
+          />
+        </div>
+        {/* Capped so a long hostname list scrolls instead of pushing the
+            backend pool and request feed down. */}
+        <ul className="divide-border flex max-h-72 min-h-0 flex-1 flex-col divide-y overflow-y-auto overscroll-contain">
           {hostnames.length === 0 ? (
-            <li className="flex min-h-0 flex-1 flex-col">
-              {systemHostname ? (
-                <OverviewEmptyState
-                  icon={GlobeIcon}
-                  title="No custom hostnames"
-                  description="Requests are served on the default hostname until you attach your own domain."
-                  className="min-h-0 flex-1 py-6">
-                  <AddCustomHostnameLink
-                    projectId={projectId}
-                    onClick={() => hostnamesDialogRef.current?.show(proxy)}
-                  />
-                </OverviewEmptyState>
-              ) : (
-                <Text as="p" textColor="muted" className="px-(--card-px) py-6 text-center">
-                  Hostnames appear here once the load balancer is programmed.
-                </Text>
-              )}
+            <li className="px-(--card-px) pt-1.5 pb-3">
+              <Text size="xs" textColor="muted">
+                Serve this load balancer on your own domain.
+              </Text>
             </li>
           ) : null}
           {hostnames.map((item) => (
             <EndpointRow
               key={item.hostname}
-              eyebrow="Custom hostname"
               value={item.hostname}
               copied={isCopied(item.hostname)}
               onCopy={() => copy(item.hostname, { withToast: true })}
@@ -296,45 +283,6 @@ export function HttpProxyEndpointsCard({ proxy, projectId, proxyId }: HttpProxyE
               }
             />
           ))}
-        </ul>
-
-        <ul className="divide-border border-border shrink-0 divide-y border-t">
-          {systemHostname ? (
-            <EndpointRow
-              eyebrow="Default hostname"
-              value={systemHostname}
-              copied={isCopied(systemHostname)}
-              onCopy={() => copy(systemHostname, { withToast: true })}
-              chips={
-                <StatusChip tone="muted" tooltip="Issued and managed by Datum">
-                  <Icon icon={LockIcon} size={10} aria-hidden="true" />
-                  Default
-                </StatusChip>
-              }
-            />
-          ) : null}
-
-          <li>
-            <Link
-              to={backendHref}
-              className="hover:bg-muted/40 flex items-center gap-3 px-(--card-px) py-3 transition-colors"
-              data-e2e="alb-endpoints-backend">
-              <span className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-md">
-                <Icon
-                  icon={workloadName ? SquareLibrary : ServerIcon}
-                  size={14}
-                  className="text-muted-foreground"
-                />
-              </span>
-              <span className="flex min-w-0 flex-1 flex-col">
-                <Text weight="medium">{backendTitle}</Text>
-                <Text size="xs" textColor="muted" ellipsis className="font-mono">
-                  {backendLabel}
-                </Text>
-              </span>
-              <Icon icon={ChevronRightIcon} size={16} className="text-muted-foreground shrink-0" />
-            </Link>
-          </li>
         </ul>
       </CardContent>
       <ProxyZoneRecordsWatch

@@ -130,7 +130,7 @@ export default function HttpProxyMetricsPage() {
             // tabs' content does. pb-2.5 (8px + the menu's 2px gap) puts the
             // stuck border on the sidebar's separator line, and mb-3.5 brings
             // the gap to the KPI cards back to 24px like the overview.
-            'bg-card sticky top-[-1.75rem] z-30 -mx-4 -mt-2 mb-3.5 px-4 pt-2 pb-2.5 md:top-[-2.25rem] md:-mx-9 md:px-9',
+            'bg-card sticky top-[-1.75rem] z-30 -mx-4 -mt-2 mb-3.5 px-4 pt-2 pb-2.5 md:top-[-1.5rem] md:-mx-6 md:px-6',
             stuck && 'border-border border-b'
           )}>
           <MetricsToolbar>

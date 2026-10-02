@@ -22,6 +22,9 @@ export {
   basicAuthSchema,
   type BasicAuthSchema,
   COMPUTE_WORKLOAD_NAME_LABEL,
+  type HttpProxyBackend,
+  type HttpProxyBackendInput,
+  isServiceBackend,
 } from './http-proxy.schema';
 
 // Adapter exports

@@ -1,4 +1,9 @@
-import { listOriginDisplay, summarizeBackends } from './backend-summary';
+import {
+  backendTrafficShares,
+  listOriginDisplay,
+  loadBalancerLabel,
+  summarizeBackends,
+} from './backend-summary';
 import { COMPUTE_WORKLOAD_NAME_LABEL } from './compute-backend';
 import type { ComDatumapisNetworkingV1AlphaNetworkService } from '@/modules/control-plane/networking';
 import type { HttpProxy } from '@/resources/http-proxies';
@@ -108,5 +113,63 @@ describe('listOriginDisplay', () => {
       text: 'Compute · api',
       empty: false,
     });
+  });
+});
+
+describe('backendTrafficShares', () => {
+  it('splits traffic by relative weight', () => {
+    expect(backendTrafficShares([{ weight: 3 }, { weight: 1 }])).toEqual([0.75, 0.25]);
+  });
+
+  it('counts an unset weight as 1', () => {
+    expect(backendTrafficShares([{}, { weight: 1 }])).toEqual([0.5, 0.5]);
+  });
+
+  it('gives a zero-weight backend no traffic', () => {
+    expect(backendTrafficShares([{ weight: 0 }, {}])).toEqual([0, 1]);
+  });
+
+  it('gives no backend traffic when every weight is 0', () => {
+    expect(backendTrafficShares([{ weight: 0 }, { weight: 0 }])).toEqual([0, 0]);
+  });
+});
+
+describe('loadBalancerLabel', () => {
+  it('names each algorithm', () => {
+    expect(loadBalancerLabel({ type: 'RoundRobin' })).toBe('Round robin');
+    expect(loadBalancerLabel({ type: 'Random' })).toBe('Random');
+    expect(loadBalancerLabel({ type: 'LeastRequest' })).toBe('Least request');
+  });
+
+  it('includes what a consistent hash keys on', () => {
+    expect(
+      loadBalancerLabel({ type: 'ConsistentHash', consistentHash: { type: 'SourceIP' } })
+    ).toBe('Consistent hash · source IP');
+    expect(
+      loadBalancerLabel({
+        type: 'ConsistentHash',
+        consistentHash: { type: 'Header', header: 'x-user-id' },
+      })
+    ).toBe('Consistent hash · x-user-id');
+  });
+
+  it('returns undefined when no algorithm is set', () => {
+    expect(loadBalancerLabel(undefined)).toBeUndefined();
+  });
+});
+
+describe('summarizeBackends with mixed backends', () => {
+  it('counts URL and NetworkService backends together', () => {
+    expect(
+      summarizeBackends(
+        proxy({
+          origins: ['https://a.example.com'],
+          backends: [
+            { endpoint: 'https://a.example.com' },
+            { networkService: { name: 'storefront', port: 'http' } },
+          ],
+        })
+      )
+    ).toEqual({ count: 2, label: '2 backends' });
   });
 });

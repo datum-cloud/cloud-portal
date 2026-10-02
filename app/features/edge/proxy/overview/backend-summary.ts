@@ -25,6 +25,10 @@ export function summarizeBackends(
   proxy: HttpProxy,
   workloadName: string | undefined = proxy.workloadName
 ): BackendSummary {
+  // Several backends, URL or NetworkService alike, are summarized by count.
+  if ((proxy.backends?.length ?? 0) > 1) {
+    return { count: proxy.backends!.length, label: `${proxy.backends!.length} backends` };
+  }
   const origins = proxy.origins ?? (proxy.endpoint ? [proxy.endpoint] : []);
   if (origins.length > 0) {
     return {
@@ -82,4 +86,35 @@ export function listOriginDisplay(
     workloadName: summary.workloadName,
     empty: false,
   };
+}
+
+/**
+ * Share of traffic each backend receives, as a fraction from 0 to 1. Weights
+ * are relative within the rule: unset counts as 1 and 0 means no traffic.
+ * When every weight is 0 no backend receives traffic, so every share is 0.
+ */
+export function backendTrafficShares(backends: ReadonlyArray<{ weight?: number }>): number[] {
+  const weights = backends.map((backend) => Math.max(0, backend.weight ?? 1));
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  return weights.map((weight) => (total === 0 ? 0 : weight / total));
+}
+
+/** Readable name for the HTTPProxy load-balancing algorithm, or undefined when unset. */
+export function loadBalancerLabel(loadBalancer: HttpProxy['loadBalancer']): string | undefined {
+  switch (loadBalancer?.type) {
+    case 'RoundRobin':
+      return 'Round robin';
+    case 'Random':
+      return 'Random';
+    case 'LeastRequest':
+      return 'Least request';
+    case 'ConsistentHash': {
+      const hash = loadBalancer.consistentHash;
+      if (hash?.type === 'SourceIP') return 'Consistent hash · source IP';
+      if (hash?.type === 'Header' && hash.header) return `Consistent hash · ${hash.header}`;
+      return 'Consistent hash';
+    }
+    default:
+      return undefined;
+  }
 }

@@ -1,5 +1,9 @@
 import { IdleChip, OverviewEmptyState } from './overview-empty-state';
-import type { OverviewRange } from './overview-range';
+import {
+  OVERVIEW_RANGE_OPTIONS,
+  type OverviewRange,
+  type OverviewRangeValue,
+} from './overview-range';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
 import { albRpsQuery } from '@/features/edge/proxy/metrics/queries';
 import { usePrometheusAPIQuery } from '@/modules/metrics/hooks';
@@ -17,10 +21,17 @@ import {
   CardTitle,
 } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@datum-cloud/datum-ui/select';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { ActivityIcon } from 'lucide-react';
+import { ActivityIcon, HistoryIcon } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 import { Bar, BarChart, Cell, XAxis, YAxis } from 'recharts';
@@ -29,6 +40,8 @@ interface HttpProxyLiveTrafficCardProps {
   projectId: string;
   proxyId: string;
   range: OverviewRange;
+  /** Sets the window for the whole overview (chart, stat cards, request feed). */
+  onRangeChange: (value: OverviewRangeValue) => void;
   /** ALB has never seen traffic (wider lookback than `range`). */
   idle?: boolean;
 }
@@ -54,6 +67,7 @@ export function HttpProxyLiveTrafficCard({
   projectId,
   proxyId,
   range,
+  onRangeChange,
   idle = false,
 }: HttpProxyLiveTrafficCardProps) {
   const scope = useMemo(() => ({ projectId, proxyId }), [projectId, proxyId]);
@@ -137,6 +151,22 @@ export function HttpProxyLiveTrafficCard({
           Requests per second · {range.label.toLowerCase()}
         </CardDescription>
         <CardAction className="flex items-start gap-4 text-right">
+          <Select value={range.value} onValueChange={(v) => onRangeChange(v as OverviewRangeValue)}>
+            <SelectTrigger
+              className="bg-card h-7 min-h-7 w-auto gap-1.5 px-2.5 py-0 text-xs"
+              aria-label="Live metrics time range"
+              data-e2e="alb-overview-range">
+              <Icon icon={HistoryIcon} size={14} className="text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {OVERVIEW_RANGE_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value} className="text-xs">
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <div className="flex flex-col">
             <Text weight="semibold" className="tabular-nums">
               {stats.peak == null || quiet ? '—' : formatValue(stats.peak, 'requestsPerSecond', 1)}

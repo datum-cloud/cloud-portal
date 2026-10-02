@@ -1,3 +1,4 @@
+import { backendHost } from '@/features/edge/proxy/proxy-backends-form';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
@@ -16,24 +17,30 @@ import { useEffect, useMemo } from 'react';
  */
 interface ProtocolEndpointInputProps {
   autoFocus?: boolean;
+  /** Form field holding the protocol. Defaults to `protocol`. */
+  protocolName?: string;
+  /** Form field holding the host (and optional port). Defaults to `endpointHost`. */
+  endpointName?: string;
   onIPChange?: (isIP: boolean) => void;
   onProtocolChange?: (protocol: string) => void;
 }
 
 export const ProtocolEndpointInput = ({
   autoFocus,
+  protocolName = 'protocol',
+  endpointName = 'endpointHost',
   onIPChange,
   onProtocolChange,
 }: ProtocolEndpointInputProps) => {
-  const { control: protocolControl, meta: protocolMeta } = Form.useField('protocol');
-  const { control: endpointControl, meta: endpointMeta } = Form.useField('endpointHost');
+  const { control: protocolControl, meta: protocolMeta } = Form.useField(protocolName);
+  const { control: endpointControl, meta: endpointMeta } = Form.useField(endpointName);
 
   const protocolValue = (protocolControl.value as string) || 'https';
   const endpointValue = (endpointControl.value as string) || '';
 
   const isIP = useMemo(() => {
     if (!endpointValue) return false;
-    const hostname = endpointValue.split(':')[0];
+    const hostname = backendHost(endpointValue);
     return isIPAddress(hostname);
   }, [endpointValue]);
 

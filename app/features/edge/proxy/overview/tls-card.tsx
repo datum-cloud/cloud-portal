@@ -135,7 +135,9 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
   const isAdvanced = proxy.complexity === 'advanced';
   const origin = useMemo(() => describeOrigin(proxy.endpoint), [proxy.endpoint]);
   // The backend rule needs an endpoint to carry the TLS hostname on.
-  const canEditTlsHostname = !!proxy.endpoint && !usesConnector;
+  // With several origins the TLS hostname is per origin, edited in the backends dialog.
+  const severalBackends = (proxy.backends?.length ?? 0) > 1;
+  const canEditTlsHostname = !!proxy.endpoint && !usesConnector && !severalBackends;
   const tlsHostnameRequired = canEditTlsHostname && origin.isIp && origin.https;
 
   const certRows = useMemo<CertRow[]>(() => {
@@ -290,7 +292,9 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
             hint={
               usesConnector
                 ? 'Not applicable when the origin is reached through a connector'
-                : 'Hostname presented to the origin during the TLS handshake (SNI) and used to match its certificate. Leave empty to use the hostname from the origin URL.'
+                : severalBackends
+                  ? 'Each origin has its own TLS hostname. Set them with Edit backends on the backend card.'
+                  : 'Hostname presented to the origin during the TLS handshake (SNI) and used to match its certificate. Leave empty to use the hostname from the origin URL.'
             }>
             Origin TLS hostname
           </FieldLabel>
@@ -319,6 +323,8 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
                   </Text>
                 ) : null}
               </div>
+            ) : severalBackends ? (
+              <Text textColor="muted">Set per origin under Backends</Text>
             ) : currentTlsHostname ? (
               <>
                 <Text ellipsis className="font-mono">
