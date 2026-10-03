@@ -1,5 +1,5 @@
 import { HOME_COLUMN_LIMIT } from './home.helpers';
-import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text } from '@datum-cloud/datum-ui/typography';
@@ -249,16 +249,26 @@ export function ResourceColumnEmpty({
 }
 
 /** Small "Add" button for a column header. */
-export function ResourceColumnAddAction({ href, label }: { href: string; label: string }) {
-  return (
-    <LinkButton
-      as={Link}
-      href={href}
-      type="quaternary"
-      theme="borderless"
-      size="xs"
-      icon={<Icon icon={Plus} size={14} aria-hidden />}
-      aria-label={label}>
+/** Either a link to a create page, or a handler that opens a create dialog in place. */
+type ColumnActionTarget = { href: string; onClick?: never } | { onClick: () => void; href?: never };
+
+export function ResourceColumnAddAction({
+  label,
+  ...target
+}: ColumnActionTarget & { label: string }) {
+  const props = {
+    type: 'quaternary',
+    theme: 'borderless',
+    size: 'xs',
+    icon: <Icon icon={Plus} size={14} aria-hidden />,
+    'aria-label': label,
+  } as const;
+  return target.onClick ? (
+    <Button {...props} htmlType="button" onClick={target.onClick}>
+      Add
+    </Button>
+  ) : (
+    <LinkButton {...props} as={Link} href={target.href}>
       Add
     </LinkButton>
   );
@@ -266,20 +276,21 @@ export function ResourceColumnAddAction({ href, label }: { href: string; label: 
 
 /** The primary call to action inside an empty column. */
 export function ResourceColumnEmptyAction({
-  href,
   children,
-}: {
-  href: string;
-  children: ReactNode;
-}) {
-  return (
-    <LinkButton
-      as={Link}
-      href={href}
-      type="primary"
-      theme="solid"
-      size="xs"
-      icon={<Icon icon={Plus} size={14} aria-hidden />}>
+  ...target
+}: ColumnActionTarget & { children: ReactNode }) {
+  const props = {
+    type: 'primary',
+    theme: 'solid',
+    size: 'xs',
+    icon: <Icon icon={Plus} size={14} aria-hidden />,
+  } as const;
+  return target.onClick ? (
+    <Button {...props} htmlType="button" onClick={target.onClick}>
+      {children}
+    </Button>
+  ) : (
+    <LinkButton {...props} as={Link} href={target.href}>
       {children}
     </LinkButton>
   );

@@ -5,6 +5,7 @@ import {
   ResourceColumnEmpty,
   ResourceColumnEmptyAction,
 } from './resource-column';
+import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { useResourcePermissions } from '@/modules/rbac';
 import { useDomains } from '@/resources/domains';
@@ -13,6 +14,8 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Globe } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router';
 
 export function DomainsColumn({ projectId }: { projectId: string }) {
   const { data: domains = [], isLoading } = useDomains(projectId, {
@@ -27,46 +30,62 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
   });
 
   const listHref = getPathWithParams(paths.project.detail.domains.root, { projectId });
-  const createHref = getPathWithParams(
-    paths.project.detail.domains.root,
-    { projectId },
-    new URLSearchParams({ action: 'create' })
-  );
+  // Add in place, then go to the new domain, as the Domains list does.
+  const [addOpen, setAddOpen] = useState(false);
+  const navigate = useNavigate();
+  const openAdd = () => setAddOpen(true);
 
   return (
-    <ResourceColumn
-      title="Domains"
-      href={listHref}
-      count={domains.length}
-      action={
-        canCreate &&
-        domains.length > 0 && <ResourceColumnAddAction href={createHref} label="Add domain" />
-      }
-      isLoading={isLoading}
-      testId="project-home-domains"
-      items={newestFirst(domains).map((domain) => ({
-        key: domain.uid,
-        label: domain.domainName,
-        href: getPathWithParams(paths.project.detail.domains.detail.root, {
-          projectId,
-          domainId: domain.name,
-        }),
-        icon: <Icon icon={Globe} size={14} className="text-icon-quaternary shrink-0" aria-hidden />,
-        // Verified is the normal state, so only a problem gets a badge.
-        meta: !isHealthy(domain.status) && <DomainStatus domainStatus={domain.status} />,
-      }))}
-      emptyState={
-        <ResourceColumnEmpty
-          icon={<Icon icon={Globe} size={18} aria-hidden />}
-          title="Add your first domain"
-          action={
-            canCreate && (
-              <ResourceColumnEmptyAction href={createHref}>Add domain</ResourceColumnEmptyAction>
-            )
-          }>
-          Verify a domain you own to route traffic and issue certificates for it.
-        </ResourceColumnEmpty>
-      }
-    />
+    <>
+      <ResourceColumn
+        title="Domains"
+        href={listHref}
+        count={domains.length}
+        action={
+          canCreate &&
+          domains.length > 0 && <ResourceColumnAddAction onClick={openAdd} label="Add domain" />
+        }
+        isLoading={isLoading}
+        testId="project-home-domains"
+        items={newestFirst(domains).map((domain) => ({
+          key: domain.uid,
+          label: domain.domainName,
+          href: getPathWithParams(paths.project.detail.domains.detail.root, {
+            projectId,
+            domainId: domain.name,
+          }),
+          icon: (
+            <Icon icon={Globe} size={14} className="text-icon-quaternary shrink-0" aria-hidden />
+          ),
+          // Verified is the normal state, so only a problem gets a badge.
+          meta: !isHealthy(domain.status) && <DomainStatus domainStatus={domain.status} />,
+        }))}
+        emptyState={
+          <ResourceColumnEmpty
+            icon={<Icon icon={Globe} size={18} aria-hidden />}
+            title="Add your first domain"
+            action={
+              canCreate && (
+                <ResourceColumnEmptyAction onClick={openAdd}>Add domain</ResourceColumnEmptyAction>
+              )
+            }>
+            Verify a domain you own to route traffic and issue certificates for it.
+          </ResourceColumnEmpty>
+        }
+      />
+      <AddDomainsDialog
+        projectId={projectId}
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        onSuccess={(domain) =>
+          navigate(
+            getPathWithParams(paths.project.detail.domains.detail.overview, {
+              projectId,
+              domainId: domain.name,
+            })
+          )
+        }
+      />
+    </>
   );
 }
