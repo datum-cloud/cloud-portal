@@ -3,25 +3,30 @@ import { StatusChip } from '@/components/card/status-chip';
 import { ValueRow } from '@/components/card/value-row';
 import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
-import { summarizeBackends } from '@/features/edge/proxy/overview/backend-summary';
-import { isComputeBackend } from '@/features/edge/proxy/overview/compute-backend';
-import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
 import {
-  ProxyOriginsDialog,
-  type ProxyOriginsDialogRef,
-} from '@/features/edge/proxy/proxy-origins-dialog';
+  SHOW_HEALTH_CHECKS,
+  algorithmLabel,
+  poolLockReason,
+  toBackendRows,
+} from '@/features/edge/proxy/backends/backend-pool';
+import { useComputeServiceInfo } from '@/features/edge/proxy/backends/use-compute-service-info';
+import { summarizeBackends } from '@/features/edge/proxy/overview/backend-summary';
+import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
-import { PermissionButton } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
 import { type HttpProxy } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
+import { LinkButton } from '@datum-cloud/datum-ui/button';
 import {
   Card,
   CardAction,
   CardContent,
+  CardDescription,
   CardField,
   CardFieldValue,
   CardHeader,
@@ -31,14 +36,22 @@ import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { ChevronRightIcon, LockIcon, PencilIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
-import { useMemo, useRef } from 'react';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { ChevronRightIcon, LockIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { Link } from 'react-router';
 
 type OriginRow = {
   origin: string;
   scheme: 'https' | 'http' | undefined;
   isIp: boolean;
+  /** Set for a backend with no endpoint URL (compute, VPC), named by its resource. */
+  kindLabel?: string;
+  copyable: boolean;
+  /** Share of the pool's traffic, as labelled on the Backends tab. Pools only. */
+  shareLabel?: string;
+  drained?: boolean;
+  weight?: number;
 };
 
 function parseOrigin(origin: string): OriginRow {
@@ -46,9 +59,9 @@ function parseOrigin(origin: string): OriginRow {
     const url = new URL(origin);
     const scheme =
       url.protocol === 'https:' ? 'https' : url.protocol === 'http:' ? 'http' : undefined;
-    return { origin, scheme, isIp: isIPAddress(url.hostname) };
+    return { origin, scheme, isIp: isIPAddress(url.hostname), copyable: true };
   } catch {
-    return { origin, scheme: undefined, isIp: false };
+    return { origin, scheme: undefined, isIp: false, copyable: true };
   }
 }
 
@@ -71,11 +84,12 @@ function BackendRow({ title, label }: { title: string; label: string }) {
 export const HttpProxyOriginsCard = ({
   proxy,
   projectId,
+  className,
 }: {
   proxy?: HttpProxy;
   projectId?: string;
+  className?: string;
 }) => {
-  const originsDialogRef = useRef<ProxyOriginsDialogRef>(null);
   const [, copy, isCopied] = useCopyToClipboard();
 
   const { data: connector, isLoading: isConnectorLoading } = useConnector(
@@ -85,14 +99,42 @@ export const HttpProxyOriginsCard = ({
   useConnectorWatch(projectId ?? '', proxy?.connector?.name);
   const computeBackend = useResolvedComputeWorkload(projectId, proxy);
   const backendSummary = proxy ? summarizeBackends(proxy, computeBackend.workloadName) : undefined;
-  // A compute backend is managed from the workload side — except once its
-  // workload is gone, when an origin is the only way to route traffic again.
-  // Saving an endpoint replaces the NetworkService backend (see the update adapter).
-  const showOriginEditor = Boolean(
-    proxy && projectId && (!isComputeBackend(proxy) || computeBackend.workloadMissing)
-  );
+  // Backends are edited on the Backends tab, for a single origin and a pool
+  // alike. Routing the portal can't round-trip stays read-only.
+  const lockReason = proxy ? poolLockReason(proxy) : undefined;
+  const multiBackend = (proxy?.backends?.length ?? 0) > 1;
+  const backendsHref =
+    proxy && projectId
+      ? getPathWithParams(paths.project.detail.proxy.detail.backends, {
+          projectId,
+          proxyId: proxy.name,
+        })
+      : undefined;
 
+  // Only worth fetching when a pool has a workload backend to describe.
+  const computeServices = useComputeServiceInfo(
+    projectId,
+    (proxy?.backends ?? []).some((backend) => backend.kind === 'networkService')
+  );
   const origins = useMemo<OriginRow[]>(() => {
+    // A pool lists every backend: origins only holds endpoint URLs, so a
+    // compute or VPC backend would otherwise go missing from the card.
+    if ((proxy?.backends?.length ?? 0) > 1) {
+      return toBackendRows(proxy?.backends, { services: computeServices }).map((row) => ({
+        ...(row.backend.endpoint
+          ? parseOrigin(row.backend.endpoint)
+          : {
+              origin: row.title,
+              scheme: undefined,
+              isIp: false,
+              kindLabel: row.kindLabel,
+              copyable: false,
+            }),
+        shareLabel: row.shareLabel,
+        drained: row.drained,
+        weight: row.weight,
+      }));
+    }
     const list =
       proxy?.origins && proxy.origins.length > 0
         ? proxy.origins
@@ -100,7 +142,7 @@ export const HttpProxyOriginsCard = ({
           ? [proxy.endpoint]
           : [];
     return list.map(parseOrigin);
-  }, [proxy?.origins, proxy?.endpoint]);
+  }, [proxy?.backends, proxy?.origins, proxy?.endpoint, computeServices]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy?.connector) return null;
@@ -153,30 +195,48 @@ export const HttpProxyOriginsCard = ({
   }, [proxy?.connector, isConnectorLoading, connector]);
 
   return (
-    <Card size="sm" sectioned className="w-full overflow-hidden" data-e2e="alb-origins-card">
+    <Card
+      size="sm"
+      sectioned
+      className={cn('w-full overflow-hidden', className)}
+      data-e2e="alb-origins-card">
       <CardHeader size="sm" bordered>
         <CardTitle className="flex items-center gap-2 text-sm">
           <Icon icon={ServerIcon} size={16} className="text-secondary" />
-          Backend pool
+          {multiBackend ? `Backends · ${proxy?.backends?.length}` : 'Backend pool'}
         </CardTitle>
-        {showOriginEditor ? (
+        {multiBackend ? (
+          <CardDescription className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span>{algorithmLabel(proxy?.loadBalancer)}</span>
+            {SHOW_HEALTH_CHECKS && proxy?.healthCheck?.passive ? (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>Passive health checks</span>
+              </>
+            ) : null}
+          </CardDescription>
+        ) : null}
+        {lockReason ? (
           <CardAction>
-            <PermissionButton
-              resource="httpproxies"
-              verb="patch"
-              group="networking.datumapis.com"
-              namespace="default"
-              scope="project"
-              projectId={projectId}
-              deniedReason="You don't have permission to edit this Application Load Balancer"
+            <Tooltip message={lockReason}>
+              <Text size="xs" textColor="muted" data-e2e="alb-origins-advanced">
+                Managed with datumctl
+              </Text>
+            </Tooltip>
+          </CardAction>
+        ) : backendsHref ? (
+          <CardAction>
+            <LinkButton
+              as={Link}
+              href={backendsHref}
               type="secondary"
               theme="outline"
               size="xs"
               className="shrink-0"
-              onClick={() => proxy && originsDialogRef.current?.show(proxy)}>
-              <Icon icon={PencilIcon} size={12} />
-              {computeBackend.workloadMissing ? 'Set origin' : 'Edit origin'}
-            </PermissionButton>
+              data-e2e="alb-origins-manage">
+              Manage backends
+              <Icon icon={ChevronRightIcon} size={12} />
+            </LinkButton>
           </CardAction>
         ) : null}
       </CardHeader>
@@ -218,14 +278,15 @@ export const HttpProxyOriginsCard = ({
             No origin configured. Add one so this load balancer has somewhere to send traffic.
           </Text>
         ) : (
-          origins.map((row) => (
+          origins.map((row, index) => (
             <ValueRow
-              key={row.origin}
+              key={`${index}-${row.origin}`}
               value={row.origin}
               copied={isCopied(row.origin)}
-              onCopy={() => void copy(row.origin, { withToast: true })}
+              onCopy={row.copyable ? () => void copy(row.origin, { withToast: true }) : undefined}
               status={
                 <>
+                  {row.kindLabel ? <StatusChip tone="muted">{row.kindLabel}</StatusChip> : null}
                   {row.scheme === 'https' ? (
                     <StatusChip tone="success" tooltip="Traffic to this origin is encrypted">
                       <Icon icon={LockIcon} size={10} aria-hidden="true" />
@@ -237,6 +298,17 @@ export const HttpProxyOriginsCard = ({
                       tooltip="Traffic between Datum and this origin is not encrypted">
                       <Icon icon={ShieldOffIcon} size={10} aria-hidden="true" />
                       HTTP
+                    </StatusChip>
+                  ) : null}
+                  {row.shareLabel !== undefined ? (
+                    <StatusChip
+                      tone={row.drained ? 'warning' : 'muted'}
+                      tooltip={
+                        row.drained
+                          ? 'Weight 0: this backend receives no traffic'
+                          : `Weight ${row.weight} of the pool's total`
+                      }>
+                      {row.drained ? 'No traffic' : `${row.shareLabel} of traffic`}
                     </StatusChip>
                   ) : null}
                   {row.isIp ? (
@@ -261,9 +333,6 @@ export const HttpProxyOriginsCard = ({
           </CardField>
         ) : null}
       </CardContent>
-      {proxy && projectId ? (
-        <ProxyOriginsDialog ref={originsDialogRef} projectId={projectId} />
-      ) : null}
     </Card>
   );
 };

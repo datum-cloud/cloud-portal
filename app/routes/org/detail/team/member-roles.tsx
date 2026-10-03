@@ -398,7 +398,7 @@ function MemberRolesEditor({
       </div>
 
       {state.addRoleOpen ? (
-        <div className="-mx-4 -mb-7 flex flex-1 flex-col overflow-hidden border-t md:-mx-9 md:-mb-9">
+        <div className="-mx-4 -mb-7 flex flex-1 flex-col overflow-hidden border-t md:-mx-6 md:-mb-6">
           <AddRoleScreen
             roles={roles}
             scopes={scopes}
@@ -409,7 +409,7 @@ function MemberRolesEditor({
           />
         </div>
       ) : (
-        <div className="-mx-4 -mb-7 flex flex-1 flex-col overflow-hidden border-t md:-mx-9 md:-mb-9">
+        <div className="-mx-4 -mb-7 flex flex-1 flex-col overflow-hidden border-t md:-mx-6 md:-mb-6">
           <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
             <div className="flex flex-col overflow-hidden md:w-2/5" data-testid="roles-panel">
               <RolesPanel

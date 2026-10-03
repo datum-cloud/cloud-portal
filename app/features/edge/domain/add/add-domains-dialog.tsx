@@ -160,7 +160,7 @@ export const AddDomainsDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content className="w-96">
+      <Dialog.Content className="w-full sm:max-w-2xl">
         <Dialog.Header
           title="Add domains"
           description="Add one domain or many — separated by new lines or commas."

@@ -199,7 +199,7 @@ export default function HttpProxyConfigurationPage() {
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
-      {/* The scroll container pads content by 2.25rem on md+; top-0 pins the
+      {/* The scroll container pads content by 1.5rem on md+; top-0 pins the
           nav at the content's top edge rather than floating 24px below it. */}
       <aside className="lg:sticky lg:top-0 lg:w-56 lg:shrink-0">
         <SettingsNav>

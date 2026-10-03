@@ -22,6 +22,16 @@ export {
   basicAuthSchema,
   type BasicAuthSchema,
   COMPUTE_WORKLOAD_NAME_LABEL,
+  HTTP_PROXY_MAX_BACKENDS,
+  HTTP_PROXY_DEFAULT_WEIGHT,
+  HTTP_PROXY_MAX_WEIGHT,
+  PASSIVE_HEALTH_CHECK_DEFAULTS,
+  type HttpProxyBackend,
+  type HttpProxyBackendInput,
+  type HttpProxyLoadBalancer,
+  type HttpProxyLoadBalancerType,
+  type HttpProxyHealthCheck,
+  type HttpProxyPassiveHealthCheck,
 } from './http-proxy.schema';
 
 // Adapter exports
@@ -36,6 +46,11 @@ export {
   extractHsts,
   extractHstsHeaderValue,
   extractUpdatedAt,
+  extractBackends,
+  extractLoadBalancer,
+  extractHealthCheck,
+  toHttpProxyBackend,
+  toBackendPayload,
   HSTS_HEADER,
   HSTS_HEADER_VALUE,
   type HttpProxyComplexity,

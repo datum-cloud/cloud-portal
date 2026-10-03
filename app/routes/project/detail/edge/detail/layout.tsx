@@ -82,6 +82,13 @@ export default route.Page(({ data: loaderProxy }) => {
         }),
       },
       {
+        label: 'Backends',
+        href: getPathWithParams(paths.project.detail.proxy.detail.backends, {
+          projectId,
+          proxyId: id,
+        }),
+      },
+      {
         label: 'Metrics',
         href: getPathWithParams(paths.project.detail.proxy.detail.metrics, {
           projectId,

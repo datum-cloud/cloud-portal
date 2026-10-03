@@ -10,6 +10,8 @@ import {
   getCertificateReadyDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
+import { paths } from '@/utils/config/paths.config';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { isIPAddress } from '@/utils/helpers/validation.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
@@ -30,6 +32,7 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { CheckIcon, CopyIcon, LockIcon, PencilIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router';
 
 /** Where the origin's TLS hostname comes from when no explicit override is set. */
 function describeOrigin(endpoint: string | undefined): {
@@ -112,6 +115,10 @@ function CertChip({ row }: { row: CertRow }) {
  * the HTTPProxy rules (a redirect rule and a ResponseHeaderModifier filter).
  */
 export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; projectId: string }) {
+  const backendsHref = getPathWithParams(paths.project.detail.proxy.detail.backends, {
+    projectId,
+    proxyId: proxy.name,
+  });
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draftForceHttps, setDraftForceHttps] = useState(false);
@@ -134,8 +141,11 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
   const usesConnector = !!proxy.connector;
   const isAdvanced = proxy.complexity === 'advanced';
   const origin = useMemo(() => describeOrigin(proxy.endpoint), [proxy.endpoint]);
+  // With several backends each carries its own TLS hostname, edited on the
+  // Backends tab; this field only ever described the first one.
+  const multiBackend = (proxy.backends?.length ?? 0) > 1;
   // The backend rule needs an endpoint to carry the TLS hostname on.
-  const canEditTlsHostname = !!proxy.endpoint && !usesConnector;
+  const canEditTlsHostname = !!proxy.endpoint && !usesConnector && !multiBackend;
   const tlsHostnameRequired = canEditTlsHostname && origin.isIp && origin.https;
 
   const certRows = useMemo<CertRow[]>(() => {
@@ -319,6 +329,10 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
                   </Text>
                 ) : null}
               </div>
+            ) : multiBackend ? (
+              <Link to={backendsHref} className="text-muted-foreground hover:underline">
+                Set per backend on the Backends tab
+              </Link>
             ) : currentTlsHostname ? (
               <>
                 <Text ellipsis className="font-mono">

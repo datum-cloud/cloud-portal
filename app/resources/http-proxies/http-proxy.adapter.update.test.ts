@@ -251,3 +251,50 @@ describe('toHttpProxy compute backends', () => {
     });
   });
 });
+
+describe('routing the rules rebuild cannot round-trip', () => {
+  const withRules = (...rules: object[]) =>
+    ({ metadata: { name: 'alb' }, spec: { rules } }) as ComDatumapisNetworkingV1AlphaHttpProxy;
+  const backends = [{ endpoint: 'https://a.example.com' }];
+
+  it('treats a backend rule narrower than catch-all as advanced', () => {
+    expect(
+      classifyHttpProxyComplexity(
+        withRules({ backends, matches: [{ path: { type: 'PathPrefix', value: '/api' } }] })
+      )
+    ).toBe('advanced');
+    expect(
+      classifyHttpProxyComplexity(
+        withRules({ backends, matches: [{ path: { type: 'PathPrefix', value: '/' } }] })
+      )
+    ).toBe('simple');
+    expect(classifyHttpProxyComplexity(withRules({ backends, matches: [] }))).toBe('simple');
+  });
+
+  it('refuses to rebuild the rules of an advanced proxy', () => {
+    const advanced = toHttpProxy(
+      withRules({ backends }, { backends: [{ endpoint: 'https://b.example.com' }] })
+    );
+    for (const input of [
+      { endpoint: 'https://c.example.com' },
+      { backends: [{ endpoint: 'https://c.example.com' }] },
+      { enableHttpRedirect: false },
+      { hsts: true },
+      { hostHeader: 'origin.internal' },
+      { tlsHostname: 'origin.internal' },
+    ]) {
+      expect(() => toUpdateHttpProxyPayload(input, advanced)).toThrow(/datumctl/);
+    }
+    // Edits that leave the rules alone still go through.
+    expect(toUpdateHttpProxyPayload({ hostnames: ['app.example.com'] }, advanced).spec).toEqual({
+      hostnames: ['app.example.com'],
+    });
+  });
+
+  it('refuses a rules rebuild without the current proxy', () => {
+    expect(() => toUpdateHttpProxyPayload({ hsts: true })).toThrow(/Reload/);
+    expect(() =>
+      toUpdateHttpProxyPayload({ backends: [{ endpoint: 'https://a.example.com' }] })
+    ).toThrow(/Reload/);
+  });
+});
