@@ -99,9 +99,10 @@ describe('canInLoaderBulk > dedupe', () => {
     expect(sentChecks()).toHaveLength(2);
   });
 
-  test('name, projectId, scope, group, resource and verb each split a batch', async () => {
+  test('name, subresource, projectId, scope, group, resource and verb each split a batch', async () => {
     const cases: Array<[string, LoaderPermissionCheck, LoaderPermissionCheck]> = [
       ['name', check({ name: undefined }), check({ name: 'x' })],
+      ['subresource', check({ subresource: undefined }), check({ subresource: 'status' })],
       [
         'projectId',
         check({ scope: 'project', projectId: 'p1' }),

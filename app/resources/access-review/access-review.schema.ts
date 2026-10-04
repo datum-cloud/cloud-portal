@@ -9,6 +9,7 @@ export const SUPPORTED_VERBS = [
   'update',
   'patch',
   'delete',
+  'query',
 ] as const;
 export type SupportedVerb = (typeof SUPPORTED_VERBS)[number];
 
@@ -30,6 +31,7 @@ export const createAccessReviewInputSchema = z.object({
   verb: z.enum(SUPPORTED_VERBS),
   group: z.string(),
   resource: z.string(),
+  subresource: z.string().optional(),
   name: z.string().optional(),
 });
 
@@ -41,6 +43,7 @@ export const createSelfSubjectAccessReviewSchema = z.object({
   verb: z.enum(SUPPORTED_VERBS, { error: 'Verb is required.' }),
   group: z.string({ error: 'API group is required.' }),
   resource: z.string({ error: 'Resource is required.' }),
+  subresource: z.string().optional(),
   name: z.string().optional(),
 });
 

@@ -7,18 +7,15 @@ import type { ReactNode } from 'react';
 import type { LoaderFunctionArgs } from 'react-router';
 import { z } from 'zod';
 
-/**
- * Supported Kubernetes API verbs for permission checks
- */
-export type PermissionVerb = 'get' | 'list' | 'watch' | 'create' | 'update' | 'patch' | 'delete';
+/** Kubernetes API verbs, plus queryapi's `query`. */
+export type PermissionVerb =
+  'get' | 'list' | 'watch' | 'create' | 'update' | 'patch' | 'delete' | 'query';
 
 // ============================================================================
 // Zod Schemas
 // ============================================================================
 
-/**
- * Supported Kubernetes API verbs schema
- */
+/** Supported permission check verbs schema */
 export const PermissionVerbSchema = z.enum([
   'get',
   'list',
@@ -27,6 +24,7 @@ export const PermissionVerbSchema = z.enum([
   'update',
   'patch',
   'delete',
+  'query',
 ]);
 
 /**
@@ -48,6 +46,7 @@ const PermissionCheckFieldsSchema = z.object({
   verb: PermissionVerbSchema,
   group: z.string().default(''),
   resource: z.string().min(1, 'Resource is required'),
+  subresource: z.string().optional(),
   name: z.string().optional(),
   scope: PermissionScopeSchema.optional(),
   projectId: z.string().optional(),
@@ -116,6 +115,7 @@ export interface IPermissionCheck {
   verb: PermissionVerb;
   group: string;
   resource: string;
+  subresource?: string;
   name?: string;
 }
 

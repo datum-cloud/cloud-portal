@@ -3,6 +3,7 @@ import { useCheckQuery } from './useCheckQuery';
 
 export interface UsePermissionOptions {
   namespace?: string;
+  subresource?: string;
   name?: string;
   group?: string;
   scope?: PermissionCheckScope;
@@ -39,6 +40,7 @@ export function usePermission(
 ): UsePermissionResult {
   const {
     namespace,
+    subresource,
     name,
     group = '',
     scope,
@@ -53,6 +55,7 @@ export function usePermission(
     verb,
     group,
     namespace,
+    subresource,
     name,
     scope,
     projectId,

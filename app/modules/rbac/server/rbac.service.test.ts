@@ -202,3 +202,40 @@ describe('RbacService.checkPermissions (bulk)', () => {
     expect(fakeAccessReview.create.mock.calls.length).toBe(1);
   });
 });
+
+describe('RbacService subresource checks', () => {
+  const logsApi = {
+    resource: 'logs',
+    subresource: 'api',
+    name: 'loki',
+    verb: 'get',
+    group: 'o11y.miloapis.com',
+    namespace: '',
+    scope: 'project',
+    projectId: 'proj-1',
+  } as const;
+
+  test('checkPermission forwards subresource and name to the access review', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    await svc.checkPermission('acme', logsApi);
+    const input = (fakeAccessReview.create.mock.calls[0] as unknown as [string, unknown])[1];
+    expect(input).toEqual({
+      namespace: '',
+      verb: 'get',
+      group: 'o11y.miloapis.com',
+      resource: 'logs',
+      subresource: 'api',
+      name: 'loki',
+    });
+  });
+
+  test('checkPermissions forwards the subresource and echoes it in the request', async () => {
+    const fakeAccessReview = { create: mock(async () => ({ allowed: true, denied: false })) };
+    const svc = new RbacService(() => fakeAccessReview as never);
+    const [result] = await svc.checkPermissions('acme', [logsApi]);
+    const input = (fakeAccessReview.create.mock.calls[0] as unknown as [string, unknown])[1];
+    expect(input).toMatchObject({ resource: 'logs', subresource: 'api', name: 'loki' });
+    expect(result.request).toMatchObject({ resource: 'logs', subresource: 'api', name: 'loki' });
+  });
+});

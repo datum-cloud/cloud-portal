@@ -33,6 +33,7 @@ export function toCreateAccessReviewPayload(
         verb: input.verb,
         group: input.group,
         resource: input.resource,
+        subresource: input.subresource,
         name: input.name,
       },
     },
