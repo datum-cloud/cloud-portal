@@ -12,6 +12,7 @@ export interface CheckQueryParams {
   verb: PermissionVerb;
   group?: string;
   namespace?: string;
+  subresource?: string;
   name?: string;
   scope?: PermissionCheckScope;
   /** Override the project id from context (project-scoped checks). */
@@ -37,6 +38,7 @@ export function useCheckQuery(params: CheckQueryParams) {
     verb,
     group = '',
     namespace,
+    subresource,
     name,
     scope,
     enabled = true,
@@ -56,6 +58,7 @@ export function useCheckQuery(params: CheckQueryParams) {
       verb,
       group,
       namespace ?? '_',
+      subresource ?? '_',
       name ?? '_',
       scope ?? '_',
     ],
@@ -69,6 +72,7 @@ export function useCheckQuery(params: CheckQueryParams) {
         verb,
         group,
         namespace,
+        subresource,
         name,
         scope,
         projectId,

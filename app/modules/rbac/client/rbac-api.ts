@@ -18,6 +18,7 @@ export interface BulkCheckResult extends IPermissionResult {
     verb: IPermissionCheck['verb'];
     group: string;
     namespace?: string;
+    subresource?: string;
     name?: string;
   };
 }

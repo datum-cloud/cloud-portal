@@ -51,4 +51,30 @@ describe('toCreateAccessReviewPayload', () => {
       },
     });
   });
+
+  it('carries the subresource so the authorizer sees the same attributes as the real request', () => {
+    expect(
+      toCreateAccessReviewPayload({
+        namespace: '',
+        verb: 'get',
+        group: 'o11y.miloapis.com',
+        resource: 'logs',
+        subresource: 'api',
+        name: 'loki',
+      })
+    ).toEqual({
+      apiVersion: 'authorization.k8s.io/v1',
+      kind: 'SelfSubjectAccessReview',
+      spec: {
+        resourceAttributes: {
+          namespace: '',
+          verb: 'get',
+          group: 'o11y.miloapis.com',
+          resource: 'logs',
+          subresource: 'api',
+          name: 'loki',
+        },
+      },
+    });
+  });
 });

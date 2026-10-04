@@ -16,6 +16,7 @@ interface PermissionCheckInput {
   verb: SupportedVerb;
   group?: string;
   namespace?: string;
+  subresource?: string;
   name?: string;
   scope?: PermissionCheckScope;
   projectId?: string;
@@ -32,6 +33,7 @@ interface PermissionRequest {
   verb: SupportedVerb;
   group: string;
   namespace?: string;
+  subresource?: string;
   name?: string;
 }
 
@@ -109,6 +111,7 @@ export class RbacService {
           verb: check.verb,
           group: check.group || '',
           resource: check.resource,
+          subresource: check.subresource,
           name: check.name,
         },
         { baseURL: this.resolveBaseURL(organizationId, check) }
@@ -148,6 +151,7 @@ export class RbacService {
             verb: check.verb,
             group: check.group || '',
             resource: check.resource,
+            subresource: check.subresource,
             name: check.name,
           },
           { baseURL: this.resolveBaseURL(organizationId, check) }
@@ -169,6 +173,7 @@ export class RbacService {
         // Echo the namespace actually sent to the authorizer (resolved from scope),
         // not the caller's raw (often undefined) value, so diagnostics are truthful.
         namespace: this.resolveNamespace(organizationId, check),
+        subresource: check.subresource,
         name: check.name,
       };
       if (outcome.status === 'fulfilled') {

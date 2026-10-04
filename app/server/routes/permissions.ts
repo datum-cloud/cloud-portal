@@ -27,13 +27,23 @@ permissions.post('/check', async (c) => {
       );
     }
 
-    const { organizationId, resource, verb, group, namespace, name, scope, projectId } =
-      parsed.data;
+    const {
+      organizationId,
+      resource,
+      verb,
+      group,
+      namespace,
+      subresource,
+      name,
+      scope,
+      projectId,
+    } = parsed.data;
     const result = await new RbacService().checkPermission(organizationId, {
       resource,
       verb,
       group,
       namespace,
+      subresource,
       name,
       scope,
       projectId,

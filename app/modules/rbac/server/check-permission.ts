@@ -7,6 +7,7 @@ export interface LoaderPermissionCheck {
   verb: SupportedVerb;
   group?: string;
   namespace?: string;
+  subresource?: string;
   name?: string;
   scope?: 'org' | 'user' | 'project';
   projectId?: string;
@@ -42,7 +43,7 @@ export async function canInLoader(
  *   same wire value.
  * - `namespace` is NOT: `resolveNamespace` branches on `!== undefined`, so ''
  *   (cluster-scoped) and undefined (derive from scope) are different requests.
- * - `name` is passed through verbatim; undefined omits it from the payload.
+ * - `subresource` and `name` pass through verbatim; undefined omits them.
  *
  * `organizationId` is deliberately absent: it is a parameter of the batch, so
  * it is constant across every element. Revisit if the signature ever accepts
@@ -56,6 +57,7 @@ function checkIdentity(check: LoaderPermissionCheck): string {
     check.group || '',
     check.resource,
     check.verb,
+    check.subresource ?? null,
     check.name ?? null,
   ]);
 }
