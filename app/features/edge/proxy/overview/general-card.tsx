@@ -1,6 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { FieldLabel } from '@/components/card/field-label';
 import { DateTime } from '@/components/date-time/date-time';
+import { LazyNoteEditor } from '@/features/notes/lazy-note-editor';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { type HttpProxy, useUpdateHttpProxy } from '@/resources/http-proxies';
@@ -10,12 +11,7 @@ import {
   useNotes,
   useUpdateNote,
 } from '@/resources/notes/note.queries';
-import {
-  NOTE_MAX_HTML_LENGTH,
-  NOTE_MAX_TEXT_LENGTH,
-  type Note,
-  type SubjectRef,
-} from '@/resources/notes/note.schema';
+import { NOTE_MAX_HTML_LENGTH, type Note, type SubjectRef } from '@/resources/notes/note.schema';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
@@ -29,7 +25,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
-import { RichTextContent, RichTextEditor } from '@datum-cloud/datum-ui/rich-text-editor';
+import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-editor';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
@@ -259,23 +255,12 @@ export function HttpProxyGeneralCard({
           </FieldLabel>
           <CardFieldValue>
             {editing && canEditNotes ? (
-              <RichTextEditor
+              <LazyNoteEditor
                 content={draftDescription}
                 onChange={setDraftDescription}
-                maxLength={NOTE_MAX_TEXT_LENGTH}
                 placeholder="Add a description"
-                className="min-h-[100px] w-full">
-                <RichTextEditor.Toolbar>
-                  <RichTextEditor.Bold />
-                  <RichTextEditor.Italic />
-                  <RichTextEditor.Underline />
-                  <RichTextEditor.Strike />
-                  <RichTextEditor.Separator />
-                  <RichTextEditor.Link />
-                </RichTextEditor.Toolbar>
-                <RichTextEditor.Content />
-                <RichTextEditor.CharacterCount maxLength={NOTE_MAX_TEXT_LENGTH} />
-              </RichTextEditor>
+                className="min-h-[100px] w-full"
+              />
             ) : notesPermLoading || (notesEnabled && notesLoading) ? (
               <SpinnerIcon size="xs" aria-label="Loading description" />
             ) : !canViewNotes ? (

@@ -1,3 +1,4 @@
+import { LazyNoteEditor } from './lazy-note-editor';
 import { NoteMeta } from './note-meta';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useCreateNote, useUpdateNote } from '@/resources/notes/note.queries';
@@ -6,10 +7,8 @@ import {
   createNoteSchema,
   updateNoteSchema,
   NOTE_MAX_HTML_LENGTH,
-  NOTE_MAX_TEXT_LENGTH,
 } from '@/resources/notes/note.schema';
 import { Form } from '@datum-cloud/datum-ui/form';
-import { RichTextEditor } from '@datum-cloud/datum-ui/rich-text-editor';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useCallback } from 'react';
 
@@ -100,25 +99,14 @@ export function NoteFormDialog({
             <div>
               <Form.Field name="content">
                 {({ control }) => (
-                  <RichTextEditor
+                  <LazyNoteEditor
                     content={typeof control.value === 'string' ? control.value : ''}
                     onChange={(html) => control.change(html)}
                     onBlur={() => control.blur()}
                     autoFocus
-                    maxLength={NOTE_MAX_TEXT_LENGTH}
                     placeholder="Write your note here..."
-                    className="mb-4 min-h-[100px]">
-                    <RichTextEditor.Toolbar>
-                      <RichTextEditor.Bold />
-                      <RichTextEditor.Italic />
-                      <RichTextEditor.Underline />
-                      <RichTextEditor.Strike />
-                      <RichTextEditor.Separator />
-                      <RichTextEditor.Link />
-                    </RichTextEditor.Toolbar>
-                    <RichTextEditor.Content />
-                    <RichTextEditor.CharacterCount maxLength={NOTE_MAX_TEXT_LENGTH} />
-                  </RichTextEditor>
+                    className="mb-4 min-h-[100px]"
+                  />
                 )}
               </Form.Field>
 
