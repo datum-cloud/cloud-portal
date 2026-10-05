@@ -7,6 +7,9 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: cloud-portal
+  compressor:
+    - type: Brotli
+    - type: Gzip
   tcpKeepalive:
     idleTime: 60s
     interval: 15s
