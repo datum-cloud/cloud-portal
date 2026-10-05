@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @import '@datum-cloud/datum-ui/styles';
 
+/* The server build runs after the client build. Without this, Tailwind scans
+   the client's minified output, emits a different stylesheet for the server,
+   and every page loads both. */
+@source not '../../build';
 @source '../../node_modules/streamdown/dist/*.js';
 @source '../../node_modules/@streamdown/code/dist/*.js';
 @plugin '@tailwindcss/typography';

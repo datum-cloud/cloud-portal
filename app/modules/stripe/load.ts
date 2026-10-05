@@ -1,4 +1,8 @@
-import { loadStripe, type Stripe } from '@stripe/stripe-js';
+// The package's main entry injects Stripe.js as soon as it's imported, during
+// first load. `pure` waits for `loadStripe`; preload.ts loads it on every page
+// once the browser is idle, for fraud detection.
+import type { Stripe } from '@stripe/stripe-js';
+import { loadStripe } from '@stripe/stripe-js/pure';
 
 /**
  * Memoised Stripe.js loader keyed by publishable key.

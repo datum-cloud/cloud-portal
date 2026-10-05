@@ -4,6 +4,7 @@ import { ClientHintCheck } from '@/components/misc/client-hints';
 import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
+import { preloadStripeWhenIdle } from '@/modules/stripe/preload';
 import { queryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
@@ -60,16 +61,7 @@ export const meta: MetaFunction<typeof loader> = ({ loaderData, location }) => {
 };
 
 export const links: LinksFunction = () => {
-  return [
-    {
-      rel: 'preload',
-      href: '/fonts/CanelaText-Regular.ttf',
-      as: 'font',
-      type: 'font/ttf',
-      crossOrigin: 'anonymous',
-    },
-    { rel: 'stylesheet', href: RootCSS },
-  ];
+  return [{ rel: 'stylesheet', href: RootCSS }];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -220,6 +212,8 @@ export default function AppWithProviders() {
   useEffect(() => {
     configureProgress();
   }, []);
+
+  useEffect(() => preloadStripeWhenIdle(), []);
 
   useEffect(() => {
     if (state === 'loading') {
