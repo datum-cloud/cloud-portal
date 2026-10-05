@@ -145,13 +145,13 @@ export default defineConfig(async (config): Promise<UserConfig> => {
           : {
               codeSplitting: {
                 groups: [
-                  // Splits heavy vendor packages into stable chunks so feature
-                  // changes don't invalidate the entire JS payload for repeat visits.
+                  // Splits React into a stable chunk so feature changes don't
+                  // invalidate it for repeat visits. Don't add groups for
+                  // packages with large dependency trees: a group also pulls in
+                  // everything its package imports, and if the root route
+                  // imports any of it, every page loads the whole group. A
+                  // datum-ui group put tiptap, recharts and zod on the login page.
                   { name: 'vendor-react', test: /node_modules\/(react|react-dom|react-router)\// },
-                  { name: 'vendor-datum-ui', test: /node_modules\/@datum-cloud\/datum-ui\// },
-                  { name: 'vendor-recharts', test: /node_modules\/recharts\// },
-                  { name: 'vendor-icons', test: /node_modules\/lucide-react\// },
-                  { name: 'vendor-streamdown', test: /node_modules\/streamdown\// }, // pulls mermaid, elk, shiki — ~5MB
                 ],
               },
             },
