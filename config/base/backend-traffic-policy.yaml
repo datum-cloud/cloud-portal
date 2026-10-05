@@ -7,9 +7,13 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: cloud-portal
+  # Envoy Gateway drops a compressor whose settings block is missing, even
+  # an empty one, while still reporting the policy as Accepted.
   compressor:
     - type: Brotli
+      brotli: {}
     - type: Gzip
+      gzip: {}
   tcpKeepalive:
     idleTime: 60s
     interval: 15s
