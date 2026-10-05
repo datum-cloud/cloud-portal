@@ -7,11 +7,10 @@ import {
   SHOW_HEALTH_CHECKS,
   algorithmLabel,
   poolLockReason,
-  toBackendRows,
 } from '@/features/edge/proxy/backends/backend-pool';
-import { useComputeServiceInfo } from '@/features/edge/proxy/backends/use-compute-service-info';
 import { summarizeBackends } from '@/features/edge/proxy/overview/backend-summary';
 import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
+import { usePoolBackends } from '@/features/edge/proxy/overview/use-pool-backends';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useConnector, useConnectorWatch } from '@/resources/connectors';
@@ -37,7 +36,13 @@ import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { ChevronRightIcon, LockIcon, ServerIcon, ShieldOffIcon } from 'lucide-react';
+import {
+  ChevronRightIcon,
+  LockIcon,
+  ServerIcon,
+  ShieldOffIcon,
+  TriangleAlertIcon,
+} from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router';
 
@@ -48,6 +53,10 @@ type OriginRow = {
   /** Set for a backend with no endpoint URL (compute, VPC), named by its resource. */
   kindLabel?: string;
   copyable: boolean;
+  /** Where the value links: a workload backend's page. Pools only. */
+  href?: string;
+  /** The workload behind this backend was deleted. Pools only. */
+  workloadMissing?: boolean;
   /** Share of the pool's traffic, as labelled on the Backends tab. Pools only. */
   shareLabel?: string;
   drained?: boolean;
@@ -102,7 +111,8 @@ export const HttpProxyOriginsCard = ({
   // Backends are edited on the Backends tab, for a single origin and a pool
   // alike. Routing the portal can't round-trip stays read-only.
   const lockReason = proxy ? poolLockReason(proxy) : undefined;
-  const multiBackend = (proxy?.backends?.length ?? 0) > 1;
+  const pool = usePoolBackends(projectId, proxy);
+  const multiBackend = pool.isPool;
   const backendsHref =
     proxy && projectId
       ? getPathWithParams(paths.project.detail.proxy.detail.backends, {
@@ -111,16 +121,11 @@ export const HttpProxyOriginsCard = ({
         })
       : undefined;
 
-  // Only worth fetching when a pool has a workload backend to describe.
-  const computeServices = useComputeServiceInfo(
-    projectId,
-    (proxy?.backends ?? []).some((backend) => backend.kind === 'networkService')
-  );
   const origins = useMemo<OriginRow[]>(() => {
     // A pool lists every backend: origins only holds endpoint URLs, so a
     // compute or VPC backend would otherwise go missing from the card.
-    if ((proxy?.backends?.length ?? 0) > 1) {
-      return toBackendRows(proxy?.backends, { services: computeServices }).map((row) => ({
+    if (pool.isPool) {
+      return pool.rows.map((row) => ({
         ...(row.backend.endpoint
           ? parseOrigin(row.backend.endpoint)
           : {
@@ -130,6 +135,8 @@ export const HttpProxyOriginsCard = ({
               kindLabel: row.kindLabel,
               copyable: false,
             }),
+        href: row.href,
+        workloadMissing: row.workloadMissing,
         shareLabel: row.shareLabel,
         drained: row.drained,
         weight: row.weight,
@@ -142,7 +149,7 @@ export const HttpProxyOriginsCard = ({
           ? [proxy.endpoint]
           : [];
     return list.map(parseOrigin);
-  }, [proxy?.backends, proxy?.origins, proxy?.endpoint, computeServices]);
+  }, [pool, proxy?.origins, proxy?.endpoint]);
 
   const connectorBlock = useMemo(() => {
     if (!proxy?.connector) return null;
@@ -282,11 +289,24 @@ export const HttpProxyOriginsCard = ({
             <ValueRow
               key={`${index}-${row.origin}`}
               value={row.origin}
+              href={row.href}
               copied={isCopied(row.origin)}
               onCopy={row.copyable ? () => void copy(row.origin, { withToast: true }) : undefined}
               status={
                 <>
                   {row.kindLabel ? <StatusChip tone="muted">{row.kindLabel}</StatusChip> : null}
+                  {row.workloadMissing ? (
+                    <StatusChip
+                      tone="warning"
+                      tooltip={
+                        row.drained
+                          ? 'This workload was deleted. It has no weight, so no requests reach it.'
+                          : 'This workload was deleted. Its share of requests fails until you redeploy it or remove it from the pool.'
+                      }>
+                      <Icon icon={TriangleAlertIcon} size={10} aria-hidden="true" />
+                      Workload deleted
+                    </StatusChip>
+                  ) : null}
                   {row.scheme === 'https' ? (
                     <StatusChip tone="success" tooltip="Traffic to this origin is encrypted">
                       <Icon icon={LockIcon} size={10} aria-hidden="true" />

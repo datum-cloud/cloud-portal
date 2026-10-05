@@ -44,6 +44,13 @@ export interface BackendRow {
   kindLabel?: string;
   /** Where the title links: a compute workload's page, when the plugin is mounted. */
   href?: string;
+  /** The compute workload behind a workload backend, once its service is resolved. */
+  workloadName?: string;
+  /**
+   * That workload was deleted while the pool still references it, so its
+   * share of requests has nowhere to go. Only set when the caller checked.
+   */
+  workloadMissing: boolean;
   /** Reached over Galactic VPC (a workload's or instance's network), not the public internet. */
   privateNetwork?: boolean;
   scheme?: 'http' | 'https';
@@ -82,6 +89,8 @@ export type BackendRowContext = {
   services?: ReadonlyMap<string, ComputeServiceInfo>;
   /** The workload that manages the proxy, when one does. */
   managingWorkload?: string;
+  /** Workloads known to be deleted (useMissingComputeWorkloads). */
+  missingWorkloads?: ReadonlySet<string>;
 };
 
 /** Why the managing workload's own backend can't be repointed or removed. */
@@ -141,7 +150,8 @@ function describe(
 ): Pick<
   BackendRow,
   'title' | 'address' | 'kindLabel' | 'scheme' | 'isIp' | 'href' | 'privateNetwork'
-> {
+> &
+  Partial<Pick<BackendRow, 'workloadName' | 'workloadMissing'>> {
   const url = parseUrl(backend.endpoint);
   const scheme =
     url?.protocol === 'https:' ? 'https' : url?.protocol === 'http:' ? 'http' : undefined;
@@ -153,13 +163,18 @@ function describe(
       // something users create or see.
       const name = backend.networkService?.name;
       const info = name ? context.services?.get(name) : undefined;
+      const workloadName = info?.workloadName;
+      const workloadMissing = !!workloadName && !!context.missingWorkloads?.has(workloadName);
       return {
-        title: info?.workloadName ?? name ?? 'Workload',
+        title: workloadName ?? name ?? 'Workload',
         address: describeComputeService(info, backend.networkService?.port),
         kindLabel: 'Workload',
-        href: info?.href,
+        // A deleted workload's page would 404.
+        href: workloadMissing ? undefined : info?.href,
         privateNetwork: true,
         isIp: false,
+        workloadName,
+        workloadMissing,
       };
     }
     case 'instance':
@@ -242,6 +257,7 @@ export function toBackendRows(
   return list.map((backend, index) => ({
     index,
     backend,
+    workloadMissing: false,
     ...describe(backend, context),
     weight: backend.weight,
     share: shares[index],

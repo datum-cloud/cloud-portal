@@ -4,7 +4,8 @@ import {
   resolveRelatedResource,
   type RelatedResourceResult,
 } from '@/resources/http-proxies/related-resource';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 /**
  * Whether a workload still exists, as far as the viewer can tell:
@@ -23,13 +24,8 @@ export function toComputeWorkloadPresence(
   return result.data?.metadata?.deletionTimestamp ? 'missing' : 'present';
 }
 
-/**
- * Check that a compute workload exists. Errors never surface: 403/404 and
- * unexpected failures all resolve to a presence value, so a missing permission
- * or a flaky read never blanks the ALB overview.
- */
-export function useComputeWorkloadPresence(projectId: string, name: string | undefined) {
-  return useQuery({
+function computeWorkloadPresenceQuery(projectId: string, name: string | undefined) {
+  return {
     queryKey: computeWorkloadKeys.detail(projectId, name ?? ''),
     queryFn: async (): Promise<ComputeWorkloadPresence> => {
       if (!name) return 'unknown';
@@ -41,5 +37,33 @@ export function useComputeWorkloadPresence(projectId: string, name: string | und
     },
     retry: false,
     enabled: !!projectId && !!name,
+  };
+}
+
+/**
+ * Check that a compute workload exists. Errors never surface: 403/404 and
+ * unexpected failures all resolve to a presence value, so a missing permission
+ * or a flaky read never blanks the ALB overview.
+ */
+export function useComputeWorkloadPresence(projectId: string, name: string | undefined) {
+  return useQuery(computeWorkloadPresenceQuery(projectId, name));
+}
+
+/**
+ * The named workloads that are gone (`missing`), for a backend pool that
+ * fronts several. Shares the single-workload cache entries, and like it never
+ * reports a workload it can't read as missing.
+ */
+export function useMissingComputeWorkloads(
+  projectId: string,
+  names: readonly string[]
+): ReadonlySet<string> {
+  const presence = useQueries({
+    queries: names.map((name) => computeWorkloadPresenceQuery(projectId, name)),
+    combine: (results) => results.map((result) => result.data),
   });
+  return useMemo(
+    () => new Set(names.filter((_, index) => presence[index] === 'missing')),
+    [names, presence]
+  );
 }
