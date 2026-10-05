@@ -1,5 +1,11 @@
+import {
+  OriginTypeCards,
+  WorkloadServiceFields,
+  type OriginType,
+} from '@/features/edge/proxy/form/origin-type-fields';
 import { ProtocolEndpointInput } from '@/features/edge/proxy/form/protocol-endpoint-input';
 import { ProxyTlsField } from '@/features/edge/proxy/form/tls-field';
+import { useComputePluginSlug } from '@/features/edge/proxy/overview/compute-backend';
 import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
@@ -30,6 +36,10 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     const [nameRandomSuffix] = useState(() => generateRandomString(6));
     const [isIPOrigin, setIsIPOrigin] = useState(false);
     const [protocol, setProtocol] = useState('https');
+    const [originType, setOriginType] = useState<OriginType>('endpoint');
+    // Only projects entitled to compute have the plugin, and workloads to pick.
+    const computeAvailable = !!useComputePluginSlug(projectId);
+    const toWorkload = computeAvailable && originType === 'networkService';
 
     const navigate = useNavigate();
     const { trackAction } = useAnalytics();
@@ -46,6 +56,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     });
 
     const defaultValues: Partial<HttpProxySchema> = {
+      originType: 'endpoint',
       protocol: 'https',
       trafficProtectionMode: 'Enforce',
       paranoiaLevelBlocking: 1,
@@ -64,7 +75,10 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
 
     const handleSubmit = async (data: HttpProxySchema) => {
       const protocol = data.protocol || 'https';
-      const fullEndpoint = `${protocol}://${data.endpointHost}`;
+      const origin =
+        data.originType === 'networkService' && data.serviceName && data.servicePort
+          ? { networkService: { name: data.serviceName, port: data.servicePort } }
+          : { endpoint: `${protocol}://${data.endpointHost}`, tlsHostname: data.tlsHostname };
 
       const resourceName = data.chosenName
         ? generateId(data.chosenName as string, {
@@ -76,9 +90,8 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       const createdProxy = await createProxyMutation.mutateAsync({
         name: resourceName,
         chosenName: data.chosenName,
-        endpoint: fullEndpoint,
+        ...origin,
         hostnames: data.hostnames,
-        tlsHostname: data.tlsHostname,
         trafficProtectionMode: 'Enforce',
         paranoiaLevels: { blocking: 1 },
         enableHttpRedirect: true,
@@ -135,15 +148,35 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
             }}
           </Form.Field>
 
-          <Form.Field
-            tooltip="Origin is the hostname or IP address where your service is running"
-            name="endpointHost"
-            label="Origin"
-            required>
-            <ProtocolEndpointInput onIPChange={setIsIPOrigin} onProtocolChange={setProtocol} />
-          </Form.Field>
+          <div className="flex flex-col gap-5">
+            {computeAvailable ? (
+              <Form.Field name="originType" label="Origin type">
+                {({ control }) => (
+                  <OriginTypeCards
+                    value={originType}
+                    onChange={(next) => {
+                      control.change(next);
+                      setOriginType(next);
+                    }}
+                  />
+                )}
+              </Form.Field>
+            ) : null}
 
-          {isIPOrigin && <ProxyTlsField required={protocol === 'https'} />}
+            {toWorkload ? (
+              <WorkloadServiceFields projectId={projectId} />
+            ) : (
+              <Form.Field
+                tooltip="Origin is the hostname or IP address where your service is running"
+                name="endpointHost"
+                label="Origin"
+                required>
+                <ProtocolEndpointInput onIPChange={setIsIPOrigin} onProtocolChange={setProtocol} />
+              </Form.Field>
+            )}
+          </div>
+
+          {!toWorkload && isIPOrigin && <ProxyTlsField required={protocol === 'https'} />}
         </div>
       </Form.Dialog>
     );

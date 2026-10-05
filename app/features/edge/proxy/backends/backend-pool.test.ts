@@ -104,6 +104,35 @@ describe('toBackendRows', () => {
     expect(rows[0].workloadOwned).toBe(false);
   });
 
+  it('flags a deleted workload and drops the link to its page', () => {
+    const service = (workloadName: string) => ({
+      workloadName,
+      locations: [],
+      ports: {},
+      href: `/project/p/services/workloads/${workloadName}`,
+    });
+    const rows = toBackendRows(
+      [
+        toHttpProxyBackend({ networkService: { name: 'a-svc', port: 'http' } }),
+        toHttpProxyBackend({ networkService: { name: 'b-svc', port: 'http' } }),
+        blue,
+      ],
+      {
+        services: new Map([
+          ['a-svc', service('tester-a')],
+          ['b-svc', service('tester-b')],
+        ]),
+        missingWorkloads: new Set(['tester-b']),
+      }
+    );
+    expect(rows.map((row) => row.workloadMissing)).toEqual([false, true, false]);
+    expect(rows.map((row) => row.href)).toEqual([
+      '/project/p/services/workloads/tester-a',
+      undefined,
+      undefined,
+    ]);
+  });
+
   it('falls back to the port name when the service is unknown', () => {
     const rows = toBackendRows([
       toHttpProxyBackend({ networkService: { name: 'gone', port: 'http' } }),

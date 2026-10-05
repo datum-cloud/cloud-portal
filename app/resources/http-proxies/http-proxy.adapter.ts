@@ -770,6 +770,10 @@ export function toHttpProxyList(
   };
 }
 
+type CreateBackend =
+  | { endpoint: string; tls?: { hostname: string } }
+  | { networkService: { name: string; port: string } };
+
 /**
  * Transform CreateHttpProxyInput to API payload
  */
@@ -781,7 +785,7 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
     hostnames: string[];
     rules: Array<
       | {
-          backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+          backends: CreateBackend[];
           filters?: Array<{
             type: 'RequestHeaderModifier';
             requestHeaderModifier: { set: Array<{ name: string; value: string }> };
@@ -800,10 +804,12 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
     >;
   };
 } {
-  const backend: { endpoint: string; tls?: { hostname: string } } = {
-    endpoint: input.endpoint,
-    ...(input.tlsHostname && { tls: { hostname: input.tlsHostname } }),
-  };
+  const backend: CreateBackend = input.networkService
+    ? { networkService: input.networkService }
+    : {
+        endpoint: input.endpoint ?? '',
+        ...(input.tlsHostname && { tls: { hostname: input.tlsHostname } }),
+      };
 
   const annotations: Record<string, string> = {};
 
@@ -833,7 +839,7 @@ export function toCreateHttpProxyPayload(input: CreateHttpProxyInput): {
 
   const rules: Array<
     | {
-        backends: Array<{ endpoint: string; tls?: { hostname: string } }>;
+        backends: CreateBackend[];
         filters?: Array<{
           type: 'RequestHeaderModifier';
           requestHeaderModifier: { set: Array<{ name: string; value: string }> };

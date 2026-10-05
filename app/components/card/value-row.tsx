@@ -5,6 +5,7 @@ import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Link } from 'react-router';
 
 /**
  * List row for a hostname or origin. The value is the primary content and
@@ -14,12 +15,15 @@ import type { ReactNode } from 'react';
  */
 export function ValueRow({
   value,
+  href,
   status,
   action,
   onCopy,
   copied,
 }: {
   value: string;
+  /** Links the value, e.g. a workload backend to its workload's page. */
+  href?: string;
   status?: ReactNode;
   action?: ReactNode;
   onCopy?: () => void;
@@ -32,7 +36,13 @@ export function ValueRow({
         <div className="flex min-h-7 min-w-0 items-center">
           <Text as="div" ellipsis className="min-w-0 font-mono">
             <Tooltip message={value}>
-              <span>{value}</span>
+              {href ? (
+                <Link to={href} className="hover:underline">
+                  {value}
+                </Link>
+              ) : (
+                <span>{value}</span>
+              )}
             </Tooltip>
           </Text>
         </div>

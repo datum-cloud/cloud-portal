@@ -7,5 +7,6 @@ export {
 export {
   toComputeWorkloadPresence,
   useComputeWorkloadPresence,
+  useMissingComputeWorkloads,
   type ComputeWorkloadPresence,
 } from './compute-workload.queries';

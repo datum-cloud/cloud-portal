@@ -294,7 +294,10 @@ export type CreateHttpProxyInput = {
    * Shown as "Name" in the UI.
    */
   chosenName?: string;
-  endpoint: string;
+  /** Public origin URL. Ignored when `networkService` is set. */
+  endpoint?: string;
+  /** A compute workload's NetworkService and named port, in place of `endpoint`. */
+  networkService?: { name: string; port: string };
   hostnames?: string[];
   tlsHostname?: string;
   /** WAF mode for the TrafficProtectionPolicy (default Enforce) */
@@ -516,19 +519,13 @@ export const httpProxySchema = z
       .string({ error: 'Name is required' })
       .min(1, { message: 'Name is required' })
       .max(50, { message: 'Name must be less than 50 characters long.' }),
+    /** Where the first backend points: a public origin, or a compute workload's service. */
+    originType: z.enum(['endpoint', 'networkService']).default('endpoint'),
     protocol: z.enum(['http', 'https']).default('https'),
-    endpointHost: z
-      .string({ message: 'Origin is required' })
-      .trim()
-      .min(1, { message: 'Origin is required' })
-      .refine(isValidHostnamePort, {
-        message:
-          'Origin must be a valid hostname or IP address with optional port (e.g., api.example.com:8080)',
-      })
-      .refine(isFullyQualifiedHostOrIP, {
-        message:
-          'Origin must be a fully qualified domain with at least two segments separated by dots (e.g., api.example.com) or a valid IP address',
-      }),
+    // Checked in superRefine: only an endpoint origin needs one.
+    endpointHost: z.string().trim().optional(),
+    serviceName: z.string().optional(),
+    servicePort: z.string().optional(),
     tlsHostname: z.string().min(1).max(253).optional(),
     /**
      * Optional upstream Host header override.
@@ -566,8 +563,40 @@ export const httpProxySchema = z
   .and(httpProxyHostnameSchema)
   .and(nameSchema)
   .superRefine((data, ctx) => {
+    if (data.originType === 'networkService') {
+      if (!data.serviceName) {
+        ctx.addIssue({ code: 'custom', message: 'Choose a workload', path: ['serviceName'] });
+      } else if (!data.servicePort) {
+        ctx.addIssue({ code: 'custom', message: 'Choose a port', path: ['servicePort'] });
+      }
+      return;
+    }
+
+    if (!data.endpointHost) {
+      ctx.addIssue({ code: 'custom', message: 'Origin is required', path: ['endpointHost'] });
+      return;
+    }
+    if (!isValidHostnamePort(data.endpointHost)) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Origin must be a valid hostname or IP address with optional port (e.g., api.example.com:8080)',
+        path: ['endpointHost'],
+      });
+      return;
+    }
+    if (!isFullyQualifiedHostOrIP(data.endpointHost)) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Origin must be a fully qualified domain with at least two segments separated by dots (e.g., api.example.com) or a valid IP address',
+        path: ['endpointHost'],
+      });
+      return;
+    }
+
     // Require TLS hostname when endpoint is HTTPS with an IP address
-    if (data.endpointHost && data.protocol === 'https') {
+    if (data.protocol === 'https') {
       const parts = data.endpointHost.split(':');
       const hostname = parts[0];
       if (isIPAddress(hostname) && !data.tlsHostname) {
