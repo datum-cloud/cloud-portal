@@ -25,7 +25,7 @@ import {
 } from '@datum-cloud/datum-ui/card';
 import { Icon, SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
-import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-editor';
+import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-content';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';

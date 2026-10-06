@@ -2,7 +2,7 @@ import { NoteMeta } from './note-meta';
 import type { Note } from '@/resources/notes/note.schema';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-editor';
+import { RichTextContent } from '@datum-cloud/datum-ui/rich-text-content';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { PencilIcon, Trash2Icon } from 'lucide-react';
 

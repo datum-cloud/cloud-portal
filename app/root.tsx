@@ -14,6 +14,7 @@ import { env } from '@/utils/env/env.server';
 import { isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
+import CanelaFont from '@datum-cloud/datum-ui/fonts/CanelaText-Regular.ttf?url';
 import { ConformAdapter } from '@datum-cloud/datum-ui/form/adapters/conform';
 import { configureProgress, startProgress, stopProgress } from '@datum-cloud/datum-ui/nprogress';
 import { ThemeProvider, ThemeScript, useTheme } from '@datum-cloud/datum-ui/theme';
@@ -61,7 +62,17 @@ export const meta: MetaFunction<typeof loader> = ({ loaderData, location }) => {
 };
 
 export const links: LinksFunction = () => {
-  return [{ rel: 'stylesheet', href: RootCSS }];
+  return [
+    // Same file the datum-ui stylesheet loads, so the browser fetches it once.
+    {
+      rel: 'preload',
+      href: CanelaFont,
+      as: 'font',
+      type: 'font/ttf',
+      crossOrigin: 'anonymous',
+    },
+    { rel: 'stylesheet', href: RootCSS },
+  ];
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
