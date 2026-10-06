@@ -1,35 +1,21 @@
-import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
+import { ResourceActivityFeed, useProjectActivityClient } from '@/features/activity';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
-import { QuickSetupCard } from '@/features/edge/domain/overview/quick-setup-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
-import { NotesSection } from '@/features/notes';
+import { NotesList } from '@/features/notes';
+import { ResourceColumnFrame } from '@/features/project/home/resource-column';
 import { useGuardedRouteData, useResourcePermissions } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import { type DnsZone } from '@/resources/dns-zones';
 import { type Domain, useDomain, useDomainWatch } from '@/resources/domains';
-import { dataWithToast } from '@/utils/cookies';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { Col, Row } from '@datum-cloud/datum-ui/grid';
 import { toast } from '@datum-cloud/datum-ui/toast';
+import { Text } from '@datum-cloud/datum-ui/typography';
 import { useMemo, useRef, useEffect } from 'react';
-import { LoaderFunctionArgs, data, useParams, useSearchParams } from 'react-router';
+import { useParams } from 'react-router';
 
 export const handle = {
   breadcrumb: () => <span>Overview</span>,
-};
-
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const url = new URL(request.url);
-  const cloudvalid = url.searchParams.get('cloudvalid') as string;
-
-  if (cloudvalid === 'success') {
-    return dataWithToast(null, {
-      title: 'DNS setup submitted',
-      description: 'Verification is scheduled and will run shortly.',
-    });
-  }
-
-  return data(null);
 };
 
 export default function DomainOverviewPage() {
@@ -38,7 +24,8 @@ export default function DomainOverviewPage() {
   );
   const dnsZone = companions.dnsZone;
   const { projectId } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+
+  const { client: activityClient, resourceLinkResolver } = useProjectActivityClient();
 
   const { canList: canViewNotes } = useResourcePermissions({
     resource: 'notes',
@@ -67,7 +54,7 @@ export default function DomainOverviewPage() {
     () => transformControlPlaneStatus(effectiveDomain?.status),
     [effectiveDomain]
   );
-  const isPending = useMemo(() => status.status === ControlPlaneStatus.Pending, [status]);
+  const isVerified = status.status === ControlPlaneStatus.Success;
 
   // Handle status transitions and show success toast
   useEffect(() => {
@@ -89,45 +76,50 @@ export default function DomainOverviewPage() {
     previousStatusRef.current = currentStatus;
   }, [status.status, effectiveDomain?.name]);
 
-  useEffect(() => {
-    if (searchParams.get('cloudvalid') === 'success') {
-      setSearchParams({});
-    }
-  }, [searchParams]);
-
   return (
     <Row gutter={[24, 32]}>
+      {!isVerified && (
+        <Col span={24}>
+          <DomainVerificationCard domain={effectiveDomain} projectId={projectId ?? ''} />
+        </Col>
+      )}
       <Col span={24}>
         <DomainGeneralCard
           domain={effectiveDomain}
           dnsZone={dnsZone ?? undefined}
           projectId={projectId}
+          notes={
+            canViewNotes ? (
+              <NotesList
+                projectId={projectId ?? ''}
+                subjectRef={{
+                  apiGroup: 'networking.datumapis.com',
+                  kind: 'Domain',
+                  name: effectiveDomain?.name ?? '',
+                }}
+              />
+            ) : (
+              <Text size="sm" textColor="muted">
+                You don&apos;t have permission to view notes for this domain.
+              </Text>
+            )
+          }
         />
       </Col>
-      {isPending && (
-        <>
-          <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
-            <QuickSetupCard domain={effectiveDomain} projectId={projectId ?? ''} />
-          </Col>
-          <Col span={24} xs={{ span: 24 }} sm={{ span: 24 }} md={{ span: 24 }} lg={{ span: 12 }}>
-            <DomainVerificationCard domain={effectiveDomain} />
-          </Col>
-        </>
-      )}
       <Col span={24}>
-        <div className="relative">
-          <NotesSection
-            projectId={projectId ?? ''}
-            subjectRef={{
-              apiGroup: 'networking.datumapis.com',
-              kind: 'Domain',
-              name: effectiveDomain?.name ?? '',
-            }}
+        <ResourceColumnFrame title="Activity" bodyClassName="h-auto">
+          <ResourceActivityFeed
+            client={activityClient}
+            resourceLinkResolver={resourceLinkResolver}
+            resourceKinds={['Domain']}
+            resourceName={effectiveDomain?.name}
+            compact={false}
+            variant="digest"
+            pageSize={10}
+            urlSync={false}
+            feedProps={{ showFilters: false }}
           />
-          {!canViewNotes && (
-            <RestrictedOverlay message="You don't have permission to view notes for this domain" />
-          )}
-        </div>
+        </ResourceColumnFrame>
       </Col>
     </Row>
   );

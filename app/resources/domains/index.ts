@@ -30,6 +30,7 @@ export {
   toCreateDomainPayload,
   toUpdateDomainPayload,
   toRefreshRegistrationPayload,
+  toRefreshVerificationPayload,
 } from './domain.adapter';
 
 // Service exports
@@ -49,6 +50,7 @@ export {
   useDeleteDomain,
   useBulkCreateDomains,
   useRefreshDomainRegistration,
+  useRefreshDomainVerification,
 } from './domain.queries';
 
 // Watch hook exports

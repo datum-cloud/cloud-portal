@@ -3,7 +3,6 @@ export const AnalyticsAction = {
   AddProxy: 'add_proxy',
   CreateExportPolicy: 'create_export_policy',
   AddDomain: 'add_domain',
-  VerifyDomain: 'verify_domain',
   TransferDnsToDatum: 'transfer_dns_to_datum',
   AddDnsZone: 'add_dns_zone',
   AddSecret: 'add_secret',

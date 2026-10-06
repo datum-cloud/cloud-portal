@@ -3,6 +3,7 @@ import {
   toDomain,
   toDomainList,
   toRefreshRegistrationPayload,
+  toRefreshVerificationPayload,
   toUpdateDomainPayload,
 } from './domain.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
@@ -21,6 +22,7 @@ describe('toDomain', () => {
       spec: {
         domainName: 'example.com',
         desiredRegistrationRefreshAttempt: '2024-05-01T00:00:00Z',
+        desiredVerificationRefreshAttempt: '2024-05-02T00:00:00Z',
       },
       status: { phase: 'Active' },
     };
@@ -33,6 +35,7 @@ describe('toDomain', () => {
     expect(domain.resourceVersion).toBe('7');
     expect(domain.domainName).toBe('example.com');
     expect(domain.desiredRegistrationRefreshAttempt).toBe('2024-05-01T00:00:00Z');
+    expect(domain.desiredVerificationRefreshAttempt).toBe('2024-05-02T00:00:00Z');
     expect(domain.status).toEqual({ phase: 'Active' });
     expect(domain.createdAt).toBeInstanceOf(Date);
     expect((domain.createdAt as Date).toISOString()).toBe('2024-01-01T00:00:00.000Z');
@@ -46,6 +49,7 @@ describe('toDomain', () => {
     expect(domain.namespace).toBe('');
     expect(domain.domainName).toBe('');
     expect(domain.desiredRegistrationRefreshAttempt).toBe('');
+    expect(domain.desiredVerificationRefreshAttempt).toBe('');
     expect(domain.description).toBeUndefined();
     expect(domain.createdAt).toBeInstanceOf(Date);
   });
@@ -109,5 +113,17 @@ describe('toRefreshRegistrationPayload', () => {
     expect(payload.spec.desiredRegistrationRefreshAttempt).toMatch(
       /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
     );
+  });
+});
+
+describe('toRefreshVerificationPayload', () => {
+  it('stamps an ISO timestamp for the desired verification attempt', () => {
+    const payload = toRefreshVerificationPayload();
+
+    expect(payload.kind).toBe('Domain');
+    expect(payload.spec.desiredVerificationRefreshAttempt).toMatch(
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/
+    );
+    expect(payload.spec).not.toHaveProperty('desiredRegistrationRefreshAttempt');
   });
 });

@@ -63,6 +63,7 @@ export function toPendingDomain(input: CreateDomainInput, pendingName: string): 
     createdAt: new Date(),
     domainName: input.domainName,
     desiredRegistrationRefreshAttempt: '',
+    desiredVerificationRefreshAttempt: '',
   };
 }
 
@@ -154,6 +155,26 @@ export function useRefreshDomainRegistration(
       queryClient.setQueryData(domainKeys.detail(projectId, name), data);
       // Invalidate DNS zones since they depend on domain nameserver status
       queryClient.invalidateQueries({ queryKey: dnsZoneKeys.lists() });
+
+      options?.onSuccess?.(...args);
+    },
+  });
+}
+
+export function useRefreshDomainVerification(
+  projectId: string,
+  options?: UseMutationOptions<Domain, Error, string>
+) {
+  const queryClient = useQueryClient();
+
+  return useGuardedMutation({
+    operation: 'write',
+    mutationFn: (name: string) => createDomainService().refreshVerification(projectId, name),
+    ...options,
+    onSuccess: (...args) => {
+      const [data, name] = args;
+      // Update detail cache with server response - Watch handles list sync
+      queryClient.setQueryData(domainKeys.detail(projectId, name), data);
 
       options?.onSuccess?.(...args);
     },

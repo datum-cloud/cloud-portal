@@ -179,7 +179,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
           className="flex-1 sm:flex-initial"
           onClick={handleManageDnsZone}>
           <Icon icon={GlobeIcon} size={14} />
-          Manage DNS Zone
+          {dnsZone ? 'Manage DNS Zone' : 'Set up DNS Zone'}
         </Button>
       )}
       {canDelete && (
@@ -189,6 +189,7 @@ export function DomainHeaderActions({ projectId, domain, dnsZone }: DomainHeader
           size="small"
           loading={deleteDomainMutation.isPending}
           onClick={handleDeleteDomain}
+          data-e2e="delete-domain-button"
           aria-label="Delete domain">
           <Icon icon={TrashIcon} size={14} />
           <span className="hidden sm:inline">Delete</span>

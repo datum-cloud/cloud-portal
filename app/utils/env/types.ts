@@ -58,9 +58,6 @@ export interface ServerEnv {
 
   // Required: Feature Services
   prometheusUrl: string;
-  cloudvalidApiUrl: string;
-  cloudvalidApiKey: string;
-  cloudvalidTemplateId: string;
 
   // Optional: Observability
   otelExporterEndpoint?: string;

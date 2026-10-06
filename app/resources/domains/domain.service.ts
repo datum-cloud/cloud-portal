@@ -4,6 +4,7 @@ import {
   toCreateDomainPayload,
   toUpdateDomainPayload,
   toRefreshRegistrationPayload,
+  toRefreshVerificationPayload,
 } from './domain.adapter';
 import type { Domain, CreateDomainInput, UpdateDomainInput } from './domain.schema';
 import {
@@ -39,6 +40,53 @@ export const domainKeys = {
 export const DOMAIN_SYNC_KIND = 'domains';
 
 const SERVICE_NAME = 'DomainService';
+
+const REFRESH_FAILED_MESSAGE = {
+  refreshRegistration: 'Failed to refresh domain registration',
+  refreshVerification: 'Failed to refresh domain verification',
+} as const;
+
+/** Merge-patch a refresh timestamp onto the Domain spec. */
+async function patchRefresh(
+  operation: 'refreshRegistration' | 'refreshVerification',
+  projectId: string,
+  name: string,
+  payload:
+    | ReturnType<typeof toRefreshRegistrationPayload>
+    | ReturnType<typeof toRefreshVerificationPayload>,
+  options?: ServiceOptions
+): Promise<Domain> {
+  const startTime = Date.now();
+
+  try {
+    const response = await patchNetworkingDatumapisComV1AlphaNamespacedDomain({
+      baseURL: getProjectScopedBase(projectId),
+      path: { namespace: 'default', name },
+      body: payload,
+      query: {
+        ...(options?.dryRun ? { dryRun: 'All' } : {}),
+        fieldManager: 'datum-cloud-portal',
+      },
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+    });
+
+    if (!response.data) {
+      throw new Error(REFRESH_FAILED_MESSAGE[operation]);
+    }
+
+    const domain = toDomain(response.data);
+
+    logger.service(SERVICE_NAME, operation, {
+      input: { projectId, name },
+      duration: Date.now() - startTime,
+    });
+
+    return domain;
+  } catch (error) {
+    logger.error(`${SERVICE_NAME}.${operation} failed`, error as Error);
+    throw mapApiError(error);
+  }
+}
 
 export function createDomainService() {
   return {
@@ -268,43 +316,27 @@ export function createDomainService() {
     /**
      * Refresh domain registration
      */
-    async refreshRegistration(
-      projectId: string,
-      name: string,
-      options?: ServiceOptions
-    ): Promise<Domain> {
-      const startTime = Date.now();
+    refreshRegistration(projectId: string, name: string, options?: ServiceOptions) {
+      return patchRefresh(
+        'refreshRegistration',
+        projectId,
+        name,
+        toRefreshRegistrationPayload(),
+        options
+      );
+    },
 
-      try {
-        const payload = toRefreshRegistrationPayload();
-
-        const response = await patchNetworkingDatumapisComV1AlphaNamespacedDomain({
-          baseURL: getProjectScopedBase(projectId),
-          path: { namespace: 'default', name },
-          body: payload,
-          query: {
-            ...(options?.dryRun ? { dryRun: 'All' } : {}),
-            fieldManager: 'datum-cloud-portal',
-          },
-          headers: { 'Content-Type': 'application/merge-patch+json' },
-        });
-
-        if (!response.data) {
-          throw new Error('Failed to refresh domain registration');
-        }
-
-        const domain = toDomain(response.data);
-
-        logger.service(SERVICE_NAME, 'refreshRegistration', {
-          input: { projectId, name },
-          duration: Date.now() - startTime,
-        });
-
-        return domain;
-      } catch (error) {
-        logger.error(`${SERVICE_NAME}.refreshRegistration failed`, error as Error);
-        throw mapApiError(error);
-      }
+    /**
+     * Re-check domain ownership now instead of at the next scheduled attempt
+     */
+    refreshVerification(projectId: string, name: string, options?: ServiceOptions) {
+      return patchRefresh(
+        'refreshVerification',
+        projectId,
+        name,
+        toRefreshVerificationPayload(),
+        options
+      );
     },
   };
 }

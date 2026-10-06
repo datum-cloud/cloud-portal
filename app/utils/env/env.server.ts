@@ -115,11 +115,6 @@ const serverSchema = z.object({
   // Required: Feature Services
   // ─────────────────────────────────────────────────────────
   PROMETHEUS_URL: urlSchema('http://localhost:9090'),
-  CLOUDVALID_API_URL: urlSchema('http://localhost:8081'),
-  CLOUDVALID_API_KEY: isTestEnv ? z.string().default('test-cloudvalid-api-key') : z.string().min(1),
-  CLOUDVALID_TEMPLATE_ID: isTestEnv
-    ? z.string().default('test-cloudvalid-template-id')
-    : z.string().min(1),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
@@ -282,9 +277,6 @@ export const env: Env = {
     sessionSecret: data.SESSION_SECRET,
     authOidcClientId: data.AUTH_OIDC_CLIENT_ID,
     prometheusUrl: data.PROMETHEUS_URL,
-    cloudvalidApiUrl: data.CLOUDVALID_API_URL,
-    cloudvalidApiKey: data.CLOUDVALID_API_KEY,
-    cloudvalidTemplateId: data.CLOUDVALID_TEMPLATE_ID,
     grafanaUrl: data.GRAFANA_URL,
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
     websiteHelpscoutSecretKey: data.WEBSITE_HELPSCOUT_SECRET_KEY,
