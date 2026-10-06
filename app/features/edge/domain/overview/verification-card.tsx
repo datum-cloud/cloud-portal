@@ -224,9 +224,8 @@ export const DomainVerificationCard = ({
             <AlertDescription>{invalidDomain.message}</AlertDescription>
           </Alert>
         )}
-        {/* TXT values are short; the HTTP URL is long, so it gets the wider column */}
         <div className="flex flex-col gap-5 sm:flex-row sm:items-stretch">
-          <div className="flex w-full min-w-0 flex-col gap-5 sm:flex-[2]">
+          <div className="flex w-full min-w-0 flex-col gap-5 sm:flex-1">
             <div className="flex flex-col gap-1">
               <Text as="p" weight="medium">
                 Add a TXT DNS Record
@@ -245,7 +244,7 @@ export const DomainVerificationCard = ({
             </Text>
             <div className="bg-border h-px flex-1 sm:h-auto sm:w-px" />
           </div>
-          <div className="flex w-full min-w-0 flex-col gap-5 sm:flex-[3]">
+          <div className="flex w-full min-w-0 flex-col gap-5 sm:flex-1">
             <div className="flex flex-col gap-1">
               <Text as="p" weight="medium">
                 Create a HTTP Token File
