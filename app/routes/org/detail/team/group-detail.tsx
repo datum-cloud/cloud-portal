@@ -22,6 +22,7 @@ import {
 } from '@/resources/policy-bindings';
 import { createProjectService, type Project } from '@/resources/projects';
 import { createRoleService, type Role } from '@/resources/roles';
+import { DATUM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { BadRequestError, NotFoundError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -73,7 +74,7 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
   }
 
   const [roles, policyBindings, projectsList] = await Promise.all([
-    createRoleService().list('datum-cloud'),
+    createRoleService().list(DATUM_ROLE_NAMESPACE),
     createPolicyBindingService()
       .list(orgId)
       .catch(() => [] as PolicyBinding[]),

@@ -1,4 +1,5 @@
 import { toRole, toRoleList } from './role.adapter';
+import { DATUM_ROLE_NAMESPACE } from './role.constants';
 import type { Role } from './role.schema';
 import {
   listIamMiloapisComV1Alpha1NamespacedRole,
@@ -27,7 +28,10 @@ export function createRoleService() {
     /**
      * List all roles in a namespace (defaults to datum-cloud)
      */
-    async list(namespace: string = 'datum-cloud', _options?: ServiceOptions): Promise<Role[]> {
+    async list(
+      namespace: string = DATUM_ROLE_NAMESPACE,
+      _options?: ServiceOptions
+    ): Promise<Role[]> {
       const startTime = Date.now();
 
       try {
@@ -66,7 +70,7 @@ export function createRoleService() {
      */
     async get(
       name: string,
-      namespace: string = 'datum-cloud',
+      namespace: string = DATUM_ROLE_NAMESPACE,
       _options?: ServiceOptions
     ): Promise<Role> {
       const startTime = Date.now();

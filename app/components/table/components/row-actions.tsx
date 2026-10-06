@@ -1,7 +1,11 @@
+import { ROW_SYNC_COPY } from '../row-sync-copy';
 import type { RowAction, RowData } from '../types';
 import { InlineActions } from './inline-actions';
+import { isTableRowLocked, useRowSyncKey } from './row-sync-context';
+import { useRowSyncState } from '@/modules/watch/use-row-sync-state';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import { MoreActions } from '@datum-cloud/datum-ui/more-actions';
+import { useId, type ReactNode } from 'react';
 
 const MAX_INLINE_ACTIONS_DEFAULT = 3;
 
@@ -39,6 +43,31 @@ function toActionItems<TData extends RowData>(actions: RowAction<TData>[]): Acti
   });
 }
 
+// When locked, the reason is sr-only text in the cell: the menu trigger takes no aria-describedby.
+function ActionsCell({
+  className,
+  lockedReasonId,
+  children,
+}: {
+  className: string;
+  lockedReasonId: string | undefined;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      data-slot="dt-row-actions"
+      className={className}
+      title={lockedReasonId ? ROW_SYNC_COPY.locked : undefined}>
+      {children}
+      {lockedReasonId && (
+        <span id={lockedReasonId} className="sr-only">
+          {ROW_SYNC_COPY.locked}
+        </span>
+      )}
+    </div>
+  );
+}
+
 /**
  * Row-actions renderer — ported from the fork's `DataTableRowActions`.
  * Splits actions into `display: 'inline'` buttons and dropdown entries,
@@ -56,6 +85,7 @@ function toActionItems<TData extends RowData>(actions: RowAction<TData>[]): Acti
  * Gates:
  * - `hideRowActions(row)` — suppresses the entire cell for that row.
  * - `disableRowActions(row)` — disables every action (inline AND dropdown).
+ * - A sync-locked row (pending, removing) disables every action.
  */
 export function RowActions<TData extends RowData>({
   row,
@@ -70,9 +100,15 @@ export function RowActions<TData extends RowData>({
   disableRowActions?: (row: TData) => boolean;
   maxInlineActions?: number;
 }) {
+  const syncKey = useRowSyncKey(row);
+  const syncState = useRowSyncState(syncKey);
+  const reasonId = useId();
+
   if (hideRowActions?.(row)) return null;
 
-  const isDisabled = disableRowActions?.(row) ?? false;
+  const syncLocked = isTableRowLocked(syncKey, syncState);
+  const lockedReasonId = syncLocked ? reasonId : undefined;
+  const isDisabled = syncLocked || (disableRowActions?.(row) ?? false);
   // Filter hidden actions before bucketing so that `hidden` gates the
   // mutual-exclusion pattern (e.g. "resend" vs "cancel" on different
   // invitation states) without tripping the inline safety cap.
@@ -87,7 +123,7 @@ export function RowActions<TData extends RowData>({
       );
     }
     return (
-      <div data-slot="dt-row-actions" className="inline-flex">
+      <ActionsCell className="inline-flex" lockedReasonId={lockedReasonId}>
         <MoreActions
           row={row}
           // Use `visible`, not `actions`: hidden gates must still suppress
@@ -98,13 +134,13 @@ export function RowActions<TData extends RowData>({
           className="size-6 border"
           iconClassName="size-3.5"
         />
-      </div>
+      </ActionsCell>
     );
   }
 
   if (inlineActions.length === 0) {
     return (
-      <div data-slot="dt-row-actions" className="inline-flex">
+      <ActionsCell className="inline-flex" lockedReasonId={lockedReasonId}>
         <MoreActions
           row={row}
           actions={toActionItems(dropdownActions)}
@@ -112,21 +148,31 @@ export function RowActions<TData extends RowData>({
           className="size-6 border"
           iconClassName="size-3.5"
         />
-      </div>
+      </ActionsCell>
     );
   }
 
   if (dropdownActions.length === 0) {
     return (
-      <div data-slot="dt-row-actions" className="flex justify-end">
-        <InlineActions<TData> row={row} actions={inlineActions} disabled={isDisabled} />
-      </div>
+      <ActionsCell className="flex justify-end" lockedReasonId={lockedReasonId}>
+        <InlineActions<TData>
+          row={row}
+          actions={inlineActions}
+          disabled={isDisabled}
+          describedBy={lockedReasonId}
+        />
+      </ActionsCell>
     );
   }
 
   return (
-    <div data-slot="dt-row-actions" className="flex items-center justify-end gap-2">
-      <InlineActions<TData> row={row} actions={inlineActions} disabled={isDisabled} />
+    <ActionsCell className="flex items-center justify-end gap-2" lockedReasonId={lockedReasonId}>
+      <InlineActions<TData>
+        row={row}
+        actions={inlineActions}
+        disabled={isDisabled}
+        describedBy={lockedReasonId}
+      />
       <MoreActions
         row={row}
         actions={toActionItems(dropdownActions)}
@@ -134,6 +180,6 @@ export function RowActions<TData extends RowData>({
         className="size-6 border"
         iconClassName="size-3.5"
       />
-    </div>
+    </ActionsCell>
   );
 }

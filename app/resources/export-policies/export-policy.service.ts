@@ -28,6 +28,9 @@ import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
+/** Sync-state kind of export policy rows: the list's row keys, its watch, and its mutations. */
+export const EXPORT_POLICY_SYNC_KIND = 'export-policies';
+
 export const exportPolicyKeys = {
   all: ['export-policies'] as const,
   lists: () => [...exportPolicyKeys.all, 'list'] as const,

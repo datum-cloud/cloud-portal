@@ -2,15 +2,17 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { DateTime } from '@/components/date-time';
 import { getOsLabel, OsIcon } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
-import { type ColumnDef, Table } from '@/components/table';
+import { type ColumnDef, RowSyncName, Table } from '@/components/table';
 import { ConnectorDownloadCard } from '@/features/connectors/connector-download-card';
 import { ConnectorSparkline } from '@/features/edge/proxy/metrics/connector-sparkline';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type Connector,
+  CONNECTOR_SYNC_KIND,
   connectorKeys,
   createConnectorService,
   useConnectors,
@@ -127,13 +129,11 @@ export default route.Page(({ data: loaderData }) => {
   useHttpProxiesWatch(projectId, { enabled: canViewProxies });
 
   const { data: connectorsData = initialConnectors } = useConnectors(projectId, {
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
     initialData: initialConnectors,
   });
 
   const { data: proxies = [] } = useHttpProxies(projectId, {
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
     enabled: canViewProxies,
   });
@@ -173,7 +173,11 @@ export default route.Page(({ data: loaderData }) => {
         accessorKey: 'name',
         meta: { className: 'min-w-32' },
         cell: ({ row }) => {
-          return <span className="font-medium">{row.original.name}</span>;
+          return (
+            <RowSyncName syncKey={syncKey(CONNECTOR_SYNC_KIND, projectId, row.original.name)}>
+              <span className="font-medium">{row.original.name}</span>
+            </RowSyncName>
+          );
         },
       },
 
@@ -366,6 +370,7 @@ export default route.Page(({ data: loaderData }) => {
     <Table.Client
       columns={columns}
       data={tableData}
+      getRowSyncKey={(row) => syncKey(CONNECTOR_SYNC_KIND, projectId, row.name)}
       title="Connectors"
       search="Search"
       empty="no connectors found"

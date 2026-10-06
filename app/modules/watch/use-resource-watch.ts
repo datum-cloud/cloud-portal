@@ -1,16 +1,93 @@
 // app/modules/watch/use-resource-watch.ts
-import { watchManager } from './watch.manager';
-import type { WatchEvent, UseResourceWatchOptions } from './watch.types';
-import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useRef } from 'react';
+import { applyWatchEvent, type WatchCacheConfig } from './watch-cache-handler';
+import { useWatchManager } from './watch.context';
+import type { WatchEvent, UseResourceWatchOptions, WatchOptions } from './watch.types';
+import { addBreadcrumb } from '@/modules/sentry/capture';
+import { hashKey, useQueryClient, type QueryClient, type QueryKey } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 
 // Default configuration values
 const DEFAULT_DEBOUNCE_MS = 300;
-const DEFAULT_THROTTLE_MS = 1000; // Reduced from 5000 for better responsiveness
-const DEFAULT_INITIAL_SYNC_PERIOD_MS = 2000;
+const DEFAULT_THROTTLE_MS = 1000;
+
+// Watchers are ref-counted per query key: the last one to stop marks the key unwatched.
+const watchedKeys = new WeakMap<QueryClient, Map<string, number>>();
+
+function watchCounts(qc: QueryClient): Map<string, number> {
+  let counts = watchedKeys.get(qc);
+  if (!counts) {
+    counts = new Map();
+    watchedKeys.set(qc, counts);
+  }
+  return counts;
+}
+
+/** The returned release returns true when it was the last watcher. */
+function retainWatchedKey(qc: QueryClient, queryKey: QueryKey): () => boolean {
+  const counts = watchCounts(qc);
+  const hash = hashKey(queryKey);
+  counts.set(hash, (counts.get(hash) ?? 0) + 1);
+  return () => {
+    const left = (counts.get(hash) ?? 1) - 1;
+    if (left > 0) {
+      counts.set(hash, left);
+      return false;
+    }
+    counts.delete(hash);
+    return true;
+  };
+}
+
+/** A watched query is fresh only while it is watched. */
+function markUnwatched(qc: QueryClient, queryKey: QueryKey, exact: boolean): void {
+  const counts = watchCounts(qc);
+  void qc.invalidateQueries({
+    queryKey,
+    exact,
+    refetchType: 'none',
+    predicate: (query) => !counts.has(query.queryHash),
+  });
+}
+
+/** Trailing-edge, so the last event of a burst is always followed by an invalidate. */
+function createInvalidateThrottle(
+  qc: QueryClient,
+  queryKey: QueryKey,
+  timings: () => { debounceMs: number; throttleMs: number }
+): { request(): void; cancel(): void } {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let lastInvalidateAt = 0;
+  return {
+    request() {
+      if (timer) return;
+      const { debounceMs, throttleMs } = timings();
+      const wait = Math.max(debounceMs, throttleMs - (Date.now() - lastInvalidateAt));
+      timer = setTimeout(() => {
+        timer = null;
+        lastInvalidateAt = Date.now();
+        void qc.invalidateQueries({ queryKey });
+      }, wait);
+    },
+    cancel() {
+      if (timer) clearTimeout(timer);
+      timer = null;
+    },
+  };
+}
+
+function toTypedEvent<T>(event: WatchEvent, transform?: (item: unknown) => T): WatchEvent<T> {
+  const isObjectEvent =
+    event.type === 'ADDED' || event.type === 'MODIFIED' || event.type === 'DELETED';
+  return {
+    type: event.type,
+    object: isObjectEvent && transform ? transform(event.object) : (event.object as T),
+  };
+}
 
 /**
  * Hook to subscribe to K8s Watch API and update React Query cache.
+ *
+ * A RESYNC or ERROR refetches even when `onEvent` writes the cache itself.
  *
  * @example
  * ```tsx
@@ -20,6 +97,7 @@ const DEFAULT_INITIAL_SYNC_PERIOD_MS = 2000;
  *   namespace: projectId,
  *   queryKey: dnsZoneKeys.list(projectId),
  *   transform: toDnsZone,
+ *   getItemKey: (zone) => zone.name,
  * });
  *
  * // Watch a single resource
@@ -33,250 +111,98 @@ const DEFAULT_INITIAL_SYNC_PERIOD_MS = 2000;
  * ```
  */
 export function useResourceWatch<T>({
-  resourceType,
-  projectId,
-  namespace,
-  name,
   queryKey,
   enabled = true,
   transform,
   onEvent,
   throttleMs = DEFAULT_THROTTLE_MS,
   debounceMs = DEFAULT_DEBOUNCE_MS,
-  skipInitialSync = true,
   getItemKey,
+  getMeta,
   updateListCache,
   updateSingleCache,
   applyCacheUpdates = true,
+  getMirroredKeys,
+  syncKind,
+  syncScope,
   ...watchOptions
 }: UseResourceWatchOptions<T>) {
   const queryClient = useQueryClient();
-  const transformRef = useRef(transform);
-  const onEventRef = useRef(onEvent);
-  const queryKeyRef = useRef(queryKey);
-  const getItemKeyRef = useRef(getItemKey);
-  const updateListCacheRef = useRef(updateListCache);
-  const updateSingleCacheRef = useRef(updateSingleCache);
-  const applyCacheUpdatesRef = useRef(applyCacheUpdates);
-  const invalidateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const subscriptionStartTimeRef = useRef<number>(0);
-  const lastRefetchTimeRef = useRef<number>(0);
+  const manager = useWatchManager();
 
-  // Store config in refs to avoid recreating callbacks
-  const throttleMsRef = useRef(throttleMs);
-  const debounceMsRef = useRef(debounceMs);
-  const skipInitialSyncRef = useRef(skipInitialSync);
+  const current = {
+    watchOptions: watchOptions as WatchOptions,
+    queryKey,
+    transform,
+    onEvent,
+    throttleMs,
+    debounceMs,
+    getItemKey,
+    getMeta,
+    updateListCache,
+    updateSingleCache,
+    applyCacheUpdates,
+    getMirroredKeys,
+    syncKind,
+    syncScope,
+  };
+  const latest = useRef(current);
+  latest.current = current;
 
-  // Keep refs updated without triggering effect
-  transformRef.current = transform;
-  onEventRef.current = onEvent;
-  queryKeyRef.current = queryKey;
-  getItemKeyRef.current = getItemKey;
-  updateListCacheRef.current = updateListCache;
-  updateSingleCacheRef.current = updateSingleCache;
-  applyCacheUpdatesRef.current = applyCacheUpdates;
-  throttleMsRef.current = throttleMs;
-  debounceMsRef.current = debounceMs;
-  skipInitialSyncRef.current = skipInitialSync;
-
-  // Check if we're in the initial sync period (skip ADDED events)
-  const isInInitialSyncPeriod = useCallback(() => {
-    if (!skipInitialSyncRef.current) return false;
-    return Date.now() - subscriptionStartTimeRef.current < DEFAULT_INITIAL_SYNC_PERIOD_MS;
-  }, []);
-
-  // Debounced + throttled invalidation for list queries
-  // Debounce: batch rapid events together
-  // Throttle: prevent refetching more than once per throttleMs
-  // Uses refs to avoid recreating callback and prevent effect re-runs
-  const debouncedInvalidate = useCallback(() => {
-    if (invalidateTimeoutRef.current) {
-      clearTimeout(invalidateTimeoutRef.current);
-    }
-    invalidateTimeoutRef.current = setTimeout(() => {
-      const now = Date.now();
-      const timeSinceLastRefetch = now - lastRefetchTimeRef.current;
-
-      // Skip if we refetched recently (throttle)
-      if (timeSinceLastRefetch < throttleMsRef.current) {
-        invalidateTimeoutRef.current = null;
-        return;
-      }
-
-      lastRefetchTimeRef.current = now;
-      queryClient.invalidateQueries({ queryKey: queryKeyRef.current });
-      invalidateTimeoutRef.current = null;
-    }, debounceMsRef.current);
-  }, [queryClient]); // Only depends on queryClient, uses refs for config
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (invalidateTimeoutRef.current) {
-        clearTimeout(invalidateTimeoutRef.current);
-      }
-    };
-  }, []);
+  const channelKey = manager.buildChannelKey(watchOptions as WatchOptions);
+  const queryKeyHash = hashKey(queryKey);
 
   useEffect(() => {
     if (!enabled) return;
 
-    // Track when subscription starts to skip initial sync ADDED events
-    subscriptionStartTimeRef.current = Date.now();
+    // Pin the key for this subscription: a late event from this channel must
+    // never write into the key of the channel that replaces it.
+    const effectQueryKey = latest.current.queryKey;
+    const isDetail = !!latest.current.watchOptions.name;
+    const release = retainWatchedKey(queryClient, effectQueryKey);
+    const throttle = createInvalidateThrottle(queryClient, effectQueryKey, () => latest.current);
+    let active = true;
 
-    const unsubscribe = watchManager.subscribe(
-      { resourceType, projectId, namespace, name, ...watchOptions },
-      (event: WatchEvent) => {
-        // Transform the event object if transform function provided
-        const transformedObject = transformRef.current
-          ? transformRef.current(event.object)
-          : (event.object as T);
+    const handleEvent = (event: WatchEvent) => {
+      if (!active) return;
+      const options = latest.current;
+      const typedEvent = toTypedEvent(event, options.transform);
+      const resyncs = event.type === 'RESYNC' || event.type === 'ERROR';
 
-        const transformedEvent: WatchEvent<T> = {
-          type: event.type,
-          object: transformedObject,
-        };
-
-        // Call custom event handler if provided
-        onEventRef.current?.(transformedEvent);
-
-        if (!applyCacheUpdatesRef.current) {
-          return;
-        }
-
-        // Update React Query cache based on event type
-        switch (event.type) {
-          case 'ADDED':
-            // Skip ADDED events during initial sync - cache is already hydrated
-            if (isInInitialSyncPeriod()) {
-              return;
-            }
-            if (name) {
-              // Single resource: update cache directly or use custom updater
-              if (updateSingleCacheRef.current) {
-                queryClient.setQueryData(queryKeyRef.current, (oldData: T | undefined) =>
-                  updateSingleCacheRef.current!(oldData, transformedEvent.object)
-                );
-              } else {
-                queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
-              }
-            } else if (getItemKeyRef.current) {
-              // List with key extractor: append/replace by key. Do not call
-              // updateListCache here — those callbacks are MODIFIED-only
-              // (find-and-replace) and would drop a brand-new item.
-              queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {
-                const itemKey = getItemKeyRef.current!(transformedEvent.object);
-                if (Array.isArray(oldData)) {
-                  const idx = oldData.findIndex(
-                    (item: T) => getItemKeyRef.current!(item) === itemKey
-                  );
-                  if (idx === -1) return [...oldData, transformedEvent.object];
-                  return oldData.map((item: T, index: number) =>
-                    index === idx ? transformedEvent.object : item
-                  );
-                }
-
-                if (oldData == null) return [transformedEvent.object];
-                return oldData;
-              });
-            } else {
-              // List without key extractor: fallback to invalidate
-              debouncedInvalidate();
-            }
-            break;
-
-          case 'MODIFIED':
-            if (name) {
-              // Single resource: update cache directly or use custom updater
-              if (updateSingleCacheRef.current) {
-                queryClient.setQueryData(queryKeyRef.current, (oldData: T | undefined) =>
-                  updateSingleCacheRef.current!(oldData, transformedEvent.object)
-                );
-              } else {
-                queryClient.setQueryData(queryKeyRef.current, transformedEvent.object);
-              }
-            } else if (getItemKeyRef.current) {
-              // List with key extractor: in-place update (no network call)
-              queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {
-                if (!oldData) return oldData;
-                const itemKey = getItemKeyRef.current!(transformedEvent.object);
-
-                if (updateListCacheRef.current) {
-                  return updateListCacheRef.current(oldData, transformedEvent.object);
-                }
-
-                // Default: plain array find-and-replace
-                if (Array.isArray(oldData)) {
-                  return oldData.map((item: T) =>
-                    getItemKeyRef.current!(item) === itemKey ? transformedEvent.object : item
-                  );
-                }
-
-                return oldData;
-              });
-            } else {
-              // List without key extractor: fallback to invalidate
-              debouncedInvalidate();
-            }
-            break;
-
-          case 'DELETED':
-            if (name) {
-              // Single resource: remove from cache
-              queryClient.removeQueries({ queryKey: queryKeyRef.current });
-            } else if (getItemKeyRef.current) {
-              // List with key extractor: remove in-place (no network call)
-              queryClient.setQueryData(queryKeyRef.current, (oldData: unknown) => {
-                if (!oldData) return oldData;
-                const itemKey = getItemKeyRef.current!(transformedEvent.object);
-
-                if (Array.isArray(oldData)) {
-                  return oldData.filter((item: T) => getItemKeyRef.current!(item) !== itemKey);
-                }
-
-                // Paginated { items: T[] } shape
-                if (
-                  typeof oldData === 'object' &&
-                  oldData !== null &&
-                  Array.isArray((oldData as { items?: unknown }).items)
-                ) {
-                  const list = oldData as { items: T[] };
-                  return {
-                    ...list,
-                    items: list.items.filter((item) => getItemKeyRef.current!(item) !== itemKey),
-                  };
-                }
-
-                return oldData;
-              });
-            } else {
-              // List without key extractor: fallback to invalidate
-              debouncedInvalidate();
-            }
-            break;
-
-          case 'ERROR':
-            console.error('[useResourceWatch] Watch error:', event.object);
-            break;
-
-          case 'BOOKMARK':
-            // Bookmark events are for resourceVersion tracking only
-            break;
-        }
+      if (event.type === 'ERROR') {
+        addBreadcrumb('warn', 'watch error, resyncing', 'watch', {
+          resourceType: options.watchOptions.resourceType,
+        });
       }
-    );
+      if (event.type !== 'RESYNC') options.onEvent?.(typedEvent);
+      // onEvent may own the writes, but only the scheduler refetches after a gap.
+      if (!options.applyCacheUpdates && !resyncs) return;
 
-    return unsubscribe;
-    // Note: queryKey is accessed via queryKeyRef to avoid effect re-runs
-    // debouncedInvalidate is stable (only depends on queryClient)
-  }, [
-    enabled,
-    resourceType,
-    projectId,
-    namespace,
-    name,
-    queryClient,
-    debouncedInvalidate,
-    isInInitialSyncPeriod,
-  ]);
+      const cfg: WatchCacheConfig<T> = {
+        queryKey: effectQueryKey,
+        isDetail,
+        getItemKey: options.getItemKey,
+        getMeta: options.getMeta,
+        updateListCache: options.updateListCache,
+        updateSingleCache: options.updateSingleCache,
+        mirroredKeys: options.getMirroredKeys,
+        syncKind: options.syncKind,
+        syncScope: options.syncScope,
+      };
+      if (applyWatchEvent(queryClient, cfg, typedEvent) === 'invalidate') throttle.request();
+    };
+
+    const unsubscribe = manager.subscribe(latest.current.watchOptions, handleEvent);
+
+    return () => {
+      active = false;
+      throttle.cancel();
+      unsubscribe();
+      if (!release()) return;
+      markUnwatched(queryClient, effectQueryKey, isDetail);
+      for (const key of latest.current.getMirroredKeys?.() ?? []) {
+        markUnwatched(queryClient, key, true);
+      }
+    };
+  }, [enabled, channelKey, queryKeyHash, queryClient, manager]);
 }

@@ -335,7 +335,6 @@ function AccountBillingAccountDetailPageInner() {
   const accountsQuery = useBillingAccountsForOrgs(orgIds, {
     initialData: [initialAccount],
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const bindingsQuery = useBillingAccountBindingsForOrgs(orgIds, {
@@ -346,17 +345,14 @@ function AccountBillingAccountDetailPageInner() {
   const paymentMethodsQuery = usePaymentMethods(orgId, {
     initialData: initialPaymentMethods,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const invoicesQuery = useInvoices(orgId, {
     initialData: initialInvoices,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const stripeConfigsQuery = useStripeProviderConfigs({
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 

@@ -1,12 +1,11 @@
 import type { Connector } from './connector.schema';
-import { createConnectorService, connectorKeys } from './connector.service';
+import { CONNECTOR_SYNC_KIND, createConnectorService, connectorKeys } from './connector.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
-  useQuery,
-  useQueryClient,
-  type UseQueryOptions,
-  type UseMutationOptions,
-} from '@tanstack/react-query';
+  defineResourceMutations,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
+import { useQuery, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 export function useConnectors(
   projectId: string,
@@ -33,22 +32,34 @@ export function useConnector(
   });
 }
 
+/** Connectors are watched: mutations write the list and never invalidate it. */
+export function connectorMutations(projectId: string) {
+  return defineResourceMutations<Connector>({
+    kind: CONNECTOR_SYNC_KIND,
+    scope: projectId,
+    keys: {
+      lists: connectorKeys.list(projectId),
+      detail: (name) => connectorKeys.detail(projectId, name),
+    },
+    getName: (connector) => connector.name,
+    getMeta: (connector) => ({
+      name: connector.name,
+      resourceVersion: connector.resourceVersion,
+    }),
+    watched: true,
+  });
+}
+
 export function useDeleteConnector(
   projectId: string,
   options?: UseMutationOptions<void, Error, string>
 ) {
-  const queryClient = useQueryClient();
-
   return useGuardedMutation({
     operation: 'delete',
     mutationFn: (name: string) => createConnectorService().delete(projectId, name),
-    ...options,
-    onSuccess: async (...args) => {
-      const [, name] = args;
-      await queryClient.cancelQueries({ queryKey: connectorKeys.detail(projectId, name) });
-      queryClient.invalidateQueries({ queryKey: connectorKeys.list(projectId) });
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(
+      connectorMutations(projectId).remove<string>((name) => name),
+      options
+    ),
   });
 }

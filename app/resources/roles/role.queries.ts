@@ -1,3 +1,4 @@
+import { DATUM_ROLE_NAMESPACE } from './role.constants';
 import type { Role } from './role.schema';
 import { createRoleService, roleKeys } from './role.service';
 import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
@@ -8,7 +9,7 @@ import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
  * @param options - Additional React Query options
  */
 export function useRoles(
-  namespace: string = 'datum-cloud',
+  namespace: string = DATUM_ROLE_NAMESPACE,
   options?: Omit<UseQueryOptions<Role[]>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({
@@ -26,7 +27,7 @@ export function useRoles(
  */
 export function useRole(
   name: string,
-  namespace: string = 'datum-cloud',
+  namespace: string = DATUM_ROLE_NAMESPACE,
   options?: Omit<UseQueryOptions<Role>, 'queryKey' | 'queryFn'>
 ) {
   return useQuery({

@@ -1,10 +1,22 @@
+import { invitationCacheEffects } from './invitation.cache-effects';
 import type { Invitation, CreateInvitationInput } from './invitation.schema';
-import { createInvitationService, invitationKeys } from './invitation.service';
+import {
+  INVITATION_SYNC_KIND,
+  createInvitationService,
+  invitationKeys,
+} from './invitation.service';
+import {
+  defineResourceMutations,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
 import { memberKeys } from '@/resources/members';
+import { MILO_SYSTEM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
+import { UNWATCHED_LIST_QUERY_OPTIONS } from '@/utils/config/query.config';
 import {
   useQuery,
   useMutation,
   useQueryClient,
+  type QueryClient,
   type UseQueryOptions,
   type UseMutationOptions,
 } from '@tanstack/react-query';
@@ -18,6 +30,7 @@ export function useInvitations(
     queryKey: invitationKeys.list(orgId),
     queryFn: () => createInvitationService().list(orgId),
     enabled: !!orgId,
+    ...UNWATCHED_LIST_QUERY_OPTIONS,
     ...options,
   });
 }
@@ -47,35 +60,63 @@ export function useUserInvitations(
   });
 }
 
-export function useCreateInvitation(
-  orgId: string,
-  options?: UseMutationOptions<Invitation, Error, CreateInvitationInput>
-) {
-  const queryClient = useQueryClient();
+/** The org invitation list has no watch, so every mutation refetches it on settle. */
+export function invitationMutations(orgId: string) {
+  return defineResourceMutations<Invitation>({
+    kind: INVITATION_SYNC_KIND,
+    scope: orgId,
+    keys: {
+      lists: invitationKeys.list(orgId),
+      detail: (name) => invitationKeys.detail(orgId, name),
+    },
+    getName: (invitation) => invitation.name,
+    getMeta: (invitation) => ({
+      name: invitation.name,
+      resourceVersion: invitation.resourceVersion,
+    }),
+    watched: false,
+  });
+}
 
-  return useMutation({
+export function toPendingInvitation(orgId: string) {
+  return (input: CreateInvitationInput, pendingName: string): Invitation => ({
+    uid: pendingName,
+    name: pendingName,
+    namespace: orgId,
+    resourceVersion: '',
+    createdAt: new Date().toISOString(),
+    email: input.email,
+    organizationName: orgId,
+    role: input.role,
+    roleNamespace: input.roleNamespace,
+    state: 'Pending',
+  });
+}
+
+type CreateInvitationOptions = UseMutationOptions<Invitation, Error, CreateInvitationInput>;
+
+export function createInvitationOptions(
+  queryClient: QueryClient,
+  orgId: string,
+  options?: CreateInvitationOptions
+) {
+  return {
     mutationFn: (input: CreateInvitationInput) =>
       createInvitationService().create(orgId, input) as Promise<Invitation>,
-    ...options,
-    onSuccess: (...args) => {
-      options?.onSuccess?.(...args);
-    },
-    onSettled: (...args) => {
-      queryClient.invalidateQueries({
-        queryKey: invitationKeys.list(orgId),
-      });
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.userLists(),
-        type: 'active',
-      });
-      queryClient.refetchQueries({
-        queryKey: memberKeys.lists(),
-        type: 'active',
-      });
+    ...withResourceHandlers(invitationMutations(orgId).create(toPendingInvitation(orgId)), {
+      ...options,
+      onSettled: (...args) => {
+        queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
+        queryClient.refetchQueries({ queryKey: memberKeys.list(orgId), type: 'active' });
+        return options?.onSettled?.(...args);
+      },
+    }),
+  };
+}
 
-      options?.onSettled?.(...args);
-    },
-  });
+export function useCreateInvitation(orgId: string, options?: CreateInvitationOptions) {
+  const queryClient = useQueryClient();
+  return useMutation(createInvitationOptions(queryClient, orgId, options));
 }
 
 export function useCancelInvitation(
@@ -86,29 +127,26 @@ export function useCancelInvitation(
 
   return useMutation({
     mutationFn: (name: string) => createInvitationService().delete(orgId, name),
-    ...options,
-    onSuccess: (...args) => {
-      const [, name] = args;
-      queryClient.removeQueries({
-        queryKey: invitationKeys.detail(orgId, name),
-      });
-
-      options?.onSuccess?.(...args);
-    },
-    onSettled: (...args) => {
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.list(orgId),
-        type: 'active',
-      });
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.userLists(),
-        type: 'active',
-      });
-
-      options?.onSettled?.(...args);
-    },
+    ...withResourceHandlers(
+      invitationMutations(orgId).remove<string>((name) => name),
+      {
+        ...options,
+        onSettled: (...args) => {
+          queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
+          return options?.onSettled?.(...args);
+        },
+      }
+    ),
   });
+}
+
+/** A resend deletes and recreates the invitation, so the row comes back under a new name. */
+export function resendInvitationHandlers(queryClient: QueryClient, orgId: string) {
+  return invitationMutations(orgId).update<string>((name) =>
+    queryClient
+      .getQueryData<Invitation[]>(invitationKeys.list(orgId))
+      ?.find((invitation) => invitation.name === name)
+  );
 }
 
 export function useResendInvitation(
@@ -143,108 +181,67 @@ export function useResendInvitation(
 
       await service.delete(orgId, name);
 
-      const newInvitation = (await service.create(orgId, {
+      return (await service.create(orgId, {
         email: invitation.email,
         role: invitation.role,
-        roleNamespace: invitation?.roleNamespace ?? 'milo-system',
-      })) as Promise<Invitation>;
-
-      return newInvitation;
+        roleNamespace: invitation?.roleNamespace ?? MILO_SYSTEM_ROLE_NAMESPACE,
+      })) as Invitation;
     },
-    ...options,
-    onSuccess: (...args) => {
-      options?.onSuccess?.(...args);
-    },
-    onSettled: (...args) => {
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.list(orgId),
-        type: 'active',
-      });
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.userLists(),
-        type: 'active',
-      });
-
-      options?.onSettled?.(...args);
-    },
+    ...withResourceHandlers(resendInvitationHandlers(queryClient, orgId), {
+      ...options,
+      onSettled: (...args) => {
+        queryClient.refetchQueries({ queryKey: invitationKeys.userLists(), type: 'active' });
+        return options?.onSettled?.(...args);
+      },
+    }),
   });
 }
 
-type AcceptInvitationInput = {
+type ResolveInvitationInput = {
   orgId: string;
   name: string;
 };
 
-export function useAcceptInvitation(
-  options?: UseMutationOptions<Invitation, Error, AcceptInvitationInput>
-) {
-  const queryClient = useQueryClient();
+type ResolveInvitationOptions = UseMutationOptions<Invitation, Error, ResolveInvitationInput>;
 
-  return useMutation({
-    mutationFn: ({ orgId, name }: AcceptInvitationInput) =>
-      createInvitationService().updateState(orgId, name, 'Accepted'),
+export function resolveInvitationOptions(
+  queryClient: QueryClient,
+  state: 'Accepted' | 'Declined',
+  options?: ResolveInvitationOptions
+): ResolveInvitationOptions {
+  return {
+    mutationFn: ({ orgId, name }: ResolveInvitationInput) =>
+      createInvitationService().updateState(orgId, name, state),
     ...options,
-    onSuccess: (...args) => {
+    onSuccess: async (...args) => {
       const [, { orgId, name }] = args;
-      queryClient.removeQueries({
-        queryKey: invitationKeys.detail(orgId, name),
-      });
+      // The org's invitations, members and the user's orgs have no watch.
+      await invitationCacheEffects.resolved(queryClient, orgId, name);
 
       options?.onSuccess?.(...args);
     },
     onSettled: (...args) => {
-      const [, , { orgId }] = args;
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.list(orgId),
-        type: 'active',
-      });
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.userLists(),
-        type: 'active',
-      });
+      const [, error, { orgId }] = args;
+      if (error) {
+        void invitationCacheEffects.orgListChanged(queryClient, orgId);
+        queryClient.refetchQueries({
+          queryKey: invitationKeys.userLists(),
+          type: 'active',
+        });
+      }
 
       options?.onSettled?.(...args);
     },
-  });
+  };
 }
 
-type RejectInvitationInput = {
-  orgId: string;
-  name: string;
-};
-
-export function useRejectInvitation(
-  options?: UseMutationOptions<Invitation, Error, RejectInvitationInput>
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ orgId, name }: RejectInvitationInput) =>
-      createInvitationService().updateState(orgId, name, 'Declined'),
-    ...options,
-    onSuccess: (...args) => {
-      const [, { orgId, name }] = args;
-      queryClient.removeQueries({
-        queryKey: invitationKeys.detail(orgId, name),
-      });
-
-      options?.onSuccess?.(...args);
-    },
-    onSettled: (...args) => {
-      const [, , { orgId }] = args;
-      // Force refetch active queries (works even with staleTime)
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.list(orgId),
-        type: 'active',
-      });
-      queryClient.refetchQueries({
-        queryKey: invitationKeys.userLists(),
-        type: 'active',
-      });
-
-      options?.onSettled?.(...args);
-    },
-  });
+function createResolveInvitationHook(state: 'Accepted' | 'Declined') {
+  return function useResolveInvitation(options?: ResolveInvitationOptions) {
+    const queryClient = useQueryClient();
+    return useMutation(resolveInvitationOptions(queryClient, state, options));
+  };
 }
+
+export const useAcceptInvitation = createResolveInvitationHook('Accepted');
+
+export const useRejectInvitation = createResolveInvitationHook('Declined');

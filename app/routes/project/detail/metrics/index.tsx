@@ -1,12 +1,14 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { ExportPolicyStatus } from '@/features/metric/export-policies/status';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import {
   createExportPolicyService,
+  EXPORT_POLICY_SYNC_KIND,
   exportPolicyKeys,
   useDeleteExportPolicy,
   useExportPolicies,
@@ -71,7 +73,6 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
   const { data: queryData } = useExportPolicies(projectId ?? '', {
     initialData: initialData ?? [],
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
@@ -121,7 +122,12 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
         header: 'Resource Name',
         accessorKey: 'name',
         cell: ({ row }) => {
-          return <span className="font-medium">{row.original.name}</span>;
+          return (
+            <RowSyncName
+              syncKey={syncKey(EXPORT_POLICY_SYNC_KIND, projectId ?? '', row.original.name)}>
+              <span className="font-medium">{row.original.name}</span>
+            </RowSyncName>
+          );
         },
       },
       {
@@ -184,6 +190,7 @@ function ExportPoliciesInner({ initialData }: { initialData: ExportPolicy[] }) {
     <Table.Client
       columns={columns}
       data={policies ?? []}
+      getRowSyncKey={(row) => syncKey(EXPORT_POLICY_SYNC_KIND, projectId ?? '', row.name)}
       description="Send telemetry data from your Datum infrastructure to external monitoring platforms like Grafana Cloud."
       search="Search"
       onRowClick={(row) => {

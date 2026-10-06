@@ -1,22 +1,29 @@
 import { ChipsOverflow } from '@/components/chips-overflow';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { ProfileIdentity } from '@/components/profile-identity';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import { useApp } from '@/providers/app.provider';
-import { useCancelInvitation, useResendInvitation, useInvitations } from '@/resources/invitations';
+import {
+  INVITATION_SYNC_KIND,
+  useCancelInvitation,
+  useResendInvitation,
+  useInvitations,
+} from '@/resources/invitations';
 import {
   createMemberService,
+  MEMBER_SYNC_KIND,
   useRemoveMember,
   useLeaveOrganization,
   useMembers,
   type Member,
 } from '@/resources/members';
+import { DATUM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
-import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { toTitleCase } from '@/utils/helpers/text.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -41,6 +48,12 @@ interface ITeamMember {
   type: 'member' | 'invitation';
   name?: string;
   avatarUrl?: string;
+}
+
+/** Member and invitation rows each carry their own resource's sync state. */
+function teamRowSyncKey(orgId: string, row: ITeamMember): string | undefined {
+  if (!row.name) return undefined;
+  return syncKey(row.type === 'member' ? MEMBER_SYNC_KIND : INVITATION_SYNC_KIND, orgId, row.name);
 }
 
 const route = defineResourceRoute<Member[]>({
@@ -97,14 +110,10 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
   const canResend = canCreateInvitation && canDeleteInvitation;
 
   const { data: members = initialMembers } = useMembers(orgId, {
-    staleTime: QUERY_STALE_TIME,
     initialData: initialMembers,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
   });
-  const { data: invitations = [] } = useInvitations(orgId, {
-    staleTime: QUERY_STALE_TIME,
-  });
+  const { data: invitations = [] } = useInvitations(orgId);
 
   // Transform members to team members format
   const memberTeamMembers: ITeamMember[] = useMemo(() => {
@@ -114,7 +123,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
       email: member.user.email ?? '',
       roles: member.roles?.map((role) => ({
         name: role.name,
-        namespace: role.namespace ?? 'datum-cloud',
+        namespace: role.namespace ?? DATUM_ROLE_NAMESPACE,
       })),
       type: 'member' as const,
       name: member.name,
@@ -130,7 +139,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
         id: invitation.name,
         fullName: invitation.email ?? '',
         email: invitation.email ?? '',
-        roles: invitation.role ? [{ name: invitation.role, namespace: 'datum-cloud' }] : [],
+        roles: invitation.role ? [{ name: invitation.role, namespace: DATUM_ROLE_NAMESPACE }] : [],
         invitationState: invitation.state,
         type: 'invitation' as const,
         name: invitation.name,
@@ -307,14 +316,16 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
           return (
             <div className="flex w-full items-center justify-between gap-2">
               <div className="flex items-center gap-3">
-                <ProfileIdentity
-                  avatarSrc={row.original.avatarUrl}
-                  className="min-w-48"
-                  fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
-                  name={name}
-                  subtitle={row.original.type === 'member' ? subtitle : undefined}
-                  size="xs"
-                />
+                <RowSyncName syncKey={teamRowSyncKey(orgId, row.original)}>
+                  <ProfileIdentity
+                    avatarSrc={row.original.avatarUrl}
+                    className="min-w-48"
+                    fallbackIcon={row.original.type === 'invitation' ? UserIcon : undefined}
+                    name={name}
+                    subtitle={row.original.type === 'member' ? subtitle : undefined}
+                    size="xs"
+                  />
+                </RowSyncName>
                 {row.original.email === user?.email && (
                   <Badge
                     type="quaternary"
@@ -412,6 +423,7 @@ function TeamInner({ initialMembers }: { initialMembers: Member[] }) {
     <Table.Client
       columns={columns}
       data={orderedTeamMembers ?? []}
+      getRowSyncKey={(row) => teamRowSyncKey(orgId, row)}
       search="Search"
       onRowClick={(row) => {
         if (row.type !== 'member') return;

@@ -5,7 +5,6 @@ import { useGroupMemberships } from '@/resources/group-memberships';
 import type { Group } from '@/resources/groups';
 import { useMembers, type Member } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -20,12 +19,8 @@ interface GroupHeaderProps {
 export function GroupHeader({ group, orgId }: GroupHeaderProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const { data: memberships = [] } = useGroupMemberships(orgId, {
-    staleTime: QUERY_STALE_TIME,
-  });
-  const { data: members = [] } = useMembers(orgId, {
-    staleTime: QUERY_STALE_TIME,
-  });
+  const { data: memberships = [] } = useGroupMemberships(orgId);
+  const { data: members = [] } = useMembers(orgId);
 
   const { memberCount, avatarItems } = useMemo(() => {
     const groupMbrs = memberships.filter((m) => m.groupRef.name === group.name);

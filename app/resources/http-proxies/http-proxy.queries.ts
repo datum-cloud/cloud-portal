@@ -1,13 +1,22 @@
 import { toBackendPayload, toHttpProxyBackend } from './http-proxy.adapter';
 import type { HttpProxy, CreateHttpProxyInput, UpdateHttpProxyInput } from './http-proxy.schema';
 import {
+  HTTP_PROXY_SYNC_KIND,
   createHttpProxyService,
   httpProxyKeys,
   type TrafficProtectionMaps,
   type TrafficProtectionView,
 } from './http-proxy.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
-import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
+import {
+  beginRowPending,
+  defineResourceMutations,
+  endRowPending,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
+import { upsertResource } from '@/modules/watch/resource-cache';
+import { syncKey } from '@/modules/watch/sync-state';
+import { withAllowanceRefresh } from '@/resources/allowance-buckets';
 import { domainKeys } from '@/resources/domains/domain.service';
 import { locationKeys } from '@/resources/locations';
 import { serviceEntitlementKeys } from '@/resources/service-entitlements';
@@ -114,6 +123,35 @@ function invalidateDomainsForHostnames(
   queryClient.invalidateQueries({ queryKey: [...domainKeys.lists(), projectId] });
 }
 
+/** Proxies are watched: mutations write the list and never invalidate it. */
+export function httpProxyMutations(projectId: string) {
+  return defineResourceMutations<HttpProxy>({
+    kind: HTTP_PROXY_SYNC_KIND,
+    scope: projectId,
+    keys: {
+      lists: httpProxyKeys.list(projectId),
+      detail: (name) => httpProxyKeys.detail(projectId, name),
+    },
+    getName: (proxy) => proxy.name,
+    getMeta: (proxy) => ({ name: proxy.name, resourceVersion: proxy.resourceVersion }),
+    watched: true,
+  });
+}
+
+export function toPendingHttpProxy(input: CreateHttpProxyInput): HttpProxy {
+  return {
+    uid: input.name,
+    name: input.name,
+    namespace: 'default',
+    resourceVersion: '',
+    createdAt: new Date(),
+    chosenName: input.chosenName,
+    endpoint: input.endpoint,
+    hostnames: input.hostnames,
+    tlsHostname: input.tlsHostname,
+  };
+}
+
 export function useCreateHttpProxy(
   projectId: string,
   options?: UseMutationOptions<HttpProxy, Error, CreateHttpProxyInput>
@@ -124,35 +162,192 @@ export function useCreateHttpProxy(
     operation: 'write',
     mutationFn: (input: CreateHttpProxyInput) =>
       createHttpProxyService().create(projectId, input) as Promise<HttpProxy>,
-    ...options,
-    onSuccess: (...args) => {
-      const [newHttpProxy, input] = args;
-      queryClient.setQueryData(httpProxyKeys.detail(projectId, newHttpProxy.name), newHttpProxy);
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
-      queryClient.invalidateQueries({ queryKey: serviceEntitlementKeys.active(projectId) });
-      queryClient.invalidateQueries({ queryKey: locationKeys.list(projectId) });
-      invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
-
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(
+      httpProxyMutations(projectId).create(toPendingHttpProxy),
+      withAllowanceRefresh(
+        {
+          ...options,
+          onSuccess: (...args) => {
+            const [, input] = args;
+            // Not covered by the proxy watch, so these still invalidate.
+            queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+            queryClient.invalidateQueries({ queryKey: serviceEntitlementKeys.active(projectId) });
+            queryClient.invalidateQueries({ queryKey: locationKeys.list(projectId) });
+            invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
+            return options?.onSuccess?.(...args);
+          },
+        },
+        queryClient
+      )
+    ),
   });
+}
+
+type UpdateHttpProxyContext = {
+  previous: HttpProxy | undefined;
+  previousWaf?: TrafficProtectionView | null;
+  touchesWaf?: boolean;
+  /** True once this update joined the row's pending count; only then may it end it. */
+  begun?: boolean;
+};
+
+type UpdateHttpProxyOptions = UseMutationOptions<
+  HttpProxy,
+  Error,
+  UpdateHttpProxyInput,
+  UpdateHttpProxyContext
+>;
+
+function applyProxyInput(old: HttpProxy, input: UpdateHttpProxyInput): HttpProxy {
+  return {
+    ...old,
+    ...(input.endpoint !== undefined && { endpoint: input.endpoint }),
+    ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
+    ...(input.tlsHostname !== undefined && {
+      tlsHostname: input.tlsHostname.trim() || undefined,
+    }),
+    ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
+    ...(input.backends !== undefined && {
+      backends: input.backends.map((backend) => toHttpProxyBackend(toBackendPayload(backend))),
+    }),
+    ...(input.loadBalancer !== undefined && {
+      loadBalancer: input.loadBalancer ?? undefined,
+    }),
+    ...(input.healthCheck !== undefined && {
+      healthCheck: input.healthCheck?.passive ? input.healthCheck : undefined,
+    }),
+    ...(input.enableHttpRedirect !== undefined && {
+      enableHttpRedirect: input.enableHttpRedirect,
+    }),
+    ...(input.basicAuth !== undefined && {
+      basicAuthEnabled: (input.basicAuth.users?.length ?? 0) > 0,
+      basicAuthUserCount: input.basicAuth.users?.length ?? 0,
+      basicAuthUsernames: input.basicAuth.users?.map((u) => u.username) ?? [],
+    }),
+  };
+}
+
+const touchesWaf = (input: UpdateHttpProxyInput): boolean =>
+  !!input.removeTrafficProtection ||
+  input.trafficProtectionMode !== undefined ||
+  input.paranoiaLevels !== undefined ||
+  input.ruleExclusions !== undefined;
+
+function applyWafInput(
+  old: TrafficProtectionView | null | undefined,
+  input: UpdateHttpProxyInput
+): TrafficProtectionView {
+  if (input.removeTrafficProtection) {
+    return { mode: undefined, paranoiaLevels: undefined, ruleExclusions: undefined };
+  }
+  return {
+    ...old,
+    mode: input.trafficProtectionMode ?? old?.mode,
+    paranoiaLevels: input.paranoiaLevels ?? old?.paranoiaLevels,
+    ruleExclusions:
+      input.ruleExclusions === undefined
+        ? old?.ruleExclusions
+        : (input.ruleExclusions ?? undefined),
+  };
+}
+
+async function applyOptimisticUpdate(
+  queryClient: QueryClient,
+  projectId: string,
+  name: string,
+  input: UpdateHttpProxyInput
+): Promise<UpdateHttpProxyContext> {
+  const detailKey = httpProxyKeys.detail(projectId, name);
+  await queryClient.cancelQueries({ queryKey: detailKey });
+  const previous = queryClient.getQueryData<HttpProxy>(detailKey);
+  queryClient.setQueryData<HttpProxy>(detailKey, (old) => old && applyProxyInput(old, input));
+
+  if (!touchesWaf(input)) return { previous, touchesWaf: false };
+  const wafKey = httpProxyKeys.wafDetail(projectId, name);
+  await queryClient.cancelQueries({ queryKey: wafKey });
+  const previousWaf = queryClient.getQueryData<TrafficProtectionView | null>(wafKey);
+  queryClient.setQueryData<TrafficProtectionView | null>(wafKey, (old) =>
+    applyWafInput(old, input)
+  );
+  return { previous, previousWaf, touchesWaf: true };
+}
+
+function rollbackOptimisticUpdate(
+  queryClient: QueryClient,
+  projectId: string,
+  name: string,
+  context: UpdateHttpProxyContext | undefined
+) {
+  if (context?.previous != null) {
+    queryClient.setQueryData(httpProxyKeys.detail(projectId, name), context.previous);
+  }
+  if (context?.touchesWaf) {
+    queryClient.setQueryData(httpProxyKeys.wafDetail(projectId, name), context.previousWaf ?? null);
+  }
+}
+
+function onUpdateSuccess(
+  queryClient: QueryClient,
+  projectId: string,
+  name: string,
+  data: HttpProxy,
+  input: UpdateHttpProxyInput
+) {
+  upsertResource(queryClient, { lists: httpProxyKeys.list(projectId) }, data, {
+    origin: 'server',
+    getMeta: (proxy) => ({ name: proxy.name, resourceVersion: proxy.resourceVersion }),
+  });
+  // Exception to watch-or-invalidate: watch events omit redirect and basic-auth
+  // fields, so only a re-GET shows them. Not awaited, or the dialog hangs (#1491).
+  queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
+  queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
+  queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+  invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
+}
+
+/** Joins the shared per-row pending count so overlapping mutations don't clear each other. */
+export function httpProxyUpdateOptions(
+  queryClient: QueryClient,
+  projectId: string,
+  name: string,
+  options?: UpdateHttpProxyOptions
+): UpdateHttpProxyOptions {
+  const key = syncKey(HTTP_PROXY_SYNC_KIND, projectId, name);
+  return {
+    mutationFn: (input: UpdateHttpProxyInput) => {
+      const currentProxy = queryClient.getQueryData<HttpProxy>(
+        httpProxyKeys.detail(projectId, name)
+      );
+      return createHttpProxyService().update(projectId, name, input, {
+        currentProxy,
+      }) as Promise<HttpProxy>;
+    },
+    ...options,
+    onMutate: async (input, mutationContext) => {
+      // Caller first: if it throws, onError gets no context and leaves the count alone.
+      await options?.onMutate?.(input, mutationContext);
+      const context = await applyOptimisticUpdate(queryClient, projectId, name, input);
+      beginRowPending(key, 'pending-update');
+      return { ...context, begun: true };
+    },
+    onError: (err, input, context, mutationContext) => {
+      if (context?.begun) endRowPending(key, { ok: false });
+      rollbackOptimisticUpdate(queryClient, projectId, name, context);
+      options?.onError?.(err, input, context, mutationContext);
+    },
+    onSuccess: (...args) => {
+      const [data, input] = args;
+      onUpdateSuccess(queryClient, projectId, name, data, input);
+      endRowPending(key, { ok: true });
+      options?.onSuccess?.(...args);
+    },
+  };
 }
 
 export function useUpdateHttpProxy(
   projectId: string,
   name: string,
-  options?: UseMutationOptions<
-    HttpProxy,
-    Error,
-    UpdateHttpProxyInput,
-    {
-      previous: HttpProxy | undefined;
-      previousWaf?: TrafficProtectionView | null;
-      touchesWaf?: boolean;
-    }
-  >
+  options?: UpdateHttpProxyOptions
 ) {
   const queryClient = useQueryClient();
 
@@ -163,106 +358,7 @@ export function useUpdateHttpProxy(
     // that goes through useDeleteHttpProxy, which is 'delete' and stays
     // ungated. Gating this does not gate any user-visible delete.
     operation: 'write',
-    mutationFn: (input: UpdateHttpProxyInput) => {
-      const currentProxy = queryClient.getQueryData<HttpProxy>(
-        httpProxyKeys.detail(projectId, name)
-      );
-      return createHttpProxyService().update(projectId, name, input, {
-        currentProxy,
-      }) as Promise<HttpProxy>;
-    },
-    ...options,
-    onMutate: async (input) => {
-      await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-      const previous = queryClient.getQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name));
-      queryClient.setQueryData<HttpProxy>(httpProxyKeys.detail(projectId, name), (old) => {
-        if (!old) return old;
-        return {
-          ...old,
-          ...(input.endpoint !== undefined && { endpoint: input.endpoint }),
-          ...(input.hostnames !== undefined && { hostnames: input.hostnames }),
-          ...(input.tlsHostname !== undefined && {
-            tlsHostname: input.tlsHostname.trim() || undefined,
-          }),
-          ...(input.chosenName !== undefined && { chosenName: input.chosenName }),
-          ...(input.backends !== undefined && {
-            backends: input.backends.map((backend) =>
-              toHttpProxyBackend(toBackendPayload(backend))
-            ),
-          }),
-          ...(input.loadBalancer !== undefined && {
-            loadBalancer: input.loadBalancer ?? undefined,
-          }),
-          ...(input.healthCheck !== undefined && {
-            healthCheck: input.healthCheck?.passive ? input.healthCheck : undefined,
-          }),
-          ...(input.enableHttpRedirect !== undefined && {
-            enableHttpRedirect: input.enableHttpRedirect,
-          }),
-          ...(input.basicAuth !== undefined && {
-            basicAuthEnabled: (input.basicAuth.users?.length ?? 0) > 0,
-            basicAuthUserCount: input.basicAuth.users?.length ?? 0,
-            basicAuthUsernames: input.basicAuth.users?.map((u) => u.username) ?? [],
-          }),
-        };
-      });
-
-      // WAF lives in its own (permission-gated) cache now — update it separately.
-      let previousWaf: TrafficProtectionView | null | undefined;
-      const touchesWaf =
-        input.removeTrafficProtection ||
-        input.trafficProtectionMode !== undefined ||
-        input.paranoiaLevels !== undefined ||
-        input.ruleExclusions !== undefined;
-      if (touchesWaf) {
-        await queryClient.cancelQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-        previousWaf = queryClient.getQueryData<TrafficProtectionView | null>(
-          httpProxyKeys.wafDetail(projectId, name)
-        );
-        queryClient.setQueryData<TrafficProtectionView | null>(
-          httpProxyKeys.wafDetail(projectId, name),
-          (old) => {
-            if (input.removeTrafficProtection)
-              return { mode: undefined, paranoiaLevels: undefined, ruleExclusions: undefined };
-            return {
-              ...old,
-              mode: input.trafficProtectionMode ?? old?.mode,
-              paranoiaLevels: input.paranoiaLevels ?? old?.paranoiaLevels,
-              ruleExclusions:
-                input.ruleExclusions === undefined
-                  ? old?.ruleExclusions
-                  : (input.ruleExclusions ?? undefined),
-            };
-          }
-        );
-      }
-      return { previous, previousWaf, touchesWaf };
-    },
-    onError: (err, _input, context, mutationContext) => {
-      if (context?.previous != null) {
-        queryClient.setQueryData(httpProxyKeys.detail(projectId, name), context.previous);
-      }
-      if (context?.touchesWaf) {
-        queryClient.setQueryData(
-          httpProxyKeys.wafDetail(projectId, name),
-          context.previousWaf ?? null
-        );
-      }
-      options?.onError?.(err, _input, context, mutationContext);
-    },
-    onSuccess: (...args) => {
-      const [, input] = args;
-      // Not awaited: `onMutate` already applied the optimistic edit, and an
-      // awaited invalidation holds `mutateAsync` open for a full re-GET, which
-      // strands the calling dialog in its saving state (#1491).
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
-      invalidateDomainsForHostnames(queryClient, projectId, input.hostnames);
-
-      options?.onSuccess?.(...args);
-    },
+    ...httpProxyUpdateOptions(queryClient, projectId, name, options),
   });
 }
 
@@ -275,17 +371,20 @@ export function useDeleteHttpProxy(
   return useGuardedMutation({
     operation: 'delete',
     mutationFn: (name: string) => createHttpProxyService().delete(projectId, name),
-    ...options,
-    onSuccess: async (...args) => {
-      const [, name] = args;
-      await queryClient.cancelQueries({ queryKey: httpProxyKeys.detail(projectId, name) });
-      // Invalidate list so it refetches without the deleted item
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.list(projectId) });
-      queryClient.removeQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
-      queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
-
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(
+      httpProxyMutations(projectId).remove<string>((name) => name),
+      withAllowanceRefresh(
+        {
+          ...options,
+          onSuccess: (...args) => {
+            const [, name] = args;
+            queryClient.removeQueries({ queryKey: httpProxyKeys.wafDetail(projectId, name) });
+            queryClient.invalidateQueries({ queryKey: httpProxyKeys.wafList(projectId) });
+            return options?.onSuccess?.(...args);
+          },
+        },
+        queryClient
+      )
+    ),
   });
 }

@@ -21,6 +21,7 @@ import {
 } from '@/resources/policy-bindings';
 import { createProjectService } from '@/resources/projects';
 import { createRoleService } from '@/resources/roles';
+import { DATUM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { BadRequestError, withLoaderErrors } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
@@ -76,7 +77,7 @@ export const loader = withLoaderErrors(async (args: LoaderFunctionArgs) => {
 
   const [members, roles, policyBindings, projectsList, canManageRoles] = await Promise.all([
     createMemberService().list(orgId),
-    createRoleService().list('datum-cloud'),
+    createRoleService().list(DATUM_ROLE_NAMESPACE),
     createPolicyBindingService()
       .list(orgId)
       .catch(

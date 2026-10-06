@@ -40,6 +40,7 @@ export const secretResourceSchema = z.object({
   namespace: z.string().optional(),
   resourceVersion: z.string().optional(),
   createdAt: z.coerce.date().optional(),
+  deletionTimestamp: z.coerce.date().optional(),
   data: z.array(z.string()).optional(),
   type: z.enum(SECRET_TYPES).optional(),
   labels: labelSchema.optional(),

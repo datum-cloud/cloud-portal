@@ -38,7 +38,12 @@ export {
 } from './secret.adapter';
 
 // Service exports
-export { createSecretService, secretKeys, type SecretService } from './secret.service';
+export {
+  createSecretService,
+  secretKeys,
+  SECRET_SYNC_KIND,
+  type SecretService,
+} from './secret.service';
 
 // Query hooks exports
 export {

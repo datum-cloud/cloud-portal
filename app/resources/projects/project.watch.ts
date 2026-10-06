@@ -1,13 +1,38 @@
 // app/resources/projects/project.watch.ts
 import { toProject } from './project.adapter';
+import { projectMeta } from './project.helpers';
 import type { Project, ProjectList } from './project.schema';
-import { createProjectService, projectKeys } from './project.service';
+import { createProjectService, projectKeys, PROJECT_SYNC_KIND } from './project.service';
 import type { ComMiloapisResourcemanagerV1Alpha1Project } from '@/modules/control-plane/resource-manager';
 import { useResourceWatch } from '@/modules/watch';
+import type { WatchCacheConfig } from '@/modules/watch/watch-cache-handler';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { useMemo } from 'react';
+
+function replaceProject(rows: Project[], project: Project): Project[] {
+  return rows.map((p) => (p.name === project.name ? project : p));
+}
+
+/**
+ * MODIFIED only replaces rows: the list leaves out terminating projects, so a
+ * MODIFIED for one it does not hold must not add it back.
+ */
+export const projectListWatchCache = (orgId: string) =>
+  ({
+    queryKey: projectKeys.list(orgId),
+    getItemKey: (project) => project.name,
+    getMeta: projectMeta,
+    syncKind: PROJECT_SYNC_KIND,
+    syncScope: orgId,
+    updateListCache: (oldData, project) => {
+      if (Array.isArray(oldData)) return replaceProject(oldData as Project[], project);
+      const list = oldData as ProjectList | undefined;
+      if (!Array.isArray(list?.items)) return oldData;
+      return { ...list, items: replaceProject(list.items, project) };
+    },
+  }) satisfies Omit<WatchCacheConfig<Project>, 'isDetail'>;
 
 /**
  * Watch projects list for real-time updates.
@@ -25,45 +50,14 @@ import { useMemo } from 'react';
  * ```
  */
 export function useProjectsWatch(orgId: string, options?: { enabled?: boolean }) {
-  const queryKey = useMemo(() => projectKeys.list(orgId), [orgId]);
+  const cache = useMemo(() => projectListWatchCache(orgId), [orgId]);
 
   return useResourceWatch<Project>({
     resourceType: 'apis/resourcemanager.miloapis.com/v1alpha1/projects',
     orgId,
-    queryKey,
     transform: (item) => toProject(item as ComMiloapisResourcemanagerV1Alpha1Project),
     enabled: options?.enabled ?? true,
-    getItemKey: (project) => project.name,
-    updateListCache: (oldData, newItem) => {
-      const project = newItem as Project;
-      const name = project.name;
-      if (!name) return oldData;
-
-      if (Array.isArray(oldData)) {
-        const list = oldData as Project[];
-        const exists = list.some((item) => item.name === name);
-        return exists
-          ? list.map((item) => (item.name === name ? project : item))
-          : [...list, project];
-      }
-
-      if (
-        typeof oldData === 'object' &&
-        oldData !== null &&
-        Array.isArray((oldData as ProjectList).items)
-      ) {
-        const list = oldData as ProjectList;
-        const exists = list.items.some((item) => item.name === name);
-        return {
-          ...list,
-          items: exists
-            ? list.items.map((item) => (item.name === name ? project : item))
-            : [...list.items, project],
-        };
-      }
-
-      return oldData;
-    },
+    ...cache,
   });
 }
 

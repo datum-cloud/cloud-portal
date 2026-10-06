@@ -37,6 +37,9 @@ export const dnsZoneKeys = {
     [...dnsZoneKeys.all, 'by-domain-ref', projectId, domainRef] as const,
 };
 
+/** Sync-state kind of DNS zone rows: the list's row keys, its watch, and its mutations. */
+export const DNS_ZONE_SYNC_KIND = 'dns-zones';
+
 const SERVICE_NAME = 'DnsZoneService';
 
 export function createDnsZoneService() {

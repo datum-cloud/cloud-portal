@@ -1,6 +1,25 @@
 // app/modules/watch/watch.types.ts
+import type { CacheItemMeta } from './resource-cache';
+import type { QueryKey } from '@tanstack/react-query';
 
-export type WatchEventType = 'ADDED' | 'MODIFIED' | 'DELETED' | 'BOOKMARK' | 'ERROR';
+/** `RESYNC` is synthetic: events may have been missed, so the cache refetches. */
+export type WatchEventType = 'ADDED' | 'MODIFIED' | 'DELETED' | 'BOOKMARK' | 'ERROR' | 'RESYNC';
+
+export type ResyncReason =
+  | 'reconnect'
+  | 'visible'
+  | 'online'
+  | 'joined'
+  | 'expired'
+  | 'degraded'
+  | 'recovered'
+  | 'auth'
+  | 'error';
+
+export interface ResyncPayload {
+  reason: ResyncReason;
+  degraded?: boolean;
+}
 
 export interface WatchEvent<T = unknown> {
   type: WatchEventType;
@@ -66,24 +85,17 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
    */
   debounceMs?: number;
   /**
-   * Skip ADDED events during initial sync period after watch connects.
-   * When true, ADDED events in the first 2s are ignored (cache already hydrated).
-   * Set to false for resources where user might create immediately after page load.
-   * @default true
-   */
-  skipInitialSync?: boolean;
-  /**
    * Extract unique identifier from a transformed item.
    * ADDED list events append/replace by this key. MODIFIED list events
    * update in-place via updateListCache or find-and-replace.
    * @example (item) => item.name
    */
   getItemKey?: (item: T) => string;
+  /** Defaults to `getItemKey` for the name and `metadata.*` or top-level fields for the rest. */
+  getMeta?: (item: T) => CacheItemMeta;
   /**
    * Update the list cache with a MODIFIED item (find-and-replace).
-   * Required when the query data structure isn't a plain array (e.g. paginated { items: T[] }).
-   * Not used for ADDED — those append by getItemKey so replace-only
-   * updaters cannot drop a new object.
+   * Only for shapes other than arrays and `{ items }`; not used for ADDED or terminating items.
    * @example (oldData, newItem) => ({ ...oldData, items: oldData.items.map(...) })
    */
   updateListCache?: (oldData: unknown, newItem: T) => unknown;
@@ -101,4 +113,9 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
    * @default true
    */
   applyCacheUpdates?: boolean;
+  /** Queries `onEvent` writes into (e.g. cross-org billing lists); resynced with `queryKey`. */
+  getMirroredKeys?: () => readonly QueryKey[];
+  /** With `syncScope`, rows changed elsewhere flash and deleted rows fade out. Lists only. */
+  syncKind?: string;
+  syncScope?: string;
 }

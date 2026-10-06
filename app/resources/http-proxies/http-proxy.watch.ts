@@ -5,7 +5,11 @@ import {
   toHttpProxy,
 } from './http-proxy.adapter';
 import type { HttpProxy } from './http-proxy.schema';
-import { httpProxyKeys, type TrafficProtectionView } from './http-proxy.service';
+import {
+  HTTP_PROXY_SYNC_KIND,
+  httpProxyKeys,
+  type TrafficProtectionView,
+} from './http-proxy.service';
 import {
   getTrafficProtectionProgrammedMessage,
   getTrafficProtectionProgrammedReason,
@@ -17,6 +21,7 @@ import type {
   ComDatumapisNetworkingV1AlphaTrafficProtectionPolicy,
 } from '@/modules/control-plane/networking';
 import { useResourceWatch } from '@/modules/watch';
+import type { WatchCacheConfig } from '@/modules/watch/watch-cache-handler';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
@@ -60,30 +65,12 @@ function mergeWatchedHttpProxy(oldData: HttpProxy | undefined, newItem: HttpProx
   };
 }
 
-/**
- * Watch HTTP proxies list for real-time updates.
- */
-export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boolean }) {
-  const queryKey = httpProxyKeys.list(projectId);
-  const queryClient = useQueryClient();
-
-  // Watch HTTPProxy resources
-  useResourceWatch<HttpProxy>({
-    resourceType: 'apis/networking.datumapis.com/v1alpha/httpproxies',
-    projectId,
-    namespace: 'default',
-    queryKey,
-    transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
-    enabled: options?.enabled ?? true,
+export const httpProxyListWatchCache = (projectId: string) =>
+  ({
+    queryKey: httpProxyKeys.list(projectId),
     getItemKey: (proxy) => proxy.name,
-    onEvent: (event) => {
-      if (event.type !== 'ADDED' && event.type !== 'MODIFIED') return;
-      const proxy = event.object;
-      queryClient.setQueryData(
-        httpProxyKeys.detail(projectId, proxy.name),
-        (old: HttpProxy | undefined) => mergeWatchedHttpProxy(old, proxy)
-      );
-    },
+    syncKind: HTTP_PROXY_SYNC_KIND,
+    syncScope: projectId,
     updateListCache: (oldData, newItem) => {
       if (Array.isArray(oldData)) {
         const existingItem = oldData.find((item) => item.name === newItem.name);
@@ -96,15 +83,39 @@ export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boo
       }
       return oldData;
     },
+  }) satisfies Omit<WatchCacheConfig<HttpProxy>, 'isDetail'>;
+
+/**
+ * Watch HTTP proxies list for real-time updates.
+ */
+export function useHttpProxiesWatch(projectId: string, options?: { enabled?: boolean }) {
+  const queryClient = useQueryClient();
+
+  // Watch HTTPProxy resources
+  useResourceWatch<HttpProxy>({
+    resourceType: 'apis/networking.datumapis.com/v1alpha/httpproxies',
+    projectId,
+    namespace: 'default',
+    transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
+    enabled: options?.enabled ?? true,
+    ...httpProxyListWatchCache(projectId),
+    onEvent: (event) => {
+      if (event.type !== 'ADDED' && event.type !== 'MODIFIED') return;
+      const proxy = event.object;
+      queryClient.setQueryData(
+        httpProxyKeys.detail(projectId, proxy.name),
+        (old: HttpProxy | undefined) => mergeWatchedHttpProxy(old, proxy)
+      );
+    },
   });
 }
 
 /**
  * Watch a single HTTP proxy for real-time updates.
  *
- * skipInitialSync is false so the first ADDED (current object, or a replay
- * after reconnect) still lands in the detail cache. Dropping it left the
- * overview health strip on the loader snapshot until a full reload.
+ * The first ADDED (current object, or a replay after reconnect) lands in the
+ * detail cache. Dropping it left the overview health strip on the loader
+ * snapshot until a full reload.
  */
 export function useHttpProxyWatch(
   projectId: string,
@@ -122,7 +133,6 @@ export function useHttpProxyWatch(
     queryKey,
     transform: (item) => toHttpProxy(item as ComDatumapisNetworkingV1AlphaHttpProxy),
     enabled: (options?.enabled ?? true) && !!projectId && !!name,
-    skipInitialSync: false,
     updateSingleCache: mergeWatchedHttpProxy,
     onEvent: (event) => {
       if (event.type !== 'ADDED' && event.type !== 'MODIFIED') return;

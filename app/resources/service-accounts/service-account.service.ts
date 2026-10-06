@@ -35,6 +35,9 @@ import { getProjectScopedBase } from '@/resources/base/utils';
 import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
+/** Sync-state kind of service account rows: the list's row keys, its watch, and its mutations. */
+export const SERVICE_ACCOUNT_SYNC_KIND = 'service-accounts';
+
 export const serviceAccountKeys = {
   all: ['service-accounts'] as const,
   lists: () => [...serviceAccountKeys.all, 'list'] as const,

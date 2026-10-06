@@ -12,7 +12,7 @@ import { ChevronDown, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { useId, useState } from 'react';
 import { Link } from 'react-router';
 
-const LIST_OPTIONS = { staleTime: QUERY_STALE_TIME, refetchOnMount: false } as const;
+const LIST_OPTIONS = { staleTime: QUERY_STALE_TIME } as const;
 
 function severityIcon(severity: AttentionItem['severity']) {
   return severity === 'error' ? (

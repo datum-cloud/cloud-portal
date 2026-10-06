@@ -1,5 +1,9 @@
-import { preserveKeySummary } from './service-account.adapter';
-import { createServiceAccountService, serviceAccountKeys } from './service-account.service';
+import { preserveKeySummary, withKeySummary } from './service-account.adapter';
+import {
+  SERVICE_ACCOUNT_SYNC_KIND,
+  createServiceAccountService,
+  serviceAccountKeys,
+} from './service-account.service';
 import type {
   ServiceAccount,
   ServiceAccountKey,
@@ -10,6 +14,11 @@ import type {
 } from './types';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
 import {
+  defineResourceMutations,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
+import {
+  type QueryClient,
   useQuery,
   useQueryClient,
   type UseQueryOptions,
@@ -41,23 +50,64 @@ export function useServiceAccount(
   });
 }
 
+/** Service accounts are watched: mutations write the list and never invalidate it. */
+export function serviceAccountMutations(projectId: string) {
+  return defineResourceMutations<ServiceAccount>({
+    kind: SERVICE_ACCOUNT_SYNC_KIND,
+    scope: projectId,
+    keys: {
+      lists: serviceAccountKeys.list(projectId),
+      detail: (name) => serviceAccountKeys.detail(projectId, name),
+    },
+    getName: (account) => account.name,
+    getMeta: (account) => ({
+      name: account.name,
+      resourceVersion: account.resourceVersion,
+      deletionTimestamp: account.deletionTimestamp,
+    }),
+    watched: true,
+  });
+}
+
+export function toPendingServiceAccount(input: CreateServiceAccountInput): ServiceAccount {
+  const now = new Date().toISOString();
+  return {
+    uid: input.name,
+    name: input.name,
+    displayName: input.displayName,
+    identityEmail: '',
+    status: 'Active',
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+function cachedAccount(
+  queryClient: QueryClient,
+  projectId: string,
+  name: string
+): ServiceAccount | undefined {
+  return (
+    queryClient.getQueryData<ServiceAccount>(serviceAccountKeys.detail(projectId, name)) ??
+    queryClient
+      .getQueryData<ServiceAccount[]>(serviceAccountKeys.list(projectId))
+      ?.find((account) => account.name === name)
+  );
+}
+
 export function useCreateServiceAccount(
   projectId: string,
   options?: UseMutationOptions<ServiceAccount, Error, CreateServiceAccountInput>
 ) {
-  const queryClient = useQueryClient();
-
   return useGuardedMutation({
     operation: 'write',
-    mutationFn: (input: CreateServiceAccountInput) =>
-      createServiceAccountService().create(projectId, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [newAccount] = args;
-      queryClient.setQueryData(serviceAccountKeys.detail(projectId, newAccount.name), newAccount);
-      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
-      options?.onSuccess?.(...args);
-    },
+    // A new account has no keys yet, so its summary is known without a fetch.
+    mutationFn: async (input: CreateServiceAccountInput) =>
+      withKeySummary(await createServiceAccountService().create(projectId, input), []),
+    ...withResourceHandlers(
+      serviceAccountMutations(projectId).create(toPendingServiceAccount),
+      options
+    ),
   });
 }
 
@@ -67,52 +117,44 @@ export function useUpdateServiceAccount(
   options?: UseMutationOptions<ServiceAccount, Error, UpdateServiceAccountInput>
 ) {
   const queryClient = useQueryClient();
+  const handlers = serviceAccountMutations(projectId).update<UpdateServiceAccountInput>((input) => {
+    const current = cachedAccount(queryClient, projectId, name);
+    return current ? { ...current, ...input } : undefined;
+  });
 
   return useGuardedMutation({
     operation: 'write',
-    mutationFn: (input: UpdateServiceAccountInput) =>
-      createServiceAccountService().update(projectId, name, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [data] = args;
-      // The PATCH response is a bare ServiceAccount with no key data, so keep
-      // the summary already in cache instead of blanking the status badge.
-      queryClient.setQueryData(
-        serviceAccountKeys.detail(projectId, name),
-        (old: ServiceAccount | undefined) => preserveKeySummary(old, data)
-      );
-      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
-      options?.onSuccess?.(...args);
-    },
+    // The PATCH response is a bare ServiceAccount with no key data, so keep
+    // the summary already in cache instead of blanking the status badge.
+    mutationFn: async (input: UpdateServiceAccountInput) =>
+      preserveKeySummary(
+        cachedAccount(queryClient, projectId, name),
+        await createServiceAccountService().update(projectId, name, input)
+      ),
+    ...withResourceHandlers(handlers, options),
   });
 }
 
+type ToggleVars = { name: string; status: 'Active' | 'Disabled' };
+
 export function useToggleServiceAccount(
   projectId: string,
-  options?: UseMutationOptions<
-    ServiceAccount,
-    Error,
-    { name: string; status: 'Active' | 'Disabled' }
-  >
+  options?: UseMutationOptions<ServiceAccount, Error, ToggleVars>
 ) {
   const queryClient = useQueryClient();
+  const handlers = serviceAccountMutations(projectId).update<ToggleVars>(({ name, status }) => {
+    const current = cachedAccount(queryClient, projectId, name);
+    return current ? { ...current, status } : undefined;
+  });
 
   return useGuardedMutation({
     operation: 'write',
-    mutationFn: ({ name, status }: { name: string; status: 'Active' | 'Disabled' }) =>
-      createServiceAccountService().update(projectId, name, { status }),
-    ...options,
-    onSuccess: (...args) => {
-      const [data, { name }] = args;
-      // The PATCH response is a bare ServiceAccount with no key data, so keep
-      // the summary already in cache instead of blanking the status badge.
-      queryClient.setQueryData(
-        serviceAccountKeys.detail(projectId, name),
-        (old: ServiceAccount | undefined) => preserveKeySummary(old, data)
-      );
-      queryClient.invalidateQueries({ queryKey: serviceAccountKeys.list(projectId) });
-      options?.onSuccess?.(...args);
-    },
+    mutationFn: async ({ name, status }: ToggleVars) =>
+      preserveKeySummary(
+        cachedAccount(queryClient, projectId, name),
+        await createServiceAccountService().update(projectId, name, { status })
+      ),
+    ...withResourceHandlers(handlers, options),
   });
 }
 
@@ -120,21 +162,13 @@ export function useDeleteServiceAccount(
   projectId: string,
   options?: UseMutationOptions<void, Error, string>
 ) {
-  const queryClient = useQueryClient();
-
   return useGuardedMutation({
     operation: 'delete',
     mutationFn: (name: string) => createServiceAccountService().delete(projectId, name),
-    ...options,
-    onSuccess: async (...args) => {
-      const [, name] = args;
-      await queryClient.cancelQueries({ queryKey: serviceAccountKeys.detail(projectId, name) });
-      queryClient.setQueryData<ServiceAccount[]>(serviceAccountKeys.list(projectId), (old) =>
-        old ? old.filter((a) => a.name !== name) : old
-      );
-      queryClient.removeQueries({ queryKey: serviceAccountKeys.detail(projectId, name) });
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(
+      serviceAccountMutations(projectId).remove<string>((name) => name),
+      options
+    ),
   });
 }
 
@@ -165,6 +199,8 @@ export function useCreateServiceAccountKey(
     mutationFn: (input: CreateServiceAccountKeyInput) =>
       createServiceAccountService().createKey(projectId, serviceAccountEmail, input),
     ...options,
+    // Exception to watch-or-invalidate: the account watch carries no keys, so
+    // only a refetch updates the key summary on the row and detail.
     onSuccess: (...args) => {
       queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.keyList(projectId, serviceAccountName),
@@ -195,6 +231,7 @@ export function useRevokeServiceAccountKey(
     mutationFn: (keyName: string) =>
       createServiceAccountService().revokeKey(projectId, serviceAccountName, keyName),
     ...options,
+    // Invalidates watched queries on purpose; see useCreateServiceAccountKey.
     onSuccess: (...args) => {
       queryClient.invalidateQueries({
         queryKey: serviceAccountKeys.keyList(projectId, serviceAccountName),

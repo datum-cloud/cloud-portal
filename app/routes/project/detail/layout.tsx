@@ -4,6 +4,7 @@ import {
   ProjectDockProvider,
   ProjectDockTriggers,
 } from '@/features/project-dock';
+import { ProjectWatchBridge } from '@/features/project/home/project-watch-bridge';
 import { SuspensionBar } from '@/features/project/suspension';
 import { SearchEntry } from '@/features/search/SearchEntry';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
@@ -227,7 +228,6 @@ function ProjectDetailLayoutContent({
   const { data: org, isLoading: orgLoading } = useOrganization(orgId, {
     enabled: !!orgId,
     staleTime: QUERY_STALE_TIME,
-    refetchOnMount: false,
   });
 
   useEffect(() => {
@@ -347,6 +347,7 @@ function ProjectDetailLayoutContent({
               </div>
             }>
             <QuotaWatchBridge scope="project" />
+            {projectId && <ProjectWatchBridge projectId={projectId} />}
             <Outlet />
           </DashboardLayout>
         </ProjectDockProvider>

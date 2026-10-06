@@ -4,6 +4,7 @@ import {
   groupMembershipKeys,
   type CreateGroupMembershipInput,
 } from './group-membership.service';
+import { UNWATCHED_LIST_QUERY_OPTIONS } from '@/utils/config/query.config';
 import {
   useMutation,
   useQuery,
@@ -20,6 +21,7 @@ export function useGroupMemberships(
     queryKey: groupMembershipKeys.list(orgId),
     queryFn: () => createGroupMembershipService().list(orgId),
     enabled: !!orgId,
+    ...UNWATCHED_LIST_QUERY_OPTIONS,
     ...options,
   });
 }

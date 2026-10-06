@@ -33,7 +33,12 @@ export {
 } from './domain.adapter';
 
 // Service exports
-export { createDomainService, domainKeys, type DomainService } from './domain.service';
+export {
+  createDomainService,
+  domainKeys,
+  DOMAIN_SYNC_KIND,
+  type DomainService,
+} from './domain.service';
 
 // Query hook exports
 export {

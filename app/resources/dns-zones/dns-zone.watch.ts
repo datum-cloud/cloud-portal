@@ -1,12 +1,37 @@
 // app/resources/dns-zones/dns-zone.watch.ts
 import { toDnsZone } from './dns-zone.adapter';
 import type { DnsZone, DnsZoneList } from './dns-zone.schema';
-import { dnsZoneKeys } from './dns-zone.service';
+import { DNS_ZONE_SYNC_KIND, dnsZoneKeys } from './dns-zone.service';
 import type { ComMiloapisNetworkingDnsV1Alpha1DnsZone } from '@/modules/control-plane/dns-networking';
 import { useResourceWatch } from '@/modules/watch';
+import type { CacheItemMeta } from '@/modules/watch/resource-cache';
 import { waitForWatch } from '@/modules/watch/watch-wait.helper';
 import { ControlPlaneStatus } from '@/resources/base';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+
+function replaceZone(rows: DnsZone[], zone: DnsZone): DnsZone[] {
+  if (zone.deletionTimestamp) return rows.filter((z) => z.name !== zone.name);
+  return rows.map((z) => (z.name === zone.name ? zone : z));
+}
+
+/**
+ * MODIFIED only replaces rows: the list leaves out terminating zones, so a
+ * MODIFIED for one it does not hold (finalizer still running) must not add it back.
+ */
+export const dnsZoneListCache = {
+  getItemKey: (zone: DnsZone) => zone.name,
+  getMeta: (zone: DnsZone): CacheItemMeta => ({
+    name: zone.name,
+    resourceVersion: zone.resourceVersion,
+    deletionTimestamp: zone.deletionTimestamp,
+  }),
+  updateListCache: (oldData: unknown, zone: DnsZone): unknown => {
+    if (Array.isArray(oldData)) return replaceZone(oldData as DnsZone[], zone);
+    const list = oldData as DnsZoneList;
+    if (!Array.isArray(list?.items)) return oldData;
+    return { ...list, items: replaceZone(list.items, zone) };
+  },
+};
 
 /**
  * Watch DNS zones list for real-time updates.
@@ -31,22 +56,9 @@ export function useDnsZonesWatch(projectId: string, options?: { enabled?: boolea
     queryKey: dnsZoneKeys.list(projectId),
     transform: (item) => toDnsZone(item as ComMiloapisNetworkingDnsV1Alpha1DnsZone),
     enabled: options?.enabled ?? true,
-    // In-place cache update for MODIFIED events (avoids full list refetch).
-    // List queries store a plain DnsZone[] (not DnsZoneList).
-    getItemKey: (zone) => zone.name,
-    updateListCache: (oldData, newItem) => {
-      if (Array.isArray(oldData)) {
-        const list = oldData as DnsZone[];
-        const idx = list.findIndex((z) => z.name === newItem.name);
-        if (idx === -1) return [...list, newItem];
-        return list.map((z) => (z.name === newItem.name ? newItem : z));
-      }
-      const old = oldData as DnsZoneList;
-      return {
-        ...old,
-        items: old.items.map((z) => (z.name === newItem.name ? newItem : z)),
-      };
-    },
+    syncKind: DNS_ZONE_SYNC_KIND,
+    syncScope: projectId,
+    ...dnsZoneListCache,
   });
 }
 

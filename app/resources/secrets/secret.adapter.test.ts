@@ -52,6 +52,14 @@ describe('toSecretList', () => {
     expect(list.nextCursor).toBe('cur');
     expect(list.hasMore).toBe(true);
   });
+
+  it('drops terminating secrets', () => {
+    const list = toSecretList([
+      { metadata: { uid: 'a', name: 'a' } },
+      { metadata: { uid: 'b', name: 'b', deletionTimestamp: '2026-10-05T00:00:00Z' } },
+    ] as never);
+    expect(list.items.map((secret) => secret.name)).toEqual(['a']);
+  });
 });
 
 describe('toCreateSecretPayload', () => {

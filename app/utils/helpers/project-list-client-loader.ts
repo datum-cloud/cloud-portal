@@ -1,17 +1,24 @@
 import type { DslLoaderData } from '@/modules/rbac/types';
 import { queryClient } from '@/modules/tanstack/query';
-import type { QueryKey } from '@tanstack/react-query';
+import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
 type ListLoaderEnvelope<TData> = DslLoaderData<TData, Record<string, never>>;
 
-/** Cached list data that mutations have not marked stale via invalidateQueries. */
-export function getValidCachedQueryData<TData>(queryKey: QueryKey): TData | undefined {
-  const state = queryClient.getQueryState<TData>(queryKey);
+/** Watched lists are invalidated on unmount, so "valid" means still watched or refetched. */
+export function readValidCachedQueryData<TData>(
+  qc: QueryClient,
+  queryKey: QueryKey
+): TData | undefined {
+  const state = qc.getQueryState<TData>(queryKey);
   if (state?.data === undefined || state.isInvalidated) {
     return undefined;
   }
   return state.data;
+}
+
+export function getValidCachedQueryData<TData>(queryKey: QueryKey): TData | undefined {
+  return readValidCachedQueryData<TData>(queryClient, queryKey);
 }
 
 /**

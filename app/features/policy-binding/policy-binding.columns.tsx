@@ -3,9 +3,14 @@ import {
   renderResourceCell,
   renderSubjectsCell,
 } from './policy-binding.helpers';
+import { displayBindingName } from './policy-binding.name';
 import { PolicyBindingColumn } from './policy-binding.types';
+import { RowSyncName } from '@/components/table';
+import { syncKey } from '@/modules/watch/sync-state';
+import { POLICY_BINDING_SYNC_KIND } from '@/resources/policy-bindings';
 
-export const getPolicyBindingColumns = (): PolicyBindingColumn[] => [
+/** `syncScope` is the org or project id the bindings belong to. */
+export const getPolicyBindingColumns = (syncScope: string): PolicyBindingColumn[] => [
   {
     header: 'Resource Name',
     accessorKey: 'name',
@@ -13,9 +18,11 @@ export const getPolicyBindingColumns = (): PolicyBindingColumn[] => [
       className: 'max-w-[250px]',
     },
     cell: ({ row }) => (
-      <span className="text-primary font-semibold break-words whitespace-normal">
-        {row.original.name}
-      </span>
+      <RowSyncName syncKey={syncKey(POLICY_BINDING_SYNC_KIND, syncScope, row.original.name)}>
+        <span className="text-primary font-semibold break-words whitespace-normal">
+          {displayBindingName(row.original.name)}
+        </span>
+      </RowSyncName>
     ),
   },
   {

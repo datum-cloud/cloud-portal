@@ -28,6 +28,9 @@ export const secretKeys = {
   detail: (projectId: string, name: string) => [...secretKeys.details(), projectId, name] as const,
 };
 
+/** Sync-state kind of secret rows: the list's row keys, its watch, and its mutations. */
+export const SECRET_SYNC_KIND = 'secrets';
+
 const SERVICE_NAME = 'SecretService';
 
 export function createSecretService() {

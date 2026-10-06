@@ -55,6 +55,9 @@ import { createServiceEntitlementService } from '@/resources/service-entitlement
 import { NotFoundError } from '@/utils/errors';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
+/** Sync-state kind of HTTPProxy rows: the list's row keys, its watch, and its mutations. */
+export const HTTP_PROXY_SYNC_KIND = 'http-proxies';
+
 export const httpProxyKeys = {
   all: ['http-proxies'] as const,
   lists: () => [...httpProxyKeys.all, 'list'] as const,

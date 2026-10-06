@@ -1,9 +1,25 @@
 // app/resources/export-policies/export-policy.watch.ts
 import { toExportPolicy } from './export-policy.adapter';
 import type { ExportPolicy } from './export-policy.schema';
-import { exportPolicyKeys } from './export-policy.service';
+import { EXPORT_POLICY_SYNC_KIND, exportPolicyKeys } from './export-policy.service';
 import type { ComDatumapisTelemetryV1Alpha1ExportPolicy } from '@/modules/control-plane/telemetry';
 import { useResourceWatch } from '@/modules/watch';
+import type { WatchCacheConfig } from '@/modules/watch/watch-cache-handler';
+
+export const exportPolicyListWatchCache = (projectId: string) =>
+  ({
+    queryKey: exportPolicyKeys.list(projectId),
+    syncKind: EXPORT_POLICY_SYNC_KIND,
+    syncScope: projectId,
+    // In-place cache update for MODIFIED events. The list cache is a plain
+    // ExportPolicy[] (no { items: [] } envelope), so we map the array.
+    getItemKey: (policy) => policy.name,
+    updateListCache: (oldData, newItem) => {
+      const old = oldData as ExportPolicy[] | undefined;
+      if (!old) return [newItem];
+      return old.map((p) => (p.name === newItem.name ? newItem : p));
+    },
+  }) satisfies Omit<WatchCacheConfig<ExportPolicy>, 'isDetail'>;
 
 /**
  * Watch export policies list for real-time updates.
@@ -25,17 +41,9 @@ export function useExportPoliciesWatch(projectId: string, options?: { enabled?: 
     resourceType: 'apis/telemetry.miloapis.com/v1alpha1/exportpolicies',
     projectId,
     namespace: 'default',
-    queryKey: exportPolicyKeys.list(projectId),
     transform: (item) => toExportPolicy(item as ComDatumapisTelemetryV1Alpha1ExportPolicy),
     enabled: options?.enabled ?? true,
-    // In-place cache update for MODIFIED events. The list cache is a plain
-    // ExportPolicy[] (no { items: [] } envelope), so we map the array.
-    getItemKey: (policy) => policy.name,
-    updateListCache: (oldData, newItem) => {
-      const old = oldData as ExportPolicy[] | undefined;
-      if (!old) return [newItem];
-      return old.map((p) => (p.name === newItem.name ? newItem : p));
-    },
+    ...exportPolicyListWatchCache(projectId),
   });
 }
 

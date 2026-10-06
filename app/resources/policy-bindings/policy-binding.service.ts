@@ -24,6 +24,9 @@ import { getOrgScopedBase, getProjectScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
+/** Sync-state kind of policy binding rows: the shared table's row keys and the mutations. */
+export const POLICY_BINDING_SYNC_KIND = 'policy-bindings';
+
 export const policyBindingKeys = {
   all: ['policy-bindings'] as const,
   lists: () => [...policyBindingKeys.all, 'list'] as const,

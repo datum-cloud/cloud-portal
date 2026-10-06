@@ -1,7 +1,11 @@
 import type { Domain, CreateDomainInput, UpdateDomainInput } from './domain.schema';
-import { createDomainService, domainKeys } from './domain.service';
+import { DOMAIN_SYNC_KIND, createDomainService, domainKeys } from './domain.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
-import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
+import {
+  defineResourceMutations,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
+import { withAllowanceRefresh } from '@/resources/allowance-buckets';
 import { dnsZoneKeys } from '@/resources/dns-zones/dns-zone.service';
 import {
   useQuery,
@@ -35,6 +39,33 @@ export function useDomain(
   });
 }
 
+/** Domains are watched: mutations write the lists and never invalidate them. */
+export function domainMutations(projectId: string) {
+  return defineResourceMutations<Domain>({
+    kind: DOMAIN_SYNC_KIND,
+    scope: projectId,
+    keys: {
+      lists: [...domainKeys.lists(), projectId],
+      detail: (name) => domainKeys.detail(projectId, name),
+    },
+    getName: (domain) => domain.name,
+    getMeta: (domain) => ({ name: domain.name, resourceVersion: domain.resourceVersion }),
+    watched: true,
+  });
+}
+
+export function toPendingDomain(input: CreateDomainInput, pendingName: string): Domain {
+  return {
+    uid: pendingName,
+    name: input.name ?? pendingName,
+    namespace: 'default',
+    resourceVersion: '',
+    createdAt: new Date(),
+    domainName: input.domainName,
+    desiredRegistrationRefreshAttempt: '',
+  };
+}
+
 export function useCreateDomain(
   projectId: string,
   options?: UseMutationOptions<Domain, Error, CreateDomainInput>
@@ -44,16 +75,10 @@ export function useCreateDomain(
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: CreateDomainInput) => createDomainService().create(projectId, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [newDomain] = args;
-      // Set detail cache - Watch handles list update
-      queryClient.setQueryData(domainKeys.detail(projectId, newDomain.name), newDomain);
-      queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
-
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(
+      domainMutations(projectId).create(toPendingDomain),
+      withAllowanceRefresh(options, queryClient)
+    ),
   });
 }
 
@@ -63,19 +88,15 @@ export function useUpdateDomain(
   options?: UseMutationOptions<Domain, Error, UpdateDomainInput>
 ) {
   const queryClient = useQueryClient();
+  const handlers = domainMutations(projectId).update<UpdateDomainInput>((input) => {
+    const current = queryClient.getQueryData<Domain>(domainKeys.detail(projectId, name));
+    return current ? { ...current, domainName: input.domainName } : undefined;
+  });
 
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: UpdateDomainInput) => createDomainService().update(projectId, name, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [data] = args;
-      // Update detail cache with server response - Watch handles list sync
-      queryClient.setQueryData(domainKeys.detail(projectId, name), data);
-      queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(handlers, options),
   });
 }
 
@@ -88,19 +109,10 @@ export function useDeleteDomain(
   return useGuardedMutation({
     operation: 'delete',
     mutationFn: (name: string) => createDomainService().delete(projectId, name),
-    ...options,
-    onSuccess: async (...args) => {
-      const [, name] = args;
-      // Cancel in-flight queries for the deleted domain
-      await queryClient.cancelQueries({ queryKey: domainKeys.detail(projectId, name) });
-      // Optimistically remove from list cache so UI updates immediately
-      queryClient.setQueryData<Domain[]>(domainKeys.list(projectId), (old) =>
-        old ? old.filter((d) => d.name !== name) : old
-      );
-      queryClient.removeQueries({ queryKey: domainKeys.detail(projectId, name) });
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(
+      domainMutations(projectId).remove<string>((name) => name),
+      withAllowanceRefresh(options, queryClient)
+    ),
   });
 }
 

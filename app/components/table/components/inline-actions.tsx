@@ -23,10 +23,13 @@ export function InlineActions<TData extends RowData>({
   row,
   actions,
   disabled = false,
+  describedBy,
 }: {
   row: TData;
   actions: RowAction<TData>[];
   disabled?: boolean;
+  /** Id of the text that says why the buttons are disabled. */
+  describedBy?: string;
 }) {
   const visibleActions = actions.filter((action) => !resolveHidden(action.hidden, row));
   if (visibleActions.length === 0) return null;
@@ -52,6 +55,7 @@ export function InlineActions<TData extends RowData>({
             size={showLabel ? 'small' : 'icon'}
             onClick={handleClick}
             disabled={isActionDisabled}
+            aria-describedby={describedBy}
             data-e2e={action['data-e2e']}
             className={cn('h-7 px-2', action.className)}>
             {renderIcon(action.icon)}

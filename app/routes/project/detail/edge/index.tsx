@@ -1,7 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import { DateTime } from '@/components/date-time';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { useDeleteProxy } from '@/features/edge/proxy/hooks/use-delete-proxy';
 import { ProxySparkline } from '@/features/edge/proxy/metrics/proxy-sparkline';
 import { listOriginDisplay } from '@/features/edge/proxy/overview/backend-summary';
@@ -23,10 +23,12 @@ import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions, usePermission } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
   createHttpProxyService,
+  HTTP_PROXY_SYNC_KIND,
   httpProxyKeys,
   useHttpProxies,
   useHttpProxiesWatch,
@@ -128,7 +130,6 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
   useHttpProxiesWatch(projectId);
 
   const { data = initialProxies, isPending } = useHttpProxies(projectId, {
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
     initialData: initialProxies,
   });
@@ -200,11 +201,13 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         cell: ({ row }) => {
           return (
             <div data-e2e="alb-card">
-              <Tooltip message={row.original.name || row.original.chosenName}>
-                <span className="font-medium" data-e2e="alb-name">
-                  {row.original.chosenName || row.original.name}
-                </span>
-              </Tooltip>
+              <RowSyncName syncKey={syncKey(HTTP_PROXY_SYNC_KIND, projectId, row.original.name)}>
+                <Tooltip message={row.original.name || row.original.chosenName}>
+                  <span className="font-medium" data-e2e="alb-name">
+                    {row.original.chosenName || row.original.name}
+                  </span>
+                </Tooltip>
+              </RowSyncName>
             </div>
           );
         },
@@ -428,6 +431,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
       <Table.Client
         columns={columns}
         data={data ?? []}
+        getRowSyncKey={(row) => syncKey(HTTP_PROXY_SYNC_KIND, projectId, row.name)}
         loading={isPending}
         title="Application Load Balancer"
         onRowClick={(row) => {

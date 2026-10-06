@@ -157,6 +157,7 @@ function BindingsPanel({ orgId }: { orgId: string }) {
       <Col span={24}>
         <PolicyBindingTable
           bindings={bindings}
+          syncScope={orgId}
           empty={{
             title: 'no roles found',
             actions: [

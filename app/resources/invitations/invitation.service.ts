@@ -21,6 +21,9 @@ import { getOrgScopedBase, getUserScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
+/** Sync-state kind of org invitation rows in the team table. */
+export const INVITATION_SYNC_KIND = 'invitations';
+
 export const invitationKeys = {
   all: ['invitations'] as const,
   lists: () => [...invitationKeys.all, 'list'] as const,

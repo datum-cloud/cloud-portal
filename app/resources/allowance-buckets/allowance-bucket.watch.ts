@@ -22,7 +22,6 @@ export function useAllowanceBucketsWatch(
     throttleMs: 5000,
     // Don't drop ADDED events during the ~2s initial-sync window after subscribe —
     // a grant landing right then should still reach the cache.
-    skipInitialSync: false,
     getItemKey: (b) => b.name,
     updateListCache: (oldData, newItem) => {
       // useResourceWatch guards oldData for null before invoking updateListCache.

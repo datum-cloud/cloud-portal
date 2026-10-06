@@ -35,6 +35,9 @@ export const domainKeys = {
   detail: (projectId: string, name: string) => [...domainKeys.details(), projectId, name] as const,
 };
 
+/** Sync-state kind of domain rows: the list's row keys, its watch, and its mutations. */
+export const DOMAIN_SYNC_KIND = 'domains';
+
 const SERVICE_NAME = 'DomainService';
 
 export function createDomainService() {

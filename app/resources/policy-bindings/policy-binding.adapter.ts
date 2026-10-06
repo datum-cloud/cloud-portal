@@ -6,6 +6,7 @@ import type {
 } from './policy-binding.schema';
 import { POLICY_RESOURCES } from '@/features/policy-binding/form/constants';
 import type { ComMiloapisIamV1Alpha1PolicyBinding } from '@/modules/control-plane/iam';
+import { DATUM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { sanitizeForK8s } from '@/utils/helpers/format.helper';
 import { generateRandomString } from '@/utils/helpers/text.helper';
 
@@ -97,7 +98,7 @@ function formatPolicyBindingPayload(
       },
       roleRef: {
         name: input.role,
-        namespace: input.roleNamespace ?? 'datum-cloud',
+        namespace: input.roleNamespace ?? DATUM_ROLE_NAMESPACE,
       },
       subjects: input.subjects.map((subject) => ({
         kind: subject.kind as 'User' | 'Group' | 'ServiceAccount',

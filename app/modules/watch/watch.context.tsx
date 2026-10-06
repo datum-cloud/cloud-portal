@@ -10,6 +10,8 @@ const WatchContext = createContext<WatchContextValue | null>(null);
 
 interface WatchProviderProps {
   children: ReactNode;
+  /** Override the singleton, for tests. */
+  manager?: typeof watchManager;
 }
 
 /**
@@ -29,10 +31,8 @@ interface WatchProviderProps {
  * teardown happens when the tab/window closes, which the browser handles by
  * aborting the in-flight SSE fetch — no React-side cleanup is necessary.
  */
-export function WatchProvider({ children }: WatchProviderProps) {
-  return (
-    <WatchContext.Provider value={{ manager: watchManager }}>{children}</WatchContext.Provider>
-  );
+export function WatchProvider({ children, manager = watchManager }: WatchProviderProps) {
+  return <WatchContext.Provider value={{ manager }}>{children}</WatchContext.Provider>;
 }
 
 /**
@@ -44,4 +44,9 @@ export function useWatchContext(): WatchContextValue {
     throw new Error('useWatchContext must be used within WatchProvider');
   }
   return context;
+}
+
+/** Falls back to the singleton so hooks keep working outside a WatchProvider. */
+export function useWatchManager(): typeof watchManager {
+  return useContext(WatchContext)?.manager ?? watchManager;
 }
