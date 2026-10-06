@@ -183,6 +183,8 @@ export function ProjectSearchBar({ variant = 'header' }: { variant?: ProjectSear
                 />
               ) : engine.isLoading ? (
                 <CommandEmpty>Searching…</CommandEmpty>
+              ) : engine.isError ? (
+                <CommandEmpty>{engine.errorMessage}</CommandEmpty>
               ) : engine.totalHits === 0 ? (
                 <CommandEmpty>No matches in this project.</CommandEmpty>
               ) : (

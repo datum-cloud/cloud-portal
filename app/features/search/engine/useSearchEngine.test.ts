@@ -25,7 +25,13 @@
 // bun:test cannot exercise without a DOM; it is reviewed by inspection in
 // `useSearchEngine.ts` itself and will be covered by the upcoming Cypress
 // component tests that already exist in this repo's E2E setup.
-import { computeStatusText, getHitPosition, groupByKind, scopeKey } from './useSearchEngine';
+import {
+  computeStatusText,
+  getHitPosition,
+  groupByKind,
+  scopeKey,
+  searchErrorMessage,
+} from './useSearchEngine';
 import { GROUP_RESULT_CAP } from '@/resources/search';
 import type { SearchHit } from '@/resources/search';
 import { describe, expect, it } from 'bun:test';
@@ -91,6 +97,23 @@ describe('groupByKind', () => {
   });
 });
 
+describe('searchErrorMessage', () => {
+  it('returns account copy for a 403', () => {
+    expect(searchErrorMessage({ status: 403 })).toBe(
+      "Search isn't available for your account in this project."
+    );
+  });
+
+  it('returns unavailability copy for a 500', () => {
+    expect(searchErrorMessage({ status: 500 })).toBe('Search is temporarily unavailable.');
+  });
+
+  it('returns unavailability copy when the error is null or undefined', () => {
+    expect(searchErrorMessage(null)).toBe('Search is temporarily unavailable.');
+    expect(searchErrorMessage(undefined)).toBe('Search is temporarily unavailable.');
+  });
+});
+
 describe('computeStatusText', () => {
   it('returns "Searching…" while loading', () => {
     expect(
@@ -114,6 +137,19 @@ describe('computeStatusText', () => {
         hasPartialPermission: false,
       })
     ).toBe('Search is temporarily unavailable.');
+  });
+
+  it('explains a 403 instead of reporting unavailability', () => {
+    expect(
+      computeStatusText({
+        isLoading: false,
+        isError: true,
+        error: { status: 403 },
+        totalHits: 0,
+        query: 'acme',
+        hasPartialPermission: false,
+      })
+    ).toBe("Search isn't available for your account in this project.");
   });
 
   it('reports zero-result query with the term', () => {

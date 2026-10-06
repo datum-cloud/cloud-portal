@@ -136,6 +136,8 @@ export function MobileSearchSheet({ open, onOpenChange }: Props) {
                     />
                   ) : engine.isLoading ? (
                     <CommandEmpty>Searching…</CommandEmpty>
+                  ) : engine.isError ? (
+                    <CommandEmpty>{engine.errorMessage}</CommandEmpty>
                   ) : engine.totalHits === 0 ? (
                     <CommandEmpty>No matches.</CommandEmpty>
                   ) : (
