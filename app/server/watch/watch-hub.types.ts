@@ -22,15 +22,21 @@ export interface WatchClient {
   lastActivity: number;
 }
 
+export type RegisterClientResult = 'accepted' | 'full' | 'conflict';
+
 // ─── Upstream Connection ─────────────────────────────
+
+export type UpstreamState = 'connecting' | 'streaming' | 'backoff' | 'closed';
 
 /**
  * A persistent upstream connection to the K8s Watch API.
- * Shared across all browser clients watching the same resource.
+ * Shared across one user's browser clients watching the same resource.
  */
 export interface UpstreamWatch {
-  /** Deterministic watch key matching the channel name sent to clients. */
+  /** Internal key: the channel plus the user ID, so users never share an upstream. */
   key: string;
+  /** Channel name sent to clients; matches `WatchManager.buildChannelKey`. */
+  channel: string;
   /** Base upstream URL (without resourceVersion query param). */
   url: string;
   /** AbortController for the current fetch — replaced on reconnection. */
@@ -41,10 +47,16 @@ export interface UpstreamWatch {
   lastActivity: number;
   /** Number of consecutive reconnection attempts (reset on successful connect). */
   reconnectAttempts: number;
-  /** True while the initial fetch is in-flight. */
-  isConnecting: boolean;
-  /** User ID of the client that created this upstream (for token affinity on reconnection). */
-  creatorUserId: string;
+  /** `backoff` persists through slow retries until one succeeds. */
+  state: UpstreamState;
+  reconnectTimer?: ReturnType<typeof setTimeout>;
+  /** User whose token this upstream uses; every subscriber belongs to this user. */
+  userId: string;
+  /** Resync reason owed to subscribers once the next connection is streaming. */
+  pendingResync?: Extract<WatchResyncReason, 'expired'>;
+  healthyTimer?: ReturnType<typeof setTimeout>;
+  /** Set once a 401 has been retried with a newer token; cleared once streaming. */
+  authRetried?: boolean;
 }
 
 // ─── Subscribe/Unsubscribe ───────────────────────────
@@ -80,6 +92,13 @@ export interface WatchUnsubscribeRequest {
 // ─── SSE Events ──────────────────────────────────────
 
 /**
+ * Why a channel lost continuity and the client should refetch it.
+ * - `expired` — 410; the upstream restarted at rv 0, which never replays deletes.
+ * - `auth` — 401 even with the user's latest token; the client reopens its stream.
+ */
+export type WatchResyncReason = 'joined' | 'expired' | 'degraded' | 'recovered' | 'auth';
+
+/**
  * Discriminated union of all SSE events the WatchHub can send to a client.
  *
  * - `connected` — sent immediately after SSE stream opens.
@@ -87,6 +106,9 @@ export interface WatchUnsubscribeRequest {
  * - `watch` — a K8s watch event (ADDED / MODIFIED / DELETED) with the full object.
  * - `watch-error` — a non-410 error from the upstream K8s watch stream.
  * - `heartbeat` — periodic keep-alive to prevent proxy/LB timeouts.
+ * - `resync` — the channel lost continuity; see {@link WatchResyncReason}.
+ * - `reconnect` — the server is shutting down; reconnect now.
+ * - `subscribe-failed` — a relayed subscribe failed; the client reopens its stream.
  */
 export type WatchSSEEvent =
   | { event: 'connected'; data: { clientId: string } }
@@ -100,7 +122,13 @@ export type WatchSSEEvent =
       event: 'watch-error';
       data: { channel: string; code?: number; reason?: string; message?: string };
     }
-  | { event: 'heartbeat'; data: { ts: number } };
+  | { event: 'heartbeat'; data: { ts: number } }
+  | {
+      event: 'resync';
+      data: { channel: string; reason: WatchResyncReason; degraded?: boolean };
+    }
+  | { event: 'reconnect'; data: Record<string, never> }
+  | { event: 'subscribe-failed'; data: { channel: string; reason: string } };
 
 // ─── Stats ───────────────────────────────────────────
 
@@ -129,9 +157,11 @@ const K8S_IDENTIFIER = /^[a-z0-9]([a-z0-9.-]{0,61}[a-z0-9])?$/;
 /** Basic label/field selector chars: alphanumeric, dots, equals, commas, etc. */
 const SELECTOR_PATTERN = /^[a-zA-Z0-9_.=!,/()-]+$/;
 
+export const clientIdSchema = z.string().uuid();
+
 /** Runtime validation schema for `POST /api/watch/subscribe` request bodies. */
 export const watchSubscribeSchema = z.object({
-  clientId: z.string().uuid(),
+  clientId: clientIdSchema,
   resourceType: z
     .string()
     .min(1)
@@ -148,6 +178,6 @@ export const watchSubscribeSchema = z.object({
 
 /** Runtime validation schema for `POST /api/watch/unsubscribe` request bodies. */
 export const watchUnsubscribeSchema = z.object({
-  clientId: z.string().uuid(),
+  clientId: clientIdSchema,
   channel: z.string().min(1).max(1024),
 });

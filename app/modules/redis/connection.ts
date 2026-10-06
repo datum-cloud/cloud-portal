@@ -1,6 +1,7 @@
 import { redisConfig } from './config';
+import { relayRetryDelay } from './retry';
 import { logger } from '@/modules/logger';
-import Redis from 'ioredis';
+import Redis, { type RedisOptions } from 'ioredis';
 
 // Log Redis configuration on startup
 if (redisConfig.enabled) {
@@ -78,6 +79,44 @@ if (redisClient) {
   redisClient.on('end', () => {
     logger.warn('🔴 Redis: Connection ended');
   });
+}
+
+/** Log connection errors from one of the watch relay's connections. */
+function logRelayErrors(connection: Redis, label: string): Redis {
+  connection.on('error', (err) => {
+    const errorMessage = err.message || err.toString();
+    if (errorMessage && errorMessage !== 'Connection is closed.') {
+      logger.error(`🔴 Redis: ${label} connection error`, { error: errorMessage });
+    }
+  });
+  return connection;
+}
+
+/**
+ * Relay command connection. The shared client stays ended after
+ * `REDIS_MAX_RETRIES`, so the relay gets its own that never stops reconnecting.
+ */
+export function createRelayClient(): Redis | null {
+  if (!redisClient) return null;
+  const client: Redis = redisClient.duplicate<Partial<RedisOptions>>({
+    retryStrategy: relayRetryDelay,
+    maxRetriesPerRequest: 1,
+    // The relay waits for `ready` before sending, so it must connect eagerly.
+    lazyConnect: false,
+  });
+  return logRelayErrors(client, 'Relay');
+}
+
+/** Pub/sub connection: ioredis subscriber mode cannot run other commands. */
+export function createSubscriber(): Redis | null {
+  if (!redisClient) return null;
+  const subscriber: Redis = redisClient.duplicate<Partial<RedisOptions>>({
+    retryStrategy: relayRetryDelay,
+    maxRetriesPerRequest: null,
+    commandTimeout: undefined,
+    lazyConnect: false,
+  });
+  return logRelayErrors(subscriber, 'Subscriber');
 }
 
 /**

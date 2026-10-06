@@ -1,18 +1,28 @@
+import {
+  buildChannelKey,
+  buildUpstreamUrl,
+  buildWatchKey,
+  buildWatchUrl,
+  watchKeyForChannel,
+} from './watch-hub.keys';
 import type {
+  RegisterClientResult,
+  UpstreamState,
   WatchClient,
   UpstreamWatch,
+  WatchResyncReason,
   WatchSubscribeRequest,
   WatchSSEEvent,
   WatchStats,
 } from './watch-hub.types';
 import { parseWatchEvent, extractResourceVersion } from '@/modules/watch/watch.parser';
-import { env } from '@/utils/env/env.server';
+import { countWatchResync, countWatchUpstreamState } from '@/server/observability/watch-metrics';
+import type { SSEStreamingApi } from 'hono/streaming';
 
 /** Max upstream reconnection attempts before broadcasting an error to clients. */
 const MAX_RECONNECT_ATTEMPTS = 5;
 /** Base delay for exponential backoff on upstream reconnection (doubles each attempt). */
 const BASE_RECONNECT_DELAY = 1000;
-/** Interval between heartbeat SSE events sent to all connected clients (ms). */
 /**
  * How long a streamed response may sit with no bytes written before the
  * runtime closes it. Measured at ~12s against this stack (Bun + Hono
@@ -37,6 +47,12 @@ export const SSE_IDLE_TIMEOUT_MS = 12000;
 export const HEARTBEAT_INTERVAL_MS = 5000;
 /** Delay before closing an upstream K8s connection after the last subscriber leaves. */
 const UPSTREAM_GRACE_PERIOD_MS = 10000;
+/** Retry cadence for an upstream that has used up its fast reconnect attempts. */
+export const UPSTREAM_BACKOFF_RETRY_MS = 30_000;
+/** Reset attempts after streaming this long, not on connect, so ERROR-then-end loops back off. */
+export const UPSTREAM_HEALTHY_AFTER_MS = 60_000;
+/** A third of `OWNER_TTL_SECONDS`, so an ownership key survives two missed refreshes. */
+export const OWNER_REFRESH_MS = 20_000;
 /** Maximum number of concurrent SSE clients the WatchHub will accept. */
 const MAX_CLIENTS = 1000;
 /** Maximum number of watch subscriptions a single client can hold. */
@@ -44,60 +60,13 @@ const MAX_SUBSCRIPTIONS_PER_CLIENT = 50;
 /** Time (ms) after which an idle client with no subscriptions is pruned. */
 const IDLE_CLIENT_TIMEOUT_MS = 120000;
 
-/**
- * Path (no query string) for an upstream K8s watch.
- * Org and project watches omit `/namespaces/...` when `namespace` is unset
- * so cluster-scoped control-plane resources (Project, Location) resolve.
- */
-export function buildWatchUpstreamPath(req: WatchSubscribeRequest, userId?: string): string {
-  if (req.userScoped) {
-    // User-scoped: watch across all namespaces for the authenticated user.
-    // Must use the real userId — NOT 'me' — because this fetch() bypasses
-    // the axios interceptor that normally rewrites /users/me/ → /users/{id}/.
-    if (!userId) throw new Error('[WatchHub] userId required for userScoped watch');
-    return `/apis/iam.miloapis.com/v1alpha1/users/${userId}/control-plane/${req.resourceType}`;
-  }
-
-  if (req.orgId) {
-    // Organization-scoped. When a namespace is also provided the
-    // resource is namespaced inside the org's control plane (billing
-    // accounts, payment methods, bindings) — the namespace segment
-    // has to be spliced into the apis/<group>/<version>/<resource>
-    // path. Without a namespace we're watching a cluster-scoped
-    // resource inside the org (e.g. Project).
-    if (req.namespace) {
-      const parts = req.resourceType.split('/');
-      const resourceName = parts.pop();
-      const apiPath = parts.join('/');
-      return `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${apiPath}/namespaces/${req.namespace}/${resourceName}`;
-    }
-    return `/apis/resourcemanager.miloapis.com/v1alpha1/organizations/${req.orgId}/control-plane/${req.resourceType}`;
-  }
-
-  if (req.projectId) {
-    // Same rule as org watches: a namespace means the resource lives in
-    // that namespace of the project control plane (HTTPProxies, DNS
-    // zones). Omit it for cluster-scoped project resources (Locations).
-    // Existing watches pass namespace explicitly — do not default to
-    // `default` here or cluster-scoped watches 404.
-    if (req.namespace) {
-      const parts = req.resourceType.split('/');
-      const resourceName = parts.pop();
-      const apiPath = parts.join('/');
-      return `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${req.projectId}/control-plane/${apiPath}/namespaces/${req.namespace}/${resourceName}`;
-    }
-    return `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${req.projectId}/control-plane/${req.resourceType}`;
-  }
-
-  if (req.namespace) {
-    const parts = req.resourceType.split('/');
-    const resourceName = parts.pop();
-    const apiPath = parts.join('/');
-    return `/${apiPath}/namespaces/${req.namespace}/${resourceName}`;
-  }
-
-  return `/${req.resourceType}`;
+export interface WatchOwnerRegistry {
+  registerOwner(cid: string, userId: string): Promise<void>;
+  refreshOwners(owners: Iterable<[cid: string, userId: string]>): Promise<void>;
+  releaseOwner(cid: string): Promise<void>;
 }
+
+export { buildChannelKey, buildWatchKey } from './watch-hub.keys';
 
 /**
  * Server-side watch multiplexer that manages upstream K8s Watch connections
@@ -117,15 +86,16 @@ export function buildWatchUpstreamPath(req: WatchSubscribeRequest, userId?: stri
  * ```
  *
  * Key behaviours:
- * - **Deduplication**: Multiple clients watching the same resource share one upstream.
+ * - **Deduplication**: One user's clients watching the same resource share one upstream.
  * - **Grace period**: Upstream stays alive for {@link UPSTREAM_GRACE_PERIOD_MS} after
  *   the last subscriber leaves, avoiding teardown/setup churn during navigation.
  * - **ResourceVersion tracking**: Tracks the latest resourceVersion per upstream so
  *   reconnections resume from where they left off (gap-free).
- * - **410 Gone handling**: Silently resets resourceVersion and reconnects without
- *   notifying clients (the server handles this internally).
- * - **Token affinity**: On each subscribe, the client's token is updated. On upstream
- *   reconnections, the freshest token from the upstream creator is preferred.
+ * - **410 Gone handling**: Resets resourceVersion, reconnects, and sends `resync`
+ *   (`expired`) once streaming again, since an rv=0 replay never sends deletes.
+ * - **Resync**: Tells clients when a channel lost continuity so they refetch
+ *   (see `WatchResyncReason`).
+ * - **Token affinity**: Each upstream uses its own user's latest token.
  * - **Heartbeat**: Sends a heartbeat every {@link HEARTBEAT_INTERVAL_MS} to keep
  *   SSE connections alive through proxies and load balancers.
  *
@@ -137,48 +107,78 @@ export class WatchHub {
   /** Maps watchKey → Set of clientIds subscribed to that channel. */
   private subscriptions = new Map<string, Set<string>>();
   private graceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private userTokens = new Map<string, string>();
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private ownerRegistry: WatchOwnerRegistry | null = null;
+  private lastOwnerRefresh = Date.now();
 
   constructor() {
     this.startHeartbeat();
+  }
+
+  setOwnerRegistry(registry: WatchOwnerRegistry | null): void {
+    this.ownerRegistry = registry;
   }
 
   // ─── Client Lifecycle ────────────────────────────
 
   /**
    * Register an SSE client and send the initial `connected` event.
-   * @returns `true` if the client was accepted, `false` if the server is at capacity.
+   * @returns `accepted`, `full` when the server is at capacity, or `conflict`
+   * when another user already holds a stream with this ID.
    */
-  registerClient(client: WatchClient): boolean {
+  registerClient(client: WatchClient): RegisterClientResult {
+    // Never replace another user's stream: it would hand over subscriptions and the owner key.
+    const existing = this.clients.get(client.id);
+    if (existing && existing.userId !== client.userId) return 'conflict';
+    if (existing) this.dropClient(existing);
+
     if (this.clients.size >= MAX_CLIENTS) {
-      return false;
+      // A key left from an earlier stream on this pod would route subscribes
+      // here for a client this pod turned away.
+      void this.ownerRegistry?.releaseOwner(client.id);
+      return 'full';
     }
 
     this.clients.set(client.id, client);
+    this.userTokens.set(client.userId, client.token);
+    void this.ownerRegistry?.registerOwner(client.id, client.userId);
     this.sendToClient(client.id, {
       event: 'connected',
       data: { clientId: client.id },
     });
-    return true;
+    return 'accepted';
   }
 
-  /** Remove a client and unsubscribe it from all channels. */
-  removeClient(clientId: string): void {
+  /** No-op unless `stream` is current, so a replaced stream's abort cannot evict the new one. */
+  removeClient(clientId: string, stream: SSEStreamingApi): void {
     const client = this.clients.get(clientId);
-    if (!client) return;
+    if (!client || client.stream !== stream) return;
+    this.dropClient(client);
+    void this.ownerRegistry?.releaseOwner(clientId);
+  }
 
+  private dropClient(client: WatchClient): void {
+    const clientId = client.id;
     // Unsubscribe from all channels
     for (const watchKey of client.subscriptions) {
       this.removeSubscription(clientId, watchKey);
     }
 
     this.clients.delete(clientId);
+
+    const userHasClients = Array.from(this.clients.values()).some(
+      (c) => c.userId === client.userId
+    );
+    if (!userHasClients) this.userTokens.delete(client.userId);
   }
 
   /** Update a client's auth token (called on every subscribe to keep tokens fresh). */
   updateClientToken(clientId: string, token: string): void {
     const client = this.clients.get(clientId);
-    if (client) client.token = token;
+    if (!client) return;
+    client.token = token;
+    this.userTokens.set(client.userId, token);
   }
 
   /**
@@ -190,8 +190,13 @@ export class WatchHub {
     for (const client of this.clients.values()) {
       if (client.userId === userId) {
         client.token = accessToken;
+        this.userTokens.set(userId, accessToken);
       }
     }
+  }
+
+  hasClient(clientId: string): boolean {
+    return this.clients.has(clientId);
   }
 
   /** Check whether a client belongs to the given user (for ownership validation). */
@@ -205,57 +210,88 @@ export class WatchHub {
   /**
    * Subscribe a client to a K8s resource watch channel.
    * Starts an upstream K8s connection if one isn't already running for this channel.
-   * @returns The watch key (channel name) for the subscription.
+   * @returns The channel name for the subscription.
    */
   async subscribe(req: WatchSubscribeRequest): Promise<string> {
-    const watchKey = this.buildWatchKey(req);
     const client = this.clients.get(req.clientId);
     if (!client) throw new Error('Client not registered');
+    const channel = buildChannelKey(req);
+    const watchKey = buildWatchKey(req, client.userId);
 
     if (client.subscriptions.size >= MAX_SUBSCRIPTIONS_PER_CLIENT) {
       throw new Error('Maximum subscriptions per client exceeded');
     }
 
-    // Cancel grace timer if upstream was about to close
+    // Built before any state changes so a rejected request leaves no orphan subscription.
+    const upstream = this.upstreams.get(watchKey);
+    const url = upstream ? null : buildUpstreamUrl(req, client.userId);
+
+    this.addSubscription(client, watchKey);
+
+    // No replay: a late subscriber has missed events since its REST list.
+    const joined =
+      upstream !== undefined &&
+      (upstream.state === 'streaming' || upstream.resourceVersion !== '0');
+    if (url !== null) {
+      await this.startUpstreamWatch(watchKey, channel, url, client.token, client.userId);
+    } else if (upstream?.state === 'backoff' && upstream.reconnectTimer) {
+      this.restartUpstream(upstream, client.token);
+    }
+
+    this.confirmSubscribe(req.clientId, channel, upstream?.state === 'backoff', joined);
+    return channel;
+  }
+
+  private addSubscription(client: WatchClient, watchKey: string): void {
     const graceTimer = this.graceTimers.get(watchKey);
     if (graceTimer) {
       clearTimeout(graceTimer);
       this.graceTimers.delete(watchKey);
     }
 
-    // Add subscription
     client.subscriptions.add(watchKey);
-    if (!this.subscriptions.has(watchKey)) {
-      this.subscriptions.set(watchKey, new Set());
+    const subs = this.subscriptions.get(watchKey) ?? new Set<string>();
+    subs.add(client.id);
+    this.subscriptions.set(watchKey, subs);
+  }
+
+  private confirmSubscribe(
+    clientId: string,
+    channel: string,
+    degraded: boolean,
+    joined: boolean
+  ): void {
+    this.sendToClient(clientId, { event: 'subscribed', data: { channel } });
+    if (degraded) {
+      // This client missed the broadcast `degraded`; it implies `joined`.
+      countWatchResync('degraded');
+      this.sendToClient(clientId, {
+        event: 'resync',
+        data: { channel, reason: 'degraded', degraded: true },
+      });
+    } else if (joined) {
+      countWatchResync('joined');
+      this.sendToClient(clientId, { event: 'resync', data: { channel, reason: 'joined' } });
     }
-    this.subscriptions.get(watchKey)!.add(req.clientId);
-
-    // Start upstream if not running
-    if (!this.upstreams.has(watchKey)) {
-      const url = this.buildUpstreamUrl(req, client.userId);
-      await this.startUpstreamWatch(watchKey, url, client.token, client.userId);
-    }
-
-    this.sendToClient(req.clientId, {
-      event: 'subscribed',
-      data: { channel: watchKey },
-    });
-
-    return watchKey;
   }
 
   /** Unsubscribe a client from a watch channel. Starts a grace period if no subscribers remain. */
   unsubscribe(clientId: string, channel: string): void {
-    this.removeSubscription(clientId, channel);
-
     const client = this.clients.get(clientId);
-    if (client) {
-      client.subscriptions.delete(channel);
-      this.sendToClient(clientId, {
-        event: 'unsubscribed',
-        data: { channel },
-      });
-    }
+    if (!client) return;
+
+    const watchKey = watchKeyForChannel(channel, client.userId);
+    this.removeSubscription(clientId, watchKey);
+    client.subscriptions.delete(watchKey);
+    this.sendToClient(clientId, {
+      event: 'unsubscribed',
+      data: { channel },
+    });
+  }
+
+  /** The relaying pod already answered 202, so the stream is the only way back. */
+  sendSubscribeFailed(clientId: string, channel: string, reason: string): void {
+    this.sendToClient(clientId, { event: 'subscribe-failed', data: { channel, reason } });
   }
 
   // ─── Internal: Subscription Management ───────────
@@ -283,6 +319,7 @@ export class WatchHub {
 
   private async startUpstreamWatch(
     watchKey: string,
+    channel: string,
     url: string,
     token: string,
     userId: string
@@ -290,179 +327,280 @@ export class WatchHub {
     const controller = new AbortController();
     const upstream: UpstreamWatch = {
       key: watchKey,
+      channel,
       url,
       controller,
       resourceVersion: '0',
       lastActivity: Date.now(),
       reconnectAttempts: 0,
-      isConnecting: true,
-      creatorUserId: userId,
+      state: 'connecting',
+      userId,
     };
 
     this.upstreams.set(watchKey, upstream);
+    countWatchUpstreamState(upstream.state);
 
     this.connectUpstream(upstream, token);
   }
 
   private async connectUpstream(upstream: UpstreamWatch, token: string): Promise<void> {
-    upstream.isConnecting = true;
-    const separator = upstream.url.includes('?') ? '&' : '?';
-    // Always include resourceVersion — K8s watch API (especially behind the
-    // resourcemanager control-plane proxy) requires it to initialise the stream.
-    // watch=true makes K8s stream events instead of returning a single LIST.
-    // allowWatchBookmarks lets the apiserver push periodic resourceVersion
-    // bookmarks so we can resume after a reconnect without a 410 storm.
-    // timeoutSeconds caps how long one upstream connection lives before we
-    // recycle it with the latest resourceVersion.
-    const watchUrl =
-      `${upstream.url}${separator}watch=true` +
-      `&allowWatchBookmarks=true` +
-      `&timeoutSeconds=300` +
-      `&resourceVersion=${upstream.resourceVersion}`;
+    if (upstream.state !== 'backoff') this.setUpstreamState(upstream, 'connecting');
 
     try {
-      const response = await fetch(watchUrl, {
+      const response = await fetch(buildWatchUrl(upstream), {
         signal: upstream.controller.signal,
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',
         },
       });
+      const body = await this.acceptResponse(upstream, response, token);
+      if (!body) return;
 
-      if (!response.ok || !response.body) {
-        const bodyText = response.body ? await response.text().catch(() => '') : '';
-        throw new Error(
-          `Upstream watch failed: ${response.status} key=${upstream.key} body=${bodyText.slice(0, 500)}`
-        );
-      }
-
-      upstream.isConnecting = false;
-      upstream.reconnectAttempts = 0;
-      upstream.lastActivity = Date.now();
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        upstream.lastActivity = Date.now();
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          const event = parseWatchEvent(line);
-          if (!event) continue;
-
-          // Handle 410 Gone (resourceVersion expired)
-          if (event.type === 'ERROR') {
-            const status = event.object as { code?: number; reason?: string; message?: string };
-            if (status.code === 410 || status.reason === 'Expired') {
-              // Server handles reconnection internally — no need to notify clients
-              upstream.resourceVersion = '0';
-              reader.cancel();
-              this.scheduleUpstreamReconnect(upstream, token, 100);
-              return;
-            }
-            // Broadcast other errors
-            this.broadcastToChannel(upstream.key, {
-              event: 'watch-error',
-              data: {
-                channel: upstream.key,
-                code: status.code,
-                reason: status.reason,
-                message: status.message,
-              },
-            });
-            continue;
-          }
-
-          // Track resourceVersion
-          const rv = extractResourceVersion(event.object);
-          if (rv) upstream.resourceVersion = rv;
-
-          // Fan-out to all subscribed clients
-          this.broadcastToChannel(upstream.key, {
-            event: 'watch',
-            data: {
-              channel: upstream.key,
-              type: event.type,
-              object: event.object,
-              resourceVersion: rv,
-            },
-          });
-        }
-      }
-
-      // Stream ended normally — reconnect if still subscribed
-      if (this.subscriptions.has(upstream.key)) {
-        this.scheduleUpstreamReconnect(upstream, token, 1000);
-      }
+      this.onStreamOpen(upstream);
+      const end = await this.readStream(upstream, body, token);
+      clearTimeout(upstream.healthyTimer);
+      upstream.healthyTimer = undefined;
+      if (end !== 'expired') this.onStreamEnd(upstream, token, end === 'error');
     } catch (err) {
+      clearTimeout(upstream.healthyTimer);
+      upstream.healthyTimer = undefined;
       if ((err as Error).name === 'AbortError') return; // Intentional close
+      if (!this.isCurrent(upstream)) return;
+      this.handleUpstreamFailure(upstream, token);
+    }
+  }
 
-      upstream.isConnecting = false;
+  private async acceptResponse(
+    upstream: UpstreamWatch,
+    response: Response,
+    token: string
+  ): Promise<ReadableStream<Uint8Array> | null> {
+    if (response.status === 401) {
+      await response.body?.cancel().catch(() => {});
+      this.handleUnauthorized(upstream, token);
+      return null;
+    }
 
-      if (upstream.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
-        const delay = BASE_RECONNECT_DELAY * Math.pow(2, upstream.reconnectAttempts);
-        this.scheduleUpstreamReconnect(upstream, token, delay);
-      } else {
-        // Max retries exceeded
-        this.broadcastToChannel(upstream.key, {
-          event: 'watch-error',
-          data: {
-            channel: upstream.key,
-            message: 'Max reconnection attempts exceeded',
-          },
-        });
-        this.closeUpstream(upstream.key);
+    // 403 is RBAC, not a stale token: back off instead of making clients reopen in a loop.
+    if (response.status === 403) {
+      await response.body?.cancel().catch(() => {});
+      if (this.isCurrent(upstream)) this.enterBackoff(upstream, token);
+      return null;
+    }
+
+    if (!response.ok || !response.body) {
+      const bodyText = response.body ? await response.text().catch(() => '') : '';
+      throw new Error(
+        `Upstream watch failed: ${response.status} key=${upstream.key} body=${bodyText.slice(0, 500)}`
+      );
+    }
+    return response.body;
+  }
+
+  private onStreamOpen(upstream: UpstreamWatch): void {
+    const recovered = upstream.state === 'backoff';
+    const owed = upstream.pendingResync;
+    this.setUpstreamState(upstream, 'streaming');
+    upstream.authRetried = false;
+    clearTimeout(upstream.healthyTimer);
+    upstream.healthyTimer = setTimeout(() => {
+      upstream.healthyTimer = undefined;
+      upstream.reconnectAttempts = 0;
+    }, UPSTREAM_HEALTHY_AFTER_MS);
+    upstream.pendingResync = undefined;
+    upstream.lastActivity = Date.now();
+    // `recovered` also covers an expiry that happened while degraded.
+    if (recovered) this.broadcastResync(upstream, 'recovered');
+    else if (owed) this.broadcastResync(upstream, owed);
+  }
+
+  private async readStream(
+    upstream: UpstreamWatch,
+    body: ReadableStream<Uint8Array>,
+    token: string
+  ): Promise<'ok' | 'error' | 'expired'> {
+    const reader = body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let sawError = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) return sawError ? 'error' : 'ok';
+
+      upstream.lastActivity = Date.now();
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const result = this.processLine(upstream, line);
+        if (result === 'expired') {
+          void reader.cancel().catch(() => {});
+          this.onExpired(upstream, token);
+          return 'expired';
+        }
+        if (result === 'error') sawError = true;
       }
     }
+  }
+
+  private processLine(upstream: UpstreamWatch, line: string): 'event' | 'error' | 'expired' | null {
+    const event = parseWatchEvent(line);
+    if (!event) return null;
+
+    if (event.type === 'ERROR') {
+      const status = event.object as { code?: number; reason?: string; message?: string };
+      if (status.code === 410 || status.reason === 'Expired') return 'expired';
+      this.broadcastToChannel(upstream.key, {
+        event: 'watch-error',
+        data: {
+          channel: upstream.channel,
+          code: status.code,
+          reason: status.reason,
+          message: status.message,
+        },
+      });
+      return 'error';
+    }
+
+    const rv = extractResourceVersion(event.object);
+    if (rv) upstream.resourceVersion = rv;
+    this.broadcastToChannel(upstream.key, {
+      event: 'watch',
+      data: {
+        channel: upstream.channel,
+        type: event.type,
+        object: event.object,
+        resourceVersion: rv,
+      },
+    });
+    return 'event';
+  }
+
+  /** An rv 0 replay never sends deletes from the gap, so clients get `resync` once it streams. */
+  private onExpired(upstream: UpstreamWatch, token: string): void {
+    upstream.resourceVersion = '0';
+    upstream.pendingResync = 'expired';
+    clearTimeout(upstream.healthyTimer);
+    upstream.healthyTimer = undefined;
+    if (upstream.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      this.scheduleUpstreamReconnect(upstream, token, 100);
+    } else {
+      this.enterBackoff(upstream, token);
+    }
+  }
+
+  /**
+   * With no subscribers, close now so a subscribe in the grace window starts a
+   * live upstream. An end after an ERROR is the apiserver giving up: a failure.
+   */
+  private onStreamEnd(upstream: UpstreamWatch, token: string, sawError: boolean): void {
+    if (!this.isCurrent(upstream)) return;
+    if (!this.subscriptions.has(upstream.key)) {
+      this.closeUpstream(upstream.key);
+      return;
+    }
+    if (sawError) this.handleUpstreamFailure(upstream, token);
+    else this.scheduleUpstreamReconnect(upstream, token, 1000);
+  }
+
+  private handleUpstreamFailure(upstream: UpstreamWatch, token: string): void {
+    if (upstream.reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
+      const delay = BASE_RECONNECT_DELAY * Math.pow(2, upstream.reconnectAttempts);
+      this.scheduleUpstreamReconnect(upstream, token, delay);
+      return;
+    }
+
+    this.enterBackoff(upstream, token);
+  }
+
+  private enterBackoff(upstream: UpstreamWatch, token: string): void {
+    if (!this.subscriptions.has(upstream.key)) {
+      this.closeUpstream(upstream.key);
+      return;
+    }
+
+    if (upstream.state !== 'backoff') {
+      this.setUpstreamState(upstream, 'backoff');
+      // Clients from before `resync` only understand `watch-error`.
+      this.broadcastToChannel(upstream.key, {
+        event: 'watch-error',
+        data: {
+          channel: upstream.channel,
+          message: 'Max reconnection attempts exceeded',
+        },
+      });
+      this.broadcastResync(upstream, 'degraded');
+    }
+    this.scheduleUpstreamReconnect(upstream, token, UPSTREAM_BACKOFF_RETRY_MS);
+  }
+
+  /** Retry once with the user's newer token if any; otherwise clients reopen with a fresh one. */
+  private handleUnauthorized(upstream: UpstreamWatch, token: string): void {
+    if (!this.isCurrent(upstream)) return;
+    const latest = this.userTokens.get(upstream.userId);
+    if (latest && latest !== token && !upstream.authRetried) {
+      upstream.authRetried = true;
+      this.restartUpstream(upstream, latest);
+      return;
+    }
+    this.broadcastResync(upstream, 'auth');
+    this.dropChannel(upstream.key);
+    this.closeUpstream(upstream.key);
+  }
+
+  private dropChannel(watchKey: string): void {
+    for (const clientId of this.subscriptions.get(watchKey) ?? []) {
+      this.clients.get(clientId)?.subscriptions.delete(watchKey);
+    }
+    this.subscriptions.delete(watchKey);
+  }
+
+  private setUpstreamState(upstream: UpstreamWatch, state: UpstreamState): void {
+    if (upstream.state === state) return;
+    upstream.state = state;
+    countWatchUpstreamState(state);
+  }
+
+  private isCurrent(upstream: UpstreamWatch): boolean {
+    return upstream.state !== 'closed' && this.upstreams.get(upstream.key) === upstream;
+  }
+
+  private restartUpstream(upstream: UpstreamWatch, token: string): void {
+    clearTimeout(upstream.reconnectTimer);
+    upstream.reconnectTimer = undefined;
+    upstream.controller = new AbortController();
+    void this.connectUpstream(upstream, token);
   }
 
   private scheduleUpstreamReconnect(upstream: UpstreamWatch, token: string, delayMs: number): void {
     upstream.reconnectAttempts++;
-    setTimeout(() => {
-      if (!this.upstreams.has(upstream.key)) return; // Already closed
-      // Use freshest token from any subscriber
-      const freshToken = this.getFreshToken(upstream.key) ?? token;
+    clearTimeout(upstream.reconnectTimer);
+    upstream.reconnectTimer = setTimeout(() => {
+      upstream.reconnectTimer = undefined;
+      if (!this.isCurrent(upstream)) return;
+      const freshToken = this.userTokens.get(upstream.userId) ?? token;
       upstream.controller = new AbortController();
-      this.connectUpstream(upstream, freshToken);
+      void this.connectUpstream(upstream, freshToken);
     }, delayMs);
   }
 
-  /**
-   * Get the freshest token for an upstream reconnection.
-   * Prefers tokens from clients with the same userId as the upstream creator
-   * to prevent cross-user token confusion.
-   */
-  private getFreshToken(watchKey: string): string | undefined {
-    const subs = this.subscriptions.get(watchKey);
-    if (!subs) return undefined;
-
-    const upstream = this.upstreams.get(watchKey);
-    const creatorUserId = upstream?.creatorUserId;
-    let fallbackToken: string | undefined;
-
-    for (const clientId of subs) {
-      const client = this.clients.get(clientId);
-      if (!client) continue;
-
-      if (creatorUserId && client.userId === creatorUserId) {
-        return client.token;
-      }
-      if (!fallbackToken) fallbackToken = client.token;
+  private closeUpstream(watchKey: string): void {
+    const graceTimer = this.graceTimers.get(watchKey);
+    if (graceTimer) {
+      clearTimeout(graceTimer);
+      this.graceTimers.delete(watchKey);
     }
 
-    return fallbackToken;
-  }
-
-  private closeUpstream(watchKey: string): void {
     const upstream = this.upstreams.get(watchKey);
     if (upstream) {
+      this.setUpstreamState(upstream, 'closed');
+      clearTimeout(upstream.reconnectTimer);
+      upstream.reconnectTimer = undefined;
+      clearTimeout(upstream.healthyTimer);
+      upstream.healthyTimer = undefined;
       upstream.controller.abort();
       this.upstreams.delete(watchKey);
     }
@@ -482,8 +620,19 @@ export class WatchHub {
       client.lastActivity = Date.now();
     } catch {
       // Client disconnected — will be cleaned up
-      this.removeClient(clientId);
+      this.removeClient(clientId, client.stream);
     }
+  }
+
+  private broadcastResync(upstream: UpstreamWatch, reason: WatchResyncReason): void {
+    countWatchResync(reason);
+    this.broadcastToChannel(upstream.key, {
+      event: 'resync',
+      data:
+        reason === 'degraded'
+          ? { channel: upstream.channel, reason, degraded: true }
+          : { channel: upstream.channel, reason },
+    });
   }
 
   private broadcastToChannel(watchKey: string, event: WatchSSEEvent): void {
@@ -505,7 +654,7 @@ export class WatchHub {
       for (const [clientId, client] of this.clients) {
         // Prune idle clients with no active subscriptions
         if (client.subscriptions.size === 0 && ts - client.lastActivity > IDLE_CLIENT_TIMEOUT_MS) {
-          this.removeClient(clientId);
+          this.removeClient(clientId, client.stream);
           continue;
         }
 
@@ -514,56 +663,14 @@ export class WatchHub {
           data: { ts },
         });
       }
-    }, HEARTBEAT_INTERVAL_MS);
-  }
 
-  // ─── Internal: URL Building ──────────────────────
-
-  /**
-   * Build a deterministic key for a watch subscription.
-   * Must match the client-side `WatchManager.buildChannelKey()` format exactly
-   * so that subscribe/unsubscribe channel names align.
-   */
-  private buildWatchKey(req: WatchSubscribeRequest): string {
-    return [
-      req.resourceType,
-      req.orgId ?? '',
-      req.projectId ?? '',
-      req.namespace ?? '',
-      req.name ?? '',
-      req.labelSelector ?? '',
-      req.fieldSelector ?? '',
-      req.userScoped ? 'user' : '', // 8th segment — must match WatchManager.buildChannelKey
-    ].join(':');
-  }
-
-  /**
-   * Build the upstream K8s Watch API URL.
-   * Routes through the resourcemanager control-plane proxy for org/project-scoped
-   * resources, or directly to the K8s API for namespace/cluster-scoped resources.
-   */
-  private buildUpstreamUrl(req: WatchSubscribeRequest, userId?: string): string {
-    const baseUrl = env.public.apiUrl;
-    const path = buildWatchUpstreamPath(req, userId);
-
-    const params = new URLSearchParams({ watch: 'true', timeoutSeconds: '30' });
-
-    // For named watches, use fieldSelector on the collection endpoint
-    // (same as client WatchManager — merge with existing fieldSelector if any)
-    if (req.name) {
-      const nameSelector = `metadata.name=${req.name}`;
-      if (req.fieldSelector) {
-        params.set('fieldSelector', `${req.fieldSelector},${nameSelector}`);
-      } else {
-        params.set('fieldSelector', nameSelector);
+      if (this.ownerRegistry && ts - this.lastOwnerRefresh >= OWNER_REFRESH_MS) {
+        this.lastOwnerRefresh = ts;
+        void this.ownerRegistry.refreshOwners(
+          Array.from(this.clients.values(), (c): [string, string] => [c.id, c.userId])
+        );
       }
-    } else if (req.fieldSelector) {
-      params.set('fieldSelector', req.fieldSelector);
-    }
-
-    if (req.labelSelector) params.set('labelSelector', req.labelSelector);
-
-    return `${baseUrl}${path}?${params.toString()}`;
+    }, HEARTBEAT_INTERVAL_MS);
   }
 
   // ─── Stats (for debugging / monitoring) ──────────
@@ -581,15 +688,23 @@ export class WatchHub {
 
   // ─── Shutdown ────────────────────────────────────
 
-  /** Gracefully shut down all upstreams, timers, and client connections. */
+  /**
+   * Gracefully shut down all upstreams, timers, and client connections.
+   * Clients are told to reconnect so they move pods without waiting out backoff.
+   */
   shutdown(): void {
     if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    for (const clientId of Array.from(this.clients.keys())) {
+      this.sendToClient(clientId, { event: 'reconnect', data: {} });
+      void this.ownerRegistry?.releaseOwner(clientId);
+    }
+    for (const watchKey of Array.from(this.upstreams.keys())) this.closeUpstream(watchKey);
     for (const timer of this.graceTimers.values()) clearTimeout(timer);
-    for (const upstream of this.upstreams.values()) upstream.controller.abort();
     this.clients.clear();
     this.upstreams.clear();
     this.subscriptions.clear();
     this.graceTimers.clear();
+    this.userTokens.clear();
   }
 }
 

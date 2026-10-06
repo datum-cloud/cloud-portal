@@ -29,7 +29,7 @@ import { createPluginRoutes } from '@/modules/plugins/server/routes';
 import { ensureRbacMetrics } from '@/modules/rbac/observability/metrics';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
-import { watchHub } from '@/server/watch';
+import { watchHub, watchRelay } from '@/server/watch';
 import { sessionManager } from '@/utils/auth';
 import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
@@ -43,6 +43,10 @@ let isShuttingDown = false;
 const beginShutdown = () => {
   isShuttingDown = true;
   watchHub.shutdown();
+  // After the hub, so the relay waits for the ownership releases it just sent.
+  watchRelay.stop().catch((error: unknown) => {
+    console.error('❌ Failed to stop the watch relay:', error);
+  });
 };
 
 process.once('SIGTERM', beginShutdown);
@@ -53,6 +57,12 @@ process.once('SIGINT', beginShutdown);
 // get the new token so upstream reconnections use fresh credentials.
 sessionManager.registerRefreshHook(({ userId, accessToken }) => {
   watchHub.updateTokensByUserId(userId, accessToken);
+});
+
+// No-ops unless WATCH_RELAY_ENABLED and Redis are set.
+watchHub.setOwnerRegistry(watchRelay);
+watchRelay.start().catch((error: unknown) => {
+  console.error('❌ Failed to start the watch relay:', error);
 });
 
 // Configure the shared control-plane client at startup. Called explicitly

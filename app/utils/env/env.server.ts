@@ -184,6 +184,11 @@ const serverSchema = z.object({
   REDIS_CONNECT_TIMEOUT: z.coerce.number().int().positive().default(5000),
   REDIS_COMMAND_TIMEOUT: z.coerce.number().int().positive().default(3000),
   REDIS_KEY_PREFIX: z.string().default('cloud-portal:'),
+  // Needs REDIS_URL. Off by default: a misrouted subscribe returns 409.
+  WATCH_RELAY_ENABLED: z
+    .string()
+    .optional()
+    .transform((val) => val === 'true'),
 
   // ─────────────────────────────────────────────────────────
   // Optional: API rate limiting
@@ -300,6 +305,7 @@ export const env: Env = {
     redisConnectTimeout: data.REDIS_CONNECT_TIMEOUT,
     redisCommandTimeout: data.REDIS_COMMAND_TIMEOUT,
     redisKeyPrefix: data.REDIS_KEY_PREFIX,
+    watchRelayEnabled: data.WATCH_RELAY_ENABLED,
     // Portal Plugin System (dev-only)
     portalPlugins: data.PORTAL_PLUGINS,
     portalPluginsJson: data.PORTAL_PLUGINS_JSON,
