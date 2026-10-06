@@ -106,6 +106,8 @@ export interface UseResourceWatchOptions<T> extends WatchOptions {
    * @example (oldData, newItem) => ({ ...newItem, preservedField: oldData.preservedField })
    */
   updateSingleCache?: (oldData: T | undefined, newItem: T) => T;
+  /** List events for items this returns false for are dropped, so they never reach the list. */
+  accepts?: (item: T) => boolean;
   /**
    * When false, watch events are forwarded to `onEvent` only — the hook does
    * not write the query cache. Use when cache items are a different shape

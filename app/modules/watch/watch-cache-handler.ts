@@ -18,6 +18,8 @@ export interface WatchCacheConfig<T> {
   getMeta?: (item: T) => CacheItemMeta;
   updateListCache?: (old: unknown, item: T) => unknown;
   updateSingleCache?: (old: T | undefined, item: T) => T;
+  /** List events for items this returns false for are dropped, so they never reach the list. */
+  accepts?: (item: T) => boolean;
   /** Lists this watch mirrors events into; a resync refetches them too. */
   mirroredKeys?: () => readonly QueryKey[];
   /** When set, a change made elsewhere flashes the row and a deleted row fades out. */
@@ -253,6 +255,7 @@ function applyListEvent<T>(
   cfg: WatchCacheConfig<T>,
   event: WatchEvent<T>
 ): WatchEventResult {
+  if (cfg.accepts && !cfg.accepts(event.object)) return 'ignored';
   if (!cfg.getItemKey && !cfg.getMeta) return 'invalidate';
 
   const getMeta = metaReader(cfg);

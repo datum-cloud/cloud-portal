@@ -26,6 +26,8 @@ export const projectListWatchCache = (orgId: string) =>
     getMeta: projectMeta,
     syncKind: PROJECT_SYNC_KIND,
     syncScope: orgId,
+    // Milo's org watch once streamed every org's projects; never let another org's rows in.
+    accepts: (project) => project.organizationId === orgId,
     updateListCache: (oldData, project) => {
       if (Array.isArray(oldData)) return replaceProject(oldData as Project[], project);
       const list = oldData as ProjectList | undefined;
