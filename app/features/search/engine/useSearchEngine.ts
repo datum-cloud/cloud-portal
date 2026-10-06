@@ -82,9 +82,20 @@ export function groupByKind(hits: SearchHit[]): {
   return { groups, hasOverflow };
 }
 
+/**
+ * Copy shown in place of results when the search request fails. The 403 copy
+ * stays neutral: project owners can hit it through a missing backend grant.
+ */
+export function searchErrorMessage(error: unknown): string {
+  const status = (error as { status?: number } | null)?.status;
+  if (status === 403) return "Search isn't available for your account in this project.";
+  return 'Search is temporarily unavailable.';
+}
+
 interface StatusTextInput {
   isLoading: boolean;
   isError: boolean;
+  error?: unknown;
   totalHits: number;
   query: string;
   hasPartialPermission: boolean;
@@ -94,7 +105,7 @@ interface StatusTextInput {
 export function computeStatusText(state: StatusTextInput): string {
   if (state.inactiveReason === 'no-project') return 'Open a project to search.';
   if (state.isLoading) return 'Searching…';
-  if (state.isError) return 'Search is temporarily unavailable.';
+  if (state.isError) return searchErrorMessage(state.error);
   if (state.query && state.totalHits === 0) return `No results for ${state.query}.`;
   if (state.hasPartialPermission && state.totalHits > 0) {
     return `${state.totalHits} result${state.totalHits === 1 ? '' : 's'}. Some kinds hidden.`;
@@ -348,12 +359,21 @@ export function useSearchEngine(params: UseSearchEngineParams) {
       computeStatusText({
         isLoading: q.isLoading,
         isError: q.isError,
+        error: q.error,
         totalHits,
         query: debouncedQuery,
         hasPartialPermission,
         inactiveReason,
       }),
-    [q.isLoading, q.isError, totalHits, debouncedQuery, hasPartialPermission, inactiveReason]
+    [
+      q.isLoading,
+      q.isError,
+      q.error,
+      totalHits,
+      debouncedQuery,
+      hasPartialPermission,
+      inactiveReason,
+    ]
   );
 
   const listboxId = useMemo(() => `search-listbox-${surface}`, [surface]);
@@ -385,6 +405,7 @@ export function useSearchEngine(params: UseSearchEngineParams) {
     isLoading: inactiveReason ? false : q.isLoading,
     isError: inactiveReason ? false : q.isError,
     error: inactiveReason ? null : ((q.error as Error | null) ?? null),
+    errorMessage: !inactiveReason && q.isError ? searchErrorMessage(q.error) : null,
     groups,
     totalHits,
     hasOverflow,
