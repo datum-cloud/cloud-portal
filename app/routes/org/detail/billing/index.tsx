@@ -176,19 +176,16 @@ export default function OrgBillingSwitcherPage() {
   const accountsQuery = useBillingAccounts(orgId, {
     initialData: initialAccounts,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const bindingsQuery = useBillingAccountBindings(orgId, {
     initialData: initialBindings,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const projectsQuery = useProjects(orgId ?? '', undefined, {
     initialData: initialProjects,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 

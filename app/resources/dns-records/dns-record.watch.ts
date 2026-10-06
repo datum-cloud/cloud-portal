@@ -37,7 +37,6 @@ export function useDnsRecordsWatch(
     enabled: options?.enabled ?? true,
     throttleMs: 500,
     debounceMs: 100,
-    skipInitialSync: false,
     applyCacheUpdates: false,
     onEvent: (event) => {
       if (event.type === 'DELETED') {

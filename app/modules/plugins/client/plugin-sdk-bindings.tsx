@@ -105,8 +105,11 @@ function useResourceWatchBinding<T = unknown>(
     enabled,
     transform: options.transform,
     queryKey,
-    onEvent: (event) => {
-      if (event.type === 'ERROR') {
+    onEvent: ({ type, object }) => {
+      // RESYNC is host-internal (the host refetches); the SDK has no such event.
+      if (type === 'RESYNC') return;
+      const event = { type, object };
+      if (type === 'ERROR') {
         setError(new Error('Plugin resource watch error'));
       } else {
         setLastEvent(event);

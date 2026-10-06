@@ -1,5 +1,6 @@
 import type { Member, MemberList, UpdateMemberRoleInput } from './member.schema';
 import type { ComMiloapisResourcemanagerV1Alpha1OrganizationMembership } from '@/modules/control-plane/resource-manager';
+import { MILO_SYSTEM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 
 /**
  * Transform raw API OrganizationMembership to domain Member type
@@ -81,7 +82,7 @@ export function toUpdateMemberRolePayload(
       roles: [
         {
           name: input.role,
-          namespace: input.roleNamespace ?? 'milo-system',
+          namespace: input.roleNamespace ?? MILO_SYSTEM_ROLE_NAMESPACE,
         },
       ],
     },

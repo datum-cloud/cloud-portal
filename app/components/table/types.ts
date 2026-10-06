@@ -192,6 +192,9 @@ export type TableSharedProps<TData extends RowData> = {
   /** Rows per page. Defaults to datum-ui's value (20). */
   pageSize?: number;
 
+  /** Sync-state key of a row (`syncKey(kind, name)`); enables `sync-<state>` row classes. */
+  getRowSyncKey?: (row: TData) => string | undefined;
+
   // Passthroughs
   getRowId?: (row: TData) => string;
   className?: string;

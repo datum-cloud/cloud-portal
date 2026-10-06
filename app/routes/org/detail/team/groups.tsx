@@ -1,6 +1,6 @@
 import { AvatarStack } from '@/components/avatar-stack';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import {
   GroupFormDialog,
   type GroupFormDialogRef,
@@ -9,12 +9,18 @@ import {
 import { PermissionButton, useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import { useGroupMemberships } from '@/resources/group-memberships';
-import { createGroupService, useGroups, useDeleteGroup, type Group } from '@/resources/groups';
+import {
+  createGroupService,
+  GROUP_SYNC_KIND,
+  useGroups,
+  useDeleteGroup,
+  type Group,
+} from '@/resources/groups';
 import { useMembers, type Member } from '@/resources/members';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
-import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { getMemberDisplayName } from '@/utils/helpers/member.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -75,17 +81,11 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
   });
 
   const { data: groups = initialGroups } = useGroups(orgId, {
-    staleTime: QUERY_STALE_TIME,
     initialData: initialGroups,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
   });
-  const { data: memberships = [], isPending: isMembershipsPending } = useGroupMemberships(orgId, {
-    staleTime: QUERY_STALE_TIME,
-  });
-  const { data: members = [] } = useMembers(orgId, {
-    staleTime: QUERY_STALE_TIME,
-  });
+  const { data: memberships = [], isPending: isMembershipsPending } = useGroupMemberships(orgId);
+  const { data: members = [] } = useMembers(orgId);
 
   const { mutateAsync: deleteGroupAsync } = useDeleteGroup(orgId, {
     onError: (error) => toast.error(error.message || 'Failed to delete group'),
@@ -153,7 +153,9 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
                 })
               )
             }>
-            <Text weight="semibold">{row.original.name}</Text>
+            <RowSyncName syncKey={syncKey(GROUP_SYNC_KIND, orgId, row.original.name)}>
+              <Text weight="semibold">{row.original.name}</Text>
+            </RowSyncName>
           </button>
         ),
       },
@@ -204,6 +206,7 @@ function GroupsInner({ initialGroups }: { initialGroups: Group[] }) {
       <Table.Client
         columns={columns}
         data={groupRows}
+        getRowSyncKey={(row) => syncKey(GROUP_SYNC_KIND, orgId, row.name)}
         search="Search"
         onRowClick={(row) =>
           navigate(

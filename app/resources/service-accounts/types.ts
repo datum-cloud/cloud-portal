@@ -19,6 +19,8 @@ export interface ServiceAccount {
   keyCount?: number;
   createdAt: string;
   updatedAt: string;
+  resourceVersion?: string;
+  deletionTimestamp?: string;
 }
 
 export interface ServiceAccountKey {

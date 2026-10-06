@@ -91,6 +91,8 @@ export interface ServerEnv {
   redisConnectTimeout: number;
   redisCommandTimeout: number;
   redisKeyPrefix: string;
+  /** Relay watch subscribes across pods through Redis (`WATCH_RELAY_ENABLED`). */
+  watchRelayEnabled: boolean;
 
   // Optional: Usage Pipeline (Milo billing → Amberflo)
   // When unset, usage events are silently dropped (i.e. no-op). Once the

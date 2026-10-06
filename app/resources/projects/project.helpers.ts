@@ -1,4 +1,11 @@
 import type { Project, ProjectList } from './project.schema';
+import type { CacheItemMeta } from '@/modules/watch/resource-cache';
+
+export const projectMeta = (project: Project): CacheItemMeta => ({
+  name: project.name,
+  resourceVersion: project.resourceVersion,
+  deletionTimestamp: project.deletionTimestamp,
+});
 
 /** Self-delete navigates away before the layout deleting-redirect should run. */
 const selfDeleteNavigationProjectNames = new Set<string>();

@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import type { ActionItem } from '@/components/table';
 import {
   deriveGuardedAction,
@@ -13,8 +13,10 @@ import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import {
   createSecretService,
+  SECRET_SYNC_KIND,
   secretKeys,
   useDeleteSecret,
   useSecrets,
@@ -76,7 +78,6 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
   const { data: queryData } = useSecrets(projectId ?? '', {
     initialData: initialData ?? [],
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
@@ -137,9 +138,11 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
         cell: ({ row }) => {
           return (
             <div data-e2e="secret-card">
-              <span className="font-medium" data-e2e="secret-name">
-                {row.original.name}
-              </span>
+              <RowSyncName syncKey={syncKey(SECRET_SYNC_KIND, projectId ?? '', row.original.name)}>
+                <span className="font-medium" data-e2e="secret-name">
+                  {row.original.name}
+                </span>
+              </RowSyncName>
             </div>
           );
         },
@@ -194,6 +197,7 @@ function SecretsInner({ initialData }: { initialData: Secret[] }) {
       <Table.Client
         columns={columnsWithActions}
         data={data ?? []}
+        getRowSyncKey={(row) => syncKey(SECRET_SYNC_KIND, projectId ?? '', row.name)}
         title="Secrets"
         search="Search"
         onRowClick={(row) => {

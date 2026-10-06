@@ -25,6 +25,8 @@ export function toServiceAccount(raw: ComMiloapisIamV1Alpha1ServiceAccount): Ser
     status: state === 'Inactive' ? 'Disabled' : 'Active',
     createdAt: raw.metadata?.creationTimestamp ?? '',
     updatedAt: raw.metadata?.creationTimestamp ?? '',
+    resourceVersion: raw.metadata?.resourceVersion,
+    deletionTimestamp: raw.metadata?.deletionTimestamp,
   };
 }
 

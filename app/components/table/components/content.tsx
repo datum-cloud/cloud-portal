@@ -1,5 +1,8 @@
 import type { RowData } from '../types';
 import type { ErrorRenderer } from './empty-state';
+import { RowSyncKeyProvider, isTableRowLocked } from './row-sync-context';
+import { useTableRowSync } from './use-table-row-sync';
+import { syncState } from '@/modules/watch/sync-state';
 import {
   DataTable,
   useDataTableLoading,
@@ -7,7 +10,8 @@ import {
   type ContentProps,
 } from '@datum-cloud/datum-ui/data-table';
 import { EmptyContent } from '@datum-cloud/datum-ui/empty-content';
-import { useCallback } from 'react';
+import { cn } from '@datum-cloud/datum-ui/utils';
+import { useCallback, useMemo, useRef } from 'react';
 
 interface TableContentProps<TData extends RowData> {
   onRowClick?: (row: TData) => void;
@@ -22,12 +26,25 @@ interface TableContentProps<TData extends RowData> {
    * matching the exact class string the old fork used.
    */
   stickyActionsColumn?: boolean;
+  /** Sync-state key of a row; rows get a `sync-<state>` class (see custom.css). */
+  getRowSyncKey?: (row: TData) => string | undefined;
 }
 
 // Matches old fork: var(--border) NOT var(--color-border); z-20 for both layers.
 const STICKY_BODY_CELL = 'sticky right-0 bg-table-cell z-20 shadow-[inset_1px_0_0_0_var(--border)]';
 const STICKY_HEADER_CELL =
   '[&:last-child]:sticky [&:last-child]:right-0 [&:last-child]:bg-background [&:last-child]:z-20';
+
+// Typed from datum-ui's prop: DataTableContent is not generic, so cells carry the erased row type.
+const stickyBodyCellClassName: NonNullable<ContentProps['cellClassName']> = (cell) =>
+  cell.column.id === '_actions' ? STICKY_BODY_CELL : '';
+
+const EMPTY_MESSAGE = (
+  <EmptyContent
+    title="try adjusting your search or filters"
+    className="w-full rounded-none border-0"
+  />
+);
 
 /**
  * Wraps DataTable.Content with:
@@ -36,6 +53,8 @@ const STICKY_HEADER_CELL =
  *    event target to find the `<tr>` index and look up the row in the store.
  * 2. cursor-pointer class on each row when onRowClick is set.
  * 3. Server-mode error surface when the store has an error.
+ * 4. A `sync-<state>` class per row when `getRowSyncKey` is given (styled in
+ *    custom.css). Locked rows also get `sync-locked` and cannot be opened.
  *
  * Sticky-right actions column is handled entirely by `app/styles/custom.css`
  * (`.datum-ui-data-table [data-slot='dt-cell']:has([data-slot='dt-row-actions'])`
@@ -53,23 +72,45 @@ export function TableContent<TData extends RowData>({
   errorContent,
   onRefetch,
   stickyActionsColumn,
+  getRowSyncKey,
 }: TableContentProps<TData>) {
   const { rows } = useDataTableRows<TData>();
   const { error } = useDataTableLoading();
+  // Callers usually pass an inline arrow; a ref keeps a new function each
+  // render from rebuilding the row classes and the row-actions context.
+  const getRowSyncKeyRef = useRef(getRowSyncKey);
+  getRowSyncKeyRef.current = getRowSyncKey;
+  const tracksSync = getRowSyncKey !== undefined;
 
-  // Typed from datum-ui's own prop: DataTableContent is not generic, so the
-  // cell it hands back carries the erased row shape rather than TData. The
-  // callback only reads `column.id`, so nothing here needs the row type.
+  const rowKeys = getRowSyncKey
+    ? rows.map((row) => getRowSyncKey(row.original)).filter((key) => key !== undefined)
+    : [];
+  const { version, isAlternateFlash } = useTableRowSync(rowKeys);
+
+  const getAnyRowSyncKey = useCallback(
+    (row: unknown) => getRowSyncKeyRef.current?.(row as TData),
+    []
+  );
+
   const cellClassName: ContentProps['cellClassName'] = stickyActionsColumn
-    ? (cell) => (cell.column.id === '_actions' ? STICKY_BODY_CELL : '')
+    ? stickyBodyCellClassName
     : undefined;
   const headerCellClassName = stickyActionsColumn ? STICKY_HEADER_CELL : undefined;
 
-  const emptyMessage = (
-    <EmptyContent
-      title="try adjusting your search or filters"
-      className="w-full rounded-none border-0"
-    />
+  const rowClassName = useMemo<ContentProps['rowClassName']>(
+    () =>
+      tracksSync
+        ? (row) => {
+            const key = getRowSyncKeyRef.current?.(row.original as TData);
+            const state = key ? syncState.get(key) : undefined;
+            return cn(
+              state && `sync-${state}`,
+              state === 'changed' && key && isAlternateFlash(key) && 'sync-changed-again',
+              isTableRowLocked(key, state) && 'sync-locked'
+            );
+          }
+        : undefined,
+    [tracksSync, version, isAlternateFlash]
   );
 
   const handleClick = useCallback(
@@ -87,27 +128,36 @@ export function TableContent<TData extends RowData>({
       if (!tbody) return;
       const index = Array.from(tbody.children).indexOf(tr as HTMLTableRowElement);
       const row = rows[index];
-      if (row) onRowClick(row.original);
+      if (!row) return;
+      const key = getRowSyncKeyRef.current?.(row.original);
+      if (key && isTableRowLocked(key, syncState.get(key))) return;
+      onRowClick(row.original);
     },
     [onRowClick, rows]
+  );
+
+  const content = useMemo(
+    () => (
+      <RowSyncKeyProvider value={tracksSync ? getAnyRowSyncKey : undefined}>
+        <DataTable.Content
+          emptyMessage={EMPTY_MESSAGE}
+          cellClassName={cellClassName}
+          headerCellClassName={headerCellClassName}
+          rowClassName={rowClassName}
+        />
+      </RowSyncKeyProvider>
+    ),
+    [tracksSync, getAnyRowSyncKey, cellClassName, headerCellClassName, rowClassName]
   );
 
   if (error && errorContent) {
     return <>{errorContent(error, onRefetch ?? (() => {}))}</>;
   }
 
-  const content = (
-    <DataTable.Content
-      emptyMessage={emptyMessage}
-      cellClassName={cellClassName}
-      headerCellClassName={headerCellClassName}
-    />
-  );
-
   if (!onRowClick) return content;
 
   return (
-    <div onClick={handleClick} className="[&_tbody_tr]:cursor-pointer">
+    <div onClick={handleClick} className="[&_tbody_tr:not(.sync-locked)]:cursor-pointer">
       {content}
     </div>
   );

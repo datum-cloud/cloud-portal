@@ -29,6 +29,7 @@ export {
 export {
   createServiceAccountService,
   serviceAccountKeys,
+  SERVICE_ACCOUNT_SYNC_KIND,
   type ServiceAccountService,
 } from './service-account.service';
 

@@ -233,26 +233,21 @@ export default function AccountBillingAccountsPage() {
   const accountsQuery = useBillingAccountsForOrgs(orgIds, {
     initialData: initialAccounts,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const bindingsQuery = useBillingAccountBindingsForOrgs(orgIds, {
     initialData: initialBindings,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const paymentMethodsQuery = usePaymentMethodsForOrgs(orgIds, {
     initialData: initialPaymentMethods,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
   const organizationsQuery = useOrganizations(undefined, {
     initialData: initialOrganizations,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
-    staleTime: QUERY_STALE_TIME,
   });
 
   const accounts = accountsQuery.data ?? initialAccounts;

@@ -3,8 +3,16 @@ import type {
   CreateExportPolicyInput,
   UpdateExportPolicyInput,
 } from './export-policy.schema';
-import { createExportPolicyService, exportPolicyKeys } from './export-policy.service';
+import {
+  EXPORT_POLICY_SYNC_KIND,
+  createExportPolicyService,
+  exportPolicyKeys,
+} from './export-policy.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
+import {
+  defineResourceMutations,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
 import {
   useQuery,
   useQueryClient,
@@ -37,24 +45,44 @@ export function useExportPolicy(
   });
 }
 
+/** Export policies are watched: mutations write the list and never invalidate it. */
+export function exportPolicyMutations(projectId: string) {
+  return defineResourceMutations<ExportPolicy>({
+    kind: EXPORT_POLICY_SYNC_KIND,
+    scope: projectId,
+    keys: {
+      lists: exportPolicyKeys.list(projectId),
+      detail: (name) => exportPolicyKeys.detail(projectId, name),
+    },
+    getName: (policy) => policy.name,
+    getMeta: (policy) => ({ name: policy.name, resourceVersion: policy.resourceVersion }),
+    watched: true,
+  });
+}
+
+export function toPendingExportPolicy(input: CreateExportPolicyInput): ExportPolicy {
+  return {
+    uid: input.metadata.name,
+    name: input.metadata.name,
+    namespace: 'default',
+    createdAt: new Date(),
+    sources: input.sources,
+    sinks: input.sinks,
+  };
+}
+
 export function useCreateExportPolicy(
   projectId: string,
   options?: UseMutationOptions<ExportPolicy, Error, CreateExportPolicyInput>
 ) {
-  const queryClient = useQueryClient();
-
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: CreateExportPolicyInput) =>
       createExportPolicyService().create(projectId, input) as Promise<ExportPolicy>,
-    ...options,
-    onSuccess: (...args) => {
-      const [newPolicy] = args;
-      // Set detail cache - Watch handles list update
-      queryClient.setQueryData(exportPolicyKeys.detail(projectId, newPolicy.name), newPolicy);
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(
+      exportPolicyMutations(projectId).create(toPendingExportPolicy),
+      options
+    ),
   });
 }
 
@@ -64,19 +92,18 @@ export function useUpdateExportPolicy(
   options?: UseMutationOptions<ExportPolicy, Error, UpdateExportPolicyInput>
 ) {
   const queryClient = useQueryClient();
+  const handlers = exportPolicyMutations(projectId).update<UpdateExportPolicyInput>((input) => {
+    const current = queryClient.getQueryData<ExportPolicy>(
+      exportPolicyKeys.detail(projectId, name)
+    );
+    return current ? { ...current, sources: input.sources, sinks: input.sinks } : undefined;
+  });
 
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: UpdateExportPolicyInput) =>
       createExportPolicyService().update(projectId, name, input) as Promise<ExportPolicy>,
-    ...options,
-    onSuccess: (...args) => {
-      const [data] = args;
-      // Update detail cache with server response - Watch handles list sync
-      queryClient.setQueryData(exportPolicyKeys.detail(projectId, name), data);
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(handlers, options),
   });
 }
 
@@ -84,18 +111,12 @@ export function useDeleteExportPolicy(
   projectId: string,
   options?: UseMutationOptions<void, Error, string>
 ) {
-  const queryClient = useQueryClient();
-
   return useGuardedMutation({
     operation: 'delete',
     mutationFn: (name: string) => createExportPolicyService().delete(projectId, name),
-    ...options,
-    onSuccess: async (...args) => {
-      const [, name] = args;
-      // Cancel in-flight queries - Watch handles list update
-      await queryClient.cancelQueries({ queryKey: exportPolicyKeys.detail(projectId, name) });
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(
+      exportPolicyMutations(projectId).remove<string>((name) => name),
+      options
+    ),
   });
 }

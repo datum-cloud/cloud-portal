@@ -1,6 +1,6 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import {
   deriveGuardedAction,
   GuardedWriteButton,
@@ -16,8 +16,10 @@ import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import {
   createServiceAccountService,
+  SERVICE_ACCOUNT_SYNC_KIND,
   serviceAccountKeys,
   useDeleteServiceAccount,
   useServiceAccounts,
@@ -91,7 +93,6 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
   const { data: queryData } = useServiceAccounts(projectId ?? '', {
     initialData: seededData,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
@@ -167,11 +168,14 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
         cell: ({ row }) => (
           <div className="flex flex-col gap-0.5">
             {/*<span className="font-medium">{row.original.displayName ?? row.original.name}</span>*/}
-            <Tooltip message={row.original.name} hidden={!row.original.displayName}>
-              <span className="font-medium" data-e2e="service-name">
-                {row.original.displayName || row.original.name}
-              </span>
-            </Tooltip>
+            <RowSyncName
+              syncKey={syncKey(SERVICE_ACCOUNT_SYNC_KIND, projectId ?? '', row.original.name)}>
+              <Tooltip message={row.original.name} hidden={!row.original.displayName}>
+                <span className="font-medium" data-e2e="service-name">
+                  {row.original.displayName || row.original.name}
+                </span>
+              </Tooltip>
+            </RowSyncName>
             <Text size="xs" textColor="muted">
               {row.original.identityEmail}
             </Text>
@@ -239,6 +243,7 @@ function ServiceAccountsInner({ initialData }: { initialData: ServiceAccount[] }
       <Table.Client
         columns={columns}
         data={data}
+        getRowSyncKey={(row) => syncKey(SERVICE_ACCOUNT_SYNC_KIND, projectId ?? '', row.name)}
         description="Service accounts give non-human workloads a cryptographic identity to authenticate with Datum APIs — no shared passwords or long-lived tokens."
         search="Search"
         onRowClick={(row) =>

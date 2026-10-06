@@ -1,7 +1,8 @@
+import { readDomainsClientData, type DomainsListData } from './domains-client-data';
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainDeleteSummary } from '@/features/edge/domain/domain-delete-summary';
 import { showDomainInUseToast } from '@/features/edge/domain/domain-in-use-toast';
@@ -17,6 +18,8 @@ import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { queryClient as appQueryClient } from '@/modules/tanstack/query';
+import { syncKey } from '@/modules/watch/sync-state';
 import { useApp } from '@/providers/app.provider';
 import {
   createDnsZoneService,
@@ -27,6 +30,7 @@ import {
 } from '@/resources/dns-zones';
 import {
   createDomainService,
+  DOMAIN_SYNC_KIND,
   type Domain,
   useDeleteDomain,
   useDomains,
@@ -43,10 +47,7 @@ import {
   isDomainInUseByDnsZoneError,
 } from '@/utils/errors/domain-in-use-error';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import {
-  createProjectListClientLoader,
-  getValidCachedQueryData,
-} from '@/utils/helpers/project-list-client-loader';
+import { createProjectListClientLoader } from '@/utils/helpers/project-list-client-loader';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -73,8 +74,6 @@ type FormattedDomain = {
   dnsZone?: DnsZone;
   lastRefreshAttempt?: string;
 };
-
-type DomainsListData = { domains: Domain[]; dnsZones: DnsZone[] };
 
 const route = defineResourceRoute<DomainsListData>({
   type: 'list',
@@ -111,14 +110,9 @@ export const meta = route.meta;
 
 export const shouldRevalidate = skipRevalidateWithinSameProject;
 
-export const clientLoader = createProjectListClientLoader<DomainsListData>((projectId) => {
-  const domains = getValidCachedQueryData<Domain[]>(domainKeys.list(projectId));
-  if (domains === undefined) {
-    return undefined;
-  }
-  const dnsZones = getValidCachedQueryData<DnsZone[]>(dnsZoneKeys.list(projectId));
-  return { domains, dnsZones: dnsZones ?? [] };
-});
+export const clientLoader = createProjectListClientLoader<DomainsListData>((projectId) =>
+  readDomainsClientData(appQueryClient, projectId)
+);
 
 export default route.Page(({ data: { domains: initialDomains, dnsZones: initialDnsZones } }) => (
   <DomainsInner initialDomains={initialDomains} initialDnsZones={initialDnsZones} />
@@ -179,14 +173,12 @@ function DomainsInner({
   const { data: domainsData } = useDomains(projectId ?? '', {
     initialData: initialDomains,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
   const { data: dnsZonesData } = useDnsZones(projectId ?? '', undefined, {
     initialData: initialDnsZones,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
@@ -345,7 +337,9 @@ function DomainsInner({
         cell: ({ row }) => {
           return (
             <span data-e2e="domain-card">
-              <span data-e2e="domain-name">{row.original.domainName}</span>
+              <RowSyncName syncKey={syncKey(DOMAIN_SYNC_KIND, projectId ?? '', row.original.name)}>
+                <span data-e2e="domain-name">{row.original.domainName}</span>
+              </RowSyncName>
             </span>
           );
         },
@@ -616,6 +610,7 @@ function DomainsInner({
         columns={columns}
         data={formattedDomains}
         getRowId={(row) => row.name}
+        getRowSyncKey={(row) => syncKey(DOMAIN_SYNC_KIND, projectId ?? '', row.name)}
         title="Domains"
         onRowClick={handleNavigateToDomain}
         description="Manage domains as programmatic resources no matter where they are registered, or where the DNS is hosted. Note: verification of domain ownership is required for some features."

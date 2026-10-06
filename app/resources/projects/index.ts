@@ -24,7 +24,12 @@ export {
 export { toProject, toProjectList, toCreatePayload, toUpdatePayload } from './project.adapter';
 
 // Service exports
-export { createProjectService, projectKeys, type ProjectService } from './project.service';
+export {
+  createProjectService,
+  projectKeys,
+  PROJECT_SYNC_KIND,
+  type ProjectService,
+} from './project.service';
 
 // Query hook exports
 export {

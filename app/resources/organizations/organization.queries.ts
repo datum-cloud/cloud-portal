@@ -7,6 +7,7 @@ import type {
 import { createOrganizationService, organizationKeys } from './organization.service';
 import type { OrganizationContactInfoPatchPayload } from '@/features/onboarding/schemas/org-contact-info-schema';
 import type { PaginationParams } from '@/resources/base/base.schema';
+import { UNWATCHED_LIST_QUERY_OPTIONS } from '@/utils/config/query.config';
 import {
   useQuery,
   useMutation,
@@ -23,6 +24,7 @@ export function useOrganizations(
   return useQuery({
     queryKey: organizationKeys.list(params),
     queryFn: () => createOrganizationService().list(params),
+    ...UNWATCHED_LIST_QUERY_OPTIONS,
     ...options,
   });
 }

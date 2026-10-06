@@ -24,6 +24,9 @@ import { parseOrThrow } from '@/utils/errors/error-formatter';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
+/** Sync-state kind of group rows: the list's row keys and its mutations. */
+export const GROUP_SYNC_KIND = 'groups';
+
 export const groupKeys = {
   all: ['groups'] as const,
   lists: () => [...groupKeys.all, 'list'] as const,

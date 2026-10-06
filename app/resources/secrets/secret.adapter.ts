@@ -13,6 +13,7 @@ export function toSecret(raw: IoK8sApiCoreV1Secret): Secret {
     namespace: raw.metadata?.namespace,
     resourceVersion: raw.metadata?.resourceVersion,
     createdAt: raw.metadata?.creationTimestamp,
+    deletionTimestamp: raw.metadata?.deletionTimestamp,
     data: Object.keys(raw.data ?? {}),
     type: raw.type as SecretType,
     labels: raw.metadata?.labels ?? {},
@@ -21,11 +22,13 @@ export function toSecret(raw: IoK8sApiCoreV1Secret): Secret {
 }
 
 /**
- * Transform raw API list to domain SecretList
+ * Transform raw API list to domain SecretList. Terminating secrets are
+ * dropped: they stay in LIST responses until finalizers run, and a resync
+ * during that window would otherwise bring back a row the watch removed.
  */
 export function toSecretList(items: IoK8sApiCoreV1Secret[], nextCursor?: string): SecretList {
   return {
-    items: items.map(toSecret),
+    items: items.filter((secret) => !secret.metadata?.deletionTimestamp).map(toSecret),
     nextCursor: nextCursor ?? null,
     hasMore: !!nextCursor,
   };

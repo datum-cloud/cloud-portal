@@ -3,6 +3,7 @@ import type { RoleScope, UserRoleAssignment } from './roles-editor.types';
 import { resolveAllPermissions } from './utils';
 import type { Role } from '@/resources/roles';
 import { useRole } from '@/resources/roles';
+import { DATUM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
@@ -119,7 +120,7 @@ export function AddRoleScreen({
 
   const { data: fetchedRole, isFetching: isFetchingRole } = useRole(
     selectedRole?.name ?? '',
-    selectedRole?.namespace ?? 'datum-cloud',
+    selectedRole?.namespace ?? DATUM_ROLE_NAMESPACE,
     { enabled: !!selectedRole }
   );
 

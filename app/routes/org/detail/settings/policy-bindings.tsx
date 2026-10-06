@@ -15,7 +15,6 @@ import {
   type PolicyBinding,
 } from '@/resources/policy-bindings';
 import { buildOrganizationNamespace } from '@/utils/common';
-import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { PlusIcon } from 'lucide-react';
@@ -63,8 +62,6 @@ function PolicyBindingsInner({ initialBindings }: { initialBindings: PolicyBindi
   const { data: bindings = initialBindings } = usePolicyBindings(orgId, {
     initialData: initialBindings,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
-    staleTime: QUERY_STALE_TIME,
   });
 
   const deleteMutation = useDeletePolicyBinding(orgId, {
@@ -123,6 +120,7 @@ function PolicyBindingsInner({ initialBindings }: { initialBindings: PolicyBindi
     <>
       <PolicyBindingTable
         bindings={bindings}
+        syncScope={orgId}
         onRowClick={(row) => dialogRef.current?.show(row)}
         tableTitle={{
           actions: canCreate ? (

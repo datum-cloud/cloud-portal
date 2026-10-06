@@ -30,7 +30,6 @@ const ERROR_RATE_WINDOW = '2h';
 export function ProjectTraffic({ projectId }: { projectId: string }) {
   const { data: proxies = [], isLoading } = useHttpProxies(projectId, {
     staleTime: QUERY_STALE_TIME,
-    refetchOnMount: false,
   });
 
   const timeRange = useMemo(() => {

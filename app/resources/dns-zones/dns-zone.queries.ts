@@ -1,7 +1,11 @@
 import type { DnsZone, CreateDnsZoneInput, UpdateDnsZoneInput } from './dns-zone.schema';
-import { createDnsZoneService, dnsZoneKeys } from './dns-zone.service';
+import { DNS_ZONE_SYNC_KIND, createDnsZoneService, dnsZoneKeys } from './dns-zone.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
-import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
+import {
+  defineResourceMutations,
+  withResourceHandlers,
+} from '@/modules/watch/define-resource-mutations';
+import { withAllowanceRefresh } from '@/resources/allowance-buckets';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
   useQuery,
@@ -49,6 +53,40 @@ export function useDnsZonesByDomainRef(
   });
 }
 
+/** Zones are watched: mutations write the lists and never invalidate them. */
+export function dnsZoneMutations(projectId: string) {
+  return defineResourceMutations<DnsZone>({
+    kind: DNS_ZONE_SYNC_KIND,
+    scope: projectId,
+    keys: {
+      lists: [...dnsZoneKeys.lists(), projectId],
+      detail: (name) => dnsZoneKeys.detail(projectId, name),
+    },
+    getName: (zone) => zone.name,
+    getMeta: (zone) => ({
+      name: zone.name,
+      resourceVersion: zone.resourceVersion,
+      deletionTimestamp: zone.deletionTimestamp,
+    }),
+    watched: true,
+  });
+}
+
+export function toPendingDnsZone(input: CreateDnsZoneInput, pendingName: string): DnsZone {
+  return {
+    uid: pendingName,
+    name: pendingName,
+    namespace: 'default',
+    displayName: input.domainName,
+    description: input.description,
+    resourceVersion: '',
+    createdAt: new Date(),
+    domainName: input.domainName,
+    dnsZoneClassName: '',
+    status: {},
+  };
+}
+
 export function useCreateDnsZone(
   projectId: string,
   options?: UseMutationOptions<DnsZone, Error, CreateDnsZoneInput>
@@ -58,15 +96,10 @@ export function useCreateDnsZone(
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: CreateDnsZoneInput) => createDnsZoneService().create(projectId, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [newDnsZone] = args;
-      // Set detail cache - Watch handles list update
-      queryClient.setQueryData(dnsZoneKeys.detail(projectId, newDnsZone.name), newDnsZone);
-
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(
+      dnsZoneMutations(projectId).create(toPendingDnsZone),
+      withAllowanceRefresh(options, queryClient)
+    ),
   });
 }
 
@@ -76,22 +109,20 @@ export function useUpdateDnsZone(
   options?: UseMutationOptions<DnsZone, Error, UpdateDnsZoneInput>
 ) {
   const queryClient = useQueryClient();
+  const handlers = dnsZoneMutations(projectId).update<UpdateDnsZoneInput>((input) => {
+    const current = queryClient.getQueryData<DnsZone>(dnsZoneKeys.detail(projectId, name));
+    return current ? { ...current, description: input.description } : undefined;
+  });
 
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: UpdateDnsZoneInput) =>
       createDnsZoneService().update(projectId, name, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [data] = args;
-      // Update detail cache with server response - Watch handles list sync
-      queryClient.setQueryData(dnsZoneKeys.detail(projectId, name), data);
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(handlers, options),
   });
 }
 
+/** Rows stay "Deleting…" until the watch reports them; a refetch mid-finalization revives them. */
 export function useDeleteDnsZone(
   projectId: string,
   options?: UseMutationOptions<void, Error, string>
@@ -101,20 +132,9 @@ export function useDeleteDnsZone(
   return useGuardedMutation({
     operation: 'delete',
     mutationFn: (name: string) => createDnsZoneService().delete(projectId, name),
-    ...options,
-    onSuccess: async (...args) => {
-      const [, name] = args;
-      await queryClient.cancelQueries({ queryKey: dnsZoneKeys.detail(projectId, name) });
-      // Optimistically remove from list caches so the table updates immediately
-      // (watch DELETED events are debounced and can lag behind the API response).
-      queryClient.setQueriesData<DnsZone[]>(
-        { queryKey: [...dnsZoneKeys.lists(), projectId] },
-        (old) => (old ? old.filter((zone) => zone.name !== name) : old)
-      );
-      queryClient.removeQueries({ queryKey: dnsZoneKeys.detail(projectId, name) });
-
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(
+      dnsZoneMutations(projectId).remove<string>((name) => name),
+      withAllowanceRefresh(options, queryClient)
+    ),
   });
 }

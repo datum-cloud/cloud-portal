@@ -18,6 +18,9 @@ import { getOrgScopedBase } from '@/resources/base/utils';
 import { buildOrganizationNamespace } from '@/utils/common';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
+/** Sync-state kind of member rows in the team table. */
+export const MEMBER_SYNC_KIND = 'members';
+
 export const memberKeys = {
   all: ['members'] as const,
   lists: () => [...memberKeys.all, 'list'] as const,

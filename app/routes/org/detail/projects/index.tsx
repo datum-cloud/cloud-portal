@@ -2,6 +2,7 @@ import { BadgeCopy } from '@/components/badge/badge-copy';
 import { CardList } from '@/components/card-list';
 import { DateTime } from '@/components/date-time';
 import { NoteCard } from '@/components/note-card/note-card';
+import { RowSyncName } from '@/components/table';
 import { ProjectStatus } from '@/features/project/status';
 import {
   QuotaGuard,
@@ -13,6 +14,8 @@ import { PermissionButton, useGuardedRouteData, useResourcePermissions } from '@
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
+import { PENDING_NAME_PREFIX } from '@/modules/watch/define-resource-mutations';
+import { syncKey } from '@/modules/watch/sync-state';
 import {
   billingAccountBindingKeys,
   createBillingAccountBindingService,
@@ -20,6 +23,7 @@ import {
 import { type Organization } from '@/resources/organizations';
 import {
   createProjectService,
+  PROJECT_SYNC_KIND,
   projectFormSchema,
   projectKeys,
   isProjectDeleting,
@@ -70,6 +74,8 @@ const route = defineResourceRoute<LoaderData>({
   metaTitle: 'Projects',
 });
 
+const isPendingProject = (project: Project) => project.name.startsWith(PENDING_NAME_PREFIX);
+
 export const loader = (args: LoaderFunctionArgs) =>
   runListLoader<LoaderData>(args, {
     resource: 'projects',
@@ -110,7 +116,6 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
       staleTime: QUERY_STALE_TIME,
       initialData: initialProjects,
       initialDataUpdatedAt: Date.now(),
-      refetchOnMount: false,
     }
   );
   const projects = queryData?.items ?? [];
@@ -315,7 +320,9 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                   data-e2e="project-card">
                   <div className="flex items-center gap-5">
                     <Icon icon={FolderRoot} className="text-icon-primary size-4" />
-                    <span>{project.displayName}</span>
+                    <RowSyncName syncKey={syncKey(PROJECT_SYNC_KIND, orgId ?? '', project.name)}>
+                      {project.displayName}
+                    </RowSyncName>
                     <ProjectStatus project={project} hideActive />
                   </div>
                   <div className="flex w-full flex-col items-start justify-between gap-4 md:w-auto md:flex-row md:items-center md:gap-6">
@@ -336,9 +343,15 @@ function OrgProjectsInner({ loaderData }: { loaderData: LoaderData }) {
                 </div>
               )}
               cardClassName={(project) =>
-                isProjectDeleting(project) ? 'cursor-default opacity-60 hover:bg-card' : undefined
+                isProjectDeleting(project) || isPendingProject(project)
+                  ? 'cursor-default opacity-60 hover:bg-card'
+                  : undefined
               }
               cardProps={(project) => {
+                // A project still being created has no page to open yet.
+                if (isPendingProject(project)) {
+                  return { 'aria-disabled': true, tabIndex: -1 };
+                }
                 if (isProjectDeleting(project)) {
                   return {
                     'aria-disabled': true,

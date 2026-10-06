@@ -3,7 +3,7 @@ import { BadgeStatus } from '@/components/badge/badge-status';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { DateTime } from '@/components/date-time';
 import { NameserverChips } from '@/components/nameserver-chips';
-import { type ColumnDef, createActionsColumn, Table } from '@/components/table';
+import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
 import {
   DnsZoneFormDialog,
   type DnsZoneFormDialogRef,
@@ -17,10 +17,12 @@ import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
+import { syncKey } from '@/modules/watch/sync-state';
 import { ControlPlaneStatus, IExtendedControlPlaneStatus } from '@/resources/base';
 import {
   type DnsZone,
   createDnsZoneService,
+  DNS_ZONE_SYNC_KIND,
   dnsZoneKeys,
   useDeleteDnsZone,
   useDnsZones,
@@ -126,7 +128,6 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
   const { data: zonesData = initialZones } = useDnsZones(projectId, undefined, {
     initialData: initialZones,
     initialDataUpdatedAt: Date.now(),
-    refetchOnMount: false,
     staleTime: QUERY_STALE_TIME,
   });
 
@@ -242,9 +243,11 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
 
           return (
             <div className="flex items-center gap-2" data-e2e="dns-zone-card">
-              <span className="font-medium" data-e2e="dns-zone-name">
-                {row.original.domainName}
-              </span>
+              <RowSyncName syncKey={syncKey(DNS_ZONE_SYNC_KIND, projectId, row.original.name)}>
+                <span className="font-medium" data-e2e="dns-zone-name">
+                  {row.original.domainName}
+                </span>
+              </RowSyncName>
               <BadgeProgrammingError
                 className="rounded-lg px-2 py-0.5"
                 isProgrammed={status.isProgrammed}
@@ -405,6 +408,7 @@ function DnsZonesInner({ initialZones }: { initialZones: DnsZone[] }) {
       <Table.Client
         columns={columns}
         data={zonesWithStatus}
+        getRowSyncKey={(row) => syncKey(DNS_ZONE_SYNC_KIND, projectId, row.name)}
         title="DNS"
         description="Manage DNS zones as collections of records that control how your domains route traffic. Each zone covers a single domain or subdomain."
         search="Search"

@@ -20,7 +20,6 @@ import { useNavigate } from 'react-router';
 export function DomainsColumn({ projectId }: { projectId: string }) {
   const { data: domains = [], isLoading } = useDomains(projectId, {
     staleTime: QUERY_STALE_TIME,
-    refetchOnMount: false,
   });
   const { canCreate } = useResourcePermissions({
     resource: 'domains',

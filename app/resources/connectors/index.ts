@@ -7,7 +7,12 @@ export {
 
 export { toConnector, toConnectorList } from './connector.adapter';
 
-export { createConnectorService, connectorKeys, type ConnectorService } from './connector.service';
+export {
+  createConnectorService,
+  connectorKeys,
+  CONNECTOR_SYNC_KIND,
+  type ConnectorService,
+} from './connector.service';
 
 export { useConnector, useConnectors, useDeleteConnector } from './connector.queries';
 

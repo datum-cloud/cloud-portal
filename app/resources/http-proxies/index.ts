@@ -60,6 +60,7 @@ export {
 export {
   createHttpProxyService,
   httpProxyKeys,
+  HTTP_PROXY_SYNC_KIND,
   type HttpProxyService,
   type TrafficProtectionView,
   type TrafficProtectionMaps,

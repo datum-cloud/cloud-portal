@@ -7,6 +7,7 @@ import type {
   InviterUser,
 } from './invitation.schema';
 import type { ComMiloapisIamV1Alpha1UserInvitation } from '@/modules/control-plane/iam';
+import { MILO_SYSTEM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { generateRandomString } from '@/utils/helpers/text.helper';
 import { addHours, formatRFC3339 } from 'date-fns';
 
@@ -53,7 +54,7 @@ export function toInvitation(raw: ComMiloapisIamV1Alpha1UserInvitation): Invitat
     invitedBy: spec?.invitedBy?.name,
     organizationName: spec?.organizationRef?.name ?? '',
     role: spec?.roles?.[0]?.name,
-    roleNamespace: spec?.roles?.[0]?.namespace ?? 'milo-system',
+    roleNamespace: spec?.roles?.[0]?.namespace ?? MILO_SYSTEM_ROLE_NAMESPACE,
     state: (spec?.state ?? 'Pending') as InvitationState,
     status: status ?? {},
     inviterUser: mapInviterUser(status?.inviterUser),
@@ -83,7 +84,7 @@ export function toCreateInvitationPayload(
   input: CreateInvitationInput
 ): { apiVersion: string; kind: string; metadata: { name: string }; spec: any } {
   const roles = input.role
-    ? [{ name: input.role, namespace: input.roleNamespace ?? 'milo-system' }]
+    ? [{ name: input.role, namespace: input.roleNamespace ?? MILO_SYSTEM_ROLE_NAMESPACE }]
     : [];
 
   return {

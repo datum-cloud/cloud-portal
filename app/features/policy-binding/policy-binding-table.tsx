@@ -1,7 +1,8 @@
 import { getPolicyBindingColumns } from './policy-binding.columns';
 import { Table, createActionsColumn } from '@/components/table';
 import type { EmptyContentConfig } from '@/components/table/types';
-import type { PolicyBinding } from '@/resources/policy-bindings';
+import { syncKey } from '@/modules/watch/sync-state';
+import { POLICY_BINDING_SYNC_KIND, type PolicyBinding } from '@/resources/policy-bindings';
 import type { ActionItem } from '@datum-cloud/datum-ui/data-table';
 import type { ReactNode } from 'react';
 
@@ -21,6 +22,8 @@ export type PolicyBindingTableProps = {
   };
   rowActions?: PolicyBindingTableRowAction[];
   onRowClick?: (row: PolicyBinding) => void;
+  /** The org or project id the bindings belong to; scopes their row states. */
+  syncScope: string;
 };
 
 export const PolicyBindingTable = ({
@@ -29,6 +32,7 @@ export const PolicyBindingTable = ({
   tableTitle,
   rowActions = [],
   onRowClick,
+  syncScope,
 }: PolicyBindingTableProps) => {
   const mappedActions: ActionItem<PolicyBinding>[] = rowActions.map(
     ({ action, display: _display, ...rest }) => ({
@@ -38,7 +42,7 @@ export const PolicyBindingTable = ({
   );
 
   const columns = [
-    ...getPolicyBindingColumns(),
+    ...getPolicyBindingColumns(syncScope),
     ...(mappedActions.length > 0 ? [createActionsColumn<PolicyBinding>(mappedActions)] : []),
   ];
 
@@ -48,6 +52,7 @@ export const PolicyBindingTable = ({
     <Table.Client
       columns={columns}
       data={bindings ?? []}
+      getRowSyncKey={(row) => syncKey(POLICY_BINDING_SYNC_KIND, syncScope, row.name)}
       title={tableTitle?.title}
       description={tableTitle?.description}
       actions={actions}

@@ -10,8 +10,8 @@ import { useResourceWatch } from '@/modules/watch';
  * Locations are cluster-scoped in the project control plane — do not pass
  * a namespace or the watch hits `/namespaces/default/locations` and 404s.
  *
- * skipInitialSync is false so an ADDED event that lands right after
- * subscribe (new entitlement projecting PoPs) still updates the cache.
+ * An ADDED event that lands right after subscribe (new entitlement
+ * projecting PoPs) updates the cache like any other.
  */
 export function useLocationsWatch(projectId: string, options?: { enabled?: boolean }) {
   return useResourceWatch<Location>({
@@ -20,7 +20,6 @@ export function useLocationsWatch(projectId: string, options?: { enabled?: boole
     queryKey: locationKeys.list(projectId),
     transform: (item) => toLocation(item as ComMiloapisLocationsV1Alpha1Location),
     enabled: (options?.enabled ?? true) && !!projectId,
-    skipInitialSync: false,
     getItemKey: (location) => location.name,
     updateListCache: (oldData, newItem) => {
       const list = (oldData as Location[] | undefined) ?? [];

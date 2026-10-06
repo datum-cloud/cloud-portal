@@ -1,9 +1,19 @@
 // app/resources/secrets/secret.watch.ts
 import { toSecret } from './secret.adapter';
 import type { Secret } from './secret.schema';
-import { secretKeys } from './secret.service';
+import { SECRET_SYNC_KIND, secretKeys } from './secret.service';
 import type { IoK8sApiCoreV1Secret } from '@/modules/control-plane/k8s-core';
 import { useResourceWatch } from '@/modules/watch';
+import type { CacheItemMeta } from '@/modules/watch/resource-cache';
+
+export const secretListCache = {
+  getItemKey: (secret: Secret) => secret.name,
+  getMeta: (secret: Secret): CacheItemMeta => ({
+    name: secret.name,
+    resourceVersion: secret.resourceVersion,
+    deletionTimestamp: secret.deletionTimestamp,
+  }),
+};
 
 /**
  * Watch secrets list for real-time updates.
@@ -16,6 +26,9 @@ export function useSecretsWatch(projectId: string, options?: { enabled?: boolean
     queryKey: secretKeys.list(projectId),
     transform: (item) => toSecret(item as IoK8sApiCoreV1Secret),
     enabled: options?.enabled ?? true,
+    syncKind: SECRET_SYNC_KIND,
+    syncScope: projectId,
+    ...secretListCache,
   });
 }
 

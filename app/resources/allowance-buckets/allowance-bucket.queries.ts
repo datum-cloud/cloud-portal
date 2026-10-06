@@ -1,6 +1,11 @@
 import type { AllowanceBucket } from './allowance-bucket.schema';
 import { allowanceBucketKeys, createAllowanceBucketService } from './allowance-bucket.service';
-import { useQuery, type QueryClient, type UseQueryOptions } from '@tanstack/react-query';
+import {
+  useQuery,
+  type QueryClient,
+  type UseMutationOptions,
+  type UseQueryOptions,
+} from '@tanstack/react-query';
 
 export const ALLOWANCE_BUCKETS_STALE_TIME = 30_000;
 
@@ -22,4 +27,18 @@ export function useAllowanceBuckets(
 /** Belt-and-suspenders freshness: call from create/delete onSuccess of gated resources. */
 export function invalidateAllowanceBuckets(queryClient: QueryClient): Promise<void> {
   return queryClient.invalidateQueries({ queryKey: allowanceBucketKeys.all });
+}
+
+/** Refreshes allowance buckets on success, for create/delete of quota-gated resources. */
+export function withAllowanceRefresh<TData, TError, TVariables, TContext>(
+  options: UseMutationOptions<TData, TError, TVariables, TContext> | undefined,
+  queryClient: QueryClient
+): UseMutationOptions<TData, TError, TVariables, TContext> {
+  return {
+    ...options,
+    onSuccess: (...args) => {
+      void invalidateAllowanceBuckets(queryClient);
+      return options?.onSuccess?.(...args);
+    },
+  };
 }

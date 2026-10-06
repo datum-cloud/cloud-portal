@@ -1,5 +1,6 @@
 import { SelectRole } from '@/components/select-role/select-role';
 import { memberUpdateRoleSchema, useUpdateMemberRole } from '@/resources/members';
+import { DATUM_ROLE_NAMESPACE } from '@/resources/roles/role.constants';
 import { Form, useField } from '@datum-cloud/datum-ui/form';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
@@ -39,7 +40,7 @@ export const ManageRoleModalForm = forwardRef<ManageRoleModalFormRef, ManageRole
       setMemberId(id);
       setDefaultValues({
         role: roleName,
-        roleNamespace: roleNamespace ?? 'datum-cloud',
+        roleNamespace: roleNamespace ?? DATUM_ROLE_NAMESPACE,
       });
       setIsOpen(true);
 
@@ -114,7 +115,7 @@ const RoleField = () => {
           defaultValue={control.value as string}
           onSelect={(value) => {
             control.change(value.value);
-            roleNamespaceControl.change(value.namespace ?? 'datum-cloud');
+            roleNamespaceControl.change(value.namespace ?? DATUM_ROLE_NAMESPACE);
           }}
         />
       )}
@@ -126,5 +127,5 @@ const RoleNamespaceHiddenField = () => {
   const { field } = useField('roleNamespace');
   const value = field.value as string | undefined;
 
-  return <input type="hidden" name={field.name} value={value ?? 'datum-cloud'} />;
+  return <input type="hidden" name={field.name} value={value ?? DATUM_ROLE_NAMESPACE} />;
 };

@@ -12,6 +12,9 @@ import { logger } from '@/modules/logger';
 import { getProjectScopedBase } from '@/resources/base/utils';
 import { mapApiError } from '@/utils/errors/error-mapper';
 
+/** Sync-state kind of connector rows: the list's row keys, its watch, and its mutations. */
+export const CONNECTOR_SYNC_KIND = 'connectors';
+
 export const connectorKeys = {
   all: ['connectors'] as const,
   lists: () => [...connectorKeys.all, 'list'] as const,

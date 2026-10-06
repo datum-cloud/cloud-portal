@@ -30,6 +30,9 @@ import { mapApiError } from '@/utils/errors/error-mapper';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
 // Query Keys (for React Query)
+/** Sync-state kind of project rows: the list's row keys, its watch, and its mutations. */
+export const PROJECT_SYNC_KIND = 'projects';
+
 export const projectKeys = {
   all: ['projects'] as const,
   lists: () => [...projectKeys.all, 'list'] as const,

@@ -18,7 +18,12 @@ export {
   toUpdateDnsZonePayload,
 } from './dns-zone.adapter';
 
-export { createDnsZoneService, dnsZoneKeys, type DnsZoneService } from './dns-zone.service';
+export {
+  createDnsZoneService,
+  dnsZoneKeys,
+  DNS_ZONE_SYNC_KIND,
+  type DnsZoneService,
+} from './dns-zone.service';
 
 export {
   useDnsZones,

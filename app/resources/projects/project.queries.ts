@@ -1,15 +1,21 @@
-import { patchProjectListDeleting, markSelfDeleteNavigation } from './project.helpers';
+import { markSelfDeleteNavigation, patchProjectListDeleting, projectMeta } from './project.helpers';
 import type {
   Project,
   ProjectList,
   CreateProjectInput,
   UpdateProjectInput,
 } from './project.schema';
-import { createProjectService, projectKeys } from './project.service';
+import { PROJECT_SYNC_KIND, createProjectService, projectKeys } from './project.service';
 import { useGuardedMutation } from '@/features/project/read-only/use-guarded-mutation';
-import { invalidateAllowanceBuckets } from '@/resources/allowance-buckets';
+import {
+  defineResourceMutations,
+  withResourceHandlers,
+  type MutationHandlers,
+} from '@/modules/watch/define-resource-mutations';
+import { invalidateAllowanceBuckets, withAllowanceRefresh } from '@/resources/allowance-buckets';
 import type { PaginationParams } from '@/resources/base/base.schema';
 import {
+  type QueryClient,
   useQuery,
   useMutation,
   useQueryClient,
@@ -42,20 +48,94 @@ export function useProject(
   });
 }
 
+/** Projects are watched: create and update write the lists and never invalidate them. */
+function projectMutations(orgId: string) {
+  return defineResourceMutations<Project>({
+    kind: PROJECT_SYNC_KIND,
+    scope: orgId,
+    keys: {
+      lists: [...projectKeys.lists(), orgId],
+      detail: (name) => projectKeys.detail(name),
+    },
+    getName: (project) => project.name,
+    getMeta: projectMeta,
+    watched: true,
+  });
+}
+
+/** The org is only known per mutation, from the variables or the cached project. */
+function perOrg<T, V>(
+  orgOf: (vars: V, data?: T) => string,
+  pick: (mutations: ReturnType<typeof projectMutations>) => MutationHandlers<T, V>
+): MutationHandlers<T, V> {
+  const handlersFor = (vars: V, data?: T) => pick(projectMutations(orgOf(vars, data)));
+  return {
+    onMutate: (vars, context) => handlersFor(vars).onMutate!(vars, context),
+    onSuccess: (data, vars, ctx, context) =>
+      handlersFor(vars, data).onSuccess!(data, vars, ctx, context),
+    onError: (error, vars, ctx, context) => handlersFor(vars).onError!(error, vars, ctx, context),
+    onSettled: (data, error, vars, ctx, context) =>
+      handlersFor(vars, data).onSettled!(data, error, vars, ctx, context),
+  };
+}
+
+function toPendingProject(input: CreateProjectInput, pendingName: string): Project {
+  return {
+    uid: pendingName,
+    name: pendingName,
+    displayName: input.description ?? '',
+    description: input.description,
+    resourceVersion: '',
+    createdAt: new Date(),
+    organizationId: input.organizationId,
+    status: undefined,
+  };
+}
+
+export function projectCreateHandlers() {
+  return perOrg<Project, CreateProjectInput>(
+    (input) => input.organizationId,
+    (mutations) => mutations.create(toPendingProject)
+  );
+}
+
+/** Project names are unique across orgs, so any org's list row identifies the org. */
+function findCachedProject(
+  queryClient: QueryClient,
+  name: string
+): { project: Project; orgId: string } | undefined {
+  const detail = queryClient.getQueryData<Project>(projectKeys.detail(name));
+  if (detail?.organizationId) return { project: detail, orgId: detail.organizationId };
+  const orgIndex = projectKeys.lists().length;
+  for (const [queryKey, data] of queryClient.getQueriesData<ProjectList | Project[]>({
+    queryKey: projectKeys.lists(),
+  })) {
+    const rows = Array.isArray(data) ? data : data?.items;
+    const row = rows?.find((project) => project.name === name);
+    if (row) return { project: detail ?? row, orgId: String(queryKey[orgIndex] ?? '') };
+  }
+  return detail ? { project: detail, orgId: '' } : undefined;
+}
+
+export function projectUpdateHandlers(queryClient: QueryClient, name: string) {
+  const cached = () => findCachedProject(queryClient, name);
+  return perOrg<Project, UpdateProjectInput>(
+    (_input, data) => data?.organizationId || cached()?.orgId || '',
+    (mutations) =>
+      mutations.update((input) => {
+        const current = cached()?.project;
+        if (!current) return undefined;
+        return { ...current, displayName: input.description ?? current.displayName };
+      })
+  );
+}
+
 export function useCreateProject(options?: UseMutationOptions<Project, Error, CreateProjectInput>) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: CreateProjectInput) => createProjectService().create(input),
-    ...options,
-    onSuccess: (...args) => {
-      const [newProject] = args;
-      // Set detail cache - Watch handles list update
-      queryClient.setQueryData(projectKeys.detail(newProject.name), newProject);
-
-      options?.onSuccess?.(...args);
-      void invalidateAllowanceBuckets(queryClient);
-    },
+    ...withResourceHandlers(projectCreateHandlers(), withAllowanceRefresh(options, queryClient)),
   });
 }
 
@@ -72,29 +152,7 @@ export function useUpdateProject(
   return useGuardedMutation({
     operation: 'write',
     mutationFn: (input: UpdateProjectInput) => createProjectService().update(name, input),
-    ...options,
-    onSuccess: (...args) => {
-      const [data] = args;
-      // Update detail cache with server response
-      queryClient.setQueryData(projectKeys.detail(name), data);
-
-      // Patch any cached org project lists so switchers/tables don't keep the
-      // old display name until the next refetch (list watches are not always mounted).
-      if (data.organizationId) {
-        queryClient.setQueriesData<ProjectList>(
-          { queryKey: [...projectKeys.lists(), data.organizationId] },
-          (old) => {
-            if (!old?.items) return old;
-            return {
-              ...old,
-              items: old.items.map((item) => (item.name === data.name ? data : item)),
-            };
-          }
-        );
-      }
-
-      options?.onSuccess?.(...args);
-    },
+    ...withResourceHandlers(projectUpdateHandlers(queryClient, name), options),
   });
 }
 
@@ -120,6 +178,8 @@ export function useDeleteProject(options?: UseMutationOptions<void, Error, strin
         patchProjectListDeleting(old, name, project, deletedAt)
       );
 
+      // Exception to watch-or-invalidate: the projects page draws its deleting
+      // card from deletionTimestamp, and lists no watch covers must refetch.
       void queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       void invalidateAllowanceBuckets(queryClient);
     },

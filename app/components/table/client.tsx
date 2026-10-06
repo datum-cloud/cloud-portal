@@ -99,6 +99,7 @@ export function TableClient<TData extends RowData>(props: TableClientProps<TData
           <TableContent<TData>
             onRowClick={effectiveOnRowClick}
             stickyActionsColumn={hasActionsColumn}
+            getRowSyncKey={props.getRowSyncKey}
           />
         </TablePanel>
         {props.pagination !== false && <ConditionalPagination variant={props.pagination} />}

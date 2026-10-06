@@ -24,7 +24,6 @@ import { useRef } from 'react';
 export function LoadBalancersColumn({ projectId }: { projectId: string }) {
   const { data: proxies = [], isLoading } = useHttpProxies(projectId, {
     staleTime: QUERY_STALE_TIME,
-    refetchOnMount: false,
   });
   const { canCreate } = useResourcePermissions({
     resource: 'httpproxies',

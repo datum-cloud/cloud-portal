@@ -103,6 +103,7 @@ function TableServerImpl<TData extends RowData, TResponse>(
             onRowClick={props.onRowClick}
             onRefetch={refetch}
             stickyActionsColumn={hasActionsColumn}
+            getRowSyncKey={props.getRowSyncKey}
           />
         </TablePanel>
         {props.pagination !== false && (

@@ -254,3 +254,57 @@
     transition: none;
   }
 }
+
+/*
+ * Live-list row states (`sync-<state>` classes from the shared table).
+ * Pending names use the muted color, not opacity: any opacity below 1 drops
+ * muted text under 4.5:1 contrast in the light theme.
+ */
+tr:is(.sync-pending-create, .sync-pending-update, .sync-pending-delete)
+  :is([data-slot='row-sync-label'], [data-slot='row-sync-label'] *) {
+  color: var(--muted-foreground);
+}
+
+tr.sync-removing {
+  pointer-events: none;
+}
+
+/* Flash the cells, not the row: the sticky actions cell paints an opaque background. */
+@keyframes row-sync-changed {
+  from {
+    background-color: color-mix(in oklab, var(--color-primary) 14%, var(--color-table-cell));
+  }
+  to {
+    background-color: var(--color-table-cell);
+  }
+}
+
+/* Identical keyframes; swapping names restarts the flash for a re-changed row. */
+@keyframes row-sync-changed-again {
+  from {
+    background-color: color-mix(in oklab, var(--color-primary) 14%, var(--color-table-cell));
+  }
+  to {
+    background-color: var(--color-table-cell);
+  }
+}
+
+@keyframes row-sync-removing {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  tr.sync-changed > [data-slot='dt-cell'] {
+    animation: row-sync-changed 1.5s ease-out;
+  }
+
+  tr.sync-changed.sync-changed-again > [data-slot='dt-cell'] {
+    animation-name: row-sync-changed-again;
+  }
+
+  tr.sync-removing {
+    animation: row-sync-removing 300ms ease-in forwards;
+  }
+}
