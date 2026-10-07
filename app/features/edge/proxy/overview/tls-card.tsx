@@ -6,7 +6,9 @@ import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import {
   type HttpProxy,
+  WILDCARD_NOT_ENABLED_MESSAGE,
   getCertificateReadyCondition,
+  isCertificateAwaitingDnsRecord,
   getCertificateReadyDisplay,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
@@ -75,14 +77,39 @@ type CertRow = {
   hostname: string;
   cert: ReturnType<typeof getCertificateReadyDisplay>;
   message?: string;
+  /** Waiting on a Certificate record the user hasn't published yet. */
+  awaitingDns: boolean;
 };
 
 function CertChip({ row }: { row: CertRow }) {
+  if (row.awaitingDns) {
+    return (
+      <StatusChip
+        tone="warning"
+        tooltip="Issued once the Certificate record listed under Custom Hostnames is in place">
+        Awaiting DNS
+      </StatusChip>
+    );
+  }
   switch (row.cert) {
     case 'ready':
       return (
         <StatusChip tone="success" tooltip="Certificate issued by Datum and renewed automatically">
           Issued · auto-renews
+        </StatusChip>
+      );
+    case 'renewal-failing':
+      return (
+        <StatusChip
+          tone="warning"
+          tooltip={row.message || 'The certificate is still valid, but its renewal is failing'}>
+          Issued · renewal failing
+        </StatusChip>
+      );
+    case 'not-enabled':
+      return (
+        <StatusChip tone="danger" tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
+          Wildcards not enabled
         </StatusChip>
       );
     case 'failed':
@@ -151,10 +178,14 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
   const certRows = useMemo<CertRow[]>(() => {
     const statuses = proxy.hostnameStatuses ?? [];
     return (proxy.hostnames ?? []).map((hostname) => {
-      const condition = getCertificateReadyCondition(
-        statuses.find((hs) => hs.hostname === hostname)
-      );
-      return { hostname, cert: getCertificateReadyDisplay(condition), message: condition?.message };
+      const hostnameStatus = statuses.find((hs) => hs.hostname === hostname);
+      const condition = getCertificateReadyCondition(hostnameStatus);
+      return {
+        hostname,
+        cert: getCertificateReadyDisplay(condition),
+        message: condition?.message,
+        awaitingDns: isCertificateAwaitingDnsRecord(hostnameStatus),
+      };
     });
   }, [proxy.hostnames, proxy.hostnameStatuses]);
 

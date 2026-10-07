@@ -17,6 +17,7 @@ export function ValueRow({
   value,
   href,
   status,
+  details,
   action,
   onCopy,
   copied,
@@ -25,6 +26,8 @@ export function ValueRow({
   /** Links the value, e.g. a workload backend to its workload's page. */
   href?: string;
   status?: ReactNode;
+  /** Full-width content under the status chips, e.g. DNS records still to publish. */
+  details?: ReactNode;
   action?: ReactNode;
   onCopy?: () => void;
   copied?: boolean;
@@ -47,6 +50,7 @@ export function ValueRow({
           </Text>
         </div>
         {status ? <div className="flex flex-wrap items-center gap-1.5">{status}</div> : null}
+        {details ? <div className="pt-1">{details}</div> : null}
       </div>
       <div className="flex h-7 shrink-0 items-center justify-end gap-1">
         {onCopy ? (

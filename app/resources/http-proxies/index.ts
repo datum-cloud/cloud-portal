@@ -19,6 +19,8 @@ export {
   type HttpProxyHostnameSchema,
   hostnameStatusSchema,
   type HostnameStatus,
+  hostnameDnsRecordSchema,
+  type HostnameDnsRecord,
   basicAuthSchema,
   type BasicAuthSchema,
   COMPUTE_WORKLOAD_NAME_LABEL,
@@ -145,6 +147,16 @@ export {
   getDnsRecordProgrammedDisplay,
   getDnsRecordProgrammedIssue,
   isHostnameDnsInFlight,
+  HOSTNAME_CONDITION_AVAILABLE,
+  HOSTNAME_CONDITION_VERIFIED,
+  HostnameVerifiedReason,
+  WILDCARD_NOT_ENABLED_MESSAGE,
+  getHostnameOwnershipDisplay,
+  isHostnameOwnershipBlocked,
+  getBlockedHostnames,
+  isCertificateAwaitingDnsRecord,
+  getUserDnsRecords,
+  getRecordsToPublish,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,
@@ -153,4 +165,6 @@ export type {
   ConditionLike,
   HttpProxyStatusLike,
   HostnameStatusLike,
+  HostnameDnsRecordLike,
+  HostnameOwnershipDisplay,
 } from './http-proxy.conditions';

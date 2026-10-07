@@ -6,6 +6,8 @@ import type { BackendRow } from '@/features/edge/proxy/backends/backend-pool';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
+  WILDCARD_NOT_ENABLED_MESSAGE,
+  getBlockedHostnames,
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
@@ -107,6 +109,8 @@ export function HttpProxyHealthStrip({
     [proxy.status]
   );
 
+  const blocked = getBlockedHostnames(proxy);
+
   const backends = summarizeBackends(proxy);
   const computeBackend = useResolvedComputeWorkload(projectId, proxy);
   const pool = usePoolBackends(projectId, proxy);
@@ -187,13 +191,40 @@ export function HttpProxyHealthStrip({
           detail: status.message || 'Check the Configuration tab for details.',
           ring: 'bg-(--color-badge-danger)/10',
         };
-      default:
+      default: {
+        // Programming waits on these, so name them rather than spin.
+        const { wildcardsNotEnabled, ownershipBlocked } = blocked;
+        if (wildcardsNotEnabled.length > 0 && ownershipBlocked.length === 0) {
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title: "Wildcard hostnames aren't enabled for this project",
+            detail: `No certificate is issued for ${wildcardsNotEnabled.join(', ')}. Contact Datum to enable wildcards, or use an exact hostname.`,
+            ring: 'bg-(--color-badge-warning)/10',
+          };
+        }
+        if (ownershipBlocked.length + wildcardsNotEnabled.length > 0) {
+          const count = ownershipBlocked.length + wildcardsNotEnabled.length;
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title:
+              count === 1
+                ? 'A custom hostname needs your attention'
+                : `${count} custom hostnames need your attention`,
+            detail: `${[...ownershipBlocked, ...wildcardsNotEnabled].join(', ')}: see Custom Hostnames on the Configuration tab.`,
+            ring: 'bg-(--color-badge-warning)/10',
+          };
+        }
         return {
           icon: <SpinnerIcon size="sm" aria-hidden="true" />,
           title: 'Programming edge configuration',
           detail: status.message || 'Hostnames, DNS, and certificates are being provisioned.',
           ring: 'bg-(--color-badge-info)/10',
         };
+      }
     }
   })();
 
@@ -239,6 +270,13 @@ export function HttpProxyHealthStrip({
   })();
 
   const tlsChip = (() => {
+    if (blocked.wildcardsNotEnabled.length > 0) {
+      return (
+        <Chip tone="danger" icon={LockIcon} tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
+          Wildcards not enabled
+        </Chip>
+      );
+    }
     if (certDisplay === 'ready') {
       return (
         <Chip tone="success" icon={LockIcon} tooltip="All hostnames have issued certificates">
@@ -250,6 +288,16 @@ export function HttpProxyHealthStrip({
       return (
         <Chip tone="danger" icon={LockIcon} tooltip="At least one certificate failed to issue">
           TLS failed
+        </Chip>
+      );
+    }
+    if (certDisplay === 'pending' && blocked.ownershipBlocked.length > 0) {
+      return (
+        <Chip
+          tone="muted"
+          icon={LockIcon}
+          tooltip="Certificates are issued once hostname ownership is sorted">
+          TLS on hold
         </Chip>
       );
     }

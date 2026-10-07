@@ -7,17 +7,23 @@ import {
   ProxyHostnamesConfigDialog,
   type ProxyHostnamesConfigDialogRef,
 } from '@/features/edge/proxy/proxy-hostnames-dialog';
+import { findZoneForHostname } from '@/features/edge/proxy/utils/delete-dns-preview';
 import { resolveHostnameDnsIssue } from '@/features/edge/proxy/utils/hostname-dns-issue';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { usePermission } from '@/modules/rbac';
 import {
   type HttpProxy,
   HTTP_PROXY_PROVISIONING_POLL_MS,
+  WILDCARD_NOT_ENABLED_MESSAGE,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
+  getHostnameOwnershipDisplay,
+  getRecordsToPublish,
+  isCertificateAwaitingDnsRecord,
   isHostnameDnsInFlight,
+  isHostnameOwnershipBlocked,
 } from '@/resources/http-proxies';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -127,14 +133,17 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
     const statuses = proxy.hostnameStatuses ?? [];
     return customHostnames.map((hostname) => {
       const hostnameStatus = statuses.find((hs) => hs.hostname === hostname);
-      const available = hostnameStatus?.conditions?.find((c) => c.type === 'Available');
       const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
       const certCondition = getCertificateReadyCondition(hostnameStatus);
       const dns = getDnsRecordProgrammedDisplay(dnsCondition);
+      const ownership = getHostnameOwnershipDisplay(hostnameStatus);
       return {
         hostname,
-        verified: available?.status === 'True',
-        failedMessage: available?.status === 'False' ? available.message : undefined,
+        ownership,
+        blocked: isHostnameOwnershipBlocked(ownership),
+        recordsToPublish: getRecordsToPublish(hostnameStatus, {
+          inDatumZone: !!findZoneForHostname(matchedZones, hostname) && dns !== 'not-applicable',
+        }).length,
         dns,
         dnsIssue: resolveHostnameDnsIssue({
           hostname,
@@ -144,12 +153,15 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
           zoneRecords,
         }),
         cert: getCertificateReadyDisplay(certCondition),
+        certAwaitingDns: isCertificateAwaitingDnsRecord(hostnameStatus),
         certMessage: certCondition?.message,
       };
     });
-  }, [customHostnames, proxy.hostnameStatuses, proxy.name, zoneRecords]);
+  }, [customHostnames, proxy.hostnameStatuses, proxy.name, zoneRecords, matchedZones]);
 
-  pollZoneRecords.current = hostnames.some((item) => item.dns === 'pending' && !item.dnsIssue);
+  pollZoneRecords.current = hostnames.some(
+    (item) => item.dns === 'pending' && !item.dnsIssue && !item.blocked
+  );
 
   const systemHostname = proxy.canonicalHostname ?? proxy.status?.hostnames?.[0];
 
@@ -233,20 +245,30 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
               onCopy={() => copy(item.hostname, { withToast: true })}
               chips={
                 <>
-                  {item.verified ? (
+                  {item.ownership.state === 'verified' ? (
                     <StatusChip tone="success" tooltip="Hostname ownership verified">
                       Verified
                     </StatusChip>
-                  ) : item.failedMessage ? (
-                    <StatusChip tone="danger" tooltip={item.failedMessage}>
-                      Unverified
-                    </StatusChip>
-                  ) : (
-                    <StatusChip tone="warning" busy tooltip="Waiting for ownership verification">
+                  ) : item.ownership.state === 'verifying' ? (
+                    <StatusChip
+                      tone="warning"
+                      busy
+                      tooltip={item.ownership.message || 'Waiting for ownership verification'}>
                       Verifying
                     </StatusChip>
+                  ) : (
+                    <StatusChip tone="danger" tooltip={item.ownership.message}>
+                      {item.ownership.label}
+                    </StatusChip>
                   )}
-                  {item.dnsIssue ? (
+                  {item.blocked ? (
+                    <StatusChip
+                      tone="muted"
+                      tooltip="Datum programs DNS and issues the TLS certificate once ownership is sorted">
+                      DNS & TLS on hold
+                    </StatusChip>
+                  ) : null}
+                  {item.blocked ? null : item.dnsIssue ? (
                     <StatusChip tone="danger" tooltip={item.dnsIssue.message}>
                       <Icon icon={TriangleAlertIcon} size={11} aria-hidden="true" />
                       {item.dnsIssue.label}
@@ -266,9 +288,25 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
                       DNS
                     </StatusChip>
                   )}
-                  {item.cert === 'ready' ? (
+                  {item.blocked ? null : item.cert === 'ready' ? (
                     <StatusChip tone="success" tooltip="Certificate issued">
                       TLS
+                    </StatusChip>
+                  ) : item.cert === 'renewal-failing' ? (
+                    <StatusChip
+                      tone="warning"
+                      tooltip={item.certMessage ?? 'Certificate renewal is failing'}>
+                      TLS renewal
+                    </StatusChip>
+                  ) : item.cert === 'not-enabled' ? (
+                    <StatusChip tone="danger" tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
+                      Wildcards not enabled
+                    </StatusChip>
+                  ) : item.certAwaitingDns ? (
+                    <StatusChip
+                      tone="warning"
+                      tooltip="Issued once the Certificate record on the Configuration tab is in place">
+                      TLS awaiting DNS
                     </StatusChip>
                   ) : item.cert === 'failed' ? (
                     <StatusChip tone="danger" tooltip={item.certMessage ?? 'Certificate failed'}>
@@ -279,6 +317,15 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
                       TLS
                     </StatusChip>
                   )}
+                  {item.recordsToPublish > 0 ? (
+                    <StatusChip
+                      tone="warning"
+                      tooltip="Records to publish at your DNS provider are listed on the Configuration tab">
+                      {item.recordsToPublish === 1
+                        ? '1 DNS record to add'
+                        : `${item.recordsToPublish} DNS records to add`}
+                    </StatusChip>
+                  ) : null}
                 </>
               }
             />

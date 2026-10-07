@@ -61,9 +61,28 @@ const hostnameStatusConditionSchema = z.object({
   observedGeneration: z.number().optional(),
 });
 
+/**
+ * One DNS record a hostname depends on (`status.hostnameStatuses[].dnsRecords`).
+ * The operator rebuilds this list every reconcile, so it alone says what the
+ * user still has to publish.
+ */
+export const hostnameDnsRecordSchema = z.object({
+  name: z.string(),
+  /** ALIAS stands for a CNAME at a zone apex (ALIAS, ANAME or CNAME flattening). */
+  type: z.enum(['CNAME', 'ALIAS', 'TXT']),
+  content: z.string(),
+  purpose: z.enum(['Routing', 'Certificate', 'Ownership']),
+  managedBy: z.enum(['User', 'Platform']),
+  /** Present only once the record takes effect on the Internet. */
+  state: z.enum(['Present', 'Missing']),
+});
+
+export type HostnameDnsRecord = z.infer<typeof hostnameDnsRecordSchema>;
+
 export const hostnameStatusSchema = z.object({
   hostname: z.string(),
   conditions: z.array(hostnameStatusConditionSchema).optional(),
+  dnsRecords: z.array(hostnameDnsRecordSchema).optional(),
 });
 
 export type HostnameStatus = z.infer<typeof hostnameStatusSchema>;

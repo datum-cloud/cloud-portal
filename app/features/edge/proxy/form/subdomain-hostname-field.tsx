@@ -27,6 +27,31 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+type DomainLike = {
+  domainName: string;
+  status?: { conditions?: { type: string; status: string }[] };
+};
+
+/**
+ * A wildcard is only admitted when its base, or a parent, is verified by DNS
+ * TXT record (`VerifiedDNS`). HTTP and Datum DNS zone proofs don't count, so
+ * the operator would otherwise refuse it after save.
+ */
+function wildcardLacksDnsProof(hostname: string, domains: DomainLike[]): boolean {
+  if (!hostname.startsWith('*.')) return false;
+  const base = hostname.slice(2).toLowerCase();
+  return !domains.some((domain) => {
+    const name = domain.domainName.toLowerCase();
+    const covers = base === name || base.endsWith(`.${name}`);
+    return (
+      covers &&
+      domain.status?.conditions?.some(
+        (condition) => condition.type === 'VerifiedDNS' && condition.status === 'True'
+      )
+    );
+  });
+}
+
 /**
  * Decompose a full hostname into prefix + parent domain.
  * Returns the longest matching registered domain.
@@ -222,6 +247,24 @@ export function SubdomainHostnameField({
 
   const isUnverified = selectedDomainStatus && selectedDomainStatus !== ControlPlaneStatus.Success;
 
+  const needsWildcardDnsProof = useMemo(
+    () => !domainsLoading && wildcardLacksDnsProof(currentValue, domains),
+    [currentValue, domains, domainsLoading]
+  );
+
+  const wildcardNotice = needsWildcardDnsProof ? (
+    <Text
+      as="div"
+      size="xs"
+      className="flex items-start gap-1.5 text-amber-600 dark:text-amber-500">
+      <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
+      <span>
+        Wildcards need the domain verified by its DNS TXT record. Domains verified over HTTP or
+        through a Datum DNS zone don&apos;t count yet, so this hostname won&apos;t be accepted.
+      </span>
+    </Text>
+  ) : null;
+
   /** Same composition as syncToForm — shown below fields on small screens where the dot separator is hidden. */
   const splitHostnamePreview = useMemo(() => {
     if (!selectedDomain) return null;
@@ -260,6 +303,7 @@ export function SubdomainHostnameField({
             </button>
           )}
         </div>
+        {wildcardNotice}
         {domainNames.length > 0 && (
           <button
             type="button"
@@ -312,7 +356,7 @@ export function SubdomainHostnameField({
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck={false}
-            placeholder="subdomain (leave blank to use apex)"
+            placeholder="subdomain or * (blank for apex)"
             className="text-input-foreground placeholder:text-input-placeholder h-9 min-w-0 flex-1 bg-transparent px-3 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden"
           />
           <Text size="xs" textColor="muted" className="hidden items-center sm:flex">
@@ -349,6 +393,7 @@ export function SubdomainHostnameField({
           {splitHostnamePreview}
         </Text>
       </div>
+      {isUnverified ? null : wildcardNotice}
       {isUnverified && (
         <Text
           as="div"

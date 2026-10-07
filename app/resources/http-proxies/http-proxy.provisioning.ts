@@ -4,7 +4,9 @@ import {
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
   getDnsRecordProgrammedCondition,
+  getHostnameOwnershipDisplay,
   isHostnameDnsInFlight,
+  isHostnameOwnershipBlocked,
 } from './http-proxy.conditions';
 import type { HttpProxy } from './http-proxy.schema';
 import { ControlPlaneStatus } from '@/resources/base';
@@ -33,6 +35,8 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
   if (expected.length > 0 && statuses.length < expected.length) return true;
 
   return statuses.some((hostnameStatus) => {
+    // DNS and the certificate stay pending until the user fixes ownership.
+    if (isHostnameOwnershipBlocked(getHostnameOwnershipDisplay(hostnameStatus))) return false;
     if (isHostnameDnsInFlight(getDnsRecordProgrammedCondition(hostnameStatus))) {
       return true;
     }

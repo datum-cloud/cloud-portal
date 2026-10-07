@@ -5,6 +5,10 @@ import {
   ProxyZoneRecordsWatch,
   useProxyZoneRecords,
 } from '@/features/edge/proxy/hooks/use-proxy-zone-records';
+import {
+  HostnameDnsRecords,
+  type HostnameDnsZone,
+} from '@/features/edge/proxy/overview/hostname-dns-records';
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import { findZoneForHostname } from '@/features/edge/proxy/utils/delete-dns-preview';
@@ -14,12 +18,19 @@ import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionButton, usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
+  type HostnameDnsRecordLike,
+  type HostnameOwnershipDisplay,
   type HttpProxy,
   HTTP_PROXY_PROVISIONING_POLL_MS,
+  WILDCARD_NOT_ENABLED_MESSAGE,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
+  getHostnameOwnershipDisplay,
+  getUserDnsRecords,
+  isCertificateAwaitingDnsRecord,
+  isHostnameOwnershipBlocked,
   isHostnameDnsInFlight,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
@@ -50,16 +61,23 @@ const EDIT_DENIED = "You don't have permission to edit this Application Load Bal
 
 type HostnameRow = {
   hostname: string;
-  verified: boolean;
-  failedMessage?: string;
+  ownership: HostnameOwnershipDisplay;
+  /** Ownership stops DNS and the certificate until the user fixes it. */
+  blocked: boolean;
   dns: 'programmed' | 'not-applicable' | 'pending';
   dnsMessage?: string;
   /** Set when Datum can't program the record until the user fixes something. */
   dnsIssue?: { label: string; message: string };
   cert: ReturnType<typeof getCertificateReadyDisplay>;
   certMessage?: string;
+  /** Records the user publishes at their own DNS provider for this hostname. */
+  userRecords: HostnameDnsRecordLike[];
+  /** The certificate is waiting on a DNS-01 delegation record the user hasn't published. */
+  awaitingCertRecord: boolean;
   /** Records page of the Datum DNS zone that serves this hostname, when we manage it. */
   dnsRecordsHref?: string;
+  /** That zone with its records, so required records can be written straight into it. */
+  dnsZone?: HostnameDnsZone;
 };
 
 export const HttpProxyHostnamesCard = ({
@@ -117,16 +135,19 @@ export const HttpProxyHostnamesCard = ({
     const statuses = proxy?.hostnameStatuses ?? [];
     return customHostnames.map((hostname) => {
       const hostnameStatus = statuses.find((hs) => hs.hostname === hostname);
-      const available = hostnameStatus?.conditions?.find((c) => c.type === 'Available');
       const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
       const certCondition = getCertificateReadyCondition(hostnameStatus);
       const zone = projectId ? findZoneForHostname(zones, hostname) : undefined;
       const dns = getDnsRecordProgrammedDisplay(dnsCondition);
+      const cert = getCertificateReadyDisplay(certCondition);
+      const ownership = getHostnameOwnershipDisplay(hostnameStatus);
+      const inDatumZone = !!zone && dns !== 'not-applicable';
+      const userRecords = getUserDnsRecords(hostnameStatus, { inDatumZone });
 
       return {
         hostname,
-        verified: available?.status === 'True',
-        failedMessage: available?.status === 'False' ? available.message : undefined,
+        ownership,
+        blocked: isHostnameOwnershipBlocked(ownership),
         dns,
         dnsMessage: dnsCondition?.message,
         dnsIssue: resolveHostnameDnsIssue({
@@ -136,8 +157,10 @@ export const HttpProxyHostnamesCard = ({
           proxyName: proxy?.name,
           zoneRecords,
         }),
-        cert: getCertificateReadyDisplay(certCondition),
+        cert,
         certMessage: certCondition?.message,
+        userRecords,
+        awaitingCertRecord: isCertificateAwaitingDnsRecord(hostnameStatus),
         dnsRecordsHref:
           zone && projectId
             ? getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
@@ -145,11 +168,23 @@ export const HttpProxyHostnamesCard = ({
                 dnsZoneId: zone.name,
               })
             : undefined,
+        dnsZone:
+          inDatumZone && zone && projectId
+            ? {
+                projectId,
+                zoneId: zone.name,
+                zoneDomain: zone.domainName,
+                records:
+                  zoneRecords.find((entry) => entry.zoneDomain === zone.domainName)?.records ?? [],
+              }
+            : undefined,
       };
     });
   }, [customHostnames, proxy?.hostnameStatuses, proxy?.name, zones, zoneRecords, projectId]);
 
-  pollZoneRecords.current = rows.some((row) => row.dns === 'pending' && !row.dnsIssue);
+  pollZoneRecords.current = rows.some(
+    (row) => row.dns === 'pending' && !row.dnsIssue && !row.blocked
+  );
 
   const systemHostname = proxy?.canonicalHostname ?? proxy?.status?.hostnames?.[0];
   const proxyStatus = useMemo(
@@ -269,21 +304,32 @@ export const HttpProxyHostnamesCard = ({
               onCopy={() => void copy(row.hostname, { withToast: true })}
               status={
                 <>
-                  {row.verified ? (
+                  {row.ownership.state === 'verified' ? (
                     <StatusChip tone="success" tooltip="Hostname ownership verified by Datum">
                       Verified
                     </StatusChip>
-                  ) : row.failedMessage ? (
-                    <StatusChip tone="danger" tooltip={row.failedMessage}>
-                      Unverified
+                  ) : row.ownership.state === 'verifying' ? (
+                    <StatusChip
+                      tone="warning"
+                      busy
+                      tooltip={row.ownership.message || 'Waiting for ownership verification'}>
+                      Verifying
                     </StatusChip>
                   ) : (
-                    <StatusChip tone="warning" busy tooltip="Waiting for ownership verification">
-                      Verifying
+                    <StatusChip tone="danger" tooltip={row.ownership.message}>
+                      {row.ownership.label}
                     </StatusChip>
                   )}
 
-                  {row.dnsIssue ? (
+                  {row.blocked ? (
+                    <StatusChip
+                      tone="muted"
+                      tooltip="Datum programs DNS and issues the TLS certificate once ownership is sorted">
+                      DNS & TLS on hold
+                    </StatusChip>
+                  ) : null}
+
+                  {row.blocked ? null : row.dnsIssue ? (
                     <StatusChip tone="danger" tooltip={row.dnsIssue.message}>
                       <Icon icon={TriangleAlertIcon} size={11} aria-hidden="true" />
                       {row.dnsIssue.label}
@@ -313,9 +359,28 @@ export const HttpProxyHostnamesCard = ({
                     </StatusChip>
                   )}
 
-                  {row.cert === 'ready' ? (
+                  {row.blocked ? null : row.cert === 'ready' ? (
                     <StatusChip tone="success" tooltip="TLS certificate issued and ready">
                       TLS Ready
+                    </StatusChip>
+                  ) : row.cert === 'renewal-failing' ? (
+                    <StatusChip
+                      tone="warning"
+                      tooltip={
+                        row.certMessage ||
+                        'The certificate is still valid, but its renewal is failing'
+                      }>
+                      TLS renewal failing
+                    </StatusChip>
+                  ) : row.cert === 'not-enabled' ? (
+                    <StatusChip tone="danger" tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
+                      Wildcards not enabled
+                    </StatusChip>
+                  ) : row.awaitingCertRecord ? (
+                    <StatusChip
+                      tone="warning"
+                      tooltip="The certificate is issued once the Certificate record below is in place">
+                      TLS awaiting DNS
                     </StatusChip>
                   ) : row.cert === 'failed' ? (
                     <StatusChip
@@ -342,7 +407,7 @@ export const HttpProxyHostnamesCard = ({
                     </StatusChip>
                   )}
 
-                  {(row.dnsIssue || row.dns === 'pending') && row.dnsRecordsHref ? (
+                  {!row.blocked && (row.dnsIssue || row.dns === 'pending') && row.dnsRecordsHref ? (
                     // Conflicts are resolved by deleting the manual record on the zone page.
                     <LinkButton
                       as={Link}
@@ -357,6 +422,7 @@ export const HttpProxyHostnamesCard = ({
                   ) : null}
                 </>
               }
+              details={<HostnameRowDetails row={row} />}
               action={
                 <MoreActions
                   row={row}
@@ -423,3 +489,38 @@ export const HttpProxyHostnamesCard = ({
     </Card>
   );
 };
+
+/**
+ * What the user has to do for one hostname, in words: why a wildcard is held
+ * back, then the records to publish at their DNS provider. Chip tooltips
+ * aren't reachable on touch, so anything actionable is spelled out here.
+ */
+function HostnameRowDetails({ row }: { row: HostnameRow }) {
+  const blocker =
+    row.ownership.state === 'dns-proof-required' || row.ownership.state === 'in-use'
+      ? row.ownership.message
+      : row.cert === 'not-enabled'
+        ? WILDCARD_NOT_ENABLED_MESSAGE
+        : undefined;
+  const showRecords = row.userRecords.some((record) => record.state === 'Missing');
+
+  if (!blocker && !showRecords) return null;
+
+  return (
+    <div className="flex flex-col gap-2">
+      {blocker ? (
+        <Text as="p" size="xs" className="text-destructive flex items-start gap-1.5">
+          <Icon icon={TriangleAlertIcon} size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{blocker}</span>
+        </Text>
+      ) : null}
+      {showRecords ? (
+        <HostnameDnsRecords
+          records={row.userRecords}
+          zoneRecordsHref={row.dnsRecordsHref}
+          zone={row.dnsZone}
+        />
+      ) : null}
+    </div>
+  );
+}
