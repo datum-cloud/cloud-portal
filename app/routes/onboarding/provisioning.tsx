@@ -1,5 +1,9 @@
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
+import {
+  loadOnboardingUser,
+  onboardingAccessRedirect,
+} from '@/features/onboarding/onboarding-user.server';
 import { ProvisioningPage } from '@/features/onboarding/provisioning/provisioning-page';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { paths } from '@/utils/config/paths.config';
@@ -21,6 +25,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
+    const access = await loadOnboardingUser(session.sub, request);
+    if ('error' in access) return redirect(onboardingAccessRedirect(access));
+
     // When provisioning targets a specific org, only its owners may proceed.
     const requestedOrgId = new URL(request.url).searchParams.get('orgId')?.trim();
     if (requestedOrgId && !(await isUserOrgOwner(requestedOrgId))) {

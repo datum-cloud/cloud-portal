@@ -1,5 +1,7 @@
 import type { UserAccessDeps } from './user-access';
-import { getUserWithAccessRetry } from './user-access';
+import { getUserWithAccessRetry, loadUserOncePerRequest } from './user-access';
+import { withRequestContext } from '@/modules/axios/request-context';
+import type { User } from '@/resources/users';
 import { describe, expect, it, mock } from 'bun:test';
 
 /**
@@ -63,5 +65,31 @@ describe('getUserWithAccessRetry', () => {
     expect(result).toEqual({
       user: { sub: 'user-1', platformAccess: 'Approved', emailVerified: false },
     });
+  });
+});
+
+describe('loadUserOncePerRequest', () => {
+  it('shares one user read between concurrent loaders on a request', async () => {
+    const loadUser = mock(async () => ({ user: { sub: 'user-1' } as User }));
+    const [a, b] = await withRequestContext({ requestId: 'r', token: 't' }, () =>
+      Promise.all([
+        loadUserOncePerRequest('user-1', 'c=1', loadUser),
+        loadUserOncePerRequest('user-1', 'c=1', loadUser),
+      ])
+    );
+    expect(loadUser).toHaveBeenCalledTimes(1);
+    expect(a).toBe(b);
+  });
+
+  it('gives a later caller a fresh attempt after an error result', async () => {
+    const loadUser = mock()
+      .mockResolvedValueOnce({ error: 'other' })
+      .mockResolvedValueOnce({ user: { sub: 'user-1' } as User });
+    const second = await withRequestContext({ requestId: 'r', token: 't' }, async () => {
+      await loadUserOncePerRequest('user-1', 'c=1', loadUser);
+      return loadUserOncePerRequest('user-1', 'c=1', loadUser);
+    });
+    expect(loadUser).toHaveBeenCalledTimes(2);
+    expect(second).toEqual({ user: { sub: 'user-1' } });
   });
 });

@@ -1,8 +1,11 @@
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
+import {
+  hasAnyOrganizations,
+  loadOnboardingUser,
+  onboardingAccessRedirect,
+} from '@/features/onboarding/onboarding-user.server';
 import { ProfilePage } from '@/features/onboarding/profile/profile-page';
-import { createOrganizationService } from '@/resources/organizations';
-import { createUserService } from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
@@ -21,9 +24,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
-    const user = await createUserService().get(session.sub);
-    const organizations = await createOrganizationService().list({ limit: 1 });
-    const hasExistingOrgs = organizations.items.length > 0;
+    const access = await loadOnboardingUser(session.sub, request);
+    if ('error' in access) return redirect(onboardingAccessRedirect(access));
+    const { user } = access;
+    const hasExistingOrgs = await hasAnyOrganizations();
 
     if (!user.nameReviewRequired && !isOnboardingDevBypassEnabled()) {
       return redirect(hasExistingOrgs ? paths.home : paths.onboarding.account);
