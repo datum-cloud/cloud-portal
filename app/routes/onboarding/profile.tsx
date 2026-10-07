@@ -37,6 +37,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       userId: session.sub,
       email: user.email ?? '',
       givenName: user.givenName ?? '',
+      lastLoginProvider: user.lastLoginProvider,
       hasExistingOrgs,
     };
   } catch (userError) {
@@ -48,7 +49,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function OnboardingProfileRoute() {
-  const { userId, email, givenName, hasExistingOrgs } = useLoaderData<typeof loader>();
+  const { userId, email, givenName, lastLoginProvider, hasExistingOrgs } =
+    useLoaderData<typeof loader>();
 
   return (
     <OnboardingLayout>
@@ -56,6 +58,7 @@ export default function OnboardingProfileRoute() {
         userId={userId}
         email={email}
         givenName={givenName}
+        lastLoginProvider={lastLoginProvider}
         hasExistingOrgs={hasExistingOrgs}
       />
     </OnboardingLayout>

@@ -1,13 +1,7 @@
-import {
-  ONBOARDING_DELAYS,
-  onboardingEntranceTransition,
-  onboardingEntranceVariants,
-  onboardingStaggerTransition,
-  onboardingStaggerVariants,
-} from '../onboarding-motion';
+import { onboardingStaggerTransition, onboardingStaggerVariants } from '../onboarding-motion';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import { motion, useReducedMotion } from 'motion/react';
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 type OnboardingEntranceProps = {
   children: ReactNode;
@@ -15,26 +9,32 @@ type OnboardingEntranceProps = {
   delay?: 0 | 1 | 2 | 3;
 };
 
-export const OnboardingEntrance = ({ children, className, delay = 0 }: OnboardingEntranceProps) => {
-  const reducedMotion = useReducedMotion() ?? false;
-  // Transforms left on a wrapping motion node break input focus (click often
-  // needs a second attempt). Once the entrance settles, stop controlling
-  // transform props and force them clear.
-  const [entranceSettled, setEntranceSettled] = useState(false);
+// Literal class names so Tailwind emits them; index matches the `delay` prop.
+const ENTRANCE_DELAY_CLASS_NAMES = [
+  '',
+  'motion-safe:delay-[80ms]',
+  'motion-safe:delay-[140ms]',
+  'motion-safe:delay-[200ms]',
+] as const;
 
-  return (
-    <motion.div
-      className={className}
-      initial="hidden"
-      animate={entranceSettled ? { opacity: 1 } : 'visible'}
-      variants={onboardingEntranceVariants(reducedMotion)}
-      transition={onboardingEntranceTransition(ONBOARDING_DELAYS[delay], reducedMotion)}
-      onAnimationComplete={() => setEntranceSettled(true)}
-      style={entranceSettled ? { transform: 'none' } : undefined}>
-      {children}
-    </motion.div>
-  );
-};
+/**
+ * A CSS entrance rather than a motion one. A motion node server-renders with
+ * `opacity: 0` and only JavaScript reveals it, so a slow or failed hydration
+ * left the onboarding card blank until a refresh. The browser runs this
+ * animation on first paint, and it leaves no transform behind that would get
+ * in the way of input focus.
+ */
+export const OnboardingEntrance = ({ children, className, delay = 0 }: OnboardingEntranceProps) => (
+  <div
+    className={cn(
+      'animate-in fade-in fill-mode-backwards duration-150 ease-[cubic-bezier(0.23,1,0.32,1)]',
+      'motion-safe:slide-in-from-bottom-[10px] motion-safe:zoom-in-[0.98] motion-safe:duration-[420ms]',
+      ENTRANCE_DELAY_CLASS_NAMES[delay],
+      className
+    )}>
+    {children}
+  </div>
+);
 
 type OnboardingStaggerProps = {
   visible: boolean;

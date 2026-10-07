@@ -2,7 +2,13 @@ import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import { useTransitionNavigate } from '@/hooks/useTransitionNavigate';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
-import { userKeys, userSchema, useUpdateUser, type User } from '@/resources/users';
+import {
+  type LastLoginProviderValue,
+  userKeys,
+  userSchema,
+  useUpdateUser,
+  type User,
+} from '@/resources/users';
 import { paths } from '@/utils/config/paths.config';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
@@ -15,6 +21,8 @@ export interface ProfilePageProps {
   userId: string;
   email: string;
   givenName: string;
+  /** How the user last signed in; only GitHub gets the username joke. */
+  lastLoginProvider?: LastLoginProviderValue;
   /** User already belongs to an org — skip billing onboarding after name save. */
   hasExistingOrgs?: boolean;
 }
@@ -28,6 +36,7 @@ export const ProfilePage = ({
   userId,
   email,
   givenName,
+  lastLoginProvider,
   hasExistingOrgs = false,
 }: ProfilePageProps) => {
   const { submitAndNavigate, isNavigating } = useTransitionNavigate();
@@ -59,11 +68,17 @@ export const ProfilePage = ({
             weight="normal"
             textColor="default"
             className="mb-6 flex flex-col gap-2 text-center leading-5 opacity-80">
-            <p>Unfortunately, GitHub only tells us your username, not your real name.</p>
-            <p>
-              And while names like &quot;git_happens5000&quot; and &quot;{givenName}&quot; are super
-              rad, we&apos;d love to know what to actually call you.
-            </p>
+            {lastLoginProvider === 'github' ? (
+              <>
+                <p>Unfortunately, GitHub only tells us your username, not your real name.</p>
+                <p>
+                  And while names like &quot;git_happens5000&quot; and &quot;{givenName}&quot; are
+                  super rad, we&apos;d love to know what to actually call you.
+                </p>
+              </>
+            ) : (
+              <p>Your sign-in didn&apos;t give us your name. Tell us what to call you.</p>
+            )}
           </Text>
 
           <Form.Root
