@@ -62,8 +62,48 @@ type HostnameRow = HostnameState & {
   /** That zone with its records, once they've loaded, so required records can be written into it. */
   dnsZone?: HostnameDnsZone;
   /** The Domain whose verification decides ownership, for linking to it. */
-  domain?: { domainName: string; href: string };
+  domain?: {
+    domainName: string;
+    href: string;
+    /** Verified through a Datum DNS zone and not by TXT record, which wildcards don't accept yet. */
+    verifiedByZoneOnly: boolean;
+  };
 };
+
+type DomainCondition = { type?: string; status?: string };
+
+function isVerifiedByZoneOnly(status: unknown): boolean {
+  const conditions = ((status as { conditions?: DomainCondition[] } | undefined)?.conditions ??
+    []) as DomainCondition[];
+  const isTrue = (type: string) => conditions.some((c) => c.type === type && c.status === 'True');
+  return isTrue('VerifiedDNSZone') && !isTrue('VerifiedDNS');
+}
+
+/**
+ * Plain-language version of the operator's "needs DNS proof" refusal, pointed
+ * at what the user can actually do from here. The full operator message stays
+ * in the chip's tooltip.
+ */
+function dnsProofGuidance(row: HostnameRow): { message: string; linkDomain: boolean } {
+  if (row.userRecords.some((r) => r.purpose === 'Ownership' && r.state === 'Missing')) {
+    return {
+      message:
+        'Wildcards need their domain proven by a DNS TXT record. Add the Ownership record below.',
+      linkDomain: false,
+    };
+  }
+  if (row.domain?.verifiedByZoneOnly) {
+    const name = row.domain.domainName;
+    return {
+      message: `Wildcards directly on ${name} aren't supported yet: it was verified through Datum DNS, which doesn't count as proof for wildcards. Use a wildcard one level down instead: add a Domain for app.${name} and use *.app.${name}.`,
+      linkDomain: false,
+    };
+  }
+  return {
+    message: `Wildcards need ${row.domain?.domainName ?? 'their domain'} verified by a DNS TXT record. HTTP verification doesn't count.`,
+    linkDomain: true,
+  };
+}
 
 export const HttpProxyHostnamesCard = ({
   proxy,
@@ -153,6 +193,7 @@ export const HttpProxyHostnamesCard = ({
           coveringDomain && projectId
             ? {
                 domainName: coveringDomain.domainName,
+                verifiedByZoneOnly: isVerifiedByZoneOnly(coveringDomain.status),
                 href: getPathWithParams(paths.project.detail.domains.detail.overview, {
                   projectId,
                   domainId: coveringDomain.name,
@@ -406,11 +447,14 @@ export const HttpProxyHostnamesCard = ({
  * aren't reachable on touch, so anything actionable is spelled out here.
  */
 function HostnameRowDetails({ row, projectId }: { row: HostnameRow; projectId?: string }) {
-  const blocker = row.blocked
-    ? row.ownership.message || row.ownership.label
-    : row.cert === 'not-enabled'
-      ? WILDCARD_NOT_ENABLED_MESSAGE
-      : undefined;
+  const dnsProof = row.ownership.state === 'dns-proof-required' ? dnsProofGuidance(row) : undefined;
+  const blocker = dnsProof
+    ? dnsProof.message
+    : row.blocked
+      ? row.ownership.message || row.ownership.label
+      : row.cert === 'not-enabled'
+        ? WILDCARD_NOT_ENABLED_MESSAGE
+        : undefined;
   const showRecords = row.userRecords.some((record) => record.state === 'Missing');
 
   if (!blocker && !showRecords) return null;
@@ -428,7 +472,8 @@ function HostnameRowDetails({ row, projectId }: { row: HostnameRow; projectId?: 
             />
             <span>{blocker}</span>
           </Text>
-          {row.ownership.state === 'dns-proof-required' ? (
+          {dnsProof && !dnsProof.linkDomain ? null : row.ownership.state ===
+            'dns-proof-required' ? (
             row.domain ? (
               <LinkButton
                 as={Link}
