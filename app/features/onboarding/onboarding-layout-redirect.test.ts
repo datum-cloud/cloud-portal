@@ -1,4 +1,5 @@
 import { resolveOnboardingLayoutRedirect } from './onboarding-layout-redirect';
+import { onboardingAccessRedirect } from './onboarding-user.server';
 import { paths } from '@/utils/config/paths.config';
 import { getDocumentPathname, getPathWithParams } from '@/utils/helpers/path.helper';
 import { describe, expect, it } from 'bun:test';
@@ -58,5 +59,19 @@ describe('resolveOnboardingLayoutRedirect (legacy resume / #1415)', () => {
         nameReviewRequired: false,
       })
     ).toBe(paths.home);
+  });
+});
+
+describe('onboardingAccessRedirect', () => {
+  it('sends a missing user to verifying', () => {
+    expect(onboardingAccessRedirect({ error: 'not_found' })).toBe(paths.fraud.verifying);
+  });
+
+  it('sends a forbidden user to verifying', () => {
+    expect(onboardingAccessRedirect({ error: 'forbidden' })).toBe(paths.fraud.verifying);
+  });
+
+  it('logs the user out on any other error', () => {
+    expect(onboardingAccessRedirect({ error: 'other' })).toBe(paths.auth.logOut);
   });
 });

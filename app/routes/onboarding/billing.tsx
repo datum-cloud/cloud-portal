@@ -2,6 +2,10 @@ import { type BillingAccount, selectDefaultOrgBillingAccount } from '@/features/
 import { BillingPage, type BillingPageData } from '@/features/onboarding/billing/billing-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import {
+  loadOnboardingUser,
+  onboardingAccessRedirect,
+} from '@/features/onboarding/onboarding-user.server';
+import {
   buildOrgContactDefaults,
   orgContactInfoToFormValues,
   type OrgContactInfoValues,
@@ -11,7 +15,6 @@ import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createPaymentMethodService } from '@/resources/payment-methods';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
-import { createUserService } from '@/resources/users';
 import { orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -61,7 +64,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   try {
-    const user = await createUserService().get(session.sub);
+    const access = await loadOnboardingUser(session.sub, request);
+    if ('error' in access) return redirect(onboardingAccessRedirect(access));
+    const { user } = access;
     const contactDefaults: Partial<OrgContactInfoValues> = {
       email: user.email ?? '',
       name: user.fullName?.trim() || '',

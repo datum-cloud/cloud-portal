@@ -1,5 +1,8 @@
 import type { UserAccessDeps } from './user-access';
-import { getUserWithAccessRetry } from './user-access';
+import { getUserWithAccessRetry, loadUserOncePerRequest } from './user-access';
+import { getRequestContext, withRequestContext } from '@/modules/axios/request-context';
+import type { User } from '@/resources/users';
+import { AuthorizationError } from '@/utils/errors';
 import { describe, expect, it, mock } from 'bun:test';
 
 /**
@@ -63,5 +66,65 @@ describe('getUserWithAccessRetry', () => {
     expect(result).toEqual({
       user: { sub: 'user-1', platformAccess: 'Approved', emailVerified: false },
     });
+  });
+});
+
+describe('getUserWithAccessRetry rotated cookies', () => {
+  const rotatedCookie = (ctx = getRequestContext()) => ctx?.rotatedCookies?.get('Set-Cookie');
+
+  it('hands the refresh Set-Cookie to the request context after a 403 retry', async () => {
+    const getUser = mock()
+      .mockRejectedValueOnce(new AuthorizationError('forbidden'))
+      .mockResolvedValueOnce({ sub: 'user-1', platformAccess: 'Approved' });
+    const { deps } = buildDeps({ getUser } as Partial<UserAccessDeps>);
+
+    const cookie = await withRequestContext({ requestId: 'r', token: 't' }, async () => {
+      await getUserWithAccessRetry('user-1', 'cookie=value', { deps });
+      return rotatedCookie();
+    });
+
+    expect(cookie).toBe('session=fresh');
+  });
+
+  it('still hands it over when the refreshed retry is forbidden again', async () => {
+    const getUser = mock(async () => {
+      throw new AuthorizationError('forbidden');
+    });
+    const { deps } = buildDeps({ getUser } as Partial<UserAccessDeps>);
+
+    const [result, cookie] = await withRequestContext(
+      { requestId: 'r', token: 't' },
+      async () =>
+        [await getUserWithAccessRetry('user-1', 'cookie=value', { deps }), rotatedCookie()] as const
+    );
+
+    expect(result).toEqual({ error: 'forbidden' });
+    expect(cookie).toBe('session=fresh');
+  });
+});
+
+describe('loadUserOncePerRequest', () => {
+  it('shares one user read between concurrent loaders on a request', async () => {
+    const loadUser = mock(async () => ({ user: { sub: 'user-1' } as User }));
+    const [a, b] = await withRequestContext({ requestId: 'r', token: 't' }, () =>
+      Promise.all([
+        loadUserOncePerRequest('user-1', 'c=1', loadUser),
+        loadUserOncePerRequest('user-1', 'c=1', loadUser),
+      ])
+    );
+    expect(loadUser).toHaveBeenCalledTimes(1);
+    expect(a).toBe(b);
+  });
+
+  it('gives a later caller a fresh attempt after an error result', async () => {
+    const loadUser = mock()
+      .mockResolvedValueOnce({ error: 'other' })
+      .mockResolvedValueOnce({ user: { sub: 'user-1' } as User });
+    const second = await withRequestContext({ requestId: 'r', token: 't' }, async () => {
+      await loadUserOncePerRequest('user-1', 'c=1', loadUser);
+      return loadUserOncePerRequest('user-1', 'c=1', loadUser);
+    });
+    expect(loadUser).toHaveBeenCalledTimes(2);
+    expect(second).toEqual({ user: { sub: 'user-1' } });
   });
 });
