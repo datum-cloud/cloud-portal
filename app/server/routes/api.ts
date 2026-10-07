@@ -1,5 +1,4 @@
 import { assistantChatRoutes } from './assistant-chat';
-import { cloudvalidRoutes } from './cloudvalid';
 import { fraudStatusRoutes } from './fraud-status';
 import { grafanaRoutes } from './grafana';
 import { graphqlRoutes } from './graphql';
@@ -42,7 +41,6 @@ export function createApiApp() {
   // middleware/email-verification.ts. No-op while the flag is off.
   const emailVerified = emailVerifiedGuardMiddleware();
   api.use('/assistant/*', emailVerified);
-  api.use('/cloudvalid/*', emailVerified);
   api.use('/usage/*', emailVerified);
 
   // Routes
@@ -50,7 +48,6 @@ export function createApiApp() {
   api.route('/fraud-status', fraudStatusRoutes);
   api.route('/proxy', proxyRoutes);
   api.route('/graphql', graphqlRoutes);
-  api.route('/cloudvalid', cloudvalidRoutes);
   api.route('/prometheus', prometheusRoutes);
   api.route('/usage', usageRoutes);
   api.route('/grafana', grafanaRoutes);

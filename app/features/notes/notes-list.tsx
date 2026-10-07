@@ -6,21 +6,22 @@ import { useDeleteNote, useNotes } from '@/resources/notes/note.queries';
 import type { Note, SubjectRef } from '@/resources/notes/note.schema';
 import { createUserService, userKeys } from '@/resources/users';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
-import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { useQueries } from '@tanstack/react-query';
-import { NotepadText, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-interface NotesSectionProps {
+interface NotesListProps {
   projectId: string;
   subjectRef: SubjectRef;
 }
 
-export function NotesSection({ projectId, subjectRef }: NotesSectionProps) {
+/**
+ * A resource's notes, newest first, with an Add Note button. Renders inline
+ * with no card around it so it can sit in a details table row.
+ */
+export function NotesList({ projectId, subjectRef }: NotesListProps) {
   const { user } = useApp();
   const { data: notes, isLoading, error } = useNotes(projectId, subjectRef);
   const { confirm } = useConfirmationDialog();
@@ -87,45 +88,18 @@ export function NotesSection({ projectId, subjectRef }: NotesSectionProps) {
 
   return (
     <>
-      <Card size="sm" sectioned className="relative h-full w-full overflow-hidden">
-        <CardHeader size="sm" bordered>
-          <CardTitle className="flex items-center gap-2 text-sm">
-            <Icon icon={NotepadText} size={16} className="text-secondary" />
-            Notes
-          </CardTitle>
-          <CardAction>
-            <Button
-              type="primary"
-              size="xs"
-              onClick={handleCreateOpen}
-              icon={<PlusIcon className="size-3" />}
-              aria-label="Add note"
-              iconPosition="left">
-              Add Note
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          {isLoading ? (
-            <div className="relative flex min-h-[120px] items-center justify-center">
-              <LoaderOverlay message="Loading notes..." className="relative inset-auto" />
-            </div>
-          ) : error ? (
-            <Text
-              as="p"
-              textColor="muted"
-              className="flex min-h-[120px] items-center justify-center text-center">
-              Failed to load notes. Please refresh the page to try again.
-            </Text>
-          ) : (sorted ?? []).length === 0 ? (
-            <Text
-              as="p"
-              textColor="muted"
-              className="flex min-h-[120px] items-center justify-center text-center">
-              No notes yet.
-            </Text>
-          ) : (
-            <div className="flex flex-col gap-3">
+      <div className="flex flex-col items-start gap-2">
+        {isLoading ? (
+          <Text size="sm" textColor="muted" className="animate-pulse">
+            Loading notes...
+          </Text>
+        ) : error ? (
+          <Text size="sm" textColor="muted">
+            Failed to load notes. Refresh the page to try again.
+          </Text>
+        ) : (
+          sorted.length > 0 && (
+            <div className="flex w-full flex-col gap-2">
               {sorted.map((n) => (
                 <NoteCard
                   key={n.uid || n.name}
@@ -139,9 +113,20 @@ export function NotesSection({ projectId, subjectRef }: NotesSectionProps) {
                 />
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
+          )
+        )}
+        {!isLoading && !error && (
+          <Button
+            type="quaternary"
+            theme="outline"
+            size="xs"
+            onClick={handleCreateOpen}
+            icon={<PlusIcon className="size-3" />}
+            iconPosition="left">
+            Add Note
+          </Button>
+        )}
+      </div>
 
       <NoteFormDialog
         projectId={projectId}

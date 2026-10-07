@@ -196,8 +196,12 @@ export default [
             [
               index('routes/project/detail/domains/detail/index.tsx'),
               route('overview', 'routes/project/detail/domains/detail/overview.tsx'),
-              route('activity', 'routes/project/detail/domains/detail/activity.tsx'),
-              route('settings', 'routes/project/detail/domains/detail/settings.tsx'),
+              route('activity', 'routes/project/detail/domains/detail/legacy-tab-redirect.tsx', {
+                id: 'domain-detail-activity',
+              }),
+              route('settings', 'routes/project/detail/domains/detail/legacy-tab-redirect.tsx', {
+                id: 'domain-detail-settings',
+              }),
             ]
           ),
         ]),

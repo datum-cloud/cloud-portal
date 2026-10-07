@@ -18,6 +18,7 @@ export function toDomain(raw: ComDatumapisNetworkingV1AlphaDomain): Domain {
     domainName: raw.spec?.domainName ?? '',
     status: raw.status,
     desiredRegistrationRefreshAttempt: raw.spec?.desiredRegistrationRefreshAttempt ?? '',
+    desiredVerificationRefreshAttempt: raw.spec?.desiredVerificationRefreshAttempt ?? '',
   };
 }
 
@@ -83,6 +84,25 @@ export function toRefreshRegistrationPayload(): {
     apiVersion: 'networking.datumapis.com/v1alpha',
     spec: {
       desiredRegistrationRefreshAttempt: new Date().toISOString(),
+    },
+  };
+}
+
+/**
+ * Ask the controller to re-check ownership now instead of waiting for its
+ * next scheduled attempt. The API rejects a change within 5 minutes of the
+ * previous one.
+ */
+export function toRefreshVerificationPayload(): {
+  kind: string;
+  apiVersion: string;
+  spec: { desiredVerificationRefreshAttempt: string };
+} {
+  return {
+    kind: 'Domain',
+    apiVersion: 'networking.datumapis.com/v1alpha',
+    spec: {
+      desiredVerificationRefreshAttempt: new Date().toISOString(),
     },
   };
 }

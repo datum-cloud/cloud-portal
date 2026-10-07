@@ -3,7 +3,8 @@ import { ReactNode } from 'react';
 
 export interface SubLayoutProps {
   children: ReactNode;
-  navItems: SubNavigationTab[];
+  /** Tabs below the title. Omit or pass none for a page without tabs. */
+  navItems?: SubNavigationTab[];
 
   /** Page title, rendered via `<PageTitle>`. */
   title?: string;

@@ -19,9 +19,11 @@ export function SubLayout({
     <div className={cn('flex h-full flex-1 flex-col', className)}>
       <div className="flex flex-col gap-4">
         {hasPageTitle && <PageTitle title={title} description={status} actions={actions} />}
-        <div className="border-border -mx-4 border-b px-4 md:-mx-6 md:px-6">
-          <SubNavigationTabs tabs={navItems} />
-        </div>
+        {navItems && navItems.length > 0 && (
+          <div className="border-border -mx-4 border-b px-4 md:-mx-6 md:px-6">
+            <SubNavigationTabs tabs={navItems} />
+          </div>
+        )}
       </div>
       <div className={cn('mt-5 h-full w-full', containerClassName)}>
         <div className={cn('flex h-full flex-1 flex-col', contentClassName)}>{children}</div>

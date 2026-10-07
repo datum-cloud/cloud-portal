@@ -132,8 +132,6 @@ export const paths = {
         detail: {
           root: '/project/[projectId]/domains/[domainId]',
           overview: '/project/[projectId]/domains/[domainId]/overview',
-          activity: '/project/[projectId]/domains/[domainId]/activity',
-          settings: '/project/[projectId]/domains/[domainId]/settings',
         },
       },
       dnsZones: {

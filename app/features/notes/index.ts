@@ -1,4 +1,4 @@
-export { NotesSection } from './notes-section';
+export { NotesList } from './notes-list';
 export { NoteCard } from './note-card';
 export { NoteFormDialog } from './note-form-dialog';
 export { NoteMeta } from './note-meta';

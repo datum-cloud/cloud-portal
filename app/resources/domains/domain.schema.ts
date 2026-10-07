@@ -73,6 +73,7 @@ export const domainResourceSchema = resourceMetadataSchema.omit({ displayName: t
   domainName: z.string(),
   status: z.any().optional(),
   desiredRegistrationRefreshAttempt: z.string().optional(),
+  desiredVerificationRefreshAttempt: z.string().optional(),
 });
 
 export type Domain = z.infer<typeof domainResourceSchema>;

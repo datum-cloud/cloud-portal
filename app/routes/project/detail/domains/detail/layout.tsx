@@ -1,14 +1,11 @@
-import { type SubNavigationTab } from '@/components/sub-navigation';
 import { DomainHeaderActions } from '@/features/edge/domain/domain-header-actions';
+import { DomainStatus } from '@/features/edge/domain/status';
 import { SubLayout } from '@/layouts';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runDetailLoader } from '@/modules/rbac/run-resource-loader';
 import { createDnsZoneService, type DnsZone } from '@/resources/dns-zones';
-import { createDomainService, domainKeys, type Domain } from '@/resources/domains';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { createDomainService, domainKeys, type Domain, useDomain } from '@/resources/domains';
 import { skipRevalidateWithinSameProjectResource } from '@/utils/helpers/revalidate.helper';
-import { useMemo } from 'react';
 import { type LoaderFunctionArgs, Outlet, useParams } from 'react-router';
 
 type DomainDetailCompanions = { dnsZone: DnsZone | null };
@@ -60,41 +57,26 @@ export const shouldRevalidate = skipRevalidateWithinSameProjectResource('domainI
 export default route.Page(({ data: domain, companions }) => {
   const { projectId = '' } = useParams<{ projectId: string }>();
   const dnsZone = companions.dnsZone;
-
-  const navItems: SubNavigationTab[] = useMemo(
-    () => [
-      {
-        label: 'Overview',
-        href: getPathWithParams(paths.project.detail.domains.detail.overview, {
-          projectId,
-          domainId: domain?.name ?? '',
-        }),
-      },
-      {
-        label: 'Activity',
-        href: getPathWithParams(paths.project.detail.domains.detail.activity, {
-          projectId,
-          domainId: domain?.name ?? '',
-        }),
-      },
-      {
-        label: 'Settings',
-        href: getPathWithParams(paths.project.detail.domains.detail.settings, {
-          projectId,
-          domainId: domain?.name ?? '',
-        }),
-      },
-    ],
-    [projectId, domain?.name]
-  );
+  // Live data so the header badge flips as soon as the watch reports verification
+  const { data: liveDomain } = useDomain(projectId, domain?.name ?? '', {
+    enabled: !!domain?.name,
+    initialData: domain,
+  });
+  const effectiveDomain = liveDomain ?? domain;
 
   return (
     <SubLayout
       title={domain?.domainName}
+      status={
+        effectiveDomain && (
+          <div className="mt-1.5">
+            <DomainStatus domainStatus={effectiveDomain.status} />
+          </div>
+        )
+      }
       actions={
         domain && <DomainHeaderActions projectId={projectId} domain={domain} dnsZone={dnsZone} />
-      }
-      navItems={navItems}>
+      }>
       <Outlet />
     </SubLayout>
   );

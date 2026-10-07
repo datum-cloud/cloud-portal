@@ -4,7 +4,6 @@ import { List, ListItem } from '@/components/list/list';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { DomainExpiration } from '@/features/edge/domain/expiration';
 import { RegistrarBadge } from '@/features/edge/domain/registrar-badge';
-import { DomainStatus } from '@/features/edge/domain/status';
 import { useResourcePermissions } from '@/modules/rbac';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import type { DnsZone } from '@/resources/dns-zones';
@@ -15,17 +14,20 @@ import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import { Link } from 'react-router';
 
 export const DomainGeneralCard = ({
   domain,
   dnsZone,
   projectId,
+  notes,
 }: {
   domain: Domain;
   dnsZone?: DnsZone;
   projectId?: string;
+  /** Content for the Notes row. The row is omitted when not provided. */
+  notes?: ReactNode;
 }) => {
   const { trackAction } = useAnalytics();
 
@@ -40,7 +42,11 @@ export const DomainGeneralCard = ({
     if (!domain) return [];
 
     const registrationFetching = !!domain.status && !domain.status?.registration;
-    const nameserversFetching = !!domain.status && !domain.status?.nameservers?.length;
+    // Nameservers are written by the same lookup that stamps lastRefreshAttempt,
+    // so once it has run, an empty list means none were found.
+    const lookupDone = !!domain.status?.registration?.lastRefreshAttempt;
+    const nameservers = domain.status?.nameservers ?? [];
+    const nameserversFetching = !!domain.status && !nameservers.length && !lookupDone;
 
     return [
       {
@@ -70,13 +76,11 @@ export const DomainGeneralCard = ({
               Looking up...
             </Text>
           </Tooltip>
+        ) : nameservers.length ? (
+          <NameserverChips data={nameservers} maxVisible={99} wrap />
         ) : (
-          <NameserverChips data={domain?.status?.nameservers} maxVisible={99} wrap />
+          <Text textColor="muted">None found</Text>
         ),
-      },
-      {
-        label: 'Status',
-        content: <DomainStatus domainStatus={domain.status} />,
       },
       {
         label: 'Expiration Date',
@@ -84,7 +88,14 @@ export const DomainGeneralCard = ({
       },
       {
         label: 'Created At',
-        content: <DateTime className="text-sm" date={domain?.createdAt ?? ''} />,
+        content: (
+          <DateTime
+            className="text-sm"
+            variant="relative"
+            addSuffix
+            date={domain?.createdAt ?? ''}
+          />
+        ),
       },
       {
         label: 'DNS Zone',
@@ -119,19 +130,31 @@ export const DomainGeneralCard = ({
                 domainName: domain.domainName ?? '',
               })
             )}>
-            Transfer to Datum
+            Set up DNS zone
           </LinkButton>
         ) : (
           '-'
         ),
       },
+      {
+        label: 'Notes',
+        content: notes,
+        hidden: notes === undefined,
+        // Notes can run several lines; keep the label at the top of the row.
+        className: 'sm:items-start',
+      },
     ];
-  }, [domain, dnsZone, trackAction, projectId, canCreateDnsZone]);
+  }, [domain, dnsZone, trackAction, projectId, canCreateDnsZone, notes]);
 
   return (
     <Card size="sm" sectioned className="w-full overflow-hidden">
       <CardContent padding="none">
-        <List items={listItems} />
+        {/* Tighter rows and a fixed label column instead of the default 50/50 split */}
+        <List
+          items={listItems}
+          itemClassName="py-2 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-x-4"
+          labelClassName="text-muted-foreground font-normal"
+        />
       </CardContent>
     </Card>
   );

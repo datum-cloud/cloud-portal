@@ -127,14 +127,14 @@ describe('Domains — regression', () => {
   // missing element instead of the assertion that actually failed.
   it('should delete the domain', { retries: 0 }, () => {
     cy.visit(
-      getPathWithParams(paths.project.detail.domains.detail.settings, {
+      getPathWithParams(paths.project.detail.domains.detail.overview, {
         projectId,
         domainId,
       })
     );
     cy.get('[data-e2e="delete-domain-button"]', { timeout: 10000 }).should('exist');
     cy.wait(500);
-    cy.get('[data-e2e="delete-domain-button"]').scrollIntoView().click();
+    cy.get('[data-e2e="delete-domain-button"]').click();
     cy.get('[data-e2e="confirmation-dialog-submit"]', { timeout: 10000 }).click();
     cy.url().should('include', `project/${projectId}/domains`);
     cy.contains('[data-e2e="domain-name"]', domainName).should('not.exist');

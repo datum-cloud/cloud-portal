@@ -26,7 +26,7 @@ function resolveRawMessage(data: unknown, error: AxiosError): string {
 
 /**
  * The typed-error subclass constructors don't accept `cause`; attach the
- * original AxiosError so instance-specific wrappers (prometheus, cloudvalid)
+ * original AxiosError so instance-specific wrappers (prometheus)
  * can recover it via `unwrapUpstreamError`.
  */
 function withCause<T extends Error>(err: T, cause: unknown): T {
@@ -182,7 +182,7 @@ export function attachUpstreamErrorHandling(instance: AxiosInstance): void {
   }, createUpstreamErrorHandler());
 }
 
-// Client-bundled modules (prometheus/cloudvalid clients) attach through this
+// Client-bundled modules (the prometheus client) attach through this
 // globalThis hook because they cannot import a .server module. Registered at
 // module load — axios.server.ts imports this file and is itself loaded at
 // server startup (entry.ts → control-plane setup.server), so the hook exists
