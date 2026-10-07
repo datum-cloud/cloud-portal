@@ -119,6 +119,10 @@ async function retryAfterTokenRefresh(
     const reqCtx = getRequestContext();
     if (reqCtx) {
       reqCtx.token = newSession.accessToken;
+      // The old refresh token is spent now. Callers that drop `refreshedHeaders`
+      // (a null return, or next() without them) would leave the browser holding
+      // it, so the response middleware sends these cookies regardless.
+      reqCtx.rotatedCookies = headers;
     }
 
     const user = await deps.getUser(userId);

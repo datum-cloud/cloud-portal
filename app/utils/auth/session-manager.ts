@@ -9,9 +9,11 @@ export interface TokenRefreshEvent {
 type RefreshHook = (event: TokenRefreshEvent) => void;
 
 /**
- * SessionManager wraps AuthService.getValidSession() and notifies
- * a single registered hook whenever a token is successfully refreshed.
+ * SessionManager wraps AuthService.getValidSession() and lets the server
+ * register a single hook that runs after every successful token refresh.
  *
+ * AuthService fires the hook itself, so it also covers refreshes that do not
+ * go through getValidSession (a session found through a rotation link).
  * Only one hook is active at a time; calling registerRefreshHook again
  * replaces the previous hook (e.g. in dev when the server module is re-executed).
  *
@@ -23,28 +25,17 @@ type RefreshHook = (event: TokenRefreshEvent) => void;
  * ```
  */
 class SessionManager {
-  private refreshHook: RefreshHook | undefined;
-
   /**
    * Register a callback to be called after every successful token refresh.
    * Only one hook is active at a time; calling again replaces the previous hook
    * (e.g. in dev when the server module is re-executed, or with Vite HMR).
    */
   registerRefreshHook(callback: RefreshHook): void {
-    this.refreshHook = callback;
+    AuthService.registerRefreshHook(callback);
   }
 
-  async getValidSession(cookieHeader: string | null): Promise<SessionValidationResult> {
-    const result = await AuthService.getValidSession(cookieHeader);
-
-    if (result.refreshed && result.session) {
-      this.refreshHook?.({
-        userId: result.session.sub,
-        accessToken: result.session.accessToken,
-      });
-    }
-
-    return result;
+  getValidSession(cookieHeader: string | null): Promise<SessionValidationResult> {
+    return AuthService.getValidSession(cookieHeader);
   }
 }
 

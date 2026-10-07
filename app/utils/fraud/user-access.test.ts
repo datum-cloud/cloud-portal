@@ -1,7 +1,8 @@
 import type { UserAccessDeps } from './user-access';
 import { getUserWithAccessRetry, loadUserOncePerRequest } from './user-access';
-import { withRequestContext } from '@/modules/axios/request-context';
+import { getRequestContext, withRequestContext } from '@/modules/axios/request-context';
 import type { User } from '@/resources/users';
+import { AuthorizationError } from '@/utils/errors';
 import { describe, expect, it, mock } from 'bun:test';
 
 /**
@@ -65,6 +66,40 @@ describe('getUserWithAccessRetry', () => {
     expect(result).toEqual({
       user: { sub: 'user-1', platformAccess: 'Approved', emailVerified: false },
     });
+  });
+});
+
+describe('getUserWithAccessRetry rotated cookies', () => {
+  const rotatedCookie = (ctx = getRequestContext()) => ctx?.rotatedCookies?.get('Set-Cookie');
+
+  it('hands the refresh Set-Cookie to the request context after a 403 retry', async () => {
+    const getUser = mock()
+      .mockRejectedValueOnce(new AuthorizationError('forbidden'))
+      .mockResolvedValueOnce({ sub: 'user-1', platformAccess: 'Approved' });
+    const { deps } = buildDeps({ getUser } as Partial<UserAccessDeps>);
+
+    const cookie = await withRequestContext({ requestId: 'r', token: 't' }, async () => {
+      await getUserWithAccessRetry('user-1', 'cookie=value', { deps });
+      return rotatedCookie();
+    });
+
+    expect(cookie).toBe('session=fresh');
+  });
+
+  it('still hands it over when the refreshed retry is forbidden again', async () => {
+    const getUser = mock(async () => {
+      throw new AuthorizationError('forbidden');
+    });
+    const { deps } = buildDeps({ getUser } as Partial<UserAccessDeps>);
+
+    const [result, cookie] = await withRequestContext(
+      { requestId: 'r', token: 't' },
+      async () =>
+        [await getUserWithAccessRetry('user-1', 'cookie=value', { deps }), rotatedCookie()] as const
+    );
+
+    expect(result).toEqual({ error: 'forbidden' });
+    expect(cookie).toBe('session=fresh');
   });
 });
 
