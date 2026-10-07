@@ -3,9 +3,9 @@ import { useResourcePermissions } from '@/modules/rbac';
 import type { Domain } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
-import { Text } from '@datum-cloud/datum-ui/typography';
 import { CircleCheckIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -28,43 +28,39 @@ export const DomainReadyCard = ({ domain, projectId }: { domain: Domain; project
   });
 
   return (
-    <div className="bg-card-success border-card-success-border flex flex-col gap-4 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <Icon icon={CircleCheckIcon} size={20} className="text-success mt-0.5 shrink-0" />
-        <div className="flex flex-col gap-1">
-          <Text as="p" weight="medium">
-            Ready to use as a custom hostname
-          </Text>
-          <Text as="p" size="sm">
-            Datum confirmed you own <span className="font-medium">{domain.domainName}</span>. You
-            can serve traffic on it and any of its subdomains, for example{' '}
-            <Text as="span" size="xs" className="font-mono">
-              app.{domain.domainName}
-            </Text>
-            , from an ALB.
-          </Text>
-          {verifiedAt && (
-            <Text size="xs" textColor="muted">
-              Verified <DateTime variant="relative" addSuffix date={verifiedAt} />
-            </Text>
+    <Alert variant="success" data-e2e="domain-ready-notice">
+      <Icon icon={CircleCheckIcon} className="size-4" />
+      <AlertTitle className="text-sm">Ready to use as a custom hostname</AlertTitle>
+      <AlertDescription>
+        <div className="flex flex-col gap-3">
+          <span>
+            Datum confirmed you own {domain.domainName}. You can serve traffic on it and any of its
+            subdomains, for example app.{domain.domainName}, from an ALB.
+            {verifiedAt && (
+              <>
+                {' '}
+                Verified <DateTime variant="relative" addSuffix date={verifiedAt} />.
+              </>
+            )}
+          </span>
+          {canCreateProxy && (
+            <div>
+              <LinkButton
+                as={Link}
+                href={getPathWithParams(
+                  paths.project.detail.proxy.root,
+                  { projectId },
+                  new URLSearchParams({ action: 'create' })
+                )}
+                size="xs"
+                type="secondary"
+                theme="outline">
+                Create an ALB
+              </LinkButton>
+            </div>
           )}
         </div>
-      </div>
-      {canCreateProxy && (
-        <LinkButton
-          as={Link}
-          type="secondary"
-          theme="outline"
-          size="small"
-          className="shrink-0"
-          href={getPathWithParams(
-            paths.project.detail.proxy.root,
-            { projectId },
-            new URLSearchParams({ action: 'create' })
-          )}>
-          Create an ALB
-        </LinkButton>
-      )}
-    </div>
+      </AlertDescription>
+    </Alert>
   );
 };
