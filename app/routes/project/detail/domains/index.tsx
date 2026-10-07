@@ -1,5 +1,4 @@
 import { readDomainsClientData, type DomainsListData } from './domains-client-data';
-import { BadgeCopy } from '@/components/badge/badge-copy';
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { NameserverChips } from '@/components/nameserver-chips';
 import { type ColumnDef, createActionsColumn, RowSyncName, Table } from '@/components/table';
@@ -203,7 +202,12 @@ function DomainsInner({
       registrar: domain.status?.registration?.registrar?.name,
       registrationFetching: !!domain.status && !domain.status?.registration,
       nameservers: domain.status?.nameservers,
-      nameserversFetching: !!domain.status && !domain.status?.nameservers?.length,
+      // Nameservers come from the same lookup that stamps lastRefreshAttempt,
+      // so once it has run, an empty list means none were found.
+      nameserversFetching:
+        !!domain.status &&
+        !domain.status?.nameservers?.length &&
+        !domain.status?.registration?.lastRefreshAttempt,
       expiresAt: domain.status?.registration?.expiresAt,
       status: domain.status,
       statusType: domain.status?.verified ? 'verified' : 'pending',
@@ -448,18 +452,6 @@ function DomainsInner({
         meta: {
           sortPath: 'expiresAt',
           sortType: 'date',
-        },
-      },
-      {
-        id: 'resourceName',
-        header: 'Resource Name',
-        accessorKey: 'name',
-        cell: ({ row }) => {
-          return <BadgeCopy value={row.original.name} badgeType="muted" badgeTheme="solid" />;
-        },
-        meta: {
-          sortPath: 'name',
-          sortType: 'text',
         },
       },
       createActionsColumn<FormattedDomain>([
