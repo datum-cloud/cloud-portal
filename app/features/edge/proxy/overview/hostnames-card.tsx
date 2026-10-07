@@ -9,36 +9,32 @@ import {
   HostnameDnsRecords,
   type HostnameDnsZone,
 } from '@/features/edge/proxy/overview/hostname-dns-records';
+import { HostnameStatusChips } from '@/features/edge/proxy/overview/hostname-status-chips';
 import { ProxyHostnamesConfigDialog } from '@/features/edge/proxy/proxy-hostnames-dialog';
 import type { ProxyHostnamesConfigDialogRef } from '@/features/edge/proxy/proxy-hostnames-dialog';
+import { findCoveringDomain } from '@/features/edge/proxy/utils/covering-domain';
 import { findZoneForHostname } from '@/features/edge/proxy/utils/delete-dns-preview';
-import { resolveHostnameDnsIssue } from '@/features/edge/proxy/utils/hostname-dns-issue';
+import { buildHostnameState, type HostnameState } from '@/features/edge/proxy/utils/hostname-state';
+import { requestWildcardHostnames } from '@/features/edge/proxy/utils/request-wildcards';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { showMutationErrorToast } from '@/modules/quota';
 import { PermissionButton, usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
+import { useDomains } from '@/resources/domains';
 import {
-  type HostnameDnsRecordLike,
-  type HostnameOwnershipDisplay,
   type HttpProxy,
   HTTP_PROXY_PROVISIONING_POLL_MS,
   WILDCARD_NOT_ENABLED_MESSAGE,
-  getCertificateReadyCondition,
-  getCertificateReadyDisplay,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
-  getHostnameOwnershipDisplay,
-  getUserDnsRecords,
-  isCertificateAwaitingDnsRecord,
-  isHostnameOwnershipBlocked,
+  isDefaultHostnameServingDespiteBlockedHostnames,
   isHostnameDnsInFlight,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
-import { formatDnsError } from '@/utils/helpers/dns/error-formatting.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { LinkButton } from '@datum-cloud/datum-ui/button';
+import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { MoreActions, type ActionItem } from '@datum-cloud/datum-ui/more-actions';
@@ -48,6 +44,7 @@ import { Text } from '@datum-cloud/datum-ui/typography';
 import {
   CopyIcon,
   GlobeIcon,
+  LifeBuoyIcon,
   ListIcon,
   LockIcon,
   PlusIcon,
@@ -59,25 +56,13 @@ import { Link, useNavigate } from 'react-router';
 
 const EDIT_DENIED = "You don't have permission to edit this Application Load Balancer";
 
-type HostnameRow = {
-  hostname: string;
-  ownership: HostnameOwnershipDisplay;
-  /** Ownership stops DNS and the certificate until the user fixes it. */
-  blocked: boolean;
-  dns: 'programmed' | 'not-applicable' | 'pending';
-  dnsMessage?: string;
-  /** Set when Datum can't program the record until the user fixes something. */
-  dnsIssue?: { label: string; message: string };
-  cert: ReturnType<typeof getCertificateReadyDisplay>;
-  certMessage?: string;
-  /** Records the user publishes at their own DNS provider for this hostname. */
-  userRecords: HostnameDnsRecordLike[];
-  /** The certificate is waiting on a DNS-01 delegation record the user hasn't published. */
-  awaitingCertRecord: boolean;
+type HostnameRow = HostnameState & {
   /** Records page of the Datum DNS zone that serves this hostname, when we manage it. */
   dnsRecordsHref?: string;
-  /** That zone with its records, so required records can be written straight into it. */
+  /** That zone with its records, once they've loaded, so required records can be written into it. */
   dnsZone?: HostnameDnsZone;
+  /** The Domain whose verification decides ownership, for linking to it. */
+  domain?: { domainName: string; href: string };
 };
 
 export const HttpProxyHostnamesCard = ({
@@ -129,38 +114,34 @@ export const HttpProxyHostnamesCard = ({
       dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
   });
 
+  const { data: domains = [] } = useDomains(projectId ?? '', {
+    enabled: !!projectId && customHostnames.length > 0,
+  });
+
   const updateProxy = useUpdateHttpProxy(projectId ?? '', proxy?.name ?? '');
 
   const rows = useMemo<HostnameRow[]>(() => {
     const statuses = proxy?.hostnameStatuses ?? [];
     return customHostnames.map((hostname) => {
       const hostnameStatus = statuses.find((hs) => hs.hostname === hostname);
-      const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
-      const certCondition = getCertificateReadyCondition(hostnameStatus);
       const zone = projectId ? findZoneForHostname(zones, hostname) : undefined;
-      const dns = getDnsRecordProgrammedDisplay(dnsCondition);
-      const cert = getCertificateReadyDisplay(certCondition);
-      const ownership = getHostnameOwnershipDisplay(hostnameStatus);
+      const dns = getDnsRecordProgrammedDisplay(getDnsRecordProgrammedCondition(hostnameStatus));
       const inDatumZone = !!zone && dns !== 'not-applicable';
-      const userRecords = getUserDnsRecords(hostnameStatus, { inDatumZone });
+      const coveringDomain = projectId ? findCoveringDomain(domains, hostname) : undefined;
+      // Undefined until the zone's records load (or if they fail), so nothing is
+      // offered against a zone we haven't seen.
+      const zoneRecordList = zone
+        ? zoneRecords.find((entry) => entry.zoneDomain === zone.domainName)?.records
+        : undefined;
 
       return {
-        hostname,
-        ownership,
-        blocked: isHostnameOwnershipBlocked(ownership),
-        dns,
-        dnsMessage: dnsCondition?.message,
-        dnsIssue: resolveHostnameDnsIssue({
+        ...buildHostnameState({
           hostname,
-          dns,
-          condition: dnsCondition,
+          hostnameStatus,
+          inDatumZone,
           proxyName: proxy?.name,
           zoneRecords,
         }),
-        cert,
-        certMessage: certCondition?.message,
-        userRecords,
-        awaitingCertRecord: isCertificateAwaitingDnsRecord(hostnameStatus),
         dnsRecordsHref:
           zone && projectId
             ? getPathWithParams(paths.project.detail.dnsZones.detail.dnsRecords, {
@@ -168,19 +149,36 @@ export const HttpProxyHostnamesCard = ({
                 dnsZoneId: zone.name,
               })
             : undefined,
+        domain:
+          coveringDomain && projectId
+            ? {
+                domainName: coveringDomain.domainName,
+                href: getPathWithParams(paths.project.detail.domains.detail.overview, {
+                  projectId,
+                  domainId: coveringDomain.name,
+                }),
+              }
+            : undefined,
         dnsZone:
-          inDatumZone && zone && projectId
+          inDatumZone && zone && projectId && zoneRecordList
             ? {
                 projectId,
                 zoneId: zone.name,
                 zoneDomain: zone.domainName,
-                records:
-                  zoneRecords.find((entry) => entry.zoneDomain === zone.domainName)?.records ?? [],
+                records: zoneRecordList,
               }
             : undefined,
       };
     });
-  }, [customHostnames, proxy?.hostnameStatuses, proxy?.name, zones, zoneRecords, projectId]);
+  }, [
+    customHostnames,
+    proxy?.hostnameStatuses,
+    proxy?.name,
+    zones,
+    zoneRecords,
+    projectId,
+    domains,
+  ]);
 
   pollZoneRecords.current = rows.some(
     (row) => row.dns === 'pending' && !row.dnsIssue && !row.blocked
@@ -191,6 +189,13 @@ export const HttpProxyHostnamesCard = ({
     () => (proxy?.status ? transformControlPlaneStatus(proxy.status) : undefined),
     [proxy?.status]
   );
+  // A held-back custom hostname keeps the ALB "not programmed" as a whole, but
+  // the default listener is serving; don't make it look like it's still coming up.
+  const defaultServing =
+    proxyStatus?.status === ControlPlaneStatus.Success ||
+    (proxyStatus?.status === ControlPlaneStatus.Pending &&
+      !!proxy &&
+      isDefaultHostnameServingDespiteBlockedHostnames(proxy));
 
   const removeHostname = async (hostname: string) => {
     if (!proxy) return;
@@ -304,108 +309,7 @@ export const HttpProxyHostnamesCard = ({
               onCopy={() => void copy(row.hostname, { withToast: true })}
               status={
                 <>
-                  {row.ownership.state === 'verified' ? (
-                    <StatusChip tone="success" tooltip="Hostname ownership verified by Datum">
-                      Verified
-                    </StatusChip>
-                  ) : row.ownership.state === 'verifying' ? (
-                    <StatusChip
-                      tone="warning"
-                      busy
-                      tooltip={row.ownership.message || 'Waiting for ownership verification'}>
-                      Verifying
-                    </StatusChip>
-                  ) : (
-                    <StatusChip tone="danger" tooltip={row.ownership.message}>
-                      {row.ownership.label}
-                    </StatusChip>
-                  )}
-
-                  {row.blocked ? (
-                    <StatusChip
-                      tone="muted"
-                      tooltip="Datum programs DNS and issues the TLS certificate once ownership is sorted">
-                      DNS & TLS on hold
-                    </StatusChip>
-                  ) : null}
-
-                  {row.blocked ? null : row.dnsIssue ? (
-                    <StatusChip tone="danger" tooltip={row.dnsIssue.message}>
-                      <Icon icon={TriangleAlertIcon} size={11} aria-hidden="true" />
-                      {row.dnsIssue.label}
-                    </StatusChip>
-                  ) : row.dns === 'programmed' ? (
-                    <StatusChip
-                      tone="success"
-                      tooltip="Datum programmed the DNS record for this hostname">
-                      DNS Ready
-                    </StatusChip>
-                  ) : row.dns === 'not-applicable' ? (
-                    <StatusChip
-                      tone="muted"
-                      tooltip="This hostname isn't in a Datum DNS zone, so you manage its DNS yourself">
-                      External DNS
-                    </StatusChip>
-                  ) : (
-                    <StatusChip
-                      tone="warning"
-                      busy
-                      tooltip={
-                        row.dnsMessage
-                          ? formatDnsError(row.dnsMessage)
-                          : 'Waiting for the DNS record to be programmed'
-                      }>
-                      Pending DNS
-                    </StatusChip>
-                  )}
-
-                  {row.blocked ? null : row.cert === 'ready' ? (
-                    <StatusChip tone="success" tooltip="TLS certificate issued and ready">
-                      TLS Ready
-                    </StatusChip>
-                  ) : row.cert === 'renewal-failing' ? (
-                    <StatusChip
-                      tone="warning"
-                      tooltip={
-                        row.certMessage ||
-                        'The certificate is still valid, but its renewal is failing'
-                      }>
-                      TLS renewal failing
-                    </StatusChip>
-                  ) : row.cert === 'not-enabled' ? (
-                    <StatusChip tone="danger" tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
-                      Wildcards not enabled
-                    </StatusChip>
-                  ) : row.awaitingCertRecord ? (
-                    <StatusChip
-                      tone="warning"
-                      tooltip="The certificate is issued once the Certificate record below is in place">
-                      TLS awaiting DNS
-                    </StatusChip>
-                  ) : row.cert === 'failed' ? (
-                    <StatusChip
-                      tone="danger"
-                      tooltip={row.certMessage || 'TLS certificate provisioning failed'}>
-                      TLS Failed
-                    </StatusChip>
-                  ) : row.cert === 'challenge' ? (
-                    <StatusChip
-                      tone="warning"
-                      busy
-                      tooltip={
-                        row.certMessage ||
-                        'Completing ACME challenge with the certificate authority'
-                      }>
-                      ACME challenge
-                    </StatusChip>
-                  ) : (
-                    <StatusChip
-                      tone="warning"
-                      busy
-                      tooltip={row.certMessage || 'Requesting a TLS certificate'}>
-                      Issuing TLS
-                    </StatusChip>
-                  )}
+                  <HostnameStatusChips state={row} projectId={projectId} />
 
                   {!row.blocked && (row.dnsIssue || row.dns === 'pending') && row.dnsRecordsHref ? (
                     // Conflicts are resolved by deleting the manual record on the zone page.
@@ -422,7 +326,7 @@ export const HttpProxyHostnamesCard = ({
                   ) : null}
                 </>
               }
-              details={<HostnameRowDetails row={row} />}
+              details={<HostnameRowDetails row={row} projectId={projectId} />}
               action={
                 <MoreActions
                   row={row}
@@ -446,8 +350,14 @@ export const HttpProxyHostnamesCard = ({
                     <Icon icon={LockIcon} size={10} aria-hidden="true" />
                     Default
                   </StatusChip>
-                  {proxyStatus?.status === ControlPlaneStatus.Success ? (
-                    <StatusChip tone="success" tooltip="Serving traffic on the default hostname">
+                  {defaultServing ? (
+                    <StatusChip
+                      tone="success"
+                      tooltip={
+                        proxyStatus?.status === ControlPlaneStatus.Success
+                          ? 'Serving traffic on the default hostname'
+                          : "Serving traffic on the default hostname. A custom hostname above needs attention, but that doesn't affect this one."
+                      }>
                       Active
                     </StatusChip>
                   ) : proxyStatus?.status === ControlPlaneStatus.Error ? (
@@ -495,13 +405,12 @@ export const HttpProxyHostnamesCard = ({
  * back, then the records to publish at their DNS provider. Chip tooltips
  * aren't reachable on touch, so anything actionable is spelled out here.
  */
-function HostnameRowDetails({ row }: { row: HostnameRow }) {
-  const blocker =
-    row.ownership.state === 'dns-proof-required' || row.ownership.state === 'in-use'
-      ? row.ownership.message
-      : row.cert === 'not-enabled'
-        ? WILDCARD_NOT_ENABLED_MESSAGE
-        : undefined;
+function HostnameRowDetails({ row, projectId }: { row: HostnameRow; projectId?: string }) {
+  const blocker = row.blocked
+    ? row.ownership.message || row.ownership.label
+    : row.cert === 'not-enabled'
+      ? WILDCARD_NOT_ENABLED_MESSAGE
+      : undefined;
   const showRecords = row.userRecords.some((record) => record.state === 'Missing');
 
   if (!blocker && !showRecords) return null;
@@ -509,16 +418,59 @@ function HostnameRowDetails({ row }: { row: HostnameRow }) {
   return (
     <div className="flex flex-col gap-2">
       {blocker ? (
-        <Text as="p" size="xs" className="text-destructive flex items-start gap-1.5">
-          <Icon icon={TriangleAlertIcon} size={12} className="mt-0.5 shrink-0" aria-hidden="true" />
-          <span>{blocker}</span>
-        </Text>
+        <div className="flex flex-col items-start gap-2">
+          <Text as="p" size="xs" className="text-destructive flex items-start gap-1.5">
+            <Icon
+              icon={TriangleAlertIcon}
+              size={12}
+              className="mt-0.5 shrink-0"
+              aria-hidden="true"
+            />
+            <span>{blocker}</span>
+          </Text>
+          {row.ownership.state === 'dns-proof-required' ? (
+            row.domain ? (
+              <LinkButton
+                as={Link}
+                href={row.domain.href}
+                type="secondary"
+                theme="outline"
+                size="xs"
+                className="text-3xs h-6 px-2"
+                icon={<Icon icon={GlobeIcon} size={12} aria-hidden="true" />}>
+                Open domain {row.domain.domainName}
+              </LinkButton>
+            ) : projectId ? (
+              <LinkButton
+                as={Link}
+                href={getPathWithParams(paths.project.detail.domains.root, { projectId })}
+                type="secondary"
+                theme="outline"
+                size="xs"
+                className="text-3xs h-6 px-2"
+                icon={<Icon icon={GlobeIcon} size={12} aria-hidden="true" />}>
+                Go to Domains
+              </LinkButton>
+            ) : null
+          ) : row.cert === 'not-enabled' && row.ownership.state !== 'in-use' ? (
+            <Button
+              type="secondary"
+              theme="outline"
+              size="xs"
+              className="text-3xs h-6 px-2"
+              icon={<Icon icon={LifeBuoyIcon} size={12} aria-hidden="true" />}
+              onClick={() => requestWildcardHostnames(projectId, [row.hostname])}>
+              Request wildcards
+            </Button>
+          ) : null}
+        </div>
       ) : null}
       {showRecords ? (
         <HostnameDnsRecords
           records={row.userRecords}
           zoneRecordsHref={row.dnsRecordsHref}
           zone={row.dnsZone}
+          certificateIssued={row.certificateIssued}
         />
       ) : null}
     </div>

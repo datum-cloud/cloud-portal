@@ -1,15 +1,17 @@
 import { FieldLabel } from '@/components/card/field-label';
 import { StatusChip } from '@/components/card/status-chip';
 import { ToggleState } from '@/components/card/toggle-state';
+import { WildcardsNotEnabledChip } from '@/features/edge/proxy/overview/hostname-status-chips';
 import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { showMutationErrorToast } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import {
   type HttpProxy,
-  WILDCARD_NOT_ENABLED_MESSAGE,
   getCertificateReadyCondition,
-  isCertificateAwaitingDnsRecord,
   getCertificateReadyDisplay,
+  getHostnameOwnershipDisplay,
+  isCertificateAwaitingDnsRecord,
+  isHostnameOwnershipBlocked,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
@@ -79,16 +81,31 @@ type CertRow = {
   message?: string;
   /** Waiting on a Certificate record the user hasn't published yet. */
   awaitingDns: boolean;
+  /** Ownership is refused, so no certificate is ordered until the user fixes it. */
+  onHold: boolean;
 };
 
-function CertChip({ row }: { row: CertRow }) {
+function CertChip({ row, projectId }: { row: CertRow; projectId: string }) {
+  if (row.onHold) {
+    return (
+      <a href="#hostnames" className="inline-flex">
+        <StatusChip
+          tone="muted"
+          tooltip="Issued once hostname ownership is sorted. Click to see what it needs.">
+          On hold
+        </StatusChip>
+      </a>
+    );
+  }
   if (row.awaitingDns) {
     return (
-      <StatusChip
-        tone="warning"
-        tooltip="Issued once the Certificate record listed under Custom Hostnames is in place">
-        Awaiting DNS
-      </StatusChip>
+      <a href="#hostnames" className="inline-flex">
+        <StatusChip
+          tone="warning"
+          tooltip="Issued once its Certificate record is in place. Click to see it under Custom Hostnames.">
+          Awaiting DNS
+        </StatusChip>
+      </a>
     );
   }
   switch (row.cert) {
@@ -107,11 +124,7 @@ function CertChip({ row }: { row: CertRow }) {
         </StatusChip>
       );
     case 'not-enabled':
-      return (
-        <StatusChip tone="danger" tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
-          Wildcards not enabled
-        </StatusChip>
-      );
+      return <WildcardsNotEnabledChip hostname={row.hostname} projectId={projectId} requestable />;
     case 'failed':
       return (
         <StatusChip tone="danger" tooltip={row.message || 'Certificate provisioning failed'}>
@@ -185,6 +198,7 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
         cert: getCertificateReadyDisplay(condition),
         message: condition?.message,
         awaitingDns: isCertificateAwaitingDnsRecord(hostnameStatus),
+        onHold: isHostnameOwnershipBlocked(getHostnameOwnershipDisplay(hostnameStatus)),
       };
     });
   }, [proxy.hostnames, proxy.hostnameStatuses]);
@@ -418,7 +432,7 @@ export function HttpProxyTlsCard({ proxy, projectId }: { proxy: HttpProxy; proje
                         <span>{row.hostname}</span>
                       </Tooltip>
                     </Text>
-                    <CertChip row={row} />
+                    <CertChip row={row} projectId={projectId} />
                   </li>
                 ))}
               </ul>

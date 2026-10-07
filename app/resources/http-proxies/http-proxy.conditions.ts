@@ -153,13 +153,23 @@ export function getHostnameOwnershipDisplay(
 
   if (available?.status === 'True') return { state: 'verified', label: 'Verified' };
   if (available?.status === 'False') {
-    return { state: 'in-use', label: 'In use', message: available.message };
+    return {
+      state: 'in-use',
+      label: 'In use',
+      message: available.message || 'Another resource already uses this hostname.',
+    };
   }
 
   if (verified?.status === 'False') {
     switch (verified.reason) {
       case HostnameVerifiedReason.DNSVerificationRequired:
-        return { state: 'dns-proof-required', label: 'Needs DNS proof', message: verified.message };
+        return {
+          state: 'dns-proof-required',
+          label: 'Needs DNS proof',
+          message:
+            verified.message ||
+            'This wildcard needs its domain, or a parent of it, verified by DNS TXT record.',
+        };
       case HostnameVerifiedReason.WildcardNotSupported:
         return {
           state: 'unverified',
@@ -222,6 +232,24 @@ export function getBlockedHostnames(proxy: {
 }
 
 /**
+ * Whether the default (Datum-issued) hostname is serving while the ALB as a
+ * whole still reads as not programmed. Programmed mirrors the Gateway, which
+ * reports one verdict for all listeners, so a single custom hostname held back
+ * (needs DNS proof, wildcards not enabled) keeps it False even though the
+ * default listener works. Only trusted once the proxy is Accepted.
+ */
+export function isDefaultHostnameServingDespiteBlockedHostnames(proxy: {
+  status?: HttpProxyStatusLike | null;
+  hostnames?: string[];
+  hostnameStatuses?: HostnameStatusLike[];
+}): boolean {
+  const accepted = proxy.status?.conditions?.find((c) => c.type === 'Accepted');
+  if (accepted?.status !== 'True') return false;
+  const { wildcardsNotEnabled, ownershipBlocked } = getBlockedHostnames(proxy);
+  return wildcardsNotEnabled.length + ownershipBlocked.length > 0;
+}
+
+/**
  * DNS records the user publishes for a hostname, in the order the operator
  * lists them. Platform-managed records are excluded: Datum writes those itself.
  *
@@ -237,6 +265,21 @@ export function getUserDnsRecords(
 ): HostnameDnsRecordLike[] {
   return (hostnameStatus?.dnsRecords ?? []).filter(
     (record) => record.managedBy === 'User' && !(inDatumZone && record.purpose === 'Routing')
+  );
+}
+
+/**
+ * Missing user records that block something. Once the certificate is issued, a
+ * missing Certificate record only matters for renewal, so it isn't counted.
+ */
+export function getActionableRecordsToPublish(
+  hostnameStatus: HostnameStatusLike | null | undefined,
+  options?: { inDatumZone?: boolean }
+): HostnameDnsRecordLike[] {
+  const cert = getCertificateReadyDisplay(getCertificateReadyCondition(hostnameStatus));
+  const issued = cert === 'ready' || cert === 'renewal-failing';
+  return getRecordsToPublish(hostnameStatus, options).filter(
+    (record) => !(issued && record.purpose === 'Certificate')
   );
 }
 

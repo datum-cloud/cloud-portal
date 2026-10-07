@@ -1,3 +1,4 @@
+import { findCoveringDomain } from './covering-domain';
 /**
  * Builds the DNS impact preview shown before an Application Load Balancer is deleted.
  *
@@ -77,17 +78,7 @@ export function findZoneForHostname<T extends ZoneLike>(
   zones: T[],
   hostname: string
 ): T | undefined {
-  const host = normalizeDomain(hostname);
-  if (!host) return undefined;
-
-  return zones
-    .filter((zone) => {
-      const domain = normalizeDomain(zone.domainName ?? '');
-      if (!domain) return false;
-      return host === domain || host.endsWith(`.${domain}`);
-    })
-    .sort((a, b) => normalizeDomain(b.domainName).length - normalizeDomain(a.domainName).length)
-    .at(0);
+  return findCoveringDomain(zones, hostname);
 }
 
 /** The gateway-owned record this proxy created for `hostname`, if its zone has loaded. */

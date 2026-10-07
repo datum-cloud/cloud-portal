@@ -201,4 +201,70 @@ describe('isHttpProxyProvisioning', () => {
       )
     ).toBe(false);
   });
+
+  test('stops once the only thing pending is a hostname waiting on the user', () => {
+    const cond = (type: string, status: 'True' | 'False', reason: string) => ({
+      type,
+      status,
+      reason,
+      message: '',
+      lastTransitionTime: '2026-01-01T00:00:00Z',
+    });
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          hostnames: ['*.example.com'],
+          status: {
+            conditions: [
+              cond('Accepted', 'True', 'Accepted'),
+              cond('Programmed', 'False', 'Pending'),
+              cond('CertificatesReady', 'False', 'CertificatesPending'),
+            ],
+          },
+          hostnameStatuses: [
+            {
+              hostname: '*.example.com',
+              conditions: [cond('Verified', 'False', 'DNSVerificationRequired')],
+            },
+          ],
+        })
+      )
+    ).toBe(false);
+  });
+
+  test('keeps polling for another hostname still issuing beside a blocked one', () => {
+    const cond = (type: string, status: 'True' | 'False', reason: string) => ({
+      type,
+      status,
+      reason,
+      message: '',
+      lastTransitionTime: '2026-01-01T00:00:00Z',
+    });
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          hostnames: ['*.example.com', 'www.example.com'],
+          status: {
+            conditions: [
+              cond('Accepted', 'True', 'Accepted'),
+              cond('Programmed', 'False', 'Pending'),
+            ],
+          },
+          hostnameStatuses: [
+            {
+              hostname: '*.example.com',
+              conditions: [cond('Verified', 'False', 'DNSVerificationRequired')],
+            },
+            {
+              hostname: 'www.example.com',
+              conditions: [
+                cond('Available', 'True', 'Claimed'),
+                cond('CertificateReady', 'False', 'Pending'),
+              ],
+            },
+          ],
+        })
+      )
+    ).toBe(true);
+  });
 });

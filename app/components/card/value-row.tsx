@@ -33,43 +33,45 @@ export function ValueRow({
   copied?: boolean;
 }) {
   return (
-    <div className="border-card-border group/row mx-(--card-px) flex items-start gap-3 border-b py-3 last:border-b-0">
-      <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-        {/* min-h-7 matches the action control so the hostname and menu share a midline. */}
-        <div className="flex min-h-7 min-w-0 items-center">
-          <Text as="div" ellipsis className="min-w-0 font-mono">
-            <Tooltip message={value}>
-              {href ? (
-                <Link to={href} className="hover:underline">
-                  {value}
-                </Link>
-              ) : (
-                <span>{value}</span>
-              )}
-            </Tooltip>
-          </Text>
+    <div className="border-card-border group/row mx-(--card-px) flex flex-col gap-3 border-b py-3 last:border-b-0">
+      <div className="flex items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          {/* min-h-7 matches the action control so the hostname and menu share a midline. */}
+          <div className="flex min-h-7 min-w-0 items-center">
+            <Text as="div" ellipsis className="min-w-0 font-mono">
+              <Tooltip message={value}>
+                {href ? (
+                  <Link to={href} className="hover:underline">
+                    {value}
+                  </Link>
+                ) : (
+                  <span>{value}</span>
+                )}
+              </Tooltip>
+            </Text>
+          </div>
+          {status ? <div className="flex flex-wrap items-center gap-1.5">{status}</div> : null}
         </div>
-        {status ? <div className="flex flex-wrap items-center gap-1.5">{status}</div> : null}
-        {details ? <div className="pt-1">{details}</div> : null}
+        <div className="flex h-7 shrink-0 items-center justify-end gap-1">
+          {onCopy ? (
+            // Desktop-only inline copy; on small screens a row menu carries it.
+            <Button
+              type="quaternary"
+              theme="borderless"
+              size="xs"
+              className={cn(
+                'text-muted-foreground hidden size-7 p-0 opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 sm:inline-flex',
+                copied && 'opacity-100'
+              )}
+              aria-label={copied ? 'Copied' : `Copy ${value}`}
+              onClick={onCopy}>
+              <Icon icon={copied ? CheckIcon : CopyIcon} size={14} />
+            </Button>
+          ) : null}
+          {action ? <div className="flex size-7 items-center justify-end">{action}</div> : null}
+        </div>
       </div>
-      <div className="flex h-7 shrink-0 items-center justify-end gap-1">
-        {onCopy ? (
-          // Desktop-only inline copy; on small screens a row menu carries it.
-          <Button
-            type="quaternary"
-            theme="borderless"
-            size="xs"
-            className={cn(
-              'text-muted-foreground hidden size-7 p-0 opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 sm:inline-flex',
-              copied && 'opacity-100'
-            )}
-            aria-label={copied ? 'Copied' : `Copy ${value}`}
-            onClick={onCopy}>
-            <Icon icon={copied ? CheckIcon : CopyIcon} size={14} />
-          </Button>
-        ) : null}
-        {action ? <div className="flex size-7 items-center justify-end">{action}</div> : null}
-      </div>
+      {details}
     </div>
   );
 }

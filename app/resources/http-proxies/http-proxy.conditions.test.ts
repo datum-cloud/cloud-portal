@@ -1,5 +1,7 @@
 import {
+  getActionableRecordsToPublish,
   getBlockedHostnames,
+  isDefaultHostnameServingDespiteBlockedHostnames,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedIssue,
   getHostnameOwnershipDisplay,
@@ -317,5 +319,77 @@ describe('isCertificateAwaitingDnsRecord', () => {
         dnsRecords: [certRecord('Missing')],
       })
     ).toBe(false);
+  });
+});
+
+describe('isDefaultHostnameServingDespiteBlockedHostnames', () => {
+  const blockedWildcard = {
+    hostname: '*.example.com',
+    conditions: [condition('Verified', 'False', 'DNSVerificationRequired')],
+  };
+
+  test('accepted with a blocked custom hostname: the default listener is serving', () => {
+    expect(
+      isDefaultHostnameServingDespiteBlockedHostnames({
+        status: {
+          conditions: [
+            condition('Accepted', 'True', 'Accepted'),
+            condition('Programmed', 'False', 'Pending'),
+          ],
+        },
+        hostnames: ['*.example.com'],
+        hostnameStatuses: [blockedWildcard],
+      })
+    ).toBe(true);
+  });
+
+  test('not accepted yet: still provisioning', () => {
+    expect(
+      isDefaultHostnameServingDespiteBlockedHostnames({
+        status: { conditions: [condition('Accepted', 'False', 'Pending')] },
+        hostnames: ['*.example.com'],
+        hostnameStatuses: [blockedWildcard],
+      })
+    ).toBe(false);
+  });
+
+  test('no blocked hostnames: the pending status is taken at face value', () => {
+    expect(
+      isDefaultHostnameServingDespiteBlockedHostnames({
+        status: { conditions: [condition('Accepted', 'True', 'Accepted')] },
+        hostnames: [],
+      })
+    ).toBe(false);
+  });
+});
+
+describe('getActionableRecordsToPublish', () => {
+  const certRecord = {
+    name: '_acme-challenge.app.example.com',
+    type: 'CNAME',
+    content: 'abc.acme-validation.example.net',
+    purpose: 'Certificate',
+    managedBy: 'User',
+    state: 'Missing',
+  };
+
+  test('a missing Certificate record counts while the certificate is pending', () => {
+    expect(
+      getActionableRecordsToPublish({
+        hostname: '*.app.example.com',
+        conditions: [condition('CertificateReady', 'False', 'Pending')],
+        dnsRecords: [certRecord],
+      })
+    ).toHaveLength(1);
+  });
+
+  test('once issued, it only matters for renewal and is not counted', () => {
+    expect(
+      getActionableRecordsToPublish({
+        hostname: '*.app.example.com',
+        conditions: [condition('CertificateReady', 'True', 'CertificateIssued')],
+        dnsRecords: [certRecord],
+      })
+    ).toHaveLength(0);
   });
 });

@@ -1,13 +1,16 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { SelectDomain } from '@/features/edge/domain/select-domain';
+import { coversHostname, findCoveringDomain } from '@/features/edge/proxy/utils/covering-domain';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useDomains } from '@/resources/domains';
+import { paths } from '@/utils/config/paths.config';
 import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
+import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { AlertTriangleIcon, GlobeIcon, XIcon } from 'lucide-react';
+import { AlertTriangleIcon, ExternalLinkIcon, GlobeIcon, XIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface SubdomainHostnameFieldProps {
@@ -38,18 +41,14 @@ type DomainLike = {
  * the operator would otherwise refuse it after save.
  */
 function wildcardLacksDnsProof(hostname: string, domains: DomainLike[]): boolean {
-  if (!hostname.startsWith('*.')) return false;
-  const base = hostname.slice(2).toLowerCase();
-  return !domains.some((domain) => {
-    const name = domain.domainName.toLowerCase();
-    const covers = base === name || base.endsWith(`.${name}`);
-    return (
-      covers &&
+  if (!hostname.trim().startsWith('*.')) return false;
+  return !domains.some(
+    (domain) =>
+      coversHostname(domain.domainName, hostname) &&
       domain.status?.conditions?.some(
         (condition) => condition.type === 'VerifiedDNS' && condition.status === 'True'
       )
-    );
-  });
+  );
 }
 
 /**
@@ -90,7 +89,11 @@ export function SubdomainHostnameField({
     : String(control.value ?? '');
 
   const { confirm } = useConfirmationDialog();
-  const { data: domains = [], isLoading: domainsLoading } = useDomains(projectId);
+  const {
+    data: domains = [],
+    isLoading: domainsLoading,
+    isError: domainsError,
+  } = useDomains(projectId);
   const domainNames = useMemo(() => domains.map((d) => d.domainName), [domains]);
 
   const [isCustomMode, setIsCustomMode] = useState(false);
@@ -248,9 +251,14 @@ export function SubdomainHostnameField({
   const isUnverified = selectedDomainStatus && selectedDomainStatus !== ControlPlaneStatus.Success;
 
   const needsWildcardDnsProof = useMemo(
-    () => !domainsLoading && wildcardLacksDnsProof(currentValue, domains),
-    [currentValue, domains, domainsLoading]
+    // Unknown when the domains didn't load: say nothing rather than warn wrongly.
+    () => !domainsLoading && !domainsError && wildcardLacksDnsProof(currentValue, domains),
+    [currentValue, domains, domainsLoading, domainsError]
   );
+
+  const wildcardDomain = needsWildcardDnsProof
+    ? findCoveringDomain(domains, currentValue)
+    : undefined;
 
   const wildcardNotice = needsWildcardDnsProof ? (
     <Text
@@ -260,7 +268,21 @@ export function SubdomainHostnameField({
       <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
       <span>
         Wildcards need the domain verified by its DNS TXT record. Domains verified over HTTP or
-        through a Datum DNS zone don&apos;t count yet, so this hostname won&apos;t be accepted.
+        through a Datum DNS zone don&apos;t count yet, so this hostname won&apos;t be accepted.{' '}
+        {wildcardDomain ? (
+          // New tab, so the half-filled dialog isn't lost.
+          <a
+            href={getPathWithParams(paths.project.detail.domains.detail.overview, {
+              projectId,
+              domainId: wildcardDomain.name,
+            })}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-0.5 font-medium underline underline-offset-2">
+            Open {wildcardDomain.domainName}
+            <ExternalLinkIcon className="size-3" aria-hidden="true" />
+          </a>
+        ) : null}
       </span>
     </Text>
   ) : null;

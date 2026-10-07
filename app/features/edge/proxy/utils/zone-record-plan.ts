@@ -10,15 +10,19 @@ import type { HostnameDnsRecordLike } from '@/resources/http-proxies';
  * - `add` — nothing is in the way.
  * - `replace` — records at the same name block it (a CNAME can't share its
  *   name with anything; a TXT can't share with a CNAME) and must go first.
- * - `blocked` — the blocking record belongs to an ALB, so we won't touch it.
+ * - `blocked` — a blocking record belongs to an ALB, or couldn't be put back if
+ *   the replacement failed, so we won't touch it.
  * - `unsupported` — not a type we create here, or the name isn't in the zone.
  */
 export type ZoneRecordPlan =
   | { kind: 'present' }
   | { kind: 'add'; name: string }
   | { kind: 'replace'; name: string; conflicts: IFlattenedDnsRecord[] }
-  | { kind: 'blocked' }
+  | { kind: 'blocked'; reason: 'alb' | 'unrestorable' }
   | { kind: 'unsupported' };
+
+/** Types whose single value we can recreate if a replacement has to be rolled back. */
+export const RESTORABLE_RECORD_TYPES = ['A', 'AAAA', 'CNAME', 'ALIAS', 'TXT'] as const;
 
 const stripDot = (value: string) => value.trim().replace(/\.$/, '').toLowerCase();
 
@@ -60,6 +64,14 @@ export function planZoneRecord(
     record.type === 'CNAME' ? true : existing.type === 'CNAME'
   );
   if (conflicts.length === 0) return { kind: 'add', name };
-  if (conflicts.some((existing) => existing.managedByGateway)) return { kind: 'blocked' };
+  if (conflicts.some((existing) => existing.managedByGateway)) {
+    return { kind: 'blocked', reason: 'alb' };
+  }
+  const restorable = conflicts.every(
+    (existing) =>
+      !!existing.recordSetName &&
+      (RESTORABLE_RECORD_TYPES as readonly string[]).includes(existing.type)
+  );
+  if (!restorable) return { kind: 'blocked', reason: 'unrestorable' };
   return { kind: 'replace', name, conflicts };
 }

@@ -26,6 +26,7 @@ const ownershipRecord = {
 function zoneRecord(overrides: Partial<IFlattenedDnsRecord>): IFlattenedDnsRecord {
   return {
     dnsZoneId: 'mdj-test-online',
+    recordSetName: 'acme-app',
     type: 'CNAME',
     name: '_acme-challenge.app',
     value: `${TARGET}.`,
@@ -77,7 +78,10 @@ describe('planZoneRecord', () => {
       value: 'x.datumproxy.net.',
       managedByGateway: true,
     });
-    expect(planZoneRecord(certificateRecord, ZONE, [albRecord]).kind).toBe('blocked');
+    expect(planZoneRecord(certificateRecord, ZONE, [albRecord])).toEqual({
+      kind: 'blocked',
+      reason: 'alb',
+    });
   });
 
   test('a TXT can sit beside other TXTs at its name', () => {
@@ -108,5 +112,15 @@ describe('planZoneRecord', () => {
     expect(planZoneRecord({ ...certificateRecord, type: 'ALIAS' }, ZONE, []).kind).toBe(
       'unsupported'
     );
+  });
+
+  test('never replaces a record it could not put back', () => {
+    const unnamed = zoneRecord({ type: 'TXT', value: '"x"', recordSetName: undefined });
+    expect(planZoneRecord(certificateRecord, ZONE, [unnamed])).toEqual({
+      kind: 'blocked',
+      reason: 'unrestorable',
+    });
+    const mx = zoneRecord({ type: 'MX', value: '10 mail.example.com.' });
+    expect(planZoneRecord(certificateRecord, ZONE, [mx]).kind).toBe('blocked');
   });
 });

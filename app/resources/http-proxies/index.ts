@@ -154,9 +154,11 @@ export {
   getHostnameOwnershipDisplay,
   isHostnameOwnershipBlocked,
   getBlockedHostnames,
+  isDefaultHostnameServingDespiteBlockedHostnames,
   isCertificateAwaitingDnsRecord,
   getUserDnsRecords,
   getRecordsToPublish,
+  getActionableRecordsToPublish,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,
