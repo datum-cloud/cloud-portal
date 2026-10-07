@@ -209,44 +209,47 @@ export function isCertificateAwaitingDnsRecord(
 }
 
 /**
- * Custom hostnames that can't make progress until someone acts: the project
- * isn't enabled for wildcards, or ownership was refused. The ALB-level
- * Programmed and CertificatesReady conditions stay pending behind these, so
- * summaries should name them instead of showing a spinner.
+ * Custom hostnames waiting on the user rather than on Datum: ownership was
+ * refused, the project isn't enabled for wildcards, or the certificate needs
+ * a record the user hasn't published. The ALB-level Programmed and
+ * CertificatesReady conditions stay pending behind these, so summaries should
+ * name them instead of showing a spinner.
  */
 export function getBlockedHostnames(proxy: {
   hostnames?: string[];
   hostnameStatuses?: HostnameStatusLike[];
-}): { wildcardsNotEnabled: string[]; ownershipBlocked: string[] } {
+}): { wildcardsNotEnabled: string[]; ownershipBlocked: string[]; awaitingDns: string[] } {
   const wildcardsNotEnabled: string[] = [];
   const ownershipBlocked: string[] = [];
+  const awaitingDns: string[] = [];
   for (const hostname of proxy.hostnames ?? []) {
     const status = proxy.hostnameStatuses?.find((entry) => entry.hostname === hostname);
     if (isHostnameOwnershipBlocked(getHostnameOwnershipDisplay(status))) {
       ownershipBlocked.push(hostname);
     } else if (getCertificateReadyDisplay(getCertificateReadyCondition(status)) === 'not-enabled') {
       wildcardsNotEnabled.push(hostname);
+    } else if (isCertificateAwaitingDnsRecord(status)) {
+      awaitingDns.push(hostname);
     }
   }
-  return { wildcardsNotEnabled, ownershipBlocked };
+  return { wildcardsNotEnabled, ownershipBlocked, awaitingDns };
 }
 
 /**
- * Whether the default (Datum-issued) hostname is serving while the ALB as a
- * whole still reads as not programmed. Programmed mirrors the Gateway, which
- * reports one verdict for all listeners, so a single custom hostname held back
- * (needs DNS proof, wildcards not enabled) keeps it False even though the
- * default listener works. Only trusted once the proxy is Accepted.
+ * True when the ALB is accepted and the only things keeping it "not
+ * programmed" are custom hostnames waiting on the user. Programmed mirrors the
+ * Gateway, which gives one verdict for all listeners, so in this state the
+ * default hostname is serving and nothing will move until the user acts.
  */
-export function isDefaultHostnameServingDespiteBlockedHostnames(proxy: {
+export function isHeldBackByCustomHostnames(proxy: {
   status?: HttpProxyStatusLike | null;
   hostnames?: string[];
   hostnameStatuses?: HostnameStatusLike[];
 }): boolean {
   const accepted = proxy.status?.conditions?.find((c) => c.type === 'Accepted');
   if (accepted?.status !== 'True') return false;
-  const { wildcardsNotEnabled, ownershipBlocked } = getBlockedHostnames(proxy);
-  return wildcardsNotEnabled.length + ownershipBlocked.length > 0;
+  const { wildcardsNotEnabled, ownershipBlocked, awaitingDns } = getBlockedHostnames(proxy);
+  return wildcardsNotEnabled.length + ownershipBlocked.length + awaitingDns.length > 0;
 }
 
 /**

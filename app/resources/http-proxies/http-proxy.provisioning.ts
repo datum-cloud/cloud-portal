@@ -6,7 +6,7 @@ import {
   getDnsRecordProgrammedCondition,
   getBlockedHostnames,
   getHostnameOwnershipDisplay,
-  isDefaultHostnameServingDespiteBlockedHostnames,
+  isHeldBackByCustomHostnames,
   isHostnameDnsInFlight,
   isHostnameOwnershipBlocked,
 } from './http-proxy.conditions';
@@ -27,7 +27,7 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
   // A blocked hostname keeps Programmed and CertificatesReady pending for the
   // whole ALB until the user acts, so once the ALB is accepted those two say
   // nothing about progress; judge the other hostnames one by one instead.
-  const heldBack = isDefaultHostnameServingDespiteBlockedHostnames(proxy);
+  const heldBack = isHeldBackByCustomHostnames(proxy);
 
   if (!heldBack) {
     if (transformControlPlaneStatus(proxy.status).status === ControlPlaneStatus.Pending) {
@@ -47,6 +47,9 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
     // DNS and the certificate stay pending until the user fixes ownership.
     if (isHostnameOwnershipBlocked(getHostnameOwnershipDisplay(hostnameStatus))) return false;
     if (blocked.wildcardsNotEnabled.includes(hostnameStatus.hostname)) return false;
+    // The certificate waits on a record the user publishes; the watch stream
+    // brings the change in, so there's nothing to poll for meanwhile.
+    if (blocked.awaitingDns.includes(hostnameStatus.hostname)) return false;
     if (isHostnameDnsInFlight(getDnsRecordProgrammedCondition(hostnameStatus))) {
       return true;
     }

@@ -154,7 +154,7 @@ export {
   getHostnameOwnershipDisplay,
   isHostnameOwnershipBlocked,
   getBlockedHostnames,
-  isDefaultHostnameServingDespiteBlockedHostnames,
+  isHeldBackByCustomHostnames,
   isCertificateAwaitingDnsRecord,
   getUserDnsRecords,
   getRecordsToPublish,

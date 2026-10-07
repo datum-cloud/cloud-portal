@@ -1,7 +1,7 @@
 import {
   getActionableRecordsToPublish,
   getBlockedHostnames,
-  isDefaultHostnameServingDespiteBlockedHostnames,
+  isHeldBackByCustomHostnames,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedIssue,
   getHostnameOwnershipDisplay,
@@ -270,6 +270,7 @@ describe('getBlockedHostnames', () => {
     ).toEqual({
       wildcardsNotEnabled: ['*.app.example.com'],
       ownershipBlocked: ['*.example.com'],
+      awaitingDns: [],
     });
   });
 
@@ -277,6 +278,7 @@ describe('getBlockedHostnames', () => {
     expect(getBlockedHostnames({ hostnames: ['a.example.com'] })).toEqual({
       wildcardsNotEnabled: [],
       ownershipBlocked: [],
+      awaitingDns: [],
     });
   });
 });
@@ -322,7 +324,7 @@ describe('isCertificateAwaitingDnsRecord', () => {
   });
 });
 
-describe('isDefaultHostnameServingDespiteBlockedHostnames', () => {
+describe('isHeldBackByCustomHostnames', () => {
   const blockedWildcard = {
     hostname: '*.example.com',
     conditions: [condition('Verified', 'False', 'DNSVerificationRequired')],
@@ -330,7 +332,7 @@ describe('isDefaultHostnameServingDespiteBlockedHostnames', () => {
 
   test('accepted with a blocked custom hostname: the default listener is serving', () => {
     expect(
-      isDefaultHostnameServingDespiteBlockedHostnames({
+      isHeldBackByCustomHostnames({
         status: {
           conditions: [
             condition('Accepted', 'True', 'Accepted'),
@@ -345,7 +347,7 @@ describe('isDefaultHostnameServingDespiteBlockedHostnames', () => {
 
   test('not accepted yet: still provisioning', () => {
     expect(
-      isDefaultHostnameServingDespiteBlockedHostnames({
+      isHeldBackByCustomHostnames({
         status: { conditions: [condition('Accepted', 'False', 'Pending')] },
         hostnames: ['*.example.com'],
         hostnameStatuses: [blockedWildcard],
@@ -355,7 +357,7 @@ describe('isDefaultHostnameServingDespiteBlockedHostnames', () => {
 
   test('no blocked hostnames: the pending status is taken at face value', () => {
     expect(
-      isDefaultHostnameServingDespiteBlockedHostnames({
+      isHeldBackByCustomHostnames({
         status: { conditions: [condition('Accepted', 'True', 'Accepted')] },
         hostnames: [],
       })
@@ -391,5 +393,39 @@ describe('getActionableRecordsToPublish', () => {
         dnsRecords: [certRecord],
       })
     ).toHaveLength(0);
+  });
+});
+
+describe('isHeldBackByCustomHostnames: a certificate waiting on the user', () => {
+  test('a verified wildcard whose certificate CNAME is missing holds the ALB back', () => {
+    const status = {
+      hostname: '*.wild.example.com',
+      conditions: [
+        condition('Available', 'True', 'Claimed'),
+        condition('CertificateReady', 'False', 'Pending'),
+      ],
+      dnsRecords: [
+        {
+          name: '_acme-challenge.wild.example.com',
+          type: 'CNAME',
+          content: 'abc.acme-validation.example.net',
+          purpose: 'Certificate',
+          managedBy: 'User',
+          state: 'Missing',
+        },
+      ],
+    };
+    const proxy = {
+      status: {
+        conditions: [
+          condition('Accepted', 'True', 'Accepted'),
+          condition('Programmed', 'False', 'Pending'),
+        ],
+      },
+      hostnames: ['*.wild.example.com'],
+      hostnameStatuses: [status],
+    };
+    expect(getBlockedHostnames(proxy).awaitingDns).toEqual(['*.wild.example.com']);
+    expect(isHeldBackByCustomHostnames(proxy)).toBe(true);
   });
 });

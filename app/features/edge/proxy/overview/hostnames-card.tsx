@@ -27,7 +27,7 @@ import {
   WILDCARD_NOT_ENABLED_MESSAGE,
   getDnsRecordProgrammedCondition,
   getDnsRecordProgrammedDisplay,
-  isDefaultHostnameServingDespiteBlockedHostnames,
+  isHeldBackByCustomHostnames,
   isHostnameDnsInFlight,
   useUpdateHttpProxy,
 } from '@/resources/http-proxies';
@@ -195,7 +195,7 @@ export const HttpProxyHostnamesCard = ({
     proxyStatus?.status === ControlPlaneStatus.Success ||
     (proxyStatus?.status === ControlPlaneStatus.Pending &&
       !!proxy &&
-      isDefaultHostnameServingDespiteBlockedHostnames(proxy));
+      isHeldBackByCustomHostnames(proxy));
 
   const removeHostname = async (hostname: string) => {
     if (!proxy) return;

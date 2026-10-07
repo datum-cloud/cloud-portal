@@ -59,7 +59,7 @@ function CopyValue({ label, value }: { label: string; value: string }) {
       type="button"
       onClick={() => void copy(value, { withToast: true })}
       aria-label={copied ? `Copied ${label.toLowerCase()}` : `Copy ${label.toLowerCase()}`}
-      className="group/copy hover:bg-muted flex w-full min-w-0 cursor-pointer items-start gap-2 rounded-md px-1.5 py-1 text-left transition-colors">
+      className="group/copy hover:bg-muted -mx-1.5 flex min-w-0 cursor-pointer items-start gap-2 rounded-md px-1.5 py-1 text-left transition-colors">
       <Text as="span" size="xs" className="min-w-0 flex-1 font-mono wrap-break-word">
         {value.split('.').map((part, index) => (
           // Offer a line break after each dot so long names wrap at label boundaries.
@@ -279,6 +279,22 @@ function ZoneRecordAction({
   }
 }
 
+/** NAME / VALUE label, centred on the first line of the value beside it (24px). */
+function FieldLabel({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex h-6 items-center">
+      <Text
+        as="span"
+        size="5xs"
+        weight="medium"
+        textColor="muted"
+        className="tracking-wide uppercase">
+        {children}
+      </Text>
+    </div>
+  );
+}
+
 function RecordRow({
   record,
   renewalOnly,
@@ -288,74 +304,63 @@ function RecordRow({
   record: HostnameDnsRecordLike;
   renewalOnly: boolean;
 } & RecordParts) {
+  // One two-column grid for the whole record: the type chip and the field
+  // labels share the first column, so the purpose and both values start on the
+  // same edge, and the status/action and copy icons end on the same edge.
   return (
-    <li className="flex flex-col gap-2 px-3 py-2.5">
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
-        <StatusChip
-          tone="muted"
-          tooltip={
-            record.type === 'ALIAS'
-              ? 'A CNAME at the zone apex. Your DNS provider may call it ALIAS, ANAME or CNAME flattening.'
-              : undefined
-          }>
-          {record.type}
-        </StatusChip>
-        <Text size="xs" weight="medium">
-          {record.purpose}
-        </Text>
-        {PURPOSE_HINT[record.purpose] ? (
-          <Text size="xs" textColor="muted" className="hidden md:inline">
-            {PURPOSE_HINT[record.purpose]}
-          </Text>
-        ) : null}
-        <div className="ml-auto flex items-center gap-2">
-          {record.state === 'Present' ? (
-            <StatusChip tone="success" tooltip="Datum sees this record on the Internet">
-              In place
-            </StatusChip>
-          ) : (
-            <StatusChip
-              tone={renewalOnly ? 'muted' : 'warning'}
-              tooltip={
-                renewalOnly
-                  ? "Without it, the certificate can't renew before it expires."
-                  : "Datum hasn't seen this record yet. DNS changes can take a few minutes to show up."
-              }>
-              Not found
-            </StatusChip>
-          )}
-          {action}
+    <li className="px-3 py-2.5">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-1">
+        <div className="flex h-7 items-center">
+          <StatusChip
+            tone="muted"
+            tooltip={
+              record.type === 'ALIAS'
+                ? 'A CNAME at the zone apex. Your DNS provider may call it ALIAS, ANAME or CNAME flattening.'
+                : undefined
+            }>
+            {record.type}
+          </StatusChip>
         </div>
-      </div>
-      <dl className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-start gap-x-2 gap-y-0.5">
-        <dt className="pt-1.5">
-          <Text
-            as="span"
-            size="5xs"
-            weight="medium"
-            textColor="muted"
-            className="tracking-wide uppercase">
-            Name
+        <div className="flex min-h-7 min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+          <Text size="xs" weight="medium">
+            {record.purpose}
           </Text>
-        </dt>
-        <dd className="min-w-0">
+          {PURPOSE_HINT[record.purpose] ? (
+            <Text size="xs" textColor="muted" className="hidden md:inline">
+              {PURPOSE_HINT[record.purpose]}
+            </Text>
+          ) : null}
+          <div className="ml-auto flex items-center gap-2">
+            {record.state === 'Present' ? (
+              <StatusChip tone="success" tooltip="Datum sees this record on the Internet">
+                In place
+              </StatusChip>
+            ) : (
+              <StatusChip
+                tone={renewalOnly ? 'muted' : 'warning'}
+                tooltip={
+                  renewalOnly
+                    ? "Without it, the certificate can't renew before it expires."
+                    : "Datum hasn't seen this record yet. DNS changes can take a few minutes to show up."
+                }>
+                Not found
+              </StatusChip>
+            )}
+            {action}
+          </div>
+        </div>
+
+        <FieldLabel>Name</FieldLabel>
+        <div className="min-w-0">
           <CopyValue label="Name" value={record.name} />
-        </dd>
-        <dt className="pt-1.5">
-          <Text
-            as="span"
-            size="5xs"
-            weight="medium"
-            textColor="muted"
-            className="tracking-wide uppercase">
-            Value
-          </Text>
-        </dt>
-        <dd className="min-w-0">
+        </div>
+        <FieldLabel>Value</FieldLabel>
+        <div className="min-w-0">
           <CopyValue label="Value" value={record.content} />
-        </dd>
-      </dl>
-      {note}
+        </div>
+
+        {note ? <div className="col-start-2 pt-1">{note}</div> : null}
+      </div>
     </li>
   );
 }

@@ -9,6 +9,7 @@ import {
   type HttpProxy,
   WILDCARD_NOT_ENABLED_MESSAGE,
   getBlockedHostnames,
+  isHeldBackByCustomHostnames,
   getCertificateReadyCondition,
   getCertificateReadyDisplay,
   getCertificatesReadyCondition,
@@ -228,7 +229,32 @@ export function HttpProxyHealthStrip({
         };
       default: {
         // Programming waits on these, so name them rather than spin.
-        const { wildcardsNotEnabled, ownershipBlocked } = blocked;
+        const { wildcardsNotEnabled, ownershipBlocked, awaitingDns } = blocked;
+        if (awaitingDns.length > 0 && wildcardsNotEnabled.length + ownershipBlocked.length === 0) {
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title:
+              awaitingDns.length === 1
+                ? 'Add a DNS record to finish setting up a hostname'
+                : 'Add DNS records to finish setting up your hostnames',
+            detail: `The certificate for ${awaitingDns.join(', ')} is issued once its record is in place.${
+              isHeldBackByCustomHostnames(proxy) ? ' The default hostname is already serving.' : ''
+            }`,
+            ring: 'bg-(--color-badge-warning)/10',
+            action: (
+              <Link
+                to={`${configurationHref}#hostnames`}
+                className="inline-flex"
+                data-e2e="alb-health-show-records">
+                <Chip tone="muted" icon={GlobeIcon} tooltip="See the record to add">
+                  Show records
+                </Chip>
+              </Link>
+            ),
+          };
+        }
         if (wildcardsNotEnabled.length > 0 && ownershipBlocked.length === 0) {
           return {
             icon: (
@@ -253,8 +279,8 @@ export function HttpProxyHealthStrip({
             ),
           };
         }
-        if (ownershipBlocked.length + wildcardsNotEnabled.length > 0) {
-          const count = ownershipBlocked.length + wildcardsNotEnabled.length;
+        if (ownershipBlocked.length + wildcardsNotEnabled.length + awaitingDns.length > 0) {
+          const count = ownershipBlocked.length + wildcardsNotEnabled.length + awaitingDns.length;
           return {
             icon: (
               <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
@@ -263,7 +289,7 @@ export function HttpProxyHealthStrip({
               count === 1
                 ? 'A custom hostname needs your attention'
                 : `${count} custom hostnames need your attention`,
-            detail: `${[...ownershipBlocked, ...wildcardsNotEnabled].join(', ')} can't be served yet.`,
+            detail: `${[...ownershipBlocked, ...wildcardsNotEnabled, ...awaitingDns].join(', ')} can't be served yet.`,
             ring: 'bg-(--color-badge-warning)/10',
             action: (
               <Link
@@ -366,6 +392,16 @@ export function HttpProxyHealthStrip({
           icon={LockIcon}
           tooltip="Certificates are issued once hostname ownership is sorted">
           TLS on hold
+        </Chip>
+      );
+    }
+    if (certDisplay === 'pending' && blocked.awaitingDns.length > 0) {
+      return (
+        <Chip
+          tone="warning"
+          icon={LockIcon}
+          tooltip="A certificate is waiting on a DNS record you need to add">
+          TLS awaiting DNS
         </Chip>
       );
     }
