@@ -1,5 +1,6 @@
 import { ResourceActivityFeed, useProjectActivityClient } from '@/features/activity';
 import { DomainGeneralCard } from '@/features/edge/domain/overview/general-card';
+import { DomainReadyCard } from '@/features/edge/domain/overview/ready-card';
 import { DomainVerificationCard } from '@/features/edge/domain/overview/verification-card';
 import { NotesList } from '@/features/notes';
 import { ResourceColumnFrame } from '@/features/project/home/resource-column';
@@ -78,11 +79,13 @@ export default function DomainOverviewPage() {
 
   return (
     <Row gutter={[24, 32]}>
-      {!isVerified && (
-        <Col span={24}>
+      <Col span={24}>
+        {isVerified ? (
+          <DomainReadyCard domain={effectiveDomain} projectId={projectId ?? ''} />
+        ) : (
           <DomainVerificationCard domain={effectiveDomain} projectId={projectId ?? ''} />
-        </Col>
-      )}
+        )}
+      </Col>
       <Col span={24}>
         <DomainGeneralCard
           domain={effectiveDomain}
@@ -117,7 +120,9 @@ export default function DomainOverviewPage() {
             variant="digest"
             pageSize={10}
             urlSync={false}
-            feedProps={{ showFilters: false }}
+            // The activity API caps one query at 30 days (and keeps 60), so
+            // reach as far back as it allows instead of the 7-day default.
+            feedProps={{ showFilters: false, initialTimeRange: { start: 'now-30d' } }}
           />
         </ResourceColumnFrame>
       </Col>
