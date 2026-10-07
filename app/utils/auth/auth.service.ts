@@ -13,11 +13,34 @@ import type {
   IRefreshTokenSession,
   SessionValidationResult,
 } from './auth.types';
+import {
+  cleanupRefreshLock,
+  debugLog,
+  deriveRefreshLockKey,
+  errPayloadToError,
+  followRotations,
+  isRedisReadyForLocks,
+  LOCK_MAX_AGE_MS,
+  okPayloadToResponse,
+  publishRedisPayload,
+  readNewestRotation,
+  readRedisPayload,
+  readRotationLink,
+  RedisCoordinationError,
+  redisLockKey,
+  refreshLocks,
+  releaseRedisLockIfOwned,
+  ROTATION_LINK_TTL_MS,
+  rotationLinks,
+  setCookiesOf,
+  toRefreshErrPayload,
+  waitForRedisPayload,
+} from './refresh-store.server';
 import { zitadelIssuer, zitadelStrategy } from '@/modules/auth/strategies/zitadel.server';
 import { redisClient } from '@/modules/redis';
 import { env } from '@/utils/env/env.server';
 import { categorizeRefreshError, RefreshError, RefreshErrorType } from '@/utils/errors/auth';
-import { createCipheriv, createDecipheriv, createHash, randomBytes, randomUUID } from 'crypto';
+import { randomUUID } from 'crypto';
 import { jwtDecode } from 'jwt-decode';
 import { createCookieSessionStorage, createCookie } from 'react-router';
 
@@ -80,226 +103,7 @@ export const refreshTokenStorage = createCookieSessionStorage({
   cookie: refreshTokenCookie,
 });
 
-/**
- * Debug logger - only logs in development
- */
-function debugLog(message: string, data?: Record<string, unknown>): void {
-  if (AUTH_CONFIG.DEBUG) {
-    console.log(`[AuthService] ${message}`, data ?? '');
-  }
-}
-
-/**
- * In-memory refresh lock to prevent concurrent refresh attempts (fallback)
- * Key: derived refresh token key, Value: { promise, timestamp }
- *
- * This prevents race conditions when multiple concurrent requests
- * try to refresh the same token (Zitadel uses token rotation). It only
- * coordinates within a single process; the Redis singleflight below extends
- * the same guarantee across pods when REDIS_URL is configured.
- */
-interface RefreshLockEntry {
-  promise: Promise<{ session: IAccessTokenSession; headers: Headers }>;
-  timestamp: number;
-}
-const refreshLocks = new Map<string, RefreshLockEntry>();
-
-/**
- * Max age for lock entries (30 seconds) - prevents stale locks
- */
-const LOCK_MAX_AGE_MS = 30 * 1000;
-
-/**
- * Redis result TTL (short) - just long enough for concurrent requests to pick it up.
- */
-const REDIS_RESULT_TTL_MS = 10 * 1000;
-
-/**
- * Longest a waiter will poll for the leader's result before giving up and
- * falling back to the in-memory lock. Bounds request latency well under the
- * lock TTL and replaces the previous unbounded recursion.
- */
-const REDIS_WAIT_MAX_MS = 10 * 1000;
-
-// A leader publishes either its rotated session (ok) or the categorised failure
-// (err) so every concurrent waiter reuses one outcome instead of each re-hitting
-// Zitadel with the same, now-rotated, refresh token.
-type RedisRefreshOk = { kind: 'ok'; session: IAccessTokenSession; setCookie: string[] };
-type RedisRefreshErr = { kind: 'err'; message: string; code?: string; description?: string };
-type RedisRefreshPayload = RedisRefreshOk | RedisRefreshErr;
-
-/**
- * Signals that Redis *coordination* failed (a GET/SET/EVAL threw or timed out),
- * as opposed to the token refresh itself. The caller falls back to the in-memory
- * lock on this, so a Redis blip never propagates as a logout.
- */
-class RedisCoordinationError extends Error {}
-
-// Published payloads carry the rotated refresh token and the access token, so
-// they are encrypted at rest with a key derived from SESSION_SECRET. Cookie
-// session storage signs but does not encrypt, so without this anyone with Redis
-// access could read the tokens.
-const resultCipherKey = createHash('sha256').update(env.server.sessionSecret).digest();
-
-function encryptPayload(payload: RedisRefreshPayload): string {
-  const iv = randomBytes(12);
-  const cipher = createCipheriv('aes-256-gcm', resultCipherKey, iv);
-  const body = Buffer.concat([cipher.update(JSON.stringify(payload), 'utf8'), cipher.final()]);
-  return Buffer.concat([iv, cipher.getAuthTag(), body]).toString('base64');
-}
-
-function decryptPayload(raw: string): RedisRefreshPayload | null {
-  try {
-    const buf = Buffer.from(raw, 'base64');
-    const decipher = createDecipheriv('aes-256-gcm', resultCipherKey, buf.subarray(0, 12));
-    decipher.setAuthTag(buf.subarray(12, 28));
-    const json = Buffer.concat([decipher.update(buf.subarray(28)), decipher.final()]).toString(
-      'utf8'
-    );
-    return JSON.parse(json) as RedisRefreshPayload;
-  } catch {
-    return null;
-  }
-}
-
-function okPayloadToResponse(payload: RedisRefreshOk): {
-  session: IAccessTokenSession;
-  headers: Headers;
-} {
-  const headers = new Headers();
-  for (const cookie of payload.setCookie) headers.append('Set-Cookie', cookie);
-  return { session: payload.session, headers };
-}
-
-function errPayloadToError(payload: RedisRefreshErr): Error {
-  const err = new Error(payload.message) as Error & { code?: string; description?: string };
-  if (payload.code) err.code = payload.code;
-  if (payload.description) err.description = payload.description;
-  return err;
-}
-
-function toRefreshErrPayload(error: unknown): RedisRefreshErr {
-  const e = error as { message?: string; code?: string; description?: string };
-  return {
-    kind: 'err',
-    message: e?.message ?? String(error),
-    code: e?.code,
-    description: e?.description,
-  };
-}
-
-function deriveRefreshLockKey(refreshToken: string): string {
-  // Hash so no token material (not even a prefix) lands in a Redis key.
-  return createHash('sha256').update(refreshToken).digest('hex').slice(0, 32);
-}
-
-function isRedisReadyForLocks(): boolean {
-  return !!redisClient && redisClient.status === 'ready';
-}
-
-function redisLockKey(key: string): string {
-  return `auth:refresh-lock:${key}`;
-}
-
-function redisResultKey(key: string): string {
-  return `auth:refresh-result:${key}`;
-}
-
-// Reads (and decrypts) any published payload. A Redis error is surfaced as a
-// RedisCoordinationError so callers fall back rather than treat it as a refresh
-// failure; a corrupt/unreadable value reads as absent.
-async function readRedisPayload(key: string): Promise<RedisRefreshPayload | null> {
-  if (!redisClient) return null;
-  let raw: string | null;
-  try {
-    raw = await redisClient.get(redisResultKey(key));
-  } catch (error) {
-    throw new RedisCoordinationError(String(error));
-  }
-  return raw ? decryptPayload(raw) : null;
-}
-
-// Best-effort publish of the leader's outcome. Never throws: once the token has
-// rotated, a failed publish must not strand the successful refresh.
-async function publishRedisPayload(key: string, payload: RedisRefreshPayload): Promise<void> {
-  if (!redisClient) return;
-  try {
-    await redisClient.set(redisResultKey(key), encryptPayload(payload), 'PX', REDIS_RESULT_TTL_MS);
-  } catch (error) {
-    debugLog('Failed to publish Redis refresh payload', { error: String(error) });
-  }
-}
-
-// Atomic compare-and-delete via Lua: release the lock only if we still own it.
-// A WATCH/MULTI on the process-wide shared connection is not safe here — a
-// concurrent UNWATCH would clear the watch and let DEL drop a lock another
-// leader had since acquired. Best-effort: a failed release just waits out the TTL.
-const RELEASE_LOCK_LUA =
-  "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
-
-async function releaseRedisLockIfOwned(key: string, lockValue: string): Promise<void> {
-  if (!redisClient) return;
-  try {
-    await redisClient.eval(RELEASE_LOCK_LUA, 1, redisLockKey(key), lockValue);
-  } catch (error) {
-    debugLog('Failed to release Redis refresh lock', { error: String(error) });
-  }
-}
-
-// Waits (bounded) for the leader to publish its result or failure. Returns null
-// if nothing arrives, the lock is gone, or Redis errors — the caller then falls
-// back to the in-memory lock exactly once. No recursion.
-async function waitForRedisPayload(key: string): Promise<RedisRefreshPayload | null> {
-  if (!redisClient) return null;
-
-  const deadline = Date.now() + REDIS_WAIT_MAX_MS;
-  while (Date.now() < deadline) {
-    let payload: RedisRefreshPayload | null;
-    try {
-      payload = await readRedisPayload(key);
-    } catch {
-      return null;
-    }
-    if (payload) return payload;
-
-    let stillLocked: number;
-    try {
-      stillLocked = await redisClient.exists(redisLockKey(key));
-    } catch {
-      return null;
-    }
-    if (!stillLocked) return null;
-
-    await new Promise((r) => setTimeout(r, 75 + Math.floor(Math.random() * 75)));
-  }
-
-  return null;
-}
-
-/**
- * Cleanup old locks after a delay
- */
-function cleanupRefreshLock(key: string, delayMs: number = 5000): void {
-  setTimeout(() => {
-    refreshLocks.delete(key);
-  }, delayMs);
-}
-
-/**
- * Cleanup stale locks (safety mechanism)
- * Called periodically to prevent memory leaks from failed cleanups
- */
-function cleanupStaleLocks(): void {
-  const now = Date.now();
-  for (const [key, entry] of refreshLocks) {
-    if (now - entry.timestamp > LOCK_MAX_AGE_MS) {
-      refreshLocks.delete(key);
-    }
-  }
-}
-
-// Run stale lock cleanup every 60 seconds
-setInterval(cleanupStaleLocks, 60 * 1000);
+type RefreshHook = (event: { userId: string; accessToken: string }) => void;
 
 /**
  * Clear user's permission cache
@@ -311,10 +115,33 @@ export async function clearUserPermissionCache(_userId: string): Promise<void> {
   return;
 }
 
+/** Where a 401 was retried with a rotated session; a log label only. */
+export type RotationSite = 'axios' | 'proxy' | 'graphql';
+
 /**
  * Authentication Service
  */
 export class AuthService {
+  private static refreshHook: RefreshHook | undefined;
+
+  /**
+   * Register a callback for every successful token refresh, including a
+   * session found through a rotation link. Only one hook is active at a time;
+   * calling again replaces it (e.g. when the server module is re-executed).
+   */
+  static registerRefreshHook(hook: RefreshHook): void {
+    this.refreshHook = hook;
+  }
+
+  // A failing hook must never turn a successful refresh into an error.
+  private static notifyRefresh(session: IAccessTokenSession): void {
+    try {
+      this.refreshHook?.({ userId: session.sub, accessToken: session.accessToken });
+    } catch (error) {
+      debugLog('Refresh hook threw', { error: String(error) });
+    }
+  }
+
   /**
    * Checks if a session needs refresh based on expiry time
    */
@@ -368,6 +195,69 @@ export class AuthService {
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
+    const { session, headers } = await this.coordinateRefresh(refreshToken, sessionRaw, refreshRaw);
+    this.notifyRefresh(session);
+    return { session, headers };
+  }
+
+  /**
+   * Finds the session a rotated refresh token now leads to, without calling
+   * Zitadel. For a request whose access token was invalidated by a concurrent
+   * refresh: the refresh token in its cookie was consumed, but the link
+   * recorded by that refresh points at the current session. Returns null when
+   * there is no live link.
+   */
+  static async resolveRotatedSession(
+    cookieHeader: string | null
+  ): Promise<{ session: IAccessTokenSession; headers: Headers } | null> {
+    const { refreshToken } = await this.getRefreshToken(cookieHeader);
+    if (!refreshToken) return null;
+
+    const newest = await readNewestRotation(deriveRefreshLockKey(refreshToken));
+    if (!newest) return null;
+
+    const result = okPayloadToResponse(newest);
+    this.notifyRefresh(result.session);
+    return result;
+  }
+
+  /**
+   * Re-issues an upstream call that got a 401 because a concurrent refresh
+   * rotated the session under it. Runs `call` once with the newest access
+   * token; returns null, silently, when there is no rotation to redeem or the
+   * linked token is the one that was just rejected, so real expiry keeps its
+   * existing 401 path. The caller must forward `headers` to the browser.
+   */
+  static async retryWithRotatedSession<T>(
+    cookieHeader: string | null,
+    usedToken: string,
+    site: RotationSite,
+    call: (accessToken: string) => Promise<T>,
+    isRejected: (result: T) => boolean = () => false
+  ): Promise<{ result: T; headers: Headers } | null> {
+    const rotated = await this.resolveRotatedSession(cookieHeader);
+    if (!rotated || rotated.session.accessToken === usedToken) return null;
+
+    const log = (outcome: 'redeemed' | 'retry_failed') =>
+      console.warn('[AuthService] Retried a 401 with a rotated session', { site, outcome });
+
+    let result: T;
+    try {
+      result = await call(rotated.session.accessToken);
+    } catch (error) {
+      log('retry_failed');
+      throw error;
+    }
+
+    log(isRejected(result) ? 'retry_failed' : 'redeemed');
+    return { result, headers: rotated.headers };
+  }
+
+  private static async coordinateRefresh(
+    refreshToken: string,
+    sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
+    refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
+  ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
     const key = deriveRefreshLockKey(refreshToken);
 
     // Prefer Redis singleflight across pods when Redis is ready. If Redis
@@ -399,12 +289,13 @@ export class AuthService {
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
-    // Fast path: a fresh outcome from a concurrent refresh.
+    // Fast path: this token already rotated. Return the newest session in the
+    // chain, not this hop's, whose refresh token may have rotated again since.
     const existing = await readRedisPayload(key);
     if (existing) {
       if (existing.kind === 'ok') {
         debugLog('Reusing Redis refresh result');
-        return okPayloadToResponse(existing);
+        return okPayloadToResponse(await followRotations(existing));
       }
       throw errPayloadToError(existing);
     }
@@ -428,7 +319,7 @@ export class AuthService {
     }
 
     // Leader.
-    let result: { session: IAccessTokenSession; headers: Headers };
+    let result: { session: IAccessTokenSession; headers: Headers; nextKey: string };
     try {
       result = await this.doRefreshTokens(refreshToken, sessionRaw, refreshRaw);
     } catch (refreshError) {
@@ -442,13 +333,14 @@ export class AuthService {
     // Rotation succeeded: nothing below may throw, or a successful rotation would
     // be stranded (RT1 consumed, caller never gets RT2). Publish + release are
     // best-effort.
-    const setCookie: string[] = [];
-    result.headers.forEach((value, headerName) => {
-      if (headerName.toLowerCase() === 'set-cookie') setCookie.push(value);
+    await publishRedisPayload(key, {
+      kind: 'ok',
+      session: result.session,
+      setCookie: setCookiesOf(result.headers),
+      next: result.nextKey,
     });
-    await publishRedisPayload(key, { kind: 'ok', session: result.session, setCookie });
     await releaseRedisLockIfOwned(key, lockValue);
-    return result;
+    return { session: result.session, headers: result.headers };
   }
 
   /**
@@ -461,6 +353,13 @@ export class AuthService {
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
   ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
+    // Fast path: this token already rotated in this process.
+    const linked = readRotationLink(key);
+    if (linked) {
+      debugLog('Reusing in-memory rotation link');
+      return okPayloadToResponse(await followRotations(linked));
+    }
+
     const existingLock = refreshLocks.get(key);
     if (existingLock) {
       debugLog('Refresh already in progress (in-memory), waiting for result...');
@@ -471,9 +370,13 @@ export class AuthService {
     refreshLocks.set(key, { promise: refreshPromise, timestamp: Date.now() });
 
     try {
-      const result = await refreshPromise;
+      const { session, headers, nextKey } = await refreshPromise;
+      rotationLinks.set(key, {
+        payload: { kind: 'ok', session, setCookie: setCookiesOf(headers), next: nextKey },
+        expiresAt: Date.now() + ROTATION_LINK_TTL_MS,
+      });
       cleanupRefreshLock(key, 5000);
-      return result;
+      return { session, headers };
     } catch (error) {
       refreshLocks.delete(key);
       throw error;
@@ -487,7 +390,7 @@ export class AuthService {
     refreshToken: string,
     sessionRaw: Awaited<ReturnType<typeof sessionStorage.getSession>>,
     refreshRaw: Awaited<ReturnType<typeof refreshTokenStorage.getSession>>
-  ): Promise<{ session: IAccessTokenSession; headers: Headers }> {
+  ): Promise<{ session: IAccessTokenSession; headers: Headers; nextKey: string }> {
     debugLog('Attempting token refresh...');
 
     const refreshedTokens = await zitadelStrategy.refreshToken(refreshToken);
@@ -530,7 +433,11 @@ export class AuthService {
       sub: newSession.sub,
     });
 
-    return { session: newSession, headers };
+    return {
+      session: newSession,
+      headers,
+      nextKey: deriveRefreshLockKey(newRefreshData.refreshToken),
+    };
   }
 
   /**

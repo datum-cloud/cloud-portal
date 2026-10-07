@@ -122,7 +122,64 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
 // policy, typed AppError mapping (see upstream-error.server.ts).
 const transformUpstreamError = createUpstreamErrorHandler();
 
-const onResponseError = (error: AxiosError): Promise<never> => {
+/** Marks a request already re-issued with a rotated session, so it never loops. */
+type RotationRetryConfig = InternalAxiosRequestConfig & { __rotationRetried?: boolean };
+
+const BEARER_PREFIX = 'Bearer ';
+
+/**
+ * A 401 here usually means a concurrent refresh rotated the session while this
+ * call was in flight: Zitadel revokes the old access token at once. Re-issue it
+ * once with the session the rotation link points at. Returns undefined when
+ * there is nothing to redeem, leaving the 401 to the normal path.
+ */
+async function retryWithRotatedSession(error: AxiosError): Promise<AxiosResponse | undefined> {
+  const config = error.config as RotationRetryConfig | undefined;
+  const ctx = getRequestContext();
+  if (error.response?.status !== 401 || !config || config.__rotationRetried) return undefined;
+  if (!ctx?.cookieHeader) return undefined;
+
+  const authorization = config.headers?.get?.('Authorization');
+  if (typeof authorization !== 'string' || !authorization.startsWith(BEARER_PREFIX)) {
+    return undefined;
+  }
+  const usedToken = authorization.slice(BEARER_PREFIX.length);
+
+  // Only a failure of the lookup falls through to the normal 401 path. Once
+  // `call` has run, an error belongs to the retried request, which this same
+  // interceptor already transformed, so it propagates as is.
+  let called = false;
+  try {
+    // Loaded lazily so modules importing this file do not pull in the auth
+    // module graph at load time.
+    const { AuthService } = await import('@/utils/auth/auth.service');
+    const retried = await AuthService.retryWithRotatedSession(
+      ctx.cookieHeader,
+      usedToken,
+      'axios',
+      (token) => {
+        called = true;
+        // Later calls on this request use the new token too.
+        ctx.token = token;
+        return http.request({ ...config, __rotationRetried: true } as RotationRetryConfig);
+      }
+    );
+    if (!retried) return undefined;
+
+    ctx.rotatedCookies = retried.headers;
+    return retried.result;
+  } catch (error) {
+    if (called) throw error;
+    return undefined;
+  }
+}
+
+const onResponseError = async (error: AxiosError): Promise<AxiosResponse> => {
+  // A failure of the retried request was already transformed by this same
+  // interceptor, so it propagates as is.
+  const retried = await retryWithRotatedSession(error);
+  if (retried) return retried;
+
   const config = error.config as any;
 
   // Log API errors if enabled

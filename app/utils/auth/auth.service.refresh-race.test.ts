@@ -20,7 +20,7 @@
  * `await OAuth2.discover()` network call) and the env module so the cookie
  * config builds, then drive getValidSession through the race scenarios.
  */
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test';
 
 // --- Module mocks: must be registered before importing auth.service ---
 
@@ -210,6 +210,50 @@ describe('getValidSession — cross-pod refresh rotation race (REFRESH_TOKEN_REV
     expect(destroysRefreshCookie(result.headers)).toBe(true);
     // getValidSession itself never revokes — that is logout()'s job (explicit logout only).
     expect(revokeToken).not.toHaveBeenCalled();
+  });
+
+  test('Case 2: near-expiry session whose refresh token already rotated gets the rotated session from the link', async () => {
+    let zitadelCalls = 0;
+    const newExpiry = new Date(Date.now() + 12 * 60 * 60 * 1000);
+    refreshImpl = async () => {
+      zitadelCalls++;
+      return {
+        accessToken: () => 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyLTEyMyJ9.c2ln', // {"sub":"user-123"}
+        accessTokenExpiresAt: () => newExpiry,
+        refreshToken: () => 'RT2-linked',
+      };
+    };
+
+    // Seed: one request rotates RT1-linked. Fake timers let the 5s in-memory
+    // lock cleanup run now, so only the rotation link can answer the next call.
+    jest.useFakeTimers();
+    try {
+      await AuthService.refreshTokens(
+        'RT1-linked',
+        await sessionStorage.getSession(null),
+        await refreshTokenStorage.getSession(null)
+      );
+      jest.advanceTimersByTime(5_001);
+    } finally {
+      jest.useRealTimers();
+    }
+
+    const cookieHeader = await buildCookieHeader({
+      session: {
+        accessToken: 'AT-near',
+        expiredAt: new Date(Date.now() + 5 * 60 * 1000),
+        sub: 'user-123',
+      },
+      refreshToken: 'RT1-linked',
+    });
+
+    const result = await AuthService.getValidSession(cookieHeader);
+
+    expect(result.refreshed).toBe(true);
+    expect(result.session?.accessToken).not.toBe('AT-near');
+    expect(new Date(result.session!.expiredAt).getTime()).toBe(newExpiry.getTime());
+    expect(destroysRefreshCookie(result.headers)).toBe(false);
+    expect(zitadelCalls).toBe(1);
   });
 
   test('control: successful refresh returns the rotated session (winning pod path)', async () => {

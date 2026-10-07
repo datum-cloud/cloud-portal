@@ -70,8 +70,27 @@ proxyRoutes.all('/*', async (c) => {
     let response = await callUpstream(session.accessToken);
     let rotatedCookies: Headers | undefined;
 
+    // A concurrent refresh rotated the session after this request read its
+    // cookie, and Zitadel revoked the old access token with it. Retry once with
+    // the current one. The status is known before the body, so this is safe
+    // for watch streams too.
+    if (response.status === 401) {
+      const retried = await AuthService.retryWithRotatedSession(
+        c.req.header('Cookie') ?? null,
+        session.accessToken,
+        'proxy',
+        callUpstream,
+        (r) => r.status === 401
+      );
+      if (retried) {
+        await response.body?.cancel();
+        response = retried.result;
+        rotatedCookies = retried.headers;
+      }
+    }
+
     // Remove encoding headers to prevent double-decoding
-    const headers = new Headers(response.headers);
+    const headers = withRotatedCookies(new Headers(response.headers), rotatedCookies);
     headers.delete('content-encoding');
     headers.delete('transfer-encoding');
 

@@ -51,6 +51,18 @@ export interface RequestContext {
    * whole point — see that function.
    */
   inFlight?: Map<string, Promise<unknown>>;
+  /**
+   * The browser's Cookie header, kept so a server-side upstream call that got a
+   * 401 can look up the session a concurrent refresh rotated to
+   * (`AuthService.retryWithRotatedSession`).
+   */
+  cookieHeader?: string | null;
+  /**
+   * Set-Cookie headers from a rotated session redeemed during this request.
+   * requestContextMiddleware appends them to the response, after the loader's
+   * own cookies, so the browser ends up holding the newest refresh token.
+   */
+  rotatedCookies?: Headers;
 }
 
 // Use globalThis to share the store across modules (axios, gqlts, etc.)

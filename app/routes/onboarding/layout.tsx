@@ -1,16 +1,20 @@
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import { resolveOnboardingLayoutRedirect } from '@/features/onboarding/onboarding-layout-redirect';
+import {
+  hasAnyOrganizations,
+  loadOnboardingUser,
+  onboardingAccessRedirect,
+} from '@/features/onboarding/onboarding-user.server';
 import { useNonce } from '@/hooks/useNonce';
 import { HelpScoutBeacon } from '@/modules/helpscout';
 import { RybbitProvider } from '@/modules/rybbit';
 import { AppProvider, useApp } from '@/providers/app.provider';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
-import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
-import { appendSetCookieHeaders, getUserWithAccessRetry } from '@/utils/fraud/user-access';
+import { appendSetCookieHeaders } from '@/utils/fraud/user-access';
 import { getDocumentPathname } from '@/utils/helpers/path.helper';
 import { resolveUserFraudRedirectPath } from '@/utils/middlewares/fraud-redirect';
 import { createHmac } from 'crypto';
@@ -24,18 +28,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return redirect(paths.auth.logOut);
   }
 
-  const cookieHeader = request.headers.get('Cookie');
-  const access = await getUserWithAccessRetry(session.sub, cookieHeader, {
-    refreshBeforeRead: true,
-  });
-
-  if ('error' in access) {
-    if (access.error === 'not_found' || access.error === 'forbidden') {
-      return redirect(paths.fraud.verifying);
-    }
-    return redirect(paths.auth.logOut);
-  }
-
+  const access = await loadOnboardingUser(session.sub, request);
+  if ('error' in access) return redirect(onboardingAccessRedirect(access));
   const { user, refreshedHeaders } = access;
   const responseHeaders = new Headers();
   appendSetCookieHeaders(responseHeaders, refreshedHeaders);
@@ -51,9 +45,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   try {
     const requestedOrgId = url.searchParams.get('orgId')?.trim() || undefined;
-    const organizations = await createOrganizationService().list({ limit: 1 });
-
-    const hasExistingOrgs = organizations.items.length > 0;
+    const hasExistingOrgs = await hasAnyOrganizations();
     const devBypass = isOnboardingDevBypassEnabled();
 
     if (!devBypass) {
