@@ -107,7 +107,7 @@ export const ProxyHostnamesConfigDialog = forwardRef<
       <div className="px-5">
         <ProxyHostnamesField
           projectId={projectId}
-          proxyDisplayName={proxy?.chosenName ?? proxy?.name}
+          proxyDisplayName={proxy?.chosenName || proxy?.name}
         />
       </div>
     </Form.Dialog>
