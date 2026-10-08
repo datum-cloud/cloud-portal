@@ -2,6 +2,10 @@ import { type BillingAccount, selectDefaultOrgBillingAccount } from '@/features/
 import { BillingPage, type BillingPageData } from '@/features/onboarding/billing/billing-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
 import {
+  hasActiveInvoiceTerms,
+  isOrgContactSetupComplete,
+} from '@/features/onboarding/legacy-setup/org-setup-status';
+import {
   loadOnboardingUser,
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
@@ -114,6 +118,17 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
           )
         : undefined;
       const hasActivePayment = Boolean(activePaymentMethod);
+
+      // Staff have granted this org invoice terms, so there's no card to add.
+      // Once contact info is saved, setup is complete: send them into the org
+      // rather than showing a card form they don't need.
+      if (
+        !hasActivePayment &&
+        hasActiveInvoiceTerms(account) &&
+        isOrgContactSetupComplete(fullOrg)
+      ) {
+        return redirect(getPathWithParams(paths.org.detail.projects.root, { orgId }));
+      }
 
       const isLegacySetupResume = Boolean(requestedOrgId);
 
