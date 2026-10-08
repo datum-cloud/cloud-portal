@@ -1,6 +1,10 @@
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { SelectDomain } from '@/features/edge/domain/select-domain';
-import { coversHostname, findCoveringDomain } from '@/features/edge/proxy/utils/covering-domain';
+import { findCoveringDomain } from '@/features/edge/proxy/utils/covering-domain';
+import {
+  decomposeHostname,
+  getUnverifiedHostnameError,
+  isDomainVerified,
+} from '@/features/edge/proxy/utils/hostname-verification';
 import { ControlPlaneStatus } from '@/resources/base';
 import { useDomains } from '@/resources/domains';
 import { paths } from '@/utils/config/paths.config';
@@ -10,7 +14,7 @@ import { useField, useFieldContext } from '@datum-cloud/datum-ui/form';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { AlertTriangleIcon, ExternalLinkIcon, GlobeIcon, XIcon } from 'lucide-react';
+import { AlertTriangleIcon, ExternalLinkIcon, XIcon } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface SubdomainHostnameFieldProps {
@@ -30,76 +34,35 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-type DomainLike = {
-  domainName: string;
-  status?: { conditions?: { type: string; status: string }[] };
-};
-
-/**
- * A wildcard is only admitted when its base, or a parent, is verified by DNS
- * TXT record (`VerifiedDNS`). HTTP and Datum DNS zone proofs don't count, so
- * the operator would otherwise refuse it after save.
- */
-function wildcardLacksDnsProof(hostname: string, domains: DomainLike[]): boolean {
-  if (!hostname.trim().startsWith('*.')) return false;
-  return !domains.some(
-    (domain) =>
-      coversHostname(domain.domainName, hostname) &&
-      domain.status?.conditions?.some(
-        (condition) => condition.type === 'VerifiedDNS' && condition.status === 'True'
-      )
-  );
-}
-
-/**
- * Decompose a full hostname into prefix + parent domain.
- * Returns the longest matching registered domain.
- */
-function decomposeHostname(
-  hostname: string,
-  domainNames: string[]
-): { prefix: string; domain: string } | null {
-  if (!hostname) return null;
-  const lower = hostname.toLowerCase();
-  const sorted = [...domainNames].sort((a, b) => b.length - a.length);
-
-  for (const domain of sorted) {
-    const domainLower = domain.toLowerCase();
-    if (lower === domainLower) {
-      return { prefix: '', domain };
-    }
-    if (lower.endsWith(`.${domainLower}`)) {
-      const prefix = lower.slice(0, -(domainLower.length + 1));
-      return { prefix, domain };
-    }
-  }
-  return null;
-}
-
 export function SubdomainHostnameField({
   projectId,
   proxyDisplayName,
   excludeValues,
   onRemove,
 }: SubdomainHostnameFieldProps) {
-  const { name, disabled: fieldDisabled, errors } = useFieldContext();
-  const { control } = useField(name);
+  const { name, disabled: fieldDisabled } = useFieldContext();
+  // Read Conform's errors directly: Form.Field only shows errors for fields it
+  // marks touched, and on submit it marks top-level keys (`hostnames`), never
+  // array items (`hostnames[0]`), so a failed save would otherwise be silent.
+  const { control, field } = useField(name);
+  const errors = field.errors;
   const currentValue = Array.isArray(control.value)
     ? String(control.value[0] ?? '')
     : String(control.value ?? '');
 
-  const { confirm } = useConfirmationDialog();
   const {
     data: domains = [],
     isLoading: domainsLoading,
     isError: domainsError,
   } = useDomains(projectId);
   const domainNames = useMemo(() => domains.map((d) => d.domainName), [domains]);
+  const verifiedDomainNames = useMemo(
+    () => domains.filter(isDomainVerified).map((d) => d.domainName),
+    [domains]
+  );
 
-  const [isCustomMode, setIsCustomMode] = useState(false);
   const [prefix, setPrefix] = useState('');
   const [selectedDomain, setSelectedDomain] = useState('');
-  const [customHostname, setCustomHostname] = useState('');
   /** Last (form value, domain list) we derived local UI from — ref avoids an init flag in effect deps / extra render cycle. */
   const lastFormSyncKeyRef = useRef<string | null>(null);
 
@@ -123,32 +86,24 @@ export function SubdomainHostnameField({
     }
 
     const val = currentValue ?? '';
-    const syncKey = `${val}\0${domainNames.join('\0')}`;
+    const syncKey = `${val}\0${domainNames.join('\0')}\0${verifiedDomainNames.join('\0')}`;
     if (lastFormSyncKeyRef.current === syncKey) return;
     lastFormSyncKeyRef.current = syncKey;
 
     if (!val) {
       setPrefix('');
-      setCustomHostname('');
-      setIsCustomMode(false);
-      const autoDomain = domainNames.length === 1 ? domainNames[0] : '';
+      const autoDomain = verifiedDomainNames.length === 1 ? verifiedDomainNames[0] : '';
       setSelectedDomain(autoDomain);
-      // Auto-selecting the sole domain implies its apex — persist that to the
-      // form now, since the user may never touch the prefix or domain picker.
+      // Auto-selecting the sole verified domain implies its apex — persist that
+      // to the form now, since the user may never touch the prefix or picker.
       if (autoDomain) syncToForm('', autoDomain);
       return;
     }
 
     const decomposed = decomposeHostname(val, domainNames);
-    if (decomposed) {
-      setPrefix(decomposed.prefix);
-      setSelectedDomain(decomposed.domain);
-      setIsCustomMode(false);
-    } else {
-      setCustomHostname(val);
-      setIsCustomMode(true);
-    }
-  }, [currentValue, domainNames, syncToForm]);
+    setPrefix(decomposed?.prefix ?? '');
+    setSelectedDomain(decomposed?.domain ?? '');
+  }, [currentValue, domainNames, verifiedDomainNames, syncToForm]);
 
   const handlePrefixChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -168,62 +123,19 @@ export function SubdomainHostnameField({
     [prefix, syncToForm]
   );
 
-  const handleCustomChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
-      setCustomHostname(val);
-      control.change(val);
-    },
-    [control]
-  );
-
-  const switchToCustom = useCallback(() => {
-    setIsCustomMode(true);
-    if (prefix && selectedDomain) {
-      setCustomHostname(`${prefix}.${selectedDomain}`);
-    } else {
-      setCustomHostname(String(currentValue ?? ''));
-    }
-  }, [prefix, selectedDomain, currentValue]);
-
-  const switchToSplit = useCallback(async () => {
-    if (!customHostname) {
-      setIsCustomMode(false);
-      return;
-    }
-    const decomposed = decomposeHostname(customHostname, domainNames);
-    if (decomposed) {
-      setIsCustomMode(false);
-      setPrefix(decomposed.prefix);
-      setSelectedDomain(decomposed.domain);
-      return;
-    }
-    const accepted = await confirm({
-      title: 'Hostname will change',
-      description: `Clear “${customHostname}” and use a verified domain instead?`,
-      variant: 'default',
-      submitText: 'Continue',
-      cancelText: 'Cancel',
-    });
-    if (!accepted) return;
-    setIsCustomMode(false);
-    setPrefix('');
-    setSelectedDomain('');
-  }, [customHostname, domainNames, confirm]);
-
   const suggestions = useMemo(() => {
-    if (!proxyDisplayName || domainNames.length === 0) return [];
+    if (!proxyDisplayName || verifiedDomainNames.length === 0) return [];
     const slug = slugify(proxyDisplayName);
     if (!slug) return [];
 
     const allExcluded = new Set(excludeValues ?? []);
     if (currentValue) allExcluded.add(currentValue);
 
-    return domainNames
+    return verifiedDomainNames
       .map((domain) => `${slug}.${domain}`)
       .filter((s) => !allExcluded.has(s))
       .slice(0, 10);
-  }, [proxyDisplayName, domainNames, excludeValues, currentValue]);
+  }, [proxyDisplayName, verifiedDomainNames, excludeValues, currentValue]);
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
@@ -231,15 +143,26 @@ export function SubdomainHostnameField({
       if (decomposed) {
         setPrefix(decomposed.prefix);
         setSelectedDomain(decomposed.domain);
-        setIsCustomMode(false);
         syncToForm(decomposed.prefix, decomposed.domain);
       }
     },
     [domainNames, syncToForm]
   );
 
-  const hasErrors = errors && errors.length > 0;
-  const showSuggestions = !isCustomMode && !currentValue && suggestions.length > 0;
+  const hasErrors = errors.length > 0;
+  const errorList = hasErrors && (
+    <ul className="text-destructive space-y-1 text-xs font-medium">
+      {errors.map((error) => (
+        <li key={error}>{error}</li>
+      ))}
+    </ul>
+  );
+  const showSuggestions = !currentValue && suggestions.length > 0;
+  const hasNoVerifiedDomains =
+    !domainsLoading && domainNames.length > 0 && verifiedDomainNames.length === 0;
+  /** An existing hostname that isn't on any project domain. It can't be rebuilt from the picker, only removed. */
+  const isOutsideProject =
+    !domainsLoading && !!currentValue && !decomposeHostname(currentValue, domainNames);
 
   const selectedDomainStatus = useMemo(() => {
     if (!selectedDomain) return null;
@@ -248,13 +171,18 @@ export function SubdomainHostnameField({
     return transformControlPlaneStatus(domain.status).status;
   }, [selectedDomain, domains]);
 
-  const isUnverified = selectedDomainStatus && selectedDomainStatus !== ControlPlaneStatus.Success;
-
-  const needsWildcardDnsProof = useMemo(
-    // Unknown when the domains didn't load: say nothing rather than warn wrongly.
-    () => !domainsLoading && !domainsError && wildcardLacksDnsProof(currentValue, domains),
-    [currentValue, domains, domainsLoading, domainsError]
-  );
+  // Only existing hostnames can land here — the picker won't select an
+  // unverified domain. A schema error takes over once the row is edited.
+  // Unknown when the domains didn't load: say nothing rather than warn wrongly.
+  const isWildcard = currentValue.trim().startsWith('*.');
+  const lacksVerification =
+    !hasErrors &&
+    !domainsLoading &&
+    !domainsError &&
+    !!currentValue &&
+    !!getUnverifiedHostnameError(currentValue, domains);
+  const isUnverified = lacksVerification && !isWildcard;
+  const needsWildcardDnsProof = lacksVerification && isWildcard;
 
   const wildcardDomain = needsWildcardDnsProof
     ? findCoveringDomain(domains, currentValue)
@@ -294,47 +222,44 @@ export function SubdomainHostnameField({
     return trimmed ? `${trimmed}.${selectedDomain}` : selectedDomain;
   }, [prefix, selectedDomain]);
 
-  if (isCustomMode) {
+  if (isOutsideProject) {
     return (
       <div className="flex flex-col gap-1">
         <div
           className={cn(
-            'border-input-border bg-input-background/50 flex items-stretch overflow-hidden rounded-lg border transition-all',
-            'focus-within:border-input-focus-border focus-within:shadow-(--input-focus-shadow)',
+            'border-input-border bg-input-background/50 flex items-stretch overflow-hidden rounded-lg border',
             hasErrors && 'border-destructive',
             fieldDisabled && 'cursor-not-allowed opacity-50'
           )}>
-          <input
-            type="text"
-            value={customHostname}
-            onChange={handleCustomChange}
-            onBlur={control.blur}
-            disabled={fieldDisabled}
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            placeholder="e.g. api.external-domain.com"
-            className="text-input-foreground placeholder:text-input-placeholder h-9 min-w-0 flex-1 bg-transparent px-3 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-hidden"
-          />
+          <div className="flex h-9 min-w-0 flex-1 items-center px-3">
+            <Text size="xs" ellipsis>
+              {currentValue}
+            </Text>
+          </div>
           {onRemove && (
             <button
               type="button"
               onClick={onRemove}
+              disabled={fieldDisabled}
+              aria-label={`Remove ${currentValue}`}
               className="text-muted-foreground hover:text-destructive flex items-center px-2.5 transition-colors">
               <XIcon className="size-3.5" />
             </button>
           )}
         </div>
-        {wildcardNotice}
-        {domainNames.length > 0 && (
-          <button
-            type="button"
-            onClick={() => void switchToSplit()}
-            className="text-muted-foreground hover:text-foreground text-3xs flex items-center gap-1 self-start underline transition-colors">
-            <GlobeIcon className="size-3" />
-            Use a verified domain
-          </button>
+        {!hasErrors && (
+          <Text
+            as="div"
+            size="xs"
+            className="flex items-start gap-1.5 text-amber-600 dark:text-amber-500">
+            <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
+            <span>
+              This hostname isn&apos;t on a domain in this project, so it can&apos;t be verified.
+              Remove it, or add and verify its domain.
+            </span>
+          </Text>
         )}
+        {errorList}
       </div>
     );
   }
@@ -393,7 +318,8 @@ export function SubdomainHostnameField({
             disabled={fieldDisabled}
             placeholder="Select domain..."
             compact
-            showAddDomain={domainNames.length === 0}
+            disableUnverified
+            showAddDomain={verifiedDomainNames.length === 0}
             className="min-w-0 flex-1"
             triggerClassName="h-9 rounded-none border-0 shadow-none text-xs focus-visible:border-0 focus-visible:shadow-none"
           />
@@ -415,7 +341,8 @@ export function SubdomainHostnameField({
           {splitHostnamePreview}
         </Text>
       </div>
-      {isUnverified ? null : wildcardNotice}
+      {errorList}
+      {wildcardNotice}
       {isUnverified && (
         <Text
           as="div"
@@ -424,18 +351,16 @@ export function SubdomainHostnameField({
           <AlertTriangleIcon className="mt-0.5 size-3 shrink-0" />
           <span>
             {selectedDomainStatus === ControlPlaneStatus.Pending
-              ? 'This domain is being verified — your proxy may not activate until verification is complete.'
-              : "This domain is not verified — your proxy won't activate until the domain is verified."}
+              ? "This domain is still being verified. This hostname won't serve traffic until verification completes."
+              : "This domain isn't verified, so this hostname won't serve traffic. Verify the domain, or remove this hostname."}
           </span>
         </Text>
       )}
-      <button
-        type="button"
-        onClick={switchToCustom}
-        className="text-muted-foreground hover:text-foreground text-3xs flex items-center gap-1 self-start underline transition-colors">
-        <GlobeIcon className="size-3" />
-        Type a custom hostname
-      </button>
+      {hasNoVerifiedDomains && !selectedDomain && (
+        <Text as="p" size="xs" textColor="muted">
+          None of this project&apos;s domains are verified yet. Verify one to use it here.
+        </Text>
+      )}
     </div>
   );
 }
