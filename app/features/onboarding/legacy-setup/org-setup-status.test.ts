@@ -1,6 +1,8 @@
 import {
   evaluateOrgSetupComplete,
+  hasActiveInvoiceTerms,
   hasActivePaymentMethodForAccount,
+  isBillingAccountPaymentReady,
   isOrgContactSetupComplete,
   isOrgSetupCompleteFromLoadResult,
 } from './org-setup-status';
@@ -100,6 +102,74 @@ describe('evaluateOrgSetupComplete', () => {
         ] as never,
       })
     ).toBe(true);
+  });
+});
+
+describe('PaymentReady', () => {
+  const account = (status: string, reason: string) =>
+    ({
+      metadata: { name: 'acct-1' },
+      status: { phase: 'Ready', conditions: [{ type: 'PaymentReady', status, reason }] },
+    }) as never;
+
+  it('reads billing account readiness from the PaymentReady condition', () => {
+    expect(isBillingAccountPaymentReady(account('True', 'PaymentMethodReady'))).toBe(true);
+    expect(isBillingAccountPaymentReady(account('True', 'InvoiceTerms'))).toBe(true);
+    expect(isBillingAccountPaymentReady(account('False', 'ArrangementEnded'))).toBe(false);
+    expect(isBillingAccountPaymentReady({ metadata: { name: 'acct-1' } } as never)).toBe(false);
+    expect(isBillingAccountPaymentReady(undefined)).toBe(false);
+  });
+
+  it('only treats active invoice terms as needing no card', () => {
+    expect(hasActiveInvoiceTerms(account('True', 'InvoiceTerms'))).toBe(true);
+    expect(hasActiveInvoiceTerms(account('True', 'PaymentMethodReady'))).toBe(false);
+    expect(hasActiveInvoiceTerms(account('False', 'ArrangementScheduled'))).toBe(false);
+  });
+
+  describe('evaluateOrgSetupComplete', () => {
+    const completeOrg = { contactInfo: { email: 'a@b.com', name: 'Jane' } } as never;
+
+    it('passes with invoice terms and no payment method', () => {
+      expect(
+        evaluateOrgSetupComplete({
+          org: completeOrg,
+          billingAccounts: [account('True', 'InvoiceTerms')],
+          paymentMethods: [],
+        })
+      ).toBe(true);
+    });
+
+    it('fails when terms have ended and there is no payment method', () => {
+      expect(
+        evaluateOrgSetupComplete({
+          org: completeOrg,
+          billingAccounts: [account('False', 'ArrangementEnded')],
+          paymentMethods: [],
+        })
+      ).toBe(false);
+    });
+
+    it('still needs contact info when on invoice terms', () => {
+      expect(
+        evaluateOrgSetupComplete({
+          org: { contactInfo: undefined },
+          billingAccounts: [account('True', 'InvoiceTerms')],
+          paymentMethods: [],
+        })
+      ).toBe(false);
+    });
+
+    it('falls back to an active payment method before billing reports PaymentReady', () => {
+      expect(
+        evaluateOrgSetupComplete({
+          org: completeOrg,
+          billingAccounts: [{ metadata: { name: 'acct-1' }, status: { phase: 'Ready' } }] as never,
+          paymentMethods: [
+            { spec: { billingAccountRef: { name: 'acct-1' } }, status: { phase: 'Active' } },
+          ] as never,
+        })
+      ).toBe(true);
+    });
   });
 });
 

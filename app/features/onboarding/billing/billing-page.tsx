@@ -18,6 +18,8 @@ export type BillingPageData = {
   partialOrgId?: string;
   /** Billing account exists but payment method is still required. */
   needsPaymentOnly?: boolean;
+  /** Staff have granted invoice terms, so the org pays by invoice and needs no card. */
+  onInvoiceTerms?: boolean;
 };
 
 export const BillingPage = ({ data }: { data: BillingPageData }) => (
@@ -31,5 +33,6 @@ export const BillingPage = ({ data }: { data: BillingPageData }) => (
     initialPayment={data.initialPayment}
     partialOrgId={data.partialOrgId}
     needsPaymentOnly={data.needsPaymentOnly}
+    onInvoiceTerms={data.onInvoiceTerms}
   />
 );
