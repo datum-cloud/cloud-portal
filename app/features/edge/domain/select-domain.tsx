@@ -82,6 +82,11 @@ type SelectDomainProps = {
   /** Show the "Add a Domain" footer even in compact mode */
   showAddDomain?: boolean;
   /**
+   * List unverified domains but don't let them be picked. A new domain is never
+   * verified, so it isn't auto-selected after being added either.
+   */
+  disableUnverified?: boolean;
+  /**
    * Autocomplete popover modality. Required inside Dialog/Modal so option
    * clicks aren't swallowed by the dialog focus trap. Defaults to true.
    */
@@ -100,6 +105,7 @@ export function SelectDomain({
   triggerClassName,
   compact,
   showAddDomain,
+  disableUnverified,
   modal = true,
   loading: externalLoading,
   emptyContent = 'No domains found',
@@ -111,11 +117,15 @@ export function SelectDomain({
 
   const domainOptions: DomainOption[] = useMemo(() => {
     const unique = new Map(domains.map((d) => [d.domainName, d]));
-    const options = Array.from(unique.values(), (d) => ({
-      value: d.domainName,
-      label: d.domainName,
-      domainStatus: transformControlPlaneStatus(d.status).status,
-    }));
+    const options: DomainOption[] = Array.from(unique.values(), (d) => {
+      const domainStatus = transformControlPlaneStatus(d.status).status;
+      return {
+        value: d.domainName,
+        label: d.domainName,
+        domainStatus,
+        disabled: disableUnverified && domainStatus !== ControlPlaneStatus.Success,
+      };
+    });
 
     // In creatable mode, the Autocomplete trigger handles unknown values natively.
     // In non-creatable mode, inject the current value so it remains visible and selectable.
@@ -128,7 +138,7 @@ export function SelectDomain({
     }
 
     return options;
-  }, [domains, value, creatable]);
+  }, [domains, value, creatable, disableUnverified]);
 
   const filteredOptions = useMemo(() => {
     if (!excludeValues?.length) return domainOptions;
@@ -183,9 +193,9 @@ export function SelectDomain({
     async (domain: Domain) => {
       // Refetch the domains list so the new domain appears in options
       await queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) });
-      onValueChange?.(domain.domainName);
+      if (!disableUnverified) onValueChange?.(domain.domainName);
     },
-    [queryClient, projectId, onValueChange]
+    [queryClient, projectId, onValueChange, disableUnverified]
   );
 
   const isUnverified = selectedOption && selectedOption.domainStatus !== ControlPlaneStatus.Success;

@@ -29,7 +29,8 @@ export const ProxyHostnamesField = forwardRef<HTMLDivElement, ProxyHostnamesFiel
             Hostnames
           </Text>
           <Text size="xs" textColor="muted">
-            The domains that should point to this Application Load Balancer.
+            The domains that should point to this Application Load Balancer. Only verified domains
+            can be used.
           </Text>
         </div>
 
@@ -39,7 +40,7 @@ export const ProxyHostnamesField = forwardRef<HTMLDivElement, ProxyHostnamesFiel
               {fields.length > 0 && (
                 <div className="space-y-4">
                   {fields.map((field, index) => (
-                    <Form.Field key={field.key} name={field.name}>
+                    <Form.Field key={field.key} name={field.name} showErrors={false}>
                       <SubdomainHostnameField
                         projectId={projectId}
                         proxyDisplayName={proxyDisplayName}
