@@ -38,6 +38,8 @@ export interface BillingFormProps {
   /** Org exists from a prior partial setup — billing account create will be retried. */
   partialOrgId?: string;
   needsPaymentOnly?: boolean;
+  /** Staff have granted invoice terms, so the org pays by invoice and needs no card. */
+  onInvoiceTerms?: boolean;
 }
 
 export const BillingForm = ({
@@ -50,6 +52,7 @@ export const BillingForm = ({
   initialPayment,
   partialOrgId,
   needsPaymentOnly = false,
+  onInvoiceTerms = false,
 }: BillingFormProps) => {
   const navigate = useNavigate();
   const { trackAction } = useAnalytics();
@@ -166,6 +169,7 @@ export const BillingForm = ({
               initialSetup={initialSetup}
               initialContactInfo={initialContactInfo}
               initialPaymentSummary={initialPayment}
+              onInvoiceTerms={onInvoiceTerms}
               partialOrgId={partialOrgId}
               submitLabel={submitLabel}
               onOrgProvisioned={({ orgId, accountName, contactInfo }) => {
@@ -177,7 +181,10 @@ export const BillingForm = ({
                 });
               }}
               onComplete={async ({ orgId, accountName, contactInfo }) => {
-                trackAction(AnalyticsAction.PaymentDetailsSaved, { orgId });
+                // Invoice-terms orgs never add a card here.
+                if (!onInvoiceTerms) {
+                  trackAction(AnalyticsAction.PaymentDetailsSaved, { orgId });
+                }
 
                 if (isLegacySetupResume) {
                   const result = await completeLegacySetupMutation.mutateAsync({
