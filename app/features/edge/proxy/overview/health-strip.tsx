@@ -3,9 +3,15 @@ import { TRAFFIC_PRESENCE_WINDOW_LABEL } from './use-alb-traffic-presence';
 import { useResolvedComputeWorkload } from './use-network-service';
 import { usePoolBackends } from './use-pool-backends';
 import type { BackendRow } from '@/features/edge/proxy/backends/backend-pool';
+import { requestWildcardHostnames } from '@/features/edge/proxy/utils/request-wildcards';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
+  WILDCARD_NOT_ENABLED_MESSAGE,
+  getBlockedHostnames,
+  isHeldBackByCustomHostnames,
+  getCertificateReadyCondition,
+  getCertificateReadyDisplay,
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
 } from '@/resources/http-proxies';
@@ -20,6 +26,9 @@ import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import {
   CircleCheckIcon,
+  GlobeIcon,
+  LifeBuoyIcon,
+  SettingsIcon,
   LockIcon,
   RadioIcon,
   ServerIcon,
@@ -107,6 +116,16 @@ export function HttpProxyHealthStrip({
     [proxy.status]
   );
 
+  const blocked = getBlockedHostnames(proxy);
+  const hostnameCertFailed = (proxy.hostnames ?? []).some(
+    (hostname) =>
+      getCertificateReadyDisplay(
+        getCertificateReadyCondition(
+          proxy.hostnameStatuses?.find((entry) => entry.hostname === hostname)
+        )
+      ) === 'failed'
+  );
+
   const backends = summarizeBackends(proxy);
   const computeBackend = useResolvedComputeWorkload(projectId, proxy);
   const pool = usePoolBackends(projectId, proxy);
@@ -122,9 +141,20 @@ export function HttpProxyHealthStrip({
     proxyId: proxy.name,
   });
   const hostnameCount = proxy.hostnames?.length ?? 0;
+  const configurationHref = getPathWithParams(paths.project.detail.proxy.detail.configuration, {
+    projectId,
+    proxyId: proxy.name,
+  });
   const wafMode = proxy.trafficProtectionMode;
 
-  const headline = (() => {
+  const headline: {
+    icon: ReactNode;
+    title: string;
+    detail: string;
+    ring: string;
+    /** The way out, shown first among the chips. */
+    action?: ReactNode;
+  } = (() => {
     switch (status.status) {
       case ControlPlaneStatus.Success:
         if (workloadMissing) {
@@ -184,16 +214,102 @@ export function HttpProxyHealthStrip({
         return {
           icon: <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-danger)" />,
           title: 'Configuration failed to program',
-          detail: status.message || 'Check the Configuration tab for details.',
+          detail: status.message || 'The load balancer reported an error while programming.',
           ring: 'bg-(--color-badge-danger)/10',
+          action: (
+            <Link
+              to={configurationHref}
+              className="inline-flex"
+              data-e2e="alb-health-configuration">
+              <Chip tone="muted" icon={SettingsIcon}>
+                View configuration
+              </Chip>
+            </Link>
+          ),
         };
-      default:
+      default: {
+        // Programming waits on these, so name them rather than spin.
+        const { wildcardsNotEnabled, ownershipBlocked, awaitingDns } = blocked;
+        if (awaitingDns.length > 0 && wildcardsNotEnabled.length + ownershipBlocked.length === 0) {
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title:
+              awaitingDns.length === 1
+                ? 'Add a DNS record to finish setting up a hostname'
+                : 'Add DNS records to finish setting up your hostnames',
+            detail: `The certificate for ${awaitingDns.join(', ')} is issued once its record is in place.${
+              isHeldBackByCustomHostnames(proxy) ? ' The default hostname is already serving.' : ''
+            }`,
+            ring: 'bg-(--color-badge-warning)/10',
+            action: (
+              <Link
+                to={`${configurationHref}#hostnames`}
+                className="inline-flex"
+                data-e2e="alb-health-show-records">
+                <Chip tone="muted" icon={GlobeIcon} tooltip="See the record to add">
+                  Show records
+                </Chip>
+              </Link>
+            ),
+          };
+        }
+        if (wildcardsNotEnabled.length > 0 && ownershipBlocked.length === 0) {
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title: "Wildcard hostnames aren't enabled for this project",
+            detail: `No certificate is issued for ${wildcardsNotEnabled.join(', ')} until Datum enables wildcards. You can also use an exact hostname.`,
+            ring: 'bg-(--color-badge-warning)/10',
+            action: (
+              <button
+                type="button"
+                className="inline-flex cursor-pointer"
+                data-e2e="alb-health-request-wildcards"
+                onClick={() => requestWildcardHostnames(projectId, wildcardsNotEnabled)}>
+                <Chip
+                  tone="muted"
+                  icon={LifeBuoyIcon}
+                  tooltip="Message Datum support to enable wildcard hostnames for this project">
+                  Request wildcards
+                </Chip>
+              </button>
+            ),
+          };
+        }
+        if (ownershipBlocked.length + wildcardsNotEnabled.length + awaitingDns.length > 0) {
+          const count = ownershipBlocked.length + wildcardsNotEnabled.length + awaitingDns.length;
+          return {
+            icon: (
+              <Icon icon={TriangleAlertIcon} size={18} className="text-(--color-badge-warning)" />
+            ),
+            title:
+              count === 1
+                ? 'A custom hostname needs your attention'
+                : `${count} custom hostnames need your attention`,
+            detail: `${[...ownershipBlocked, ...wildcardsNotEnabled, ...awaitingDns].join(', ')} can't be served yet.`,
+            ring: 'bg-(--color-badge-warning)/10',
+            action: (
+              <Link
+                to={`${configurationHref}#hostnames`}
+                className="inline-flex"
+                data-e2e="alb-health-fix-hostnames">
+                <Chip tone="muted" icon={GlobeIcon} tooltip="See what each hostname needs">
+                  Fix hostnames
+                </Chip>
+              </Link>
+            ),
+          };
+        }
         return {
           icon: <SpinnerIcon size="sm" aria-hidden="true" />,
           title: 'Programming edge configuration',
           detail: status.message || 'Hostnames, DNS, and certificates are being provisioned.',
           ring: 'bg-(--color-badge-info)/10',
         };
+      }
     }
   })();
 
@@ -239,10 +355,19 @@ export function HttpProxyHealthStrip({
   })();
 
   const tlsChip = (() => {
-    if (certDisplay === 'ready') {
+    // A certificate that actually failed on some hostname outranks a wildcard
+    // waiting on enablement (which can itself read as failed at the ALB level).
+    if (hostnameCertFailed) {
       return (
-        <Chip tone="success" icon={LockIcon} tooltip="All hostnames have issued certificates">
-          TLS ready
+        <Chip tone="danger" icon={LockIcon} tooltip="At least one certificate failed to issue">
+          TLS failed
+        </Chip>
+      );
+    }
+    if (blocked.wildcardsNotEnabled.length > 0) {
+      return (
+        <Chip tone="danger" icon={LockIcon} tooltip={WILDCARD_NOT_ENABLED_MESSAGE}>
+          Wildcards not enabled
         </Chip>
       );
     }
@@ -250,6 +375,33 @@ export function HttpProxyHealthStrip({
       return (
         <Chip tone="danger" icon={LockIcon} tooltip="At least one certificate failed to issue">
           TLS failed
+        </Chip>
+      );
+    }
+    if (certDisplay === 'ready') {
+      return (
+        <Chip tone="success" icon={LockIcon} tooltip="All hostnames have issued certificates">
+          TLS ready
+        </Chip>
+      );
+    }
+    if (certDisplay === 'pending' && blocked.ownershipBlocked.length > 0) {
+      return (
+        <Chip
+          tone="muted"
+          icon={LockIcon}
+          tooltip="Certificates are issued once hostname ownership is sorted">
+          TLS on hold
+        </Chip>
+      );
+    }
+    if (certDisplay === 'pending' && blocked.awaitingDns.length > 0) {
+      return (
+        <Chip
+          tone="warning"
+          icon={LockIcon}
+          tooltip="A certificate is waiting on a DNS record you need to add">
+          TLS awaiting DNS
         </Chip>
       );
     }
@@ -285,6 +437,7 @@ export function HttpProxyHealthStrip({
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          {headline.action}
           {poolUnavailable > 0 ? (
             <Link to={backendsHref} className="inline-flex" data-e2e="alb-health-manage-backends">
               <Chip
@@ -297,10 +450,7 @@ export function HttpProxyHealthStrip({
           ) : workloadName && workloadMissing ? (
             // The headline already says the workload is gone; the chip is the way out.
             <Link
-              to={`${getPathWithParams(paths.project.detail.proxy.detail.configuration, {
-                projectId,
-                proxyId: proxy.name,
-              })}#backends`}
+              to={`${configurationHref}#backends`}
               className="inline-flex"
               data-e2e="alb-health-set-origin">
               <Chip
