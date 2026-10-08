@@ -4,6 +4,7 @@ import { ConditionalPagination } from './components/pagination';
 import { TablePanel } from './components/panel';
 import { TableToolbar } from './components/toolbar';
 import { useResolvedColumns, useTableUrlAdapter } from './hooks';
+import { useRowSelection } from './selection';
 import type { RowData, TableServerProps, TableServerRef } from './types';
 import { detectToolbar, toolbarPropsFrom } from './utils';
 import { DataTable, useDataTableLoading } from '@datum-cloud/datum-ui/data-table';
@@ -51,6 +52,7 @@ function TableServerImpl<TData extends RowData, TResponse>(
   ref: Ref<TableServerRef>
 ) {
   const stateAdapter = useTableUrlAdapter(props.urlSync ?? true, props.filterParsers);
+  const rowSelection = useRowSelection(!!props.multiActions?.length, props.isRowSelectable);
   const columns = useResolvedColumns(props.columns, props.rowActions, {
     hideRowActions: props.hideRowActions,
     disableRowActions: props.disableRowActions,
@@ -90,7 +92,7 @@ function TableServerImpl<TData extends RowData, TResponse>(
       limit={props.limit}
       defaultFilters={props.defaultFilters}
       getRowId={props.getRowId}
-      enableRowSelection={!!props.multiActions?.length}
+      enableRowSelection={rowSelection}
       className={cn('space-y-6', props.className)}>
       <ErrorBridge onError={props.onError} />
 

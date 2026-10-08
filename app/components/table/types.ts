@@ -171,6 +171,12 @@ export type TableSharedProps<TData extends RowData> = {
   onRowClick?: (row: TData) => void;
   rowActions?: RowAction<TData>[];
   multiActions?: MultiAction<TData>[];
+  /**
+   * With `multiActions`: rows for which this returns false get a disabled
+   * checkbox, and "select all" leaves them out. Omit it to make every row
+   * selectable.
+   */
+  isRowSelectable?: (row: TData) => boolean;
 
   // Row-action gates — forwarded into the actions cell renderer.
   hideRowActions?: (row: TData) => boolean;

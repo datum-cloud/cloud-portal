@@ -1,4 +1,4 @@
-import { planBulkDelete } from './bulk-delete';
+import { canBulkDelete, describeSkipped, planBulkDelete } from './bulk-delete';
 import type { IFlattenedDnsRecord } from '@/resources/dns-records';
 import { describe, expect, test } from 'bun:test';
 
@@ -66,5 +66,50 @@ describe('planBulkDelete', () => {
     ]);
 
     expect(plan.total).toBe(2);
+  });
+});
+
+describe('canBulkDelete', () => {
+  test('allows an ordinary record', () => {
+    expect(canBulkDelete(row({ name: 'www', value: '10.0.0.1' }))).toBe(true);
+  });
+
+  test('refuses locked rows, SOA and rows without a record set', () => {
+    expect(canBulkDelete(row({ name: 'app', value: '10.0.0.9', lockReason: 'locked' }))).toBe(
+      false
+    );
+    expect(canBulkDelete(row({ name: '@', value: 'ns1.', type: 'SOA' }))).toBe(false);
+    expect(canBulkDelete(row({ name: 'www', value: '10.0.0.1', recordSetName: undefined }))).toBe(
+      false
+    );
+  });
+});
+
+describe('describeSkipped', () => {
+  test('names each skipped record with the reason it is locked', () => {
+    expect(
+      describeSkipped([
+        row({
+          name: 'api',
+          value: '10.0.0.9',
+          lockReason: 'Protected by Application Load Balancer',
+        }),
+        row({
+          name: '@',
+          value: 'ns1.',
+          type: 'SOA',
+          lockReason: 'Managed automatically by Datum',
+        }),
+      ])
+    ).toEqual([
+      { label: 'A api', reason: 'Protected by Application Load Balancer' },
+      { label: 'SOA @', reason: 'Managed automatically by Datum' },
+    ]);
+  });
+
+  test('falls back to a generic reason when a row has no lock reason', () => {
+    expect(
+      describeSkipped([row({ name: 'www', value: '10.0.0.1', recordSetName: undefined })])
+    ).toEqual([{ label: 'A www', reason: "Can't be deleted here" }]);
   });
 });

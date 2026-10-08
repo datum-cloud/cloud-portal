@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types -- TypeScript provides runtime-equivalent guarantees; the rule mis-fires on destructured discriminated-union props. */
 import { DnsRecordInlineForm } from './dns-record-inline-form';
 import { DnsRecordStatus } from './dns-record-status';
-import { isRowLocked } from './utils';
+import { canBulkDelete, isRowLocked } from './utils';
 import {
   type ColumnDef,
   type MultiAction,
@@ -446,6 +446,8 @@ export function DnsRecordTable(props: DnsRecordTableProps) {
       description={tableTitle?.description}
       actions={toolbarActions}
       multiActions={multiActions}
+      // Locked and SOA rows can't be bulk deleted, so their checkbox is disabled.
+      isRowSelectable={canBulkDelete}
       filters={toolbarFilters}
       // Sync the multi-select Type filter to a `?type=A,MX` URL param so
       // the filter survives reload/share, matching the existing nuqs

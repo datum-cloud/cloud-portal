@@ -18,10 +18,28 @@ export interface BulkDeletePlan {
   total: number;
 }
 
+/** A skipped row as the operator should read it, e.g. `{ label: 'A api', reason: '…' }`. */
+export interface SkippedRecord {
+  label: string;
+  reason: string;
+}
+
 type DeletableRow = IFlattenedDnsRecord & { recordSetName: string };
 
-function isDeletable(row: IFlattenedDnsRecord): row is DeletableRow {
+/**
+ * Whether the bulk delete may touch this row. The table uses the same rule to
+ * disable a row's checkbox, so selection and the delete plan never disagree.
+ */
+export function canBulkDelete(row: IFlattenedDnsRecord): row is DeletableRow {
   return !!row.recordSetName && row.type !== 'SOA' && !isRowLocked(row);
+}
+
+/** Describe skipped rows for the confirmation dialog and the follow-up toast. */
+export function describeSkipped(skipped: IFlattenedDnsRecord[]): SkippedRecord[] {
+  return skipped.map((row) => ({
+    label: `${row.type} ${row.name}`,
+    reason: row.lockReason ?? "Can't be deleted here",
+  }));
 }
 
 function toCriterion(row: DeletableRow): DeleteDnsRecordCriterion {
@@ -45,8 +63,8 @@ function labelFor(recordType: string, criteria: DeleteDnsRecordCriterion[]): str
  * of failing part way through.
  */
 export function planBulkDelete(rows: IFlattenedDnsRecord[]): BulkDeletePlan {
-  const deletable = rows.filter(isDeletable);
-  const skipped = rows.filter((row) => !isDeletable(row));
+  const deletable = rows.filter(canBulkDelete);
+  const skipped = rows.filter((row) => !canBulkDelete(row));
 
   const bySet = deletable.reduce<Map<string, DeletableRow[]>>((map, row) => {
     return new Map(map).set(row.recordSetName, [...(map.get(row.recordSetName) ?? []), row]);
