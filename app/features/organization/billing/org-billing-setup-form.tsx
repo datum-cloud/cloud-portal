@@ -68,6 +68,12 @@ export interface OrgBillingSetupFormProps {
   initialContactInfo?: OrgContactInfoValues;
   /** Existing active card on the account, so resume shows it as already added. */
   initialPaymentSummary?: { brand?: string | null; last4: string };
+  /**
+   * Staff have granted the org invoice terms. Payment is then already settled:
+   * the card field is replaced by a read-only "Paid by invoice" row and only
+   * contact info is needed to continue.
+   */
+  onInvoiceTerms?: boolean;
   /** Org exists from a prior partial setup — billing account create will be retried. */
   partialOrgId?: string;
   /**
@@ -102,6 +108,7 @@ export const OrgBillingSetupForm = ({
   initialSetup,
   initialContactInfo,
   initialPaymentSummary,
+  onInvoiceTerms = false,
   partialOrgId,
   showDisplayNameField = false,
   submitLabel = 'Continue',
@@ -276,9 +283,12 @@ export const OrgBillingSetupForm = ({
 
   const billingReady = Boolean(billingSetup);
   const contactComplete = isOrgContactInfoComplete(contactInfo) && billingReady;
-  const paymentComplete = paymentSummary !== null;
+  const paymentComplete = onInvoiceTerms || paymentSummary !== null;
   const canSubmit =
-    contactComplete && paymentComplete && stripePublishableKey && !isPaymentMethodPending;
+    contactComplete &&
+    paymentComplete &&
+    (onInvoiceTerms || stripePublishableKey) &&
+    !isPaymentMethodPending;
 
   const contactDialogDefaults = useMemo(
     () => buildOrgContactDefaults({ ...contactDefaults, ...(contactInfo ?? {}) }),
@@ -399,7 +409,9 @@ export const OrgBillingSetupForm = ({
           ) : null}
         </VerificationField>
 
-        {stripeKeyLoading ? (
+        {onInvoiceTerms ? (
+          <InvoiceTermsField />
+        ) : stripeKeyLoading ? (
           <StripePaymentLoading />
         ) : stripeKeyUnavailable ? (
           <UnconfiguredStripeFallback />
@@ -445,10 +457,12 @@ export const OrgBillingSetupForm = ({
             {isCompleting ? 'Starting...' : submitLabel}
           </Button>
 
-          <Text as="p" size="xs" textColor="default" className="opacity-80">
-            <span className="font-semibold">Note:</span> Your card will be authorized, but not
-            charged
-          </Text>
+          {onInvoiceTerms ? null : (
+            <Text as="p" size="xs" textColor="default" className="opacity-80">
+              <span className="font-semibold">Note:</span> Your card will be authorized, but not
+              charged
+            </Text>
+          )}
         </div>
       </div>
 
@@ -548,6 +562,36 @@ const VerificationField = ({
         {description}
       </Text>
     )}
+  </div>
+);
+
+/**
+ * Read-only stand-in for the payment field when staff have granted invoice
+ * terms. Styled like a completed VerificationField, without an Edit action:
+ * customers can't change how they're billed.
+ */
+const InvoiceTermsField = () => (
+  <div className="flex flex-col gap-2">
+    <Text as="p" size="xs" weight="semibold" textColor="default" className="opacity-80">
+      Payment
+    </Text>
+    <div
+      className="bg-card-success flex w-full min-w-0 overflow-hidden rounded-md border border-[#86A182]"
+      data-e2e="org-billing-invoice-terms">
+      <div className="flex min-w-0 flex-1 flex-col gap-1 px-3 py-2">
+        <Text as="p" size="xs" weight="medium" textColor="default" className="leading-[18px]">
+          Paid by invoice
+        </Text>
+        <Text as="p" size="xs" textColor="muted" className="leading-4 opacity-60">
+          Your organization has payment terms with Datum, so you don&apos;t need to add a card.
+        </Text>
+      </div>
+      <div
+        className="flex w-4 shrink-0 items-center justify-center bg-[#86A182]"
+        aria-hidden="true">
+        <Icon icon={CheckIcon} className="size-2.5 text-white" strokeWidth={2.5} />
+      </div>
+    </div>
   </div>
 );
 
