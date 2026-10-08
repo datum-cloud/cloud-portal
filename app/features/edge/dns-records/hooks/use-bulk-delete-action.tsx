@@ -1,6 +1,10 @@
 import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import type { MultiAction } from '@/components/table';
-import { type BulkDeletePlan, planBulkDelete } from '@/features/edge/dns-records/utils';
+import {
+  type BulkDeletePlan,
+  describeSkipped,
+  planBulkDelete,
+} from '@/features/edge/dns-records/utils';
 import { useApp } from '@/providers/app.provider';
 import {
   type IFlattenedDnsRecord,
@@ -25,6 +29,16 @@ function recordsLabel(count: number): string {
   return count === 1 ? 'record' : 'records';
 }
 
+// Set by the DNS records route for records an ALB proxies. Records the ALB
+// itself manages carry a different reason and can't be unprotected.
+const ALB_PROTECTED_REASON = 'Protected by Application Load Balancer';
+
+function skippedHint(plan: BulkDeletePlan): string {
+  return plan.skipped.some((row) => row.lockReason === ALB_PROTECTED_REASON)
+    ? 'Remove Application Load Balancer protection from a record to delete it.'
+    : "They're managed for you and can't be deleted here.";
+}
+
 function BulkDeleteConfirmation({ plan }: { plan: BulkDeletePlan }) {
   return (
     <div className="flex flex-col gap-2">
@@ -39,9 +53,20 @@ function BulkDeleteConfirmation({ plan }: { plan: BulkDeletePlan }) {
         ))}
       </ul>
       {plan.skipped.length > 0 && (
-        <Text size="sm" textColor="muted">
-          {plan.skipped.length} protected {recordsLabel(plan.skipped.length)} will be skipped.
-        </Text>
+        <div className="flex flex-col gap-1">
+          <Text size="sm" weight="medium">
+            {plan.skipped.length} {recordsLabel(plan.skipped.length)} won&apos;t be deleted:
+          </Text>
+          <ul className="max-h-32 list-disc overflow-y-auto pl-5">
+            {describeSkipped(plan.skipped).map(({ label, reason }, index) => (
+              <li key={`${label}-${index}`}>
+                <Text size="sm" textColor="muted">
+                  {label}: {reason}
+                </Text>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
@@ -114,6 +139,13 @@ export function useBulkDeleteAction({
           : [],
       onComplete: () => {
         queryClient.invalidateQueries({ queryKey: dnsRecordKeys.list(projectId, dnsZoneId) });
+        // The skipped records stay in the table, so say why once the task is
+        // done; the confirmation alone was easy to miss (#1635).
+        if (plan.skipped.length > 0) {
+          toast.warning(`${plan.skipped.length} ${recordsLabel(plan.skipped.length)} skipped`, {
+            description: skippedHint(plan),
+          });
+        }
       },
     });
   };

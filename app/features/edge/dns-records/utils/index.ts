@@ -6,4 +6,11 @@ export {
   findProxyByEndpoint,
   findProxyForRecord,
 } from './proxy-match';
-export { planBulkDelete, type BulkDeleteGroup, type BulkDeletePlan } from './bulk-delete';
+export {
+  canBulkDelete,
+  describeSkipped,
+  planBulkDelete,
+  type BulkDeleteGroup,
+  type BulkDeletePlan,
+  type SkippedRecord,
+} from './bulk-delete';

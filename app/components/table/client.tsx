@@ -4,6 +4,7 @@ import { ConditionalPagination } from './components/pagination';
 import { TablePanel } from './components/panel';
 import { TableToolbar } from './components/toolbar';
 import { useInlineConflictWarning, useResolvedColumns, useTableUrlAdapter } from './hooks';
+import { useRowSelection } from './selection';
 import type { RowData, TableClientProps } from './types';
 import { detectToolbar, toolbarPropsFrom } from './utils';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -34,7 +35,7 @@ import { cn } from '@datum-cloud/datum-ui/utils';
  *
  * Key behaviors:
  * - `inline` and `onRowClick` are mutually exclusive; `inline` wins.
- * - `enableRowSelection` is derived from `!!multiActions?.length`.
+ * - `enableRowSelection` is derived from `multiActions` and `isRowSelectable`.
  * - Sticky-right actions column is styled by `app/styles/custom.css`
  *   targeting `[data-slot='dt-cell']:has([data-slot='dt-row-actions'])` —
  *   no per-cell className plumbing here.
@@ -42,6 +43,7 @@ import { cn } from '@datum-cloud/datum-ui/utils';
  */
 export function TableClient<TData extends RowData>(props: TableClientProps<TData>) {
   const stateAdapter = useTableUrlAdapter(props.urlSync ?? true, props.filterParsers);
+  const rowSelection = useRowSelection(!!props.multiActions?.length, props.isRowSelectable);
   const columns = useResolvedColumns(props.columns, props.rowActions, {
     hideRowActions: props.hideRowActions,
     disableRowActions: props.disableRowActions,
@@ -61,7 +63,7 @@ export function TableClient<TData extends RowData>(props: TableClientProps<TData
       columns={columns}
       data={props.data}
       getRowId={props.getRowId}
-      enableRowSelection={!!props.multiActions?.length}
+      enableRowSelection={rowSelection}
       loading={props.loading}
       pageSize={props.pageSize}
       searchableColumns={props.searchableColumns}
