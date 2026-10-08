@@ -4,7 +4,6 @@ import {
   type BackendFormDialogRef,
 } from '@/features/edge/proxy/backends/backend-form-dialog';
 import {
-  SHOW_HEALTH_CHECKS,
   addBackendBlockReason,
   hostOverrideConflict,
   poolLockReason,
@@ -206,9 +205,7 @@ export default function HttpProxyBackendsPage() {
         </>
       )}
 
-      {SHOW_HEALTH_CHECKS ? (
-        <HttpProxyHealthChecksCard proxy={current} projectId={projectId} lockReason={lockReason} />
-      ) : null}
+      <HttpProxyHealthChecksCard proxy={current} projectId={projectId} lockReason={lockReason} />
 
       <BackendFormDialog ref={dialogRef} projectId={projectId} proxy={current} />
     </div>

@@ -3,11 +3,7 @@ import { StatusChip } from '@/components/card/status-chip';
 import { ValueRow } from '@/components/card/value-row';
 import { OsIcon, getOsLabel } from '@/components/icon/os-icon';
 import { StatusPulseDot } from '@/components/status-pulse-dot';
-import {
-  SHOW_HEALTH_CHECKS,
-  algorithmLabel,
-  poolLockReason,
-} from '@/features/edge/proxy/backends/backend-pool';
+import { algorithmLabel, poolLockReason } from '@/features/edge/proxy/backends/backend-pool';
 import { summarizeBackends } from '@/features/edge/proxy/overview/backend-summary';
 import { useResolvedComputeWorkload } from '@/features/edge/proxy/overview/use-network-service';
 import { usePoolBackends } from '@/features/edge/proxy/overview/use-pool-backends';
@@ -215,7 +211,7 @@ export const HttpProxyOriginsCard = ({
         {multiBackend ? (
           <CardDescription className="flex flex-wrap items-center gap-1.5 text-xs">
             <span>{algorithmLabel(proxy?.loadBalancer)}</span>
-            {SHOW_HEALTH_CHECKS && proxy?.healthCheck?.passive ? (
+            {proxy?.healthCheck?.passive ? (
               <>
                 <span aria-hidden="true">·</span>
                 <span>Passive health checks</span>
