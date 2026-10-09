@@ -17,9 +17,8 @@ import {
 } from '@/modules/metrics';
 import { usePermission } from '@/modules/rbac';
 import { ControlPlaneStatus } from '@/resources/base';
-import { useHttpProxy } from '@/resources/http-proxies';
+import { getHttpProxyStatus, useHttpProxy } from '@/resources/http-proxies';
 import { useLocations, useLocationsWatch } from '@/resources/locations';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { lazyWithRetry } from '@/utils/helpers/lazy-with-retry';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
@@ -305,7 +304,7 @@ export const ActivePopsCard = ({
 
   const isProxyPending = useMemo(() => {
     if (!proxy?.status) return true;
-    const transformedStatus = transformControlPlaneStatus(proxy.status);
+    const transformedStatus = getHttpProxyStatus(proxy.status);
     return transformedStatus.status === ControlPlaneStatus.Pending;
   }, [proxy?.status]);
 

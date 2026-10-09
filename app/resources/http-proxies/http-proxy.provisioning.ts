@@ -4,6 +4,7 @@ import {
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
   getDnsRecordProgrammedCondition,
+  getHttpProxyStatus,
   getBlockedHostnames,
   getHostnameOwnershipDisplay,
   isHeldBackByCustomHostnames,
@@ -12,7 +13,6 @@ import {
 } from './http-proxy.conditions';
 import type { HttpProxy } from './http-proxy.schema';
 import { ControlPlaneStatus } from '@/resources/base';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 
 /** How often to re-GET an HTTPProxy while certificates/DNS/programming are still in flight. */
 export const HTTP_PROXY_PROVISIONING_POLL_MS = 4000;
@@ -30,7 +30,7 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
   const heldBack = isHeldBackByCustomHostnames(proxy);
 
   if (!heldBack) {
-    if (transformControlPlaneStatus(proxy.status).status === ControlPlaneStatus.Pending) {
+    if (getHttpProxyStatus(proxy.status).status === ControlPlaneStatus.Pending) {
       return true;
     }
     if (getCertificatesReadyDisplay(getCertificatesReadyCondition(proxy.status)) === 'pending') {

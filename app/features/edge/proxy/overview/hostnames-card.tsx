@@ -30,9 +30,9 @@ import {
   isHeldBackByCustomHostnames,
   isHostnameDnsInFlight,
   useUpdateHttpProxy,
+  getHttpProxyStatus,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button, LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@datum-cloud/datum-ui/card';
@@ -227,7 +227,7 @@ export const HttpProxyHostnamesCard = ({
 
   const systemHostname = proxy?.canonicalHostname ?? proxy?.status?.hostnames?.[0];
   const proxyStatus = useMemo(
-    () => (proxy?.status ? transformControlPlaneStatus(proxy.status) : undefined),
+    () => (proxy?.status ? getHttpProxyStatus(proxy.status) : undefined),
     [proxy?.status]
   );
   // A held-back custom hostname keeps the ALB "not programmed" as a whole, but

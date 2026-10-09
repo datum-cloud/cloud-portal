@@ -36,11 +36,11 @@ import {
   formatWafProtectionDisplay,
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
+  getHttpProxyStatus,
 } from '@/resources/http-proxies';
 import { useNetworkServices } from '@/resources/network-services';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { createProjectListClientLoaderFromQueryKey } from '@/utils/helpers/project-list-client-loader';
 import { skipRevalidateWithinSameProject } from '@/utils/helpers/revalidate.helper';
@@ -217,7 +217,7 @@ function HttpProxyInner({ initialProxies }: { initialProxies: HttpProxy[] }) {
         accessorKey: 'status',
         cell: ({ row }) => {
           if (!row.original.status) return null;
-          const transformedStatus = transformControlPlaneStatus(row.original.status);
+          const transformedStatus = getHttpProxyStatus(row.original.status);
           const certCondition = getCertificatesReadyCondition(row.original?.status);
           const certDisplay = getCertificatesReadyDisplay(certCondition);
           return (
