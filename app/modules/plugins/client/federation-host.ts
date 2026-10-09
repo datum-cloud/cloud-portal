@@ -15,15 +15,36 @@
  */
 import { parseCodeRef, pickCodeRefExport } from './code-ref';
 import * as DatumUiBadge from '@datum-cloud/datum-ui/badge';
+import * as DatumUiBreadcrumb from '@datum-cloud/datum-ui/breadcrumb';
 import * as DatumUiButton from '@datum-cloud/datum-ui/button';
 import * as DatumUiCard from '@datum-cloud/datum-ui/card';
+import * as DatumUiCheckbox from '@datum-cloud/datum-ui/checkbox';
+import * as DatumUiDataTable from '@datum-cloud/datum-ui/data-table';
+import * as DatumUiDateTime from '@datum-cloud/datum-ui/date-time';
+import * as DatumUiDialog from '@datum-cloud/datum-ui/dialog';
+import * as DatumUiDropdown from '@datum-cloud/datum-ui/dropdown';
 import * as DatumUiEmptyContent from '@datum-cloud/datum-ui/empty-content';
+import * as DatumUiGroupedTable from '@datum-cloud/datum-ui/grouped-table';
+import * as DatumUiHooks from '@datum-cloud/datum-ui/hooks';
 import * as DatumUiIcons from '@datum-cloud/datum-ui/icons';
+import * as DatumUiInput from '@datum-cloud/datum-ui/input';
+import * as DatumUiInputGroup from '@datum-cloud/datum-ui/input-group';
+import * as DatumUiLabel from '@datum-cloud/datum-ui/label';
 import * as DatumUiLogs from '@datum-cloud/datum-ui/logs';
+import * as DatumUiMultiSelect from '@datum-cloud/datum-ui/multi-select';
+import * as DatumUiPageTitle from '@datum-cloud/datum-ui/page-title';
+import * as DatumUiPicker from '@datum-cloud/datum-ui/picker';
+import * as DatumUiPopover from '@datum-cloud/datum-ui/popover';
 import * as DatumUiSelect from '@datum-cloud/datum-ui/select';
 import * as DatumUiSeparator from '@datum-cloud/datum-ui/separator';
 import * as DatumUiSkeleton from '@datum-cloud/datum-ui/skeleton';
+import * as DatumUiSpinner from '@datum-cloud/datum-ui/spinner';
 import * as DatumUiTable from '@datum-cloud/datum-ui/table';
+import * as DatumUiTabs from '@datum-cloud/datum-ui/tabs';
+import * as DatumUiToast from '@datum-cloud/datum-ui/toast';
+import * as DatumUiTooltip from '@datum-cloud/datum-ui/tooltip';
+import * as DatumUiTypography from '@datum-cloud/datum-ui/typography';
+import * as DatumUiUtils from '@datum-cloud/datum-ui/utils';
 import * as PortalPluginSdk from '@datum-cloud/portal-plugin-sdk';
 import { init, loadRemote, registerRemotes } from '@module-federation/runtime';
 import * as ReactQuery from '@tanstack/react-query';
@@ -52,15 +73,47 @@ const HOST_NAME = 'datum-portal-host';
  */
 const DATUM_UI_SHARED: Record<string, unknown> = {
   '@datum-cloud/datum-ui/badge': DatumUiBadge,
+  '@datum-cloud/datum-ui/breadcrumb': DatumUiBreadcrumb,
   '@datum-cloud/datum-ui/button': DatumUiButton,
   '@datum-cloud/datum-ui/card': DatumUiCard,
+  '@datum-cloud/datum-ui/checkbox': DatumUiCheckbox,
+  '@datum-cloud/datum-ui/data-table': DatumUiDataTable,
+  '@datum-cloud/datum-ui/date-time': DatumUiDateTime,
+  '@datum-cloud/datum-ui/dialog': DatumUiDialog,
+  '@datum-cloud/datum-ui/dropdown': DatumUiDropdown,
   '@datum-cloud/datum-ui/empty-content': DatumUiEmptyContent,
+  '@datum-cloud/datum-ui/grouped-table': DatumUiGroupedTable,
+  '@datum-cloud/datum-ui/hooks': DatumUiHooks,
   '@datum-cloud/datum-ui/icons': DatumUiIcons,
+  '@datum-cloud/datum-ui/input': DatumUiInput,
+  '@datum-cloud/datum-ui/input-group': DatumUiInputGroup,
+  '@datum-cloud/datum-ui/label': DatumUiLabel,
   '@datum-cloud/datum-ui/logs': DatumUiLogs,
+  '@datum-cloud/datum-ui/multi-select': DatumUiMultiSelect,
+  '@datum-cloud/datum-ui/page-title': DatumUiPageTitle,
+  '@datum-cloud/datum-ui/picker': DatumUiPicker,
+  '@datum-cloud/datum-ui/popover': DatumUiPopover,
   '@datum-cloud/datum-ui/select': DatumUiSelect,
   '@datum-cloud/datum-ui/separator': DatumUiSeparator,
   '@datum-cloud/datum-ui/skeleton': DatumUiSkeleton,
+  '@datum-cloud/datum-ui/spinner': DatumUiSpinner,
   '@datum-cloud/datum-ui/table': DatumUiTable,
+  '@datum-cloud/datum-ui/tabs': DatumUiTabs,
+  '@datum-cloud/datum-ui/toast': DatumUiToast,
+  '@datum-cloud/datum-ui/tooltip': DatumUiTooltip,
+  '@datum-cloud/datum-ui/typography': DatumUiTypography,
+  '@datum-cloud/datum-ui/utils': DatumUiUtils,
+};
+
+/**
+ * Subpaths too heavy to put in the host's plugin bundle (the Monaco editor,
+ * recharts, the assistant's chat stack). They are still host-backed singletons,
+ * but load only when a plugin first imports one.
+ */
+const DATUM_UI_SHARED_LAZY: Record<string, () => Promise<unknown>> = {
+  '@datum-cloud/datum-ui/assistant': () => import('@datum-cloud/datum-ui/assistant'),
+  '@datum-cloud/datum-ui/chart': () => import('@datum-cloud/datum-ui/chart'),
+  '@datum-cloud/datum-ui/code-editor': () => import('@datum-cloud/datum-ui/code-editor'),
 };
 
 /**
@@ -123,6 +176,16 @@ function hostShared() {
           version: '1.0.0',
           lib: () => mod,
           shareConfig: { singleton: true, requiredVersion: false as const, eager: true },
+        },
+      ])
+    ),
+    ...Object.fromEntries(
+      Object.entries(DATUM_UI_SHARED_LAZY).map(([specifier, load]) => [
+        specifier,
+        {
+          version: '1.0.0',
+          get: () => load().then((mod) => () => mod),
+          shareConfig: { singleton: true, requiredVersion: false as const },
         },
       ])
     ),
