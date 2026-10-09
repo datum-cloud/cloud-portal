@@ -35,6 +35,26 @@ describe('isHttpProxyProvisioning', () => {
     ).toBe(true);
   });
 
+  test('is false once the operator rejects the proxy as invalid', () => {
+    expect(
+      isHttpProxyProvisioning(
+        proxy({
+          status: {
+            conditions: [
+              {
+                type: 'Accepted',
+                status: 'False',
+                reason: 'DerivedResourceInvalid',
+                message: 'rejected',
+              },
+              { type: 'Programmed', status: 'False', reason: 'Pending', message: 'wait' },
+            ],
+          },
+        })
+      )
+    ).toBe(false);
+  });
+
   test('is true while a hostname certificate is still issuing', () => {
     expect(
       isHttpProxyProvisioning(

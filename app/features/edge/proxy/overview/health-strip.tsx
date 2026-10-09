@@ -4,6 +4,7 @@ import { useResolvedComputeWorkload } from './use-network-service';
 import { usePoolBackends } from './use-pool-backends';
 import type { BackendRow } from '@/features/edge/proxy/backends/backend-pool';
 import { requestWildcardHostnames } from '@/features/edge/proxy/utils/request-wildcards';
+import { useCopyToClipboard } from '@/hooks/useCopyToClipboard';
 import { ControlPlaneStatus } from '@/resources/base';
 import {
   type HttpProxy,
@@ -14,9 +15,9 @@ import {
   getCertificateReadyDisplay,
   getCertificatesReadyCondition,
   getCertificatesReadyDisplay,
+  getHttpProxyStatus,
 } from '@/resources/http-proxies';
 import { paths } from '@/utils/config/paths.config';
-import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
@@ -25,7 +26,9 @@ import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import {
+  CheckIcon,
   CircleCheckIcon,
+  CopyIcon,
   GlobeIcon,
   LifeBuoyIcon,
   SettingsIcon,
@@ -110,7 +113,8 @@ export function HttpProxyHealthStrip({
   wafUnavailable,
   idle = false,
 }: HttpProxyHealthStripProps) {
-  const status = useMemo(() => transformControlPlaneStatus(proxy.status), [proxy.status]);
+  const status = useMemo(() => getHttpProxyStatus(proxy.status), [proxy.status]);
+  const [, copy, isCopied] = useCopyToClipboard();
   const certDisplay = useMemo(
     () => getCertificatesReadyDisplay(getCertificatesReadyCondition(proxy.status)),
     [proxy.status]
@@ -228,6 +232,30 @@ export function HttpProxyHealthStrip({
           ),
         };
       default: {
+        if (status.retryRef) {
+          const { retryRef } = status;
+          return {
+            icon: <SpinnerIcon size="sm" aria-hidden="true" />,
+            title: 'Retrying after an internal error',
+            detail:
+              "Datum retries automatically. If it doesn't clear, send support this reference.",
+            ring: 'bg-(--color-badge-warning)/10',
+            action: (
+              <button
+                type="button"
+                className="inline-flex cursor-pointer"
+                data-e2e="alb-health-copy-retry-ref"
+                onClick={() => copy(retryRef, { withToast: true })}>
+                <Chip
+                  tone="muted"
+                  icon={isCopied(retryRef) ? CheckIcon : CopyIcon}
+                  tooltip="Copy the reference for Datum support">
+                  {retryRef}
+                </Chip>
+              </button>
+            ),
+          };
+        }
         // Programming waits on these, so name them rather than spin.
         const { wildcardsNotEnabled, ownershipBlocked, awaitingDns } = blocked;
         if (awaitingDns.length > 0 && wildcardsNotEnabled.length + ownershipBlocked.length === 0) {

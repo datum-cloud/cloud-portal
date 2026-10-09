@@ -159,6 +159,7 @@ export {
   getUserDnsRecords,
   getRecordsToPublish,
   getActionableRecordsToPublish,
+  getHttpProxyStatus,
 } from './http-proxy.conditions';
 export type {
   CertificatesReadyReasonType,
@@ -166,6 +167,7 @@ export type {
   DnsRecordProgrammedReasonType,
   ConditionLike,
   HttpProxyStatusLike,
+  HttpProxyStatus,
   HostnameStatusLike,
   HostnameDnsRecordLike,
   HostnameOwnershipDisplay,

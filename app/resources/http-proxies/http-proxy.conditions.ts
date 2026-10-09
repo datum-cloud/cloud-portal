@@ -3,6 +3,8 @@
  * Aligns with network-services-operator PR: hostname and proxy status conditions for TLS cert health.
  * @see https://github.com/datum-cloud/network-services-operator/pull/115
  */
+import { ControlPlaneStatus, type IExtendedControlPlaneStatus } from '@/resources/base';
+import { transformControlPlaneStatus } from '@/utils/helpers/control-plane.helper';
 import {
   formatAlbHostnameDnsConflict,
   formatDnsError,
@@ -46,6 +48,37 @@ export type ConditionLike = {
 };
 
 export type HttpProxyStatusLike = { conditions?: ConditionLike[] };
+
+/** Accepted=False reasons that no amount of waiting will fix; the user has to edit the proxy. */
+const HTTP_PROXY_TERMINAL_ACCEPTED_REASONS = new Set(['Invalid', 'DerivedResourceInvalid']);
+
+/** The operator's Programmed message while it retries an internal error. */
+const HTTP_PROXY_RETRY_REF = /internal error and will be retried \(ref: ([0-9a-f]{8})\)/;
+
+export type HttpProxyStatus = IExtendedControlPlaneStatus & {
+  /** Support reference while the operator retries after an internal error. */
+  retryRef?: string;
+};
+
+/**
+ * Proxy-aware status: an Accepted rejection the user must fix is Error rather
+ * than Pending, and an internal-error retry keeps Pending with its reference.
+ */
+export function getHttpProxyStatus(status?: HttpProxyStatusLike | null): HttpProxyStatus {
+  const base = transformControlPlaneStatus(status);
+  const conditions = status?.conditions ?? [];
+
+  const accepted = conditions.find((condition) => condition.type === 'Accepted');
+  if (accepted?.status === 'False' && HTTP_PROXY_TERMINAL_ACCEPTED_REASONS.has(accepted.reason)) {
+    return { ...base, status: ControlPlaneStatus.Error, message: accepted.message };
+  }
+
+  if (base.status !== ControlPlaneStatus.Pending) return base;
+
+  const programmed = conditions.find((condition) => condition.type === 'Programmed');
+  const retryRef = programmed?.message?.match(HTTP_PROXY_RETRY_REF)?.[1];
+  return retryRef ? { ...base, retryRef } : base;
+}
 
 export type HostnameDnsRecordLike = {
   name: string;

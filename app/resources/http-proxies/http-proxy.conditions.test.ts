@@ -4,6 +4,7 @@ import {
   isHeldBackByCustomHostnames,
   getCertificateReadyDisplay,
   getDnsRecordProgrammedIssue,
+  getHttpProxyStatus,
   getHostnameOwnershipDisplay,
   getRecordsToPublish,
   getUserDnsRecords,
@@ -11,6 +12,7 @@ import {
   isHostnameDnsInFlight,
   isHostnameOwnershipBlocked,
 } from './http-proxy.conditions';
+import { ControlPlaneStatus } from '@/resources/base';
 import { describe, expect, test } from 'bun:test';
 
 const WRAPPED_ALIAS =
@@ -427,5 +429,69 @@ describe('isHeldBackByCustomHostnames: a certificate waiting on the user', () =>
     };
     expect(getBlockedHostnames(proxy).awaitingDns).toEqual(['*.wild.example.com']);
     expect(isHeldBackByCustomHostnames(proxy)).toBe(true);
+  });
+});
+
+describe('getHttpProxyStatus', () => {
+  const programmedPending = {
+    type: 'Programmed',
+    status: 'False' as const,
+    reason: 'Pending',
+    message: 'Waiting for the proxy to be programmed',
+  };
+
+  test.each(['Invalid', 'DerivedResourceInvalid'])(
+    'fails a proxy whose Accepted reason is %s, with the condition message',
+    (reason) => {
+      const result = getHttpProxyStatus({
+        conditions: [
+          { type: 'Accepted', status: 'False', reason, message: 'spec.rules[0] is invalid' },
+          programmedPending,
+        ],
+      });
+      expect(result.status).toBe(ControlPlaneStatus.Error);
+      expect(result.message).toBe('spec.rules[0] is invalid');
+      expect(result.retryRef).toBeUndefined();
+    }
+  );
+
+  test('keeps a retrying proxy pending and exposes the support reference', () => {
+    const result = getHttpProxyStatus({
+      conditions: [
+        { type: 'Accepted', status: 'True', reason: 'Accepted', message: '' },
+        {
+          ...programmedPending,
+          message:
+            'The HTTPProxy could not be programmed due to an internal error and will be retried (ref: 1a2b3c4d)',
+        },
+      ],
+    });
+    expect(result.status).toBe(ControlPlaneStatus.Pending);
+    expect(result.retryRef).toBe('1a2b3c4d');
+  });
+
+  test('leaves a proxy that is still provisioning pending', () => {
+    const result = getHttpProxyStatus({
+      conditions: [
+        { type: 'Accepted', status: 'True', reason: 'Accepted', message: '' },
+        programmedPending,
+      ],
+    });
+    expect(result.status).toBe(ControlPlaneStatus.Pending);
+    expect(result.retryRef).toBeUndefined();
+  });
+
+  test('does not fail on other Accepted=False reasons', () => {
+    const result = getHttpProxyStatus({
+      conditions: [
+        { type: 'Accepted', status: 'False', reason: 'Pending', message: 'Waiting' },
+        programmedPending,
+      ],
+    });
+    expect(result.status).toBe(ControlPlaneStatus.Pending);
+  });
+
+  test('treats a missing status as pending', () => {
+    expect(getHttpProxyStatus(undefined).status).toBe(ControlPlaneStatus.Pending);
   });
 });
