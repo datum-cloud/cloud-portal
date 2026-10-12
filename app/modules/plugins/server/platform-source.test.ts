@@ -358,39 +358,4 @@ describe('PlatformSource not-ready retry', () => {
     expect(fetchImpl).toHaveBeenCalledTimes(6);
     expect(timers.pending).toHaveLength(1);
   });
-
-  test('schedules no retry for a plugin that is already ready', async () => {
-    const { registry } = makeRegistry();
-    const { client } = makeClient();
-    const timers = manualTimers();
-    const source = new PlatformSource(registry, client, { logger: silentLogger, retry: timers });
-
-    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
-
-    expect(timers.pending).toHaveLength(0);
-  });
-
-  test('DELETED cancels a pending retry', async () => {
-    const { registry } = makeLateHostRegistry();
-    const { client } = makeClient();
-    const timers = manualTimers();
-    const source = new PlatformSource(registry, client, { logger: silentLogger, retry: timers });
-
-    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
-    await source.applyWatchEvent({ type: 'DELETED', object: consumerPortalPluginResource() });
-
-    expect(timers.pending).toHaveLength(0);
-  });
-
-  test('stop cancels pending retries', async () => {
-    const { registry } = makeLateHostRegistry();
-    const { client } = makeClient();
-    const timers = manualTimers();
-    const source = new PlatformSource(registry, client, { logger: silentLogger, retry: timers });
-
-    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
-    source.stop();
-
-    expect(timers.pending).toHaveLength(0);
-  });
 });

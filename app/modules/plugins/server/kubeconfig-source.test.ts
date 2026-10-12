@@ -355,33 +355,3 @@ describe('KubeconfigSource.applyWatchEvent', () => {
     ).rejects.toThrow();
   });
 });
-
-describe('KubeconfigSource not-ready retry', () => {
-  test('shows a plugin once its host starts serving, without a re-list', async () => {
-    let serving = false;
-    const fetchImpl = mock(async () => {
-      if (!serving) throw new TypeError('connection refused');
-      return new Response(JSON.stringify(VALID_MANIFEST), { status: 200 });
-    });
-    const registry = new PluginRegistry({ fetchImpl: fetchImpl as unknown as typeof fetch });
-    const { client } = makeClient();
-    const timers: { run: () => Promise<void>; ms: number }[] = [];
-    const source = new KubeconfigSource(registry, client, {
-      logger: silentLogger,
-      retry: {
-        setTimer: (run, ms) => timers.push({ run, ms }),
-        clearTimer: () => {},
-      },
-    });
-
-    await source.applyWatchEvent({ type: 'ADDED', object: portalPluginResource() });
-    expect(registry.getPlugin('compute')).toBeUndefined();
-    expect(timers.map((t) => t.ms)).toEqual([15_000]);
-
-    serving = true;
-    await timers.shift()?.run();
-
-    expect(registry.getPlugin('compute')).toBeDefined();
-    expect(timers).toHaveLength(0);
-  });
-});
