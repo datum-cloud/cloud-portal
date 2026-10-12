@@ -16,7 +16,6 @@ spec:
     # server-side by the portal's asset proxy, so plain http://localhost is fine.
     baseURL: http://localhost:7777
     manifestPath: /plugin-manifest.json
-    caBundle: ""
   visibility:
     # None: no ServiceEntitlement exists for a service that isn't in the remote
     # catalog, so the local sample must not be entitlement-gated.
