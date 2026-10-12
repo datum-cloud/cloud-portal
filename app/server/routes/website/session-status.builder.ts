@@ -59,7 +59,7 @@ export async function buildSessionStatus(
 ): Promise<SessionStatus> {
   const now = deps.now ?? Date.now;
   const deadline = now() + deps.timeoutMs;
-  const onboardingUrl = `${deps.appUrl}${paths.onboarding.root}`;
+  const organizationsUrl = `${deps.appUrl}${paths.account.organizations.root}`;
 
   const [rawUser, orgs] = await Promise.all([
     settle(deps.getUser(sub), deps.timeoutMs),
@@ -78,7 +78,7 @@ export async function buildSessionStatus(
   const org = rawOrg ? { name: rawOrg.name, displayName: rawOrg.displayName } : undefined;
 
   if (!org) {
-    return { signedIn: true, user, dashboardUrl: onboardingUrl, state: 'new' };
+    return { signedIn: true, user, dashboardUrl: organizationsUrl, state: 'new' };
   }
 
   const projectsUrl = `${deps.appUrl}${getPathWithParams(paths.org.detail.projects.root, { orgId: org.name })}`;
@@ -96,7 +96,7 @@ export async function buildSessionStatus(
       signedIn: true,
       user,
       org: orgWithProjects,
-      dashboardUrl: onboardingUrl,
+      dashboardUrl: `${projectsUrl}?action=create`,
       state: 'new',
     };
   }
