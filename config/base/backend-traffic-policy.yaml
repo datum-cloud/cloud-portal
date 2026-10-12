@@ -14,6 +14,19 @@ spec:
       brotli: {}
     - type: Gzip
       gzip: {}
+  # Retry only failures where the request never reached the portal. `reset`
+  # is left out on purpose: it would also retry a POST the portal had already
+  # started handling when its pod died, which can submit it twice.
+  retry:
+    numRetries: 2
+    perRetry:
+      backOff:
+        baseInterval: 100ms
+        maxInterval: 1s
+    retryOn:
+      triggers:
+        - connect-failure
+        - refused-stream
   tcpKeepalive:
     idleTime: 60s
     interval: 15s
@@ -21,4 +34,7 @@ spec:
   timeout:
     http:
       requestTimeout: "0s"
-      connectionIdleTimeout: 300s
+      # Must stay below the portal's Bun idleTimeout (75s, in
+      # observability/start.js) so Envoy closes idle upstream connections
+      # before Bun does.
+      connectionIdleTimeout: 60s
