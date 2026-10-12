@@ -16,6 +16,8 @@ import {
   type PortalPluginSpec,
 } from '../types';
 import type { KubeClient } from './kubeconfig';
+import { isReady } from './manifest-pipeline';
+import { NotReadyRetry, type NotReadyRetryOptions } from './not-ready-retry';
 import type { PluginRegistry } from './registry';
 
 interface PortalPluginConditionResource {
@@ -93,6 +95,8 @@ export interface KubeconfigSourceOptions {
   logger?: Pick<Console, 'warn' | 'info' | 'error'>;
   /** Injectable delay for tests. */
   delay?: (ms: number) => Promise<void>;
+  /** Backoff and timers for retrying plugins that resolved as not Ready. */
+  retry?: NotReadyRetryOptions;
 }
 
 /**
@@ -190,6 +194,9 @@ export class KubeconfigSource {
    * without depending on the apiserver's generation-bump semantics.
    */
   private readonly lastSpecKey = new Map<string, string>();
+  /** Resource name → the latest copy seen, so a retry reconciles current state. */
+  private readonly lastResource = new Map<string, PortalPluginResource>();
+  private readonly notReadyRetry: NotReadyRetry;
   private stopped = false;
 
   constructor(registry: PluginRegistry, client: KubeClient, options: KubeconfigSourceOptions = {}) {
@@ -198,6 +205,11 @@ export class KubeconfigSource {
     this.patchStatusEnabled = options.patchStatus ?? true;
     this.logger = options.logger ?? console;
     this.delay = options.delay ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+    this.notReadyRetry = new NotReadyRetry(
+      (name) => this.retryResource(name),
+      this.logger,
+      options.retry
+    );
   }
 
   /** Starts the list+watch loop in the background (does not block boot). */
@@ -208,6 +220,7 @@ export class KubeconfigSource {
   stop(): void {
     this.stopped = true;
     this.abort.abort();
+    this.notReadyRetry.stop();
   }
 
   private async listAndWatchLoop(): Promise<void> {
@@ -255,8 +268,7 @@ export class KubeconfigSource {
     for (const [name, slug] of [...this.nameToSlug]) {
       if (!seenSlugs.has(slug)) {
         this.registry.remove('kubeconfig', slug);
-        this.nameToSlug.delete(name);
-        this.lastSpecKey.delete(name);
+        this.forgetResource(name);
       }
     }
 
@@ -323,10 +335,7 @@ export class KubeconfigSource {
         const name = event.object?.metadata?.name;
         const slug = event.object?.spec?.slug ?? (name ? this.nameToSlug.get(name) : undefined);
         if (slug) this.registry.remove('kubeconfig', slug);
-        if (name) {
-          this.nameToSlug.delete(name);
-          this.lastSpecKey.delete(name);
-        }
+        if (name) this.forgetResource(name);
         return;
       }
       case 'BOOKMARK':
@@ -359,7 +368,10 @@ export class KubeconfigSource {
       return undefined;
     }
 
-    if (name) this.nameToSlug.set(name, spec.slug);
+    if (name) {
+      this.nameToSlug.set(name, spec.slug);
+      this.lastResource.set(name, resource);
+    }
 
     // Skip when the spec is byte-identical to the last one we applied.
     const specKey = JSON.stringify(spec);
@@ -368,7 +380,10 @@ export class KubeconfigSource {
     }
 
     const entry = await this.registry.upsert('kubeconfig', spec, false);
-    if (name !== undefined) this.lastSpecKey.set(name, specKey);
+    if (name !== undefined) {
+      this.lastSpecKey.set(name, specKey);
+      this.notReadyRetry.track(name, isReady(entry.status));
+    }
 
     if (this.patchStatusEnabled && name) {
       await this.patchStatus(
@@ -379,6 +394,19 @@ export class KubeconfigSource {
       );
     }
     return spec.slug;
+  }
+
+  /** Re-runs the manifest pipeline for a resource that last resolved as not Ready. */
+  private async retryResource(name: string): Promise<void> {
+    const resource = this.lastResource.get(name);
+    if (resource && !this.stopped) await this.reconcile(resource, true);
+  }
+
+  private forgetResource(name: string): void {
+    this.nameToSlug.delete(name);
+    this.lastSpecKey.delete(name);
+    this.lastResource.delete(name);
+    this.notReadyRetry.forget(name);
   }
 
   /**
