@@ -91,6 +91,11 @@ function startServer(module) {
       port: module.default.port,
       fetch: fetchWithDrain,
       development: module.default.development,
+      // Must stay above the gateway's upstream connectionIdleTimeout (60s, in
+      // the infra repo's cloud-portal BackendTrafficPolicy) so Envoy, not Bun,
+      // closes idle keep-alive connections. Bun's 10s default let Envoy reuse
+      // a connection Bun was closing, failing the request before headers.
+      idleTimeout: 75,
     });
     console.log(`✅ Server started successfully on port ${module.default.port}`);
   } else {
