@@ -2,7 +2,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 
 /**
- * Selector Reference — Organisations
+ * Selector Reference — Organizations
  *
  * List page
  * [data-e2e="organization-card"]              Org row (typeless — new unified orgs)
@@ -49,7 +49,7 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * [data-e2e="confirmation-dialog-cancel"]     Cancel button
  */
 
-describe('Organisations — regression', () => {
+describe('Organizations — regression', () => {
   const testName = `e2e-test-org-${Date.now()}`;
   const updatedName = `${testName}-updated`;
   let resourceId = '';
@@ -74,7 +74,7 @@ describe('Organisations — regression', () => {
     cy.login();
   });
 
-  it('should appear in the organisations list after creation', () => {
+  it('should appear in the organizations list after creation', () => {
     // The org exists (createStandardOrg waited for the /org/:id redirect), but the
     // account-level org LIST is eventually consistent — the new org can take a few
     // seconds to show up, longer when the account already has many orgs. Reload the
