@@ -85,7 +85,7 @@ const isOnboardingPath = (pathname: string): boolean =>
   pathname === paths.onboarding.root || pathname.startsWith(`${paths.onboarding.root}/`);
 
 // Settings paths the user should always be able to reach, even before they
-// have an organisation (e.g. to change their name, delete their account, or
+// have an organization (e.g. to change their name, delete their account, or
 // manage sessions). Derived from the paths config so additions there are
 // automatically included here.
 const ACCOUNT_SETTINGS_PATHS = new Set(Object.values(paths.account.settings));
