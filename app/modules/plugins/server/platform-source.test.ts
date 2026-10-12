@@ -288,3 +288,74 @@ describe('PlatformSource.applyWatchEvent', () => {
     ).rejects.toThrow();
   });
 });
+
+/** A registry whose plugin host refuses connections until `setServing(true)`. */
+function makeLateHostRegistry() {
+  let serving = false;
+  const fetchImpl = mock(async () => {
+    if (!serving) throw new TypeError('connection refused');
+    return new Response(JSON.stringify(VALID_MANIFEST), { status: 200 });
+  });
+  const registry = new PluginRegistry({ fetchImpl: fetchImpl as unknown as typeof fetch });
+  return { registry, fetchImpl, setServing: (value: boolean) => (serving = value) };
+}
+
+/** Timers the test fires by hand, so retries run without waiting. */
+function manualTimers() {
+  const pending: { run: () => Promise<void>; ms: number }[] = [];
+  return {
+    pending,
+    setTimer: (run: () => Promise<void>, ms: number) => {
+      const timer = { run, ms };
+      pending.push(timer);
+      return timer;
+    },
+    clearTimer: (timer: unknown) => {
+      const index = pending.indexOf(timer as (typeof pending)[number]);
+      if (index >= 0) pending.splice(index, 1);
+    },
+    fireNext: async () => {
+      const timer = pending.shift();
+      if (timer) await timer.run();
+    },
+  };
+}
+
+describe('PlatformSource not-ready retry', () => {
+  test('shows a plugin once its host starts serving, without a re-list', async () => {
+    const { registry, setServing } = makeLateHostRegistry();
+    const { client, calls } = makeClient();
+    const timers = manualTimers();
+    const source = new PlatformSource(registry, client, { logger: silentLogger, retry: timers });
+
+    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
+    expect(registry.getPlugin('compute')).toBeUndefined();
+    expect(timers.pending.map((t) => t.ms)).toEqual([15_000]);
+
+    setServing(true);
+    await timers.fireNext();
+
+    expect(registry.getPlugin('compute')).toBeDefined();
+    expect(timers.pending).toHaveLength(0);
+    const ready = readyConditions(String(calls.at(-1)?.init.body)).find((c) => c.type === 'Ready');
+    expect(ready.status).toBe('True');
+  });
+
+  test('backs off to a two-minute cap while the host stays down', async () => {
+    const { registry, fetchImpl } = makeLateHostRegistry();
+    const { client } = makeClient();
+    const timers = manualTimers();
+    const source = new PlatformSource(registry, client, { logger: silentLogger, retry: timers });
+
+    await source.applyWatchEvent({ type: 'ADDED', object: consumerPortalPluginResource() });
+    const delays: number[] = [];
+    for (let i = 0; i < 5; i++) {
+      delays.push(timers.pending[0].ms);
+      await timers.fireNext();
+    }
+
+    expect(delays).toEqual([15_000, 30_000, 60_000, 120_000, 120_000]);
+    expect(fetchImpl).toHaveBeenCalledTimes(6);
+    expect(timers.pending).toHaveLength(1);
+  });
+});
