@@ -67,7 +67,7 @@ export default function NotFound() {
               <Link to={paths.home}>
                 <Button size="small">
                   <Icon icon={BuildingIcon} className="size-4" />
-                  Organisation
+                  Organization
                 </Button>
               </Link>
               <Button
