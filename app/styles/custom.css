@@ -281,8 +281,15 @@
 [data-scroll-fade] {
   mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade)), transparent);
   animation: scroll-fade-out linear both;
-  animation-timeline: scroll(self);
-  animation-range: calc(100% - 3.5rem) 100%;
+}
+
+/* Kept in its own rule: in one rule, the build's minifier folds the timeline
+   into the `animation` shorthand, which browsers reject. */
+@supports (animation-timeline: scroll()) {
+  [data-scroll-fade] {
+    animation-timeline: scroll(self);
+    animation-range: calc(100% - 3.5rem) 100%;
+  }
 }
 
 /*
