@@ -1,4 +1,4 @@
-import { initializeObservability } from '../../observability';
+import { initializeObservability, shutdownObservability } from '../../observability';
 import {
   RESOURCE_METADATA_PATH,
   buildLinkHeader,
@@ -39,9 +39,22 @@ import { register } from 'prom-client';
 import { RouterContextProvider } from 'react-router';
 import { createHonoServer } from 'react-router-hono-server/bun';
 
+/**
+ * Upper bound on draining in-flight requests after SIGTERM. The adapter's
+ * `server.stop()` waits for every open response, including SSE streams, so
+ * exit anyway once this passes. Keep it under the pod's
+ * terminationGracePeriodSeconds (30s).
+ */
+const SHUTDOWN_TIMEOUT_MS = 25_000;
+
 let isShuttingDown = false;
 const beginShutdown = () => {
   isShuttingDown = true;
+  setTimeout(() => {
+    console.warn('⚠️ Shutdown timeout reached with requests still in-flight');
+    shutdownObservability();
+    process.exit(0);
+  }, SHUTDOWN_TIMEOUT_MS).unref();
   watchHub.shutdown();
   // After the hub, so the relay waits for the ownership releases it just sent.
   watchRelay.stop().catch((error: unknown) => {
@@ -231,11 +244,24 @@ app.get('/_readyz', (c) => {
   return c.json({ status: 'ready' });
 });
 
-// React Router SSR - must await createHonoServer for production build
-// Without await, serverModule.default is a Promise (no .fetch method)
-// which causes start.js to skip Bun.serve()
+// React Router SSR. In production the adapter calls Bun.serve() itself, so
+// this is the only server: observability/start.js must not start another.
 export default await createHonoServer({
   app,
+
+  customBunServer: {
+    // Must stay above the gateway's upstream connectionIdleTimeout (60s, in
+    // config/base/backend-traffic-policy.yaml) so Envoy, not Bun, closes idle
+    // keep-alive connections. Bun's 10s default let Envoy reuse a connection
+    // Bun was closing, failing the request before headers.
+    idleTimeout: 75,
+  },
+
+  // Also makes the adapter handle SIGTERM: it stops accepting connections,
+  // waits for in-flight requests, runs this, then exits.
+  onGracefulShutdown: () => {
+    shutdownObservability();
+  },
 
   getLoadContext: (c) => {
     // Values are set by global middleware chain:
