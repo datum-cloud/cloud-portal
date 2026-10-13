@@ -16,7 +16,7 @@ type ProjectDetailEnvelope = DslLoaderData<
 >;
 
 export const handle = {
-  breadcrumb: () => <span>Project Settings</span>,
+  breadcrumb: () => <span>Manage project</span>,
   path: (data?: ProjectDetailEnvelope) => {
     const projectName = data && !data.restricted ? data.data?.name : undefined;
     return getPathWithParams(paths.project.detail.settings.general, {
@@ -54,7 +54,7 @@ export default function ProjectSettingsLayout() {
   }, [project, billingEnabled]);
 
   return (
-    <SubLayout title="Project Settings" navItems={navItems}>
+    <SubLayout title="Manage project" navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

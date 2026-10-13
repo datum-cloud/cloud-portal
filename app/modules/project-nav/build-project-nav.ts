@@ -1,15 +1,17 @@
 /**
  * Build the project sidebar as service categories (Deliver / Build / Connect /
- * Observe) plus a collapsible Project Settings section, for enhancement #849.
+ * Observe) plus a collapsible Manage project section pinned to the bottom of
+ * the sidebar, for enhancement #849.
  * Service categories are always-open `group` sections; nested items with
  * children (e.g. a plugin's Compute) stay collapsible.
  *
  * Service category headers are text-only; their items carry the icons.
- * Project Settings is a collapsible parent with an icon and text-only children.
+ * Manage project is a collapsible parent with an icon and text-only children.
  */
 import { comingSoonHref } from './coming-soon';
 import { plannedServicesForSection } from './planned-services';
 import { COMING_SOON_BADGE, type ProjectNavSection } from './types';
+import type { PinnableNavItem } from '@/layouts/dashboard.layout';
 import { fetchOrgUsageDashboard, usageKeys } from '@/modules/billing/usage.queries';
 import { connectorKeys, createConnectorService } from '@/resources/connectors';
 import { createDnsZoneService, dnsZoneKeys } from '@/resources/dns-zones';
@@ -44,7 +46,7 @@ export type BuildProjectNavOptions = {
 };
 
 /** Section id on category parents for plugin merge. Not rendered by datum-ui. */
-export type SectionNavItem = NavItem & {
+export type SectionNavItem = PinnableNavItem & {
   sectionId?: ProjectNavSection;
 };
 
@@ -87,12 +89,12 @@ function category(
   title: string,
   sectionId: ProjectNavSection,
   children: OrderedChild[],
-  extras?: Partial<NavItem>
+  extras?: Partial<SectionNavItem>
 ): SectionNavItem {
   return {
     title,
     href: null,
-    // Always open, no toggle, text-only header. Project Settings overrides via `extras`.
+    // Always open, no toggle, text-only header. Manage project overrides via `extras`.
     type: 'group',
     sectionId,
     children: sortChildren(children),
@@ -267,7 +269,7 @@ export function buildProjectNavTree(
       ...plannedChildren(projectId, 'observe'),
     ]),
     category(
-      'Project Settings',
+      'Manage project',
       'settings',
       [
         {
@@ -316,7 +318,7 @@ export function buildProjectNavTree(
             : undefined,
         },
       ],
-      { showSeparatorAbove: true, type: 'collapsible', icon: SettingsIcon }
+      { showSeparatorAbove: true, type: 'collapsible', icon: SettingsIcon, pinToBottom: true }
     ),
   ];
 }
