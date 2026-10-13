@@ -35,6 +35,6 @@ spec:
     http:
       requestTimeout: "0s"
       # Must stay below the portal's Bun idleTimeout (75s, in
-      # observability/start.js) so Envoy closes idle upstream connections
+      # app/server/entry.ts) so Envoy closes idle upstream connections
       # before Bun does.
       connectionIdleTimeout: 60s
