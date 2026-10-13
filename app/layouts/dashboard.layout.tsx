@@ -201,7 +201,8 @@ export function DashboardLayout({
           <Sidebar
             collapsible={sidebarCollapsible}
             className="top-12 duration-[260ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-            <SidebarContent className="gap-0">
+            {/* `data-scroll-fade` fades the list out above the pinned menu while more is below (custom.css). */}
+            <SidebarContent className="gap-0" data-scroll-fade="">
               {sidebarHeader != null && (
                 <SidebarHeader className="px-4 pt-4 pb-0">{sidebarHeader}</SidebarHeader>
               )}
@@ -214,7 +215,7 @@ export function DashboardLayout({
               />
             </SidebarContent>
             <NavMenu
-              className="shrink-0 py-2"
+              className="h-fit shrink-0 py-2"
               items={pinnedNavItems}
               currentPath={pathname}
               linkComponent={Link}

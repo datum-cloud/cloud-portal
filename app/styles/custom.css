@@ -255,6 +255,36 @@
   }
 }
 
+/* ---------------------------------------------------------------------------
+ * Scroll fade above the pinned nav
+ *
+ * The main nav list scrolls behind a pinned menu (Manage project / Manage
+ * organization). Fade its bottom edge out while more items sit below, and ease
+ * the fade away over the last stretch of scroll so the final item lands crisp.
+ * A list that doesn't overflow has an inactive timeline and keeps the 0 base.
+ * ------------------------------------------------------------------------ */
+@property --scroll-fade {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+@keyframes scroll-fade-out {
+  from {
+    --scroll-fade: 3.5rem;
+  }
+  to {
+    --scroll-fade: 0px;
+  }
+}
+
+[data-scroll-fade] {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - var(--scroll-fade)), transparent);
+  animation: scroll-fade-out linear both;
+  animation-timeline: scroll(self);
+  animation-range: calc(100% - 3.5rem) 100%;
+}
+
 /*
  * Live-list row states (`sync-<state>` classes from the shared table).
  * Pending names use the muted color, not opacity: any opacity below 1 drops
