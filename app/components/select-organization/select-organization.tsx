@@ -130,7 +130,7 @@ export const SelectOrganization = ({
                       })}
                       className="flex items-center gap-2 px-3 py-2">
                       <Icon icon={Settings2} className="size-3.5" />
-                      <Text size="xs">Organization settings</Text>
+                      <Text size="xs">Manage organization</Text>
                     </Link>
                   </CommandItem>
                 )}

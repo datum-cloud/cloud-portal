@@ -3,11 +3,23 @@ import { Header } from '@/components/header';
 import { useBreakpoint } from '@/hooks/use-breakpoint';
 import type { Organization } from '@/resources/organizations';
 import type { Project } from '@/resources/projects';
-import { AppNavigation, NavItem } from '@datum-cloud/datum-ui/app-navigation';
+import {
+  AppNavigation,
+  NavItem,
+  NavMenu,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarTrigger,
+} from '@datum-cloud/datum-ui/app-navigation';
 import { SidebarInset, SidebarProvider, useSidebar } from '@datum-cloud/datum-ui/sidebar';
 import { cn } from '@datum-cloud/datum-ui/utils';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Link, useLocation, useRouteLoaderData, useSearchParams } from 'react-router';
+
+/** A nav item that can be pinned to the bottom of the sidebar, above its collapse footer. */
+export type PinnableNavItem = NavItem & { pinToBottom?: boolean };
 
 /**
  * Internal component that handles dashboard-specific logic
@@ -74,7 +86,8 @@ export function DashboardLayout({
   sidePanel,
 }: {
   children: React.ReactNode;
-  navItems: NavItem[];
+  /** Items with `pinToBottom` render above the sidebar's collapse footer instead of in the scrolling list. */
+  navItems: PinnableNavItem[];
   sidebarCollapsible?: 'offcanvas' | 'icon' | 'none';
   currentOrg?: Organization;
   currentProject?: Project;
@@ -132,7 +145,13 @@ export function DashboardLayout({
   // `undefined` until they express a preference, so a caller's explicit prop
   // wins, then the persisted pin, then the per-breakpoint default.
   const rootData = useRouteLoaderData('root') as { sidebarOpen?: boolean } | undefined;
-  const initialSidebarOpen = defaultSidebarOpen ?? rootData?.sidebarOpen ?? !isTablet;
+  // `?sidebar=false` starts the nav collapsed (AppNavigation's `defaultOpen`).
+  const initialSidebarOpen =
+    defaultSidebarOpen ??
+    (searchParams.get('sidebar') === 'false' ? false : (rootData?.sidebarOpen ?? !isTablet));
+
+  const mainNavItems = navItems.filter((item) => !item.pinToBottom);
+  const pinnedNavItems = navItems.filter((item) => item.pinToBottom);
 
   // Held here rather than inside SidebarProvider so expandBehavior can follow
   // it: a pinned nav reserves layout space, an unpinned one only ever floats.
@@ -176,20 +195,54 @@ export function DashboardLayout({
             '--sidebar-width-mobile': '18.75rem',
           } as React.CSSProperties
         }>
-        {(navItems.length > 0 || sidebarHeader != null || sidebarLoading) && (
-          <AppNavigation
-            title={sidebarHeader as any}
-            navItems={navItems}
+        {pinnedNavItems.length > 0 && !sidebarLoading ? (
+          // AppNavigation has no slot between its list and footer, so compose
+          // the same parts with a second menu pinned above the footer.
+          <Sidebar
             collapsible={sidebarCollapsible}
-            // Overrides datum-ui's 200ms linear width tween with an ease-out
-            // curve; custom.css brings the item labels in step with it.
-            className="top-12 duration-[260ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-            closeOnNavigation={closeOnNavigation}
-            currentPath={pathname}
-            linkComponent={Link}
-            defaultOpen={searchParams.get('sidebar') !== 'false'}
-            loading={sidebarLoading}
-          />
+            className="top-12 duration-[260ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
+            {/* `data-scroll-fade` fades the list out above the pinned menu while more is below (custom.css). */}
+            <SidebarContent className="gap-0" data-scroll-fade="">
+              {sidebarHeader != null && (
+                <SidebarHeader className="px-4 pt-4 pb-0">{sidebarHeader}</SidebarHeader>
+              )}
+              <NavMenu
+                className="h-fit py-2"
+                items={mainNavItems}
+                currentPath={pathname}
+                linkComponent={Link}
+                closeOnNavigation={closeOnNavigation}
+              />
+            </SidebarContent>
+            <NavMenu
+              className="h-fit shrink-0 py-2"
+              items={pinnedNavItems}
+              currentPath={pathname}
+              linkComponent={Link}
+              closeOnNavigation={closeOnNavigation}
+            />
+            {sidebarCollapsible !== 'none' && (
+              <SidebarFooter className="border-sidebar-border shrink-0 border-t p-2">
+                <SidebarTrigger />
+              </SidebarFooter>
+            )}
+          </Sidebar>
+        ) : (
+          (navItems.length > 0 || sidebarHeader != null || sidebarLoading) && (
+            <AppNavigation
+              title={sidebarHeader as any}
+              navItems={navItems}
+              collapsible={sidebarCollapsible}
+              // Overrides datum-ui's 200ms linear width tween with an ease-out
+              // curve; custom.css brings the item labels in step with it.
+              className="top-12 duration-[260ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+              closeOnNavigation={closeOnNavigation}
+              currentPath={pathname}
+              linkComponent={Link}
+              defaultOpen={searchParams.get('sidebar') !== 'false'}
+              loading={sidebarLoading}
+            />
+          )
         )}
         <SidebarInset className="flex min-h-0 flex-col">
           {banner}

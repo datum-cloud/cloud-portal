@@ -18,6 +18,7 @@
 import type { SectionNavItem } from './build-project-nav';
 import { comingSoonHref } from './coming-soon';
 import { COMING_SOON_BADGE, isProjectNavSection, type ProjectNavSection } from './types';
+import type { PinnableNavItem } from '@/layouts/dashboard.layout';
 import { resolvePluginIcon } from '@/modules/plugins/client/icon-map';
 import { getNavExtensions } from '@/modules/plugins/client/match-extension';
 import type { NavProjectChild, NavProjectProperties, PublicPlugin } from '@/modules/plugins/types';
@@ -258,7 +259,7 @@ function stripChildMeta(item: NavItem): NavItem {
   };
 }
 
-function stripHostMeta(item: SectionNavItem): NavItem {
+function stripHostMeta(item: SectionNavItem): PinnableNavItem {
   const { sectionId: _sectionId, ...rest } = item;
   const withoutSection = isPluginGroup(rest as SectionNavItem)
     ? (() => {
@@ -275,7 +276,7 @@ export function mergePluginNavIntoTree(
   plugins: PublicPlugin[],
   projectId: string,
   options: MergePluginNavOptions = {}
-): NavItem[] {
+): PinnableNavItem[] {
   const tree: SectionNavItem[] = builtInTree.map((item) => ({
     ...item,
     children: item.children ? [...item.children] : undefined,

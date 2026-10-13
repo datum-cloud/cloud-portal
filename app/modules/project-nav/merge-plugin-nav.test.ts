@@ -445,9 +445,9 @@ describe('buildProjectNavTree usage item', () => {
 });
 
 describe('buildProjectNavTree quotas item', () => {
-  test('places Quotas under Project Settings after General', () => {
+  test('places Quotas under Manage project after General', () => {
     const tree = buildProjectNavTree('proj-1');
-    const settings = tree.find((item) => item.title === 'Project Settings');
+    const settings = tree.find((item) => item.title === 'Manage project');
     const titles = settings?.children?.map((c) => c.title) ?? [];
     expect(titles).toContain('Quotas');
     expect(titles.indexOf('General')).toBeLessThan(titles.indexOf('Quotas'));

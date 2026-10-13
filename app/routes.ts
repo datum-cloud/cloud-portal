@@ -123,7 +123,7 @@ export default [
           route('billing', 'routes/project/detail/settings/billing.tsx'),
         ]),
 
-        // Project quotas (Project Settings) — outside settings SubLayout
+        // Project quotas (Manage project) — outside settings SubLayout
         route('quotas', 'routes/project/detail/settings/quotas.tsx'),
 
         // Project activity (Observe) — outside settings SubLayout
