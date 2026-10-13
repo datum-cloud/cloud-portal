@@ -8,7 +8,7 @@ import { useMemo } from 'react';
 import { Outlet } from 'react-router';
 
 export const handle = {
-  breadcrumb: () => <span>Organization Settings</span>,
+  breadcrumb: () => <span>Manage organization</span>,
   path: (data: Organization) =>
     getPathWithParams(paths.org.detail.settings.general, { orgId: data?.name }),
 };
@@ -44,7 +44,7 @@ export default function OrgSettingsLayout() {
   }, [org]);
 
   return (
-    <SubLayout title="Organization Settings" navItems={navItems}>
+    <SubLayout title="Manage organization" navItems={navItems}>
       <Outlet />
     </SubLayout>
   );

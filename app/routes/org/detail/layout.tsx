@@ -1,4 +1,4 @@
-import { DashboardLayout } from '@/layouts/dashboard.layout';
+import { DashboardLayout, type PinnableNavItem } from '@/layouts/dashboard.layout';
 import { fetchOrgUsageDashboard, usageKeys } from '@/modules/billing/usage.queries';
 import { FeatureFlag } from '@/modules/feature-flags';
 import { isFeatureEnabled } from '@/modules/feature-flags/evaluate.server';
@@ -23,7 +23,6 @@ import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { clearProjectSession, setOrgSession } from '@/utils/cookies';
 import { combineHeaders, getPathWithParams } from '@/utils/helpers/path.helper';
 import { orgLegacySetupMiddleware, withMiddleware } from '@/utils/middlewares';
-import { NavItem } from '@datum-cloud/datum-ui/app-navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { BarChart3Icon, FolderRoot, SettingsIcon, UsersIcon, WalletIcon } from 'lucide-react';
 import { useEffect, useMemo } from 'react';
@@ -104,7 +103,7 @@ export default route.Page(({ data: initialOrg, companions }) => {
   // Use app state (updated by mutations), fallback to SSR data
   const org = organization?.name === initialOrg.name ? organization : initialOrg;
 
-  const navItems: NavItem[] = useMemo(() => {
+  const navItems: PinnableNavItem[] = useMemo(() => {
     const orgId = org?.name;
     const settingsPreferences = getPathWithParams(paths.org.detail.settings.general, { orgId });
     const settingsActivity = getPathWithParams(paths.org.detail.settings.activity, { orgId });
@@ -204,11 +203,12 @@ export default route.Page(({ data: initialOrg, companions }) => {
           ]
         : []),
       {
-        title: 'Organization Settings',
+        title: 'Manage organization',
         href: settingsPreferences,
         type: 'link',
         icon: SettingsIcon,
         showSeparatorAbove: true,
+        pinToBottom: true,
         tabChildLinks: [
           settingsPreferences,
           settingsNotifications,
