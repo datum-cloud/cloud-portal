@@ -8,7 +8,7 @@ import {
 } from '@/resources/http-proxies';
 import { Alert, AlertDescription, AlertTitle } from '@datum-cloud/datum-ui/alert';
 import { Button } from '@datum-cloud/datum-ui/button';
-import { Form, useFormContext } from '@datum-cloud/datum-ui/form';
+import { Form, useField, useFormContext } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Input } from '@datum-cloud/datum-ui/input';
 import { InputWithAddons } from '@datum-cloud/datum-ui/input-with-addons';
@@ -60,6 +60,104 @@ function UsersArrayErrors() {
   );
 }
 
+interface BasicAuthUserRowProps {
+  index: number;
+  showPassword: boolean;
+  onTogglePassword: () => void;
+  onRemove: () => void;
+}
+
+/**
+ * One username/password row. Users loaded from the server carry their
+ * original username in a hidden field, so a blank password keeps the stored one.
+ */
+function BasicAuthUserRow({
+  index,
+  showPassword,
+  onTogglePassword,
+  onRemove,
+}: BasicAuthUserRowProps) {
+  const { field: originalUsernameField } = useField(`users.${index}.originalUsername`);
+  const originalUsername = originalUsernameField.value as string | undefined;
+
+  return (
+    <div className="flex items-center gap-2">
+      {originalUsername && (
+        <input
+          type="hidden"
+          name={originalUsernameField.name}
+          value={originalUsername}
+          onChange={() => {}}
+        />
+      )}
+      <Form.Field
+        name={`users.${index}.username`}
+        label={index === 0 ? 'Username' : undefined}
+        showErrors={false}
+        className="w-1/2">
+        {({ control }) => (
+          <Input
+            value={(control.value as string) ?? ''}
+            onChange={(e) => control.change(e.target.value)}
+            onBlur={control.blur}
+            onFocus={control.focus}
+            placeholder="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
+        )}
+      </Form.Field>
+
+      <Form.Field
+        name={`users.${index}.password`}
+        label={index === 0 ? 'Password' : undefined}
+        showErrors={false}
+        className="w-1/2">
+        {({ control, field }) => {
+          const value = (control.value as string) ?? '';
+          return (
+            <InputWithAddons
+              id={field.id}
+              type={showPassword ? 'text' : 'password'}
+              value={value}
+              onChange={(e) => control.change(e.target.value)}
+              onBlur={control.blur}
+              onFocus={control.focus}
+              placeholder={originalUsername ? 'Unchanged' : 'password'}
+              autoComplete="new-password"
+              trailing={
+                // Nothing to reveal until a password is typed.
+                value ? (
+                  <Button
+                    type="secondary"
+                    theme="borderless"
+                    size="icon"
+                    htmlType="button"
+                    className="h-5 w-5"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={onTogglePassword}>
+                    <Icon icon={showPassword ? EyeOff : Eye} className="size-4" />
+                  </Button>
+                ) : undefined
+              }
+            />
+          );
+        }}
+      </Form.Field>
+      <Button
+        type="danger"
+        theme="borderless"
+        size="icon"
+        className="mb-0.5 self-end"
+        aria-label="Remove user"
+        onClick={onRemove}>
+        <Icon icon={TrashIcon} className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
 export interface ProxyBasicAuthDialogRef {
   show: (proxy: HttpProxy) => void;
   hide: () => void;
@@ -89,7 +187,11 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
       setEnabled(isEnabled);
       setDefaultValues({
         enabled: isEnabled,
-        users: (proxy.basicAuthUsernames ?? []).map((username) => ({ username, password: '' })),
+        users: (proxy.basicAuthUsernames ?? []).map((username) => ({
+          username,
+          password: '',
+          originalUsername: username,
+        })),
       });
       setShowPasswordIndex(null);
       setOpen(true);
@@ -163,79 +265,22 @@ export const ProxyBasicAuthDialog = forwardRef<ProxyBasicAuthDialogRef, ProxyBas
               )}
 
               <Text as="p" size="xs" textColor="muted">
-                Passwords must be re-entered to save changes.
+                Leave a password blank to keep it unchanged.
               </Text>
 
               <Form.FieldArray name="users">
                 {({ fields, append, remove }) => (
                   <div className="space-y-2">
                     {fields.map((field, index) => (
-                      <div key={field.key} className="flex items-center gap-2">
-                        <Form.Field
-                          name={`users.${index}.username`}
-                          label={index === 0 ? 'Username' : undefined}
-                          showErrors={false}
-                          className="w-1/2">
-                          {({ control }) => (
-                            <Input
-                              value={(control.value as string) ?? ''}
-                              onChange={(e) => control.change(e.target.value)}
-                              onBlur={control.blur}
-                              onFocus={control.focus}
-                              placeholder="username"
-                              autoCapitalize="none"
-                              autoCorrect="off"
-                              spellCheck={false}
-                            />
-                          )}
-                        </Form.Field>
-
-                        <Form.Field
-                          name={`users.${index}.password`}
-                          label={index === 0 ? 'Password' : undefined}
-                          showErrors={false}
-                          className="w-1/2">
-                          {({ control, field }) => (
-                            <InputWithAddons
-                              id={field.id}
-                              type={showPasswordIndex === index ? 'text' : 'password'}
-                              value={(control.value as string) ?? ''}
-                              onChange={(e) => control.change(e.target.value)}
-                              onBlur={control.blur}
-                              onFocus={control.focus}
-                              placeholder="••••••••"
-                              trailing={
-                                <Button
-                                  type="secondary"
-                                  theme="borderless"
-                                  size="icon"
-                                  htmlType="button"
-                                  className="h-5 w-5"
-                                  aria-label={
-                                    showPasswordIndex === index ? 'Hide password' : 'Show password'
-                                  }
-                                  onClick={() =>
-                                    setShowPasswordIndex(showPasswordIndex === index ? null : index)
-                                  }>
-                                  <Icon
-                                    icon={showPasswordIndex === index ? EyeOff : Eye}
-                                    className="size-4"
-                                  />
-                                </Button>
-                              }
-                            />
-                          )}
-                        </Form.Field>
-                        <Button
-                          type="danger"
-                          theme="borderless"
-                          size="icon"
-                          className="mb-0.5 self-end"
-                          aria-label="Remove user"
-                          onClick={() => remove(index)}>
-                          <Icon icon={TrashIcon} className="size-4" />
-                        </Button>
-                      </div>
+                      <BasicAuthUserRow
+                        key={field.key}
+                        index={index}
+                        showPassword={showPasswordIndex === index}
+                        onTogglePassword={() =>
+                          setShowPasswordIndex(showPasswordIndex === index ? null : index)
+                        }
+                        onRemove={() => remove(index)}
+                      />
                     ))}
                     <UsersArrayErrors />
                     <Button

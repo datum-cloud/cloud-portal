@@ -375,10 +375,24 @@ export function toBackendPayload(input: HttpProxyBackendInput): Record<string, u
 /**
  * Generate htpasswd file content from a list of users using SHA1 hashing.
  * Uses the Web Crypto API (available in Node.js 15+, Bun, and browsers).
+ *
+ * A user with an empty password keeps the hash stored for its `originalUsername`
+ * in `existingHashes` (see parseHtpasswdHashes), so unchanged passwords need not
+ * be re-entered. The hash covers only the password, so renames keep it too.
  */
-export async function generateHtpasswd(users: BasicAuthUser[]): Promise<string> {
+export async function generateHtpasswd(
+  users: BasicAuthUser[],
+  existingHashes: Map<string, string> = new Map()
+): Promise<string> {
   const lines = await Promise.all(
     users.map(async (u) => {
+      if (!u.password) {
+        const storedHash = u.originalUsername ? existingHashes.get(u.originalUsername) : undefined;
+        if (!storedHash) {
+          throw new Error(`Enter a password for user "${u.username}".`);
+        }
+        return `${u.username}:${storedHash}`;
+      }
       const data = new TextEncoder().encode(u.password);
       const hashBuffer = await globalThis.crypto.subtle.digest('SHA-1', data);
       const hashBase64 = btoa(String.fromCharCode(...new Uint8Array(hashBuffer)));
@@ -415,6 +429,26 @@ export function toSecurityPolicyPayload(httpProxyName: string): object {
       },
     },
   };
+}
+
+/**
+ * Parse the htpasswd Secret into a map of username to stored hash
+ * (everything after the first colon, e.g. "{SHA}...").
+ */
+export function parseHtpasswdHashes(secret: unknown): Map<string, string> {
+  const hashes = new Map<string, string>();
+  const encoded = (secret as { data?: { '.htpasswd'?: string } } | null)?.data?.['.htpasswd'];
+  if (!encoded) return hashes;
+  try {
+    for (const line of atob(encoded).split('\n')) {
+      const separator = line.indexOf(':');
+      if (separator <= 0) continue;
+      hashes.set(line.slice(0, separator), line.slice(separator + 1).trim());
+    }
+  } catch {
+    // Unreadable Secret: callers fall back to requiring every password.
+  }
+  return hashes;
 }
 
 /**
