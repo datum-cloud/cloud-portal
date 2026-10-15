@@ -1,4 +1,5 @@
 import { parseResourceFromUrl } from '@/modules/sentry';
+import { recordResourceMutation } from '@/server/observability/engagement-metrics';
 import { Counter, register } from 'prom-client';
 
 const UPSTREAM_RESPONSES_TOTAL = 'portal_upstream_responses_total';
@@ -50,4 +51,5 @@ export function recordUpstreamResponse({ method, url, status }: UpstreamResponse
   } catch {
     // Metrics must never fail the request path.
   }
+  recordResourceMutation({ method, url, status });
 }

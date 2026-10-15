@@ -6,6 +6,7 @@ import {
 } from '@/features/onboarding/onboarding-user.server';
 import { ProvisioningPage } from '@/features/onboarding/provisioning/provisioning-page';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
+import { recordOnboardingStep } from '@/server/observability/engagement-metrics';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
@@ -34,6 +35,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return redirect(getPathWithParams(paths.org.detail.setupRequired, { orgId: requestedOrgId }));
     }
 
+    recordOnboardingStep('provisioning', session.sub);
     return { devBypass: isOnboardingDevBypassEnabled() };
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {

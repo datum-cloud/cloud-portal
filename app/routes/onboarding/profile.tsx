@@ -6,6 +6,7 @@ import {
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
 import { ProfilePage } from '@/features/onboarding/profile/profile-page';
+import { recordOnboardingStep } from '@/server/observability/engagement-metrics';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
@@ -33,6 +34,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return redirect(hasExistingOrgs ? paths.home : paths.onboarding.account);
     }
 
+    recordOnboardingStep('profile', session.sub);
     return {
       userId: session.sub,
       email: user.email ?? '',
