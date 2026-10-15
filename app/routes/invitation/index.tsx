@@ -1,17 +1,12 @@
+import { useJoinInvitation } from '@/features/onboarding/invitations/use-join-invitation';
 import BlankLayout from '@/layouts/blank.layout';
-import { logger } from '@/modules/logger';
 import { useApp } from '@/providers/app.provider';
 import { createInvitationService } from '@/resources/invitations';
-import {
-  useAcceptInvitation,
-  useRejectInvitation,
-} from '@/resources/invitations/invitation.queries';
-import { waitForMembershipRolesApplied } from '@/resources/members';
+import { useRejectInvitation } from '@/resources/invitations/invitation.queries';
 import { paths } from '@/utils/config/paths.config';
 import { redirectWithToast } from '@/utils/cookies';
 import { BadRequestError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import {
   Card,
@@ -24,7 +19,7 @@ import {
 import { SpinnerIcon, Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { Check } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Link,
   LoaderFunctionArgs,
@@ -37,12 +32,6 @@ import {
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Invitation');
 });
-
-/**
- * Upper bound on how long the accept button waits for the new membership's
- * roles to propagate before sending the user into the org anyway.
- */
-const ACCESS_WAIT_TIMEOUT_MS = 45_000;
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   try {
@@ -88,45 +77,7 @@ export default function InvitationPage() {
   const navigate = useNavigate();
 
   const [action, setAction] = useState<'Accepted' | 'Declined'>();
-  const [isSettlingAccess, setIsSettlingAccess] = useState(false);
-
-  // The accept mutation does not await this page's onSuccess, so the wait
-  // below can outlive the page. Never navigate on behalf of a page the user
-  // has already left.
-  const isMountedRef = useRef(true);
-  useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  const acceptMutation = useAcceptInvitation({
-    onSuccess: async () => {
-      // Accepting creates the OrganizationMembership, but its roles are applied
-      // asynchronously. Landing on the org page before that finishes trips the
-      // access check and shows "Access restricted" (#1505), so wait on the
-      // membership status first. On timeout we still navigate; the org page's
-      // restricted state remains the fallback.
-      setIsSettlingAccess(true);
-      try {
-        await waitForMembershipRolesApplied(invitation.organizationName, {
-          timeoutMs: ACCESS_WAIT_TIMEOUT_MS,
-        });
-      } catch (error) {
-        logger.warn('Invitation accepted but roles did not settle before timeout', {
-          orgId: invitation.organizationName,
-          error: error instanceof Error ? error.message : String(error),
-        });
-      }
-      if (!isMountedRef.current) return;
-      navigate(
-        getPathWithParams(paths.org.detail.root, {
-          orgId: invitation.organizationName,
-        })
-      );
-    },
-  });
+  const { join, isJoining, isSettlingAccess } = useJoinInvitation();
 
   const rejectMutation = useRejectInvitation({
     onSuccess: () => {
@@ -146,10 +97,7 @@ export default function InvitationPage() {
     setAction(state);
 
     if (state === 'Accepted') {
-      acceptMutation.mutate({
-        orgId: invitation.organizationName,
-        name: invitation.name,
-      });
+      join(invitation);
     } else {
       rejectMutation.mutate({
         orgId: invitation.organizationName,
@@ -158,7 +106,7 @@ export default function InvitationPage() {
     }
   };
 
-  const isLoading = acceptMutation.isPending || rejectMutation.isPending || isSettlingAccess;
+  const isLoading = isJoining || rejectMutation.isPending;
 
   return (
     <BlankLayout>

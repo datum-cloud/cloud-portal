@@ -1,8 +1,10 @@
 import { AccountPage } from '@/features/onboarding/account/account-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
+import { SKIP_INVITATIONS_PARAM } from '@/features/onboarding/invitations/joinable-invitations';
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
 import {
   hasAnyOrganizations,
+  listJoinableInvitations,
   loadOnboardingUser,
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
@@ -36,6 +38,16 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     if (hasExistingOrgs && !isOnboardingDevBypassEnabled()) {
       return redirect(paths.home);
+    }
+
+    // Invitees should join their team, not create (and pay for) an org of their
+    // own. This step is where every no-org path lands, so the check lives here.
+    const skipInvitations = new URL(request.url).searchParams.has(SKIP_INVITATIONS_PARAM);
+    if (!skipInvitations) {
+      const invitations = await listJoinableInvitations(session.sub, user.email);
+      if (invitations.length > 0) {
+        return redirect(paths.onboarding.invitations);
+      }
     }
 
     return {
