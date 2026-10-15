@@ -11,6 +11,7 @@ export const paths = {
   onboarding: {
     root: '/onboarding',
     profile: '/onboarding/profile',
+    invitations: '/onboarding/invitations',
     account: '/onboarding/account',
     billing: '/onboarding/billing',
     provisioning: '/onboarding/provisioning',

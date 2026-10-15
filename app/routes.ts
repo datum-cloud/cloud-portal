@@ -276,6 +276,7 @@ export default [
   ...prefix('onboarding', [
     layout('routes/onboarding/layout.tsx', [
       route('profile', 'routes/onboarding/profile.tsx'),
+      route('invitations', 'routes/onboarding/invitations.tsx'),
       route('account', 'routes/onboarding/account.tsx'),
       route('billing', 'routes/onboarding/billing.tsx'),
       route('provisioning', 'routes/onboarding/provisioning.tsx'),
