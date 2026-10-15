@@ -6,6 +6,7 @@ import {
 } from './agent-discovery';
 import { cspNonceContext, loggerContext, requestIdContext, sessionContext } from './context';
 import { sessionMiddleware } from './middleware/auth';
+import { engagementMiddleware } from './middleware/engagement';
 import { errorHandler } from './middleware/error-handler';
 import { forwardedProtoMiddleware } from './middleware/forwarded-proto';
 import { loggerMiddleware } from './middleware/logger';
@@ -29,6 +30,7 @@ import { createPluginRoutes } from '@/modules/plugins/server/routes';
 import { ensureRbacMetrics } from '@/modules/rbac/observability/metrics';
 import { checkRedisHealth } from '@/modules/redis';
 import { sentryTracingMiddleware } from '@/modules/sentry';
+import { ensureEngagementMetrics } from '@/server/observability/engagement-metrics';
 import { watchHub, watchRelay } from '@/server/watch';
 import { sessionManager } from '@/utils/auth';
 import { env } from '@/utils/env/env.server';
@@ -94,6 +96,10 @@ ensureFeatureFlagProvider();
 // registration from the production server bundle.
 ensureRbacMetrics();
 
+// Same for the product engagement metrics: the active users/orgs/projects
+// gauges are referenced by nothing but the /metrics scrape.
+ensureEngagementMetrics();
+
 // Instantiate the plugin registry with the server and wire its dev-only
 // discovery sources (static + kubeconfig). No-op in production builds.
 initPluginRegistry();
@@ -137,6 +143,7 @@ app.use(requestId());
 app.use('*', loggerMiddleware());
 app.use('*', sessionMiddleware()); // Sets session if valid
 app.use('*', requestContextMiddleware()); // Sets up AsyncLocalStorage for token/requestId
+app.use('*', engagementMiddleware()); // Active users/orgs/projects for engagement metrics
 
 const isDev = process.env.NODE_ENV === 'development';
 

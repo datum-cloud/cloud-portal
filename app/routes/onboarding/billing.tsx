@@ -19,6 +19,7 @@ import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createPaymentMethodService } from '@/resources/payment-methods';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
+import { recordOnboardingStep } from '@/server/observability/engagement-metrics';
 import { orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
@@ -128,6 +129,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       }
 
       const isLegacySetupResume = Boolean(requestedOrgId);
+      recordOnboardingStep('billing', session.sub);
 
       if (account?.metadata?.name && account.metadata.namespace) {
         const resolvedOrgId = orgIdFromNamespace(account.metadata.namespace) ?? orgId;
@@ -161,6 +163,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       } satisfies BillingPageData;
     }
 
+    recordOnboardingStep('billing', session.sub);
     return {
       contactDefaults,
       stripePublishableKey,

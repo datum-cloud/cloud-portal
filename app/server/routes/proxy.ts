@@ -1,4 +1,5 @@
 import { isEmailNotVerifiedDenial } from '@/features/account/email-verification/email-verification-error';
+import { recordResourceMutation } from '@/server/observability/engagement-metrics';
 import { extractQuotaDenialLabels, quotaDeniedTotal } from '@/server/observability/quota-metrics';
 import type { Variables } from '@/server/types';
 import { AuthService } from '@/utils/auth';
@@ -69,6 +70,7 @@ proxyRoutes.all('/*', async (c) => {
 
     let response = await callUpstream(session.accessToken);
     let rotatedCookies: Headers | undefined;
+    const upstreamUrl = `${path}${queryString}`;
 
     // A concurrent refresh rotated the session after this request read its
     // cookie, and Zitadel revoked the old access token with it. Retry once with
@@ -124,9 +126,11 @@ proxyRoutes.all('/*', async (c) => {
       const outHeaders = withRotatedCookies(new Headers(response.headers), rotatedCookies);
       outHeaders.delete('content-encoding');
       outHeaders.delete('transfer-encoding');
+      recordResourceMutation({ method: c.req.method, url: upstreamUrl, status: response.status });
       return new Response(text, { status: response.status, headers: outHeaders });
     }
 
+    recordResourceMutation({ method: c.req.method, url: upstreamUrl, status: response.status });
     return new Response(response.body, {
       status: response.status,
       headers,
@@ -137,6 +141,11 @@ proxyRoutes.all('/*', async (c) => {
     }
 
     console.error('[proxy] Error:', isWatch ? '(watch)' : '', error);
+    recordResourceMutation({
+      method: c.req.method,
+      url: `${path}${queryString}`,
+      status: 'network',
+    });
     return c.json({ error: error instanceof Error ? error.message : 'Proxy error' }, 502);
   }
 });

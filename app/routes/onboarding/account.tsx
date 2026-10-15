@@ -6,6 +6,7 @@ import {
   loadOnboardingUser,
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
+import { recordOnboardingStep } from '@/server/observability/engagement-metrics';
 import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
@@ -38,6 +39,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return redirect(paths.home);
     }
 
+    recordOnboardingStep('account', session.sub);
     return {
       userId: session.sub,
       fullName: user.fullName?.trim() || user.email || 'Your account',
