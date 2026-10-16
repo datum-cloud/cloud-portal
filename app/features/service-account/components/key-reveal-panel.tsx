@@ -124,7 +124,7 @@ export function KeyRevealPanel({
   }
 
   const datumctlSnippet = `# 1. Install datumctl (if you haven't already):
-#    https://docs.datum.net/datumctl/install
+#    https://www.datum.net/docs/datumctl/quickstart
 
 # 2. Authenticate using your downloaded credentials file:
 datumctl auth login --credentials ${credentialsFilename}
@@ -150,11 +150,11 @@ steps:
       # Write credentials to a temp file (keeps newlines intact)
       echo "$DATUM_CREDENTIALS" > /tmp/datum-credentials.json
 
-      # Use the Datum CLI or SDK to get an access token:
-      #   datum auth login --credentials /tmp/datum-credentials.json
+      # Log in with datumctl (install: https://www.datum.net/docs/datumctl/quickstart):
+      #   datumctl auth login --credentials /tmp/datum-credentials.json
       #
-      # Or exchange manually — see https://docs.datum.net/authentication
-      # for JWT assertion generation and token exchange examples.`;
+      # See https://www.datum.net/docs/datumctl/auth/service-accounts
+      # for more on using a credentials file in CI.`;
 
   const kubernetesSnippet = `# 1. Create the Secret (run once):
 kubectl create secret generic datum-credentials \\
@@ -182,9 +182,8 @@ spec:
           secret:
             secretName: datum-credentials
 
-# 3. In your application, read DATUM_CREDENTIALS_FILE and use the
-#    Datum SDK or JWT library to exchange credentials for an access token.
-#    See https://docs.datum.net/authentication for SDK examples.`;
+# 3. Tools that read DATUM_CREDENTIALS_FILE authenticate automatically.
+#    See https://www.datum.net/docs/platform/service-accounts for details.`;
 
   const envvarsSnippet = `# Recommended: point to the downloaded credentials file
 export DATUM_CREDENTIALS_FILE="/path/to/${credentialsFilename}"
