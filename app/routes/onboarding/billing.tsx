@@ -19,9 +19,9 @@ import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createPaymentMethodService } from '@/resources/payment-methods';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -60,15 +60,11 @@ function contactInfoFromOrganization(
   return buildOrgContactDefaults(values);
 }
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const sub = await requireSessionSub(request, context);
 
   try {
-    const access = await loadOnboardingUser(session.sub, request);
+    const access = await loadOnboardingUser(sub, request);
     if ('error' in access) return redirect(onboardingAccessRedirect(access));
     const { user } = access;
     const contactDefaults: Partial<OrgContactInfoValues> = {
@@ -170,7 +166,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);
     }
-    return redirect(paths.auth.logOut);
+    return redirect(loaderFailureRedirect(userError, request));
   }
 };
 

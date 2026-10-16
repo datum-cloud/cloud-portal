@@ -1,6 +1,9 @@
-import { resolvePostLoginDestination } from './post-login-destination';
+import { resolveReturnTo, type ReturnToAccess } from './post-login-access';
 import { LogoIcon } from '@/components/logo/logo-icon';
 import { authenticator } from '@/modules/auth/auth.server';
+import { getRequestContext, withRequestContext } from '@/modules/axios/request-context';
+import { createOrganizationService } from '@/resources/organizations';
+import { createProjectService } from '@/resources/projects';
 import { AUTH_CONFIG, AuthService, readEmailVerified } from '@/utils/auth';
 import type { IAuthSession } from '@/utils/auth';
 import { paths } from '@/utils/config/paths.config';
@@ -25,6 +28,25 @@ function debugLog(message: string, data?: Record<string, unknown>): void {
   if (AUTH_CONFIG.DEBUG) {
     console.log(`[Auth Callback] ${message}`, data ?? '');
   }
+}
+
+/**
+ * Org and project reads made as the user who just signed in. The request has
+ * no session yet, so the new access token is put in a fresh request context.
+ */
+function accessAs(accessToken: string, sub: string): ReturnToAccess {
+  const ctx = {
+    requestId: getRequestContext()?.requestId ?? '',
+    token: accessToken,
+    userId: sub,
+    cookieHeader: null,
+  };
+  return {
+    getOrganization: (orgId) =>
+      withRequestContext({ ...ctx }, () => createOrganizationService().get(orgId)),
+    getProject: (projectId) =>
+      withRequestContext({ ...ctx }, () => createProjectService().get(projectId)),
+  };
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -86,13 +108,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // Combine all headers
     let headers = combineHeaders(sessionHeaders, refreshTokenHeaders, idTokenHeaders);
 
-    // Get the intended redirect destination
+    // Get the intended redirect destination: restored only for the same user
+    // and when the new access token can reach it.
     const redirectIntent = await getRedirectIntent(request);
-    const destination = resolvePostLoginDestination(
-      redirectIntent?.path,
-      env.server.websiteOrigins,
-      paths.account.organizations.root // default fallback
-    );
+    const destination = await resolveReturnTo({
+      intentPath: redirectIntent?.path,
+      intentSub: redirectIntent?.sub,
+      sub: decoded.sub,
+      allowedOrigins: env.server.websiteOrigins,
+      fallback: paths.account.organizations.root,
+      access: accessAs(rest.accessToken, decoded.sub),
+    });
 
     if (redirectIntent?.path) {
       // Clear the redirect intent (one-time use)

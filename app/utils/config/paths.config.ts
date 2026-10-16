@@ -5,6 +5,7 @@ export const paths = {
     logOut: '/logout',
     signUp: '/signup',
     callback: '/auth/callback',
+    reauth: '/auth/reauth',
   },
   home: '/',
   gettingStarted: '/getting-started',

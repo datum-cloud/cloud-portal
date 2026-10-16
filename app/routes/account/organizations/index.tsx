@@ -12,8 +12,9 @@ import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useOrganizationsGql, type Organization } from '@/resources/organizations';
 import { createOrganizationService } from '@/resources/organizations';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getAlertState, getSession, setAlertClosed } from '@/utils/cookies';
+import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import {
   appendSetCookieHeaders,
@@ -39,15 +40,11 @@ import {
   useRevalidator,
 } from 'react-router';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const [{ isClosed: alertClosed, headers: alertHeaders }, { session }] = await Promise.all([
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const [{ isClosed: alertClosed, headers: alertHeaders }, sub] = await Promise.all([
     getAlertState(request, 'organizations_understanding'),
-    getSession(request),
+    requireSessionSub(request, context),
   ]);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
 
   try {
     // authMiddleware fetches exactly these two things on this request — but it
@@ -62,7 +59,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const [access, hasOrganizations] = await Promise.all([
       reqCtx?.cachedUser
         ? ({ user: reqCtx.cachedUser } as UserAccessResult)
-        : loadUserOncePerRequest(session.sub, request.headers.get('Cookie')),
+        : loadUserOncePerRequest(sub, request.headers.get('Cookie')),
       // `??` rather than `||`: a cached `false` is a real answer, not a miss.
       reqCtx?.hasOrganizations ??
         oncePerRequest(requestCacheKeys.anyOrganizations, () =>
@@ -111,7 +108,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);
     }
-    return redirect(paths.auth.logOut);
+    return redirect(loaderFailureRedirect(userError, request));
   }
 };
 

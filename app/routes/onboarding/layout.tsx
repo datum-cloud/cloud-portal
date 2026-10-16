@@ -10,8 +10,8 @@ import { HelpScoutBeacon } from '@/modules/helpscout';
 import { RybbitProvider } from '@/modules/rybbit';
 import { AppProvider, useApp } from '@/providers/app.provider';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
 import { appendSetCookieHeaders } from '@/utils/fraud/user-access';
@@ -21,14 +21,10 @@ import { createHmac } from 'crypto';
 import type { ReactNode } from 'react';
 import { type LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const sub = await requireSessionSub(request, context);
 
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
-
-  const access = await loadOnboardingUser(session.sub, request);
+  const access = await loadOnboardingUser(sub, request);
   if ('error' in access) return redirect(onboardingAccessRedirect(access));
   const { user, refreshedHeaders } = access;
   const responseHeaders = new Headers();
@@ -81,8 +77,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       { user, hasExistingOrgs, helpscoutBeaconId, helpscoutSignature },
       { headers: responseHeaders }
     );
-  } catch {
-    return redirect(paths.auth.logOut);
+  } catch (error) {
+    return redirect(loaderFailureRedirect(error, request));
   }
 };
 
