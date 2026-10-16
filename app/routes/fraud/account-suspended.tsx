@@ -1,7 +1,7 @@
 import BlankLayout from '@/layouts/blank.layout';
 import { createUserService } from '@/resources/users';
+import { requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -11,15 +11,11 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Account Suspended');
 });
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const sub = await requireSessionSub(request, context);
 
   try {
-    const user = await createUserService().get(session.sub);
+    const user = await createUserService().get(sub);
 
     // If the user is no longer Inactive, the suspension has been lifted —
     // redirect forward so the user can access the platform.

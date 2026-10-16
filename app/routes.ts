@@ -270,6 +270,7 @@ export default [
   ...prefix('auth', [
     index('routes/auth/index.tsx'),
     route('callback', 'routes/auth/callback.tsx'),
+    route('reauth', 'routes/auth/reauth.tsx'),
   ]),
 
   // Onboarding (outside private layout — own loader auth + AppProvider for user menu)

@@ -7,6 +7,12 @@ import { createCookie, createCookieSessionStorage } from 'react-router';
 export const REDIRECT_INTENT_KEY = '_redirect_intent';
 
 /**
+ * Session key for the user id (`sub`) the intent was saved for, when known.
+ * The callback drops the intent when a different user signs in.
+ */
+const REDIRECT_INTENT_SUB_KEY = `${REDIRECT_INTENT_KEY}_sub`;
+
+/**
  * Redirect intent cookie configuration
  * Short-lived cookie (1 hour) to store the user's intended destination
  * before being redirected to the OAuth provider
@@ -33,6 +39,7 @@ export const redirectIntentSessionStorage = createCookieSessionStorage({
  */
 type RedirectIntentSessionResponse = {
   path?: string;
+  sub?: string;
   headers: Headers;
 };
 
@@ -44,9 +51,11 @@ type RedirectIntentSessionResponse = {
  */
 const createRedirectIntentSessionResponse = (
   path: string | undefined,
-  cookieHeader: string
+  cookieHeader: string,
+  sub?: string
 ): RedirectIntentSessionResponse => ({
   ...(path ? { path } : {}),
+  ...(sub ? { sub } : {}),
   headers: new Headers({
     'Set-Cookie': cookieHeader,
   }),
@@ -56,28 +65,36 @@ const createRedirectIntentSessionResponse = (
  * Sets redirect intent path in the cookie-based session
  * @param request Request object
  * @param path Redirect path to store (full path including search and hash)
+ * @param sub User id the path belongs to, when known (expired-session re-auth)
  * @returns Response with path and session headers
  */
 export async function setRedirectIntent(
   request: Request,
-  path: string
+  path: string,
+  sub?: string
 ): Promise<RedirectIntentSessionResponse> {
   const session = await redirectIntentSessionStorage.getSession(request.headers.get('Cookie'));
   session.set(REDIRECT_INTENT_KEY, path);
+  if (sub) {
+    session.set(REDIRECT_INTENT_SUB_KEY, sub);
+  } else {
+    session.unset(REDIRECT_INTENT_SUB_KEY);
+  }
   const cookieHeader = await redirectIntentSessionStorage.commitSession(session);
-  return createRedirectIntentSessionResponse(path, cookieHeader);
+  return createRedirectIntentSessionResponse(path, cookieHeader, sub);
 }
 
 /**
  * Gets redirect intent path from the cookie-based session
  * @param request Request object
- * @returns Response with path and session headers
+ * @returns Response with path, the user id it was saved for (if any), and session headers
  */
 export async function getRedirectIntent(request: Request): Promise<RedirectIntentSessionResponse> {
   const session = await redirectIntentSessionStorage.getSession(request.headers.get('Cookie'));
   const path = session.get(REDIRECT_INTENT_KEY);
+  const sub = session.get(REDIRECT_INTENT_SUB_KEY);
   const cookieHeader = await redirectIntentSessionStorage.commitSession(session);
-  return createRedirectIntentSessionResponse(path, cookieHeader);
+  return createRedirectIntentSessionResponse(path, cookieHeader, sub);
 }
 
 /**

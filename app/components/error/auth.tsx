@@ -1,17 +1,15 @@
 import { LogoIcon } from '@/components/logo/logo-icon';
-import { paths } from '@/utils/config/paths.config';
+import { reauthUrlForCurrentPage } from '@/utils/auth/reauth';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { SpinnerIcon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
 
 export const AuthError = () => {
-  const navigate = useNavigate();
-
   useEffect(() => {
-    navigate(paths.auth.logOut, { replace: true });
-  }, [navigate]);
+    // A full navigation: the re-auth route redirects to the identity provider.
+    window.location.replace(reauthUrlForCurrentPage());
+  }, []);
 
   return (
     <Card>
@@ -27,7 +25,7 @@ export const AuthError = () => {
             textColor="muted"
             className="flex items-center justify-center gap-2 text-center">
             <SpinnerIcon size="xs" aria-hidden="true" />
-            Logging out...
+            Signing you back in...
           </Text>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+import { resolvePrivateLayoutFailureRedirect } from './private-layout-failure';
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { useNonce } from '@/hooks/useNonce';
 import { getRequestContext } from '@/modules/axios/request-context';
@@ -11,7 +12,6 @@ import { AppProvider, useApp } from '@/providers/app.provider';
 import { createOrganizationService } from '@/resources/organizations';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { sessionContext } from '@/server/context';
-import { paths } from '@/utils/config/paths.config';
 import { getSession } from '@/utils/cookies';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
@@ -89,8 +89,8 @@ export const loader = withMiddleware(
         helpscoutSignature: helpscoutSignaturePromise,
         helpscoutBeaconId: serverEnv.public.helpscoutBeaconId ?? null,
       });
-    } catch {
-      return redirect(paths.auth.logOut);
+    } catch (error) {
+      return redirect(resolvePrivateLayoutFailureRedirect(error, request));
     }
   },
   authMiddleware,

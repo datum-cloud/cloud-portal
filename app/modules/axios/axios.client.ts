@@ -6,6 +6,7 @@ import {
   clearSentryResourceContext,
   captureApiError,
 } from '@/modules/sentry';
+import { reauthUrlForCurrentPage } from '@/utils/auth/reauth';
 import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
@@ -15,7 +16,7 @@ export const PROXY_URL = '/api/proxy';
 /**
  * Client-side axios instance for React Query hooks.
  * - Routes through /api/proxy (session cookie auth)
- * - Handles 401 → redirect to logout
+ * - Handles 401 → re-auth, returning to the current page
  * - Transforms errors into AppError objects with user-friendly messages
  * - Captures errors to Sentry
  */
@@ -164,11 +165,11 @@ const onResponseError = (error: AxiosError): Promise<never> => {
   const rateLimited = rateLimitErrorFromAxios(error, getErrorMessage(error).requestId);
   if (rateLimited) return Promise.reject(rateLimited);
 
-  // Handle 401 AUTH_ERROR → redirect to logout
+  // Handle 401 AUTH_ERROR → re-authenticate and come back to this page
   if (error.response?.status === 401) {
     const data = error.response?.data as { code?: string } | undefined;
     if (data?.code === 'AUTH_ERROR' || data?.code === 'AUTHENTICATION_ERROR' || !data?.code) {
-      window.location.href = '/logout';
+      window.location.href = reauthUrlForCurrentPage();
       return Promise.reject(error);
     }
   }

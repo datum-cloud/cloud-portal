@@ -1,21 +1,18 @@
 import BlankLayout from '@/layouts/blank.layout';
+import { requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { useEffect } from 'react';
-import { Link, MetaFunction, LoaderFunctionArgs, redirect } from 'react-router';
+import { Link, MetaFunction, LoaderFunctionArgs } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Verifying Your Account');
 });
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  await requireSessionSub(request, context);
   return null;
 };
 

@@ -8,8 +8,8 @@ import {
   loadOnboardingUser,
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } from 'react-router';
@@ -18,15 +18,11 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Account information');
 });
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const sub = await requireSessionSub(request, context);
 
   try {
-    const access = await loadOnboardingUser(session.sub, request);
+    const access = await loadOnboardingUser(sub, request);
     if ('error' in access) return redirect(onboardingAccessRedirect(access));
     const { user } = access;
 
@@ -44,14 +40,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     // own. This step is where every no-org path lands, so the check lives here.
     const skipInvitations = new URL(request.url).searchParams.has(SKIP_INVITATIONS_PARAM);
     if (!skipInvitations) {
-      const invitations = await listJoinableInvitations(session.sub, user.email);
+      const invitations = await listJoinableInvitations(sub, user.email);
       if (invitations.length > 0) {
         return redirect(paths.onboarding.invitations);
       }
     }
 
     return {
-      userId: session.sub,
+      userId: sub,
       fullName: user.fullName?.trim() || user.email || 'Your account',
       email: user.email ?? '',
       avatarUrl: user.avatarUrl,
@@ -62,7 +58,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);
     }
-    return redirect(paths.auth.logOut);
+    return redirect(loaderFailureRedirect(userError, request));
   }
 };
 
