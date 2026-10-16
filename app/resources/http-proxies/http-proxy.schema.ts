@@ -301,8 +301,13 @@ export type WafRuleExclusions = z.infer<typeof wafRuleExclusionsSchema>;
  */
 export type BasicAuthUser = {
   username: string;
-  /** Present only on create/update; never returned by the server */
+  /**
+   * Present only on create/update; never returned by the server.
+   * Leave empty to keep the stored password of `originalUsername`.
+   */
   password: string;
+  /** The user's name when the form loaded; set only for users that already exist. */
+  originalUsername?: string;
 };
 
 // Input types for service operations
@@ -396,6 +401,7 @@ export type UpdateHttpProxyInput = {
 const userEntrySchema = z.object({
   username: z.string(),
   password: z.string(),
+  originalUsername: z.string().optional(),
 });
 
 /**
@@ -424,6 +430,13 @@ export const basicAuthSchema = z
           item != null && typeof item === 'object' && typeof item.password === 'string'
             ? item.password
             : '',
+        originalUsername:
+          item != null &&
+          typeof item === 'object' &&
+          typeof item.originalUsername === 'string' &&
+          item.originalUsername !== ''
+            ? item.originalUsername
+            : undefined,
       }));
     }, z.array(userEntrySchema).optional()),
   })
@@ -459,7 +472,9 @@ export const basicAuthSchema = z
           path: ['users', i, 'username'],
         });
       }
-      if (user.password.length < 4) {
+      // Existing users may leave the password blank to keep the stored one.
+      const keepsStoredPassword = !!user.originalUsername && user.password === '';
+      if (!keepsStoredPassword && user.password.length < 4) {
         ctx.addIssue({
           code: 'custom',
           message: 'Password must be at least 4 characters',
