@@ -7,6 +7,8 @@
 import { authenticator } from '@/modules/auth/auth.server';
 import { AUTH_COOKIE_KEYS, AuthService, sessionStorage } from '@/utils/auth';
 import type { IAccessTokenSession } from '@/utils/auth';
+import { returnToForRequest } from '@/utils/auth/reauth';
+import { startReauth } from '@/utils/auth/reauth.server';
 import { paths } from '@/utils/config/paths.config';
 import { setRedirectIntent } from '@/utils/cookies/redirect-intent.server';
 import { redirect } from 'react-router';
@@ -88,6 +90,13 @@ export async function isAuthenticated(
   const cookieHeader = await sessionStorage.commitSession(rawSession);
   const headers = new Headers({ 'Set-Cookie': cookieHeader });
 
+  // A session whose access token already expired is a stale cookie, not a
+  // signed-in user: clear the local cookies and restart OIDC, keeping the page.
+  // (sessionMiddleware has already tried to refresh it by the time we get here.)
+  if (session && AuthService.shouldRefresh(session).isExpired && !noAuthRedirect) {
+    throw await startReauth(request, returnToForRequest(request));
+  }
+
   // Not authenticated
   if (!session) {
     if (noAuthRedirect) {
@@ -96,8 +105,10 @@ export async function isAuthenticated(
 
     // Save the current URL for post-login redirect
     const url = new URL(request.url);
-    const redirectPath = url.pathname + url.search + url.hash;
-    const { headers: redirectIntentHeaders } = await setRedirectIntent(request, redirectPath);
+    const { headers: redirectIntentHeaders } = await setRedirectIntent(
+      request,
+      returnToForRequest(request)
+    );
 
     // Clear search params for auth redirect
     url.search = '';

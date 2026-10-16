@@ -75,3 +75,35 @@ describe('onboardingAccessRedirect', () => {
     expect(onboardingAccessRedirect({ error: 'other' })).toBe(paths.auth.logOut);
   });
 });
+
+describe('resolveOnboardingLayoutRedirect (invitations step)', () => {
+  it('renders the invitations step for new users', () => {
+    expect(
+      resolveOnboardingLayoutRedirect({
+        pathname: paths.onboarding.invitations,
+        hasExistingOrgs: false,
+        nameReviewRequired: false,
+      })
+    ).toBeNull();
+  });
+
+  it('sends users who still owe a name review to the profile step first', () => {
+    expect(
+      resolveOnboardingLayoutRedirect({
+        pathname: paths.onboarding.invitations,
+        hasExistingOrgs: false,
+        nameReviewRequired: true,
+      })
+    ).toBe(paths.onboarding.profile);
+  });
+
+  it('sends users who already belong to an org home', () => {
+    expect(
+      resolveOnboardingLayoutRedirect({
+        pathname: paths.onboarding.invitations,
+        hasExistingOrgs: true,
+        nameReviewRequired: false,
+      })
+    ).toBe(paths.home);
+  });
+});

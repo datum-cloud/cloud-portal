@@ -270,12 +270,14 @@ export default [
   ...prefix('auth', [
     index('routes/auth/index.tsx'),
     route('callback', 'routes/auth/callback.tsx'),
+    route('reauth', 'routes/auth/reauth.tsx'),
   ]),
 
   // Onboarding (outside private layout — own loader auth + AppProvider for user menu)
   ...prefix('onboarding', [
     layout('routes/onboarding/layout.tsx', [
       route('profile', 'routes/onboarding/profile.tsx'),
+      route('invitations', 'routes/onboarding/invitations.tsx'),
       route('account', 'routes/onboarding/account.tsx'),
       route('billing', 'routes/onboarding/billing.tsx'),
       route('provisioning', 'routes/onboarding/provisioning.tsx'),
