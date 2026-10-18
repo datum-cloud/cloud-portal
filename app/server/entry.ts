@@ -257,6 +257,12 @@ export default await createHonoServer({
     idleTimeout: 75,
   },
 
+  // Serve the .br/.gz copies scripts/precompress-assets.ts writes at build
+  // time. Envoy's compressor skips fonts and only compresses lightly.
+  serveStaticOptions: {
+    clientAssets: { precompressed: true },
+  },
+
   // Also makes the adapter handle SIGTERM: it stops accepting connections,
   // waits for in-flight requests, runs this, then exits.
   onGracefulShutdown: () => {

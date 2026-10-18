@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "react-router build && bun scripts/precompress-assets.ts",
     "dev": "bun ./observability/dev-start.js",
     "start": "bun --smol ./observability/start.js",
     "preview": "NODE_ENV=production bun --bun ./server.ts",
