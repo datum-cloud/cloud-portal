@@ -61,13 +61,25 @@ function memberDisplayName(member: GatewayOrgMember): string {
   return fullName || member.email?.trim() || member.name;
 }
 
-function toMemberAvatars(members: GatewayOrgMember[]) {
+type MemberAvatar = NonNullable<Organization['memberAvatars']>[number];
+
+function toMemberAvatars(members: GatewayOrgMember[]): MemberAvatar[] {
   return members
     .filter((member) => member.type !== 'invitation')
     .map((member) => ({
       name: memberDisplayName(member),
       avatarUrl: member.avatarUrl ?? undefined,
     }));
+}
+
+/** Avatar stack entries for each named org, keyed by org name. */
+export function toMemberAvatarsByOrg(
+  orgNames: string[],
+  membersByOrg: Map<string, GatewayOrgMember[]>
+): Record<string, MemberAvatar[]> {
+  return Object.fromEntries(
+    orgNames.map((orgName) => [orgName, toMemberAvatars(membersByOrg.get(orgName) ?? [])])
+  );
 }
 
 /** Builds a single global-scoped query with aliased organizationMembers fields. */
@@ -139,11 +151,11 @@ export function createOrganizationGatewayService() {
             .filter((org) => org.status === 'Active')
         );
 
-        const memberAvatarsByOrg = await fetchMemberAvatarsByOrg(orgs.map((org) => org.name));
+        const avatarsByOrg = await this.listMemberAvatars(orgs.map((org) => org.name));
 
         const items = orgs.map((org) => ({
           ...org,
-          memberAvatars: toMemberAvatars(memberAvatarsByOrg.get(org.name) ?? []),
+          memberAvatars: avatarsByOrg[org.name] ?? [],
         }));
 
         logger.service(SERVICE_NAME, 'listAll', {
@@ -160,6 +172,14 @@ export function createOrganizationGatewayService() {
         logger.error(`${SERVICE_NAME}.listAll failed`, error as Error);
         throw mapApiError(error);
       }
+    },
+
+    /**
+     * Member avatars for each named org, keyed by org name, in one batched
+     * gateway query. For callers that already hold the org rows.
+     */
+    async listMemberAvatars(orgNames: string[]): Promise<Record<string, MemberAvatar[]>> {
+      return toMemberAvatarsByOrg(orgNames, await fetchMemberAvatarsByOrg(orgNames));
     },
   };
 }

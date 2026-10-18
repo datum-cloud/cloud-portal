@@ -1,4 +1,4 @@
-import type { Organization } from './organization.schema';
+import type { Organization, OrganizationList } from './organization.schema';
 import { createOrganizationService } from './organization.service';
 import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
 import { requestCacheKeys } from '@/utils/request-cache-keys';
@@ -29,4 +29,18 @@ export async function getOrganizationForRequest(orgId: string): Promise<Organiza
     ctx.cachedOrganization = organization;
   }
   return organization;
+}
+
+/**
+ * List the caller's organizations once per request.
+ *
+ * The private layout reads the list to resolve root feature flags and the
+ * /account/organizations loader reads it to render the rows. React Router runs
+ * both loaders concurrently on a document request, so without a shared
+ * in-flight promise each would issue its own membership list.
+ */
+export function listOrganizationsForRequest(): Promise<OrganizationList> {
+  return oncePerRequest(requestCacheKeys.allOrganizations, () =>
+    createOrganizationService().list()
+  );
 }

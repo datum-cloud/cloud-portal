@@ -224,6 +224,13 @@ export default function AppWithProviders() {
     configureProgress();
   }, []);
 
+  // Marks the document once React has hydrated and attached its event
+  // handlers. Server-rendered controls are visible before then, so E2E tests
+  // wait on this before clicking them.
+  useEffect(() => {
+    document.documentElement.dataset.hydrated = 'true';
+  }, []);
+
   useEffect(() => preloadStripeWhenIdle(), []);
 
   useEffect(() => {
