@@ -11,6 +11,8 @@ export const requestCacheKeys = {
   userAccess: (userId: string) => `user-access:${userId}`,
   /** `organizations.list({ limit: 1 })` — the "does this user have any org?" probe. */
   anyOrganizations: 'organizations:any',
+  /** `organizations.list()` — every org the user belongs to, default page size. */
+  allOrganizations: 'organizations:all',
   /** `projects.get(projectId)`. */
   project: (projectId: string) => `project:${projectId}`,
   /** `organizations.get(orgId)`. */

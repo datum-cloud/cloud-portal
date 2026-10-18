@@ -63,6 +63,7 @@ export {
 // GraphQL Query hook exports
 export {
   useOrganizationsGql,
+  useOrganizationMemberAvatars,
   useCreateOrganizationGql,
   useUpdateOrganizationGql,
   useDeleteOrganizationGql,

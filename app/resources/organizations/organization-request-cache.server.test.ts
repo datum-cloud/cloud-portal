@@ -15,12 +15,19 @@ const organizationGet = mock(async (name: string) => {
   return { name, displayName: `Org ${name}` };
 });
 
-mock.module('./organization.service', () => ({
-  ...actualOrganizationService,
-  createOrganizationService: () => ({ get: organizationGet }),
+const organizationList = mock(async () => ({
+  items: [{ name: 'acme' }],
+  nextCursor: null,
+  hasMore: false,
 }));
 
-const { getOrganizationForRequest } = await import('./organization-request-cache.server');
+mock.module('./organization.service', () => ({
+  ...actualOrganizationService,
+  createOrganizationService: () => ({ get: organizationGet, list: organizationList }),
+}));
+
+const { getOrganizationForRequest, listOrganizationsForRequest } =
+  await import('./organization-request-cache.server');
 
 afterAll(() => {
   mock.module('./organization.service', () => realOrganizationService);
@@ -29,6 +36,7 @@ afterAll(() => {
 beforeEach(() => {
   orgName = null;
   organizationGet.mockClear();
+  organizationList.mockClear();
 });
 
 describe('getOrganizationForRequest', () => {
@@ -69,5 +77,26 @@ describe('getOrganizationForRequest', () => {
 
     expect(org.name).toBe('acme');
     expect(organizationGet).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('listOrganizationsForRequest', () => {
+  test('concurrent callers on one request share a single list call', async () => {
+    await withRequestContext({ requestId: 'r1', token: 't' }, async () => {
+      const [layout, page] = await Promise.all([
+        listOrganizationsForRequest(),
+        listOrganizationsForRequest(),
+      ]);
+
+      expect(layout).toBe(page);
+      expect(organizationList).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  test('separate requests each list', async () => {
+    await withRequestContext({ requestId: 'r1', token: 't' }, () => listOrganizationsForRequest());
+    await withRequestContext({ requestId: 'r2', token: 't' }, () => listOrganizationsForRequest());
+
+    expect(organizationList).toHaveBeenCalledTimes(2);
   });
 });

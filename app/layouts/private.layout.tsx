@@ -9,7 +9,7 @@ import { RbacProvider } from '@/modules/rbac';
 import { RybbitProvider } from '@/modules/rybbit';
 import { WatchProvider } from '@/modules/watch';
 import { AppProvider, useApp } from '@/providers/app.provider';
-import { createOrganizationService } from '@/resources/organizations';
+import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createUserService, ThemeValue, type User } from '@/resources/users';
 import { sessionContext } from '@/server/context';
 import { getSession } from '@/utils/cookies';
@@ -20,7 +20,7 @@ import { TaskQueueProvider } from '@datum-cloud/datum-ui/task-queue';
 import { useTheme } from '@datum-cloud/datum-ui/theme';
 import { createHmac } from 'crypto';
 import type { ReactNode } from 'react';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Await, LoaderFunctionArgs, Outlet, data, redirect, useLoaderData } from 'react-router';
 
 /** Skip re-running this layout's loader on Link navigations within the
@@ -50,26 +50,30 @@ export const loader = withMiddleware(
       // to avoid redundant getSession call
       const session = context?.get(sessionContext) ?? (await getSession(request)).session;
 
-      // Re-use the user fetched by fraudStatusMiddleware when available,
-      // avoiding a second upstream API call on the same request.
-      const cachedUser = getRequestContext()?.cachedUser;
-      const user = cachedUser ?? (await createUserService().get(session?.sub ?? ''));
-
       // Resolve every flag listed in ROOT_FEATURE_FLAGS once here so the
       // AppProvider can hand them to any global component via
       // useFeatureFlag(). The semantic is "enabled for this user" =
       // any of the user's orgs has the flag on. Failures are tolerated
       // and treated as off; per-route layout loaders are still the
       // load-bearing gate for the actual pages.
-      const featureFlags: FeatureFlagMap = await (async () => {
+      //
+      // Evaluating costs one AllowanceBucket list per org, so the promise
+      // streams to the client instead of holding the shell for it. Started
+      // before the user fetch so the two run concurrently. It never rejects.
+      const featureFlags: Promise<FeatureFlagMap> = (async () => {
         try {
-          const orgs = await createOrganizationService().list();
+          const orgs = await listOrganizationsForRequest();
           const orgIds = orgs.items.map((o) => o.name);
           return await evaluateFlagsForOrgs(ROOT_FEATURE_FLAGS, orgIds);
         } catch {
           return {};
         }
       })();
+
+      // Re-use the user fetched by fraudStatusMiddleware when available,
+      // avoiding a second upstream API call on the same request.
+      const cachedUser = getRequestContext()?.cachedUser;
+      const user = cachedUser ?? (await createUserService().get(session?.sub ?? ''));
 
       // Compute HelpScout HMAC asynchronously — returns a promise that streams to
       // the client instead of blocking the layout shell render. HelpScout is a
@@ -148,12 +152,28 @@ function RbacAppWrapper({ children }: { children: ReactNode }) {
 export default function PrivateLayout() {
   const data: {
     user: User;
-    featureFlags: FeatureFlagMap;
+    featureFlags: Promise<FeatureFlagMap>;
     helpscoutSignature: Promise<string | null>;
     helpscoutBeaconId: string | null;
   } = useLoaderData<typeof loader>();
 
   const { setTheme } = useTheme();
+
+  // Flags stream in after the shell. Until they land every flag reads as off,
+  // the same as a failed evaluation.
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlagMap>({});
+
+  useEffect(() => {
+    let active = true;
+    Promise.resolve(data?.featureFlags)
+      .then((flags) => {
+        if (active && flags) setFeatureFlags(flags);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [data?.featureFlags]);
 
   useEffect(() => {
     if (data?.user) {
@@ -167,7 +187,7 @@ export default function PrivateLayout() {
 
   return (
     <WatchProvider>
-      <AppProvider initialUser={data?.user} initialFeatureFlags={data?.featureFlags}>
+      <AppProvider initialUser={data?.user} initialFeatureFlags={featureFlags}>
         <RybbitWrapper>
           <TaskQueueProvider config={{ storageType: 'memory' }}>
             <ConfirmationDialogProvider>
