@@ -1,8 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import DiscordIcon from '@/components/icon/discord';
 import { GitHubLineIcon } from '@/components/icon/github-line';
-import { HomeColumns } from '@/features/project/home/home-columns';
-import { ProjectHealth } from '@/features/project/home/project-health';
+import { ProjectHomeBody } from '@/features/project/home/project-home-body';
 import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
@@ -124,11 +123,8 @@ export default function ProjectHomePage() {
       {/* Search (the header search is hidden on this page) */}
       <ProjectSearchBar variant="hero" />
 
-      {/* Anything that needs someone to act */}
-      <ProjectHealth projectId={projectName} />
-
-      {/* Resource columns */}
-      <HomeColumns projectId={projectName} />
+      {/* Health (once there is something to report on), first-run setup, then the resource columns */}
+      <ProjectHomeBody projectId={projectName} />
 
       {/* Plugin-contributed project-home cards (portal.card/project-home) */}
       <ProjectHomePluginCards projectId={projectName} />

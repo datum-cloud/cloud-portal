@@ -4,7 +4,7 @@ import {
   resolveRelatedResource,
   type RelatedResourceResult,
 } from '@/resources/http-proxies/related-resource';
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 /**
@@ -66,4 +66,29 @@ export function useMissingComputeWorkloads(
     () => new Set(names.filter((_, index) => presence[index] === 'missing')),
     [names, presence]
   );
+}
+
+/**
+ * List compute Workloads in a project. 403/404 (including a project without
+ * compute) degrade to an empty list, so the home page never shows an error
+ * for a service the viewer can't see.
+ */
+export function useComputeWorkloads(
+  projectId: string,
+  options?: Omit<UseQueryOptions<ComDatumapisComputeV1AlphaWorkload[]>, 'queryKey' | 'queryFn'>
+) {
+  return useQuery({
+    queryKey: computeWorkloadKeys.list(projectId),
+    queryFn: async () => {
+      const result = await resolveRelatedResource(
+        () => createComputeWorkloadService().list(projectId),
+        { onUnexpected: 'absorb' }
+      );
+      if (result.state !== 'ok') return [];
+      return result.data ?? [];
+    },
+    retry: false,
+    ...options,
+    enabled: !!projectId && options?.enabled !== false,
+  });
 }

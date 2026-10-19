@@ -15,6 +15,8 @@ export const AnalyticsAction = {
   ContactDetailsSaved: 'contact_details_saved',
   PaymentDetailsSaved: 'payment_details_saved',
   FirstProjectView: 'first_project_view',
+  CreateNetworkFirstRun: 'create_network_first_run',
+  SkipNetworkFirstRun: 'skip_network_first_run',
 } as const;
 
 export type AnalyticsActionName = (typeof AnalyticsAction)[keyof typeof AnalyticsAction];

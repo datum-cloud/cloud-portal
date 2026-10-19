@@ -15,12 +15,14 @@ import {
   EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_HEADER_PROJECT,
+  EXTENSION_HERO_PROJECT_HOME,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   type CardProjectHomeExtension,
   type ColumnProjectHomeExtension,
   type DockProjectExtension,
   type HeaderProjectExtension,
+  type HeroProjectHomeExtension,
   type NavProjectExtension,
   type PageProjectExtension,
   type PluginExtension,
@@ -63,6 +65,9 @@ function isDockExtension(ext: PluginExtension): ext is DockProjectExtension {
 function isHeaderExtension(ext: PluginExtension): ext is HeaderProjectExtension {
   return ext.type === EXTENSION_HEADER_PROJECT;
 }
+function isHeroExtension(ext: PluginExtension): ext is HeroProjectHomeExtension {
+  return ext.type === EXTENSION_HERO_PROJECT_HOME;
+}
 
 /** Extract the `portal.page/project` extensions from a manifest. */
 export function getPageExtensions(manifest: ClientPluginManifest): PageProjectExtension[] {
@@ -87,6 +92,11 @@ export function getColumnExtensions(manifest: ClientPluginManifest): ColumnProje
 /** Extract the `portal.dock/project` extensions, sorted by `order` then title. */
 export function getDockExtensions(manifest: ClientPluginManifest): DockProjectExtension[] {
   return manifest.extensions.filter(isDockExtension).sort(byOrderThenTitle);
+}
+
+/** Extract the `portal.hero/project-home` extensions, sorted by `order` then title. */
+export function getHeroExtensions(manifest: ClientPluginManifest): HeroProjectHomeExtension[] {
+  return manifest.extensions.filter(isHeroExtension).sort(byOrderThenTitle);
 }
 
 /** Extract the `portal.header/project` extensions, sorted by `order` then `$codeRef` (no title to tiebreak on — this extension has none). */

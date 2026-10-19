@@ -3,6 +3,7 @@ import {
   getCardExtensions,
   getColumnExtensions,
   getDockExtensions,
+  getHeroExtensions,
   getNavExtensions,
   getPageExtensions,
   isBarePage,
@@ -14,6 +15,7 @@ import {
   EXTENSION_CARD_PROJECT_HOME,
   EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
+  EXTENSION_HERO_PROJECT_HOME,
   EXTENSION_NAV_PROJECT,
   EXTENSION_PAGE_PROJECT,
   type PageProjectExtension,
@@ -238,6 +240,26 @@ describe('getColumnExtensions', () => {
       'Zeta',
       'Last',
     ]);
+  });
+});
+
+describe('getHeroExtensions', () => {
+  it('returns only hero extensions, sorted by order then title', () => {
+    const m = manifest([
+      {
+        type: EXTENSION_COLUMN_PROJECT_HOME,
+        properties: { title: 'A column', component: { $codeRef: 'Col' }, order: 0 },
+      },
+      {
+        type: EXTENSION_HERO_PROJECT_HOME,
+        properties: { title: 'Second', component: { $codeRef: 'B' } },
+      },
+      {
+        type: EXTENSION_HERO_PROJECT_HOME,
+        properties: { title: 'First', component: { $codeRef: 'A' }, order: 1 },
+      },
+    ]);
+    expect(getHeroExtensions(m).map((h) => h.properties.title)).toEqual(['First', 'Second']);
   });
 });
 
