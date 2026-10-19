@@ -95,6 +95,36 @@ describe('deriveProjectSetup', () => {
   });
 });
 
+describe('isFirstRun', () => {
+  it.each([
+    ['an empty project', resources(), false],
+    ['a network still coming up', resources({ network: [pending('default')] }), false],
+    ['a ready network', resources({ network: [ready('default')] }), true],
+    [
+      'a running workload with no load balancer yet',
+      resources({ network: [ready('default')], workload: [ready('orders-api')] }),
+      true,
+    ],
+    [
+      'a load balancer still provisioning',
+      resources({ network: [ready('default')], loadBalancer: [pending('edge')] }),
+      true,
+    ],
+    [
+      'a load balancer serving',
+      resources({ network: [ready('default')], loadBalancer: [ready('edge')] }),
+      false,
+    ],
+    [
+      'more than one of something',
+      resources({ network: [ready('default')], domain: [ready('a'), ready('b')] }),
+      false,
+    ],
+  ])('%s', (_label, input, expected) => {
+    expect(deriveProjectSetup(input).isFirstRun).toBe(expected);
+  });
+});
+
 describe('shouldShowNetworkHero', () => {
   it.each([
     ['an empty project', resources(), false, true],

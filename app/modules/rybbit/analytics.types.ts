@@ -17,6 +17,10 @@ export const AnalyticsAction = {
   FirstProjectView: 'first_project_view',
   CreateNetworkFirstRun: 'create_network_first_run',
   SkipNetworkFirstRun: 'skip_network_first_run',
+  /** A first-run toolbox action (deploy, ALB, connector, domain). */
+  FirstRunToolboxAction: 'first_run_toolbox_action',
+  /** First-run setup handed to Patch. */
+  FirstRunAskPatch: 'first_run_ask_patch',
 } as const;
 
 export type AnalyticsActionName = (typeof AnalyticsAction)[keyof typeof AnalyticsAction];

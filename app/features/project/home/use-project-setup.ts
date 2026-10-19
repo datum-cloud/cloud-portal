@@ -13,7 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 /** While the network is coming up, poll fast so the hero hands off promptly. */
 const NETWORK_PENDING_POLL_MS = 5_000;
-/** Workloads, network services and networks have no watch; poll while setup is unfinished. */
+/** Workloads, network services and networks have no watch; poll while first-run setup is under way. */
 const SETUP_POLL_MS = 15_000;
 
 // ---------------------------------------------------------------------------
@@ -22,7 +22,6 @@ const SETUP_POLL_MS = 15_000;
 // ---------------------------------------------------------------------------
 
 const skipKey = (projectId: string) => `project-home:network-skipped:${projectId}`;
-const hideKey = (projectId: string) => `project-home:setup-hidden:${projectId}`;
 
 function readFlag(key: string): boolean {
   try {
@@ -58,10 +57,7 @@ export type ProjectSetupState = ProjectSetup & {
   isLoading: boolean;
   /** Lead the page with the network hero instead of the resource columns. */
   showNetworkHero: boolean;
-  /** Show the progress strip: the project has a network and the user hasn't hidden it. */
-  showProgress: boolean;
   skipNetwork: () => void;
-  hideProgress: () => void;
 };
 
 /**
@@ -70,7 +66,6 @@ export type ProjectSetupState = ProjectSetup & {
  */
 export function useProjectSetup(projectId: string): ProjectSetupState {
   const [skipped, skipNetwork] = useStoredFlag(skipKey(projectId));
-  const [hidden, hideProgress] = useStoredFlag(hideKey(projectId));
   const [pollMs, setPollMs] = useState<number | false>(false);
 
   const listOptions = { staleTime: QUERY_STALE_TIME, refetchInterval: pollMs } as const;
@@ -111,14 +106,12 @@ export function useProjectSetup(projectId: string): ProjectSetupState {
     services.isLoading ||
     proxies.isLoading ||
     domains.isLoading ||
-    skipped === null ||
-    hidden === null;
+    skipped === null;
 
   const showNetworkHero = !isLoading && shouldShowNetworkHero(setup, skipped === true);
-  const showProgress = !isLoading && setup.hasNetwork && !hidden;
 
   const nextPollMs =
-    isLoading || setup.isComplete
+    isLoading || !(showNetworkHero || setup.isFirstRun)
       ? false
       : showNetworkHero
         ? NETWORK_PENDING_POLL_MS
@@ -129,8 +122,6 @@ export function useProjectSetup(projectId: string): ProjectSetupState {
     ...setup,
     isLoading,
     showNetworkHero,
-    showProgress,
     skipNetwork,
-    hideProgress,
   };
 }

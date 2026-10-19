@@ -51,12 +51,13 @@ function DockPanelSkeleton() {
  * Widgets stay mounted (via `Activity`) once opened, so closing the panel or
  * switching widgets keeps their state, e.g. an in-progress chat.
  *
- * Every widget gets an `onClose` prop. One that declares `handlesClose` renders
+ * Every widget gets an `onClose` prop, and the latest `prompt` it was opened
+ * with, if any. One that declares `handlesClose` renders
  * its own close control, so the panel drops the one it otherwise overlays on its
  * top-right corner, where it would sit on top of the widget's header controls.
  */
 export function ProjectDockPanel() {
-  const { widgets, activeWidgetId, close } = useProjectDock();
+  const { widgets, activeWidgetId, prompts, close } = useProjectDock();
   const { width, resizing, min, max, handleProps } = useDockWidth();
   const widgetsEverOpened = useRef(new Set<string>());
   // Keep showing the last widget while the panel slides closed.
@@ -72,7 +73,6 @@ export function ProjectDockPanel() {
   const open = activeWidgetId !== null;
   const shownWidgetId = activeWidgetId ?? lastWidgetId.current;
   const shownWidget = widgets.find((widget) => widget.id === shownWidgetId);
-  const widgetProps: DockWidgetProps = { onClose: close };
 
   return (
     <aside
@@ -140,7 +140,9 @@ export function ProjectDockPanel() {
                       <LazyPluginComponent
                         pluginRef={widget.pluginRef}
                         codeRef={widget.codeRef}
-                        componentProps={widgetProps}
+                        componentProps={
+                          { onClose: close, prompt: prompts[widget.id] } satisfies DockWidgetProps
+                        }
                         fallback={<DockPanelSkeleton />}
                       />
                     </Suspense>

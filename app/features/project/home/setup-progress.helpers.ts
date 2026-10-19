@@ -29,18 +29,32 @@ export type SetupResources = Record<SetupStepKey, readonly SetupResource[]>;
 
 export type ProjectSetup = {
   steps: SetupStep[];
-  /** The first step that isn't done, which the strip marks as current. */
+  /** The first step that isn't done, which the next-step card offers. */
   currentStep?: SetupStepKey;
   hasNetwork: boolean;
   hasReadyNetwork: boolean;
   /** No resource of any kind exists, so this is a fresh project. */
   isEmpty: boolean;
   isComplete: boolean;
+  /**
+   * Still being set up: a ready network, no load balancer serving yet, and at
+   * most one of anything. More than one of a kind means someone already knows
+   * their way around, so the home page stops guiding.
+   */
+  isFirstRun: boolean;
 };
 
 // ---------------------------------------------------------------------------
 // Derivation
 // ---------------------------------------------------------------------------
+
+/** The steps the first-run guide walks through; a domain is optional and comes after. */
+export const GUIDED_STEPS: readonly SetupStepKey[] = [
+  'network',
+  'workload',
+  'service',
+  'loadBalancer',
+];
 
 export const SETUP_STEPS: readonly { key: SetupStepKey; label: string }[] = [
   { key: 'network', label: 'Network' },
@@ -74,6 +88,10 @@ export function deriveProjectSetup(resources: SetupResources): ProjectSetup {
     hasReadyNetwork: byKey.get('network')?.status === 'done',
     isEmpty: SETUP_STEPS.every(({ key }) => resources[key].length === 0),
     isComplete: steps.every((step) => step.status === 'done'),
+    isFirstRun:
+      byKey.get('network')?.status === 'done' &&
+      byKey.get('loadBalancer')?.status !== 'done' &&
+      SETUP_STEPS.every(({ key }) => resources[key].length <= 1),
   };
 }
 

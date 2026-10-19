@@ -319,6 +319,12 @@ export interface DockProjectProperties {
 export interface DockWidgetProps {
   /** Closes the dock panel. */
   onClose: () => void;
+  /**
+   * Set when the page opened the dock to ask something, e.g. the project home's
+   * "What do you want to connect first?". A new id means a new request, even
+   * with the same text; widgets that can't take a prompt ignore it.
+   */
+  prompt?: { id: string; text: string };
 }
 
 export interface DockProjectExtension {
