@@ -1,10 +1,17 @@
+import { annotateSummaryItems } from './annotate-summary';
+import { renderBulkSummaryContent } from './bulk-summary-content';
+import { DuplicateDomainNotice } from './duplicate-domain-notice';
 import { showMutationErrorToast } from '@/modules/quota';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
 import {
   type Domain,
+  type SiblingDomainMatch,
+  type SiblingDomainMatches,
   bulkDomainsSchema,
   domainKeys,
+  findSiblingDomains,
+  normalizeDomainName,
   parseDomains,
   useCreateDomain,
 } from '@/resources/domains';
@@ -21,6 +28,7 @@ import { toast } from '@datum-cloud/datum-ui/toast';
 import { Title } from '@datum-cloud/datum-ui/typography';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRightIcon, GlobeIcon } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 interface AddDomainsDialogProps {
@@ -30,9 +38,30 @@ interface AddDomainsDialogProps {
   onSuccess?: (domain: Domain) => void;
 }
 
-const AddDomainsSubmitButton = () => {
+interface PendingDuplicate {
+  domainName: string;
+  matches: SiblingDomainMatch[];
+}
+
+// Clears the pending notice when the textarea changes, so an edited domain is looked up again.
+const ClearOnDomainsChange = ({ onChange }: { onChange: () => void }) => {
+  const domains = useWatch('domains') as string | undefined;
+  const previous = useRef(domains);
+
+  useEffect(() => {
+    if (previous.current === domains) return;
+    previous.current = domains;
+    onChange();
+  }, [domains, onChange]);
+
+  return null;
+};
+
+const AddDomainsSubmitButton = ({ hidden }: { hidden?: boolean }) => {
   const domains = useWatch('domains') as string | undefined;
   const domainsCount = domains ? parseDomains(domains).length : 0;
+
+  if (hidden) return null;
 
   return (
     <Form.Submit
@@ -50,6 +79,52 @@ const AddDomainsSubmitButton = () => {
   );
 };
 
+// Starts the sibling lookup without awaiting it, so creation is never delayed.
+function startBulkLookup(
+  orgId: string | undefined,
+  projectId: string,
+  domains: string[]
+): Promise<SiblingDomainMatches> {
+  return orgId
+    ? findSiblingDomains({ orgId, currentProjectId: projectId, domainNames: domains })
+    : Promise.resolve({});
+}
+
+interface SummaryActionArgs {
+  taskTitle: string;
+  items: { id: string; status: string; message?: string }[];
+  lookup: Promise<SiblingDomainMatches>;
+  showSummary: ReturnType<typeof useTaskQueue>['showSummary'];
+}
+
+// The Summary action awaits the lookup on click, so annotations appear whenever it is shown.
+function buildSummaryAction({ taskTitle, items, lookup, showSummary }: SummaryActionArgs) {
+  return {
+    children: 'Summary',
+    type: 'quaternary' as const,
+    theme: 'outline' as const,
+    size: 'xs' as const,
+    onClick: async () => {
+      const matches = await lookup;
+      // Custom renderer: the default table hides messages on succeeded rows. This withdraws the
+      // plan's earlier "no custom renderContent" decision.
+      showSummary(
+        taskTitle,
+        annotateSummaryItems(
+          items.map((item) => ({
+            id: item.id,
+            label: item.id,
+            status: item.status === 'succeeded' ? ('success' as const) : ('failed' as const),
+            message: item.message,
+          })),
+          matches
+        ),
+        { renderContent: renderBulkSummaryContent }
+      );
+    },
+  };
+}
+
 export const AddDomainsDialog = ({
   projectId,
   open,
@@ -62,23 +137,59 @@ export const AddDomainsDialog = ({
   const { mutateAsync: createDomain } = useCreateDomain(projectId);
   const { project, organization } = useApp();
   const { trackAction } = useAnalytics();
+  const [pendingDuplicate, setPendingDuplicate] = useState<PendingDuplicate | null>(null);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const submitDomains = async (domains: string[]) => {
-    // Single domain → create directly + navigate to detail (preserves single-add UX).
-    // Dialog stays open on error so the user can correct and retry.
-    if (domains.length === 1) {
-      try {
-        const domain = await createDomain({ domainName: domains[0] });
-        trackAction(AnalyticsAction.AddDomain);
-        onOpenChange(false);
-        if (domain?.name) onSuccess?.(domain);
-      } catch (error) {
-        showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
-      }
-      return;
+  // Bumped on open/close and on every edit, so a lookup that was in flight is ignored on arrival.
+  const lookupToken = useRef(0);
+
+  const resetPendingDuplicate = useCallback(() => {
+    lookupToken.current += 1;
+    setPendingDuplicate(null);
+  }, []);
+
+  useEffect(() => {
+    resetPendingDuplicate();
+  }, [open, resetPendingDuplicate]);
+
+  // Single domain → create directly + navigate to detail (preserves single-add UX).
+  // Dialog stays open on error so the user can correct and retry.
+  const createSingle = async (domainName: string) => {
+    setIsAdding(true);
+    try {
+      const domain = await createDomain({ domainName });
+      trackAction(AnalyticsAction.AddDomain);
+      onOpenChange(false);
+      if (domain?.name) onSuccess?.(domain);
+    } catch (error) {
+      showMutationErrorToast(error, { fallbackTitle: 'Domain', scope: 'project', projectId });
+    } finally {
+      setIsAdding(false);
+      setPendingDuplicate(null);
     }
+  };
 
-    // Many → task-queue batch create, stay on the list.
+  // A single domain from a CSV file skips the duplicate lookup: file imports never prompt.
+  const submitSingle = async (domainName: string, { fromFile }: { fromFile: boolean }) => {
+    if (organization?.name && !fromFile) {
+      const token = ++lookupToken.current;
+      const matches = await findSiblingDomains({
+        orgId: organization.name,
+        currentProjectId: projectId,
+        domainNames: [domainName],
+      });
+      if (token !== lookupToken.current) return;
+      const hit = matches[normalizeDomainName(domainName)];
+      if (hit?.length) {
+        setPendingDuplicate({ domainName, matches: hit });
+        return;
+      }
+    }
+    await createSingle(domainName);
+  };
+
+  // Many → task-queue batch create, stay on the list.
+  const submitBulk = (domains: string[]) => {
     onOpenChange(false);
 
     const metadata =
@@ -88,8 +199,8 @@ export const AddDomainsDialog = ({
             { id: organization.name, name: organization.displayName || organization.name }
           )
         : undefined;
-
     const taskTitle = `Add ${domains.length} domains`;
+    const lookup = startBulkLookup(organization?.name, projectId, domains);
 
     enqueue({
       title: taskTitle,
@@ -101,27 +212,10 @@ export const AddDomainsDialog = ({
         await createDomain({ domainName: domain });
       },
       onComplete: () => queryClient.invalidateQueries({ queryKey: domainKeys.list(projectId) }),
-      completionActions: (_result, { failed, items }) => [
-        ...(failed > 0
-          ? [
-              {
-                children: 'Summary',
-                type: 'quaternary' as const,
-                theme: 'outline' as const,
-                size: 'xs' as const,
-                onClick: () =>
-                  showSummary(
-                    taskTitle,
-                    items.map((item) => ({
-                      id: item.id,
-                      label: item.id,
-                      status: item.status === 'succeeded' ? 'success' : 'failed',
-                      message: item.message,
-                    }))
-                  ),
-              },
-            ]
-          : []),
+      // Card actions are evaluated once when the batch completes, and the lookup may still be
+      // pending then, so Summary is always offered; its click awaits the lookup and annotates.
+      completionActions: (_result, { items }) => [
+        buildSummaryAction({ taskTitle, items, lookup, showSummary }),
         {
           children: 'View Domains',
           type: 'primary' as const,
@@ -132,6 +226,11 @@ export const AddDomainsDialog = ({
         },
       ],
     });
+  };
+
+  const submitDomains = async (domains: string[], { fromFile = false } = {}) => {
+    if (domains.length === 1) return submitSingle(domains[0], { fromFile });
+    submitBulk(domains);
   };
 
   const handleFileSelect = async (files: File[]) => {
@@ -150,7 +249,7 @@ export const AddDomainsDialog = ({
         return;
       }
 
-      await submitDomains(result.data.domains);
+      await submitDomains(result.data.domains, { fromFile: true });
     } catch {
       toast.error('Domains', { description: 'Failed to read file' });
     }
@@ -182,8 +281,31 @@ export const AddDomainsDialog = ({
                 data-e2e="add-domains-input"
               />
             </Form.Field>
-            <AddDomainsSubmitButton />
+            <ClearOnDomainsChange onChange={resetPendingDuplicate} />
+            <AddDomainsSubmitButton hidden={pendingDuplicate !== null} />
           </Form.Root>
+
+          {pendingDuplicate && (
+            <DuplicateDomainNotice
+              domainName={pendingDuplicate.domainName}
+              matches={pendingDuplicate.matches}
+              onOpenExisting={(match) => {
+                onOpenChange(false);
+                navigate(
+                  getPathWithParams(paths.project.detail.domains.detail.overview, {
+                    projectId: match.projectId,
+                    domainId: match.domainId,
+                  })
+                );
+              }}
+              isAdding={isAdding}
+              onAddAnyway={() => void createSingle(pendingDuplicate.domainName)}
+              onCancel={() => {
+                setPendingDuplicate(null);
+                onOpenChange(false);
+              }}
+            />
+          )}
 
           <div className="mt-6 space-y-4">
             <Title as="h2" level={7} weight="semibold">

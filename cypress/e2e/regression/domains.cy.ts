@@ -13,6 +13,12 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
  * Add dialog (unified single + bulk)
  * [data-e2e="add-domains-input"]         Domains textarea (one or many)
  *
+ * Duplicate notice (single add, domain already in a sibling project of the org)
+ * [data-e2e="add-domains-duplicate-notice"] Notice wrapper
+ * [data-e2e="add-domains-open-existing"]    "Open in <project>" / per-row "Open"
+ * [data-e2e="add-domains-add-anyway"]       "Add here anyway"
+ * [data-e2e="add-domains-cancel"]           "Cancel"
+ *
  * Export flow
  * "Export CSV" enqueues a task-queue job that builds the CSV with dummy
  * progress (~1.5–2s); on completion the task card shows a "Download CSV"
@@ -139,6 +145,168 @@ describe('Domains — regression', () => {
     cy.url().should('include', `project/${projectId}/domains`);
     cy.contains('[data-e2e="domain-name"]', domainName).should('not.exist');
     domainId = '';
+  });
+});
+
+const SIBLING_ID = 'e2e-sibling';
+const SIBLING_NAME = 'E2E Sibling';
+const SIBLING_DOMAIN_ID = 'e2e-sibling-domain';
+
+/**
+ * The shared fixture is one org + one project, so the sibling project and its
+ * domain are stubbed. The lookup lists the org's projects, then each sibling's
+ * domains, both from the browser.
+ */
+function stubSibling(dupDomain: string, domainsReply: 'verified' | 'error'): void {
+  // toProject reads the display name from this annotation (see project.adapter.ts).
+  const siblingProject = {
+    metadata: {
+      name: SIBLING_ID,
+      uid: SIBLING_ID,
+      annotations: { 'kubernetes.io/display-name': SIBLING_NAME },
+    },
+    spec: { ownerRef: { name: 'e2e-org' } },
+    status: { conditions: [{ type: 'Ready', status: 'True' }] },
+  };
+
+  cy.intercept('GET', '**/organizations/*/control-plane/**/projects*', (req) => {
+    req.continue((res) => {
+      res.body.items = [...(res.body.items ?? []), siblingProject];
+    });
+  });
+
+  cy.intercept('GET', `**/projects/${SIBLING_ID}/control-plane/**/domains*`, (req) => {
+    if (domainsReply === 'error') {
+      req.reply({ statusCode: 500, body: { message: 'boom' } });
+      return;
+    }
+    req.reply({
+      statusCode: 200,
+      body: {
+        apiVersion: 'networking.datumapis.com/v1alpha',
+        kind: 'DomainList',
+        metadata: {},
+        items: [
+          {
+            metadata: {
+              name: SIBLING_DOMAIN_ID,
+              uid: SIBLING_DOMAIN_ID,
+              namespace: 'default',
+              creationTimestamp: '2026-01-01T00:00:00Z',
+            },
+            spec: { domainName: dupDomain },
+            status: { conditions: [{ type: 'Ready', status: 'True' }] },
+          },
+        ],
+      },
+    });
+  });
+}
+
+function openAddDomainsDialog(projectId: string): void {
+  cy.visit(getPathWithParams(paths.project.detail.domains.root, { projectId }));
+  cy.get('body', { timeout: 15000 }).then(($body) => {
+    if ($body.find('[data-e2e="create-domain-button"]').length > 0) {
+      cy.get('[data-e2e="create-domain-button"]', { timeout: 15000 })
+        .should('be.visible')
+        .and('not.be.disabled')
+        .click();
+    } else {
+      cy.contains('button', /add domains/i, { timeout: 15000 })
+        .should('be.visible')
+        .and('not.be.disabled')
+        .click();
+    }
+  });
+}
+
+function submitAddDomain(): void {
+  cy.get('[role="dialog"]')
+    .contains('button', /add domain/i)
+    .click();
+}
+
+describe('Domains — duplicate warning', () => {
+  const dupDomain = `e2e-dup-${Date.now()}.example.com`;
+  let projectId = '';
+  const createdDomainIds: string[] = [];
+
+  before(() => {
+    cy.ensureSharedResources().then((res) => {
+      projectId = res.projectId;
+    });
+  });
+
+  beforeEach(() => {
+    cy.login();
+    cy.intercept('POST', '**/control-plane/**/domains').as('createDomain');
+  });
+
+  // Keep the shared project reusable: remove any domain a test created.
+  afterEach(() => {
+    createdDomainIds.splice(0).forEach((domainId) => {
+      cy.visit(
+        getPathWithParams(paths.project.detail.domains.detail.overview, { projectId, domainId })
+      );
+      cy.get('[data-e2e="delete-domain-button"]', { timeout: 10000 }).should('exist');
+      cy.wait(500);
+      cy.get('[data-e2e="delete-domain-button"]').click();
+      cy.get('[data-e2e="confirmation-dialog-submit"]', { timeout: 10000 }).click();
+      cy.url().should('include', `project/${projectId}/domains`);
+    });
+  });
+
+  const rememberCreatedDomain = () =>
+    cy.url().then((url) => {
+      const match = url.match(/\/domains\/([a-z0-9-]+)\//);
+      if (match) createdDomainIds.push(match[1]);
+    });
+
+  it('warns when the domain already exists in another project and does not create it', () => {
+    stubSibling(dupDomain, 'verified');
+    openAddDomainsDialog(projectId);
+    cy.get('[data-e2e="add-domains-input"]').type(dupDomain);
+    submitAddDomain();
+
+    cy.get('[data-e2e="add-domains-duplicate-notice"]', { timeout: 15000 })
+      .should('be.visible')
+      .and('contain.text', SIBLING_NAME)
+      .and('contain.text', "It's verified there");
+    cy.get('@createDomain.all').should('have.length', 0);
+  });
+
+  it('opens the existing domain in the other project', () => {
+    stubSibling(dupDomain, 'verified');
+    openAddDomainsDialog(projectId);
+    cy.get('[data-e2e="add-domains-input"]').type(dupDomain);
+    submitAddDomain();
+
+    cy.get('[data-e2e="add-domains-open-existing"]', { timeout: 15000 }).first().click();
+    cy.url().should('include', `/project/${SIBLING_ID}/domains/`);
+  });
+
+  it('adds the domain anyway when asked', () => {
+    stubSibling(dupDomain, 'verified');
+    openAddDomainsDialog(projectId);
+    cy.get('[data-e2e="add-domains-input"]').type(dupDomain);
+    submitAddDomain();
+
+    cy.get('[data-e2e="add-domains-add-anyway"]', { timeout: 15000 }).click();
+    cy.wait('@createDomain', { timeout: 30_000 });
+    cy.url().should('include', `/project/${projectId}/domains/`);
+    rememberCreatedDomain();
+  });
+
+  it('creates straight through when the lookup fails', () => {
+    stubSibling(dupDomain, 'error');
+    openAddDomainsDialog(projectId);
+    cy.get('[data-e2e="add-domains-input"]').type(`e2e-fresh-${Date.now()}.example.com`);
+    submitAddDomain();
+
+    cy.wait('@createDomain', { timeout: 30_000 });
+    cy.get('[data-e2e="add-domains-duplicate-notice"]').should('not.exist');
+    cy.url().should('match', /\/domains\/[a-z0-9-]+\//);
+    rememberCreatedDomain();
   });
 });
 
