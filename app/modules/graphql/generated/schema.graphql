@@ -1,12 +1,12 @@
 """
-The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
-"""
-scalar JSON
-
-"""
 A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.
 """
 scalar DateTime
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
 
 """
 The `BigInt` scalar type represents non-fractional signed whole numeric values.
@@ -22,6 +22,32 @@ scalar query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembers
 scalar query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_reason
 
 scalar query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_type
+
+"""City is the locality."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_city
+
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_country
+
+"""Line1 is the first line of the street address."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line1
+
+"""Line2 is the second line of the street address."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line2
+
+"""PostalCode is the post or zip code."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_postalCode
+
+"""Region is the state, province, or county."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_region
+
+"""BusinessName is the optional legal entity or company name."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_businessName
+
+"""Email is the primary contact email for the organization."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_email
+
+"""Name is the display name of the primary contact."""
+scalar query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_name
 
 """
 message is a human readable message indicating details about the transition.
@@ -806,10 +832,20 @@ Organization contains cached information about the organization in this membersh
 This information is populated by the controller from the referenced organization.
 """
 type query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_organization {
+  """
+  ContactEmail is the primary contact email cached from the organization.
+  """
+  contactEmail: String
+
   """DisplayName is the display name of the organization in the membership."""
   displayName: String
 
-  """Type is the type of the organization in the membership."""
+  """
+  Type is the legacy organization type cached from the organization.
+  
+  Deprecated: This field reflects organization.spec.type, which is deprecated
+  when the UnifiedOrganizations feature gate is enabled.
+  """
   type: String
 }
 
@@ -846,20 +882,57 @@ type com_miloapis_resourcemanager_v1alpha1_Organization {
   """
   kind: String
   metadata: io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta
-  spec: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec!
+  spec: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec
   status: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status
 }
 
 """OrganizationSpec defines the desired state of Organization"""
 type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec {
-  type: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type!
+  contactInfo: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo
+  type: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type
+}
+
+"""
+ContactInfo describes who the organization is and how to reach them.
+Email and name are required for onboarding to complete.
+"""
+type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo {
+  address: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address
+
+  """BusinessName is the optional legal entity or company name."""
+  businessName: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_businessName
+
+  """Email is the primary contact email for the organization."""
+  email: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_email!
+
+  """Name is the display name of the primary contact."""
+  name: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_name!
+}
+
+"""Address is the optional postal address for the organization."""
+type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address {
+  """City is the locality."""
+  city: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_city
+  country: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_country!
+
+  """Line1 is the first line of the street address."""
+  line1: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line1
+
+  """Line2 is the second line of the street address."""
+  line2: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line2
+
+  """PostalCode is the post or zip code."""
+  postalCode: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_postalCode
+
+  """Region is the state, province, or county."""
+  region: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_region
 }
 
 """OrganizationStatus defines the observed state of Organization"""
 type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status {
   """
   Conditions represents the observations of an organization's current state.
-  Known condition types are: "Ready"
+  Known condition types are: "Ready", "OnboardingComplete"
   """
   conditions: [query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items]
 
@@ -919,7 +992,12 @@ enum query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembershi
   Unknown
 }
 
-"""The type of organization."""
+"""
+Type distinguishes personal and standard organizations in legacy mode.
+
+Deprecated: This field is ignored when the UnifiedOrganizations feature
+gate is enabled. Use unified organizations without a type distinction.
+"""
 enum query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type {
   Personal
   Standard
@@ -1152,22 +1230,74 @@ input com_miloapis_resourcemanager_v1alpha1_Organization_Input {
   """
   kind: String
   metadata: io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta_Input
-  spec: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_Input!
+  spec: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_Input
   status: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_Input
 }
 
 """OrganizationSpec defines the desired state of Organization"""
 input query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_Input {
-  type: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type!
+  contactInfo: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_Input
+  type: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type
+}
+
+"""
+ContactInfo describes who the organization is and how to reach them.
+Email and name are required for onboarding to complete.
+"""
+input query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_Input {
+  address: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_Input
+
+  """BusinessName is the optional legal entity or company name."""
+  businessName: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_businessName
+
+  """Email is the primary contact email for the organization."""
+  email: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_email!
+
+  """Name is the display name of the primary contact."""
+  name: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_name!
+}
+
+"""Address is the optional postal address for the organization."""
+input query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_Input {
+  """City is the locality."""
+  city: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_city
+  country: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_country!
+
+  """Line1 is the first line of the street address."""
+  line1: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line1
+
+  """Line2 is the second line of the street address."""
+  line2: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line2
+
+  """PostalCode is the post or zip code."""
+  postalCode: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_postalCode
+
+  """Region is the state, province, or county."""
+  region: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_region
 }
 
 """OrganizationStatus defines the observed state of Organization"""
 input query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_Input {
   """
   Conditions represents the observations of an organization's current state.
-  Known condition types are: "Ready"
+  Known condition types are: "Ready", "OnboardingComplete"
   """
-  conditions: [query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_Input] = [{lastTransitionTime: "1970-01-01T00:00:00.000Z", message: "Waiting for control plane to reconcile", reason: "Unknown", status: Unknown, type: "Ready"}]
+  conditions: [query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_Input] = [
+  {
+    lastTransitionTime: "1970-01-01T00:00:00.000Z"
+    message: "Waiting for control plane to reconcile"
+    reason: "Unknown"
+    status: Unknown
+    type: "Ready"
+  }
+  {
+    lastTransitionTime: "1970-01-01T00:00:00.000Z"
+    message: "Organization contact information is incomplete"
+    reason: "ContactInfoIncomplete"
+    status: False
+    type: "OnboardingComplete"
+  }
+]
 
   """
   ObservedGeneration is the most recent generation observed for this Organization by the controller.
