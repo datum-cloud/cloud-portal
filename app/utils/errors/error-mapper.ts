@@ -6,6 +6,7 @@ import {
   ConflictError,
   RateLimitError,
   ValidationError,
+  CursorExpiredError,
 } from './app-error';
 import { isGqlError, getGqlErrorCode, getGqlErrorMessage } from '@/modules/graphql/errors';
 import { CombinedError } from '@urql/core';
@@ -15,6 +16,24 @@ interface ApiErrorResponse {
   message?: string;
   code?: string;
   details?: Array<{ path: string[]; message: string }>;
+}
+
+const UPSTREAM_TIMEOUT_MESSAGE = 'The request timed out';
+
+/**
+ * Reads the HTTP status the gateway put on `extensions.status` for an
+ * `UPSTREAM_ERROR`. Accepts a numeric string too, since the value travels
+ * through JSON.
+ */
+function getUpstreamStatus(extensions: Record<string, unknown> | undefined): number | undefined {
+  const status = extensions?.status;
+  if (typeof status === 'number' && Number.isInteger(status)) {
+    return status;
+  }
+  if (typeof status === 'string' && /^\d{3}$/.test(status)) {
+    return Number(status);
+  }
+  return undefined;
 }
 
 export function mapApiError(error: unknown, requestId?: string): AppError {
@@ -65,6 +84,24 @@ export function mapApiError(error: unknown, requestId?: string): AppError {
         return new NotFoundError('Resource', undefined, requestId);
       case 'BAD_USER_INPUT':
         return new ValidationError(message, undefined, requestId);
+      case 'UPSTREAM_TIMEOUT':
+        return new AppError(UPSTREAM_TIMEOUT_MESSAGE, {
+          code: 'UPSTREAM_TIMEOUT',
+          status: 504,
+          requestId,
+          cause: error,
+          originalMessage: message,
+        });
+      case 'UPSTREAM_ERROR':
+        return new AppError(message, {
+          code: 'UPSTREAM_ERROR',
+          status: 502,
+          upstreamStatus: getUpstreamStatus(gqlError.extensions),
+          requestId,
+          cause: error,
+        });
+      case 'CURSOR_EXPIRED':
+        return new CursorExpiredError(message, requestId);
       default:
         return new AppError(message, {
           code: code ?? 'GRAPHQL_ERROR',
@@ -89,6 +126,24 @@ export function mapApiError(error: unknown, requestId?: string): AppError {
         return new NotFoundError('Resource', undefined, requestId);
       case 'BAD_USER_INPUT':
         return new ValidationError(message, undefined, requestId);
+      case 'UPSTREAM_TIMEOUT':
+        return new AppError(UPSTREAM_TIMEOUT_MESSAGE, {
+          code: 'UPSTREAM_TIMEOUT',
+          status: 504,
+          requestId,
+          cause: error,
+          originalMessage: message,
+        });
+      case 'UPSTREAM_ERROR':
+        return new AppError(message, {
+          code: 'UPSTREAM_ERROR',
+          status: 502,
+          upstreamStatus: getUpstreamStatus(gqlError?.extensions),
+          requestId,
+          cause: error,
+        });
+      case 'CURSOR_EXPIRED':
+        return new CursorExpiredError(message, requestId);
       default:
         return new AppError(message, {
           code: code ?? 'GRAPHQL_ERROR',
