@@ -117,6 +117,7 @@ export class AppError extends Error {
       extra: {
         details: this.details,
         status: this.status,
+        upstream_status: this.upstreamStatus,
       },
       fingerprint: [this.code, this.message],
     });

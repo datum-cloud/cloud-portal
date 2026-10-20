@@ -7,7 +7,7 @@ import {
   captureApiError,
 } from '@/modules/sentry';
 import { reauthUrlForCurrentPage } from '@/utils/auth/reauth';
-import { AppError, isUserFacingErrorStatus } from '@/utils/errors/app-error';
+import { AppError, isUserFacingErrorStatus, type SerializedError } from '@/utils/errors/app-error';
 import * as Sentry from '@sentry/react-router';
 import Axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
@@ -102,18 +102,7 @@ function getErrorMessage(error: AxiosError): { message: string; requestId?: stri
   };
 }
 
-/** Serialized AppError shape (from Hono error handler) */
-interface SerializedAppError {
-  code: string;
-  message: string;
-  status: number;
-  details?: Array<{ path: string[]; message: string; code?: string }>;
-  requestId?: string;
-  /** Owned by a server-side capture (see AppError); presence means skip client re-capture. */
-  sentryEventId?: string;
-}
-
-function isSerializedAppError(data: unknown): data is SerializedAppError {
+function isSerializedAppError(data: unknown): data is SerializedError {
   if (typeof data !== 'object' || data === null) return false;
   const obj = data as Record<string, unknown>;
   return (
@@ -138,13 +127,14 @@ function appErrorFromK8sStatus(data: K8sStatus, httpStatus: number, cause: Axios
   });
 }
 
-function appErrorFromSerialized(data: SerializedAppError, cause: AxiosError): AppError {
+function appErrorFromSerialized(data: SerializedError, cause: AxiosError): AppError {
   return new AppError(data.message, {
     code: data.code,
     status: data.status,
     details: data.details,
     requestId: data.requestId,
     sentryEventId: data.sentryEventId,
+    upstreamStatus: data.upstreamStatus,
     cause,
     captureToSentry: false,
   });
