@@ -15,9 +15,11 @@ interface ProjectDockContextValue {
   activeWidgetId: string | null;
   /** The latest prompt each widget was opened with, keyed by widget id. */
   prompts: Readonly<Record<string, DockPrompt>>;
+  /** The conversation each widget was last asked to show, keyed by widget id. */
+  chatIds: Readonly<Record<string, string>>;
   toggle: (widgetId: string) => void;
-  /** Opens a widget (no-op toggle if already open), optionally asking it something. */
-  open: (widgetId: string, options?: { prompt?: string }) => void;
+  /** Opens a widget, optionally asking it something or pointing it at a conversation. */
+  open: (widgetId: string, options?: { prompt?: string; chatId?: string }) => void;
   close: () => void;
 }
 
@@ -39,23 +41,26 @@ export function ProjectDockProvider({
   const widgets = useProjectDockWidgets(projectId);
   const [activeWidgetId, setActiveWidgetId] = useState<string | null>(null);
   const [prompts, setPrompts] = useState<Record<string, DockPrompt>>({});
+  const [chatIds, setChatIds] = useState<Record<string, string>>({});
 
   const toggle = useCallback(
     (widgetId: string) => setActiveWidgetId((prev) => (prev === widgetId ? null : widgetId)),
     []
   );
-  const open = useCallback((widgetId: string, options?: { prompt?: string }) => {
+  const open = useCallback((widgetId: string, options?: { prompt?: string; chatId?: string }) => {
     setActiveWidgetId(widgetId);
     const text = options?.prompt?.trim();
     if (text) {
       setPrompts((prev) => ({ ...prev, [widgetId]: { id: crypto.randomUUID(), text } }));
     }
+    const chatId = options?.chatId;
+    if (chatId) setChatIds((prev) => ({ ...prev, [widgetId]: chatId }));
   }, []);
   const close = useCallback(() => setActiveWidgetId(null), []);
 
   const value = useMemo(
-    () => ({ widgets, activeWidgetId, prompts, toggle, open, close }),
-    [widgets, activeWidgetId, prompts, toggle, open, close]
+    () => ({ widgets, activeWidgetId, prompts, chatIds, toggle, open, close }),
+    [widgets, activeWidgetId, prompts, chatIds, toggle, open, close]
   );
 
   return <ProjectDockContext value={value}>{children}</ProjectDockContext>;

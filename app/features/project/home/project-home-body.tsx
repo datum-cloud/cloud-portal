@@ -1,5 +1,6 @@
 import { HomeColumns } from './home-columns';
 import { findNetworksPluginSlug } from './home-mode';
+import { InlinePatch } from './inline-patch';
 import { NextStep } from './next-step';
 import { PathChoice, type BuildTool } from './path-choice';
 import { ProjectHealth } from './project-health';
@@ -10,6 +11,8 @@ import {
   HttpProxyFormDialog,
   type HttpProxyFormDialogRef,
 } from '@/features/edge/proxy/proxy-form-dialog';
+import type { DockPrompt } from '@/features/project-dock/project-dock-context';
+import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
 import {
   ProjectHomePluginHero,
   useProjectHomePluginHero,
@@ -22,6 +25,7 @@ import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Text } from '@datum-cloud/datum-ui/typography';
+import { cn } from '@datum-cloud/datum-ui/utils';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -66,19 +70,35 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
     trackAction(AnalyticsAction.CreateNetworkFirstRun);
   }, [setup.hasNetwork, trackAction]);
 
-  const askPatch = patch.canAsk
+  const networkName =
+    setup.steps.find((s) => s.key === 'network')?.resourceName ?? '<your-network>';
+  // Patch opens in the page, where the person was looking; they can move the
+  // conversation to the side dock from there.
+  const [inlinePatch, setInlinePatch] = useState<{ prompt: DockPrompt } | null>(null);
+  const askPatch = patch.widget
     ? (prompt: string) => {
         trackAction(AnalyticsAction.FirstRunAskPatch);
-        patch.ask(prompt);
+        setInlinePatch({ prompt: { id: crypto.randomUUID(), text: prompt } });
       }
     : undefined;
+  const inline =
+    inlinePatch && patch.widget ? (
+      <InlinePatch
+        widget={patch.widget}
+        prompt={inlinePatch.prompt}
+        network={setup.hasReadyNetwork ? networkName : undefined}
+        onClose={() => setInlinePatch(null)}
+        onMoveToDock={(chatId) => {
+          setInlinePatch(null);
+          patch.openInDock({ chatId });
+        }}
+      />
+    ) : null;
 
   // Only the network exists: the toolbox and Patch stay on offer until something else does.
   const onlyNetwork =
     setup.hasReadyNetwork && setup.steps.every((s) => s.key === 'network' || s.status === 'todo');
   const showPathChoice = !setup.isLoading && onlyNetwork;
-  const networkName =
-    setup.steps.find((s) => s.key === 'network')?.resourceName ?? '<your-network>';
   // Health only says something once there is more than a network: an empty
   // project has nothing to report, and a network-only one gets its own line.
   const showHealth =
@@ -112,30 +132,37 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
         </div>
       </div>
     ) : (
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-6">
+        {/* First, so a conversation stays mounted when the layout below changes. */}
+        {inline}
         {showPathChoice ? (
-          <PathChoice
-            projectId={projectId}
-            networkName={networkName}
-            network={networks?.find((n) => n.metadata?.name === networkName)}
-            networkHref={
-              networksSlug
-                ? pluginHref(projectId, networksSlug, `networks/${networkName}`)
-                : undefined
-            }
-            onTool={onTool}
-            onAskPatch={askPatch}
-          />
+          !inline && (
+            <PathChoice
+              projectId={projectId}
+              networkName={networkName}
+              network={networks?.find((n) => n.metadata?.name === networkName)}
+              networkHref={
+                networksSlug
+                  ? pluginHref(projectId, networksSlug, `networks/${networkName}`)
+                  : undefined
+              }
+              onTool={onTool}
+              onAskPatch={askPatch}
+            />
+          )
         ) : (
           <>
-            {setup.isFirstRun && setup.currentStep && setup.currentStep !== 'network' && (
-              <NextStep
-                projectId={projectId}
-                steps={setup.steps}
-                currentStep={setup.currentStep}
-                onAskPatch={askPatch}
-              />
-            )}
+            {!inline &&
+              setup.isFirstRun &&
+              setup.currentStep &&
+              setup.currentStep !== 'network' && (
+                <NextStep
+                  projectId={projectId}
+                  steps={setup.steps}
+                  currentStep={setup.currentStep}
+                  onAskPatch={askPatch}
+                />
+              )}
             <HomeColumns projectId={projectId} />
           </>
         )}
@@ -143,7 +170,10 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
     );
 
   return (
-    <div className="flex flex-col gap-8">
+    // With Patch in the page the conversation is the focus: the search steps
+    // aside and the sections sit closer together.
+    <div className={cn('flex flex-col', inline ? 'gap-5' : 'gap-6')}>
+      {!inline && <ProjectSearchBar variant="hero" />}
       {showHealth && <ProjectHealth projectId={projectId} />}
       {body}
       <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId} />

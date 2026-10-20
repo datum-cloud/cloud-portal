@@ -325,6 +325,23 @@ export interface DockWidgetProps {
    * with the same text; widgets that can't take a prompt ignore it.
    */
   prompt?: { id: string; text: string };
+  /**
+   * Open this existing conversation, e.g. when the page hands its embedded
+   * chat to the dock. A new value means switch to it.
+   */
+  chatId?: string;
+  /** Reports the widget's current conversation, so the host can move it elsewhere. */
+  onChatChange?: (chatId: string) => void;
+  /**
+   * Where the host placed the widget: the tall, narrow dock (default) or a wide
+   * area in the page body.
+   */
+  placement?: 'dock' | 'inline';
+  /**
+   * Where the conversation is happening, so the assistant can adapt how it
+   * answers. Sent with every turn; the assistant ignores names it doesn't know.
+   */
+  surface?: { name: 'home-first-run'; network?: string };
 }
 
 export interface DockProjectExtension {

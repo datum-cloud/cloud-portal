@@ -57,7 +57,7 @@ function DockPanelSkeleton() {
  * top-right corner, where it would sit on top of the widget's header controls.
  */
 export function ProjectDockPanel() {
-  const { widgets, activeWidgetId, prompts, close } = useProjectDock();
+  const { widgets, activeWidgetId, prompts, chatIds, close } = useProjectDock();
   const { width, resizing, min, max, handleProps } = useDockWidth();
   const widgetsEverOpened = useRef(new Set<string>());
   // Keep showing the last widget while the panel slides closed.
@@ -141,7 +141,11 @@ export function ProjectDockPanel() {
                         pluginRef={widget.pluginRef}
                         codeRef={widget.codeRef}
                         componentProps={
-                          { onClose: close, prompt: prompts[widget.id] } satisfies DockWidgetProps
+                          {
+                            onClose: close,
+                            prompt: prompts[widget.id],
+                            chatId: chatIds[widget.id],
+                          } satisfies DockWidgetProps
                         }
                         fallback={<DockPanelSkeleton />}
                       />

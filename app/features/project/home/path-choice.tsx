@@ -117,7 +117,7 @@ export function PathChoice({
   const [expanded, setExpanded] = useState<BuildTool | null>(null);
 
   return (
-    <section className="flex flex-col gap-5" aria-labelledby="path-choice-heading">
+    <section className="flex flex-col gap-4" aria-labelledby="path-choice-heading">
       <div className="bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-5 py-3.5">
         <Icon icon={CircleCheck} size={18} className="shrink-0 text-green-600" aria-hidden />
         <Text size="sm" weight="medium">
