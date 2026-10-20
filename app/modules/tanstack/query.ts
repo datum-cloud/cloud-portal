@@ -8,10 +8,14 @@ import { QueryClient } from '@tanstack/react-query';
  * One quick retry covers transient network blips without compounding
  * latency for users on slower connections. Expected user-facing statuses
  * (401/403/404/429) are deterministic — retrying them only doubles error
- * volume and delays the error state, so they never retry.
+ * volume and delays the error state, so they never retry. A 504 is a gateway
+ * timeout that already waited out the upstream deadline; retrying it would
+ * stack a second full timeout on top, so it is skipped too. A 502 is still
+ * retried because it can come from a transient upstream restart.
  */
 export function shouldRetryQuery(failureCount: number, error: unknown): boolean {
-  return failureCount < 1 && !isUserFacingErrorStatus((error as { status?: number })?.status);
+  const status = (error as { status?: number })?.status;
+  return failureCount < 1 && status !== 504 && !isUserFacingErrorStatus(status);
 }
 
 /**

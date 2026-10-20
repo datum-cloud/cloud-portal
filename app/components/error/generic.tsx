@@ -40,12 +40,15 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
 
   const isNotFound = status === 404;
   const isForbidden = status === 403;
+  const isExpired = status === 410;
   const primaryAction = resolvePrimaryAction(message, isNotFound);
   const title = isNotFound
     ? "We couldn't find that page."
     : isForbidden
       ? "You don't have access to this."
-      : 'Whoops! Something went wrong.';
+      : isExpired
+        ? 'This page has expired.'
+        : 'Whoops! Something went wrong.';
 
   return (
     <Card data-e2e="error-page" data-error-status={status ?? ''}>
@@ -72,6 +75,11 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
               <>
                 You don&apos;t have permission to view this resource. If you think you should, ask
                 an administrator for access or reach out to{' '}
+              </>
+            ) : isExpired ? (
+              <>
+                The data you were viewing expired before the page finished loading. Reload this page
+                to start over, or reach out to{' '}
               </>
             ) : (
               <>
@@ -112,7 +120,7 @@ export const GenericError = ({ message, status }: { message: string; status?: nu
               navigate(0);
             }}>
             <Icon icon={RefreshCcwIcon} className="size-4" />
-            Refresh Page
+            {isExpired ? 'Reload page' : 'Refresh Page'}
           </Button>
         </div>
       </CardContent>

@@ -6,6 +6,7 @@ export {
   NotFoundError,
   ConflictError,
   RateLimitError,
+  CursorExpiredError,
   isUserFacingErrorStatus,
   type ErrorDetail,
   type SerializedError,

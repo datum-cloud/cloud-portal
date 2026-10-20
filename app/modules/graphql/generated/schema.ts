@@ -1,10 +1,19 @@
 export type Scalars = {
-  JSON: any;
   DateTime: any;
+  JSON: any;
   BigInt: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_message: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_reason: any;
   query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_type: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_city: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_country: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line1: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line2: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_postalCode: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_region: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_businessName: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_email: any;
+  query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_name: any;
   query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_message: any;
   query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_reason: any;
   query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_type: any;
@@ -487,9 +496,16 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
  * This information is populated by the controller from the referenced organization.
  */
 export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_organization {
+  /** ContactEmail is the primary contact email cached from the organization. */
+  contactEmail?: Scalars['String'];
   /** DisplayName is the display name of the organization in the membership. */
   displayName?: Scalars['String'];
-  /** Type is the type of the organization in the membership. */
+  /**
+   * Type is the legacy organization type cached from the organization.
+   *
+   * Deprecated: This field reflects organization.spec.type, which is deprecated
+   * when the UnifiedOrganizations feature gate is enabled.
+   */
   type?: Scalars['String'];
   __typename: 'query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_organization';
 }
@@ -520,22 +536,54 @@ export interface com_miloapis_resourcemanager_v1alpha1_Organization {
   /** Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds */
   kind?: Scalars['String'];
   metadata?: io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta;
-  spec: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec;
+  spec?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec;
   status?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status;
   __typename: 'com_miloapis_resourcemanager_v1alpha1_Organization';
 }
 
 /** OrganizationSpec defines the desired state of Organization */
 export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec {
-  type: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type;
+  contactInfo?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo;
+  type?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type;
   __typename: 'query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec';
+}
+
+/**
+ * ContactInfo describes who the organization is and how to reach them.
+ * Email and name are required for onboarding to complete.
+ */
+export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo {
+  address?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address;
+  /** BusinessName is the optional legal entity or company name. */
+  businessName?: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_businessName'];
+  /** Email is the primary contact email for the organization. */
+  email: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_email'];
+  /** Name is the display name of the primary contact. */
+  name: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_name'];
+  __typename: 'query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo';
+}
+
+/** Address is the optional postal address for the organization. */
+export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address {
+  /** City is the locality. */
+  city?: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_city'];
+  country: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_country'];
+  /** Line1 is the first line of the street address. */
+  line1?: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line1'];
+  /** Line2 is the second line of the street address. */
+  line2?: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line2'];
+  /** PostalCode is the post or zip code. */
+  postalCode?: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_postalCode'];
+  /** Region is the state, province, or county. */
+  region?: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_region'];
+  __typename: 'query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address';
 }
 
 /** OrganizationStatus defines the observed state of Organization */
 export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status {
   /**
    * Conditions represents the observations of an organization's current state.
-   * Known condition types are: "Ready"
+   * Known condition types are: "Ready", "OnboardingComplete"
    */
   conditions?: (
     | query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items
@@ -587,7 +635,12 @@ export type query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMe
 export type query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_conditions_items_status =
   'True' | 'False' | 'Unknown';
 
-/** The type of organization. */
+/**
+ * Type distinguishes personal and standard organizations in legacy mode.
+ *
+ * Deprecated: This field is ignored when the UnifiedOrganizations feature
+ * gate is enabled. Use unified organizations without a type distinction.
+ */
 export type query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type =
   'Personal' | 'Standard';
 
@@ -1298,9 +1351,16 @@ export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizat
  * This information is populated by the controller from the referenced organization.
  */
 export interface query_listResourcemanagerMiloapisComV1alpha1NamespacedOrganizationMembership_items_items_status_organizationRequest {
+  /** ContactEmail is the primary contact email cached from the organization. */
+  contactEmail?: boolean | number;
   /** DisplayName is the display name of the organization in the membership. */
   displayName?: boolean | number;
-  /** Type is the type of the organization in the membership. */
+  /**
+   * Type is the legacy organization type cached from the organization.
+   *
+   * Deprecated: This field reflects organization.spec.type, which is deprecated
+   * when the UnifiedOrganizations feature gate is enabled.
+   */
   type?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
@@ -1354,6 +1414,7 @@ export interface com_miloapis_resourcemanager_v1alpha1_OrganizationRequest {
 
 /** OrganizationSpec defines the desired state of Organization */
 export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_specRequest {
+  contactInfo?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfoRequest;
   type?: boolean | number;
   __typename?: boolean | number;
   __scalar?: boolean | number;
@@ -1364,11 +1425,54 @@ export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_
   };
 }
 
+/**
+ * ContactInfo describes who the organization is and how to reach them.
+ * Email and name are required for onboarding to complete.
+ */
+export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfoRequest {
+  address?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_addressRequest;
+  /** BusinessName is the optional legal entity or company name. */
+  businessName?: boolean | number;
+  /** Email is the primary contact email for the organization. */
+  email?: boolean | number;
+  /** Name is the display name of the primary contact. */
+  name?: boolean | number;
+  __typename?: boolean | number;
+  __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfoRequest;
+  };
+}
+
+/** Address is the optional postal address for the organization. */
+export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_addressRequest {
+  /** City is the locality. */
+  city?: boolean | number;
+  country?: boolean | number;
+  /** Line1 is the first line of the street address. */
+  line1?: boolean | number;
+  /** Line2 is the second line of the street address. */
+  line2?: boolean | number;
+  /** PostalCode is the post or zip code. */
+  postalCode?: boolean | number;
+  /** Region is the state, province, or county. */
+  region?: boolean | number;
+  __typename?: boolean | number;
+  __scalar?: boolean | number;
+  __alias?: {
+    [
+      alias: string
+    ]: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_addressRequest;
+  };
+}
+
 /** OrganizationStatus defines the observed state of Organization */
 export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_statusRequest {
   /**
    * Conditions represents the observations of an organization's current state.
-   * Known condition types are: "Ready"
+   * Known condition types are: "Ready", "OnboardingComplete"
    */
   conditions?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_itemsRequest;
   /** ObservedGeneration is the most recent generation observed for this Organization by the controller. */
@@ -1534,20 +1638,62 @@ export interface com_miloapis_resourcemanager_v1alpha1_Organization_Input {
   /** Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds */
   kind?: Scalars['String'] | null;
   metadata?: io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMeta_Input | null;
-  spec: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_Input;
+  spec?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_Input | null;
   status?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_Input | null;
 }
 
 /** OrganizationSpec defines the desired state of Organization */
 export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_Input {
-  type: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type;
+  contactInfo?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_Input | null;
+  type?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_type | null;
+}
+
+/**
+ * ContactInfo describes who the organization is and how to reach them.
+ * Email and name are required for onboarding to complete.
+ */
+export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_Input {
+  address?: query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_Input | null;
+  /** BusinessName is the optional legal entity or company name. */
+  businessName?:
+    | Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_businessName']
+    | null;
+  /** Email is the primary contact email for the organization. */
+  email: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_email'];
+  /** Name is the display name of the primary contact. */
+  name: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_name'];
+}
+
+/** Address is the optional postal address for the organization. */
+export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_Input {
+  /** City is the locality. */
+  city?:
+    | Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_city']
+    | null;
+  country: Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_country'];
+  /** Line1 is the first line of the street address. */
+  line1?:
+    | Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line1']
+    | null;
+  /** Line2 is the second line of the street address. */
+  line2?:
+    | Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_line2']
+    | null;
+  /** PostalCode is the post or zip code. */
+  postalCode?:
+    | Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_postalCode']
+    | null;
+  /** Region is the state, province, or county. */
+  region?:
+    | Scalars['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_region']
+    | null;
 }
 
 /** OrganizationStatus defines the observed state of Organization */
 export interface query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_Input {
   /**
    * Conditions represents the observations of an organization's current state.
-   * Known condition types are: "Ready"
+   * Known condition types are: "Ready", "OnboardingComplete"
    */
   conditions?:
     | (query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_conditions_items_Input | null)[]
@@ -1942,6 +2088,36 @@ export const isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_it
     obj.__typename
   );
 };
+
+const query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_possibleTypes: string[] =
+  ['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo'];
+export const isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo =
+  (
+    obj?: { __typename?: any } | null
+  ): obj is query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo => {
+    if (!obj?.__typename)
+      throw new Error(
+        '__typename is missing in "isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo"'
+      );
+    return query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_possibleTypes.includes(
+      obj.__typename
+    );
+  };
+
+const query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_possibleTypes: string[] =
+  ['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address'];
+export const isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address =
+  (
+    obj?: { __typename?: any } | null
+  ): obj is query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address => {
+    if (!obj?.__typename)
+      throw new Error(
+        '__typename is missing in "isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address"'
+      );
+    return query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_possibleTypes.includes(
+      obj.__typename
+    );
+  };
 
 const query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_possibleTypes: string[] =
   ['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status'];

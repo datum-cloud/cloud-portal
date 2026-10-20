@@ -45,6 +45,7 @@ export interface SerializedError {
   originalMessage?: string;
   k8sReason?: string;
   k8sDetails?: K8sErrorDetails;
+  upstreamStatus?: number;
 }
 
 export class AppError extends Error {
@@ -56,6 +57,12 @@ export class AppError extends Error {
   public readonly originalMessage?: string;
   public readonly k8sReason?: string;
   public readonly k8sDetails?: K8sErrorDetails;
+  /**
+   * HTTP status the upstream returned when the gateway could not turn it into a
+   * GraphQL response (`UPSTREAM_ERROR`). Kept separately from `status`, which
+   * describes how this error is presented to the caller (502).
+   */
+  public readonly upstreamStatus?: number;
 
   constructor(
     message: string,
@@ -69,6 +76,7 @@ export class AppError extends Error {
       originalMessage?: string;
       k8sReason?: string;
       k8sDetails?: K8sErrorDetails;
+      upstreamStatus?: number;
       /**
        * Sentry event id of a capture already performed upstream (e.g. by
        * `captureApiError` in the axios interceptors). Serialized into the
@@ -88,6 +96,7 @@ export class AppError extends Error {
     this.originalMessage = options.originalMessage;
     this.k8sReason = options.k8sReason;
     this.k8sDetails = options.k8sDetails;
+    this.upstreamStatus = options.upstreamStatus;
     this.sentryEventId = options.sentryEventId;
 
     if (Error.captureStackTrace) {
@@ -108,6 +117,7 @@ export class AppError extends Error {
       extra: {
         details: this.details,
         status: this.status,
+        upstream_status: this.upstreamStatus,
       },
       fingerprint: [this.code, this.message],
     });
@@ -124,6 +134,7 @@ export class AppError extends Error {
       originalMessage: this.originalMessage,
       k8sReason: this.k8sReason,
       k8sDetails: this.k8sDetails,
+      upstreamStatus: this.upstreamStatus,
     };
   }
 
@@ -227,5 +238,22 @@ export class RateLimitError extends AppError {
     );
     this.name = 'RateLimitError';
     this.retryAfter = retryAfter;
+  }
+}
+
+/**
+ * The gateway's continue token no longer resolves against the apiserver watch
+ * cache. Recovery is to restart paging from the first page rather than to
+ * retry the same token.
+ */
+export class CursorExpiredError extends AppError {
+  constructor(message = 'The paging cursor has expired', requestId?: string) {
+    super(message, {
+      code: 'CURSOR_EXPIRED',
+      status: 410,
+      requestId,
+      captureToSentry: false,
+    });
+    this.name = 'CursorExpiredError';
   }
 }

@@ -6,7 +6,7 @@ import { gatedFetch } from '@/modules/rate-limit';
 import { env } from '@/utils/env';
 import { mapApiError } from '@/utils/errors/error-mapper';
 import { createClient, cacheExchange, fetchExchange } from '@urql/core';
-import type { Client as UrqlClient, SSRExchange } from '@urql/core';
+import type { Client as UrqlClient, CombinedError, SSRExchange } from '@urql/core';
 
 // Set by request-context middleware (same key as app/modules/axios/request-context.ts)
 const REQUEST_CONTEXT_KEY = '__request_context_store__';
@@ -22,6 +22,15 @@ function getRequestContext() {
     // Ignore errors
   }
   return undefined;
+}
+
+/**
+ * Resolves the correlation id for a failed GraphQL operation. The server has it
+ * in the request context; the browser proxy returns it on the response.
+ */
+export function getGqlErrorRequestId(error: CombinedError): string | undefined {
+  if (typeof window === 'undefined') return getRequestContext()?.requestId;
+  return error.response?.headers?.get('x-request-id') ?? undefined;
 }
 
 /**
@@ -102,7 +111,7 @@ export async function runGqlQuery<R extends QueryRequest>(
   const client = createGqlClient(scope);
   const op = generateQueryOp({ __name: name, ...request });
   const result = await client.query(op.query, op.variables).toPromise();
-  if (result.error) throw mapApiError(result.error);
+  if (result.error) throw mapApiError(result.error, getGqlErrorRequestId(result.error));
   return (result.data as FieldsSelection<Query, R> | undefined) ?? null;
 }
 
@@ -115,7 +124,7 @@ export async function runGqlMutation<R extends MutationRequest>(
   const client = createGqlClient(scope);
   const op = generateMutationOp({ __name: name, ...request });
   const result = await client.mutation(op.query, op.variables).toPromise();
-  if (result.error) throw mapApiError(result.error);
+  if (result.error) throw mapApiError(result.error, getGqlErrorRequestId(result.error));
   return (result.data as FieldsSelection<Mutation, R> | undefined) ?? null;
 }
 
