@@ -239,12 +239,13 @@ export function buildProjectNavTree(
           queryClient && orgId
             ? () => {
                 void queryClient.prefetchQuery({
-                  queryKey: usageKeys.dashboard(orgId, projectId, 'current'),
+                  queryKey: usageKeys.dashboard(orgId, projectId, 'current', 'project'),
                   queryFn: () =>
                     fetchOrgUsageDashboard({
                       orgId,
                       project: projectId,
                       cycle: 'current',
+                      scope: 'project',
                     }),
                 });
               }

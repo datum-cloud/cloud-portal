@@ -2,11 +2,12 @@ import { filterUsageByEntitlement } from './usage-entitlements';
 import type { UsageFetchResult } from './usage.types';
 import { describe, expect, test } from 'bun:test';
 
-const meter = (meterApiName: string, groupId: string): UsageFetchResult['meters'][number] =>
+const meter = (meterDefinition: string, groupId: string): UsageFetchResult['meters'][number] =>
   ({
-    meterApiName,
-    label: meterApiName,
+    meterDefinition,
+    label: meterDefinition,
     values: [],
+    total: 0,
     groupId,
   }) as UsageFetchResult['meters'][number];
 
@@ -19,9 +20,9 @@ const result: UsageFetchResult = {
     meter('assistant-tokens', 'assistant.miloapis.com'),
   ],
   groups: [
-    { id: 'compute.datumapis.com', title: 'Compute', meterApiNames: ['compute-vcpu-seconds'] },
-    { id: 'networking.datumapis.com', title: 'Networking', meterApiNames: ['alb-requests'] },
-    { id: 'assistant.miloapis.com', title: 'AI Assistant', meterApiNames: ['assistant-tokens'] },
+    { id: 'compute.datumapis.com', title: 'Compute', meterDefinitions: ['compute-vcpu-seconds'] },
+    { id: 'networking.datumapis.com', title: 'Networking', meterDefinitions: ['alb-requests'] },
+    { id: 'assistant.miloapis.com', title: 'AI Assistant', meterDefinitions: ['assistant-tokens'] },
   ],
 } as UsageFetchResult;
 
@@ -32,7 +33,7 @@ describe('filterUsageByEntitlement', () => {
       'networking.datumapis.com',
       'assistant.miloapis.com',
     ]);
-    expect(filtered.meters.map((m) => m.meterApiName)).toEqual([
+    expect(filtered.meters.map((m) => m.meterDefinition)).toEqual([
       'alb-requests',
       'assistant-tokens',
     ]);

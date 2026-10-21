@@ -7,6 +7,8 @@ export interface MeterPoint {
 export interface MeterBreakdownSeries {
   /** The dimension value this series belongs to (e.g. `us-east-1`, `claude`). */
   groupValue: string;
+  /** Usage over the whole range, using the meter's aggregation. */
+  total: number;
   values: MeterPoint[];
 }
 
@@ -17,14 +19,19 @@ export interface MeterDimensionBreakdown {
 }
 
 export interface MeterSeries {
-  /** Amberflo meterApiName (`MeterDefinition.metadata.name`, hashed if >50 chars). */
-  meterApiName: string;
+  /** `MeterDefinition.metadata.name`. */
+  meterDefinition: string;
   /** Canonical meter name from `MeterDefinition.spec.meterName`. */
   meterName?: string;
   label: string;
+  /** Daily buckets across the queried range, zero-filled; empty when no usage. */
   values: MeterPoint[];
-  // ---- Enrichment from the MeterDefinition catalog (optional; absent
-  // when the meter-definition list is unavailable). ----
+  /**
+   * Usage over the whole range from `UsageQuery`, using the meter's
+   * aggregation (correct for Max, Latest, Average… not just Sum).
+   */
+  total: number;
+  // ---- Enrichment from the MeterDefinition catalog. ----
   /** Plain-English explanation from `MeterDefinition.spec.description`. */
   description?: string;
   /** UCUM unit from `MeterDefinition.spec.measurement.unit` (e.g. `By`, `s`). */
@@ -40,21 +47,23 @@ export interface MeterSeries {
   // ---- Quota join (optional; from quota.miloapis.com AllowanceBuckets). ----
   /** Quota ceiling for the period, when a matching AllowanceBucket exists. */
   limit?: number;
-  /** Allocated/consumed amount from the matching AllowanceBucket. */
-  used?: number;
-  /** Period spend estimated from catalog Offer rates × usage. */
-  spend?: number;
-  /** Catalog list price per pricingUnit (not per meter-native unit). */
-  unitRate?: number;
-  /** Billing pricing unit label from the Offer, e.g. `token`, `request`, `GB`. */
-  pricingUnit?: string;
-  /** Per-dimension grouped series, fetched when the meter declares dimensions. */
+  /** Per-dimension grouped series, when the meter declares dimensions. */
   breakdowns?: MeterDimensionBreakdown[];
+  /** What the usage costs, from `UsageQuery`; unset when no plan prices it. */
+  spend?: UsageSpend;
+  /** Set when the API could not price the meter; the reason is logged server-side. */
+  spendUnavailable?: boolean;
+}
+
+/** An amount in an ISO 4217 currency, before taxes, credits and discounts. */
+export interface UsageSpend {
+  amount: number;
+  currency: string;
 }
 
 export interface MeterDefinition {
-  /** Amberflo meterApiName (`MeterDefinition.metadata.name`, hashed if >50 chars). */
-  meterApiName: string;
+  /** `MeterDefinition.metadata.name`, how `UsageQuery` references meters. */
+  name: string;
   /** Canonical meter name from `MeterDefinition.spec.meterName`. */
   meterName: string;
   displayName: string;
@@ -62,6 +71,8 @@ export interface MeterDefinition {
   unit?: string;
   aggregation?: string;
   dimensions?: string[];
+  /** Dimensions the billing pipeline adds, e.g. `project_name`. */
+  systemDimensions?: string[];
   monitoredResourceTypes?: string[];
 }
 
@@ -69,11 +80,10 @@ export interface MeterDefinition {
 export interface UsageGroup {
   id: string;
   title: string;
-  meterApiNames: string[];
+  meterDefinitions: string[];
 }
 
-export type UsageFetchStatus =
-  'ok' | 'unconfigured' | 'insufficient-permissions' | 'no-billing-account';
+export type UsageFetchStatus = 'ok' | 'insufficient-permissions' | 'no-billing-account';
 
 export interface UsageFetchResult {
   status: UsageFetchStatus;
@@ -83,18 +93,16 @@ export interface UsageFetchResult {
   groups?: UsageGroup[];
   days: number;
   message?: string;
-  /** When set, usage is scoped to a single project's billing binding. */
+  /** When set, usage is scoped to a single project. */
   projectId?: string;
-  /** Total period spend across meters (catalog estimate). */
-  totalSpend?: number;
-  /** ISO 4217 currency for spend fields. */
-  currencyCode?: string;
-  /** Offer whose snapshotted rates were used for spend estimates. */
-  pricingOfferName?: string;
+  /** What all the usage costs together, from `UsageQuery`. */
+  spend?: UsageSpend;
+  /** Set when the total could not be priced; the reason is logged server-side. */
+  spendUnavailable?: boolean;
 }
 
 export interface SummarizedMeterUsage {
-  meterApiName: string;
+  meterDefinition: string;
   label: string;
   total: number;
   recentDaily: { date: string; value: number }[];

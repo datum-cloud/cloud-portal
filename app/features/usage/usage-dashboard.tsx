@@ -1,15 +1,16 @@
+import { IdleMeterList } from './components/idle-meter-list';
 import { MeterCard } from './components/meter-card';
+import { SpendValue } from './components/spend-value';
 import { UsageDashboardSkeleton } from './components/usage-dashboard-skeleton';
 import { UsageSummaryTable } from './components/usage-summary-table';
 import { UsageToolbar } from './components/usage-toolbar';
-import { formatCurrency } from './usage.format';
 import type { UsageDisplayNameOption, UsageProjectOption } from './usage.types';
 import { toUsageView } from './usage.view';
 import { useOrgUsageDashboard } from '@/modules/billing/usage.queries';
+import type { UsageSpend } from '@/modules/billing/usage.types';
 import { useHttpProxies } from '@/resources/http-proxies';
 import { useProjects, filterActiveProjects } from '@/resources/projects';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
-import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -92,16 +93,16 @@ function UsagePageHeader({
   isLoading,
   isPlaceholder,
   hideProjectSelect,
-  totalSpend,
-  currencyCode,
+  spend,
+  spendUnavailable,
 }: {
   projects: UsageProjectOption[];
   billingCycles: { value: 'current' | 'previous'; label: string }[];
   isLoading?: boolean;
   isPlaceholder?: boolean;
   hideProjectSelect?: boolean;
-  totalSpend?: number;
-  currencyCode?: string;
+  spend?: UsageSpend;
+  spendUnavailable?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -115,18 +116,13 @@ function UsagePageHeader({
           hideProjectSelect={hideProjectSelect}
         />
       </div>
-      {totalSpend !== undefined ? (
+      {spend || spendUnavailable ? (
         <div className="shrink-0 text-left lg:text-right">
           <Text as="p" size="xs" textColor="muted">
-            Total spend this period
+            Spend this period
           </Text>
-          <Text
-            as="p"
-            size="xl"
-            weight="semibold"
-            textColor="default"
-            className="tabular-nums sm:text-2xl">
-            {formatCurrency(totalSpend, currencyCode)}
+          <Text as="p" size="xl" weight="semibold" textColor="default" className="sm:text-2xl">
+            <SpendValue spend={spend} unavailable={spendUnavailable} />
           </Text>
         </div>
       ) : null}
@@ -138,8 +134,8 @@ export interface UsageDashboardProps {
   orgId: string;
   orgLabel?: string;
   /**
-   * When set, usage is locked to this project (no project picker). Used by
-   * the project-scoped Observe usage page.
+   * When set, usage is locked to this project (no project picker) and read
+   * in the project's own context. Used by the project-scoped usage page.
    */
   lockedProject?: UsageProjectOption;
 }
@@ -176,9 +172,13 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
     isFetching,
     isError,
     error,
-  } = useOrgUsageDashboard(orgId, selectedProject, selectedBillingCycle, {
-    enabled: !!orgId,
-  });
+  } = useOrgUsageDashboard(
+    orgId,
+    selectedProject,
+    selectedBillingCycle,
+    hideProjectSelect ? 'project' : 'organization',
+    { enabled: !!orgId }
+  );
 
   const albsQuery = useHttpProxies(selectedProject === 'all' ? '' : selectedProject, {
     staleTime: QUERY_STALE_TIME,
@@ -204,14 +204,12 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
 
   const scopeDescription =
     selectedProjectLabel != null
-      ? `Metered consumption and spend for the ${selectedProjectLabel} project in the selected billing period.`
-      : 'Metered consumption and spend across all projects in this organization for the selected billing period.';
+      ? `Metered consumption for the ${selectedProjectLabel} project in the selected billing period.`
+      : 'Metered consumption across all projects in this organization for the selected billing period.';
 
   const dashboardKey = `${selectedProject}-${selectedBillingCycle}`;
   const toolbarLoading =
     (!hideProjectSelect && projectsQuery.isLoading) || (isLoading && billingCycles.length === 0);
-  const periodSpend = result?.status === 'ok' ? result.totalSpend : undefined;
-  const periodCurrency = result?.status === 'ok' ? result.currencyCode : undefined;
 
   if (isError) {
     return (
@@ -241,24 +239,6 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
 
   if (!result) {
     return null;
-  }
-
-  if (result.status === 'unconfigured') {
-    return (
-      <div className="flex w-full flex-col gap-6">
-        <PageTitle title="Usage" titleClassName="text-3xl" />
-        <EmptyState
-          title="Usage data not available"
-          body={
-            <>
-              Configure{' '}
-              <code className="bg-muted rounded px-1 py-0.5 text-xs">AMBERFLO_API_KEY</code> on the
-              cloud-portal server to enable this dashboard.
-            </>
-          }
-        />
-      </div>
-    );
   }
 
   if (result.status === 'insufficient-permissions') {
@@ -304,8 +284,6 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           billingCycles={billingCycles}
           isLoading={isRefetching}
           hideProjectSelect={hideProjectSelect}
-          totalSpend={periodSpend}
-          currencyCode={periodCurrency}
         />
         <EmptyState
           title="No usage to display"
@@ -319,6 +297,11 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
     );
   }
 
+  // Services with any usage get cards; fully idle ones collapse into one
+  // list at the bottom so the page leads with what was actually used.
+  const activeGroups = view.groups.filter((group) => group.meters.length > 0);
+  const idleGroups = view.groups.filter((group) => group.meters.length === 0);
+
   return (
     <div className="flex w-full flex-col gap-6">
       <UsagePageHeader
@@ -326,8 +309,8 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
         billingCycles={billingCycles}
         isLoading={isRefetching}
         hideProjectSelect={hideProjectSelect}
-        totalSpend={periodSpend}
-        currencyCode={periodCurrency}
+        spend={view.spend}
+        spendUnavailable={view.spendUnavailable}
       />
 
       <div
@@ -340,23 +323,36 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
           <UsageSummaryTable rows={view.summaryRows} />
         </Section>
 
-        {view.groups.map((group) => (
+        {activeGroups.map((group) => (
           <Section key={group.id} title={group.title} description={group.description} layout="grid">
-            {group.meters.length === 0 ? (
-              <Card>
-                <CardContent className="text-muted-foreground py-12 text-center text-sm">
-                  No meters defined yet for this group.
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {group.meters.map((meter) => (
-                  <MeterCard key={`${dashboardKey}-${meter.id}`} meter={meter} />
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              {group.meters.map((meter) => (
+                <MeterCard key={`${dashboardKey}-${meter.id}`} meter={meter} />
+              ))}
+            </div>
+            {group.idleMeters.length > 0 ? (
+              <IdleMeterList
+                className="mt-4"
+                groups={[{ id: group.id, meters: group.idleMeters }]}
+              />
+            ) : null}
           </Section>
         ))}
+
+        {idleGroups.length > 0 ? (
+          <Section
+            title="No usage this period"
+            description="These services have meters but recorded nothing in the selected billing period."
+            layout="grid">
+            <IdleMeterList
+              groups={idleGroups.map((group) => ({
+                id: group.id,
+                title: group.title,
+                meters: group.idleMeters,
+              }))}
+            />
+          </Section>
+        ) : null}
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ export interface ServerEnv {
   /** Relay watch subscribes across pods through Redis (`WATCH_RELAY_ENABLED`). */
   watchRelayEnabled: boolean;
 
-  // Optional: Usage Pipeline (Milo billing → Amberflo)
+  // Optional: Usage Pipeline (Milo billing ingestion)
   // When unset, usage events are silently dropped (i.e. no-op). Once the
   // platform's per-project Ingestion Gateway exists, point this at it.
   // See https://github.com/datum-cloud/billing/blob/docs/usage-pipeline/docs/enhancements/usage-pipeline.md
@@ -100,12 +100,6 @@ export interface ServerEnv {
   // billing-ingestion-proxy in front of the gateway enforces this
   // header; leave undefined in environments that don't need auth.
   usageGatewayApiKey?: string;
-
-  // Optional: Amberflo usage query (read path for the usage chart)
-  // amberfloApiKey: secret key used server-side to call POST /usage/sparse
-  // amberfloBaseUrl: defaults to https://app.amberflo.io
-  amberfloApiKey?: string;
-  amberfloBaseUrl?: string;
 
   // Optional: Portal Plugin System (dev-only registry sources + token exchange)
   // All are hard-disabled outside NODE_ENV=development.

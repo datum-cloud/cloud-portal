@@ -168,8 +168,14 @@ export default route.Page(({ data: initialOrg, companions }) => {
             staleTime: QUERY_STALE_TIME,
           });
           void queryClient.prefetchQuery({
-            queryKey: usageKeys.dashboard(orgId, 'all', 'current'),
-            queryFn: () => fetchOrgUsageDashboard({ orgId, project: 'all', cycle: 'current' }),
+            queryKey: usageKeys.dashboard(orgId, 'all', 'current', 'organization'),
+            queryFn: () =>
+              fetchOrgUsageDashboard({
+                orgId,
+                project: 'all',
+                cycle: 'current',
+                scope: 'organization',
+              }),
             staleTime: QUERY_STALE_TIME,
           });
         },

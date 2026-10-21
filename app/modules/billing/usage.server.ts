@@ -1,12 +1,14 @@
-import { amberfloMeterApiName } from './amberflo-meter-api-name';
-import { filterUsageByEntitlement } from './usage-entitlements';
-import { resolveMeterGroup } from './usage-groups';
-import { loadCatalogUsagePricing } from './usage-pricing.server';
-import { enrichMetersWithCatalogSpend } from './usage-spend';
+import {
+  breakdownDimensions,
+  breakdownDimensionsUnion,
+  collectMeterResults,
+  dayBuckets,
+  planGroupings,
+  toMeterSeries,
+  toSpend,
+} from './usage-query';
 import type {
-  MeterBreakdownSeries,
   MeterDefinition,
-  MeterPoint,
   MeterSeries,
   OrgUsageDashboardData,
   UsageFetchResult,
@@ -18,9 +20,10 @@ import {
   selectBillingCycleWindow,
 } from '@/modules/billing/billing-cycle';
 import { client } from '@/modules/control-plane/shared/client.gen';
+import { logger } from '@/modules/logger';
 import { createBillingAccountBindingService } from '@/resources/billing-account-bindings';
 import { createBillingAccountService } from '@/resources/billing-accounts';
-import { env } from '@/utils/env/env.server';
+import { createUsageQueryService, type UsageQueryScope } from '@/resources/usage-queries';
 import { AuthenticationError, AuthorizationError } from '@/utils/errors';
 
 const DEFAULT_DAYS = 30;
@@ -29,6 +32,13 @@ export interface UsageTimeRange {
   startSec: number;
   endSec: number;
 }
+
+/**
+ * Where the dashboard reads usage from. `organization` may still narrow to
+ * one project with `projectId`; `project` makes the request in the project's
+ * own context.
+ */
+export type UsageScope = 'organization' | 'project';
 
 function resolveQueryTimeRange(
   days = DEFAULT_DAYS,
@@ -79,17 +89,18 @@ export async function resolveBillingAccountForUsageScope(
   }
 }
 
-// Cap the number of dimensions we fan breakdown queries out for, per
-// meter. Each dimension is an extra Amberflo round-trip, so we bound the
-// loader's fan-out; the UI only surfaces a handful of tabs anyway.
-const MAX_BREAKDOWN_DIMENSIONS = 3;
+/** Phases `UsageQuery` reads; Draft and Retired meters are rejected. */
+const QUERYABLE_METER_PHASES = new Set(['Published', 'Deprecated']);
 
-/** Platform dimension injected by the billing pipeline (not on MeterDefinition). */
-const PROJECT_BREAKDOWN_DIMENSION = 'project_name';
-
-const HIDDEN_BREAKDOWN_DIMENSIONS = new Set(['gateway_class', 'httproute_namespace']);
+// The meter catalog is platform-wide and rarely changes, so a short cache
+// spares every dashboard load a round trip.
+const METER_DEFINITIONS_TTL_MS = 60_000;
+let meterDefinitionsCache: { expiresAt: number; defs: MeterDefinition[] } | undefined;
 
 export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
+  if (meterDefinitionsCache && meterDefinitionsCache.expiresAt > Date.now()) {
+    return meterDefinitionsCache.defs;
+  }
   try {
     const axios = client.getConfig().axios;
     if (!axios) return [];
@@ -101,223 +112,38 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
         meterName?: string;
         displayName?: string;
         description?: string;
+        phase?: string;
         measurement?: { unit?: string; aggregation?: string; dimensions?: string[] };
         monitoredResourceTypes?: string[];
       };
+      status?: { systemDimensions?: string[] };
     }[] = resp.data?.items ?? [];
-    return items
+    const defs = items
+      .filter((item) => QUERYABLE_METER_PHASES.has(item.spec?.phase ?? ''))
       .map((item) => ({
-        meterApiName: amberfloMeterApiName(item.metadata?.name ?? ''),
+        name: item.metadata?.name ?? '',
         meterName: item.spec?.meterName ?? '',
         displayName: item.spec?.displayName ?? item.spec?.meterName ?? '',
         description: item.spec?.description?.trim() || undefined,
         unit: item.spec?.measurement?.unit,
         aggregation: item.spec?.measurement?.aggregation,
         dimensions: item.spec?.measurement?.dimensions ?? [],
+        systemDimensions: item.status?.systemDimensions ?? [],
         monitoredResourceTypes: item.spec?.monitoredResourceTypes ?? [],
       }))
-      .filter((m) => m.meterApiName && m.meterName);
-  } catch {
-    return [];
-  }
-}
-
-interface SparseClientMeter {
-  values?: { secondsSinceEpochUtc: number; value: number }[];
-  group?: { groupInfo?: Record<string, string> };
-  groupInfo?: Record<string, string>;
-  groupColumns?: Record<string, string>;
-}
-
-/** Amberflo `/usage` nests dimensions under `group.groupInfo`. */
-function resolveGroupInfo(cm: SparseClientMeter): Record<string, string> {
-  return cm.group?.groupInfo ?? cm.groupInfo ?? cm.groupColumns ?? {};
-}
-
-function clientMeterToPoints(cm: SparseClientMeter | undefined): MeterPoint[] {
-  return (cm?.values ?? []).map((v) => ({
-    timestamp: v.secondsSinceEpochUtc * 1000,
-    value: v.value,
-  }));
-}
-
-function aggregateMeterValues(clientMeters: SparseClientMeter[] | undefined): MeterPoint[] {
-  const totalsByTs = new Map<number, number>();
-  for (const cm of clientMeters ?? []) {
-    for (const v of cm.values ?? []) {
-      const ts = v.secondsSinceEpochUtc * 1000;
-      totalsByTs.set(ts, (totalsByTs.get(ts) ?? 0) + v.value);
+      .filter((m) => m.name && m.meterName);
+    if (defs.length > 0) {
+      meterDefinitionsCache = { expiresAt: Date.now() + METER_DEFINITIONS_TTL_MS, defs };
     }
-  }
-  const points = Array.from(totalsByTs.entries())
-    .map(([timestamp, value]) => ({ timestamp, value }))
-    .sort((a, b) => a.timestamp - b.timestamp);
-  // `/usage` returns a daily bucket per day even when consumption is zero.
-  // Treat an all-zero window as no data so empty states stay accurate.
-  if (points.length > 0 && points.every((point) => point.value === 0)) {
+    return defs;
+  } catch (error) {
+    // The definitions decide what is queried, so without them the page
+    // shows no usage at all; make that visible.
+    logger.warn('Failed to list MeterDefinitions for usage', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return [];
   }
-  return points;
-}
-
-interface SparseQueryArgs {
-  meterApiName: string;
-  customerIds: string[];
-  startSec: number;
-  nowSec: number;
-  apiKey: string;
-  baseUrl: string;
-  /** When set, scopes Amberflo to a single Milo project (billing pipeline system dimension). */
-  projectId?: string;
-}
-
-/**
- * POST Amberflo `/usage` (daily-aggregated series). Staff-portal uses the
- * same endpoint; `/usage/sparse` returns empty `clientMeters` for
- * pre-aggregated meters even when `/usage` has data.
- */
-async function queryUsage(args: SparseQueryArgs, groupBy: string[]): Promise<SparseClientMeter[]> {
-  const { meterApiName, customerIds, startSec, nowSec, apiKey, baseUrl, projectId } = args;
-  const filter: Record<string, string[]> = { customerId: customerIds };
-  if (projectId) {
-    filter[PROJECT_BREAKDOWN_DIMENSION] = [projectId];
-  }
-  const resp = await fetch(`${baseUrl}/usage`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-    body: JSON.stringify({
-      meterApiName,
-      aggregation: 'sum',
-      timeGroupingInterval: 'day',
-      timeRange: { startTimeInSeconds: startSec, endTimeInSeconds: nowSec },
-      filter,
-      groupBy,
-    }),
-  });
-  if (!resp.ok) return [];
-  const json = (await resp.json()) as { clientMeters?: SparseClientMeter[] };
-  return json.clientMeters ?? [];
-}
-
-/** Aggregate series for a meter, summed across the supplied customers. */
-async function fetchAggregateSeries(args: SparseQueryArgs): Promise<MeterPoint[]> {
-  return aggregateMeterValues(await queryUsage(args, ['customerId']));
-}
-
-/** One series per value of `dimension`, summed across the supplied customers. */
-async function fetchMeterBreakdown(
-  args: SparseQueryArgs,
-  dimension: string
-): Promise<MeterBreakdownSeries[]> {
-  const clientMeters = await queryUsage(args, [dimension]);
-  const pointsByGroup = new Map<string, Map<number, number>>();
-
-  for (const cm of clientMeters) {
-    const groupInfo = resolveGroupInfo(cm);
-    const groupValue = groupInfo[dimension];
-    // Amberflo returns a single aggregate bucket with empty `groupInfo` when
-    // the dimension is declared but not populated on events — skip those so
-    // breakdown tabs don't mirror the Total series.
-    if (!groupValue) continue;
-
-    const byTimestamp = pointsByGroup.get(groupValue) ?? new Map<number, number>();
-    for (const point of clientMeterToPoints(cm)) {
-      byTimestamp.set(point.timestamp, (byTimestamp.get(point.timestamp) ?? 0) + point.value);
-    }
-    pointsByGroup.set(groupValue, byTimestamp);
-  }
-
-  return [...pointsByGroup.entries()]
-    .map(([groupValue, byTimestamp]) => {
-      const values = [...byTimestamp.entries()]
-        .map(([timestamp, value]) => ({ timestamp, value }))
-        .sort((a, b) => a.timestamp - b.timestamp);
-      const total = values.reduce((acc, point) => acc + point.value, 0);
-      return { groupValue, values: total === 0 ? [] : values };
-    })
-    .filter((series) => series.values.length > 0);
-}
-
-export async function fetchUsageForCustomerIds({
-  customerIds,
-  days = DEFAULT_DAYS,
-  range,
-  projectId,
-}: {
-  customerIds: string[];
-  days?: number;
-  range?: UsageTimeRange;
-  projectId?: string;
-}): Promise<MeterSeries[]> {
-  const apiKey = env.server.amberfloApiKey;
-  if (!apiKey || customerIds.length === 0) {
-    return [];
-  }
-
-  const baseUrl = env.server.amberfloBaseUrl ?? 'https://app.amberflo.io';
-  const { startSec, endSec: nowSec } = resolveQueryTimeRange(days, range);
-
-  const meterDefs = await listMeterDefinitions();
-
-  return Promise.all(
-    meterDefs.map(async (def): Promise<MeterSeries> => {
-      const group = resolveMeterGroup(def.meterName);
-      const base: MeterSeries = {
-        meterApiName: def.meterApiName,
-        meterName: def.meterName,
-        label: def.displayName,
-        values: [],
-        description: def.description,
-        unit: def.unit,
-        aggregation: def.aggregation,
-        dimensions: def.dimensions,
-        groupId: group.id,
-        groupTitle: group.title,
-      };
-
-      const queryArgs: SparseQueryArgs = {
-        meterApiName: def.meterApiName,
-        customerIds,
-        startSec,
-        nowSec,
-        apiKey,
-        baseUrl,
-        projectId,
-      };
-
-      try {
-        const dims = (def.dimensions ?? [])
-          .filter(
-            (dimension) =>
-              dimension !== PROJECT_BREAKDOWN_DIMENSION &&
-              !HIDDEN_BREAKDOWN_DIMENSIONS.has(dimension)
-          )
-          .slice(0, MAX_BREAKDOWN_DIMENSIONS);
-        const [values, meterBreakdowns, projectBreakdown] = await Promise.all([
-          fetchAggregateSeries(queryArgs),
-          Promise.all(
-            dims.map(async (dimension) => ({
-              dimension,
-              series: await fetchMeterBreakdown(queryArgs, dimension),
-            }))
-          ),
-          projectId
-            ? Promise.resolve({ dimension: PROJECT_BREAKDOWN_DIMENSION, series: [] })
-            : fetchMeterBreakdown(queryArgs, PROJECT_BREAKDOWN_DIMENSION).then((series) => ({
-                dimension: PROJECT_BREAKDOWN_DIMENSION,
-                series,
-              })),
-        ]);
-        const breakdowns = [
-          ...(projectBreakdown.series.length > 0 ? [projectBreakdown] : []),
-          ...meterBreakdowns.filter((b) => b.series.length > 0),
-        ];
-        return { ...base, values, breakdowns };
-      } catch {
-        return base;
-      }
-    })
-  );
 }
 
 /** Bucket meters by owning service group, preserving first-seen order. */
@@ -326,8 +152,8 @@ function buildUsageGroups(meters: MeterSeries[]): UsageGroup[] {
   for (const meter of meters) {
     const id = meter.groupId ?? 'other';
     const title = meter.groupTitle ?? 'Other';
-    const group = byId.get(id) ?? { id, title, meterApiNames: [] };
-    group.meterApiNames.push(meter.meterApiName);
+    const group = byId.get(id) ?? { id, title, meterDefinitions: [] };
+    group.meterDefinitions.push(meter.meterDefinition);
     byId.set(id, group);
   }
   return Array.from(byId.values());
@@ -337,128 +163,115 @@ function isAuthError(err: unknown): boolean {
   return err instanceof AuthorizationError || err instanceof AuthenticationError;
 }
 
-async function resolveProjectCustomerId(
-  orgId: string,
-  projectId: string
-): Promise<
-  | { status: 'ok'; customerId: string }
-  | { status: 'no-billing-account' | 'insufficient-permissions' }
-> {
-  let bindings;
-  try {
-    bindings = await createBillingAccountBindingService().list(orgId);
-  } catch (err) {
-    if (isAuthError(err)) {
-      return { status: 'insufficient-permissions' };
-    }
-    throw err;
-  }
-
-  const binding = bindings.find(
-    (b) =>
-      b.spec?.projectRef?.name === projectId && (!b.status?.phase || b.status.phase === 'Active')
-  );
-  if (!binding?.spec?.billingAccountRef?.name) {
-    return { status: 'no-billing-account' };
-  }
-
-  let account;
-  try {
-    account = await createBillingAccountService().get(orgId, binding.spec.billingAccountRef.name);
-  } catch (err) {
-    if (isAuthError(err)) {
-      return { status: 'insufficient-permissions' };
-    }
-    throw err;
-  }
-
-  const customerId = account.metadata?.uid;
-  if (!customerId) {
-    return { status: 'no-billing-account' };
-  }
-
-  return { status: 'ok', customerId };
-}
-
+/**
+ * Read every meter's usage, with its total and per-dimension breakdowns,
+ * from `UsageQuery`. Organization scope may narrow to one project with
+ * `projectId`; project scope makes the request in that project's context.
+ */
 export async function fetchOrgUsage(
   orgId: string,
-  options: { days?: number; range?: UsageTimeRange; projectId?: string } = {}
+  options: {
+    days?: number;
+    range?: UsageTimeRange;
+    projectId?: string;
+    scope?: UsageScope;
+    /** A catalog fetch already under way, so callers can overlap it with other work. */
+    meterDefinitions?: Promise<MeterDefinition[]>;
+  } = {}
 ): Promise<UsageFetchResult> {
-  const { days = DEFAULT_DAYS, range, projectId } = options;
-  const { days: resolvedDays } = resolveQueryTimeRange(days, range);
+  const { days = DEFAULT_DAYS, range, projectId, scope = 'organization' } = options;
+  const { startSec, endSec, days: resolvedDays } = resolveQueryTimeRange(days, range);
 
-  if (!env.server.amberfloApiKey) {
-    return { status: 'unconfigured', meters: [], days: resolvedDays, projectId };
-  }
+  const queryScope: UsageQueryScope =
+    scope === 'project' && projectId
+      ? { type: 'project', projectId }
+      : { type: 'organization', orgId };
+  const narrowToProject = queryScope.type === 'organization' && projectId ? projectId : undefined;
+  // A project breakdown only makes sense across several projects.
+  const includeProjectBreakdown = queryScope.type === 'organization' && !narrowToProject;
 
-  let customerIds: string[];
-  if (projectId) {
-    const resolved = await resolveProjectCustomerId(orgId, projectId);
-    if (resolved.status !== 'ok') {
-      return { status: resolved.status, meters: [], days: resolvedDays, projectId };
-    }
-    customerIds = [resolved.customerId];
-  } else {
-    let accounts;
-    try {
-      accounts = await createBillingAccountService().list(orgId);
-    } catch (err) {
-      if (isAuthError(err)) {
-        return { status: 'insufficient-permissions', meters: [], days: resolvedDays };
-      }
-      throw err;
-    }
+  const meterDefs = await (options.meterDefinitions ?? listMeterDefinitions());
+  const groupingPlans = planGroupings(breakdownDimensionsUnion(meterDefs, includeProjectBreakdown));
+  const service = createUsageQueryService();
 
-    customerIds = [
-      ...new Set(
-        accounts
-          .map((account) => account.metadata?.uid)
-          .filter((uid): uid is string => Boolean(uid))
-      ),
-    ];
-
-    if (customerIds.length === 0) {
-      return { status: 'no-billing-account', meters: [], days: resolvedDays };
-    }
-  }
-
-  const meters = await fetchUsageForCustomerIds({ customerIds, days, range, projectId });
-
-  const scopedAccount = await resolveBillingAccountForUsageScope(orgId, projectId ?? 'all').catch(
-    () => null
+  // `meters` is left empty so one query reads every meter, whatever its
+  // dimensions. The first query also returns the total and the spend.
+  const [primaryResult, ...overflowResults] = await Promise.allSettled(
+    groupingPlans.map((dimensions, index) =>
+      service.query(queryScope, {
+        startTime: new Date(startSec * 1000).toISOString(),
+        endTime: new Date(endSec * 1000).toISOString(),
+        granularity: 'Day',
+        timeZone: 'UTC',
+        projects: narrowToProject ? [narrowToProject] : undefined,
+        includeSpend: index === 0 || undefined,
+        groupings: [
+          ...(index === 0 ? [{ groupBy: [] }] : []),
+          ...dimensions.map((d) => ({ groupBy: [d] })),
+        ],
+      })
+    )
   );
-  const meterDefs: MeterDefinition[] = meters
-    .filter((meter): meter is MeterSeries & { meterName: string } => Boolean(meter.meterName))
-    .map((meter) => ({
-      meterApiName: meter.meterApiName,
-      meterName: meter.meterName,
-      displayName: meter.label,
-    }));
-  const catalogPricing = await loadCatalogUsagePricing(orgId, {
-    billingAccountName: scopedAccount?.metadata?.name,
-    meterDefs,
+
+  if (primaryResult.status === 'rejected') {
+    if (isAuthError(primaryResult.reason)) {
+      return { status: 'insufficient-permissions', meters: [], days: resolvedDays, projectId };
+    }
+    throw primaryResult.reason;
+  }
+  const primary = primaryResult.value;
+
+  // Overflow queries only carry extra breakdowns. If one fails, keep the
+  // totals and spend on screen and lose just those tabs.
+  const statuses = [primary];
+  for (const result of overflowResults) {
+    if (result.status === 'fulfilled') {
+      statuses.push(result.value);
+    } else {
+      logger.warn('UsageQuery for extra breakdowns failed', {
+        orgId,
+        error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+      });
+    }
+  }
+
+  // Organization queries report the billing accounts they read; none means
+  // the org has no billing account yet. Project queries never list them.
+  if (queryScope.type === 'organization' && !primary.billingAccounts?.length) {
+    return { status: 'no-billing-account', meters: [], days: resolvedDays, projectId };
+  }
+
+  const buckets = dayBuckets(startSec, endSec);
+  const results = collectMeterResults(statuses);
+  const meters = meterDefs.map((def) => {
+    const result = results.get(def.name);
+    if (result?.error) {
+      // Not set up in the metering backend yet; it shows empty.
+      logger.warn('UsageQuery could not read meter', {
+        meterDefinition: def.name,
+        error: result.error,
+      });
+    }
+    if (result?.usage?.spendError) {
+      logger.warn('UsageQuery could not price meter', {
+        meterDefinition: def.name,
+        error: result.usage.spendError,
+      });
+    }
+    return toMeterSeries(def, result, breakdownDimensions(def, includeProjectBreakdown), buckets);
   });
-  const {
-    meters: metersWithCost,
-    totalSpend,
-    currencyCode,
-    offerName,
-  } = enrichMetersWithCatalogSpend(
-    meters,
-    catalogPricing.byMetric,
-    catalogPricing.meterNameByApiName,
-    catalogPricing.offerName
-  );
+  if (primary.spendError) {
+    logger.warn('UsageQuery could not total spend', { orgId, error: primary.spendError });
+  }
 
   return {
     status: 'ok',
-    meters: metersWithCost,
-    groups: buildUsageGroups(metersWithCost),
+    meters,
+    groups: buildUsageGroups(meters),
     days: resolvedDays,
     projectId,
-    totalSpend,
-    currencyCode,
-    pricingOfferName: offerName,
+    spend: toSpend(primary.spend),
+    spendUnavailable: Boolean(primary.spendError) || undefined,
   };
 }
 
@@ -471,25 +284,23 @@ export function resolveUsageProjectSelection(
 }
 
 /**
- * Resolve billing cycle windows and Amberflo usage for the org usage
- * dashboard. Shared by the Hono API route and any server callers.
+ * Resolve billing cycle windows and usage for the usage dashboard. Shared
+ * by the Hono API route and any server callers.
  */
 export async function loadOrgUsageDashboard(
   orgId: string,
   options: {
-    projectParam?: string | null;
+    /** A project name, or `all`; resolve it with `resolveUsageProjectSelection`. */
+    selectedProject?: string;
     cycleParam?: string | null;
-    projectNames?: string[];
-    /**
-     * Active entitlement ids for the projects in scope. `null` or omitted
-     * means unknown, and gated services stay visible.
-     */
-    entitledServiceIds?: ReadonlySet<string> | null;
+    /** `project` reads in the selected project's own context. */
+    scope?: UsageScope;
   } = {}
 ): Promise<OrgUsageDashboardData> {
-  const { projectParam, cycleParam, projectNames = [], entitledServiceIds = null } = options;
-  const selectedProject = resolveUsageProjectSelection(projectParam, projectNames);
+  const { selectedProject = 'all', cycleParam, scope = 'organization' } = options;
 
+  // The catalog doesn't depend on the billing account; fetch both at once.
+  const meterDefinitions = listMeterDefinitions();
   const scopedBillingAccount = await resolveBillingAccountForUsageScope(
     orgId,
     selectedProject
@@ -504,13 +315,12 @@ export async function loadOrgUsageDashboard(
   }));
   const range = { startSec: selectedCycleWindow.startSec, endSec: selectedCycleWindow.endSec };
 
-  const usage = filterUsageByEntitlement(
-    await fetchOrgUsage(orgId, {
-      range,
-      projectId: selectedProject === 'all' ? undefined : selectedProject,
-    }),
-    entitledServiceIds
-  );
+  const usage = await fetchOrgUsage(orgId, {
+    range,
+    projectId: selectedProject === 'all' ? undefined : selectedProject,
+    scope: selectedProject === 'all' ? 'organization' : scope,
+    meterDefinitions,
+  });
 
   return {
     usage,

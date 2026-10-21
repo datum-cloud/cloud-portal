@@ -152,7 +152,7 @@ const serverSchema = z.object({
   ASSISTANT_A2A_URL: urlSchemaOptional(),
 
   // ─────────────────────────────────────────────────────────
-  // Optional: Usage Pipeline (Milo billing → Amberflo)
+  // Optional: Usage Pipeline (Milo billing ingestion)
   //
   // When USAGE_GATEWAY_URL is unset, usage emission is a no-op.
   // USAGE_GATEWAY_API_KEY, when set, is forwarded as the `x-api-key`
@@ -160,16 +160,6 @@ const serverSchema = z.object({
   // ─────────────────────────────────────────────────────────
   USAGE_GATEWAY_URL: urlSchemaOptional(),
   USAGE_GATEWAY_API_KEY: z.string().optional(),
-
-  // ─────────────────────────────────────────────────────────
-  // Optional: Amberflo usage query (read path for usage chart)
-  //
-  // AMBERFLO_API_KEY: secret key for POST /usage — never sent to browser.
-  // AMBERFLO_BASE_URL: defaults to https://app.amberflo.io.
-  // Meter names are discovered automatically from platform MeterDefinition resources.
-  // ─────────────────────────────────────────────────────────
-  AMBERFLO_API_KEY: z.string().optional(),
-  AMBERFLO_BASE_URL: z.url().default('https://app.amberflo.io'),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Redis (falls back to in-memory)
@@ -288,9 +278,6 @@ export const env: Env = {
     // Usage Pipeline
     usageGatewayUrl: data.USAGE_GATEWAY_URL,
     usageGatewayApiKey: data.USAGE_GATEWAY_API_KEY,
-    // Amberflo read
-    amberfloApiKey: data.AMBERFLO_API_KEY,
-    amberfloBaseUrl: data.AMBERFLO_BASE_URL,
     // Redis
     redisUrl: data.REDIS_URL,
     redisMaxRetries: data.REDIS_MAX_RETRIES,

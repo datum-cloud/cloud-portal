@@ -1,7 +1,8 @@
-import { formatByUnit, formatCurrency, formatUnitRate, formatUsagePair } from '../usage.format';
+import { formatAxisValue, formatByUnit, formatUsagePair } from '../usage.format';
 import type { MeterPoint, UsageMeter } from '../usage.types';
 import { humanizeDimension } from '../usage.view';
 import { QuotaIndicator } from './quota-ring';
+import { SpendValue } from './spend-value';
 import { Card, CardContent, CardHeader } from '@datum-cloud/datum-ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@datum-cloud/datum-ui/tabs';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
@@ -33,13 +34,11 @@ const MAX_STACK_SERIES = 6;
 type StackRow = Record<string, number>;
 
 /** Merge a dimension's grouped series into stacked rows keyed by timestamp. */
-function buildStackData(series: { groupValue: string; values: MeterPoint[] }[]): {
+function buildStackData(series: { groupValue: string; total: number; values: MeterPoint[] }[]): {
   keys: string[];
   data: StackRow[];
 } {
-  const top = [...series]
-    .sort((a, b) => sumValues(b.values) - sumValues(a.values))
-    .slice(0, MAX_STACK_SERIES);
+  const top = [...series].sort((a, b) => b.total - a.total).slice(0, MAX_STACK_SERIES);
   const keys = top.map((s) => s.groupValue);
 
   const byTimestamp = new Map<number, StackRow>();
@@ -62,15 +61,11 @@ function buildStackData(series: { groupValue: string; values: MeterPoint[] }[]):
   return { keys, data };
 }
 
-function sumValues(values: MeterPoint[]): number {
-  return values.reduce((acc, point) => acc + point.value, 0);
-}
-
 /**
  * Per-meter card: title + description, a right-aligned `used / limit`
  * headline with a quota ring, optional breakdown tabs, and a daily bar
- * chart. Amberflo series are day-bucketed sums, so bars (stacked on
- * dimension tabs) match the data better than a smoothed area.
+ * chart. Series are daily buckets, so bars (stacked on dimension tabs)
+ * match the data better than a smoothed area.
  */
 export function MeterCard({ meter }: MeterCardProps) {
   const [activeTab, setActiveTab] = useState(meter.tabs[0]);
@@ -86,8 +81,7 @@ export function MeterCard({ meter }: MeterCardProps) {
   const isStackedChart = Boolean(stack && stack.keys.length > 0);
   const chartData = isStackedChart ? stack!.data : meter.series;
   const hasBreakdownTabs = (meter.breakdowns?.length ?? 0) > 0;
-
-  const showRate = (meter.spend ?? 0) > 0 || meter.unitRate !== undefined;
+  const showSpend = Boolean(meter.spend || meter.spendUnavailable);
 
   return (
     <Card size="sm" sectioned className="@container h-full min-w-0 overflow-hidden">
@@ -104,11 +98,16 @@ export function MeterCard({ meter }: MeterCardProps) {
           <div className="flex shrink-0 items-center gap-2">
             <Text weight="medium" textColor="default" className="tabular-nums">
               {formatUsagePair(meter.unit, meter.used, meter.limit)}
+              {meter.qualifier ? (
+                <Text as="span" size="xs" textColor="muted" weight="normal" className="ml-1">
+                  {meter.qualifier}
+                </Text>
+              ) : null}
             </Text>
             <QuotaIndicator used={meter.used} limit={meter.limit} size={24} />
           </div>
         </div>
-        {meter.description || showRate ? (
+        {meter.description || showSpend ? (
           <div className="flex min-w-0 items-baseline justify-between gap-3">
             {meter.description ? (
               <Text as="p" textColor="muted" className="line-clamp-2 min-w-0 leading-relaxed">
@@ -117,21 +116,14 @@ export function MeterCard({ meter }: MeterCardProps) {
             ) : (
               <span aria-hidden="true" />
             )}
-            {showRate ? (
-              <Text
-                as="p"
-                size="xs"
-                textColor="muted"
-                className="shrink-0 text-right leading-relaxed tabular-nums">
-                {formatUnitRate(meter.unitRate, meter.unit, meter.currencyCode, meter.pricingUnit)}
-                {(meter.spend ?? 0) > 0 ? (
-                  <>
-                    {' · '}
-                    <span className="text-foreground font-medium">
-                      {formatCurrency(meter.spend, meter.currencyCode)} spent
-                    </span>
-                  </>
-                ) : null}
+            {showSpend ? (
+              <Text as="p" size="xs" textColor="muted" className="shrink-0 text-right">
+                <SpendValue
+                  spend={meter.spend}
+                  unavailable={meter.spendUnavailable}
+                  className="text-foreground font-medium"
+                />{' '}
+                spent
               </Text>
             ) : null}
           </div>
@@ -193,9 +185,9 @@ export function MeterCard({ meter }: MeterCardProps) {
               <YAxis
                 tickLine={false}
                 axisLine={false}
-                width={56}
+                width={64}
                 tickFormatter={(value) =>
-                  formatByUnit(meter.unit, typeof value === 'number' ? value : 0)
+                  formatAxisValue(meter.unit, typeof value === 'number' ? value : 0)
                 }
                 tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
               />
