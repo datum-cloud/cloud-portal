@@ -14,8 +14,8 @@ import { createMiddleware } from 'hono/factory';
  * API the enforcement point — re-deriving the same answer here would cost a
  * round trip per request to duplicate a check that already happens.
  *
- * The exceptions are the routes that authenticate with a key the portal holds
- * (`/assistant` → Anthropic, `/usage` → Amberflo).
+ * The exception is the route that authenticates with a key the portal holds
+ * (`/assistant` → Anthropic).
  * Nothing downstream knows or cares who the caller is, so an unverified signup
  * can spend real money through them. Those are the routes this guard covers.
  *

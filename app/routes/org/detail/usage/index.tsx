@@ -11,7 +11,7 @@ export const handle = {
 /**
  * Org-wide usage dashboard.
  *
- * Usage data, billing cycle windows, and Amberflo series load client-side
+ * Usage data, billing cycle windows, and UsageQuery series load client-side
  * via React Query so filter changes don't block the route transition.
  */
 export const loader = async ({ params }: LoaderFunctionArgs) => {

@@ -1,9 +1,9 @@
 /**
- * Adapter from the live `UsageFetchResult` (Amberflo series enriched with
- * MeterDefinition metadata + AllowanceBucket quotas) into the view shapes
- * the dashboard components consume.
+ * Adapter from the live `UsageFetchResult` (UsageQuery series enriched with
+ * MeterDefinition metadata) into the view shapes the dashboard components
+ * consume.
  */
-import { ucumToMeterUnit } from './usage.format';
+import { aggregationQualifier, ucumToMeterUnit } from './usage.format';
 import type {
   UsageDisplayNameOption,
   UsageGroupSection,
@@ -11,11 +11,7 @@ import type {
   UsageProjectOption,
   UsageSummaryRow,
 } from './usage.types';
-import type { MeterSeries, UsageFetchResult } from '@/modules/billing/usage.types';
-
-function sumSeries(values: { value: number }[]): number {
-  return values.reduce((acc, point) => acc + point.value, 0);
-}
+import type { MeterSeries, UsageFetchResult, UsageSpend } from '@/modules/billing/usage.types';
 
 const DIMENSION_LABELS: Record<string, string> = {
   httproute_name: 'ALB',
@@ -43,13 +39,8 @@ function displayNameMap(options: UsageDisplayNameOption[] | undefined): Map<stri
   );
 }
 
-function toUsageMeter(
-  meter: MeterSeries,
-  groupDisplayNames: GroupDisplayNames,
-  currencyCode = 'USD'
-): UsageMeter {
+function toUsageMeter(meter: MeterSeries, groupDisplayNames: GroupDisplayNames): UsageMeter {
   const unit = ucumToMeterUnit(meter.unit);
-  const used = meter.used ?? sumSeries(meter.values);
   const limit = meter.limit ?? 0;
   const breakdowns = (meter.breakdowns ?? [])
     .filter((b) => b.series.length > 0)
@@ -67,28 +58,34 @@ function toUsageMeter(
   const tabs = ['Total', ...breakdowns.map((b) => humanizeDimension(b.dimension))];
 
   return {
-    id: meter.meterApiName,
-    apiName: meter.meterName ?? meter.meterApiName,
+    id: meter.meterDefinition,
+    apiName: meter.meterName ?? meter.meterDefinition,
     label: meter.label,
     description: meter.description ?? '',
     unit,
-    used,
+    used: meter.total,
     limit,
+    qualifier: aggregationQualifier(meter.aggregation),
     spend: meter.spend,
-    unitRate: meter.unitRate,
-    pricingUnit: meter.pricingUnit,
-    currencyCode,
+    spendError: meter.spendError,
     tabs,
     series: meter.values,
     breakdowns,
   };
 }
 
+/** A meter recorded something in the period. */
+function hasUsage(meter: UsageMeter): boolean {
+  return meter.series.length > 0 || meter.used !== 0;
+}
+
 export interface UsageView {
   groups: UsageGroupSection[];
   summaryRows: UsageSummaryRow[];
-  totalSpend?: number;
-  currencyCode?: string;
+  /** What all the usage costs together. */
+  spend?: UsageSpend;
+  /** Why `spend` is left out. */
+  spendError?: string;
 }
 
 /** Build the dashboard view from live loader data. */
@@ -104,25 +101,25 @@ export function toUsageView(
     httproute_name: displayNameMap(albs),
   };
 
-  const currencyCode = result.currencyCode ?? 'USD';
-  const meterByName = new Map(result.meters.map((m) => [m.meterApiName, m]));
+  const meterByName = new Map(result.meters.map((m) => [m.meterDefinition, m]));
 
   const groups: UsageGroupSection[] = result.groups
     .map((group) => {
-      const meters = group.meterApiNames
+      const all = group.meterDefinitions
         .map((name) => meterByName.get(name))
         .filter((m): m is MeterSeries => Boolean(m))
-        .map((meter) => toUsageMeter(meter, groupDisplayNames, currencyCode));
+        .map((meter) => toUsageMeter(meter, groupDisplayNames));
       return {
         id: group.id,
         title: group.title,
-        description: `Metered consumption and spend for ${group.title} in the selected billing period.`,
-        meters,
+        description: `Metered consumption for ${group.title} in the selected billing period.`,
+        meters: all.filter(hasUsage),
+        idleMeters: all.filter((meter) => !hasUsage(meter)),
       };
     })
-    .filter((group) => group.meters.length > 0);
+    .filter((group) => group.meters.length > 0 || group.idleMeters.length > 0);
 
-  if (groups.length === 0) return null;
+  if (!groups.some((group) => group.meters.length > 0)) return null;
 
   const summaryRows: UsageSummaryRow[] = groups.flatMap((group) =>
     group.meters.map((meter) => {
@@ -133,10 +130,9 @@ export function toUsageView(
         unit: meter.unit,
         used: meter.used,
         limit: meter.limit,
+        qualifier: meter.qualifier,
         spend: meter.spend,
-        unitRate: meter.unitRate,
-        pricingUnit: meter.pricingUnit,
-        currencyCode: meter.currencyCode,
+        spendError: meter.spendError,
         series: meter.series,
         groupId: group.id,
         group: group.title,
@@ -144,10 +140,5 @@ export function toUsageView(
     })
   );
 
-  return {
-    groups,
-    summaryRows,
-    totalSpend: result.totalSpend,
-    currencyCode,
-  };
+  return { groups, summaryRows, spend: result.spend, spendError: result.spendError };
 }

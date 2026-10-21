@@ -2,11 +2,7 @@ import type { MeterSeries, SummarizedMeterUsage } from './usage.types';
 
 const ASSISTANT_DAILY_DETAIL_DAYS = 7;
 
-export function sumMeterValues(values: { value: number }[]): number {
-  return values.reduce((acc, v) => acc + v.value, 0);
-}
-
-/** Collapse sparse samples into daily totals for assistant context. */
+/** Collapse daily buckets into recent daily totals for assistant context. */
 export function summarizeMetersForAssistant(
   meters: MeterSeries[],
   detailDays = ASSISTANT_DAILY_DETAIL_DAYS
@@ -26,9 +22,9 @@ export function summarizeMetersForAssistant(
       .sort((a, b) => a.date.localeCompare(b.date));
 
     return {
-      meterApiName: meter.meterApiName,
+      meterDefinition: meter.meterDefinition,
       label: meter.label,
-      total: sumMeterValues(meter.values),
+      total: meter.total,
       recentDaily,
     };
   });

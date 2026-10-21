@@ -41,7 +41,6 @@ export function createApiApp() {
   // middleware/email-verification.ts. No-op while the flag is off.
   const emailVerified = emailVerifiedGuardMiddleware();
   api.use('/assistant/*', emailVerified);
-  api.use('/usage/*', emailVerified);
 
   // Routes
   api.route('/assistant-chat', assistantChatRoutes);

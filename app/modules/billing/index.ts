@@ -1,4 +1,4 @@
-export { sumMeterValues, summarizeMetersForAssistant } from './usage-summary';
+export { summarizeMetersForAssistant } from './usage-summary';
 export type {
   MeterSeries,
   SummarizedMeterUsage,

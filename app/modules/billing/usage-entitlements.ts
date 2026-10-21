@@ -16,10 +16,10 @@ export function filterUsageByEntitlement(
   const groups = result.groups.filter((group) => isServiceVisible(group.id, entitledServiceIds));
   if (groups.length === result.groups.length) return result;
 
-  const keptMeters = new Set(groups.flatMap((group) => group.meterApiNames));
+  const keptMeters = new Set(groups.flatMap((group) => group.meterDefinitions));
   return {
     ...result,
     groups,
-    meters: result.meters.filter((meter) => keptMeters.has(meter.meterApiName)),
+    meters: result.meters.filter((meter) => keptMeters.has(meter.meterDefinition)),
   };
 }

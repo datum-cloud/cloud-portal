@@ -1,7 +1,8 @@
 import { groupUsageSummaryRows } from '../usage-summary-grouping';
-import { formatCurrency, formatUnitRate, formatUsagePair } from '../usage.format';
+import { formatUsagePair } from '../usage.format';
 import type { UsageSummaryRow } from '../usage.types';
 import { QuotaIndicator } from './quota-ring';
+import { SpendValue } from './spend-value';
 import { UsageSparkline } from './usage-sparkline';
 import { type ColumnDef, sortableHeader } from '@/components/table';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -55,46 +56,30 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
         id: 'usage',
         header: sortableHeader<UsageSummaryRow>('Usage'),
         accessorFn: (row) => row.used,
-        size: 108,
+        size: 140,
         cell: ({ row }) => (
           <Text textColor="muted" ellipsis className="block text-right tabular-nums">
             {formatUsagePair(row.original.unit, row.original.used, row.original.limit)}
+            {row.original.qualifier ? (
+              <Text as="span" size="xs" textColor="muted" className="ml-1">
+                {row.original.qualifier}
+              </Text>
+            ) : null}
           </Text>
         ),
       },
       {
-        id: 'rate',
-        header: sortableHeader<UsageSummaryRow>('Rate'),
-        accessorFn: (row) => row.unitRate ?? 0,
-        size: 188,
-        cell: ({ row }) => {
-          const rate = formatUnitRate(
-            row.original.unitRate,
-            row.original.unit,
-            row.original.currencyCode,
-            row.original.pricingUnit
-          );
-          return (
-            <Tooltip message={rate}>
-              <Text textColor="muted" ellipsis className="block text-right tabular-nums">
-                {rate}
-              </Text>
-            </Tooltip>
-          );
-        },
-      },
-      {
         id: 'spend',
         header: sortableHeader<UsageSummaryRow>('Spend'),
-        accessorFn: (row) => row.spend ?? 0,
+        accessorFn: (row) => row.spend?.amount ?? -1,
         size: 112,
         cell: ({ row }) => (
-          <Text
-            weight="medium"
-            textColor="default"
-            ellipsis
-            className="block text-right tabular-nums">
-            {formatCurrency(row.original.spend, row.original.currencyCode)}
+          <Text ellipsis className="block text-right">
+            <SpendValue
+              spend={row.original.spend}
+              spendError={row.original.spendError}
+              className="font-medium"
+            />
           </Text>
         ),
       },
@@ -153,7 +138,6 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
 export const usageSummaryTableColumns: ColumnDef<UsageSummaryRow, unknown>[] = [
   { id: 'product', header: 'Product', size: 300 },
   { id: 'trend', header: 'Trend', size: 144 },
-  { id: 'usage', header: 'Usage', size: 108 },
-  { id: 'rate', header: 'Rate', size: 188 },
+  { id: 'usage', header: 'Usage', size: 140 },
   { id: 'spend', header: 'Spend', size: 112 },
 ];
