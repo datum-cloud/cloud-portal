@@ -55,6 +55,11 @@ FROM base
 ARG VERSION=dev
 ENV VERSION=${VERSION}
 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends --only-upgrade ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
+
 # Create the non-root user first so ownership can be applied during COPY.
 # Doing the chown in the COPY layer avoids a second full-size layer that a
 # separate `chown -R /app` would create (it rewrites every file).
