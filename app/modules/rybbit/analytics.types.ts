@@ -11,6 +11,7 @@ export const AnalyticsAction = {
   DownloadDesktopApp: 'download_desktop_app',
   ProfileDetailsSaved: 'profile_details_saved',
   AccountDetailsSaved: 'account_details_saved',
+  OnboardingInvitationAccepted: 'onboarding_invitation_accepted',
   ContactDetailsSaved: 'contact_details_saved',
   PaymentDetailsSaved: 'payment_details_saved',
   FirstProjectView: 'first_project_view',

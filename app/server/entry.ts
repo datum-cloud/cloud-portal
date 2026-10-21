@@ -34,6 +34,7 @@ import { sessionManager } from '@/utils/auth';
 import { env } from '@/utils/env/env.server';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
+import { serveStatic } from 'hono/bun';
 import { requestId } from 'hono/request-id';
 import { register } from 'prom-client';
 import { RouterContextProvider } from 'react-router';
@@ -116,6 +117,29 @@ checkRedisHealth()
   });
 
 const app = new Hono<{ Variables: Variables }>();
+
+// Hashed build assets, answered before any other middleware. Without this they
+// reach the adapter's static handler only after metrics, Sentry, logging, the
+// session lookup and CSP nonce generation, which a cold load pays roughly 200
+// times. They never change, so they also skip revalidation for a year.
+// Serves the .br/.gz copies scripts/precompress-assets.ts writes at build time;
+// Envoy's compressor skips fonts and only compresses lightly.
+if (process.env.NODE_ENV === 'production') {
+  app.use(
+    '/assets/*',
+    async (c, next) => {
+      await next();
+      if (!c.res.ok) return;
+      c.header('Cache-Control', 'public, max-age=31536000, immutable');
+      c.header('X-Content-Type-Options', 'nosniff');
+      c.header('Cross-Origin-Resource-Policy', 'same-origin');
+    },
+    serveStatic({
+      root: `${import.meta.env.REACT_ROUTER_HONO_SERVER_BUILD_DIRECTORY ?? 'build'}/client`,
+      precompressed: true,
+    })
+  );
+}
 
 // Prometheus metrics (OpenTelemetry handled by observability factory)
 if (env.public.otelEnabled) {

@@ -332,6 +332,9 @@ Cypress.Commands.add('createStandardOrg', (displayName: string): Cypress.Chainab
   // Wait for the org list to render. Cards are typeless for unified orgs, so
   // match any card variant with the prefix selector.
   cy.get('[data-e2e^="organization-card"]', { timeout: 10_000 }).first().should('be.visible');
+  // The cards are server-rendered, so they show before React attaches the
+  // button's click handler. Wait for hydration or the click is lost.
+  cy.get('html[data-hydrated]', { timeout: 10_000 });
   cy.get('[data-e2e="create-organization-button"]').should('be.visible').click();
 
   cy.contains('Add an Organization', { timeout: 10_000 }).should('be.visible');

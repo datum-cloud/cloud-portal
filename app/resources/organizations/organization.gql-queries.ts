@@ -44,6 +44,20 @@ export function useOrganizationsGql(_params?: undefined, options?: { enabled?: b
 }
 
 /**
+ * Hook to fetch member avatars for organizations the caller already holds,
+ * keyed by org name. Lets a page render org rows from its loader and fill in
+ * the avatar stacks once this single batched gateway query returns.
+ */
+export function useOrganizationMemberAvatars(orgNames: string[]) {
+  return useQuery({
+    queryKey: [...organizationsListQueryKey, 'member-avatars', orgNames] as const,
+    queryFn: () => createOrganizationGatewayService().listMemberAvatars(orgNames),
+    enabled: orgNames.length > 0,
+    staleTime: QUERY_STALE_TIME,
+  });
+}
+
+/**
  * Hook to create an organization via GraphQL.
  * Uses TanStack Query mutation; invalidates the list cache on success.
  */

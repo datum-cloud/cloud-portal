@@ -9,11 +9,17 @@ import {
 import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
 import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
-import { useOrganizationsGql, type Organization } from '@/resources/organizations';
+import {
+  useOrganizationMemberAvatars,
+  useOrganizationsGql,
+  type Organization,
+} from '@/resources/organizations';
 import { createOrganizationService } from '@/resources/organizations';
+import { listOrganizationsForRequest } from '@/resources/organizations/organization-request-cache.server';
 import { createStripeProviderConfigService } from '@/resources/stripe-provider-configs';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getAlertState, getSession, setAlertClosed } from '@/utils/cookies';
+import { getAlertState, setAlertClosed } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import {
   appendSetCookieHeaders,
@@ -39,15 +45,11 @@ import {
   useRevalidator,
 } from 'react-router';
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const [{ isClosed: alertClosed, headers: alertHeaders }, { session }] = await Promise.all([
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const [{ isClosed: alertClosed, headers: alertHeaders }, sub] = await Promise.all([
     getAlertState(request, 'organizations_understanding'),
-    getSession(request),
+    requireSessionSub(request, context),
   ]);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
 
   try {
     // authMiddleware fetches exactly these two things on this request — but it
@@ -62,7 +64,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     const [access, hasOrganizations] = await Promise.all([
       reqCtx?.cachedUser
         ? ({ user: reqCtx.cachedUser } as UserAccessResult)
-        : loadUserOncePerRequest(session.sub, request.headers.get('Cookie')),
+        : loadUserOncePerRequest(sub, request.headers.get('Cookie')),
       // `??` rather than `||`: a cached `false` is a real answer, not a miss.
       reqCtx?.hasOrganizations ??
         oncePerRequest(requestCacheKeys.anyOrganizations, () =>
@@ -101,17 +103,29 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       country: user.country ?? '',
     };
 
-    const stripeConfigs = await createStripeProviderConfigService()
-      .list()
-      .catch(() => []);
+    // The rows render from here so they arrive with the HTML. The private
+    // layout reads the same list on this request; listOrganizationsForRequest
+    // shares the call. Only Active orgs, matching the gateway list. A failure
+    // leaves `organizations` null and the page falls back to the gateway query.
+    const [stripeConfigs, organizations] = await Promise.all([
+      createStripeProviderConfigService()
+        .list()
+        .catch(() => []),
+      listOrganizationsForRequest()
+        .then((orgs) => orgs.items.filter((org) => org.status === 'Active'))
+        .catch(() => null),
+    ]);
     const stripePublishableKey = stripeConfigs[0]?.spec?.publishableKey ?? undefined;
 
-    return data({ alertClosed, contactDefaults, stripePublishableKey }, { headers: alertHeaders });
+    return data(
+      { alertClosed, contactDefaults, stripePublishableKey, organizations },
+      { headers: alertHeaders }
+    );
   } catch (userError) {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);
     }
-    return redirect(paths.auth.logOut);
+    return redirect(loaderFailureRedirect(userError, request));
   }
 };
 
@@ -121,9 +135,18 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 export default function AccountOrganizations() {
-  const { alertClosed, contactDefaults, stripePublishableKey } = useLoaderData<typeof loader>();
-  const { data: orgList, isLoading: _isLoading, error: orgsError } = useOrganizationsGql();
-  const orgs = orgList?.items ?? [];
+  const { alertClosed, contactDefaults, stripePublishableKey, organizations } =
+    useLoaderData<typeof loader>();
+  const fallback = useOrganizationsGql(undefined, { enabled: organizations === null });
+  const orgNames = useMemo(() => (organizations ?? []).map((org) => org.name), [organizations]);
+  const { data: avatarsByOrg } = useOrganizationMemberAvatars(orgNames);
+
+  const orgs = useMemo<Organization[]>(() => {
+    if (organizations === null) return fallback.data?.items ?? [];
+    return organizations.map((org) => ({ ...org, memberAvatars: avatarsByOrg?.[org.name] }));
+  }, [organizations, avatarsByOrg, fallback.data]);
+  const _isLoading = organizations === null && fallback.isLoading;
+  const orgsError = organizations === null ? fallback.error : null;
   const navigate = useNavigate();
   const revalidator = useRevalidator();
   const { trackAction } = useAnalytics();

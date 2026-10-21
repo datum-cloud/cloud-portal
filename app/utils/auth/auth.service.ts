@@ -92,6 +92,12 @@ const refreshTokenCookie = createCookie(AUTH_COOKIE_KEYS.REFRESH_TOKEN, {
 /**
  * Session storage
  */
+/**
+ * How long past the access token's expiry a REFRESH_TOKEN_REVOKED is still
+ * treated as a cross-pod rotation race rather than a dead session.
+ */
+export const REVOKED_RACE_TOLERANCE_MS = 60 * 1000;
+
 export const sessionStorage = createCookieSessionStorage({
   cookie: sessionCookie,
 });
@@ -580,7 +586,12 @@ export class AuthService {
           // downstream API call returns 401, forcing a fresh getValidSession evaluation, and
           // the refresh cookie's maxAge caps how long this can recur. We tolerate the race for
           // one hop without server-side-revoking tokens a parallel request may have just rotated.
-          if (refreshError.type === RefreshErrorType.REFRESH_TOKEN_REVOKED) {
+          //
+          // The window is bounded: once the access token is more than
+          // REVOKED_RACE_TOLERANCE_MS past expiry, a revoked refresh token is no longer a
+          // race. Fall through to null so the caller re-authenticates (issue 153).
+          const isWithinRaceWindow = Date.now() - tokenExpiryTime <= REVOKED_RACE_TOLERANCE_MS;
+          if (refreshError.type === RefreshErrorType.REFRESH_TOKEN_REVOKED && isWithinRaceWindow) {
             console.warn(
               '[AuthService] Refresh hit REFRESH_TOKEN_REVOKED on a just-expired access token — ' +
                 'treating as a probable cross-pod rotation race. Returning current session ' +

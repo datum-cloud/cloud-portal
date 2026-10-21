@@ -6,8 +6,8 @@ import {
 } from '@/features/onboarding/onboarding-user.server';
 import { ProvisioningPage } from '@/features/onboarding/provisioning/provisioning-page';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -17,15 +17,11 @@ export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Setting up your account');
 });
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session } = await getSession(request);
-
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
+export const loader = async ({ request, context }: LoaderFunctionArgs) => {
+  const sub = await requireSessionSub(request, context);
 
   try {
-    const access = await loadOnboardingUser(session.sub, request);
+    const access = await loadOnboardingUser(sub, request);
     if ('error' in access) return redirect(onboardingAccessRedirect(access));
 
     // When provisioning targets a specific org, only its owners may proceed.
@@ -39,7 +35,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     if (userError instanceof NotFoundError || userError instanceof AuthorizationError) {
       return redirect(paths.fraud.verifying);
     }
-    return redirect(paths.auth.logOut);
+    return redirect(loaderFailureRedirect(userError, request));
   }
 };
 

@@ -12,6 +12,7 @@ import {
   getRuleExclusions,
   getBasicAuthState,
   parseHtpasswdUsernames,
+  parseHtpasswdHashes,
   generateHtpasswd,
   toTrafficProtectionModeMap,
   toParanoiaLevelsMap,
@@ -437,6 +438,7 @@ export function createHttpProxyService() {
 
     /**
      * Update the htpasswd Secret with new credentials.
+     * Users submitted without a password keep their stored hash.
      * The SecurityPolicy itself does not need to change.
      * Falls back to createBasicAuth if the Secret or SecurityPolicy don't exist yet.
      */
@@ -446,7 +448,17 @@ export function createHttpProxyService() {
       users: BasicAuthUser[]
     ): Promise<void> {
       const baseURL = getProjectScopedBase(projectId);
-      const htpasswd = await generateHtpasswd(users);
+      let existingHashes = new Map<string, string>();
+      if (users.some((u) => !u.password)) {
+        try {
+          const { data } = await this.readBasicAuthSecret(baseURL, 'default', httpProxyName);
+          existingHashes = parseHtpasswdHashes(data);
+        } catch (error: unknown) {
+          // No Secret yet: generateHtpasswd reports which users need a password.
+          if (this.getErrorStatus(error) !== 404) throw error;
+        }
+      }
+      const htpasswd = await generateHtpasswd(users, existingHashes);
       const htpasswdBase64 = btoa(
         new TextEncoder()
           .encode(htpasswd)

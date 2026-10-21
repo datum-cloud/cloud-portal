@@ -1,4 +1,7 @@
+import { selectJoinableInvitations } from './invitations/joinable-invitations';
 import { oncePerRequest } from '@/modules/axios/request-context';
+import { logger } from '@/modules/logger';
+import { createInvitationService, type Invitation } from '@/resources/invitations';
 import { createOrganizationService } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import {
@@ -45,4 +48,26 @@ export async function hasAnyOrganizations(): Promise<boolean> {
     createOrganizationService().list({ limit: 1 })
   );
   return organizations.items.length > 0;
+}
+
+/**
+ * Pending invitations the user can accept, so onboarding can offer to join a
+ * team before asking them to create (and pay for) an org of their own.
+ *
+ * Never throws: a failed lookup must not block onboarding, so it reads as
+ * "no invitations" and the user continues to org creation as before.
+ */
+export async function listJoinableInvitations(
+  userId: string,
+  email: string | undefined
+): Promise<Invitation[]> {
+  try {
+    const invitations = await createInvitationService().userInvitations(userId);
+    return selectJoinableInvitations(invitations, email);
+  } catch (error) {
+    logger.warn('Onboarding could not list pending invitations', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return [];
+  }
 }

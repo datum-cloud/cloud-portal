@@ -283,6 +283,32 @@ export var isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_item
   );
 };
 
+var query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_possibleTypes =
+  ['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo'];
+export var isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo =
+  function (obj) {
+    if (!obj || !obj.__typename)
+      throw new Error(
+        '__typename is missing in "isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo"'
+      );
+    return query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_possibleTypes.includes(
+      obj.__typename
+    );
+  };
+
+var query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_possibleTypes =
+  ['query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address'];
+export var isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address =
+  function (obj) {
+    if (!obj || !obj.__typename)
+      throw new Error(
+        '__typename is missing in "isquery_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address"'
+      );
+    return query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_spec_contactInfo_address_possibleTypes.includes(
+      obj.__typename
+    );
+  };
+
 var query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status_possibleTypes = [
   'query_listResourcemanagerMiloapisComV1alpha1Organization_items_items_status',
 ];

@@ -6,8 +6,8 @@ import {
   type OrgOwnerContact,
 } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations';
+import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
-import { getSession } from '@/utils/cookies';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -31,16 +31,13 @@ export const handle = {
   breadcrumb: () => <span>Setup required</span>,
 };
 
-export const loader = async ({ request, params }: LoaderFunctionArgs) => {
+export const loader = async ({ request, params, context }: LoaderFunctionArgs) => {
   const { orgId } = params;
   if (!orgId) {
     return redirect(paths.account.organizations.root);
   }
 
-  const { session } = await getSession(request);
-  if (!session?.sub) {
-    return redirect(paths.auth.logOut);
-  }
+  await requireSessionSub(request, context);
 
   try {
     // Setup finished while the user sat here — send them into the org.
@@ -66,7 +63,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     if (error instanceof NotFoundError || error instanceof AuthorizationError) {
       return redirect(paths.account.organizations.root);
     }
-    return redirect(paths.auth.logOut);
+    return redirect(loaderFailureRedirect(error, request));
   }
 };
 
