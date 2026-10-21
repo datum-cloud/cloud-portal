@@ -156,6 +156,28 @@ describe('toMeterSeries', () => {
     expect(series.label).toBe('requests');
   });
 
+  test('keeps the totals when only an overflow query fails for a meter', () => {
+    const results = collectMeterResults([
+      {
+        meters: [
+          {
+            meterDefinition: 'requests',
+            groupings: [{ groupBy: [], series: [{ total: '7', points: [point('02', '7')] }] }],
+          },
+        ],
+      },
+      { meters: [{ meterDefinition: 'requests', error: 'backend timed out' }] },
+    ]);
+    const series = toMeterSeries(
+      def('requests', ['region']),
+      results.get('requests'),
+      ['region'],
+      buckets
+    );
+    expect(series.total).toBe(7);
+    expect(series.breakdowns).toEqual([]);
+  });
+
   test('shows a meter the query did not return empty', () => {
     const series = toMeterSeries(def('requests'), undefined, [], buckets);
     expect(series.values).toEqual([]);

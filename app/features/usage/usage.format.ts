@@ -81,6 +81,13 @@ function trimNumber(value: number): string {
   return fixed.includes('.') ? fixed.replace(/\.?0+$/, '') : fixed;
 }
 
+/**
+ * Bytes in binary multiples, labelled KB/MB/GB as the platform labels them:
+ * byte meters are priced per GB of 2^30 bytes (see the egress
+ * ServicePricing), so usage reads in the unit spend is charged in. A unit
+ * with a UCUM decimal prefix (`GBy` = 10^9 bytes) is parsed at its real
+ * size and shown in these units, so 1 GBy reads as 954 MB.
+ */
 export function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${trimNumber(bytes)} B`;
   const units = ['KB', 'MB', 'GB', 'TB', 'PB'];

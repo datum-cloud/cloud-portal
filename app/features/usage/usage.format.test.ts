@@ -58,6 +58,13 @@ describe('formatByUnit', () => {
     expect(format('{millicore}', 500)).toBe('0.5 vCPU');
   });
 
+  it('shows bytes in the binary GB that byte meters are priced in', () => {
+    expect(format('GiBy', 1)).toBe('1 GB');
+    expect(format('By', 1024 ** 3)).toBe('1 GB');
+    // A decimal-prefixed unit keeps its real size: 10^9 bytes.
+    expect(format('GBy', 1)).toBe('954 MB');
+  });
+
   it('drops trailing zeros without eating whole numbers', () => {
     expect(format('By', 1024 * 40)).toBe('40 KB');
     expect(format('By', 1024 * 1024 * 100)).toBe('100 MB');

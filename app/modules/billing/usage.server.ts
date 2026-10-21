@@ -25,6 +25,7 @@ import { createBillingAccountBindingService } from '@/resources/billing-account-
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createUsageQueryService, type UsageQueryScope } from '@/resources/usage-queries';
 import { AuthenticationError, AuthorizationError } from '@/utils/errors';
+import { mapApiError } from '@/utils/errors/error-mapper';
 
 const DEFAULT_DAYS = 30;
 
@@ -93,17 +94,26 @@ export async function resolveBillingAccountForUsageScope(
 const QUERYABLE_METER_PHASES = new Set(['Published', 'Deprecated']);
 
 // The meter catalog is platform-wide and rarely changes, so a short cache
-// spares every dashboard load a round trip.
+// spares every dashboard load a round trip. One user's request fills it and
+// everyone reads it for the next minute without their own access being
+// checked: fine for a catalog that is the same for everyone, never for
+// tenant data.
 const METER_DEFINITIONS_TTL_MS = 60_000;
 let meterDefinitionsCache: { expiresAt: number; defs: MeterDefinition[] } | undefined;
 
+/**
+ * The published and deprecated meters. Throws when the catalog can't be
+ * read: the definitions decide what is queried, so carrying on with none
+ * would tell the user they have no usage during an outage. An empty array
+ * means the catalog really is empty.
+ */
 export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
   if (meterDefinitionsCache && meterDefinitionsCache.expiresAt > Date.now()) {
     return meterDefinitionsCache.defs;
   }
   try {
     const axios = client.getConfig().axios;
-    if (!axios) return [];
+    if (!axios) throw new Error('The control-plane client is not configured');
     const baseUrl = axios.defaults?.baseURL ?? '';
     const resp = await axios.get(`${baseUrl}/apis/billing.miloapis.com/v1alpha1/meterdefinitions`);
     const items: {
@@ -137,12 +147,10 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
     }
     return defs;
   } catch (error) {
-    // The definitions decide what is queried, so without them the page
-    // shows no usage at all; make that visible.
     logger.warn('Failed to list MeterDefinitions for usage', {
       error: error instanceof Error ? error.message : String(error),
     });
-    return [];
+    throw mapApiError(error);
   }
 }
 
@@ -300,7 +308,10 @@ export async function loadOrgUsageDashboard(
   const { selectedProject = 'all', cycleParam, scope = 'organization' } = options;
 
   // The catalog doesn't depend on the billing account; fetch both at once.
+  // fetchOrgUsage awaits it and surfaces a failure; this no-op only stops a
+  // rejection that lands first from counting as unhandled.
   const meterDefinitions = listMeterDefinitions();
+  meterDefinitions.catch(() => {});
   const scopedBillingAccount = await resolveBillingAccountForUsageScope(
     orgId,
     selectedProject

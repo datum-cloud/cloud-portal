@@ -71,7 +71,7 @@ export function planGroupings(dimensions: string[]): string[][] {
 export interface MeterQueryResult {
   /** The meter's entry from the first query: unit, aggregation, spend. */
   usage?: MeterUsage;
-  /** Set when any query could not read the meter. */
+  /** Set when the first query, which carries the totals, could not read the meter. */
   error?: string;
   /** Series by `groupBy` joined with `,`; `''` is the total. */
   seriesByGroupBy: Map<string, UsageSeries[]>;
@@ -81,19 +81,25 @@ export function collectMeterResults(
   statuses: { meters?: MeterUsage[] }[]
 ): Map<string, MeterQueryResult> {
   const byMeter = new Map<string, MeterQueryResult>();
-  for (const status of statuses) {
+  statuses.forEach((status, index) => {
+    const isFirst = index === 0;
     for (const usage of status.meters ?? []) {
+      // An overflow query that couldn't read a meter costs it only that
+      // query's extra breakdowns; the first query's totals stand.
+      if (!isFirst && usage.error) continue;
       const result: MeterQueryResult = byMeter.get(usage.meterDefinition) ?? {
         seriesByGroupBy: new Map(),
       };
-      result.usage ??= usage;
-      result.error ||= usage.error || undefined;
+      if (isFirst) {
+        result.usage = usage;
+        result.error = usage.error || undefined;
+      }
       for (const grouping of usage.groupings ?? []) {
         result.seriesByGroupBy.set((grouping.groupBy ?? []).join(','), grouping.series ?? []);
       }
       byMeter.set(usage.meterDefinition, result);
     }
-  }
+  });
   return byMeter;
 }
 
