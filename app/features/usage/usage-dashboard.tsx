@@ -94,7 +94,7 @@ function UsagePageHeader({
   isPlaceholder,
   hideProjectSelect,
   spend,
-  spendError,
+  spendUnavailable,
 }: {
   projects: UsageProjectOption[];
   billingCycles: { value: 'current' | 'previous'; label: string }[];
@@ -102,7 +102,7 @@ function UsagePageHeader({
   isPlaceholder?: boolean;
   hideProjectSelect?: boolean;
   spend?: UsageSpend;
-  spendError?: string;
+  spendUnavailable?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -116,13 +116,13 @@ function UsagePageHeader({
           hideProjectSelect={hideProjectSelect}
         />
       </div>
-      {spend || spendError ? (
+      {spend || spendUnavailable ? (
         <div className="shrink-0 text-left lg:text-right">
           <Text as="p" size="xs" textColor="muted">
             Spend this period
           </Text>
           <Text as="p" size="xl" weight="semibold" textColor="default" className="sm:text-2xl">
-            <SpendValue spend={spend} spendError={spendError} />
+            <SpendValue spend={spend} unavailable={spendUnavailable} />
           </Text>
         </div>
       ) : null}
@@ -310,7 +310,7 @@ export function UsageDashboard({ orgId, orgLabel, lockedProject }: UsageDashboar
         isLoading={isRefetching}
         hideProjectSelect={hideProjectSelect}
         spend={view.spend}
-        spendError={view.spendError}
+        spendUnavailable={view.spendUnavailable}
       />
 
       <div

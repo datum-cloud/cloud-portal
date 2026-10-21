@@ -48,7 +48,8 @@ function parseTerm(term: string): UnitTerm {
  *   - `s`, `ms`, `min`, `h`, `d` → duration (seconds)
  *   - `By.s`, `GBy.h` … → byte-time (byte-seconds), e.g. memory over time
  *   - `{millicore}.s`, `{cpu}.s` … → CPU time (core-seconds)
- *   - everything else (`{request}`, `{token}`, `{cpu}`, `1`, …) → count
+ *   - `{cpu}`, `{millicore}` … → CPU (cores), e.g. allocated vCPU
+ *   - everything else (`{request}`, `{token}`, `1`, …) → count
  */
 export function ucumToMeterUnit(unit: string | undefined): MeterUnit {
   const terms = (unit ?? '').trim().split('.').filter(Boolean).map(parseTerm);
@@ -58,6 +59,7 @@ export function ucumToMeterUnit(unit: string | undefined): MeterUnit {
     const [term] = terms;
     if (term.family === 'bytes') return { kind: 'bytes', scale: term.factor };
     if (term.family === 'time') return { kind: 'duration', scale: term.factor };
+    if (term.family === 'cpu') return { kind: 'cpu', scale: term.factor };
     return count;
   }
 
@@ -126,6 +128,8 @@ export function formatByUnit(unit: MeterUnit, value: number): string {
       return formatByteTime(base);
     case 'cpuTime':
       return formatCpuTime(base);
+    case 'cpu':
+      return `${trimNumber(base)} vCPU`;
     default:
       return base.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }

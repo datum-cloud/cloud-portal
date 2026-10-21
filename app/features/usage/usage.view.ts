@@ -67,7 +67,7 @@ function toUsageMeter(meter: MeterSeries, groupDisplayNames: GroupDisplayNames):
     limit,
     qualifier: aggregationQualifier(meter.aggregation),
     spend: meter.spend,
-    spendError: meter.spendError,
+    spendUnavailable: meter.spendUnavailable,
     tabs,
     series: meter.values,
     breakdowns,
@@ -84,8 +84,8 @@ export interface UsageView {
   summaryRows: UsageSummaryRow[];
   /** What all the usage costs together. */
   spend?: UsageSpend;
-  /** Why `spend` is left out. */
-  spendError?: string;
+  /** Set when the total could not be priced. */
+  spendUnavailable?: boolean;
 }
 
 /** Build the dashboard view from live loader data. */
@@ -132,7 +132,7 @@ export function toUsageView(
         limit: meter.limit,
         qualifier: meter.qualifier,
         spend: meter.spend,
-        spendError: meter.spendError,
+        spendUnavailable: meter.spendUnavailable,
         series: meter.series,
         groupId: group.id,
         group: group.title,
@@ -140,5 +140,5 @@ export function toUsageView(
     })
   );
 
-  return { groups, summaryRows, spend: result.spend, spendError: result.spendError };
+  return { groups, summaryRows, spend: result.spend, spendUnavailable: result.spendUnavailable };
 }

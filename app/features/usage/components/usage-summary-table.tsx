@@ -77,7 +77,7 @@ export function UsageSummaryTable({ rows }: UsageSummaryTableProps) {
           <Text ellipsis className="block text-right">
             <SpendValue
               spend={row.original.spend}
-              spendError={row.original.spendError}
+              unavailable={row.original.spendUnavailable}
               className="font-medium"
             />
           </Text>

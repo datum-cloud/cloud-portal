@@ -81,7 +81,7 @@ export function MeterCard({ meter }: MeterCardProps) {
   const isStackedChart = Boolean(stack && stack.keys.length > 0);
   const chartData = isStackedChart ? stack!.data : meter.series;
   const hasBreakdownTabs = (meter.breakdowns?.length ?? 0) > 0;
-  const showSpend = Boolean(meter.spend || meter.spendError);
+  const showSpend = Boolean(meter.spend || meter.spendUnavailable);
 
   return (
     <Card size="sm" sectioned className="@container h-full min-w-0 overflow-hidden">
@@ -120,7 +120,7 @@ export function MeterCard({ meter }: MeterCardProps) {
               <Text as="p" size="xs" textColor="muted" className="shrink-0 text-right">
                 <SpendValue
                   spend={meter.spend}
-                  spendError={meter.spendError}
+                  unavailable={meter.spendUnavailable}
                   className="text-foreground font-medium"
                 />{' '}
                 spent

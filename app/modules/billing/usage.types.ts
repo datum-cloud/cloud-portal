@@ -51,8 +51,8 @@ export interface MeterSeries {
   breakdowns?: MeterDimensionBreakdown[];
   /** What the usage costs, from `UsageQuery`; unset when no plan prices it. */
   spend?: UsageSpend;
-  /** Why `spend` could not be computed. */
-  spendError?: string;
+  /** Set when the API could not price the meter; the reason is logged server-side. */
+  spendUnavailable?: boolean;
 }
 
 /** An amount in an ISO 4217 currency, before taxes, credits and discounts. */
@@ -97,8 +97,8 @@ export interface UsageFetchResult {
   projectId?: string;
   /** What all the usage costs together, from `UsageQuery`. */
   spend?: UsageSpend;
-  /** Why `spend` is left out, e.g. a meter could not be priced. */
-  spendError?: string;
+  /** Set when the total could not be priced; the reason is logged server-side. */
+  spendUnavailable?: boolean;
 }
 
 export interface SummarizedMeterUsage {

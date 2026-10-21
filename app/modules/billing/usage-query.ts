@@ -183,7 +183,7 @@ export function toMeterSeries(
     groupId: group.id,
     groupTitle: group.title,
     spend: toSpend(usage?.spend),
-    spendError: usage?.spendError || undefined,
+    spendUnavailable: Boolean(usage?.spendError) || undefined,
   };
 
   if (!result || result.error) return base;

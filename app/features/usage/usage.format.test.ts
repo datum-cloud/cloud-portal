@@ -28,9 +28,13 @@ describe('ucumToMeterUnit', () => {
     expect(ucumToMeterUnit('{millicore}.s')).toEqual({ kind: 'cpuTime', scale: 1e-3 });
   });
 
+  it('reads CPU units on their own as cores', () => {
+    expect(ucumToMeterUnit('{cpu}')).toEqual({ kind: 'cpu', scale: 1 });
+    expect(ucumToMeterUnit('{millicore}')).toEqual({ kind: 'cpu', scale: 1e-3 });
+  });
+
   it('treats annotations and unknown units as counts', () => {
     expect(ucumToMeterUnit('{token}').kind).toBe('count');
-    expect(ucumToMeterUnit('{cpu}').kind).toBe('count');
     expect(ucumToMeterUnit('{request}.s').kind).toBe('count');
     expect(ucumToMeterUnit(undefined).kind).toBe('count');
   });
@@ -46,6 +50,12 @@ describe('formatByUnit', () => {
     // 500 millicores for 4 hours = 2 vCPU-hours.
     expect(format('{millicore}.s', 500 * 4 * 3600)).toBe('2 vCPU·h');
     expect(format('{millicore}.s', 1000 * 90)).toBe('1.5 vCPU·min');
+  });
+
+  it('shows allocated CPU as vCPU, whatever the unit', () => {
+    expect(format('{cpu}', 4)).toBe('4 vCPU');
+    expect(format('{millicore}', 4000)).toBe('4 vCPU');
+    expect(format('{millicore}', 500)).toBe('0.5 vCPU');
   });
 
   it('drops trailing zeros without eating whole numbers', () => {

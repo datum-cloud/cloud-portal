@@ -1,4 +1,3 @@
-import { filterUsageByEntitlement } from './usage-entitlements';
 import {
   breakdownDimensions,
   breakdownDimensionsUnion,
@@ -93,7 +92,15 @@ export async function resolveBillingAccountForUsageScope(
 /** Phases `UsageQuery` reads; Draft and Retired meters are rejected. */
 const QUERYABLE_METER_PHASES = new Set(['Published', 'Deprecated']);
 
+// The meter catalog is platform-wide and rarely changes, so a short cache
+// spares every dashboard load a round trip.
+const METER_DEFINITIONS_TTL_MS = 60_000;
+let meterDefinitionsCache: { expiresAt: number; defs: MeterDefinition[] } | undefined;
+
 export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
+  if (meterDefinitionsCache && meterDefinitionsCache.expiresAt > Date.now()) {
+    return meterDefinitionsCache.defs;
+  }
   try {
     const axios = client.getConfig().axios;
     if (!axios) return [];
@@ -111,7 +118,7 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
       };
       status?: { systemDimensions?: string[] };
     }[] = resp.data?.items ?? [];
-    return items
+    const defs = items
       .filter((item) => QUERYABLE_METER_PHASES.has(item.spec?.phase ?? ''))
       .map((item) => ({
         name: item.metadata?.name ?? '',
@@ -125,7 +132,16 @@ export async function listMeterDefinitions(): Promise<MeterDefinition[]> {
         monitoredResourceTypes: item.spec?.monitoredResourceTypes ?? [],
       }))
       .filter((m) => m.name && m.meterName);
-  } catch {
+    if (defs.length > 0) {
+      meterDefinitionsCache = { expiresAt: Date.now() + METER_DEFINITIONS_TTL_MS, defs };
+    }
+    return defs;
+  } catch (error) {
+    // The definitions decide what is queried, so without them the page
+    // shows no usage at all; make that visible.
+    logger.warn('Failed to list MeterDefinitions for usage', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return [];
   }
 }
@@ -159,6 +175,8 @@ export async function fetchOrgUsage(
     range?: UsageTimeRange;
     projectId?: string;
     scope?: UsageScope;
+    /** A catalog fetch already under way, so callers can overlap it with other work. */
+    meterDefinitions?: Promise<MeterDefinition[]>;
   } = {}
 ): Promise<UsageFetchResult> {
   const { days = DEFAULT_DAYS, range, projectId, scope = 'organization' } = options;
@@ -172,40 +190,53 @@ export async function fetchOrgUsage(
   // A project breakdown only makes sense across several projects.
   const includeProjectBreakdown = queryScope.type === 'organization' && !narrowToProject;
 
-  const meterDefs = await listMeterDefinitions();
+  const meterDefs = await (options.meterDefinitions ?? listMeterDefinitions());
   const groupingPlans = planGroupings(breakdownDimensionsUnion(meterDefs, includeProjectBreakdown));
   const service = createUsageQueryService();
 
-  let statuses;
-  try {
-    // `meters` is left empty so one query reads every meter, whatever its
-    // dimensions. The first query also returns the total and the spend.
-    statuses = await Promise.all(
-      groupingPlans.map((dimensions, index) =>
-        service.query(queryScope, {
-          startTime: new Date(startSec * 1000).toISOString(),
-          endTime: new Date(endSec * 1000).toISOString(),
-          granularity: 'Day',
-          timeZone: 'UTC',
-          projects: narrowToProject ? [narrowToProject] : undefined,
-          includeSpend: index === 0 || undefined,
-          groupings: [
-            ...(index === 0 ? [{ groupBy: [] }] : []),
-            ...dimensions.map((d) => ({ groupBy: [d] })),
-          ],
-        })
-      )
-    );
-  } catch (err) {
-    if (isAuthError(err)) {
+  // `meters` is left empty so one query reads every meter, whatever its
+  // dimensions. The first query also returns the total and the spend.
+  const [primaryResult, ...overflowResults] = await Promise.allSettled(
+    groupingPlans.map((dimensions, index) =>
+      service.query(queryScope, {
+        startTime: new Date(startSec * 1000).toISOString(),
+        endTime: new Date(endSec * 1000).toISOString(),
+        granularity: 'Day',
+        timeZone: 'UTC',
+        projects: narrowToProject ? [narrowToProject] : undefined,
+        includeSpend: index === 0 || undefined,
+        groupings: [
+          ...(index === 0 ? [{ groupBy: [] }] : []),
+          ...dimensions.map((d) => ({ groupBy: [d] })),
+        ],
+      })
+    )
+  );
+
+  if (primaryResult.status === 'rejected') {
+    if (isAuthError(primaryResult.reason)) {
       return { status: 'insufficient-permissions', meters: [], days: resolvedDays, projectId };
     }
-    throw err;
+    throw primaryResult.reason;
+  }
+  const primary = primaryResult.value;
+
+  // Overflow queries only carry extra breakdowns. If one fails, keep the
+  // totals and spend on screen and lose just those tabs.
+  const statuses = [primary];
+  for (const result of overflowResults) {
+    if (result.status === 'fulfilled') {
+      statuses.push(result.value);
+    } else {
+      logger.warn('UsageQuery for extra breakdowns failed', {
+        orgId,
+        error: result.reason instanceof Error ? result.reason.message : String(result.reason),
+      });
+    }
   }
 
   // Organization queries report the billing accounts they read; none means
   // the org has no billing account yet. Project queries never list them.
-  const [primary] = statuses;
   if (queryScope.type === 'organization' && !primary.billingAccounts?.length) {
     return { status: 'no-billing-account', meters: [], days: resolvedDays, projectId };
   }
@@ -221,6 +252,12 @@ export async function fetchOrgUsage(
         error: result.error,
       });
     }
+    if (result?.usage?.spendError) {
+      logger.warn('UsageQuery could not price meter', {
+        meterDefinition: def.name,
+        error: result.usage.spendError,
+      });
+    }
     return toMeterSeries(def, result, breakdownDimensions(def, includeProjectBreakdown), buckets);
   });
   if (primary.spendError) {
@@ -234,7 +271,7 @@ export async function fetchOrgUsage(
     days: resolvedDays,
     projectId,
     spend: toSpend(primary.spend),
-    spendError: primary.spendError || undefined,
+    spendUnavailable: Boolean(primary.spendError) || undefined,
   };
 }
 
@@ -253,33 +290,17 @@ export function resolveUsageProjectSelection(
 export async function loadOrgUsageDashboard(
   orgId: string,
   options: {
-    projectParam?: string | null;
+    /** A project name, or `all`; resolve it with `resolveUsageProjectSelection`. */
+    selectedProject?: string;
     cycleParam?: string | null;
-    projectNames?: string[];
-    /**
-     * `project` reads in the project's own context; `projectParam` must
-     * then name the project.
-     */
+    /** `project` reads in the selected project's own context. */
     scope?: UsageScope;
-    /**
-     * Active entitlement ids for the projects in scope. `null` or omitted
-     * means unknown, and gated services stay visible.
-     */
-    entitledServiceIds?: ReadonlySet<string> | null;
   } = {}
 ): Promise<OrgUsageDashboardData> {
-  const {
-    projectParam,
-    cycleParam,
-    projectNames = [],
-    scope = 'organization',
-    entitledServiceIds = null,
-  } = options;
-  const selectedProject =
-    scope === 'project' && projectParam
-      ? projectParam
-      : resolveUsageProjectSelection(projectParam, projectNames);
+  const { selectedProject = 'all', cycleParam, scope = 'organization' } = options;
 
+  // The catalog doesn't depend on the billing account; fetch both at once.
+  const meterDefinitions = listMeterDefinitions();
   const scopedBillingAccount = await resolveBillingAccountForUsageScope(
     orgId,
     selectedProject
@@ -294,14 +315,12 @@ export async function loadOrgUsageDashboard(
   }));
   const range = { startSec: selectedCycleWindow.startSec, endSec: selectedCycleWindow.endSec };
 
-  const usage = filterUsageByEntitlement(
-    await fetchOrgUsage(orgId, {
-      range,
-      projectId: selectedProject === 'all' ? undefined : selectedProject,
-      scope: selectedProject === 'all' ? 'organization' : scope,
-    }),
-    entitledServiceIds
-  );
+  const usage = await fetchOrgUsage(orgId, {
+    range,
+    projectId: selectedProject === 'all' ? undefined : selectedProject,
+    scope: selectedProject === 'all' ? 'organization' : scope,
+    meterDefinitions,
+  });
 
   return {
     usage,

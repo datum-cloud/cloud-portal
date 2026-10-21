@@ -6,23 +6,24 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 
 /**
  * Spend from `UsageQuery`: the amount, `—` when no plan prices the usage,
- * or "Unavailable" with the API's reason when it could not be computed.
+ * or "Unavailable" when it could not be computed. The API's reason can name
+ * plan or meter internals, so it stays in the server logs.
  */
 export function SpendValue({
   spend,
-  spendError,
+  unavailable,
   className,
 }: {
   spend?: UsageSpend;
-  spendError?: string;
+  unavailable?: boolean;
   className?: string;
 }) {
   if (spend) {
     return <span className={cn('tabular-nums', className)}>{formatCurrency(spend)}</span>;
   }
-  if (spendError) {
+  if (unavailable) {
     return (
-      <Tooltip message={`Spend could not be calculated: ${spendError}`}>
+      <Tooltip message="Spend could not be calculated for this period.">
         <Text as="span" textColor="muted" className={cn('cursor-help', className)}>
           Unavailable
         </Text>

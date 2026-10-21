@@ -5,7 +5,7 @@ import type { MeterDimensionBreakdown, UsageSpend } from '@/modules/billing/usag
  * the family's base unit: bytes, seconds, byte-seconds or core-seconds.
  */
 export interface MeterUnit {
-  kind: 'count' | 'bytes' | 'duration' | 'byteTime' | 'cpuTime';
+  kind: 'count' | 'bytes' | 'duration' | 'byteTime' | 'cpuTime' | 'cpu';
   scale: number;
 }
 
@@ -30,8 +30,8 @@ export interface UsageMeter {
   qualifier?: string;
   /** What the usage costs, from `UsageQuery`; unset when no plan prices it. */
   spend?: UsageSpend;
-  /** Why `spend` could not be computed. */
-  spendError?: string;
+  /** Set when the API could not price the meter. */
+  spendUnavailable?: boolean;
   /** Breakdown tabs shown above the chart. The first entry is the default. */
   tabs: string[];
   series: MeterPoint[];
@@ -58,7 +58,7 @@ export interface UsageSummaryRow {
   limit: number;
   qualifier?: string;
   spend?: UsageSpend;
-  spendError?: string;
+  spendUnavailable?: boolean;
   /** Daily aggregate series for inline spark charts. */
   series: MeterPoint[];
   /** Human-readable service group, e.g. `Compute`, `AI Assistant`. */
