@@ -563,6 +563,44 @@ describe('validateManifest', () => {
     expect(result.valid).toBe(true);
   });
 
+  test('accepts a portal.hero/project-home extension', () => {
+    const result = validateManifest(
+      baseManifest({
+        exposedModules: { NetworkHomeHero: './src/cards/network-home-hero.tsx' },
+        extensions: [
+          {
+            type: 'portal.hero/project-home',
+            properties: {
+              title: 'Create your network',
+              component: { $codeRef: 'NetworkHomeHero' },
+            },
+            requirements: {
+              permissions: [
+                { group: 'networking.datumapis.com', resource: 'networks', verb: 'create' },
+              ],
+            },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(true);
+    if (result.valid) expect(result.unknownExtensionTypes).toEqual([]);
+  });
+
+  test('rejects a portal.hero/project-home extension whose $codeRef is not exposed', () => {
+    const result = validateManifest(
+      baseManifest({
+        extensions: [
+          {
+            type: 'portal.hero/project-home',
+            properties: { title: 'Create your network', component: { $codeRef: 'Missing' } },
+          },
+        ],
+      })
+    );
+    expect(result.valid).toBe(false);
+  });
+
   test('rejects a portal.column/project-home extension without a title', () => {
     const result = validateManifest(
       baseManifest({

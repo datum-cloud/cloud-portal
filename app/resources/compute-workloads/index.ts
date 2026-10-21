@@ -6,6 +6,7 @@ export {
 
 export {
   toComputeWorkloadPresence,
+  useComputeWorkloads,
   useComputeWorkloadPresence,
   useMissingComputeWorkloads,
   type ComputeWorkloadPresence,

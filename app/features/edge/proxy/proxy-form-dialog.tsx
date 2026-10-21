@@ -28,10 +28,16 @@ export interface HttpProxyFormDialogRef {
 interface HttpProxyFormDialogProps {
   projectId: string;
   onError?: (error: Error) => void;
+  /**
+   * Called with the new load balancer instead of opening it, for pages where
+   * leaving would lose the person's place (the project home page). Without
+   * it the dialog navigates to the new load balancer, as on the ALB pages.
+   */
+  onCreated?: (proxy: { name: string; chosenName?: string }) => void;
 }
 
 export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyFormDialogProps>(
-  ({ projectId, onError }, ref) => {
+  ({ projectId, onError, onCreated }, ref) => {
     const [open, setOpen] = useState(false);
     const [nameRandomSuffix] = useState(() => generateRandomString(6));
     const [isIPOrigin, setIsIPOrigin] = useState(false);
@@ -98,6 +104,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       });
 
       trackAction(AnalyticsAction.AddProxy);
+      if (onCreated) {
+        setOpen(false);
+        onCreated(createdProxy);
+        return;
+      }
       navigate(
         getPathWithParams(paths.project.detail.proxy.detail.root, {
           projectId,

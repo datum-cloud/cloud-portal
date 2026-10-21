@@ -5,6 +5,7 @@ import {
   ResourceColumnEmpty,
   ResourceColumnEmptyAction,
 } from './resource-column';
+import { useCreatedToasts } from './use-created-toasts';
 import { BadgeStatus } from '@/components/badge/badge-status';
 import {
   HttpProxyFormDialog,
@@ -35,6 +36,7 @@ export function LoadBalancersColumn({ projectId }: { projectId: string }) {
   const listHref = getPathWithParams(paths.project.detail.proxy.root, { projectId });
   // Create in place: the dialog navigates to the new ALB once it's created.
   const formRef = useRef<HttpProxyFormDialogRef>(null);
+  const created = useCreatedToasts(projectId);
   const openCreate = () => formRef.current?.show();
 
   return (
@@ -71,18 +73,20 @@ export function LoadBalancersColumn({ projectId }: { projectId: string }) {
         }))}
         emptyState={
           <ResourceColumnEmpty
-            icon={<Icon icon={SplitIcon} size={18} aria-hidden />}
-            title="Deploy your first load balancer"
             action={
               canCreate && (
                 <ResourceColumnEmptyAction onClick={openCreate}>Add ALB</ResourceColumnEmptyAction>
               )
             }>
-            Run a proxy at Datum&apos;s edge that routes traffic to your services.
+            No load balancers yet
           </ResourceColumnEmpty>
         }
       />
-      <HttpProxyFormDialog ref={formRef} projectId={projectId} />
+      <HttpProxyFormDialog
+        ref={formRef}
+        projectId={projectId}
+        onCreated={created.loadBalancerCreated}
+      />
     </>
   );
 }

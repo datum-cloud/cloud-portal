@@ -1,9 +1,7 @@
 import { BadgeCopy } from '@/components/badge/badge-copy';
 import DiscordIcon from '@/components/icon/discord';
 import { GitHubLineIcon } from '@/components/icon/github-line';
-import { HomeColumns } from '@/features/project/home/home-columns';
-import { ProjectHealth } from '@/features/project/home/project-health';
-import { ProjectSearchBar } from '@/features/search/surfaces/ProjectSearchBar';
+import { ProjectHomeBody } from '@/features/project/home/project-home-body';
 import { ProjectHomePluginCards } from '@/modules/plugins/client/plugin-cards';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { useApp } from '@/providers/app.provider';
@@ -95,7 +93,7 @@ export default function ProjectHomePage() {
     : `Welcome back, ${user?.givenName ?? 'there'}.`;
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       {/* Header. Its `/main` container queries follow the content column, which
           narrows when a dock panel is open, not the viewport. */}
       <div className="flex flex-col gap-3 @3xl/main:flex-row @3xl/main:items-start @3xl/main:justify-between @3xl/main:gap-6">
@@ -121,14 +119,9 @@ export default function ProjectHomePage() {
         />
       </div>
 
-      {/* Search (the header search is hidden on this page) */}
-      <ProjectSearchBar variant="hero" />
-
-      {/* Anything that needs someone to act */}
-      <ProjectHealth projectId={projectName} />
-
-      {/* Resource columns */}
-      <HomeColumns projectId={projectName} />
+      {/* Search (the header search is hidden on this page), health once there is
+          something to report on, first-run setup, then the resource columns */}
+      <ProjectHomeBody projectId={projectName} />
 
       {/* Plugin-contributed project-home cards (portal.card/project-home) */}
       <ProjectHomePluginCards projectId={projectName} />

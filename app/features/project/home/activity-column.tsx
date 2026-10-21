@@ -5,10 +5,8 @@ import { KindIcon, kindDisplayName } from '@/features/search/shared/kindIcon';
 import { readRecents } from '@/resources/search/search.recents';
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
-import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
-import { History } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type ActivityTab = 'changes' | 'recents';
@@ -30,7 +28,7 @@ export function ActivityColumn({ projectId }: { projectId: string }) {
       title="Activity"
       href={getPathWithParams(paths.project.detail.activity, { projectId })}
       testId="project-home-activity"
-      bodyClassName="h-auto"
+      bodyClassName="max-h-none"
       action={
         <div role="group" aria-label="Show" className="bg-muted flex rounded-md p-0.5">
           {TABS.map((option) => (
@@ -106,10 +104,8 @@ function Recents({ projectId }: { projectId: string }) {
         ),
       }))}
       emptyState={
-        <ResourceColumnEmpty
-          icon={<Icon icon={History} size={18} aria-hidden />}
-          title="Nothing yet">
-          Resources you open from search will show up here.
+        <ResourceColumnEmpty>
+          Nothing yet. Resources you open from search show up here.
         </ResourceColumnEmpty>
       }
     />

@@ -5,6 +5,7 @@ import {
   ResourceColumnEmpty,
   ResourceColumnEmptyAction,
 } from './resource-column';
+import { useCreatedToasts } from './use-created-toasts';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
 import { DomainStatus } from '@/features/edge/domain/status';
 import { useResourcePermissions } from '@/modules/rbac';
@@ -15,7 +16,6 @@ import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Globe } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router';
 
 export function DomainsColumn({ projectId }: { projectId: string }) {
   const { data: domains = [], isLoading } = useDomains(projectId, {
@@ -29,9 +29,9 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
   });
 
   const listHref = getPathWithParams(paths.project.detail.domains.root, { projectId });
-  // Add in place, then go to the new domain, as the Domains list does.
+  // Add in place and stay on the home page; the toast links to the new domain.
   const [addOpen, setAddOpen] = useState(false);
-  const navigate = useNavigate();
+  const created = useCreatedToasts(projectId);
   const openAdd = () => setAddOpen(true);
 
   return (
@@ -61,14 +61,12 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
         }))}
         emptyState={
           <ResourceColumnEmpty
-            icon={<Icon icon={Globe} size={18} aria-hidden />}
-            title="Add your first domain"
             action={
               canCreate && (
                 <ResourceColumnEmptyAction onClick={openAdd}>Add domain</ResourceColumnEmptyAction>
               )
             }>
-            Verify a domain you own to route traffic and issue certificates for it.
+            No domains yet
           </ResourceColumnEmpty>
         }
       />
@@ -76,14 +74,7 @@ export function DomainsColumn({ projectId }: { projectId: string }) {
         projectId={projectId}
         open={addOpen}
         onOpenChange={setAddOpen}
-        onSuccess={(domain) =>
-          navigate(
-            getPathWithParams(paths.project.detail.domains.detail.overview, {
-              projectId,
-              domainId: domain.name,
-            })
-          )
-        }
+        onSuccess={created.domainCreated}
       />
     </>
   );

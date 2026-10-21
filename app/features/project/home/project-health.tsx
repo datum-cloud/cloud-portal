@@ -31,7 +31,7 @@ function severityIcon(severity: AttentionItem['severity']) {
  *
  * It reads the same queries as the columns below, so it costs no extra requests.
  */
-export function ProjectHealth({ projectId }: { projectId: string }) {
+export function ProjectHealth({ projectId, className }: { projectId: string; className?: string }) {
   const listId = useId();
   const [expanded, setExpanded] = useState(false);
 
@@ -56,9 +56,19 @@ export function ProjectHealth({ projectId }: { projectId: string }) {
     <section
       aria-label="Project health"
       aria-busy={isLoading}
-      className="bg-card border-border overflow-hidden rounded-xl border"
+      // A healthy project gets a plain status line, so it doesn't read as a
+      // second box under the search; only problems get a tinted container.
+      className={cn(
+        'overflow-hidden rounded-xl',
+        className,
+        first &&
+          (hasErrors
+            ? 'border-destructive/30 bg-destructive/5 border'
+            : 'border border-amber-500/30 bg-amber-500/5')
+      )}
       data-testid="project-home-health">
-      <div className="flex h-12 items-center gap-3 px-4">
+      {/* One height in every state, so the page never shifts when the answer arrives. */}
+      <div className={cn('flex h-9 items-center gap-3', first ? 'px-4' : 'px-1')}>
         {isLoading ? (
           <>
             <Skeleton className="size-4 shrink-0 rounded-full" />
@@ -108,7 +118,7 @@ export function ProjectHealth({ projectId }: { projectId: string }) {
         )}
       </div>
       {expanded && items.length > 1 && (
-        <ul id={listId} className="border-border flex flex-col border-t p-1.5">
+        <ul id={listId} className="flex flex-col border-t border-inherit p-1.5">
           {items.map((item) => (
             <li key={item.key}>
               <Link

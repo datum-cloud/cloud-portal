@@ -7,6 +7,7 @@ import { ResourceColumnSkeleton } from './resource-column';
 import { WorkloadsColumn } from './workloads-column';
 import { useProjectHomePluginColumns } from '@/modules/plugins/client/plugin-columns';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import type { ReactNode } from 'react';
 
 /**
  * The project home page's columns: Domains, any plugin-contributed columns,
@@ -18,7 +19,14 @@ import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
  * Container queries follow the content column, which narrows when a dock
  * panel is open, not the viewport.
  */
-export function HomeColumns({ projectId }: { projectId: string }) {
+export function HomeColumns({
+  projectId,
+  beforeTraffic,
+}: {
+  projectId: string;
+  /** Rendered between the resource columns and traffic, e.g. the home page's next-step suggestions. */
+  beforeTraffic?: ReactNode;
+}) {
   const { columns, isLoading } = useProjectHomePluginColumns(projectId);
 
   return (
@@ -43,6 +51,7 @@ export function HomeColumns({ projectId }: { projectId: string }) {
         )}
         <LoadBalancersColumn projectId={projectId} />
       </div>
+      {beforeTraffic}
       <ProjectTraffic projectId={projectId} />
       <ActivityColumn projectId={projectId} />
     </div>

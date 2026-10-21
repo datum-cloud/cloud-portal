@@ -111,6 +111,7 @@ export const EXTENSION_CARD_PROJECT_HOME = 'portal.card/project-home';
 export const EXTENSION_COLUMN_PROJECT_HOME = 'portal.column/project-home';
 export const EXTENSION_DOCK_PROJECT = 'portal.dock/project';
 export const EXTENSION_HEADER_PROJECT = 'portal.header/project';
+export const EXTENSION_HERO_PROJECT_HOME = 'portal.hero/project-home';
 
 /** The v1 extension types the host recognizes and renders. */
 export const KNOWN_EXTENSION_TYPES = [
@@ -120,6 +121,7 @@ export const KNOWN_EXTENSION_TYPES = [
   EXTENSION_COLUMN_PROJECT_HOME,
   EXTENSION_DOCK_PROJECT,
   EXTENSION_HEADER_PROJECT,
+  EXTENSION_HERO_PROJECT_HOME,
 ] as const;
 
 export type KnownExtensionType = (typeof KNOWN_EXTENSION_TYPES)[number];
@@ -317,6 +319,29 @@ export interface DockProjectProperties {
 export interface DockWidgetProps {
   /** Closes the dock panel. */
   onClose: () => void;
+  /**
+   * Set when the page opened the dock to ask something, e.g. the project home's
+   * "What do you want to connect first?". A new id means a new request, even
+   * with the same text; widgets that can't take a prompt ignore it.
+   */
+  prompt?: { id: string; text: string };
+  /**
+   * Open this existing conversation, e.g. when the page hands its embedded
+   * chat to the dock. A new value means switch to it.
+   */
+  chatId?: string;
+  /** Reports the widget's current conversation, so the host can move it elsewhere. */
+  onChatChange?: (chatId: string) => void;
+  /**
+   * Where the host placed the widget: the tall, narrow dock (default) or a wide
+   * area in the page body.
+   */
+  placement?: 'dock' | 'inline';
+  /**
+   * Where the conversation is happening, so the assistant can adapt how it
+   * answers. Sent with every turn; the assistant ignores names it doesn't know.
+   */
+  surface?: { name: 'home-first-run'; network?: string };
 }
 
 export interface DockProjectExtension {
@@ -345,6 +370,24 @@ export interface HeaderProjectExtension {
 }
 
 /**
+ * `portal.hero/project-home` - the first step on an empty project's home page.
+ * The host renders it in place of the resource columns until the project has a
+ * network, then swaps it out on its own. No wrapping chrome and no props: the
+ * plugin draws the whole card and reads the project from the route.
+ */
+export interface HeroProjectHomeProperties {
+  title: string;
+  component: CodeRef;
+  order?: number;
+}
+
+export interface HeroProjectHomeExtension {
+  type: typeof EXTENSION_HERO_PROJECT_HOME;
+  properties: HeroProjectHomeProperties;
+  requirements?: PluginExtensionRequirements;
+}
+
+/**
  * An extension type the host does not recognize. Tolerated, not fatal: the
  * registry records it and excludes it from rendering. The `{type, properties,
  * requirements}` envelope keeps growth additive.
@@ -361,7 +404,8 @@ export type KnownPluginExtension =
   | CardProjectHomeExtension
   | ColumnProjectHomeExtension
   | DockProjectExtension
-  | HeaderProjectExtension;
+  | HeaderProjectExtension
+  | HeroProjectHomeExtension;
 
 export type PluginExtension = KnownPluginExtension | UnknownExtension;
 
