@@ -9,11 +9,12 @@ import { useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 /**
- * Every column body is the same fixed height: room for HOME_COLUMN_LIMIT
- * rows of `h-10`. Skeletons, empty states and loaded rows all fill it, so
- * nothing on the page moves as columns load.
+ * Column bodies fit their content, from one row to HOME_COLUMN_LIMIT rows of
+ * `h-10`, so a project with little in it doesn't leave a block of blank space
+ * under the columns. Loading shows a single row, so loaded content only ever
+ * grows the section downward.
  */
-const COLUMN_BODY_CLASS = 'h-50';
+const COLUMN_BODY_CLASS = 'min-h-10 max-h-50';
 
 /** One row of a column body. Rows share this height so a full column fits exactly. */
 export const COLUMN_ROW_CLASS = 'flex h-10 items-center gap-2 rounded-md px-2';
@@ -101,7 +102,7 @@ export function ResourceColumnFrame({
   );
 }
 
-const SKELETON_LABEL_WIDTHS = ['w-3/5', 'w-2/5', 'w-1/2'];
+const SKELETON_LABEL_WIDTHS = ['w-3/5'];
 
 /**
  * Placeholder rows shown while a column loads. They are drawn at the same
@@ -214,35 +215,23 @@ export function ResourceColumn({
   );
 }
 
-/** Fills a column body when there is nothing to list: what goes here, and how to start. */
+/**
+ * Fills a column body when there is nothing to list: one row, the same height
+ * and alignment as a real item, so an empty column lines up with its
+ * neighbours and doesn't outweigh the ones that have content.
+ */
 export function ResourceColumnEmpty({
-  icon,
-  title,
   children,
   action,
 }: {
-  icon?: ReactNode;
-  title?: string;
   children: ReactNode;
   action?: ReactNode;
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
-      {icon && (
-        <div className="bg-muted border-border text-icon-secondary flex size-9 items-center justify-center rounded-lg border">
-          {icon}
-        </div>
-      )}
-      <div className="flex flex-col gap-1">
-        {title && (
-          <Text as="p" size="sm" weight="medium">
-            {title}
-          </Text>
-        )}
-        <Text as="p" size="xs" textColor="muted" className="text-balance">
-          {children}
-        </Text>
-      </div>
+    <div className={cn(COLUMN_ROW_CLASS, 'justify-between gap-3')}>
+      <Text as="p" size="sm" textColor="muted" className="min-w-0 truncate">
+        {children}
+      </Text>
       {action}
     </div>
   );
@@ -274,14 +263,14 @@ export function ResourceColumnAddAction({
   );
 }
 
-/** The primary call to action inside an empty column. */
+/** The call to action beside an empty column's message. */
 export function ResourceColumnEmptyAction({
   children,
   ...target
 }: ColumnActionTarget & { children: ReactNode }) {
   const props = {
-    type: 'primary',
-    theme: 'solid',
+    type: 'secondary',
+    theme: 'outline',
     size: 'xs',
     icon: <Icon icon={Plus} size={14} aria-hidden />,
   } as const;

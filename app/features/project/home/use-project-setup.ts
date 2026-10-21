@@ -1,5 +1,6 @@
 import {
   deriveProjectSetup,
+  hasVisibleResources,
   shouldShowNetworkHero,
   type ProjectSetup,
 } from './setup-progress.helpers';
@@ -57,6 +58,13 @@ export type ProjectSetupState = ProjectSetup & {
   isLoading: boolean;
   /** Lead the page with the network hero instead of the resource columns. */
   showNetworkHero: boolean;
+  /**
+   * Nothing but (at most) a network exists yet, so the page offers the
+   * toolbox and Patch rather than the resource columns.
+   */
+  isFresh: boolean;
+  /** The person skipped creating a network on this project, in this browser. */
+  networkSkipped: boolean;
   skipNetwork: () => void;
 };
 
@@ -68,7 +76,14 @@ export function useProjectSetup(projectId: string): ProjectSetupState {
   const [skipped, skipNetwork] = useStoredFlag(skipKey(projectId));
   const [pollMs, setPollMs] = useState<number | false>(false);
 
-  const listOptions = { staleTime: QUERY_STALE_TIME, refetchInterval: pollMs } as const;
+  // Re-read on every visit: these have no watch, and plugins change them
+  // behind the portal's back (deleting a network on the VPC page clears the
+  // plugin's cache, not this one), so a cached list can be minutes stale.
+  const listOptions = {
+    staleTime: QUERY_STALE_TIME,
+    refetchOnMount: 'always',
+    refetchInterval: pollMs,
+  } as const;
   const networks = useNetworks(projectId, listOptions);
   const workloads = useComputeWorkloads(projectId, listOptions);
   const services = useNetworkServices(projectId, listOptions);
@@ -110,10 +125,17 @@ export function useProjectSetup(projectId: string): ProjectSetupState {
 
   const showNetworkHero = !isLoading && shouldShowNetworkHero(setup, skipped === true);
 
+  const isFresh = !isLoading && !hasVisibleResources(setup.steps);
+
+  // A network that was just created (from any page's dialog, or the CLI) takes
+  // a few seconds to become ready; watch it closely until it does.
+  const networkPending = setup.steps.some(
+    (step) => step.key === 'network' && step.status === 'inProgress'
+  );
   const nextPollMs =
-    isLoading || !(showNetworkHero || setup.isFirstRun)
+    isLoading || !(showNetworkHero || networkPending || isFresh || setup.isFirstRun)
       ? false
-      : showNetworkHero
+      : showNetworkHero || networkPending
         ? NETWORK_PENDING_POLL_MS
         : SETUP_POLL_MS;
   useEffect(() => setPollMs(nextPollMs), [nextPollMs]);
@@ -122,6 +144,8 @@ export function useProjectSetup(projectId: string): ProjectSetupState {
     ...setup,
     isLoading,
     showNetworkHero,
+    isFresh,
+    networkSkipped: skipped === true,
     skipNetwork,
   };
 }

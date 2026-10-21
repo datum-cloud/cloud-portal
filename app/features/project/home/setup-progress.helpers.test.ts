@@ -138,6 +138,12 @@ describe('shouldShowNetworkHero', () => {
     ],
     ['a project with only a domain', resources({ domain: [pending('acme-com')] }), false, false],
     ['an empty project the user skipped', resources(), true, false],
+    [
+      'a network service a deleted workload left behind',
+      resources({ service: [ready('orders-api')] }),
+      false,
+      true,
+    ],
   ])('%s', (_label, input, skipped, expected) => {
     expect(shouldShowNetworkHero(deriveProjectSetup(input), skipped)).toBe(expected);
   });

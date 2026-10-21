@@ -6,9 +6,9 @@ import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 type NetworkQueryOptions<T> = Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn'>;
 
 /**
- * List Networks in a project. 403/404 degrade to an empty list so a viewer
- * without permission sees the home page as if no network existed, never an
- * error.
+ * List Networks in a project, leaving out any being deleted. 403/404 degrade
+ * to an empty list so a viewer without permission sees the home page as if no
+ * network existed, never an error.
  */
 export function useNetworks(
   projectId: string,
@@ -19,7 +19,9 @@ export function useNetworks(
     queryFn: async () => {
       const result = await resolveRelatedResource(() => createNetworksService().list(projectId));
       if (result.state !== 'ok') return [];
-      return result.data ?? [];
+      // A network being deleted lingers while its finalizer runs; for the home
+      // page it is already gone.
+      return (result.data ?? []).filter((network) => !network.metadata?.deletionTimestamp);
     },
     retry: false,
     ...options,

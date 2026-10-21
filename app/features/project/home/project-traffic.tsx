@@ -45,8 +45,6 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
     step: STEP,
     rangeLabel: 'Last 24h',
     pending: isLoading,
-    unavailable: idle,
-    unavailableLabel: 'No load balancers',
   };
 
   const scope =
@@ -70,33 +68,37 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
           {description}
         </Text>
       </div>
-      <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
-        <SparklineStatCard
-          title="Requests served"
-          query={projectRpsQuery(projectId, STEP)}
-          valueQuery={projectRequestCountQuery(projectId, '24h')}
-          format="short-number"
-          precision={1}
-          {...shared}
-        />
-        <SparklineStatCard
-          title="Error rate (4xx + 5xx)"
-          query={projectErrorRateQuery(projectId, ERROR_RATE_WINDOW)}
-          valueQuery={projectErrorRateQuery(projectId, '24h')}
-          format="percent"
-          color="var(--color-chart-1)"
-          {...shared}
-        />
-        <SparklineStatCard
-          title="Blocked by WAF"
-          query={projectWafBlockedQuery(projectId, STEP)}
-          valueQuery={projectWafBlockedQuery(projectId, '24h')}
-          format="short-number"
-          precision={0}
-          color="var(--color-chart-1)"
-          {...shared}
-        />
-      </div>
+      {/* With nothing to chart, the heading and its one line say it all;
+          three empty tiles would outweigh everything that has content. */}
+      {!idle && (
+        <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
+          <SparklineStatCard
+            title="Requests served"
+            query={projectRpsQuery(projectId, STEP)}
+            valueQuery={projectRequestCountQuery(projectId, '24h')}
+            format="short-number"
+            precision={1}
+            {...shared}
+          />
+          <SparklineStatCard
+            title="Error rate (4xx + 5xx)"
+            query={projectErrorRateQuery(projectId, ERROR_RATE_WINDOW)}
+            valueQuery={projectErrorRateQuery(projectId, '24h')}
+            format="percent"
+            color="var(--color-chart-1)"
+            {...shared}
+          />
+          <SparklineStatCard
+            title="Blocked by WAF"
+            query={projectWafBlockedQuery(projectId, STEP)}
+            valueQuery={projectWafBlockedQuery(projectId, '24h')}
+            format="short-number"
+            precision={0}
+            color="var(--color-chart-1)"
+            {...shared}
+          />
+        </div>
+      )}
     </section>
   );
 }

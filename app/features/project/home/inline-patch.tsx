@@ -6,9 +6,10 @@ import type { DockWidgetProps } from '@/modules/plugins/types';
 import { Button } from '@datum-cloud/datum-ui/button';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
+import { Tooltip } from '@datum-cloud/datum-ui/tooltip';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { Brain, PanelRight, X } from 'lucide-react';
-import { useRef } from 'react';
+import { useState } from 'react';
 
 /**
  * Patch embedded in the home page, the same widget the dock shows, mounted
@@ -27,14 +28,13 @@ export function InlinePatch({
   /** The project's network, so Patch can name it and default to it. */
   network?: string;
   onClose: () => void;
-  /** Hands the current conversation (if one has started) to the dock. */
-  onMoveToDock: (chatId: string | undefined) => void;
+  /** Hands the saved conversation to the dock. */
+  onMoveToDock: (chatId: string) => void;
 }) {
-  // The first id reported is the blank chat the widget mounts with, which the
-  // server doesn't know until a message is sent; only later ids (the prompt's
-  // chat, or one the person opened) can be handed to the dock.
-  const firstChatIdRef = useRef<string>(undefined);
-  const chatIdRef = useRef<string>(undefined);
+  // The widget reports a conversation only once the assistant has saved it,
+  // which happens when a reply finishes; until then there is nothing the dock
+  // could open, so moving waits.
+  const [savedChatId, setSavedChatId] = useState<string>();
 
   const props: DockWidgetProps = {
     onClose,
@@ -42,13 +42,8 @@ export function InlinePatch({
     placement: 'inline',
     // Short turns and sensible defaults for someone setting up a project.
     surface: { name: 'home-first-run', network },
-    onChatChange: (chatId) => {
-      firstChatIdRef.current ??= chatId;
-      chatIdRef.current = chatId;
-    },
+    onChatChange: setSavedChatId,
   };
-  const handOff = () =>
-    onMoveToDock(chatIdRef.current === firstChatIdRef.current ? undefined : chatIdRef.current);
 
   return (
     <section
@@ -63,10 +58,22 @@ export function InlinePatch({
         <Text size="xs" weight="medium" className="flex-1">
           {widget.title}
         </Text>
-        <Button type="quaternary" theme="borderless" size="xs" onClick={handOff}>
-          <Icon icon={PanelRight} size={13} />
-          Open in side panel
-        </Button>
+        <Tooltip
+          message={
+            savedChatId ? 'Continue in the side panel' : 'Available once Patch finishes replying'
+          }>
+          <span className="inline-flex">
+            <Button
+              type="quaternary"
+              theme="borderless"
+              size="xs"
+              disabled={!savedChatId}
+              onClick={() => savedChatId && onMoveToDock(savedChatId)}>
+              <Icon icon={PanelRight} size={13} />
+              Open in side panel
+            </Button>
+          </span>
+        </Tooltip>
         <Button
           type="quaternary"
           theme="borderless"

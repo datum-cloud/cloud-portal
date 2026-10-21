@@ -29,25 +29,22 @@ interface HttpProxyFormDialogProps {
   projectId: string;
   onError?: (error: Error) => void;
   /**
-   * Opens with this NetworkService chosen as the workload origin, e.g. from the
-   * home page's "Add load balancer" step. `port` is the service port's name.
-   * Ignored when compute isn't available.
+   * Called with the new load balancer instead of opening it, for pages where
+   * leaving would lose the person's place (the project home page). Without
+   * it the dialog navigates to the new load balancer, as on the ALB pages.
    */
-  initialService?: { name: string; port?: string };
+  onCreated?: (proxy: { name: string; chosenName?: string }) => void;
 }
 
 export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyFormDialogProps>(
-  ({ projectId, onError, initialService }, ref) => {
+  ({ projectId, onError, onCreated }, ref) => {
     const [open, setOpen] = useState(false);
     const [nameRandomSuffix] = useState(() => generateRandomString(6));
     const [isIPOrigin, setIsIPOrigin] = useState(false);
     const [protocol, setProtocol] = useState('https');
+    const [originType, setOriginType] = useState<OriginType>('endpoint');
     // Only projects entitled to compute have the plugin, and workloads to pick.
     const computeAvailable = !!useComputePluginSlug(projectId);
-    const startWithService = computeAvailable && !!initialService;
-    const [originType, setOriginType] = useState<OriginType>(
-      initialService ? 'networkService' : 'endpoint'
-    );
     const toWorkload = computeAvailable && originType === 'networkService';
 
     const navigate = useNavigate();
@@ -65,11 +62,7 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
     });
 
     const defaultValues: Partial<HttpProxySchema> = {
-      originType: startWithService ? 'networkService' : 'endpoint',
-      ...(startWithService && {
-        serviceName: initialService.name,
-        servicePort: initialService.port,
-      }),
+      originType: 'endpoint',
       protocol: 'https',
       trafficProtectionMode: 'Enforce',
       paranoiaLevelBlocking: 1,
@@ -111,6 +104,11 @@ export const HttpProxyFormDialog = forwardRef<HttpProxyFormDialogRef, HttpProxyF
       });
 
       trackAction(AnalyticsAction.AddProxy);
+      if (onCreated) {
+        setOpen(false);
+        onCreated(createdProxy);
+        return;
+      }
       navigate(
         getPathWithParams(paths.project.detail.proxy.detail.root, {
           projectId,

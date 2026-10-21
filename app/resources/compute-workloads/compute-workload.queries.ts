@@ -69,7 +69,7 @@ export function useMissingComputeWorkloads(
 }
 
 /**
- * List compute Workloads in a project. 403/404 (including a project without
+ * List compute Workloads in a project, leaving out any being deleted. 403/404 (including a project without
  * compute) degrade to an empty list, so the home page never shows an error
  * for a service the viewer can't see.
  */
@@ -85,7 +85,8 @@ export function useComputeWorkloads(
         { onUnexpected: 'absorb' }
       );
       if (result.state !== 'ok') return [];
-      return result.data ?? [];
+      // One being deleted lingers while compute tears it down; it's already gone.
+      return (result.data ?? []).filter((workload) => !workload.metadata?.deletionTimestamp);
     },
     retry: false,
     ...options,

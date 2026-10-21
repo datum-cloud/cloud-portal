@@ -1,9 +1,13 @@
 import { HomeColumns } from './home-columns';
-import { findNetworksPluginSlug } from './home-mode';
+import { findNetworksPlugin } from './home-mode';
 import { InlinePatch } from './inline-patch';
-import { NextStep } from './next-step';
+import { NetworkSummary } from './network-summary';
+import { NextSuggestions } from './next-suggestions';
 import { PathChoice, type BuildTool } from './path-choice';
+import { PluginCreateNetworkDialog } from './plugin-create-network-dialog';
 import { ProjectHealth } from './project-health';
+import { hasVisibleResources } from './setup-progress.helpers';
+import { useCreatedToasts } from './use-created-toasts';
 import { usePatch } from './use-patch';
 import { useProjectSetup } from './use-project-setup';
 import { AddDomainsDialog } from '@/features/edge/domain/add';
@@ -20,12 +24,12 @@ import {
 import { useProjectPlugins } from '@/modules/plugins/client/use-project-plugins';
 import { pluginHref } from '@/modules/project-nav/merge-plugin-nav';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
-import { useNetworks } from '@/resources/networks';
-import { paths } from '@/utils/config/paths.config';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
+import { networkKeys, useNetworks } from '@/resources/networks';
 import { Button } from '@datum-cloud/datum-ui/button';
+import { Skeleton } from '@datum-cloud/datum-ui/skeleton';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { cn } from '@datum-cloud/datum-ui/utils';
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -46,6 +50,8 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
   const { trackAction } = useAnalytics();
   const patch = usePatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const created = useCreatedToasts(projectId);
   // The path choice's tools open these. They live here so they stay open when
   // creating something ends the path choice underneath them.
   const proxyFormRef = useRef<HttpProxyFormDialogRef>(null);
@@ -70,8 +76,8 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
     trackAction(AnalyticsAction.CreateNetworkFirstRun);
   }, [setup.hasNetwork, trackAction]);
 
-  const networkName =
-    setup.steps.find((s) => s.key === 'network')?.resourceName ?? '<your-network>';
+  // Undefined when the project has no network, e.g. after skipping that step.
+  const networkName = setup.steps.find((s) => s.key === 'network')?.resourceName;
   // Patch opens in the page, where the person was looking; they can move the
   // conversation to the side dock from there.
   const [inlinePatch, setInlinePatch] = useState<{ prompt: DockPrompt } | null>(null);
@@ -95,23 +101,42 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
       />
     ) : null;
 
-  // Only the network exists: the toolbox and Patch stay on offer until something else does.
-  const onlyNetwork =
-    setup.hasReadyNetwork && setup.steps.every((s) => s.key === 'network' || s.status === 'todo');
-  const showPathChoice = !setup.isLoading && onlyNetwork;
+  // The Networks plugin's create dialog, over the page; the Networks page when
+  // the plugin isn't installed. Closing it re-reads networks so a new one shows.
+  const [networkDialogOpen, setNetworkDialogOpen] = useState(false);
+  const createNetwork = () => {
+    if (networksPlugin) setNetworkDialogOpen(true);
+    else if (networksSlug) navigate(pluginHref(projectId, networksSlug, 'networks'));
+  };
+  const onNetworkDialogChange = (open: boolean) => {
+    setNetworkDialogOpen(open);
+    if (!open) void queryClient.invalidateQueries({ queryKey: networkKeys.all });
+  };
+
+  // Nothing but (at most) a network exists: the toolbox and Patch stay on
+  // offer until something else does, whether or not the network step was
+  // skipped. The network hero, when it shows, comes first.
+  const showPathChoice = setup.isFresh && !showHero;
   // Health only says something once there is more than a network: an empty
   // project has nothing to report, and a network-only one gets its own line.
-  const showHealth =
-    !setup.isLoading && setup.steps.some((s) => s.key !== 'network' && s.status !== 'todo');
+  const showHealth = !setup.isLoading && hasVisibleResources(setup.steps);
 
   const { data: networks } = useNetworks(projectId);
   const { data: plugins } = useProjectPlugins(projectId, { enabled: !!projectId });
-  const networksSlug = findNetworksPluginSlug(plugins);
+  const networkCount = networks?.length ?? (setup.hasNetwork ? 1 : 0);
+  const networksPlugin = findNetworksPlugin(plugins);
+  const networksSlug = networksPlugin?.slug;
 
-  // Until setup and plugins load, the columns render as they always have (with
-  // their own skeletons), so existing projects never wait on the setup reads.
+  // Which layout fits (network hero, toolbox and Patch, or the resource
+  // columns) depends on what the project has, so hold a neutral placeholder
+  // until that's known rather than showing one layout and snapping to another.
   const body =
-    showHero && hero && !heroLoading ? (
+    setup.isLoading || heroLoading ? (
+      <div className="flex flex-col gap-4" role="status" aria-label="Loading project">
+        <Skeleton className="h-10 w-full rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-xl" />
+      </div>
+    ) : showHero && hero ? (
       <div className="flex flex-col gap-4">
         <ProjectHomePluginHero hero={hero} />
         <div className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
@@ -140,30 +165,37 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
             <PathChoice
               projectId={projectId}
               networkName={networkName}
+              networkReady={setup.hasReadyNetwork}
               network={networks?.find((n) => n.metadata?.name === networkName)}
               networkHref={
-                networksSlug
+                networksSlug && networkName
                   ? pluginHref(projectId, networksSlug, `networks/${networkName}`)
                   : undefined
               }
+              onCreateNetwork={createNetwork}
               onTool={onTool}
               onAskPatch={askPatch}
             />
           )
         ) : (
           <>
-            {!inline &&
-              setup.isFirstRun &&
-              setup.currentStep &&
-              setup.currentStep !== 'network' && (
-                <NextStep
-                  projectId={projectId}
-                  steps={setup.steps}
-                  currentStep={setup.currentStep}
-                  onAskPatch={askPatch}
-                />
-              )}
-            <HomeColumns projectId={projectId} />
+            <HomeColumns
+              projectId={projectId}
+              beforeTraffic={
+                !inline &&
+                !setup.isLoading && (
+                  <NextSuggestions
+                    projectId={projectId}
+                    steps={setup.steps}
+                    networkName={networkCount === 1 ? networkName : undefined}
+                    networkCount={networkCount}
+                    onTool={onTool}
+                    onCreateNetwork={createNetwork}
+                    onAskPatch={askPatch}
+                  />
+                )
+              }
+            />
           </>
         )}
       </div>
@@ -174,21 +206,44 @@ export function ProjectHomeBody({ projectId }: { projectId: string }) {
     // aside and the sections sit closer together.
     <div className={cn('flex flex-col', inline ? 'gap-5' : 'gap-6')}>
       {!inline && <ProjectSearchBar variant="hero" />}
-      {showHealth && <ProjectHealth projectId={projectId} />}
+      {showHealth && (
+        <div className="flex items-center gap-4">
+          <ProjectHealth projectId={projectId} className="min-w-0 flex-1" />
+          {networks && (
+            <NetworkSummary
+              networks={networks}
+              networkHref={
+                networksSlug
+                  ? (name) => pluginHref(projectId, networksSlug, `networks/${name}`)
+                  : undefined
+              }
+              networksHref={
+                networksSlug ? pluginHref(projectId, networksSlug, 'networks') : undefined
+              }
+              onCreateNetwork={createNetwork}
+            />
+          )}
+        </div>
+      )}
       {body}
-      <HttpProxyFormDialog ref={proxyFormRef} projectId={projectId} />
+      <HttpProxyFormDialog
+        ref={proxyFormRef}
+        projectId={projectId}
+        onCreated={created.loadBalancerCreated}
+      />
+      {networksPlugin && (
+        <PluginCreateNetworkDialog
+          plugin={networksPlugin}
+          projectId={projectId}
+          open={networkDialogOpen}
+          onOpenChange={onNetworkDialogChange}
+        />
+      )}
       <AddDomainsDialog
         projectId={projectId}
         open={domainOpen}
         onOpenChange={setDomainOpen}
-        onSuccess={(domain) =>
-          navigate(
-            getPathWithParams(paths.project.detail.domains.detail.overview, {
-              projectId,
-              domainId: domain.name,
-            })
-          )
-        }
+        onSuccess={created.domainCreated}
       />
     </div>
   );

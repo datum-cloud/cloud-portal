@@ -48,14 +48,6 @@ export type ProjectSetup = {
 // Derivation
 // ---------------------------------------------------------------------------
 
-/** The steps the first-run guide walks through; a domain is optional and comes after. */
-export const GUIDED_STEPS: readonly SetupStepKey[] = [
-  'network',
-  'workload',
-  'service',
-  'loadBalancer',
-];
-
 export const SETUP_STEPS: readonly { key: SetupStepKey; label: string }[] = [
   { key: 'network', label: 'Network' },
   { key: 'workload', label: 'Workload' },
@@ -103,9 +95,17 @@ export function deriveProjectSetup(resources: SetupResources): ProjectSetup {
  */
 export function shouldShowNetworkHero(setup: ProjectSetup, skipped: boolean): boolean {
   if (skipped || setup.hasReadyNetwork) return false;
-  return SETUP_STEPS.every(({ key }) => key === 'network' || !hasStep(setup, key));
+  return !hasVisibleResources(setup.steps);
 }
 
-function hasStep(setup: ProjectSetup, key: SetupStepKey): boolean {
-  return setup.steps.find((step) => step.key === key)?.status !== 'todo';
+/**
+ * The kinds the home page lists for people: workloads, load balancers and
+ * domains. A network service on its own (one a deleted workload left behind,
+ * say) isn't something they see, so it doesn't make a project "not new".
+ */
+const VISIBLE_STEPS: readonly SetupStepKey[] = ['workload', 'loadBalancer', 'domain'];
+
+/** Whether the project has anything the home page shows besides its network. */
+export function hasVisibleResources(steps: readonly SetupStep[]): boolean {
+  return steps.some((step) => VISIBLE_STEPS.includes(step.key) && step.status !== 'todo');
 }

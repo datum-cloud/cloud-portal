@@ -1,4 +1,4 @@
-import type { SetupStepKey } from './setup-progress.helpers';
+import type { SetupStep, SetupStepKey } from './setup-progress.helpers';
 import { getNavExtensions } from '@/modules/plugins/client/match-extension';
 import type { PublicPlugin } from '@/modules/plugins/types';
 
@@ -8,13 +8,13 @@ export const ASSISTANT_DOCK_WIDGET_ID = 'assistant-chat';
 /** `name` in the Networks plugin's `plugin-manifest.json`. */
 export const NETWORKS_PLUGIN_MANIFEST_NAME = 'network.networking.datumapis.com';
 
-/** The Networks plugin's mount slug, discovered like the compute plugin's (see `findComputePluginSlug`). */
-export function findNetworksPluginSlug(plugins: PublicPlugin[] | undefined): string | undefined {
+/** The registered Networks plugin, matched by manifest name or its nav id, whatever slug it is mounted under. */
+export function findNetworksPlugin(plugins: PublicPlugin[] | undefined): PublicPlugin | undefined {
   return plugins?.find(
     (plugin) =>
       plugin.manifest.name === NETWORKS_PLUGIN_MANIFEST_NAME ||
       getNavExtensions(plugin.manifest).some((nav) => nav.properties.id === 'networks')
-  )?.slug;
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -25,7 +25,9 @@ export function findNetworksPluginSlug(plugins: PublicPlugin[] | undefined): str
 export type GuidedStart = {
   key: 'app' | 'machine' | 'site' | 'domain';
   label: string;
-  prompt: (network: string) => string;
+  /** `network` is undefined when the project has none yet. */
+  /** `network` is named only when the project has exactly one; `networkCount` says how many it has. */
+  prompt: (network: string | undefined, networkCount?: number) => string;
 };
 
 /** The "What do you want to connect first?" choices on the path picker. */
@@ -33,8 +35,12 @@ export const GUIDED_STARTS: readonly GuidedStart[] = [
   {
     key: 'app',
     label: 'An app or container I want to run',
-    prompt: (network) =>
-      `I want to run an app or container on Datum, on my network ${network}. Walk me through it step by step.`,
+    prompt: (network, networkCount = network ? 1 : 0) =>
+      network
+        ? `I want to run an app or container on Datum, on my network ${network}. Walk me through it step by step.`
+        : networkCount > 1
+          ? `I want to run an app or container on Datum. My project has ${networkCount} networks. Walk me through it step by step.`
+          : "I want to run an app or container on Datum. I don't have a network yet. Walk me through it step by step.",
   },
   {
     key: 'machine',
@@ -56,8 +62,17 @@ export const GUIDED_STARTS: readonly GuidedStart[] = [
 ];
 
 /** Free text from the picker, with the network named so Patch has it. */
-export function freeTextPrompt(text: string, network: string): string {
-  return `${text.trim()}\n\n(My project's network is ${network}.)`;
+export function freeTextPrompt(
+  text: string,
+  network: string | undefined,
+  networkCount: number = network ? 1 : 0
+): string {
+  const note = network
+    ? `My project's network is ${network}.`
+    : networkCount > 1
+      ? `My project has ${networkCount} networks.`
+      : "My project doesn't have a network yet.";
+  return `${text.trim()}\n\n(${note})`;
 }
 
 /** What "Continue with Patch" asks for at each step of the strip. */
@@ -111,75 +126,6 @@ export function deployCommand(network: string): string {
   ].join('\n');
 }
 
-type LooseWorkload = {
-  metadata?: { name?: string };
-  spec?: {
-    placements?: {
-      locations?: { name?: string }[];
-      locationSelector?: { matchLabels?: Record<string, string> };
-    }[];
-    template?: {
-      spec?: {
-        runtime?: {
-          sandbox?: { containers?: { image?: string; ports?: { port?: number }[] }[] };
-        };
-      };
-    };
-  };
-};
-
-const CITY_CODE_LABEL = 'topology.datum.net/city-code';
-
-/** The `--location` or `--city` flag that keeps a workload where it already runs. */
-function placementFlag(workload: LooseWorkload): string {
-  const placements = workload.spec?.placements ?? [];
-  const locations = placements.flatMap((p) => p.locations ?? []).flatMap((l) => l.name ?? []);
-  if (locations.length > 0) return `--location ${[...new Set(locations)].join(',')}`;
-  const cities = placements.flatMap(
-    (p) => p.locationSelector?.matchLabels?.[CITY_CODE_LABEL] ?? []
-  );
-  if (cities.length > 0) return `--city ${[...new Set(cities)].join(',')}`;
-  return `--location ${SAMPLE_DEPLOY_LOCATION}`;
-}
-
-/**
- * Publishing a private workload adds its network service and a public URL.
- * `datumctl compute deploy` needs the image and a location on every run, so
- * they are repeated from the workload as it is; anything unread falls back to
- * a placeholder the person can see and fix.
- */
-export function exposeCommand(workload: unknown, fallbackName: string): string {
-  const w = (workload ?? {}) as LooseWorkload;
-  const name = w.metadata?.name ?? fallbackName;
-  const image =
-    w.spec?.template?.spec?.runtime?.sandbox?.containers?.find((c) => c.image)?.image ??
-    '<your-image>';
-  return [
-    `datumctl compute deploy ${name} \\`,
-    `    --image ${image} \\`,
-    `    ${placementFlag(w)} \\`,
-    `    --http-port ${firstContainerPort(workload) ?? 8080}`,
-  ].join('\n');
-}
-
-/** The first container port a workload declares, read loosely since runtimes differ. */
-export function firstContainerPort(workload: unknown): number | undefined {
-  const containers = (
-    workload as {
-      spec?: {
-        template?: {
-          spec?: { runtime?: { sandbox?: { containers?: { ports?: { port?: number }[] }[] } } };
-        };
-      };
-    }
-  )?.spec?.template?.spec?.runtime?.sandbox?.containers;
-  for (const container of containers ?? []) {
-    const port = container.ports?.find((p) => typeof p.port === 'number')?.port;
-    if (port) return port;
-  }
-  return undefined;
-}
-
 // ---------------------------------------------------------------------------
 // Tunnels: expose a service on a laptop or server through a connector
 // ---------------------------------------------------------------------------
@@ -210,4 +156,121 @@ export function tunnelServiceCommands(projectId: string): string[] {
     `datumctl connect tunnel install --name web --origin ${SAMPLE_TUNNEL_ORIGIN} --project ${projectId} --session my-server`,
     'datumctl connect tunnel start --name web',
   ];
+}
+
+// ---------------------------------------------------------------------------
+// Next-step suggestions for a project that already has something in it
+// ---------------------------------------------------------------------------
+
+export type BuildTool = 'deploy' | 'loadBalancer' | 'connect' | 'domain';
+
+export type Suggestion = {
+  /** A toolbox action, or creating the project's network when it has none. */
+  tool: BuildTool | 'network';
+  title: string;
+  description: string;
+  /** What the same step asks Patch. */
+  patchLabel: string;
+  patchPrompt: string;
+};
+
+const MAX_SUGGESTIONS = 3;
+
+/**
+ * Up to three things worth doing next, read from what the project has: a
+ * network first if there is none, then the gap in the public path (a workload
+ * with no load balancer, a load balancer with no domain), then a first
+ * workload, then connecting a machine, then another workload.
+ */
+export function suggestNextSteps(
+  steps: readonly SetupStep[],
+  /** How many networks the project has; with several, none is singled out by name. */
+  networkCount?: number
+): Suggestion[] {
+  const status = (key: SetupStepKey) => steps.find((step) => step.key === key)?.status ?? 'todo';
+  const name = (key: SetupStepKey) => steps.find((step) => step.key === key)?.resourceName;
+  const networks = networkCount ?? (status('network') === 'todo' ? 0 : 1);
+  // Named once it exists, ready or not (deploying onto a network still being
+  // set up works), but only when it's the project's only one.
+  const network = networks === 1 && status('network') !== 'todo' ? name('network') : undefined;
+  const workload = name('workload');
+  const loadBalancer = name('loadBalancer');
+  const names = { network, workload, loadBalancer };
+
+  const suggestions: Suggestion[] = [];
+  if (status('network') === 'todo') {
+    suggestions.push({
+      tool: 'network',
+      title: 'Create a network',
+      description: 'Workloads run on a private network, so create one before deploying.',
+      patchLabel: 'Help me create a network',
+      patchPrompt: continuePrompt('network', names),
+    });
+  }
+  if (status('workload') !== 'todo' && status('loadBalancer') === 'todo') {
+    suggestions.push({
+      tool: 'loadBalancer',
+      title: workload ? `Put ${workload} on the internet` : 'Add a load balancer',
+      description: 'A public HTTPS hostname with TLS and a web application firewall.',
+      patchLabel: workload ? `Make ${workload} reachable` : 'Add a load balancer',
+      patchPrompt: continuePrompt('loadBalancer', names),
+    });
+  }
+  if (status('loadBalancer') !== 'todo' && status('domain') === 'todo') {
+    suggestions.push({
+      tool: 'domain',
+      title: 'Use your own domain',
+      description: loadBalancer
+        ? `Verify a domain you own and add a hostname from it to ${loadBalancer}.`
+        : 'Verify a domain you own to use your own hostnames.',
+      patchLabel: 'Put my own domain on it',
+      patchPrompt: continuePrompt('domain', names),
+    });
+  }
+  const deploy: Suggestion = {
+    tool: 'deploy',
+    title: status('workload') === 'todo' ? 'Deploy a workload' : 'Deploy another workload',
+    description: network
+      ? `Run a container on ${network}.`
+      : networks > 1
+        ? `Run a container on one of your ${networks} networks.`
+        : 'Run a container on a private network.',
+    patchLabel: status('workload') === 'todo' ? 'Run an app or container' : 'Run another app',
+    patchPrompt: GUIDED_STARTS.find((start) => start.key === 'app')!.prompt(network, networks),
+  };
+  // A first workload comes before connecting a machine; another one after.
+  if (status('workload') === 'todo') suggestions.push(deploy);
+  suggestions.push({
+    tool: 'connect',
+    title: 'Connect a machine',
+    description: 'Expose a service from a laptop or your own servers.',
+    patchLabel: 'Connect something on my laptop',
+    patchPrompt: GUIDED_STARTS.find((start) => start.key === 'machine')!.prompt(network),
+  });
+  if (status('workload') !== 'todo') suggestions.push(deploy);
+
+  // Fill to three with steps that fit any project, so the card never looks
+  // thin: an edge in front of a site that already runs, and a domain.
+  const offered = new Set(suggestions.map((suggestion) => suggestion.tool));
+  if (!offered.has('loadBalancer')) {
+    const hasLoadBalancer = status('loadBalancer') !== 'todo';
+    suggestions.push({
+      tool: 'loadBalancer',
+      title: hasLoadBalancer ? 'Add another load balancer' : 'Put a site behind a load balancer',
+      description:
+        "Datum's edge, with TLS and a firewall, in front of a site or API you already run.",
+      patchLabel: 'Put my existing site behind Datum',
+      patchPrompt: GUIDED_STARTS.find((start) => start.key === 'site')!.prompt(network),
+    });
+  }
+  if (!offered.has('domain') && status('domain') === 'todo') {
+    suggestions.push({
+      tool: 'domain',
+      title: 'Use your own domain',
+      description: 'Verify a domain you own to use your own hostnames.',
+      patchLabel: 'Use a domain I own',
+      patchPrompt: GUIDED_STARTS.find((start) => start.key === 'domain')!.prompt(network),
+    });
+  }
+  return suggestions.slice(0, MAX_SUGGESTIONS);
 }

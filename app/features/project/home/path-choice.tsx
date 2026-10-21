@@ -1,4 +1,6 @@
+import { CommandBlock } from './command-block';
 import {
+  type BuildTool,
   CONNECT_PLUGIN_INSTALL,
   GUIDED_STARTS,
   deployCommand,
@@ -7,7 +9,6 @@ import {
   tunnelServiceCommands,
   type GuidedStart,
 } from './home-mode';
-import { CommandBlock } from './next-step';
 import type { ComDatumapisNetworkingV1AlphaNetwork } from '@/modules/control-plane/networking';
 import { DATUM_DESKTOP_DOWNLOAD_URL } from '@/utils/config/query.config';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -23,10 +24,12 @@ import {
   ExternalLink,
   Globe,
   Laptop,
+  LoaderCircle,
   Plug,
   Send,
   Server,
   Split,
+  TriangleAlert,
   Wrench,
   type LucideIcon,
 } from 'lucide-react';
@@ -40,7 +43,7 @@ const START_ICONS: Record<GuidedStart['key'], LucideIcon> = {
   domain: Globe,
 };
 
-export type BuildTool = 'deploy' | 'loadBalancer' | 'connect' | 'domain';
+export type { BuildTool } from './home-mode';
 
 const TOOLS: readonly {
   key: BuildTool;
@@ -96,17 +99,23 @@ const TOOLS: readonly {
 export function PathChoice({
   projectId,
   networkName,
+  networkReady,
   network,
   networkHref,
+  onCreateNetwork,
   onTool,
   onAskPatch,
 }: {
   projectId: string;
-  networkName: string;
+  /** Undefined when the project has no network, e.g. after skipping that step. */
+  networkName?: string;
+  networkReady: boolean;
   /** The ready network, for its address range and MTU. */
   network?: ComDatumapisNetworkingV1AlphaNetwork;
   /** The network's page in the Networks plugin, when it is installed. */
   networkHref?: string;
+  /** Brings back the create-network step; offered when there is no network. */
+  onCreateNetwork: () => void;
   /** A toolbox row's action. The deploy command is shown here; the rest are the page's. */
   onTool: (tool: BuildTool) => void;
   /** Undefined when Patch isn't installed for this project. */
@@ -118,22 +127,13 @@ export function PathChoice({
 
   return (
     <section className="flex flex-col gap-4" aria-labelledby="path-choice-heading">
-      <div className="bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-5 py-3.5">
-        <Icon icon={CircleCheck} size={18} className="shrink-0 text-green-600" aria-hidden />
-        <Text size="sm" weight="medium">
-          Network {networkName} is ready
-        </Text>
-        <Text size="xs" textColor="muted" className="min-w-0 truncate font-mono">
-          {networkSummary(network)}
-        </Text>
-        {networkHref && (
-          <Link
-            to={networkHref}
-            className="text-btn-primary ml-auto text-sm font-medium hover:underline">
-            View network
-          </Link>
-        )}
-      </div>
+      <NetworkLine
+        networkName={networkName}
+        networkReady={networkReady}
+        network={network}
+        networkHref={networkHref}
+        onCreateNetwork={onCreateNetwork}
+      />
 
       <div className="flex flex-col gap-1">
         <Title as="h2" id="path-choice-heading" level={4} weight="normal" className="font-title">
@@ -176,9 +176,13 @@ export function PathChoice({
                     {tool.action}
                   </Button>
                 </span>
-                {expanded === 'deploy' && tool.key === 'deploy' && (
-                  <CommandBlock command={deployCommand(networkName)} />
-                )}
+                {expanded === 'deploy' &&
+                  tool.key === 'deploy' &&
+                  (networkName ? (
+                    <CommandBlock command={deployCommand(networkName)} />
+                  ) : (
+                    <NeedsNetwork onCreateNetwork={onCreateNetwork} />
+                  ))}
                 {expanded === 'connect' && tool.key === 'connect' && (
                   <ConnectCommands projectId={projectId} />
                 )}
@@ -251,7 +255,7 @@ export function PathChoice({
  * then one command prints a public URL. Connectors reach the load balancer
  * directly, not through the network. The app does the same with a UI.
  */
-function ConnectCommands({ projectId }: { projectId: string }) {
+export function ConnectCommands({ projectId }: { projectId: string }) {
   return (
     <div className="flex flex-col gap-3">
       <Text size="xs" textColor="muted">
@@ -286,6 +290,87 @@ function ConnectCommands({ projectId }: { projectId: string }) {
           Download Datum Desktop
         </a>
       </Text>
+    </div>
+  );
+}
+
+/** The line above the cards: the network's details, or a nudge to create one. */
+function NetworkLine({
+  networkName,
+  networkReady,
+  network,
+  networkHref,
+  onCreateNetwork,
+}: {
+  networkName?: string;
+  networkReady: boolean;
+  network?: ComDatumapisNetworkingV1AlphaNetwork;
+  networkHref?: string;
+  onCreateNetwork: () => void;
+}) {
+  if (!networkName) {
+    return (
+      <div className="bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-5 py-3.5">
+        <Icon icon={TriangleAlert} size={18} className="shrink-0 text-amber-500" aria-hidden />
+        <Text size="sm" weight="medium">
+          No network yet
+        </Text>
+        <Text size="xs" textColor="muted">
+          Workloads run on a private network, so create one before deploying.
+        </Text>
+        <Button
+          type="primary"
+          theme="solid"
+          size="xs"
+          className="ml-auto"
+          onClick={onCreateNetwork}>
+          Create network
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="bg-card flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-5 py-3.5">
+      <Icon
+        icon={networkReady ? CircleCheck : LoaderCircle}
+        size={18}
+        className={cn(
+          'shrink-0',
+          networkReady ? 'text-green-600' : 'text-muted-foreground animate-spin'
+        )}
+        aria-hidden
+      />
+      <Text size="sm" weight="medium">
+        {networkReady
+          ? `Network ${networkName} is ready`
+          : `Network ${networkName} is being created`}
+      </Text>
+      {networkReady && (
+        <Text size="xs" textColor="muted" className="min-w-0 truncate font-mono">
+          {networkSummary(network)}
+        </Text>
+      )}
+      {networkHref && (
+        <Link
+          to={networkHref}
+          className="text-btn-primary ml-auto text-sm font-medium hover:underline">
+          View network
+        </Link>
+      )}
+    </div>
+  );
+}
+
+/** Instead of a deploy command that would fail: workloads need a network first. */
+export function NeedsNetwork({ onCreateNetwork }: { onCreateNetwork: () => void }) {
+  return (
+    <div className="bg-muted/50 flex flex-wrap items-center gap-3 rounded-lg px-4 py-3">
+      <Text size="xs" textColor="muted" className="flex-1">
+        A workload runs on your private network, and this project doesn&apos;t have one yet.
+      </Text>
+      <Button type="secondary" theme="outline" size="xs" onClick={onCreateNetwork}>
+        Create network
+      </Button>
     </div>
   );
 }
