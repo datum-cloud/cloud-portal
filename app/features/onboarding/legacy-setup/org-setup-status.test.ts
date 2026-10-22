@@ -6,7 +6,7 @@ import {
   isOrgContactSetupComplete,
   isOrgSetupCompleteFromLoadResult,
 } from './org-setup-status';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('isOrgContactSetupComplete', () => {
   it('requires email and name on the org', () => {

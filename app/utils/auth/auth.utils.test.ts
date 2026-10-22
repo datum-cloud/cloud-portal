@@ -1,5 +1,5 @@
 import { destroyAllAuthCookies } from '@/utils/auth/auth.utils';
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect } from 'vitest';
 
 describe('destroyAllAuthCookies', () => {
   test('returns combined Set-Cookie headers clearing all auth cookies', async () => {

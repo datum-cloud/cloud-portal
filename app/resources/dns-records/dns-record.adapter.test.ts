@@ -12,7 +12,7 @@ import {
 import type { DnsRecordSet } from './dns-record.schema';
 import { ControlPlaneStatus } from '@/resources/base';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toDnsRecordSet', () => {
   it('maps spec fields and flags gateway-managed records from labels', () => {

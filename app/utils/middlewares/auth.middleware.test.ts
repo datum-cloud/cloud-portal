@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import { authMiddleware, type AuthMiddlewareDeps } from './auth.middleware';
 import type { MiddlewareContext } from './middleware';
 import {
@@ -9,18 +8,18 @@ import {
 import { sessionContext } from '@/server/context';
 import { loadUserOncePerRequest } from '@/utils/fraud/user-access';
 import { requestCacheKeys } from '@/utils/request-cache-keys';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Upstream reads are injected via the middleware's `deps` seam rather than
 // mock.module'd — that registry is process-global in bun and would hand these
 // stubs to every later suite.
-const loadUser = mock(async () => ({ user: { sub: 'u1', email: 'u@example.test' } }) as never);
-const listOrganizations = mock(async () => ({ items: [{ name: 'acme' }] }));
+const loadUser = vi.fn(async () => ({ user: { sub: 'u1', email: 'u@example.test' } }) as never);
+const listOrganizations = vi.fn(async () => ({ items: [{ name: 'acme' }] }));
 
 const deps = (): AuthMiddlewareDeps => ({ loadUser, listOrganizations });
 
 const NEXT = new Response('next', { status: 200 });
-const next = mock(async () => NEXT);
+const next = vi.fn(async () => NEXT);
 
 /** A ctx whose load context already carries a validated session (the fast path). */
 function ctx(url: string, sub: string | undefined = 'u1'): MiddlewareContext {

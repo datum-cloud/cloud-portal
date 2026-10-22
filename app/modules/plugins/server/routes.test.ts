@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { isHashedAsset } from './routes';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('isHashedAsset', () => {
   test('treats content-hashed chunks under assets/ as safe to cache forever', () => {

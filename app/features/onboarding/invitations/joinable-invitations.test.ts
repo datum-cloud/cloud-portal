@@ -1,6 +1,6 @@
 import { selectJoinableInvitations } from './joinable-invitations';
 import type { Invitation } from '@/resources/invitations/invitation.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const NOW = new Date('2026-10-15T12:00:00Z');
 

@@ -1,5 +1,5 @@
 import { timeRangeSchema } from './validator';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('timeRangeSchema', () => {
   it('converts unix seconds to dates', () => {

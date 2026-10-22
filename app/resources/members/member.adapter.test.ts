@@ -5,7 +5,7 @@ import {
   toUpdateMemberRolesPayload,
 } from './member.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toMember', () => {
   it('resolves user/org from refs and merges status detail', () => {

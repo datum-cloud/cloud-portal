@@ -3,7 +3,7 @@ import type { MiddlewareContext } from './middleware';
 import { withRequestContext } from '@/modules/axios/request-context';
 import { getProjectForRequest } from '@/resources/projects/project-request-cache.server';
 import { paths } from '@/utils/config/paths.config';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Mutable behavior for the mocked dependencies, set per-test.
 let bypass = false;
@@ -11,25 +11,27 @@ let orgComplete = false;
 let isOwner = true;
 let projectOrg: string | null = 'acme';
 
-const bypassEnabled = mock(() => bypass);
-const isOrgSetupComplete = mock(async () => orgComplete);
-const isUserOrgOwner = mock(async () => isOwner);
-const projectGet = mock(async (name: string) => ({ name, organizationId: projectOrg }));
+const { bypassEnabled, isOrgSetupComplete, isUserOrgOwner, projectGet } = vi.hoisted(() => ({
+  bypassEnabled: vi.fn(() => bypass),
+  isOrgSetupComplete: vi.fn(async () => orgComplete),
+  isUserOrgOwner: vi.fn(async () => isOwner),
+  projectGet: vi.fn(async (name: string) => ({ name, organizationId: projectOrg })),
+}));
 
-mock.module('@/features/onboarding/onboarding-dev-bypass', () => ({
+vi.mock('@/features/onboarding/onboarding-dev-bypass', () => ({
   isOnboardingDevBypassEnabled: bypassEnabled,
 }));
-mock.module('@/features/onboarding/legacy-setup/org-setup-status.server', () => ({
+vi.mock('@/features/onboarding/legacy-setup/org-setup-status.server', () => ({
   isOrgSetupComplete,
 }));
-mock.module('@/resources/members/member-owner', () => ({
+vi.mock('@/resources/members/member-owner', () => ({
   isUserOrgOwner,
 }));
 // The middleware now reaches the service through `getProjectForRequest`, which
 // imports `./project.service` directly rather than the `@/resources/projects`
 // barrel — so the stub has to sit on the service module. The per-request cache
 // itself runs for real; it is part of what these tests cover.
-mock.module('@/resources/projects/project.service', () => ({
+vi.mock('@/resources/projects/project.service', () => ({
   createProjectService: () => ({ get: projectGet }),
 }));
 
@@ -39,7 +41,7 @@ function ctx(url: string): MiddlewareContext {
   return { request: new Request(url), context: {} as never };
 }
 
-const next = mock(async () => NEXT);
+const next = vi.fn(async () => NEXT);
 
 beforeEach(() => {
   bypass = false;

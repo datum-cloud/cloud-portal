@@ -1,16 +1,8 @@
-/// <reference types="bun-types/test" />
 import type { LoaderPermissionCheck } from './check-permission';
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 // `canInLoaderBulk` constructs `new RbacService()` with the default
-// access-review factory, so there is no injection seam — `mock.module` is the
-// supported Bun primitive for replacing it. That registry is process-global for
-// the rest of the test run, so capture the real module first, spread it, and
-// reinstall it in `afterAll` (same protocol as define-resource-route.test.ts).
-const actualRbacService = await import('./rbac.service');
-// Snapshot by value: `mock.module` mutates the live namespace object in place,
-// so restoring from `actualRbacService` itself would reinstall the stub.
-const realRbacService = { ...actualRbacService };
+// access-review factory, so there is no injection seam — `vi.mock` replaces it.
 
 type BulkResult = { allowed: boolean; denied: boolean };
 
@@ -21,8 +13,8 @@ let bulkCalls: LoaderPermissionCheck[][] = [];
 /** How many times the stubbed RbacService was constructed. */
 let constructed = 0;
 
-mock.module('./rbac.service', () => ({
-  ...actualRbacService,
+vi.mock('./rbac.service', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./rbac.service')>()),
   RbacService: class {
     constructor() {
       constructed += 1;
@@ -36,10 +28,6 @@ mock.module('./rbac.service', () => ({
 
 // Import AFTER the mock is registered so the SUT picks it up.
 const { canInLoaderBulk } = await import('./check-permission');
-
-afterAll(() => {
-  mock.module('./rbac.service', () => realRbacService);
-});
 
 beforeEach(() => {
   bulkCalls = [];

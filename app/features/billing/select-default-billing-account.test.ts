@@ -1,5 +1,5 @@
 import { selectDefaultOrgBillingAccount } from './types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('selectDefaultOrgBillingAccount', () => {
   it('prefers Ready accounts', () => {

@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import {
   albLogFacets,
   albLogMatchers,
@@ -7,7 +6,7 @@ import {
   filterAlbLogsByHost,
 } from './o11y-log.helpers';
 import type { LogEntry } from '@datum-cloud/datum-ui/logs';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('albLogMatchers', () => {
   it('drops identity labels so the explorer cannot escape the ALB', () => {

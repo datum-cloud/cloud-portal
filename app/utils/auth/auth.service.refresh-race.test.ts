@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 /**
  * Regression tests for the cross-pod refresh-token ROTATION RACE.
  *
@@ -20,18 +19,18 @@
  * `await OAuth2.discover()` network call) and the env module so the cookie
  * config builds, then drive getValidSession through the race scenarios.
  */
-import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 // --- Module mocks: must be registered before importing auth.service ---
 
 // Spy we assert is NEVER called by the session-validation race path.
-const revokeToken = mock(async (_token: string) => undefined);
+const revokeToken = vi.fn(async (_token: string) => undefined);
 // Controllable refresh: tests reassign `refreshImpl` per scenario.
 let refreshImpl: (token: string) => Promise<unknown> = async () => {
   throw new Error('refreshImpl not set');
 };
 
-mock.module('@/modules/auth/strategies/zitadel.server', () => ({
+vi.mock('@/modules/auth/strategies/zitadel.server', () => ({
   zitadelIssuer: 'https://zitadel.example.test',
   zitadelStrategy: {
     refreshToken: (token: string) => refreshImpl(token),
@@ -53,11 +52,10 @@ const fakeEnv = {
 };
 // Only mock env.server — mocking `@/utils/env` with `{ env }` drops named
 // exports like `isDev` and leaks into other files under coverage runs.
-mock.module('@/utils/env/env.server', () => ({ env: fakeEnv }));
+vi.mock('@/utils/env/env.server', () => ({ env: fakeEnv }));
 // Pin Redis to null so these cases exercise the in-memory fallback they were
-// written for. mock.module is process-wide in Bun, so without this the Redis
-// singleflight suite (which sorts earlier) could leave a fake client installed.
-mock.module('@/modules/redis', () => ({ redisClient: null }));
+// written for.
+vi.mock('@/modules/redis', () => ({ redisClient: null }));
 // Import AFTER mocks are registered.
 const { AuthService, sessionStorage, refreshTokenStorage } = await import('./auth.service');
 const { AUTH_COOKIE_KEYS } = await import('./auth.config');
@@ -226,16 +224,16 @@ describe('getValidSession — cross-pod refresh rotation race (REFRESH_TOKEN_REV
 
     // Seed: one request rotates RT1-linked. Fake timers let the 5s in-memory
     // lock cleanup run now, so only the rotation link can answer the next call.
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       await AuthService.refreshTokens(
         'RT1-linked',
         await sessionStorage.getSession(null),
         await refreshTokenStorage.getSession(null)
       );
-      jest.advanceTimersByTime(5_001);
+      vi.advanceTimersByTime(5_001);
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
 
     const cookieHeader = await buildCookieHeader({

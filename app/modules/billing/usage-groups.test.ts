@@ -3,7 +3,7 @@ import {
   resolveMeterGroup,
   serviceDomainFromMeterName,
 } from './usage-groups';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('serviceDomainFromMeterName', () => {
   it('keeps the reverse-DNS prefix before the first slash', () => {

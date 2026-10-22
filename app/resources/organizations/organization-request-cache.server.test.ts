@@ -1,37 +1,25 @@
-/// <reference types="bun-types/test" />
 import { withRequestContext } from '@/modules/axios/request-context';
-import { afterAll, beforeEach, describe, expect, mock, test } from 'bun:test';
-
-// `mock.module` replaces the module in Bun's global registry for the rest of the
-// test run, so capture the real one, spread it, and reinstall it in `afterAll`.
-const actualOrganizationService = await import('./organization.service');
-// Snapshot by value: `mock.module` mutates the live namespace object in place,
-// so restoring from `actualOrganizationService` itself would reinstall the stub.
-const realOrganizationService = { ...actualOrganizationService };
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 let orgName: string | null = null;
-const organizationGet = mock(async (name: string) => {
+const organizationGet = vi.fn(async (name: string) => {
   orgName = name;
   return { name, displayName: `Org ${name}` };
 });
 
-const organizationList = mock(async () => ({
+const organizationList = vi.fn(async () => ({
   items: [{ name: 'acme' }],
   nextCursor: null,
   hasMore: false,
 }));
 
-mock.module('./organization.service', () => ({
-  ...actualOrganizationService,
+vi.mock('./organization.service', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('./organization.service')>()),
   createOrganizationService: () => ({ get: organizationGet, list: organizationList }),
 }));
 
 const { getOrganizationForRequest, listOrganizationsForRequest } =
   await import('./organization-request-cache.server');
-
-afterAll(() => {
-  mock.module('./organization.service', () => realOrganizationService);
-});
 
 beforeEach(() => {
   orgName = null;

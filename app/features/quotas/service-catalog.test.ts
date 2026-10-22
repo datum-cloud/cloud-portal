@@ -5,7 +5,7 @@ import {
   resolveServiceName,
   OTHER_GROUP,
 } from './service-catalog';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('catalogServiceDisplayName', () => {
   it('returns the catalog title for DNS', () => {

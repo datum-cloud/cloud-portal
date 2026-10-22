@@ -1,6 +1,6 @@
 import { RateLimitError } from './app-error';
 import { parseRetryAfterHeader } from './axios';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('RateLimitError', () => {
   test('message names the retry window when known', () => {

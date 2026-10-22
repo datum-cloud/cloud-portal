@@ -1,7 +1,7 @@
 import { notePaused, pausedFor, resetRateLimitGate } from './gate';
 import { gatedFetch } from './gated-fetch';
 import { RateLimitError } from '@/utils/errors/app-error';
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 
 const realFetch = globalThis.fetch;
 
@@ -12,7 +12,7 @@ afterEach(() => {
 
 describe('gatedFetch', () => {
   test('passes through and records a 429 for the class the server names', async () => {
-    const fetchMock = mock(
+    const fetchMock = vi.fn(
       async () =>
         new Response('{}', {
           status: 429,
@@ -28,7 +28,7 @@ describe('gatedFetch', () => {
   });
 
   test('rejects locally while paused without touching the network', async () => {
-    const fetchMock = mock(async () => new Response('{}', { status: 200 }));
+    const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }));
     globalThis.fetch = fetchMock as unknown as typeof fetch;
     notePaused('machine', 30);
 
@@ -42,7 +42,7 @@ describe('gatedFetch', () => {
   });
 
   test('accepts URL and Request inputs', async () => {
-    globalThis.fetch = mock(
+    globalThis.fetch = vi.fn(
       async () => new Response('{}', { status: 200 })
     ) as unknown as typeof fetch;
     expect((await gatedFetch(new URL('http://localhost/api/usage'))).status).toBe(200);

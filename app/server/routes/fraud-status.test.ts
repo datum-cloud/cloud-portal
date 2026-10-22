@@ -1,8 +1,8 @@
 import { createFraudStatusRoutes } from './fraud-status';
 import type { Variables } from '@/server/types';
 import type { UserAccessResult } from '@/utils/fraud/user-access';
-import { describe, expect, it } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, it } from 'vitest';
 
 const verifiedUser = {
   sub: 'u1',

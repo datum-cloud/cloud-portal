@@ -8,9 +8,9 @@ import {
 } from './rate-limit';
 import { createMemoryPenaltyBox, PENALTY_TRIPS } from './rate-limit-penalty';
 import type { Variables } from '@/server/types';
-import { afterAll, describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
 import { register } from 'prom-client';
+import { afterAll, describe, expect, test } from 'vitest';
 
 const tiny: RateLimitBudgets = { windowMs: 60_000, machine: 2, interactive: 2, ceiling: 3 };
 const browser = { 'Sec-Fetch-Site': 'same-origin' };

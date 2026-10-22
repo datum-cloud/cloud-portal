@@ -1,5 +1,5 @@
 import { buildDeleteGroupDialogCopy } from './delete-group-dialog';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('buildDeleteGroupDialogCopy', () => {
   it('asks a plain question for an empty group and skips typed confirmation', () => {

@@ -1,5 +1,5 @@
 import { nextHiddenSeries } from './series-visibility';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const names = ['200', '404', '500'];
 

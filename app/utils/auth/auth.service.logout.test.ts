@@ -1,5 +1,5 @@
 import { buildEndSessionUrl } from '@/utils/auth/auth.service';
-import { describe, test, expect } from 'bun:test';
+import { describe, test, expect } from 'vitest';
 
 const ISSUER = 'https://auth.localtest.me:30000';
 

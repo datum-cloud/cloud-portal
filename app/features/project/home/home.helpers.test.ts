@@ -12,7 +12,7 @@ import type { Domain } from '@/resources/domains';
 import type { HttpProxy } from '@/resources/http-proxies';
 import type { ResourceRegistration } from '@/resources/resource-registrations';
 import type { SearchHit } from '@/resources/search';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const domain = (name: string, createdAt: string): Domain => ({
   uid: `uid-${name}`,
@@ -189,7 +189,7 @@ describe('attentionItems', () => {
     };
     const [item] = attentionItems({ ...none, zones: [zone('bad.com', failed)] });
     expect(item.severity).toBe('error');
-    expect(item.label).toStartWith('bad.com: ');
+    expect(item.label.startsWith('bad.com: ')).toBe(true);
   });
 
   it('flags rejected load balancers and failed certificates, not ones still provisioning', () => {

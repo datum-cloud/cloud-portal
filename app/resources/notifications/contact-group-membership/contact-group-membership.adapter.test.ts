@@ -4,7 +4,7 @@ import {
   toCreateContactGroupMembershipPayload,
 } from './contact-group-membership.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toContactGroupMembership', () => {
   it('maps refs and builds a "contact → group" displayName', () => {

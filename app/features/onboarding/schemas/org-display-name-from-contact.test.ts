@@ -1,5 +1,5 @@
 import { orgDisplayNameFromContact } from './org-contact-info-schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('orgDisplayNameFromContact', () => {
   it('prefers business name when present', () => {

@@ -4,7 +4,7 @@ import {
   readValidCachedQueryData,
 } from '@/utils/helpers/project-list-client-loader';
 import { QueryClient, QueryObserver } from '@tanstack/react-query';
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 type TestListItem = { name: string };
 
