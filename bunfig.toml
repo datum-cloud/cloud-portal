@@ -1,4 +1,9 @@
+# Must run before any connection opens, so Bun's fetch and WebSocket use it.
+preload = ["./observability/trust-store.preload.ts"]
+
 [test]
+# Must run before any connection opens, so Bun's fetch and WebSocket use it.
+preload = ["./observability/trust-store.preload.ts"]
 # Coverage is opt-in via `--coverage` (see `bun run test:coverage`); these
 # settings only take effect when that flag is passed, so plain `bun test`
 # stays fast for local/CI runs.
