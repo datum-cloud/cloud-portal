@@ -1,5 +1,6 @@
 import { OtelProvider } from './providers/otel';
 import { SentryProvider } from './providers/sentry';
+import { reportTrustStoreFailure } from './trust-store';
 import type { ObservabilityConfig, InitializationResult, ErrorDetectionResult } from './types';
 
 // ============================================================================
@@ -353,7 +354,9 @@ export const initializeObservability = async (
     initializationPromise = (async () => {
       try {
         singletonManager = createObservabilityManager(config);
-        return await singletonManager.initialize();
+        const result = await singletonManager.initialize();
+        reportTrustStoreFailure(captureObservabilityException);
+        return result;
       } finally {
         initializationPromise = null;
       }
