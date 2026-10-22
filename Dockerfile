@@ -5,7 +5,7 @@
 # syntax = docker/dockerfile:1
 
 # Use the latest Bun version
-FROM oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895 AS base
+FROM oven/bun:1.4.4@sha256:1d22548f177f4ff38e0c15baa3c2c46c6c2060ba2d1bc573bb4720b407548f1d AS base
 
 # Install system dependencies and clean up in the same layer
 RUN apt-get update && \
@@ -13,6 +13,10 @@ RUN apt-get update && \
     update-ca-certificates && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
+
+# Bun checks TLS against roots built into its binary, not the system bundle.
+# Fail the build if a Bun release trusts the compromised emSign root again.
+RUN bun -e 'import tls from "node:tls"; import { X509Certificate } from "node:crypto"; if (tls.rootCertificates.some((pem) => new X509Certificate(pem).subject.split("\n").includes("CN=emSign ECC Root CA - G3"))) { console.error("Bun trusts emSign ECC Root CA - G3"); process.exit(1); }'
 
 # Remix app lives here
 WORKDIR /app
