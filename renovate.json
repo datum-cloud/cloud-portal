@@ -5,14 +5,5 @@
     "helpers:pinGitHubActionDigests",
     "docker:pinDigests"
   ],
-  "rangeStrategy": "update-lockfile",
-  "customManagers": [
-    {
-      "customType": "regex",
-      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
-      "matchStrings": [
-        "bun-version:\\s*(?<currentValue>\\S+)\\s*}\\s*#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)"
-      ]
-    }
-  ]
+  "rangeStrategy": "update-lockfile"
 }

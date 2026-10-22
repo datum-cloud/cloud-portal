@@ -247,7 +247,7 @@ async function complexOperation() {
 
 **Local (Jaeger):**
 
-1. Start observability stack: `bun run dev:otel`
+1. Start observability stack: `npm run dev:otel`
 2. Open http://localhost:16686
 3. Select "cloud-portal" service
 4. Search for traces
@@ -313,7 +313,7 @@ curl http://localhost:3000/metrics
 
 ```bash
 # Start all observability services
-bun run dev:otel
+npm run dev:otel
 
 # Or with docker-compose
 docker-compose -f docker-compose.otel.yml up -d

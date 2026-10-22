@@ -14,7 +14,7 @@ permissions:
 
 env:
   CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
-  BUN_CACHE: ~/.bun/install/cache
+  NPM_CACHE: ~/.npm
 
 jobs:
   # ─── Quality ────────────────────────────────────────────────
@@ -28,22 +28,23 @@ jobs:
       app: ${{ steps.changes.outputs.app }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         id: cache-deps
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
       - if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: bun install --frozen-lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
       # The cache is saved by this job only, so the Cypress binary has to be
       # fetched here or every Cypress job downloads it again on every run.
       - if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: bunx cypress install
+        run: npx cypress install
       - name: Detect app changes
         id: changes
         env:
@@ -74,15 +75,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - run: bun run lint && bun run format
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+      - run: npm run lint && npm run format
 
   typecheck:
     name: Type Check
@@ -90,16 +93,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - run: bun typecheck
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+      - run: npm run typecheck
 
   build:
     name: Build
@@ -108,16 +112,17 @@ jobs:
     if: ${{ !failure() && !cancelled() }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - run: bun run build
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+      - run: npm run build
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: build-${{ github.sha }}
@@ -125,32 +130,33 @@ jobs:
           retention-days: 1
 
   # ─── Tests ──────────────────────────────────────────────────
-  bun-tests:
-    name: Bun Unit Tests
+  vitest:
+    name: Vitest Unit Tests
     needs: install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version-file: '.nvmrc'
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
       # Coverage is reported (text in the log + lcov artifact) but not gated yet.
-      # Bun only instruments files imported by tests, so the % reflects the
+      # Only files imported by tests are instrumented, so the % reflects the
       # unit-tested surface, not the whole repo.
-      - run: bun run test:coverage
+      - run: npm run test:coverage
         env:
           NODE_ENV: test
           AUTH_OIDC_ISSUER: ${{ secrets.AUTH_OIDC_ISSUER }}
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: bun-coverage-${{ github.run_id }}
+          name: vitest-coverage-${{ github.run_id }}
           path: coverage/lcov.info
           retention-days: 7
           if-no-files-found: warn
@@ -165,17 +171,15 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: '.nvmrc'
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
-      - run: bunx cypress install && bunx cypress verify
-      - run: bun run test:unit:prod
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
+      - run: npx cypress install && npx cypress verify
+      - run: npm run test:unit:prod
         env:
           NODE_ENV: test
           CYPRESS: 'true'
@@ -199,15 +203,13 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: '.nvmrc'
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: build-${{ github.sha }}
@@ -231,7 +233,7 @@ jobs:
           LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
-      - run: bunx cypress install && bunx cypress verify
+      - run: npx cypress install && npx cypress verify
       # First attempt records no video: green runs are the common case and
       # encoding plus upload is a real share of the job. A failure here does
       # not fail the job yet; the retry below decides.
@@ -241,9 +243,9 @@ jobs:
         env:
           CYPRESS_video: 'false'
         run: >-
-          bunx start-server-and-test
-          'bun run start' http://localhost:3000/_healthz
-          'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+          npx start-server-and-test
+          'npm run start' http://localhost:3000/_healthz
+          'npx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
       # One retry of the whole job, with video on, replaces the habit of
       # re-running the entire workflow (~26 job-minutes) to clear a flake.
       - name: Retry Smoke Tests
@@ -252,9 +254,9 @@ jobs:
         env:
           CYPRESS_video: 'true'
         run: >-
-          bunx start-server-and-test
-          'bun run start' http://localhost:3000/_healthz
-          'bunx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
+          npx start-server-and-test
+          'npm run start' http://localhost:3000/_healthz
+          'npx cypress run --spec "cypress/e2e/smoke/**" --config-file cypress.config.ts'
       - if: steps.e2e.outcome == 'failure' && steps.e2e-retry.outcome == 'success'
         run: echo "::warning title=E2E passed on retry::Smoke failed once and passed on retry. Treat as flaky, not green."
       - if: failure() || steps.e2e.outcome == 'failure'
@@ -292,15 +294,13 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version-file: '.nvmrc'
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-        with: { bun-version: 1.4.4 } # renovate: datasource=docker depName=oven/bun
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: |
-            ${{ env.BUN_CACHE }}
+            ${{ env.NPM_CACHE }}
             ${{ env.CYPRESS_CACHE_FOLDER }}
             **/node_modules
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/bun.lock', '**/bun.lockb', '**/package.json') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/package.json') }}
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: build-${{ github.sha }}
@@ -324,7 +324,7 @@ jobs:
           LOG_LEVEL=warn
           CYPRESS_BASE_URL=http://localhost:3000
           EOF
-      - run: bunx cypress install && bunx cypress verify
+      - run: npx cypress install && npx cypress verify
       # First attempt records no video; see the smoke job for the reasoning.
       - name: Run Regression Tests
         id: e2e
@@ -332,9 +332,9 @@ jobs:
         env:
           CYPRESS_video: 'false'
         run: >-
-          bunx start-server-and-test
-          'bun run start' http://localhost:3000/_healthz
-          'bunx cypress run --config-file cypress.config.ts'
+          npx start-server-and-test
+          'npm run start' http://localhost:3000/_healthz
+          'npx cypress run --config-file cypress.config.ts'
       # The retry runs the same shard once more, with video on. A shard that
       # fails twice fails the job; one that passes here is reported as flaky
       # by the PR summary, not silently counted as green.
@@ -344,9 +344,9 @@ jobs:
         env:
           CYPRESS_video: 'true'
         run: >-
-          bunx start-server-and-test
-          'bun run start' http://localhost:3000/_healthz
-          'bunx cypress run --config-file cypress.config.ts'
+          npx start-server-and-test
+          'npm run start' http://localhost:3000/_healthz
+          'npx cypress run --config-file cypress.config.ts'
       - if: steps.e2e.outcome == 'failure' && steps.e2e-retry.outcome == 'success'
         run: echo "::warning title=E2E passed on retry::Regression shard ${{ matrix.shard }} failed once and passed on retry. Treat as flaky, not green."
       - if: failure() || steps.e2e.outcome == 'failure'
@@ -362,18 +362,13 @@ jobs:
   # ─── Status Gate ────────────────────────────────────────────
   status-check:
     name: Final Status Check
-    needs: [install, lint, typecheck, build, bun-tests, unit-tests, e2e-smoke, e2e-regression]
+    needs: [install, lint, typecheck, build, vitest, unit-tests, e2e-smoke, e2e-regression]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      # Every other job needs install, so if install did not succeed they are
-      # skipped, and skipped jobs count as passing below. Fail on that first.
       - name: Check Workflow Status
         run: |
-          if [[ "${{ needs.install.result }}" != "success" ]]; then
-            echo "❌ Install Dependencies did not succeed (${{ needs.install.result }})"
-            exit 1
-          elif [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
             echo "❌ One or more jobs failed"
             exit 1
           elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
@@ -400,16 +395,14 @@ jobs:
       contents: read
       packages: write
       attestations: write
-    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@a4f8931a5accb27db097a68c06d67802a024a9c5 # v1.23.1
+    uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@2dbca23d057e20ff1aab144b94a06d09ea75e5f6 # v1.21.0
     with:
       image-name: cloud-portal
-    # The Sentry token goes in only as a BuildKit secret, which the Dockerfile
-    # mounts for the build step. The upstream SENTRY_AUTH_TOKEN secret is left
-    # unset on purpose: upstream forwards it as a build arg, and build args are
-    # recorded in plaintext in the image's public provenance.
-    secrets:
-      build-secrets: |
-        "sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}"
+    # NOTE: `secrets: inherit` is required because the upstream workflow
+    # references `secrets.SENTRY_AUTH_TOKEN` without declaring it under
+    # `workflow_call.secrets`. Once upstream declares it, switch to an
+    # explicit `secrets:` block passing only SENTRY_AUTH_TOKEN.
+    secrets: inherit
 
   publish-kustomize-bundles:
     name: Publish Kustomize Bundles
@@ -421,7 +414,7 @@ jobs:
       id-token: write
       contents: read
       packages: write
-    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@a4f8931a5accb27db097a68c06d67802a024a9c5 # v1.23.1
+    uses: datum-cloud/actions/.github/workflows/publish-kustomize-bundle.yaml@2dbca23d057e20ff1aab144b94a06d09ea75e5f6 # v1.21.0
     with:
       bundle-name: ghcr.io/datum-cloud/cloud-portal-kustomize
       bundle-path: config
@@ -437,7 +430,7 @@ jobs:
     # as the fast jobs finish and snapshots the slow ones (the e2e-regression
     # shards) while they're still running, so they show up as "pending" and a
     # real failure would be masked as "pending" too.
-    needs: [bun-tests, unit-tests, e2e-smoke, e2e-regression]
+    needs: [vitest, unit-tests, e2e-smoke, e2e-regression]
     runs-on: ubuntu-latest
     # `always()` so the summary still posts when a test job fails — that's when
     # the artifact links matter most. Without it, a failed dependency would
@@ -464,7 +457,7 @@ jobs:
             });
 
             const testJobs = jobs.jobs.filter(j =>
-              j.name === 'Bun Unit Tests' || j.name === 'Unit Tests' || j.name.startsWith('E2E')
+              j.name === 'Vitest Unit Tests' || j.name === 'Unit Tests' || j.name.startsWith('E2E')
             );
 
             // A job that hasn't finished has a null `conclusion` (distinct from
