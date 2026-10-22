@@ -1,5 +1,5 @@
 /// <reference types="bun-types/test" />
-import { getTrustStoreResult, isEmSign } from './trust-store';
+import { isEmSign } from './trust-store';
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { execFileSync } from 'node:child_process';
 import { X509Certificate } from 'node:crypto';
@@ -179,10 +179,13 @@ describe('trust store end to end', () => {
     expect(await child('shim-throw')).toEqual({ status: 'failed', fetch: true, https: true });
   });
 
+  // Asserts on the CA lists, not getTrustStoreResult(): bun test runs every file
+  // in one process, and trust-store.test.ts resets the stored result between its
+  // tests while restoring the default list the preload set.
   it('runs as a test preload and leaves no emSign root in the default list', () => {
-    expect(getTrustStoreResult()?.status).toBe('applied');
-    expect(
-      tls.getCACertificates('default').some((p) => isEmSign(new X509Certificate(p).subject))
-    ).toBe(false);
+    const hasEmSign = (pems: string[]) =>
+      pems.some((p) => isEmSign(new X509Certificate(p).subject));
+    expect(hasEmSign(tls.getCACertificates('bundled'))).toBe(true);
+    expect(hasEmSign(tls.getCACertificates('default'))).toBe(false);
   });
 });
