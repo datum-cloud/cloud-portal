@@ -32,24 +32,26 @@ import { sentryTracingMiddleware } from '@/modules/sentry';
 import { watchHub, watchRelay } from '@/server/watch';
 import { sessionManager } from '@/utils/auth';
 import { env } from '@/utils/env/env.server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { prometheus } from '@hono/prometheus';
 import { Hono } from 'hono';
-import { serveStatic } from 'hono/bun';
 import { requestId } from 'hono/request-id';
+import type { Server } from 'node:http';
 import { register } from 'prom-client';
 import { RouterContextProvider } from 'react-router';
-import { createHonoServer } from 'react-router-hono-server/bun';
+import { createHonoServer } from 'react-router-hono-server/node';
 
 /**
- * Upper bound on draining in-flight requests after SIGTERM. The adapter's
- * `server.stop()` waits for every open response, including SSE streams, so
- * exit anyway once this passes. Keep it under the pod's
- * terminationGracePeriodSeconds (30s).
+ * Upper bound on draining in-flight requests after SIGTERM. `server.close()`
+ * waits for every open response, including SSE streams, so exit anyway once
+ * this passes. Keep it under the pod's terminationGracePeriodSeconds (30s).
  */
 const SHUTDOWN_TIMEOUT_MS = 25_000;
 
 let isShuttingDown = false;
+let httpServer: Server | undefined;
 const beginShutdown = () => {
+  if (isShuttingDown) return;
   isShuttingDown = true;
   setTimeout(() => {
     console.warn('⚠️ Shutdown timeout reached with requests still in-flight');
@@ -61,6 +63,14 @@ const beginShutdown = () => {
   watchRelay.stop().catch((error: unknown) => {
     console.error('❌ Failed to stop the watch relay:', error);
   });
+  const server = httpServer;
+  if (!server) return;
+  server.close(() => {
+    shutdownObservability();
+    process.exit(0);
+  });
+  server.closeIdleConnections();
+  setInterval(() => server.closeIdleConnections(), 1_000).unref();
 };
 
 process.once('SIGTERM', beginShutdown);
@@ -268,23 +278,19 @@ app.get('/_readyz', (c) => {
   return c.json({ status: 'ready' });
 });
 
-// React Router SSR. In production the adapter calls Bun.serve() itself, so
+// React Router SSR. In production the adapter starts the HTTP server itself, so
 // this is the only server: observability/start.js must not start another.
 export default await createHonoServer({
   app,
 
-  customBunServer: {
+  onServe: (server) => {
+    httpServer = server as Server;
     // Must stay above the gateway's upstream connectionIdleTimeout (60s, in
-    // config/base/backend-traffic-policy.yaml) so Envoy, not Bun, closes idle
-    // keep-alive connections. Bun's 10s default let Envoy reuse a connection
-    // Bun was closing, failing the request before headers.
-    idleTimeout: 75,
-  },
-
-  // Also makes the adapter handle SIGTERM: it stops accepting connections,
-  // waits for in-flight requests, runs this, then exits.
-  onGracefulShutdown: () => {
-    shutdownObservability();
+    // config/base/backend-traffic-policy.yaml) so Envoy, not the server, closes
+    // idle keep-alive connections. A shorter timeout lets Envoy reuse a
+    // connection the server is closing, failing the request before headers.
+    httpServer.keepAliveTimeout = 75_000;
+    httpServer.headersTimeout = 76_000;
   },
 
   getLoadContext: (c) => {
