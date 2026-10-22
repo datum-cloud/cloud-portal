@@ -14,6 +14,10 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
+# Bun checks TLS against roots built into its binary, not the system bundle.
+# Fail the build if a Bun release trusts the compromised emSign root again.
+RUN bun -e 'import tls from "node:tls"; import { X509Certificate } from "node:crypto"; if (tls.rootCertificates.some((pem) => new X509Certificate(pem).subject.split("\n").includes("CN=emSign ECC Root CA - G3"))) { console.error("Bun trusts emSign ECC Root CA - G3"); process.exit(1); }'
+
 # Remix app lives here
 WORKDIR /app
 
