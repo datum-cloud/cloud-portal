@@ -1,15 +1,12 @@
-/// <reference types="bun-types/test" />
 import { createO11yLogService, O11Y_LOGS_QUERY_RANGE_PATH } from './o11y-log.service';
 import { ValidationError } from '@/utils/errors';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const getSpy = mock();
+const getSpy = vi.fn();
 
-// `mock.module` is process-global in bun. Keep these replacements faithful to
-// the real modules so other suites (RBAC in particular) still see org/user
-// scoped bases and a logger surface. Do not mock the shared control-plane
-// client: that strips `getConfig` and breaks `getOrgScopedBase`.
-mock.module('@/resources/base/utils', () => ({
+// Keep these replacements faithful to the real modules. Do not mock the shared
+// control-plane client: that strips `getConfig` and breaks `getOrgScopedBase`.
+vi.mock('@/resources/base/utils', () => ({
   getProjectScopedBase: (id: string) =>
     `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${id}/control-plane`,
   getOrgScopedBase: (id: string) =>
@@ -17,19 +14,19 @@ mock.module('@/resources/base/utils', () => ({
   getUserScopedBase: () => `/apis/iam.miloapis.com/v1alpha1/users/me/control-plane`,
 }));
 
-mock.module('@/utils/errors/error-mapper', () => ({
+vi.mock('@/utils/errors/error-mapper', () => ({
   mapApiError: (e: unknown) => e,
 }));
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
-    info: mock(() => {}),
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    debug: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 

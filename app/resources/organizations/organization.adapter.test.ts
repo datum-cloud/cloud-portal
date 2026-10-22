@@ -7,7 +7,7 @@ import {
   toUpdatePayload,
 } from './organization.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toOrganization', () => {
   it('maps display-name annotation and resolves Active status from a Ready condition', () => {

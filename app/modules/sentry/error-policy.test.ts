@@ -13,7 +13,7 @@ import { buildErrorFingerprint, normalizeMessage } from './fingerprint';
 import { resolveRelatedResource } from '@/resources/http-proxies/related-resource';
 import { AppError } from '@/utils/errors/app-error';
 import type { Event, EventHint } from '@sentry/react-router';
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 const appError = (status: number, cause?: unknown) =>
   new AppError('boom', { status, cause, captureToSentry: false });
@@ -28,9 +28,9 @@ const axiosError = (status?: number) => ({
 const emptyEvent = {} as Event;
 const hintFor = (error: unknown): EventHint => ({ originalException: error });
 
-let warnSpy: ReturnType<typeof mock>;
+let warnSpy: ReturnType<typeof vi.fn>;
 beforeEach(() => {
-  warnSpy = mock(() => {});
+  warnSpy = vi.fn(() => {});
   console.warn = warnSpy as unknown as typeof console.warn;
 });
 

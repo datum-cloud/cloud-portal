@@ -1,6 +1,6 @@
 import type { Variables } from '@/server/types';
-import { afterEach, describe, expect, it, mock } from 'bun:test';
 import { Hono } from 'hono';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 // This route is a byte-for-byte proxy to the assistant's own
 // /chat/conversations/{contextId}/sendmessage — see assistant-chat.ts's own
@@ -8,7 +8,7 @@ import { Hono } from 'hono';
 // only what this route owns: auth-gating, forwarding request shape upstream,
 // and piping the response back unmodified — not the SSE vocabulary itself,
 // which belongs to the assistant repo.
-mock.module('@/utils/env/env.server', () => ({
+vi.mock('@/utils/env/env.server', () => ({
   env: { server: { assistantA2aUrl: 'http://assistant.internal.test' } },
 }));
 
@@ -35,7 +35,7 @@ describe('assistant-chat', () => {
 
   it('rejects an unauthenticated request without calling upstream', async () => {
     let called = false;
-    globalThis.fetch = mock(() => {
+    globalThis.fetch = vi.fn(() => {
       called = true;
       throw new Error('should not be called');
     }) as unknown as typeof fetch;
@@ -54,7 +54,7 @@ describe('assistant-chat', () => {
   it('forwards the bearer token, path, query, and body to the assistant chat endpoint', async () => {
     let seenUrl = '';
     let seenInit: RequestInit = {};
-    globalThis.fetch = mock((url: string, init: RequestInit) => {
+    globalThis.fetch = vi.fn((url: string, init: RequestInit) => {
       seenUrl = url;
       seenInit = init;
       return Promise.resolve(
@@ -84,7 +84,7 @@ describe('assistant-chat', () => {
   });
 
   it('passes through an upstream error status and body unmodified', async () => {
-    globalThis.fetch = mock(() =>
+    globalThis.fetch = vi.fn(() =>
       Promise.resolve(new Response(JSON.stringify({ error: 'text is required' }), { status: 400 }))
     ) as unknown as typeof fetch;
 
@@ -98,7 +98,7 @@ describe('assistant-chat', () => {
   });
 
   it('answers 502 when the assistant is unreachable', async () => {
-    globalThis.fetch = mock(() =>
+    globalThis.fetch = vi.fn(() =>
       Promise.reject(new Error('connect refused'))
     ) as unknown as typeof fetch;
 

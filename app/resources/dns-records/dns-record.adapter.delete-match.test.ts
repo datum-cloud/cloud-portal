@@ -1,5 +1,5 @@
 import { matchesDeleteCriterion } from './dns-record.adapter';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const record = { type: 'A', name: 'www', value: '10.0.0.1', ttl: 300 };
 

@@ -7,7 +7,7 @@ import {
 } from './fraud-redirect';
 import { PlatformAccess } from '@/resources/users/user.schema';
 import { paths } from '@/utils/config/paths.config';
-import { afterEach, beforeEach, describe, expect, it } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const baseUser = {
   state: 'Active' as const,

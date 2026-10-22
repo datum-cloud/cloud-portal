@@ -1,5 +1,5 @@
 import { resolveBrushTimeRange, timestampFromChartEvent } from './chart-brush';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('timestampFromChartEvent', () => {
   it('prefers the payload timestamp', () => {

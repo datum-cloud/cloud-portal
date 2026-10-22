@@ -6,7 +6,7 @@ import {
   resolveChartStep,
   timeBucketBarWidth,
 } from './chart-axis';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('autoStepForRange', () => {
   it('uses 1m for a 30-minute window so charts have a real series', () => {

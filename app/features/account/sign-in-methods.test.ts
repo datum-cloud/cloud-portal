@@ -6,7 +6,7 @@ import {
   countActivePasskeys,
 } from './sign-in-methods';
 import type { Passkey, UserIdentity } from '@/resources/users';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const ORIGIN = 'https://auth.example.test';
 const RETURN_TO = 'https://cloud.example.test/account/security';

@@ -6,7 +6,7 @@ import {
   toUpdatePayload,
 } from './project.adapter';
 import { pendingStatus, rawMetadata, readyStatus } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toProject', () => {
   it('maps owner ref to organizationId and strips resourcemanager.* labels', () => {

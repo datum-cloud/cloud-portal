@@ -1,10 +1,9 @@
-/// <reference types="bun-types/test" />
 import type { PluginRegistryEntry } from '../types';
 import { errorHandler } from '@/server/middleware/error-handler';
 import { trafficClassLimiter } from '@/server/middleware/rate-limit';
 import { createMemoryPenaltyBox } from '@/server/middleware/rate-limit-penalty';
 import type { Variables } from '@/server/types';
-import { afterEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { Hono } from 'hono';
 
 // The registry is the only collaborator; serve one known plugin from it.
@@ -13,7 +12,7 @@ const PLUGIN = {
   devMode: false,
 } as unknown as PluginRegistryEntry;
 
-mock.module('./index', () => ({
+vi.mock('./index', () => ({
   getPlugin: (slug: string) => (slug === 'compute' ? PLUGIN : undefined),
   getPlugins: () => [],
 }));
@@ -79,7 +78,7 @@ describe('plugin routes', () => {
 
   function upstream(respond: () => Response | Promise<Response>) {
     upstreamCalls = [];
-    globalThis.fetch = mock((url: string, init: RequestInit) => {
+    globalThis.fetch = vi.fn((url: string, init: RequestInit) => {
       upstreamCalls.push({ url, init });
       return Promise.resolve().then(respond);
     }) as unknown as typeof fetch;

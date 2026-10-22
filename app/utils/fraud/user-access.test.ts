@@ -3,7 +3,7 @@ import { getUserWithAccessRetry, loadUserOncePerRequest } from './user-access';
 import { getRequestContext, withRequestContext } from '@/modules/axios/request-context';
 import type { User } from '@/resources/users';
 import { AuthorizationError } from '@/utils/errors';
-import { describe, expect, it, mock } from 'bun:test';
+import { describe, expect, it, vi } from 'vitest';
 
 /**
  * Drives the collaborators through `deps` rather than `mock.module`.
@@ -16,17 +16,17 @@ import { describe, expect, it, mock } from 'bun:test';
  * returned early.
  */
 function buildDeps(overrides: Partial<UserAccessDeps> = {}) {
-  const getRefreshToken = mock(async () => ({
+  const getRefreshToken = vi.fn(async () => ({
     refreshToken: 'refresh',
     // Cookie session shape is opaque to this test.
     rawSession: {} as never,
   }));
-  const getSession = mock(async () => ({ session: null, rawSession: {} as never }));
-  const refreshTokens = mock(async () => ({
+  const getSession = vi.fn(async () => ({ session: null, rawSession: {} as never }));
+  const refreshTokens = vi.fn(async () => ({
     session: { accessToken: 'fresh-token', expiredAt: new Date().toISOString(), sub: 'user-1' },
     headers: new Headers({ 'Set-Cookie': 'session=fresh' }),
   }));
-  const getUser = mock(async () => ({ sub: 'user-1', platformAccess: 'Approved' }));
+  const getUser = vi.fn(async () => ({ sub: 'user-1', platformAccess: 'Approved' }));
 
   return {
     spies: { getRefreshToken, getSession, refreshTokens, getUser },
@@ -73,7 +73,8 @@ describe('getUserWithAccessRetry rotated cookies', () => {
   const rotatedCookie = (ctx = getRequestContext()) => ctx?.rotatedCookies?.get('Set-Cookie');
 
   it('hands the refresh Set-Cookie to the request context after a 403 retry', async () => {
-    const getUser = mock()
+    const getUser = vi
+      .fn()
       .mockRejectedValueOnce(new AuthorizationError('forbidden'))
       .mockResolvedValueOnce({ sub: 'user-1', platformAccess: 'Approved' });
     const { deps } = buildDeps({ getUser } as Partial<UserAccessDeps>);
@@ -87,7 +88,7 @@ describe('getUserWithAccessRetry rotated cookies', () => {
   });
 
   it('still hands it over when the refreshed retry is forbidden again', async () => {
-    const getUser = mock(async () => {
+    const getUser = vi.fn(async () => {
       throw new AuthorizationError('forbidden');
     });
     const { deps } = buildDeps({ getUser } as Partial<UserAccessDeps>);
@@ -105,7 +106,7 @@ describe('getUserWithAccessRetry rotated cookies', () => {
 
 describe('loadUserOncePerRequest', () => {
   it('shares one user read between concurrent loaders on a request', async () => {
-    const loadUser = mock(async () => ({ user: { sub: 'user-1' } as User }));
+    const loadUser = vi.fn(async () => ({ user: { sub: 'user-1' } as User }));
     const [a, b] = await withRequestContext({ requestId: 'r', token: 't' }, () =>
       Promise.all([
         loadUserOncePerRequest('user-1', 'c=1', loadUser),
@@ -117,7 +118,8 @@ describe('loadUserOncePerRequest', () => {
   });
 
   it('gives a later caller a fresh attempt after an error result', async () => {
-    const loadUser = mock()
+    const loadUser = vi
+      .fn()
       .mockResolvedValueOnce({ error: 'other' })
       .mockResolvedValueOnce({ user: { sub: 'user-1' } as User });
     const second = await withRequestContext({ requestId: 'r', token: 't' }, async () => {

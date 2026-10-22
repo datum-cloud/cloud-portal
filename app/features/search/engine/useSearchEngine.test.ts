@@ -1,11 +1,10 @@
-/// <reference types="bun-types/test" />
 // app/features/search/engine/useSearchEngine.test.ts
 //
 // Test scope adaptation note:
 // -----------------------------------------------------------------------------
 // This repo does NOT have `@testing-library/react` or any JSDOM/happy-dom
 // adapter installed (see package.json — only `@testing-library/cypress`
-// exists for E2E). bun:test runs in a Node-like environment with no DOM.
+// exists for E2E). vitest runs in a Node environment with no DOM.
 //
 // The originally drafted test plan used `renderHook` from
 // `@testing-library/react`, which cannot work here without pulling in a
@@ -22,7 +21,7 @@
 // encode the substantive behavior of grouping, capping, scope routing, and
 // a11y status text. The React-side orchestration (useEffect telemetry
 // triggers, useQuery dispatch, ARIA prop wiring) is thin glue that
-// bun:test cannot exercise without a DOM; it is reviewed by inspection in
+// vitest cannot exercise without a DOM; it is reviewed by inspection in
 // `useSearchEngine.ts` itself and will be covered by the upcoming Cypress
 // component tests that already exist in this repo's E2E setup.
 import {
@@ -34,7 +33,7 @@ import {
 } from './useSearchEngine';
 import { GROUP_RESULT_CAP } from '@/resources/search';
 import type { SearchHit } from '@/resources/search';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const hit = (uid: string, kind: string): SearchHit => ({
   uid,

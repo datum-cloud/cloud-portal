@@ -1,5 +1,5 @@
 import { deriveQuotaVerdict } from './derive-quota-verdict';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const RT = 'dns.networking.miloapis.com/dnszones';
 const bucket = (available: number, extra = {}) => ({

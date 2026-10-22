@@ -4,7 +4,7 @@ import {
   type SetupResource,
   type SetupResources,
 } from './setup-progress.helpers';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const ready = (name: string): SetupResource => ({
   name,

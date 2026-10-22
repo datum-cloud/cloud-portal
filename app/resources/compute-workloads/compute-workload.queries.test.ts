@@ -1,6 +1,6 @@
 import { toComputeWorkloadPresence } from './compute-workload.queries';
 import type { ComDatumapisComputeV1AlphaWorkload } from '@/modules/control-plane/compute';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 /** Only metadata matters here; the generated type also demands a spec. */
 function workload(metadata: ComDatumapisComputeV1AlphaWorkload['metadata']) {

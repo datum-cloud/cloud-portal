@@ -1,6 +1,6 @@
 import { kindToHref } from './kindToHref';
 import type { SearchHit } from '@/resources/search';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const hit = (kind: string, name = 'x', tenantName = 'p'): SearchHit => ({
   uid: 'u',

@@ -7,7 +7,7 @@ import {
   toMeterSeries,
 } from './usage-query';
 import type { MeterDefinition } from './usage.types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 const def = (name: string, dimensions: string[] = []): MeterDefinition => ({
   name,

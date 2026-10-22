@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import {
   ExecCredentialProvider,
   KubeClient,
@@ -6,10 +5,10 @@ import {
   resolveKubeContext,
   type ExecAuth,
 } from './kubeconfig';
-import { describe, expect, mock, test } from 'bun:test';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { describe, expect, test, vi } from 'vitest';
 
 const INSECURE_LOOPBACK = `
 apiVersion: v1
@@ -173,7 +172,7 @@ function credential(token: string, expirationTimestamp?: string): string {
 
 describe('ExecCredentialProvider', () => {
   test('spawns the command and returns the parsed token', async () => {
-    const runner = mock(async () =>
+    const runner = vi.fn(async () =>
       credential('tok-1', new Date(Date.now() + 3_600_000).toISOString())
     );
     const provider = new ExecCredentialProvider(execAuth(), { runner });
@@ -184,7 +183,7 @@ describe('ExecCredentialProvider', () => {
 
   test('passes KUBERNETES_EXEC_INFO to the command', async () => {
     let capturedEnv: Record<string, string> = {};
-    const runner = mock(async (_cmd: string, _args: string[], env: Record<string, string>) => {
+    const runner = vi.fn(async (_cmd: string, _args: string[], env: Record<string, string>) => {
       capturedEnv = env;
       return credential('tok-1');
     });
@@ -196,7 +195,9 @@ describe('ExecCredentialProvider', () => {
   test('caches the token until near expiry, then re-runs', async () => {
     let now = 1_000_000;
     let n = 0;
-    const runner = mock(async () => credential(`tok-${++n}`, new Date(now + 60_000).toISOString()));
+    const runner = vi.fn(async () =>
+      credential(`tok-${++n}`, new Date(now + 60_000).toISOString())
+    );
     const provider = new ExecCredentialProvider(execAuth(), { runner, now: () => now });
 
     expect(await provider.getToken()).toBe('tok-1');
@@ -227,7 +228,7 @@ describe('ExecCredentialProvider', () => {
 describe('KubeClient', () => {
   test('injects a static bearer token on requests', async () => {
     let captured: Record<string, string> = {};
-    const fetchImpl = mock(async (_url: string, init: RequestInit) => {
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
       captured = init.headers as Record<string, string>;
       return new Response('{}', { status: 200 });
     });
@@ -244,7 +245,7 @@ describe('KubeClient', () => {
 
   test('injects an exec-resolved token on requests', async () => {
     let captured: Record<string, string> = {};
-    const fetchImpl = mock(async (_url: string, init: RequestInit) => {
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
       captured = init.headers as Record<string, string>;
       return new Response('{}', { status: 200 });
     });
@@ -259,7 +260,7 @@ describe('KubeClient', () => {
 
   test('sends no auth header for a no-auth cluster', async () => {
     let captured: Record<string, string> = {};
-    const fetchImpl = mock(async (_url: string, init: RequestInit) => {
+    const fetchImpl = vi.fn(async (_url: string, init: RequestInit) => {
       captured = init.headers as Record<string, string>;
       return new Response('{}', { status: 200 });
     });

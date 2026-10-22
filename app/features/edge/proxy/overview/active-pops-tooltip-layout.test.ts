@@ -3,7 +3,7 @@ import {
   TOOLTIP_WIDTH_PX,
   layoutPersistentTooltips,
 } from './active-pops-tooltip-layout';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function tooltipRect(
   layout: { x: number; y: number; offsetX: number; offsetY: number },

@@ -1,5 +1,5 @@
 import { EMAIL_NOT_VERIFIED_CAUSE, isEmailNotVerifiedDenial } from './email-verification-error';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const denial = JSON.stringify({
   kind: 'Status',

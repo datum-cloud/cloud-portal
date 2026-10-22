@@ -1,6 +1,6 @@
 import { generateHtpasswd, parseHtpasswdHashes } from './http-proxy.adapter';
 import { basicAuthSchema } from './http-proxy.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const toSecret = (htpasswd: string) => ({ data: { '.htpasswd': btoa(htpasswd) } });
 

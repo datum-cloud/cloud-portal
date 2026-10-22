@@ -4,7 +4,7 @@ import {
   remoteEntryUrl,
   type PluginRemoteRef,
 } from './federation-host';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const ref: PluginRemoteRef = {
   remoteName: 'sample.miloapis.com',

@@ -31,8 +31,8 @@
 // create step in test 1 fails and tests 2–4 cascade.
 //
 // To re-enable: bump the default DNS zone quota on new projects in the staging
-// control plane (ops action), verify locally with `bun run build && bun run
-// start` + `bunx cypress run --spec cypress/e2e/regression/dns-zones.cy.ts`,
+// control plane (ops action), verify locally with `npm run build && npm run
+// start` + `npx cypress run --spec cypress/e2e/regression/dns-zones.cy.ts`,
 // then uncomment.
 //
 // import { paths } from '@/utils/config/paths.config';

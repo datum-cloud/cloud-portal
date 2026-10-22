@@ -1,6 +1,6 @@
 import { toCreateNotePayload, toNote, toNoteList } from './note.adapter';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('toNote', () => {
   it('maps content, creator and subject ref, coercing createdAt to a Date', () => {

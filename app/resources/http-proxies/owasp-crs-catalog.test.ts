@@ -3,7 +3,7 @@ import {
   isCategoryEnabled,
   mergeCatalogExclusions,
 } from './owasp-crs-catalog';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('owasp-crs-catalog', () => {
   it('treats missing exclusions as all categories enabled', () => {

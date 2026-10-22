@@ -11,7 +11,7 @@ import {
   TOPOLOGY_TIMEZONE,
 } from './location.schema';
 import { rawMetadata } from '@/test/factories/k8s';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const ashburnSpec = {
   locationClassRef: { name: 'datum-managed' },

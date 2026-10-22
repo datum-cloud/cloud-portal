@@ -10,7 +10,7 @@ import {
   NETWORKING_SERVICE_REF_NAME,
   type ServiceEntitlement,
 } from './service-entitlement.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function entitlement(partial: ServiceEntitlement): ServiceEntitlement {
   return partial;

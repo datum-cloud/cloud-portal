@@ -1,6 +1,6 @@
 import { humanizeDimension, toUsageView } from './usage.view';
 import type { UsageFetchResult } from '@/modules/billing/usage.types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const points = [{ timestamp: 1, value: 5 }];
 

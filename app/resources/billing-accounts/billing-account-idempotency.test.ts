@@ -1,5 +1,5 @@
 import { slugifyBillingAccountName } from '@/resources/billing/_naming';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('billing account create idempotency inputs', () => {
   it('reuses a pre-generated account name across logical create attempts', () => {

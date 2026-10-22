@@ -1,7 +1,6 @@
-/// <reference types="bun-types/test" />
 import { secureHeadersMiddleware, sentryCspReportUri } from './secure-headers';
 import { EMPTY_PLUGIN_CSP_ADDITIONS, type PluginCspAdditions } from '@/modules/plugins/server/csp';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 import { Hono } from 'hono';
 
 const BASE_POLICY =

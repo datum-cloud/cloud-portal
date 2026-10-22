@@ -1,7 +1,6 @@
-/// <reference types="bun-types/test" />
 import { isSdkCompatible, satisfies } from './sdk-range';
 import { HOST_SDK_VERSION } from './types';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('satisfies', () => {
   test.each([

@@ -1,5 +1,5 @@
 import { setupOnboardingProject } from './use-setup-onboarding-project';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const contactInfo = {
   email: 'a@example.com',
@@ -13,19 +13,19 @@ const contactInfo = {
   postalCode: '',
 } as const;
 
-const listAll = mock(async () => ({
+const listAll = vi.fn(async () => ({
   items: [] as { name: string; displayName: string }[],
   nextCursor: null,
   hasMore: false,
 }));
-const create = mock(async () => ({
+const create = vi.fn(async () => ({
   name: 'project-new',
   displayName: 'Default project',
 }));
-const bindingList = mock(async () => [] as never[]);
-const bindingCreate = mock(async () => ({ metadata: { name: 'bab-1' } }));
+const bindingList = vi.fn(async () => [] as never[]);
+const bindingCreate = vi.fn(async () => ({ metadata: { name: 'bab-1' } }));
 
-mock.module('@/resources/projects', () => ({
+vi.mock('@/resources/projects', () => ({
   createProjectService: () => ({
     listAll,
     list: listAll,
@@ -33,27 +33,27 @@ mock.module('@/resources/projects', () => ({
   }),
 }));
 
-mock.module('@/resources/projects/project.watch', () => ({
+vi.mock('@/resources/projects/project.watch', () => ({
   awaitProjectReady: async (_orgId: string, projectName: string) => ({
     name: projectName,
     displayName: 'Default project',
   }),
 }));
 
-mock.module('@/resources/billing-account-bindings', () => ({
+vi.mock('@/resources/billing-account-bindings', () => ({
   createBillingAccountBindingService: () => ({
     list: bindingList,
     create: bindingCreate,
   }),
 }));
 
-mock.module('@/resources/organizations', () => ({
+vi.mock('@/resources/organizations', () => ({
   createOrganizationService: () => ({
     updateContactInfo: async () => ({}),
   }),
 }));
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
     warn: () => {},
     error: () => {},
@@ -61,7 +61,7 @@ mock.module('@/modules/logger', () => ({
   },
 }));
 
-mock.module('@/resources/base/utils', () => ({
+vi.mock('@/resources/base/utils', () => ({
   retryOnTransientAuthError: async <T>(fn: () => Promise<T>) => fn(),
 }));
 

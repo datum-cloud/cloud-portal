@@ -1,6 +1,5 @@
-/// <reference types="bun-types/test" />
 import { planDevSources } from './dev-sources';
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 describe('planDevSources', () => {
   test('starts the static source in dev when PORTAL_PLUGINS is set', () => {

@@ -1,5 +1,5 @@
 import { AUTH_UI_PATH_PREFIX, resolveAuthUiOrigin } from './auth-ui-origin';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 describe('resolveAuthUiOrigin', () => {
   it('prefers an explicit AUTH_UI_ORIGIN over the issuer', () => {
