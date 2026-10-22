@@ -4,24 +4,18 @@
 
 # syntax = docker/dockerfile:1
 
-# Use the latest Bun version
-FROM oven/bun:1.4.2@sha256:9114c058aeae42162ee16dd5084b95fe9473970bb6bcb5b232ab1630f0546895 AS base
+FROM node:26.12.1-alpine3.24@sha256:40cd011b55415bc894e45b02fdd5a5dfde056921b7d23a64c74f80497af48797 AS base
 
-# Install system dependencies and clean up in the same layer
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends unzip ca-certificates && \
-    update-ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
+RUN apk add --no-cache --upgrade 'ca-certificates>=20261020-r0'
+RUN ! grep -q MIICTjCCAdOgAwIBAgIKPPYHqWhwDtqLhDAKBggqhkjOPQQDAzBrMQswCQYDVQQG /etc/ssl/certs/ca-certificates.crt
 
 # Remix app lives here
 WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production \
-    PORT=3000 \
-    BUN_RUNTIME_TRANSPILER_CACHE_PATH=/tmp/bun-transpiler-cache
-    
+    PORT=3000
+
 # ==========================================
 # BUILD STAGE - Compile and prepare the app
 # ==========================================
@@ -35,15 +29,15 @@ ENV VERSION=${VERSION}
 ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
 # Install dependencies
-COPY --link package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY --link package.json package-lock.json ./
+RUN npm ci --include=dev --ignore-scripts --no-audit --no-fund
 
 # Copy application code
 COPY --link . .
 
 # Build application
-RUN bun run build && \
-    bun install --production --frozen-lockfile && \
+RUN npm run build && \
+    npm prune --omit=dev --ignore-scripts --no-audit --no-fund && \
     touch .env
 
 # ==========================================
@@ -55,16 +49,11 @@ FROM base
 ARG VERSION=dev
 ENV VERSION=${VERSION}
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends --only-upgrade ca-certificates && \
-    rm -rf /var/lib/apt/lists/* && \
-    apt-get clean
-
 # Create the non-root user first so ownership can be applied during COPY.
 # Doing the chown in the COPY layer avoids a second full-size layer that a
 # separate `chown -R /app` would create (it rewrites every file).
-RUN groupadd --gid 1001 datum && \
-    useradd --uid 1001 --gid 1001 --no-create-home datum
+RUN addgroup -g 1001 datum && \
+    adduser -u 1001 -G datum -D -H datum
 
 # Copy the built app from the build stage, owned by the runtime user.
 COPY --from=build --chown=datum:datum /app /app
@@ -74,5 +63,4 @@ EXPOSE ${PORT}
 
 USER datum
 
-# Use the start script from package.json
-CMD [ "bun", "run", "start" ]
+CMD [ "node", "./observability/start.js" ]
