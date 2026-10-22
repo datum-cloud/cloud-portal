@@ -63,4 +63,4 @@ EXPOSE ${PORT}
 
 USER datum
 
-CMD [ "node", "./observability/start.js" ]
+CMD [ "node", "--env-file-if-exists=.env", "./observability/start.js" ]
