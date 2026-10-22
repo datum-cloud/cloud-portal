@@ -21,17 +21,17 @@ We use **Cypress** for both end-to-end (E2E) and component testing.
 
 ```bash
 # E2E Tests
-bun run test:e2e          # Run E2E tests (starts dev server)
-bun run test:e2e:prod     # Run E2E tests (production build)
-bun run test:e2e:debug    # Interactive E2E debugging
+npm run test:e2e          # Run E2E tests (starts dev server)
+npm run test:e2e:prod     # Run E2E tests (production build)
+npm run test:e2e:debug    # Interactive E2E debugging
 
 # Component Tests
-bun run test:unit:prod    # Run component tests headless
-bun run test:unit:debug   # Interactive component testing
+npm run test:unit:prod    # Run component tests headless
+npm run test:unit:debug   # Interactive component testing
 
 # Cypress UI
-bun run cypress:open      # Open Cypress interactive UI
-bun run cypress:run       # Run all tests headless
+npm run cypress:open      # Open Cypress interactive UI
+npm run cypress:run       # Run all tests headless
 ```
 
 ### Test Modes
@@ -39,7 +39,7 @@ bun run cypress:run       # Run all tests headless
 #### Development Mode
 
 ```bash
-bun run test:e2e
+npm run test:e2e
 ```
 
 - Starts dev server automatically
@@ -49,7 +49,7 @@ bun run test:e2e
 #### Production Mode
 
 ```bash
-bun run test:e2e:prod
+npm run test:e2e:prod
 ```
 
 - Builds and runs production server
@@ -59,7 +59,7 @@ bun run test:e2e:prod
 #### Interactive Mode
 
 ```bash
-bun run cypress:open
+npm run cypress:open
 ```
 
 - Opens Cypress UI
@@ -370,10 +370,10 @@ Tests run automatically in GitHub Actions:
 ```yaml
 # .github/workflows/quality-checks.yml
 - name: Run E2E Tests
-  run: bun run test:e2e:prod
+  run: npm run test:e2e:prod
 
 - name: Run Component Tests
-  run: bun run test:unit:prod
+  run: npm run test:unit:prod
 ```
 
 ### Test Artifacts

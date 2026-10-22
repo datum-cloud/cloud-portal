@@ -8,10 +8,10 @@ This guide covers starting the development server and verifying everything works
 
 ```bash
 # 1. Install dependencies (if not done)
-bun install
+npm install
 
 # 2. Start development server
-bun run dev
+npm run dev
 ```
 
 The app will be available at **http://localhost:3000**
@@ -60,33 +60,33 @@ If `LOG_CURL=true`, you'll also see CURL commands for API calls.
 
 | Command           | Description                              |
 | ----------------- | ---------------------------------------- |
-| `bun run dev`     | Start development server with hot reload |
-| `bun run build`   | Build for production                     |
-| `bun run preview` | Preview production build locally         |
-| `bun run start`   | Start production server                  |
+| `npm run dev`     | Start development server with hot reload |
+| `npm run build`   | Build for production                     |
+| `npm run preview` | Preview production build locally         |
+| `npm run start`   | Start production server                  |
 
 ### Code Quality
 
 | Command                | Description               |
 | ---------------------- | ------------------------- |
-| `bun run lint`         | Run ESLint with auto-fix  |
-| `bun run format`       | Format code with Prettier |
-| `bun run format:check` | Check formatting (CI)     |
-| `bun run typecheck`    | TypeScript type checking  |
+| `npm run lint`         | Run ESLint with auto-fix  |
+| `npm run format`       | Format code with Prettier |
+| `npm run format:check` | Check formatting (CI)     |
+| `npm run typecheck`    | TypeScript type checking  |
 
 ### Testing
 
 | Command                 | Description                      |
 | ----------------------- | -------------------------------- |
-| `bun run test:e2e`      | Run E2E tests (dev server)       |
-| `bun run test:e2e:prod` | Run E2E tests (production build) |
-| `bun run cypress:open`  | Open Cypress UI                  |
+| `npm run test:e2e`      | Run E2E tests (dev server)       |
+| `npm run test:e2e:prod` | Run E2E tests (production build) |
+| `npm run cypress:open`  | Open Cypress UI                  |
 
 ### API Generation
 
 | Command              | Description                            |
 | -------------------- | -------------------------------------- |
-| `bun run openapi-ts` | Generate TypeScript from OpenAPI specs |
+| `npm run openapi-ts` | Generate TypeScript from OpenAPI specs |
 
 ---
 

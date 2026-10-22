@@ -13,7 +13,7 @@
       "upgradePackages": true
     },
     "ghcr.io/devcontainers/features/docker-in-docker": {},
-    "ghcr.io/audacioustux/devcontainers/bun": {},
+    "ghcr.io/devcontainers/features/node:1": { "version": "26.12.1" },
     "ghcr.io/audacioustux/devcontainers/kustomize": {}
   },
   "customizations": {
