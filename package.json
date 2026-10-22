@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "react-router build && vite build --config vite.observability.config.ts && node scripts/precompress-assets.ts",
-    "dev": "node --import tsx ./observability/dev-start.js",
-    "start": "node ./observability/start.js",
+    "dev": "node --env-file-if-exists=.env --import tsx ./observability/dev-start.js",
+    "start": "node --env-file-if-exists=.env ./observability/start.js",
     "lint": "eslint \"{app,lib}/**/*.{ts,tsx}\" --fix",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
