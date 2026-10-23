@@ -280,6 +280,7 @@ export default [
       route('invitations', 'routes/onboarding/invitations.tsx'),
       route('account', 'routes/onboarding/account.tsx'),
       route('billing', 'routes/onboarding/billing.tsx'),
+      route('payment-terms', 'routes/onboarding/payment-terms.tsx'),
       route('provisioning', 'routes/onboarding/provisioning.tsx'),
     ]),
   ]),

@@ -15,6 +15,7 @@ export const paths = {
     invitations: '/onboarding/invitations',
     account: '/onboarding/account',
     billing: '/onboarding/billing',
+    paymentTerms: '/onboarding/payment-terms',
     provisioning: '/onboarding/provisioning',
   },
   fraud: {

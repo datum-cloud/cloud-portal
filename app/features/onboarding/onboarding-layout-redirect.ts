@@ -1,6 +1,19 @@
 import { paths } from '@/utils/config/paths.config';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 
+/**
+ * Steps that finish setting up an org: billing, applying for payment terms
+ * instead of adding a card, and provisioning the first project. Users who
+ * already have orgs can still reach these.
+ */
+export function isFinishingOnboardingPath(pathname: string): boolean {
+  return (
+    pathname === paths.onboarding.billing ||
+    pathname === paths.onboarding.paymentTerms ||
+    pathname === paths.onboarding.provisioning
+  );
+}
+
 export type OnboardingLayoutRedirectInput = {
   /** Document pathname (use {@link getDocumentPathname} — not the raw `*.data` URL). */
   pathname: string;
@@ -34,8 +47,7 @@ export function resolveOnboardingLayoutRedirect(
     isOwnerOfRequestedOrg = true,
   } = input;
 
-  const finishingOnboarding =
-    pathname === paths.onboarding.billing || pathname === paths.onboarding.provisioning;
+  const finishingOnboarding = isFinishingOnboardingPath(pathname);
 
   if (!hasExistingOrgs) {
     if (nameReviewRequired) {

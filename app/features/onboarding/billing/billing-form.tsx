@@ -103,6 +103,10 @@ export const BillingForm = ({
   // Legacy resume always has an org — either a full prior setup or a partial one.
   const resumeOrgId = initialSetup?.orgId ?? partialOrgId;
 
+  // Customers who can't pay by card can apply for payment terms instead.
+  // Not offered once they're paying by invoice or already have a card.
+  const offerPaymentTerms = !onInvoiceTerms && !initialPayment;
+
   const stepLabel = isLegacySetupResume ? 'Billing setup' : 'Step 2 / 2';
   const heading = isLegacySetupResume ? 'Complete organization setup' : 'Payment Verification';
   const submitLabel = isLegacySetupResume ? 'Continue' : 'Start free';
@@ -171,6 +175,11 @@ export const BillingForm = ({
               initialPaymentSummary={initialPayment}
               onInvoiceTerms={onInvoiceTerms}
               partialOrgId={partialOrgId}
+              paymentTerms={
+                offerPaymentTerms
+                  ? { entry: isLegacySetupResume ? 'setup' : 'onboarding' }
+                  : undefined
+              }
               submitLabel={submitLabel}
               onOrgProvisioned={({ orgId, accountName, contactInfo }) => {
                 trackAction(AnalyticsAction.ContactDetailsSaved, { orgId });

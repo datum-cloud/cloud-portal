@@ -5,6 +5,8 @@ import {
   isBillingAccountPaymentReady,
   isOrgContactSetupComplete,
   isOrgSetupCompleteFromLoadResult,
+  isPaymentTermsApplicationPending,
+  paymentTermsApplicationPendingSince,
 } from './org-setup-status';
 import { describe, expect, it } from 'bun:test';
 
@@ -206,5 +208,33 @@ describe('isOrgSetupCompleteFromLoadResult', () => {
         },
       })
     ).toBe(false);
+  });
+});
+
+describe('isPaymentTermsApplicationPending', () => {
+  const withPaymentReady = (status: string, reason: string) =>
+    ({
+      status: {
+        conditions: [
+          { type: 'PaymentReady', status, reason, lastTransitionTime: '2026-10-02T09:00:00Z' },
+        ],
+      },
+    }) as never;
+
+  it('reads the ApplicationPending reason on PaymentReady', () => {
+    const pending = withPaymentReady('False', 'ApplicationPending');
+    expect(isPaymentTermsApplicationPending(pending)).toBe(true);
+    expect(paymentTermsApplicationPendingSince(pending)).toBe('2026-10-02T09:00:00Z');
+  });
+
+  it('is false for other states', () => {
+    for (const account of [
+      withPaymentReady('False', 'NotConfigured'),
+      withPaymentReady('True', 'InvoiceTerms'),
+      undefined,
+    ]) {
+      expect(isPaymentTermsApplicationPending(account)).toBe(false);
+      expect(paymentTermsApplicationPendingSince(account)).toBeUndefined();
+    }
   });
 });
