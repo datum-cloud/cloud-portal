@@ -14,6 +14,7 @@ import type {
   ComMiloapisBillingV1Alpha1BillingAccount,
   ComMiloapisBillingV1Alpha1BillingAccountBinding,
   ComMiloapisBillingV1Alpha1BillingAccountList,
+  ComMiloapisBillingV1Alpha1BillingArrangementApplication,
   ComMiloapisBillingV1Alpha1Invoice,
   ComMiloapisBillingV1Alpha1InvoiceList,
   ComMiloapisBillingV1Alpha1PaymentMethod,
@@ -28,6 +29,7 @@ import type {
 export type BillingAccount = ComMiloapisBillingV1Alpha1BillingAccount;
 export type BillingAccountList = ComMiloapisBillingV1Alpha1BillingAccountList;
 export type BillingAccountBinding = ComMiloapisBillingV1Alpha1BillingAccountBinding;
+export type BillingArrangementApplication = ComMiloapisBillingV1Alpha1BillingArrangementApplication;
 export type Invoice = ComMiloapisBillingV1Alpha1Invoice;
 export type InvoiceList = ComMiloapisBillingV1Alpha1InvoiceList;
 export type PaymentMethod = ComMiloapisBillingV1Alpha1PaymentMethod;

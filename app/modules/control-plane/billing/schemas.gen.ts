@@ -126,7 +126,8 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
           },
         },
         paymentTerms: {
-          description: 'PaymentTerms defines the invoicing schedule for this billing account.',
+          description:
+            "PaymentTerms defines the invoicing schedule for this billing account.\nIt always holds the standard terms (net 30, invoiced monthly on the\n1st): the admission webhook rejects anything else on create, and it\ncan't be changed afterwards. Customers who need different terms get\nthem from staff through a BillingArrangement, published on\nstatus.paymentArrangement.",
           type: 'object',
           default: {},
           properties: {
@@ -152,6 +153,13 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
               minimum: 1,
             },
           },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message:
+                "paymentTerms can't be changed; payment terms are granted by Datum staff through a BillingArrangement",
+            },
+          ],
         },
         taxIds: {
           description:
@@ -265,6 +273,72 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
           type: 'integer',
           format: 'int64',
         },
+        paymentArrangement: {
+          description:
+            'PaymentArrangement summarises the BillingArrangement currently in\neffect for this account, if any. Cleared when no arrangement is\nactive.',
+          type: 'object',
+          required: ['name', 'type'],
+          properties: {
+            endsAt: {
+              description: 'EndsAt is when the arrangement ends, if it has a fixed end.',
+              type: 'string',
+              format: 'date-time',
+            },
+            invoice: {
+              description: 'Invoice carries the invoice terms when type is Invoice.',
+              type: 'object',
+              required: ['creditLimit'],
+              properties: {
+                accountsPayableEmail: {
+                  description:
+                    'AccountsPayableEmail receives invoices in addition to the billing\ncontact. When unset, invoices go to the billing contact only.',
+                  type: 'string',
+                  maxLength: 254,
+                },
+                agreementReference: {
+                  description:
+                    'AgreementReference identifies a signed MSA or order form, when one\nexists. Without one, our standard terms of service apply.',
+                  type: 'string',
+                  maxLength: 128,
+                },
+                creditLimit: {
+                  description:
+                    'CreditLimit is the maximum spend per billing cycle, as a decimal\nstring in the billing account\'s currency (e.g. "10000"). Staff are\nalerted as the account nears it; it is not a hard cap.',
+                  type: 'string',
+                  pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                },
+                netDays: {
+                  description:
+                    'NetDays is the number of days after the invoice date that payment\nis due.',
+                  type: 'integer',
+                  format: 'int32',
+                  default: 30,
+                  maximum: 90,
+                  minimum: 1,
+                },
+                purchaseOrderNumber: {
+                  description: 'PurchaseOrderNumber is printed on invoices.',
+                  type: 'string',
+                  maxLength: 64,
+                },
+              },
+            },
+            name: {
+              description: 'Name is the name of the active BillingArrangement.',
+              type: 'string',
+            },
+            startsAt: {
+              description: 'StartsAt is when the arrangement took effect.',
+              type: 'string',
+              format: 'date-time',
+            },
+            type: {
+              description: 'Type is how the account is billed.',
+              type: 'string',
+              enum: ['Invoice'],
+            },
+          },
+        },
         phase: {
           description: 'Phase represents the current lifecycle phase of the billing account.',
           type: 'string',
@@ -280,6 +354,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountBindingSchema = {
@@ -441,6 +516,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountBindingSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountBindingListSchema = {
@@ -483,6 +559,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountBindingListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
@@ -525,6 +602,890 @@ export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingArrangementSchema = {
+  description:
+    'BillingArrangement is the Schema for the billingarrangements API.\n\nA BillingArrangement records payment terms staff have granted to a\nbilling account, letting it be billed without a card. Only staff can\ncreate or change arrangements; customers see the active terms through\nBillingAccount status.paymentArrangement and the PaymentReady\ncondition. Arrangements for the same account may not overlap in time.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description: 'BillingArrangementSpec defines the desired state of a BillingArrangement.',
+      type: 'object',
+      required: ['billingAccountRef', 'reason', 'type'],
+      properties: {
+        applicationRef: {
+          description:
+            'ApplicationRef names the BillingArrangementApplication in the same\nnamespace that these terms approve, when they were granted in\nresponse to one. Leave unset for terms granted without an\napplication (the sales-led path). The application must be for the\nsame billing account and still pending. Immutable.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingArrangementApplication.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'applicationRef is immutable',
+            },
+          ],
+        },
+        billingAccountRef: {
+          description:
+            'BillingAccountRef references the BillingAccount in the same\nnamespace that these terms apply to. Immutable.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingAccount.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'billingAccountRef is immutable',
+            },
+          ],
+        },
+        endsAt: {
+          description:
+            'EndsAt is when the arrangement stops applying. Leave unset for terms\nwith no fixed end. Staff end terms early by setting this to the\ncurrent time, which keeps the record for history.',
+          type: 'string',
+          format: 'date-time',
+        },
+        invoice: {
+          description: 'Invoice carries the invoice terms. Required when type is Invoice.',
+          type: 'object',
+          required: ['creditLimit'],
+          properties: {
+            accountsPayableEmail: {
+              description:
+                'AccountsPayableEmail receives invoices in addition to the billing\ncontact. When unset, invoices go to the billing contact only.',
+              type: 'string',
+              maxLength: 254,
+            },
+            agreementReference: {
+              description:
+                'AgreementReference identifies a signed MSA or order form, when one\nexists. Without one, our standard terms of service apply.',
+              type: 'string',
+              maxLength: 128,
+            },
+            creditLimit: {
+              description:
+                'CreditLimit is the maximum spend per billing cycle, as a decimal\nstring in the billing account\'s currency (e.g. "10000"). Staff are\nalerted as the account nears it; it is not a hard cap.',
+              type: 'string',
+              pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+            },
+            netDays: {
+              description:
+                'NetDays is the number of days after the invoice date that payment\nis due.',
+              type: 'integer',
+              format: 'int32',
+              default: 30,
+              maximum: 90,
+              minimum: 1,
+            },
+            purchaseOrderNumber: {
+              description: 'PurchaseOrderNumber is printed on invoices.',
+              type: 'string',
+              maxLength: 64,
+            },
+          },
+        },
+        reason: {
+          description:
+            'Reason records why staff granted these terms (for example "Signed\nMSA, sales call 2026-10-01"). Internal: never shown to customers.',
+          type: 'string',
+          maxLength: 1024,
+          minLength: 1,
+        },
+        startsAt: {
+          description:
+            'StartsAt is when the arrangement takes effect. Defaulted to the\ntime of creation when omitted.',
+          type: 'string',
+          format: 'date-time',
+        },
+        type: {
+          description:
+            'Type selects how the account is billed. Immutable; to change type,\nend this arrangement and create a new one.',
+          type: 'string',
+          enum: ['Invoice'],
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'type is immutable',
+            },
+          ],
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: "self.type != 'Invoice' || has(self.invoice)",
+          message: 'invoice is required when type is Invoice',
+        },
+        {
+          rule: 'has(self.applicationRef) == has(oldSelf.applicationRef)',
+          message: 'applicationRef is immutable',
+        },
+      ],
+    },
+    status: {
+      description: 'BillingArrangementStatus defines the observed state of a\nBillingArrangement.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\narrangement's state. See BillingArrangementConditionActive.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\ncontroller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        phase: {
+          description: 'Phase is where the arrangement sits in its validity window.',
+          type: 'string',
+          enum: ['Scheduled', 'Active', 'Ended'],
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingArrangement',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingArrangementApplicationSchema = {
+  description:
+    'BillingArrangementApplication is the Schema for the\nbillingarrangementapplications API.\n\nA BillingArrangementApplication is a customer\'s request for payment\nterms on a billing account ("Apply for payment terms"). Customers\ncreate applications; staff decide them, approving with a\nBillingArrangement whose spec.applicationRef names the application or\ndeclining with a BillingArrangementDecline. Only one application per\nbilling account can be pending at a time. While one is, the\nBillingAccount\'s PaymentReady condition reports ApplicationPending.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'BillingArrangementApplicationSpec defines the desired state of a\nBillingArrangementApplication.\n\nEverything except spec.withdrawn is fixed once submitted: to change an\napplication, withdraw it and apply again.',
+      type: 'object',
+      required: ['authorized', 'billingAccountRef', 'organization', 'paymentOption', 'situation'],
+      properties: {
+        applicant: {
+          description:
+            'Applicant is who submitted the application. Set by the admission\nwebhook from the authenticated user on create; any value supplied\nby the client is replaced.',
+          type: 'object',
+          required: ['username'],
+          properties: {
+            uid: {
+              description: "UID is the authenticated user's unique identifier.",
+              type: 'string',
+              maxLength: 256,
+            },
+            username: {
+              description: "Username is the authenticated user's name.",
+              type: 'string',
+              maxLength: 256,
+            },
+          },
+        },
+        authorized: {
+          description:
+            'Authorized confirms the applicant is authorized to request payment\nterms on behalf of the organization. Must be true.',
+          type: 'boolean',
+          'x-kubernetes-validations': [
+            {
+              rule: 'self',
+              message:
+                "the applicant must confirm they're authorized to request payment terms for the organization",
+            },
+          ],
+        },
+        billingAccountRef: {
+          description:
+            'BillingAccountRef references the BillingAccount in the same\nnamespace that the applicant wants terms for.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingAccount.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+        },
+        invoice: {
+          description:
+            'Invoice carries the invoice details. Required when paymentOption is\nInvoice, and not allowed otherwise.',
+          type: 'object',
+          required: ['accountsPayableEmail', 'estimatedMonthlySpend'],
+          properties: {
+            accountsPayableEmail: {
+              description:
+                'AccountsPayableEmail receives invoices in addition to the billing\ncontact.',
+              type: 'string',
+              maxLength: 254,
+              minLength: 1,
+            },
+            agreementReference: {
+              description:
+                'AgreementReference identifies an MSA or order form already signed\nwith Datum, when there is one.',
+              type: 'string',
+              maxLength: 128,
+            },
+            estimatedMonthlySpend: {
+              description: "EstimatedMonthlySpend is the applicant's spend estimate.",
+              type: 'string',
+              enum: ['Under500', 'From500To2500', 'From2500To10000', 'Over10000', 'NotSure'],
+            },
+            purchaseOrderNumber: {
+              description: 'PurchaseOrderNumber to print on invoices.',
+              type: 'string',
+              maxLength: 64,
+            },
+          },
+        },
+        organization: {
+          description: 'Organization describes who is applying.',
+          type: 'object',
+          required: ['legalName', 'type', 'website'],
+          properties: {
+            legalName: {
+              description: "LegalName is the organization's formal (registered) name.",
+              type: 'string',
+              maxLength: 256,
+              minLength: 1,
+            },
+            type: {
+              description: 'Type is the kind of organization.',
+              type: 'string',
+              enum: ['Company', 'PartnerOrReseller', 'Nonprofit', 'EducationOrResearch', 'Other'],
+            },
+            website: {
+              description: "Website is the organization's website, used to verify it.",
+              type: 'string',
+              maxLength: 2048,
+              pattern: '^https?://',
+            },
+          },
+        },
+        paymentOption: {
+          description: 'PaymentOption is how the applicant would like to pay.',
+          type: 'string',
+          enum: ['Invoice', 'NotSure'],
+        },
+        situation: {
+          description:
+            "Situation is the applicant's own description of why they can't pay\nby card and how their organization pays its vendors.",
+          type: 'string',
+          maxLength: 2000,
+          minLength: 1,
+        },
+        withdrawn: {
+          description:
+            "Withdrawn withdraws the application. It can only be set while the\napplication is pending, and can't be undone.",
+          type: 'boolean',
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: "self.paymentOption != 'Invoice' || has(self.invoice)",
+          message: 'invoice is required when paymentOption is Invoice',
+        },
+        {
+          rule: "self.paymentOption == 'Invoice' || !has(self.invoice)",
+          message: 'invoice may only be set when paymentOption is Invoice',
+        },
+        {
+          rule: 'self.billingAccountRef == oldSelf.billingAccountRef && self.paymentOption == oldSelf.paymentOption && self.organization == oldSelf.organization && self.situation == oldSelf.situation && self.authorized == oldSelf.authorized && has(self.invoice) == has(oldSelf.invoice) && (!has(self.invoice) || self.invoice == oldSelf.invoice) && has(self.applicant) == has(oldSelf.applicant) && (!has(self.applicant) || self.applicant == oldSelf.applicant)',
+          message:
+            "an application can't be changed after it's submitted; withdraw it and apply again",
+        },
+        {
+          rule: '!has(oldSelf.withdrawn) || !oldSelf.withdrawn || (has(self.withdrawn) && self.withdrawn)',
+          message: "a withdrawn application can't be reopened; apply again instead",
+        },
+      ],
+    },
+    status: {
+      description:
+        'BillingArrangementApplicationStatus defines the observed state of a\nBillingArrangementApplication.',
+      type: 'object',
+      properties: {
+        arrangementRef: {
+          description:
+            "ArrangementRef names the BillingArrangement that approved the\napplication. Its terms are published on the BillingAccount's\nstatus.paymentArrangement while they're active.",
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingArrangement.',
+              type: 'string',
+            },
+          },
+        },
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\napplication's state. See BillingArrangementApplicationConditionDecided.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        decidedAt: {
+          description: 'DecidedAt is when staff approved or declined the application.',
+          type: 'string',
+          format: 'date-time',
+        },
+        declineMessage: {
+          description:
+            "DeclineMessage is the reviewer's message to the applicant when the\napplication was declined. Internal reviewer notes are never copied\nhere.",
+          type: 'string',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\ncontroller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        phase: {
+          description: 'Phase is where the application sits in review.',
+          type: 'string',
+          enum: ['Pending', 'Approved', 'Declined', 'Withdrawn'],
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingArrangementApplication',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingArrangementApplicationListSchema = {
+  description: 'BillingArrangementApplicationList is a list of BillingArrangementApplication',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of billingarrangementapplications. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.BillingArrangementApplication',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingArrangementApplicationList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingArrangementDeclineSchema = {
+  description:
+    "BillingArrangementDecline is the Schema for the\nbillingarrangementdeclines API.\n\nA BillingArrangementDecline records staff declining a payment terms\napplication. It's a separate resource so the reviewer's internal\nnotes stay out of reach of customers, who can read their applications\nbut never declines; the customer-facing message is copied onto the\napplication's status. Each decline is owned by its application.",
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'BillingArrangementDeclineSpec defines the desired state of a\nBillingArrangementDecline.',
+      type: 'object',
+      required: ['applicationRef', 'message'],
+      properties: {
+        applicationRef: {
+          description:
+            'ApplicationRef references the BillingArrangementApplication in the\nsame namespace that is declined. Immutable.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingArrangementApplication.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'applicationRef is immutable',
+            },
+          ],
+        },
+        internalNotes: {
+          description:
+            "InternalNotes record the reviewer's reasoning. Internal: never shown\nto customers.",
+          type: 'string',
+          maxLength: 4000,
+        },
+        message: {
+          description:
+            'Message is shown to the applicant, and copied onto the\napplication\'s status.declineMessage. Tell them what to do next, for\nexample "Reply to our email with your company registration number,\nor add a card to continue."',
+          type: 'string',
+          maxLength: 2000,
+          minLength: 1,
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingArrangementDecline',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingArrangementDeclineListSchema = {
+  description: 'BillingArrangementDeclineList is a list of BillingArrangementDecline',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of billingarrangementdeclines. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.BillingArrangementDecline',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingArrangementDeclineList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingArrangementListSchema = {
+  description: 'BillingArrangementList is a list of BillingArrangement',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of billingarrangements. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.BillingArrangement',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingArrangementList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingEntitlementSchema = {
+  description:
+    'BillingEntitlement is the Schema for the billingentitlements API.\nBilling-account-scoped binding of an account to exactly one active Offer.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'BillingEntitlementSpec defines the desired state of a BillingEntitlement.\n\nExactly one active BillingEntitlement exists per billing account. It\nbinds the account to a published Offer. Distinct from the per-project\nServiceEntitlement in service-catalog.',
+      type: 'object',
+      required: ['billingAccountRef', 'offerRef'],
+      properties: {
+        billingAccountRef: {
+          description: 'BillingAccountRef references the BillingAccount in the same\nnamespace.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingAccount.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+        },
+        offerRef: {
+          description: 'OfferRef references a cluster-scoped published (GA) Offer.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name of the Offer.',
+              type: 'string',
+              maxLength: 253,
+              minLength: 1,
+            },
+          },
+        },
+      },
+    },
+    status: {
+      description: 'BillingEntitlementStatus defines the observed state of a BillingEntitlement.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\nentitlement's state.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\ncontroller.',
+          type: 'integer',
+          format: 'int64',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingEntitlement',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_BillingEntitlementListSchema = {
+  description: 'BillingEntitlementList is a list of BillingEntitlement',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of billingentitlements. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.BillingEntitlement',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'BillingEntitlementList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
@@ -723,6 +1684,7 @@ export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_InvoiceListSchema = {
@@ -765,6 +1727,7 @@ export const com_miloapis_billing_v1alpha1_InvoiceListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MeterDefinitionSchema = {
@@ -1007,6 +1970,7 @@ export const com_miloapis_billing_v1alpha1_MeterDefinitionSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MeterDefinitionListSchema = {
@@ -1049,6 +2013,7 @@ export const com_miloapis_billing_v1alpha1_MeterDefinitionListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeSchema = {
@@ -1282,6 +2247,7 @@ export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeListSchema = {
@@ -1324,6 +2290,412 @@ export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_OfferSchema = {
+  description:
+    'Offer is the Schema for the offers API. A named, versioned bundle of\nservice pricings (a "tier") that billing accounts are entitled to via\nBillingEntitlement.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'OfferSpec defines the desired state of an Offer.\n\nAn Offer bundles ServicePricings into a named, versioned tier. While\nDraft, the platform owner references ServicePricings by name via\nservicePricingRefs. On publish (launchStage=GA) the controller snapshots\nrates into servicePricings; afterward the Offer is immutable except for\nthe kubernetes.io/display-name annotation.',
+      type: 'object',
+      required: ['chargeTypes', 'launchStage'],
+      properties: {
+        chargeTypes: {
+          description:
+            'ChargeTypes enumerates every charge type present in the referenced\n(or snapshotted) pricings. Required so controllers can gate on\ncharge type explicitly.',
+          type: 'array',
+          minItems: 1,
+          items: {
+            description: 'ChargeType distinguishes how a ServicePricing is billed.',
+            type: 'string',
+            enum: ['Usage', 'OneTime', 'Recurring'],
+          },
+          'x-kubernetes-list-type': 'set',
+        },
+        launchStage: {
+          description:
+            'LaunchStage is the Offer lifecycle stage. Draft Offers are mutable\nand not assignable; GA Offers are published and immutable except for\nthe display-name annotation.',
+          type: 'string',
+          default: 'Draft',
+          allOf: [
+            {
+              enum: ['Draft', 'GA'],
+            },
+            {
+              enum: ['Draft', 'GA'],
+            },
+          ],
+        },
+        servicePricingRefs: {
+          description:
+            'ServicePricingRefs names the ServicePricing resources to include.\nAuthored while Draft; retained for audit after publish. Runtime\nrating uses servicePricings only.',
+          type: 'array',
+          items: {
+            description:
+              'ServicePricingRef names a ServicePricing resource referenced by an Offer\nwhile in Draft. Namespace defaults to milo-system when omitted.',
+            type: 'object',
+            required: ['name'],
+            properties: {
+              name: {
+                description: 'Name is the metadata.name of the ServicePricing.',
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+              },
+              namespace: {
+                description:
+                  'Namespace is the namespace of the ServicePricing. Defaults to\nmilo-system when empty.',
+                type: 'string',
+                maxLength: 63,
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['name'],
+          'x-kubernetes-list-type': 'map',
+        },
+        servicePricings: {
+          description:
+            'ServicePricings is an immutable snapshot of referenced\nServicePricing specs, written by the controller when launchStage\nfirst becomes GA. Empty while Draft.',
+          type: 'array',
+          items: {
+            description:
+              'ServicePricingSnapshot is an immutable copy of a ServicePricingSpec taken\nat Offer publish time, plus the source ServicePricing name.',
+            type: 'object',
+            required: ['name', 'spec'],
+            properties: {
+              name: {
+                description: 'Name is the metadata.name of the source ServicePricing.',
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+              },
+              spec: {
+                description:
+                  'Spec is a deep copy of the source ServicePricingSpec at publish time.',
+                type: 'object',
+                required: ['chargeType', 'currency', 'serviceRef'],
+                properties: {
+                  amount: {
+                    description:
+                      'Amount is the fixed USD decimal string for OneTime and Recurring\ncharges.',
+                    type: 'string',
+                    pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                  },
+                  chargeType: {
+                    description: 'ChargeType distinguishes Usage, OneTime, and Recurring pricing.',
+                    type: 'string',
+                    enum: ['Usage', 'OneTime', 'Recurring'],
+                  },
+                  currency: {
+                    description: 'Currency is the ISO 4217 currency code. USD only in v1.',
+                    type: 'string',
+                    default: 'USD',
+                    pattern: '^USD$',
+                  },
+                  displayName: {
+                    description: 'DisplayName is a human-readable label for invoices and portals.',
+                    type: 'string',
+                    maxLength: 128,
+                  },
+                  interval: {
+                    description: 'Interval is the cadence for a Recurring charge.',
+                    type: 'string',
+                    enum: ['monthly'],
+                  },
+                  metric: {
+                    description:
+                      'Metric is the full metric name for Usage charges (e.g.\n"compute.datumapis.com/instance/cpu-allocated"). Required when\nchargeType is Usage.',
+                    type: 'string',
+                    maxLength: 253,
+                  },
+                  pricingUnit: {
+                    description:
+                      'PricingUnit is a human-readable billing unit label (e.g. "vcpu",\n"gib"). Required when chargeType is Usage. Does not need to be the\nliteral UCUM unit string of the meter.',
+                    type: 'string',
+                    maxLength: 64,
+                  },
+                  rates: {
+                    description:
+                      'Rates is the ordered list of rate entries for Usage charges.\nRequired when chargeType is Usage.',
+                    type: 'array',
+                    minItems: 1,
+                    items: {
+                      description:
+                        'PricingRate is a single rate entry. Exactly one of Flat or Tiered must\nbe set. An optional Match filters the rate by dimension value; the last\nunmatched entry is the default catch-all.',
+                      type: 'object',
+                      properties: {
+                        flat: {
+                          description:
+                            'Flat is a single decimal USD string multiplied by metered usage.\nMutually exclusive with Tiered.',
+                          type: 'string',
+                          pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                        },
+                        match: {
+                          description:
+                            'Match optionally restricts this rate to a single dimension value.',
+                          type: 'object',
+                          required: ['dimension', 'value'],
+                          properties: {
+                            dimension: {
+                              description:
+                                'Dimension is the label key declared on the monitored resource type\n(e.g. "tier", "region", "model").',
+                              type: 'string',
+                              maxLength: 63,
+                              minLength: 1,
+                            },
+                            value: {
+                              description: 'Value is the dimension value this rate applies to.',
+                              type: 'string',
+                              maxLength: 253,
+                              minLength: 1,
+                            },
+                          },
+                        },
+                        tiered: {
+                          description:
+                            'Tiered is an ordered list of graduated volume bands.\nMutually exclusive with Flat.',
+                          type: 'array',
+                          minItems: 1,
+                          items: {
+                            description:
+                              'PricingTierBand is a single graduated volume band. Aggregation for\ntier breaks is monthly at billing-account scope. Each band has a rate\nand an exclusive upper bound upTo in pricingUnit units. The last band\nomits upTo (open-ended).',
+                            type: 'object',
+                            required: ['rate'],
+                            properties: {
+                              rate: {
+                                description:
+                                  'Rate is the USD decimal string applied to usage within this band.\nZero ("0") is valid for free allowances.',
+                                type: 'string',
+                                pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                              },
+                              upTo: {
+                                description:
+                                  'UpTo is the exclusive upper bound of this band in pricingUnit units.\nOmit on the last band for an open-ended range.',
+                                type: 'string',
+                                pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                              },
+                            },
+                          },
+                          'x-kubernetes-list-type': 'atomic',
+                        },
+                      },
+                      'x-kubernetes-validations': [
+                        {
+                          rule: 'has(self.flat) != has(self.tiered)',
+                          message: 'exactly one of flat or tiered must be set',
+                        },
+                      ],
+                    },
+                    'x-kubernetes-list-type': 'atomic',
+                  },
+                  serviceRef: {
+                    description:
+                      'ServiceRef is the canonical service identifier (e.g.\n"compute.datumapis.com").',
+                    type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
+                  },
+                  trigger: {
+                    description: 'Trigger identifies when a OneTime charge fires.',
+                    type: 'string',
+                    enum: ['BillingAccountActivation'],
+                  },
+                  unitConversion: {
+                    description:
+                      "UnitConversion converts the meter's usage into pricingUnit before the\nrates apply, for a metric measured in a different unit than it is\npriced in (e.g. bytes priced per GiB). Omitted when the metric is\nalready measured in pricingUnit. Usage charges only.",
+                    type: 'object',
+                    required: ['description', 'meterUnitsPerPricingUnit'],
+                    properties: {
+                      description: {
+                        description:
+                          'Description explains the conversion to the people who maintain the\npricing (e.g. "Memory is metered in byte-seconds and priced per\nGiB-second; 1 GiB = 2^30 bytes").',
+                        type: 'string',
+                        maxLength: 512,
+                        minLength: 1,
+                      },
+                      meterUnitsPerPricingUnit: {
+                        description:
+                          'MeterUnitsPerPricingUnit is how many of the meter\'s units make one\npricingUnit, as a positive decimal string (e.g. "1073741824" for a\nmeter in bytes priced per GiB, "1000" for millicore-seconds priced\nper vCPU-second).',
+                        type: 'string',
+                        maxLength: 64,
+                        pattern: '^([1-9]\\d*(\\.\\d+)?|0\\.\\d*[1-9]\\d*)$',
+                      },
+                    },
+                  },
+                },
+                'x-kubernetes-validations': [
+                  {
+                    rule: "self.chargeType != 'Usage' || (has(self.metric) && has(self.pricingUnit) && has(self.rates))",
+                    message: 'Usage ServicePricing requires metric, pricingUnit, and rates',
+                  },
+                  {
+                    rule: "self.chargeType == 'Usage' || !has(self.unitConversion)",
+                    message: 'unitConversion is only allowed for Usage ServicePricing',
+                  },
+                  {
+                    rule: "self.chargeType != 'OneTime' || (has(self.amount) && has(self.trigger))",
+                    message: 'OneTime ServicePricing requires amount and trigger',
+                  },
+                  {
+                    rule: "self.chargeType != 'Recurring' || (has(self.amount) && has(self.interval))",
+                    message: 'Recurring ServicePricing requires amount and interval',
+                  },
+                ],
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['name'],
+          'x-kubernetes-list-type': 'map',
+        },
+      },
+    },
+    status: {
+      description: 'OfferStatus defines the observed state of an Offer.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\nOffer's state.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\ncontroller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        publishedAt: {
+          description:
+            'PublishedAt is the time at which the controller first observed the\nOffer in the GA launch stage with a complete snapshot.',
+          type: 'string',
+          format: 'date-time',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'Offer',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_OfferListSchema = {
+  description: 'OfferList is a list of Offer',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of offers. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.Offer',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'OfferList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodSchema = {
@@ -1603,6 +2975,7 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodClassSchema = {
@@ -1741,6 +3114,7 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodClassSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodClassListSchema = {
@@ -1783,6 +3157,7 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodClassListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodListSchema = {
@@ -1825,6 +3200,322 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodListSchema = {
       version: 'v1alpha1',
     },
   ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
+  description:
+    'ServicePricing is the Schema for the servicepricings API. One resource\nper priced metric or fixed charge, emitted by service-catalog into\nmilo-system.',
+  type: 'object',
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'ServicePricingSpec defines the desired state of a ServicePricing.\n\nServicePricing resources are emitted by service-catalog fan-out\ncontrollers (PricingFanOut / ChargeFanOut) and must not be authored by\nhand. Providers watch this single shape — distinguished by chargeType —\nrather than parsing ServiceConfiguration.',
+      type: 'object',
+      required: ['chargeType', 'currency', 'serviceRef'],
+      properties: {
+        amount: {
+          description: 'Amount is the fixed USD decimal string for OneTime and Recurring\ncharges.',
+          type: 'string',
+          pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+        },
+        chargeType: {
+          description: 'ChargeType distinguishes Usage, OneTime, and Recurring pricing.',
+          type: 'string',
+          enum: ['Usage', 'OneTime', 'Recurring'],
+        },
+        currency: {
+          description: 'Currency is the ISO 4217 currency code. USD only in v1.',
+          type: 'string',
+          default: 'USD',
+          pattern: '^USD$',
+        },
+        displayName: {
+          description: 'DisplayName is a human-readable label for invoices and portals.',
+          type: 'string',
+          maxLength: 128,
+        },
+        interval: {
+          description: 'Interval is the cadence for a Recurring charge.',
+          type: 'string',
+          enum: ['monthly'],
+        },
+        metric: {
+          description:
+            'Metric is the full metric name for Usage charges (e.g.\n"compute.datumapis.com/instance/cpu-allocated"). Required when\nchargeType is Usage.',
+          type: 'string',
+          maxLength: 253,
+        },
+        pricingUnit: {
+          description:
+            'PricingUnit is a human-readable billing unit label (e.g. "vcpu",\n"gib"). Required when chargeType is Usage. Does not need to be the\nliteral UCUM unit string of the meter.',
+          type: 'string',
+          maxLength: 64,
+        },
+        rates: {
+          description:
+            'Rates is the ordered list of rate entries for Usage charges.\nRequired when chargeType is Usage.',
+          type: 'array',
+          minItems: 1,
+          items: {
+            description:
+              'PricingRate is a single rate entry. Exactly one of Flat or Tiered must\nbe set. An optional Match filters the rate by dimension value; the last\nunmatched entry is the default catch-all.',
+            type: 'object',
+            properties: {
+              flat: {
+                description:
+                  'Flat is a single decimal USD string multiplied by metered usage.\nMutually exclusive with Tiered.',
+                type: 'string',
+                pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+              },
+              match: {
+                description: 'Match optionally restricts this rate to a single dimension value.',
+                type: 'object',
+                required: ['dimension', 'value'],
+                properties: {
+                  dimension: {
+                    description:
+                      'Dimension is the label key declared on the monitored resource type\n(e.g. "tier", "region", "model").',
+                    type: 'string',
+                    maxLength: 63,
+                    minLength: 1,
+                  },
+                  value: {
+                    description: 'Value is the dimension value this rate applies to.',
+                    type: 'string',
+                    maxLength: 253,
+                    minLength: 1,
+                  },
+                },
+              },
+              tiered: {
+                description:
+                  'Tiered is an ordered list of graduated volume bands.\nMutually exclusive with Flat.',
+                type: 'array',
+                minItems: 1,
+                items: {
+                  description:
+                    'PricingTierBand is a single graduated volume band. Aggregation for\ntier breaks is monthly at billing-account scope. Each band has a rate\nand an exclusive upper bound upTo in pricingUnit units. The last band\nomits upTo (open-ended).',
+                  type: 'object',
+                  required: ['rate'],
+                  properties: {
+                    rate: {
+                      description:
+                        'Rate is the USD decimal string applied to usage within this band.\nZero ("0") is valid for free allowances.',
+                      type: 'string',
+                      pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                    },
+                    upTo: {
+                      description:
+                        'UpTo is the exclusive upper bound of this band in pricingUnit units.\nOmit on the last band for an open-ended range.',
+                      type: 'string',
+                      pattern: '^(0|[1-9]\\d*)(\\.\\d+)?$',
+                    },
+                  },
+                },
+                'x-kubernetes-list-type': 'atomic',
+              },
+            },
+            'x-kubernetes-validations': [
+              {
+                rule: 'has(self.flat) != has(self.tiered)',
+                message: 'exactly one of flat or tiered must be set',
+              },
+            ],
+          },
+          'x-kubernetes-list-type': 'atomic',
+        },
+        serviceRef: {
+          description:
+            'ServiceRef is the canonical service identifier (e.g.\n"compute.datumapis.com").',
+          type: 'string',
+          maxLength: 253,
+          minLength: 1,
+        },
+        trigger: {
+          description: 'Trigger identifies when a OneTime charge fires.',
+          type: 'string',
+          enum: ['BillingAccountActivation'],
+        },
+        unitConversion: {
+          description:
+            "UnitConversion converts the meter's usage into pricingUnit before the\nrates apply, for a metric measured in a different unit than it is\npriced in (e.g. bytes priced per GiB). Omitted when the metric is\nalready measured in pricingUnit. Usage charges only.",
+          type: 'object',
+          required: ['description', 'meterUnitsPerPricingUnit'],
+          properties: {
+            description: {
+              description:
+                'Description explains the conversion to the people who maintain the\npricing (e.g. "Memory is metered in byte-seconds and priced per\nGiB-second; 1 GiB = 2^30 bytes").',
+              type: 'string',
+              maxLength: 512,
+              minLength: 1,
+            },
+            meterUnitsPerPricingUnit: {
+              description:
+                'MeterUnitsPerPricingUnit is how many of the meter\'s units make one\npricingUnit, as a positive decimal string (e.g. "1073741824" for a\nmeter in bytes priced per GiB, "1000" for millicore-seconds priced\nper vCPU-second).',
+              type: 'string',
+              maxLength: 64,
+              pattern: '^([1-9]\\d*(\\.\\d+)?|0\\.\\d*[1-9]\\d*)$',
+            },
+          },
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: "self.chargeType != 'Usage' || (has(self.metric) && has(self.pricingUnit) && has(self.rates))",
+          message: 'Usage ServicePricing requires metric, pricingUnit, and rates',
+        },
+        {
+          rule: "self.chargeType == 'Usage' || !has(self.unitConversion)",
+          message: 'unitConversion is only allowed for Usage ServicePricing',
+        },
+        {
+          rule: "self.chargeType != 'OneTime' || (has(self.amount) && has(self.trigger))",
+          message: 'OneTime ServicePricing requires amount and trigger',
+        },
+        {
+          rule: "self.chargeType != 'Recurring' || (has(self.amount) && has(self.interval))",
+          message: 'Recurring ServicePricing requires amount and interval',
+        },
+      ],
+    },
+    status: {
+      description: 'ServicePricingStatus defines the observed state of a ServicePricing.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the\nresource's state.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\ncontroller.',
+          type: 'integer',
+          format: 'int64',
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'ServicePricing',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_ServicePricingListSchema = {
+  description: 'ServicePricingList is a list of ServicePricing',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of servicepricings. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.ServicePricing',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'ServicePricingList',
+      version: 'v1alpha1',
+    },
+  ],
+  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
@@ -1851,11 +3542,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
         'The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.',
       type: 'integer',
       format: 'int64',
-    },
-    ignoreStoreReadErrorWithClusterBreakingPotential: {
-      description:
-        'if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it',
-      type: 'boolean',
     },
     kind: {
       description:
@@ -1996,7 +3682,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'coordination.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha2',
+      version: 'v1alpha1',
     },
     {
       group: 'coordination.k8s.io',
@@ -2061,6 +3747,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'networking.k8s.io',
       kind: 'DeleteOptions',
+      version: 'v1alpha1',
+    },
+    {
+      group: 'networking.k8s.io',
+      kind: 'DeleteOptions',
       version: 'v1beta1',
     },
     {
@@ -2102,26 +3793,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       group: 'rbac.authorization.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1beta1',
-    },
-    {
-      group: 'resource.k8s.io',
-      kind: 'DeleteOptions',
-      version: 'v1',
     },
     {
       group: 'resource.k8s.io',
       kind: 'DeleteOptions',
       version: 'v1alpha3',
-    },
-    {
-      group: 'resource.k8s.io',
-      kind: 'DeleteOptions',
-      version: 'v1beta1',
-    },
-    {
-      group: 'resource.k8s.io',
-      kind: 'DeleteOptions',
-      version: 'v1beta2',
     },
     {
       group: 'scheduling.k8s.io',
@@ -2156,7 +3832,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'storagemigration.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1beta1',
+      version: 'v1alpha1',
     },
   ],
 } as const;
@@ -2460,6 +4136,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails',
         },
       ],
+      'x-kubernetes-list-type': 'atomic',
     },
     kind: {
       description:

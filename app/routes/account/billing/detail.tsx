@@ -11,12 +11,14 @@ import {
   EmailRecipientCard,
   PastInvoicesCard,
   PaymentMethodsCard,
+  PaymentTermsCard,
   getBillingAccountDisplayName,
   toPastInvoiceRow,
   type BillingAccount,
   type BillingAccountAssignment,
   type BillingAccountBinding,
   type BillingAddressValues,
+  type BillingArrangementApplication,
   type DisplayNameFormValues,
   type EmailRecipientValues,
   type Invoice,
@@ -28,6 +30,7 @@ import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
+import { latestApplication, paymentTermsSummary } from '@/features/billing/payment-terms';
 import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { RbacProvider, usePermission } from '@/modules/rbac';
 import { buildContactAddressPrefill } from '@/modules/stripe';
@@ -43,6 +46,7 @@ import {
   useDeleteBillingAccount,
   useUpdateBillingAccount,
 } from '@/resources/billing-accounts';
+import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
 import { createInvoiceService, useInvoices, useInvoicesWatch } from '@/resources/invoices';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import {
@@ -78,6 +82,8 @@ interface LoaderData {
   allBindings: BillingAccountBinding[];
   paymentMethods: PaymentMethod[];
   invoices: Invoice[];
+  /** The account's most recent application for payment terms. */
+  paymentTermsApplication: BillingArrangementApplication | undefined;
   orgs: Array<{ name: string; displayName: string }>;
   orgIds: string[];
   projectsByOrg: Record<string, Array<{ name: string; displayName: string }>>;
@@ -138,7 +144,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
   // Fan the remaining reads out together — they're independent and
   // the page renders meaningful partial state from any subset, so a
   // single failure doesn't blank the whole detail.
-  const [allBindings, stripeConfigs, paymentMethods, invoices] = await Promise.all([
+  const [allBindings, stripeConfigs, paymentMethods, invoices, applications] = await Promise.all([
     createBillingAccountBindingService().listForOrgs(orgIds),
     createStripeProviderConfigService()
       .list()
@@ -149,6 +155,11 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
           .list(orgId)
           .catch(() => [] as Invoice[])
       : Promise.resolve<Invoice[]>([]),
+    orgId
+      ? createBillingArrangementApplicationService()
+          .list(orgId)
+          .catch(() => [] as BillingArrangementApplication[])
+      : Promise.resolve<BillingArrangementApplication[]>([]),
   ]);
 
   // For each org that has a binding to this account, hydrate the
@@ -196,6 +207,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     allBindings,
     paymentMethods,
     invoices,
+    paymentTermsApplication: latestApplication(applications, billingAccountId),
     orgs,
     orgIds,
     projectsByOrg,
@@ -277,6 +289,7 @@ function AccountBillingAccountDetailPageInner() {
     allBindings: initialAllBindings,
     paymentMethods: initialPaymentMethods,
     invoices: initialInvoices,
+    paymentTermsApplication,
     orgs,
     orgIds: initialOrgIds,
     projectsByOrg,
@@ -745,6 +758,8 @@ function AccountBillingAccountDetailPageInner() {
     ]
   );
 
+  const paymentTerms = paymentTermsSummary(account);
+
   const handleDownloadInvoice = useCallback((invoice: PastInvoiceRow) => {
     if (!invoice.downloadUrl) return;
     window.open(invoice.downloadUrl, '_blank', 'noopener,noreferrer');
@@ -756,6 +771,22 @@ function AccountBillingAccountDetailPageInner() {
       <PageTitle title={displayName} titleClassName="text-3xl" />
 
       <div className="border-border border-t">
+        <Section
+          title="Payment terms"
+          description={
+            paymentTerms
+              ? 'The payment terms our team approved for this billing account. To change them, contact support.'
+              : 'Pay by invoice instead of by card. Our team reviews every application.'
+          }>
+          <PaymentTermsCard
+            orgId={orgId}
+            billingAccountName={accountName}
+            terms={paymentTerms}
+            application={paymentTermsApplication}
+            currency={account.spec?.currencyCode ?? 'USD'}
+          />
+        </Section>
+
         <Section title="Name" description="Change the display name of this billing account">
           <DisplayNameFormCard
             defaultDisplayName={currentDisplayNameAnnotation}
@@ -790,6 +821,9 @@ function AccountBillingAccountDetailPageInner() {
             onPaymentMethodConfirmed={handleConfirmed}
             onSetAsDefault={handleSetDefaultPaymentMethod}
             onRemove={handleRemovePaymentMethod}
+            emptyMessage={
+              paymentTerms ? 'No card on file. This account pays by invoice.' : undefined
+            }
           />
         </Section>
 

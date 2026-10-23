@@ -1,5 +1,8 @@
 import { isOnboardingDevBypassEnabled } from '@/features/onboarding/onboarding-dev-bypass';
-import { resolveOnboardingLayoutRedirect } from '@/features/onboarding/onboarding-layout-redirect';
+import {
+  isFinishingOnboardingPath,
+  resolveOnboardingLayoutRedirect,
+} from '@/features/onboarding/onboarding-layout-redirect';
 import {
   hasAnyOrganizations,
   loadOnboardingUser,
@@ -11,7 +14,6 @@ import { RybbitProvider } from '@/modules/rybbit';
 import { AppProvider, useApp } from '@/providers/app.provider';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
-import { paths } from '@/utils/config/paths.config';
 import { env } from '@/utils/env';
 import { env as serverEnv } from '@/utils/env/env.server';
 import { appendSetCookieHeaders } from '@/utils/fraud/user-access';
@@ -45,8 +47,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
     const devBypass = isOnboardingDevBypassEnabled();
 
     if (!devBypass) {
-      const finishingOnboarding =
-        pathname === paths.onboarding.billing || pathname === paths.onboarding.provisioning;
+      const finishingOnboarding = isFinishingOnboardingPath(pathname);
       const isOwnerOfRequestedOrg =
         finishingOnboarding && requestedOrgId ? await isUserOrgOwner(requestedOrgId) : true;
 

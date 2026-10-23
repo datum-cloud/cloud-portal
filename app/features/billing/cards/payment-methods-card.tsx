@@ -197,6 +197,8 @@ interface PaymentMethodsCardProps {
   onSetAsDefault?: (method: PaymentMethod) => void;
   onRemove?: (method: PaymentMethod) => void;
   billingDetailsPrefill?: StripeBillingDetailsPrefill;
+  /** Shown instead of "No payment methods" when the list is empty. */
+  emptyMessage?: string;
 }
 
 export const PaymentMethodsCard = ({
@@ -208,6 +210,7 @@ export const PaymentMethodsCard = ({
   onSetAsDefault,
   onRemove,
   billingDetailsPrefill,
+  emptyMessage = 'No payment methods',
 }: PaymentMethodsCardProps) => {
   const [open, setOpen] = useState(false);
   const hasMethods = paymentMethods.length > 0;
@@ -230,7 +233,7 @@ export const PaymentMethodsCard = ({
         ) : (
           <CardContent>
             <CardTitle className="text-muted-foreground text-sm font-medium">
-              No payment methods
+              {emptyMessage}
             </CardTitle>
           </CardContent>
         )}
