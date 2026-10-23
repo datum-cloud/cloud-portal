@@ -49,13 +49,13 @@ export function InlinePatch({
     <section
       aria-label={`${widget.title}, in the page`}
       data-testid="inline-patch"
-      className="bg-card flex flex-col overflow-hidden rounded-xl border">
-      {/* The only header: the widget draws no chrome of its own when inline. */}
-      <header className="flex items-center gap-2 border-b px-4 py-1.5">
-        <span className="bg-btn-primary flex size-5 shrink-0 items-center justify-center rounded-full text-white">
-          <Icon icon={Brain} size={11} aria-hidden />
-        </span>
-        <Text size="xs" weight="medium" className="flex-1">
+      className="bg-card flex max-h-[min(80vh,52rem)] flex-col overflow-hidden rounded-2xl border">
+      {/* The only header: the widget draws no chrome of its own when inline.
+          Its side padding matches the conversation's, so the icon lines up
+          with Patch's avatar below it. */}
+      <header className="flex items-center gap-2 px-7 pt-5 pb-1">
+        <Icon icon={Brain} size={16} className="text-btn-primary shrink-0" aria-hidden />
+        <Text size="sm" weight="medium" className="flex-1">
           {widget.title}
         </Text>
         <Tooltip
@@ -83,7 +83,9 @@ export function InlinePatch({
           <Icon icon={X} size={14} />
         </Button>
       </header>
-      <div className="relative h-[min(70vh,44rem)] min-h-0">
+      {/* Grows with the conversation up to the section's max height, then
+          the conversation scrolls inside it. */}
+      <div className="relative flex min-h-0 flex-col">
         <PluginErrorBoundary
           slug={widget.plugin.slug}
           displayName={widget.plugin.displayName}
@@ -92,7 +94,7 @@ export function InlinePatch({
             pluginRef={widget.pluginRef}
             codeRef={widget.codeRef}
             componentProps={props}
-            fallback={<Skeleton className="h-full w-full" />}
+            fallback={<Skeleton className="mx-7 mb-6 h-32" />}
           />
         </PluginErrorBoundary>
       </div>
