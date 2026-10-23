@@ -56,6 +56,30 @@ function isPortalHstsFilter(filter: RuleFilter): boolean {
   return set.length === 1 && set[0].name.toLowerCase() === HSTS_HEADER.toLowerCase();
 }
 
+type HttpProxyRule = NonNullable<
+  NonNullable<ComDatumapisNetworkingV1AlphaHttpProxy['spec']>['rules']
+>[number];
+
+/**
+ * The Host override on a rule's only backend, when it is that backend's only
+ * filter. Other clients (datum-mcp, kubectl) write it there. With one backend
+ * it sends the same Host as the rule-level filter the portal writes, so the
+ * portal reads it as that and moves it to the rule on the next rules rebuild.
+ */
+function soleBackendHostFilter(rule: HttpProxyRule | undefined): RuleFilter | undefined {
+  if (rule?.backends?.length !== 1) return undefined;
+  const filters = rule.backends[0].filters ?? [];
+  return filters.length === 1 && isPortalHostHeaderFilter(filters[0]) ? filters[0] : undefined;
+}
+
+/** A backend entry without the Host override `soleBackendHostFilter` lifts to the rule. */
+function withoutBackendHostFilter<T extends Record<string, unknown>>(backend: T): T {
+  const filters = (backend as { filters?: RuleFilter[] }).filters;
+  if (filters?.length !== 1 || !isPortalHostHeaderFilter(filters[0])) return backend;
+  const { filters: _filters, ...rest } = backend;
+  return rest as T;
+}
+
 /**
  * Classify the complexity of an HTTPProxy resource for portal rendering.
  *
@@ -66,10 +90,11 @@ function isPortalHstsFilter(filter: RuleFilter): boolean {
  *                (a requestHeaderModifier that `set`s a single `Host`) and at
  *                most one HSTS filter (a responseHeaderModifier that `set`s a
  *                single `Strict-Transport-Security`). Portal renders the full
- *                form with those fields populated.
+ *                form with those fields populated. A Host override on the
+ *                rule's only backend counts as the rule's own.
  * - 'advanced':  Any other filter combination (other headers, add/remove,
- *                duplicate filters, backend-level filters, or multiple backend
- *                rules). Portal renders a read-only banner.
+ *                duplicate filters, other backend-level filters, or multiple
+ *                backend rules). Portal renders a read-only banner.
  */
 export type HttpProxyComplexity = 'simple' | 'host-only' | 'advanced';
 
@@ -110,19 +135,18 @@ export function classifyHttpProxyComplexity(
   // (e.g. PathPrefix /api) would be widened to every request.
   if (!isCatchAllMatch(backendRule.matches)) return 'advanced';
 
-  // Any backend-level filter → advanced
-  if (
-    backendRule.backends?.some((b) => {
-      const bf = (b as { filters?: unknown[] }).filters;
-      return bf && bf.length > 0;
-    })
-  ) {
+  // Any backend-level filter → advanced, except a lone backend's Host override
+  const backendHostFilter = soleBackendHostFilter(backendRule);
+  if (!backendHostFilter && backendRule.backends?.some((b) => b.filters && b.filters.length > 0)) {
     return 'advanced';
   }
 
-  const filters = backendRule.filters ?? [];
+  const filters = [
+    ...(backendRule.filters ?? []),
+    ...(backendHostFilter ? [backendHostFilter] : []),
+  ];
 
-  // No rule-level filters → simple
+  // No filters → simple
   if (filters.length === 0) return 'simple';
 
   const hostFilters = filters.filter(isPortalHostHeaderFilter).length;
@@ -265,13 +289,17 @@ export function validateHostHeader(value: string): string | null {
 }
 
 /**
- * Extract the Host header value from an HTTPProxy resource's rule-0 filters.
- * Matches case-insensitively per RFC 7230.
- * Returns empty string if no Host filter is present.
+ * Extract the Host header value from the backend rule's filters, or from its
+ * only backend's (see soleBackendHostFilter). Matches case-insensitively per
+ * RFC 7230. Returns empty string if no Host filter is present.
  */
 export function extractHostHeader(raw: ComDatumapisNetworkingV1AlphaHttpProxy): string {
   const backendRule = raw.spec?.rules?.find((r) => r.backends && r.backends.length > 0);
-  const filters = backendRule?.filters ?? [];
+  const backendHostFilter = soleBackendHostFilter(backendRule);
+  const filters = [
+    ...(backendRule?.filters ?? []),
+    ...(backendHostFilter ? [backendHostFilter] : []),
+  ];
   for (const filter of filters) {
     const setHeaders = filter.requestHeaderModifier?.set ?? [];
     const hostEntry = setHeaders.find((h) => h.name.toLowerCase() === 'host');
@@ -1187,8 +1215,10 @@ export function toUpdateHttpProxyPayload(
           });
         }
 
+        // A Host override read off the only backend is written on the rule
+        // above, so drop it from the backend rather than set it twice.
         rules.push({
-          backends: effectiveBackends,
+          backends: effectiveBackends.map(withoutBackendHostFilter),
           ...(backendFilters.length > 0 && { filters: backendFilters }),
         });
       }

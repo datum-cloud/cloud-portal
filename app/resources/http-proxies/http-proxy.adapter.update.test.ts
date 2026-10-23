@@ -291,6 +291,56 @@ describe('routing the rules rebuild cannot round-trip', () => {
     });
   });
 
+  describe('Host override on the only backend', () => {
+    const onBackend = (...ruleFilters: (typeof hostFilter | typeof hstsFilter)[]) =>
+      withRules({
+        backends: [{ endpoint: 'https://origin.example.com', filters: [hostFilter] }],
+        ...(ruleFilters.length > 0 && { filters: ruleFilters }),
+      });
+
+    it('reads it as the rule’s Host override and keeps the proxy editable', () => {
+      const proxy = toHttpProxy(onBackend());
+      expect(proxy.complexity).toBe('host-only');
+      expect(proxy.hostHeader).toBe('origin.internal');
+      expect(toHttpProxy(onBackend(hstsFilter)).complexity).toBe('host-only');
+    });
+
+    it('moves it to the rule when the rules are rebuilt', () => {
+      const payload = toUpdateHttpProxyPayload({ hsts: true }, toHttpProxy(onBackend()));
+      const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
+      expect(backendRule?.backends).toEqual([{ endpoint: 'https://origin.example.com' }]);
+      expect(backendRule?.filters).toEqual([hostFilter, hstsFilter]);
+    });
+
+    it('clears it from the backend when the Host override is removed', () => {
+      const payload = toUpdateHttpProxyPayload({ hostHeader: '' }, toHttpProxy(onBackend()));
+      const backendRule = payload.spec?.rules?.find((r) => 'backends' in r);
+      expect(backendRule?.backends).toEqual([{ endpoint: 'https://origin.example.com' }]);
+      expect(backendRule?.filters).toBeUndefined();
+    });
+
+    it('stays advanced alongside a rule-level Host override, other filters, or a pool', () => {
+      expect(classifyHttpProxyComplexity(onBackend(hostFilter))).toBe('advanced');
+      expect(
+        classifyHttpProxyComplexity(
+          withRules({
+            backends: [{ endpoint: 'https://a.example.com', filters: [hostFilter, hstsFilter] }],
+          })
+        )
+      ).toBe('advanced');
+      expect(
+        classifyHttpProxyComplexity(
+          withRules({
+            backends: [
+              { endpoint: 'https://a.example.com', filters: [hostFilter] },
+              { endpoint: 'https://b.example.com' },
+            ],
+          })
+        )
+      ).toBe('advanced');
+    });
+  });
+
   it('refuses a rules rebuild without the current proxy', () => {
     expect(() => toUpdateHttpProxyPayload({ hsts: true })).toThrow(/Reload/);
     expect(() =>

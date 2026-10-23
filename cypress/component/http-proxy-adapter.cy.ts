@@ -270,7 +270,7 @@ describe('classifyHttpProxyComplexity', () => {
     expect(classifyHttpProxyComplexity(raw)).to.equal('advanced');
   });
 
-  it('returns advanced when a backend has a backend-level filter', () => {
+  it('returns host-only when the only backend carries the Host override', () => {
     const raw = makeRaw({
       spec: {
         hostnames: [],
@@ -283,6 +283,28 @@ describe('classifyHttpProxyComplexity', () => {
                   { requestHeaderModifier: { set: [{ name: 'Host', value: 'a.internal' }] } },
                 ] as never,
               },
+            ],
+          },
+        ],
+      },
+    });
+    expect(classifyHttpProxyComplexity(raw)).to.equal('host-only');
+  });
+
+  it('returns advanced when a backend in a pool carries the Host override', () => {
+    const raw = makeRaw({
+      spec: {
+        hostnames: [],
+        rules: [
+          {
+            backends: [
+              {
+                endpoint: 'https://api.example.com',
+                filters: [
+                  { requestHeaderModifier: { set: [{ name: 'Host', value: 'a.internal' }] } },
+                ] as never,
+              },
+              { endpoint: 'https://b.example.com' },
             ],
           },
         ],
