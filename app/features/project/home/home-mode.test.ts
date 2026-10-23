@@ -111,6 +111,10 @@ describe('tunnel commands', () => {
   });
 });
 
+it('hides the connect options while datumctl connect is unavailable', () => {
+  expect(GUIDED_STARTS.map((start) => start.key)).not.toContain('machine');
+});
+
 describe('suggestNextSteps', () => {
   const steps = (
     overrides: Partial<Record<SetupStepKey, { status: SetupStepStatus; resourceName?: string }>>
@@ -129,9 +133,9 @@ describe('suggestNextSteps', () => {
         workload: { status: 'done', resourceName: 'orders-api' },
       })
     );
-    expect(result.map((s) => s.tool)).toEqual(['loadBalancer', 'connect', 'deploy']);
+    expect(result.map((s) => s.tool)).toEqual(['loadBalancer', 'deploy', 'domain']);
     expect(result[0].title).toBe('Put orders-api on the internet');
-    expect(result[2].title).toBe('Deploy another workload');
+    expect(result[1].title).toBe('Deploy another workload');
   });
 
   it('suggests a domain once a load balancer exists', () => {
@@ -142,7 +146,7 @@ describe('suggestNextSteps', () => {
     expect(result[1].patchPrompt).toBe('Help me put my own domain on my load balancer edge.');
   });
 
-  it('falls back to connecting and deploying when the public path is complete', () => {
+  it('falls back to deploying when the public path is complete', () => {
     const result = suggestNextSteps(
       steps({
         network: { status: 'done', resourceName: 'prod' },
@@ -151,9 +155,9 @@ describe('suggestNextSteps', () => {
         domain: { status: 'done' },
       })
     );
-    expect(result.map((s) => s.tool)).toEqual(['connect', 'deploy', 'loadBalancer']);
-    expect(result[1].description).toBe('Run a container on prod.');
-    expect(result[2].title).toBe('Add another load balancer');
+    expect(result.map((s) => s.tool)).toEqual(['deploy', 'loadBalancer']);
+    expect(result[0].description).toBe('Run a container on prod.');
+    expect(result[1].title).toBe('Add another load balancer');
   });
 
   it('leads with creating a network when the project has none', () => {
@@ -178,8 +182,8 @@ describe('suggestNextSteps', () => {
     const result = suggestNextSteps(
       steps({ network: { status: 'inProgress', resourceName: 'prod' } })
     );
-    expect(result.map((s) => s.tool)).toEqual(['deploy', 'connect', 'loadBalancer']);
-    expect(result[2].title).toBe('Put a site behind a load balancer');
+    expect(result.map((s) => s.tool)).toEqual(['deploy', 'loadBalancer', 'domain']);
+    expect(result[1].title).toBe('Put a site behind a load balancer');
     expect(result[0].title).toBe('Deploy a workload');
     expect(result[0].description).toBe('Run a container on prod.');
   });
