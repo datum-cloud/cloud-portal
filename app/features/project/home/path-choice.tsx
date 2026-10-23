@@ -1,6 +1,7 @@
 import { CommandBlock } from './command-block';
 import {
   type BuildTool,
+  CONNECT_AVAILABLE,
   CONNECT_PLUGIN_INSTALL,
   GUIDED_STARTS,
   deployCommand,
@@ -45,7 +46,7 @@ const START_ICONS: Record<GuidedStart['key'], LucideIcon> = {
 
 export type { BuildTool } from './home-mode';
 
-const TOOLS: readonly {
+type Tool = {
   key: BuildTool;
   icon: LucideIcon;
   title: string;
@@ -53,7 +54,9 @@ const TOOLS: readonly {
   action: string;
   /** The action is a CLI command, so it reads as code. */
   command?: boolean;
-}[] = [
+};
+
+const ALL_TOOLS: readonly Tool[] = [
   {
     key: 'connect',
     icon: Plug,
@@ -85,6 +88,8 @@ const TOOLS: readonly {
     action: 'Add domain',
   },
 ];
+
+const TOOLS = ALL_TOOLS.filter((tool) => CONNECT_AVAILABLE || tool.key !== 'connect');
 
 /**
  * Screen 2 of first-run setup: the network is ready, so ask how the person
