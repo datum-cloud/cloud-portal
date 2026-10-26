@@ -47,7 +47,7 @@ export function buildHostnameState({
   hostname,
   hostnameStatus,
   inDatumZone,
-  zonesLoaded = false,
+  zonesLoaded,
   proxyName,
   zoneRecords,
 }: {
@@ -56,7 +56,7 @@ export function buildHostnameState({
   /** The hostname sits in one of the project's Datum DNS zones that serves it. */
   inDatumZone: boolean;
   /** The project's DNS zones have loaded, so a hostname outside them is known to be external. */
-  zonesLoaded?: boolean;
+  zonesLoaded: boolean;
   proxyName?: string;
   zoneRecords: ZoneRecords[];
 }): HostnameState {

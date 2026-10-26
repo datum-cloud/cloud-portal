@@ -106,14 +106,14 @@ export function HostnameStatusChips({
               <Icon icon={TriangleAlertIcon} size={11} aria-hidden="true" />
               {state.dnsIssue.label}
             </StatusChip>
-          ) : state.dns === 'programmed' ? (
-            <StatusChip tone="success" tooltip="Datum programmed the DNS record for this hostname">
-              {compact ? 'DNS ready' : 'DNS Ready'}
-            </StatusChip>
-          ) : state.externalRouting?.state === 'Present' ? (
+          ) : state.dns === 'programmed' || state.externalRouting?.state === 'Present' ? (
             <StatusChip
               tone="success"
-              tooltip="Datum sees your DNS record pointing this hostname at the load balancer">
+              tooltip={
+                state.externalRouting
+                  ? 'Datum sees your DNS record pointing this hostname at the load balancer'
+                  : 'Datum programmed the DNS record for this hostname'
+              }>
               {compact ? 'DNS ready' : 'DNS Ready'}
             </StatusChip>
           ) : state.externalRouting ? (
@@ -121,10 +121,10 @@ export function HostnameStatusChips({
             <LinkedChip href={detailsHref}>
               <StatusChip
                 tone="warning"
-                tooltip={`Point this hostname at ${state.externalRouting.content} with a ${state.externalRouting.type} record at your DNS provider.${
+                tooltip={`Add this ${state.externalRouting.type} record at your DNS provider, pointing to ${state.externalRouting.content}.${
                   detailsHref ? ' Click to see the record.' : ''
                 }`}>
-                {compact ? 'DNS' : 'Awaiting DNS'}
+                {compact ? 'Add DNS' : 'Awaiting DNS'}
               </StatusChip>
             </LinkedChip>
           ) : state.dns === 'not-applicable' ? (

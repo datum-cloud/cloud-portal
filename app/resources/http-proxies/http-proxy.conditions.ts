@@ -349,7 +349,7 @@ export const DnsRecordProgrammedReason = {
   Conflict: 'Conflict',
   /** A record for this hostname already exists and is managed by something else */
   ConflictWithUserRecord: 'ConflictWithUserRecord',
-  Failed: 'RecordCreationFailed',
+  RecordCreationFailed: 'RecordCreationFailed',
 } as const;
 
 export type DnsRecordProgrammedReasonType =
@@ -395,7 +395,7 @@ export function isHostnameDnsInFlight(condition: ConditionLike | undefined): boo
     case DnsRecordProgrammedReason.NotApplicable:
     case DnsRecordProgrammedReason.Conflict:
     case DnsRecordProgrammedReason.ConflictWithUserRecord:
-    case DnsRecordProgrammedReason.Failed:
+    case DnsRecordProgrammedReason.RecordCreationFailed:
     case DnsRecordProgrammedReason.DNSAuthorityMissing:
     case DnsRecordProgrammedReason.DomainNotVerified:
       return false;
@@ -436,7 +436,7 @@ export function getDnsRecordProgrammedIssue(
           condition.message ||
           "The DNS zone for this hostname isn't delegated to Datum yet. Point the domain's nameservers at Datum to let it program records.",
       };
-    case DnsRecordProgrammedReason.Failed:
+    case DnsRecordProgrammedReason.RecordCreationFailed:
       return {
         label: 'DNS failed',
         message: formatDnsError(
