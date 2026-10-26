@@ -67,10 +67,27 @@ export type UpdateUserPreferencesInput = {
   country?: string;
 };
 
+// Emails, @handles and links are never names — they leak into member lists and invoices.
+const NOT_A_NAME_PATTERN = /@|:\/\/|^www\./i;
+const HAS_LETTER_PATTERN = /\p{L}/u;
+
+const personNameField = (label: string) =>
+  z
+    .string({ error: `${label} is required.` })
+    .trim()
+    .min(3)
+    .max(50)
+    .refine((value) => !NOT_A_NAME_PATTERN.test(value), {
+      error: `${label} can't be an email address or link.`,
+    })
+    .refine((value) => HAS_LETTER_PATTERN.test(value), {
+      error: `${label} must contain letters.`,
+    });
+
 // Form validation schemas
 export const userSchema = z.object({
-  firstName: z.string({ error: 'First name is required.' }).min(3).max(50),
-  lastName: z.string({ error: 'Last name is required.' }).min(3).max(50),
+  firstName: personNameField('First name'),
+  lastName: personNameField('Last name'),
   email: z.string({ error: 'Email is required.' }).email(),
 });
 
