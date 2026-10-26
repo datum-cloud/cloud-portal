@@ -3,11 +3,13 @@ import {
   getBlockedHostnames,
   isHeldBackByCustomHostnames,
   getCertificateReadyDisplay,
+  getDnsRecordProgrammedDisplay,
   getDnsRecordProgrammedIssue,
   getHttpProxyStatus,
   getHostnameOwnershipDisplay,
   getRecordsToPublish,
   getUserDnsRecords,
+  getUserRoutingRecord,
   isCertificateAwaitingDnsRecord,
   isHostnameDnsInFlight,
   isHostnameOwnershipBlocked,
@@ -24,7 +26,7 @@ describe('getDnsRecordProgrammedIssue', () => {
       getDnsRecordProgrammedIssue({
         type: 'DNSRecordProgrammed',
         status: 'False',
-        reason: 'Failed',
+        reason: 'PDNSError',
         message: WRAPPED_ALIAS,
       })
     ).toEqual({
@@ -45,6 +47,28 @@ describe('getDnsRecordProgrammedIssue', () => {
     expect(issue?.message).toContain('manual record');
   });
 
+  test('reads the operator conflict with a user record as a DNS conflict', () => {
+    expect(
+      getDnsRecordProgrammedIssue({
+        type: 'DNSRecordProgrammed',
+        status: 'False',
+        reason: 'ConflictWithUserRecord',
+        message: '',
+      })?.label
+    ).toBe('DNS conflict');
+  });
+
+  test('says DNS failed when the operator could not create the record', () => {
+    expect(
+      getDnsRecordProgrammedIssue({
+        type: 'DNSRecordProgrammed',
+        status: 'False',
+        reason: 'RecordCreationFailed',
+        message: 'internal error',
+      })?.label
+    ).toBe('DNS failed');
+  });
+
   test('returns undefined while DNS is merely pending with no error', () => {
     expect(
       getDnsRecordProgrammedIssue({
@@ -54,6 +78,34 @@ describe('getDnsRecordProgrammedIssue', () => {
         message: 'Waiting for DNS record to be programmed',
       })
     ).toBeUndefined();
+  });
+});
+
+describe('getDnsRecordProgrammedDisplay', () => {
+  test('NotApplicable is external even though the operator sets it True', () => {
+    expect(
+      getDnsRecordProgrammedDisplay({
+        type: 'DNSRecordProgrammed',
+        status: 'True',
+        reason: 'NotApplicable',
+        message: 'No Domain or DNSZone found for hostname "app.example.com"',
+      })
+    ).toBe('not-applicable');
+  });
+
+  test('a record Datum wrote is programmed', () => {
+    expect(
+      getDnsRecordProgrammedDisplay({
+        type: 'DNSRecordProgrammed',
+        status: 'True',
+        reason: 'RecordCreated',
+        message: '',
+      })
+    ).toBe('programmed');
+  });
+
+  test('with no condition it is pending', () => {
+    expect(getDnsRecordProgrammedDisplay(undefined)).toBe('pending');
   });
 });
 
@@ -73,7 +125,8 @@ describe('isHostnameDnsInFlight', () => {
   test('is false for terminal user-action reasons', () => {
     for (const reason of [
       'Conflict',
-      'Failed',
+      'ConflictWithUserRecord',
+      'RecordCreationFailed',
       'DNSAuthorityMissing',
       'NotApplicable',
       'DomainNotVerified',
@@ -226,6 +279,19 @@ describe('records to publish', () => {
       getUserDnsRecords(status, { inDatumZone: true }).map((record) => record.purpose)
     ).toEqual(['Certificate']);
     expect(getRecordsToPublish(status, { inDatumZone: true })).toHaveLength(1);
+  });
+
+  test('the routing record is the user one pointing at the ALB', () => {
+    expect(getUserRoutingRecord(status)?.content).toBe('ruth-fourth-hrkgk.datumproxy.net');
+  });
+
+  test('a routing record Datum publishes is not the user one', () => {
+    expect(
+      getUserRoutingRecord({
+        hostname: 'app.example.com',
+        dnsRecords: [{ ...status.dnsRecords[0], managedBy: 'Platform' }],
+      })
+    ).toBeUndefined();
   });
 
   test('a hostname without dnsRecords needs nothing', () => {

@@ -110,6 +110,23 @@ export function HostnameStatusChips({
             <StatusChip tone="success" tooltip="Datum programmed the DNS record for this hostname">
               {compact ? 'DNS ready' : 'DNS Ready'}
             </StatusChip>
+          ) : state.externalRouting?.state === 'Present' ? (
+            <StatusChip
+              tone="success"
+              tooltip="Datum sees your DNS record pointing this hostname at the load balancer">
+              {compact ? 'DNS ready' : 'DNS Ready'}
+            </StatusChip>
+          ) : state.externalRouting ? (
+            // Waiting on the user, not Datum, so it doesn't spin.
+            <LinkedChip href={detailsHref}>
+              <StatusChip
+                tone="warning"
+                tooltip={`Point this hostname at ${state.externalRouting.content} with a ${state.externalRouting.type} record at your DNS provider.${
+                  detailsHref ? ' Click to see the record.' : ''
+                }`}>
+                {compact ? 'DNS' : 'Awaiting DNS'}
+              </StatusChip>
+            </LinkedChip>
           ) : state.dns === 'not-applicable' ? (
             <StatusChip
               tone="muted"

@@ -126,6 +126,52 @@ describe('isHttpProxyProvisioning', () => {
     ).toBe(true);
   });
 
+  test('is false for a hostname whose DNS the user runs, once its certificate is ready', () => {
+    const routing = (state: 'Present' | 'Missing') => ({
+      name: 'app.example.com',
+      type: 'CNAME' as const,
+      content: 'alb.datumproxy.net',
+      purpose: 'Routing' as const,
+      managedBy: 'User' as const,
+      state,
+    });
+    for (const state of ['Present', 'Missing'] as const) {
+      expect(
+        isHttpProxyProvisioning(
+          proxy({
+            hostnames: ['app.example.com'],
+            hostnameStatuses: [
+              {
+                hostname: 'app.example.com',
+                // No DNSRecordProgrammed: the operator only reports it once Datum writes a record.
+                conditions: [
+                  {
+                    type: 'Available',
+                    status: 'True',
+                    reason: 'Claimed',
+                    message: '',
+                    lastTransitionTime: '2026-01-01T00:00:00Z',
+                  },
+                  {
+                    type: 'CertificateReady',
+                    status: 'True',
+                    reason: 'Ready',
+                    message: '',
+                    lastTransitionTime: '2026-01-01T00:00:00Z',
+                  },
+                ],
+                dnsRecords: [routing(state)],
+              },
+            ],
+            status: {
+              conditions: [{ type: 'Ready', status: 'True', reason: 'Ready', message: '' }],
+            },
+          })
+        )
+      ).toBe(false);
+    }
+  });
+
   test('is false when DNS is conflicted — that only moves after a user action', () => {
     expect(
       isHttpProxyProvisioning(
