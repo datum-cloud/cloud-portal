@@ -69,27 +69,37 @@ export type UpdateUserPreferencesInput = {
 
 // Emails, @handles and links are never names — they leak into member lists and invoices.
 const NOT_A_NAME_PATTERN = /@|:\/\/|^www\./i;
-const HAS_LETTER_PATTERN = /\p{L}/u;
+// A letter in any script, then letters, combining marks, spaces, hyphens, apostrophes or
+// periods. Keep in sync with milo's userNameNeedsReview: a name this accepts must not be
+// flagged for review there, or the user is redirected back to the profile screen forever.
+const PERSON_NAME_PATTERN = /^\p{L}[\p{L}\p{M} .'’-]*$/u;
 
 const personNameField = (label: string) =>
   z
     .string({ error: `${label} is required.` })
     .trim()
-    .min(3)
+    .min(1, { error: `${label} is required.` })
     .max(50)
     .refine((value) => !NOT_A_NAME_PATTERN.test(value), {
       error: `${label} can't be an email address or link.`,
+      abort: true,
     })
-    .refine((value) => HAS_LETTER_PATTERN.test(value), {
-      error: `${label} must contain letters.`,
+    .refine((value) => PERSON_NAME_PATTERN.test(value), {
+      error: `${label} can only contain letters, spaces, hyphens, apostrophes and periods.`,
     });
 
 // Form validation schemas
-export const userSchema = z.object({
-  firstName: personNameField('First name'),
-  lastName: personNameField('Last name'),
-  email: z.string({ error: 'Email is required.' }).email(),
-});
+export const userSchema = z
+  .object({
+    firstName: personNameField('First name'),
+    lastName: personNameField('Last name'),
+    email: z.string({ error: 'Email is required.' }).email(),
+  })
+  // milo flags identical names for review, so saving one would loop back to this form.
+  .refine((data) => data.firstName.toLowerCase() !== data.lastName.toLowerCase(), {
+    error: 'First and last name must be different.',
+    path: ['lastName'],
+  });
 
 export const userPreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
