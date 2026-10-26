@@ -119,10 +119,14 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
       ),
     [customHostnames, proxy.hostnameStatuses]
   );
-  const { matchedZones, zoneRecords } = useProxyZoneRecords(projectId, customHostnames, {
-    refetchInterval: () =>
-      dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
-  });
+  const { zonesLoaded, matchedZones, zoneRecords } = useProxyZoneRecords(
+    projectId,
+    customHostnames,
+    {
+      refetchInterval: () =>
+        dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
+    }
+  );
 
   const hostnames = useMemo(() => {
     const statuses = proxy.hostnameStatuses ?? [];
@@ -133,11 +137,12 @@ export function HttpProxyEndpointsCard({ proxy, projectId }: HttpProxyEndpointsC
         hostname,
         hostnameStatus,
         inDatumZone: !!findZoneForHostname(matchedZones, hostname) && dns !== 'not-applicable',
+        zonesLoaded,
         proxyName: proxy.name,
         zoneRecords,
       });
     });
-  }, [customHostnames, proxy.hostnameStatuses, proxy.name, zoneRecords, matchedZones]);
+  }, [customHostnames, proxy.hostnameStatuses, proxy.name, zoneRecords, matchedZones, zonesLoaded]);
 
   pollZoneRecords.current = hostnames.some(
     (item) => item.dns === 'pending' && !item.dnsIssue && !item.blocked

@@ -11,6 +11,7 @@ import {
   getDnsRecordProgrammedDisplay,
   getHostnameOwnershipDisplay,
   getUserDnsRecords,
+  getUserRoutingRecord,
   isCertificateAwaitingDnsRecord,
   isHostnameOwnershipBlocked,
 } from '@/resources/http-proxies';
@@ -28,6 +29,8 @@ export type HostnameState = {
   dnsMessage?: string;
   /** Set when Datum can't program the record until the user fixes something. */
   dnsIssue?: { label: string; message: string };
+  /** The record pointing the hostname at the ALB, when the user runs its DNS outside Datum. */
+  externalRouting?: HostnameDnsRecordLike;
   cert: ReturnType<typeof getCertificateReadyDisplay>;
   certMessage?: string;
   /** The certificate is serving, so a missing Certificate record only matters for renewal. */
@@ -44,6 +47,7 @@ export function buildHostnameState({
   hostname,
   hostnameStatus,
   inDatumZone,
+  zonesLoaded,
   proxyName,
   zoneRecords,
 }: {
@@ -51,12 +55,20 @@ export function buildHostnameState({
   hostnameStatus: HostnameStatusLike | undefined;
   /** The hostname sits in one of the project's Datum DNS zones that serves it. */
   inDatumZone: boolean;
+  /** The project's DNS zones have loaded, so a hostname outside them is known to be external. */
+  zonesLoaded: boolean;
   proxyName?: string;
   zoneRecords: ZoneRecords[];
 }): HostnameState {
   const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
   const certCondition = getCertificateReadyCondition(hostnameStatus);
-  const dns = getDnsRecordProgrammedDisplay(dnsCondition);
+  // The operator only reports DNS for a hostname once Datum writes a record for
+  // it (network-services-operator#489), so one whose DNS runs elsewhere has no
+  // condition. Outside every Datum zone, that means external, not pending.
+  const dns: HostnameState['dns'] =
+    !dnsCondition && zonesLoaded && !inDatumZone
+      ? 'not-applicable'
+      : getDnsRecordProgrammedDisplay(dnsCondition);
   const cert = getCertificateReadyDisplay(certCondition);
   const ownership = getHostnameOwnershipDisplay(hostnameStatus);
 
@@ -73,6 +85,7 @@ export function buildHostnameState({
       proxyName,
       zoneRecords,
     }),
+    externalRouting: dns === 'not-applicable' ? getUserRoutingRecord(hostnameStatus) : undefined,
     cert,
     certMessage: certCondition?.message,
     certificateIssued: cert === 'ready' || cert === 'renewal-failing',

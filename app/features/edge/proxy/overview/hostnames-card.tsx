@@ -149,10 +149,14 @@ export const HttpProxyHostnamesCard = ({
     [customHostnames, proxy?.hostnameStatuses]
   );
 
-  const { zones, matchedZones, zoneRecords } = useProxyZoneRecords(projectId, customHostnames, {
-    refetchInterval: () =>
-      dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
-  });
+  const { zones, zonesLoaded, matchedZones, zoneRecords } = useProxyZoneRecords(
+    projectId,
+    customHostnames,
+    {
+      refetchInterval: () =>
+        dnsInFlight && pollZoneRecords.current ? HTTP_PROXY_PROVISIONING_POLL_MS : false,
+    }
+  );
 
   const { data: domains = [] } = useDomains(projectId ?? '', {
     enabled: !!projectId && customHostnames.length > 0,
@@ -179,6 +183,7 @@ export const HttpProxyHostnamesCard = ({
           hostname,
           hostnameStatus,
           inDatumZone,
+          zonesLoaded,
           proxyName: proxy?.name,
           zoneRecords,
         }),
@@ -217,6 +222,7 @@ export const HttpProxyHostnamesCard = ({
     proxy?.name,
     zones,
     zoneRecords,
+    zonesLoaded,
     projectId,
     domains,
   ]);

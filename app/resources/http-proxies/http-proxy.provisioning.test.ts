@@ -126,6 +126,99 @@ describe('isHttpProxyProvisioning', () => {
     ).toBe(true);
   });
 
+  test('is false for a hostname whose DNS the user runs, once its certificate is ready', () => {
+    const routing = (state: 'Present' | 'Missing') => ({
+      name: 'app.example.com',
+      type: 'CNAME' as const,
+      content: 'alb.datumproxy.net',
+      purpose: 'Routing' as const,
+      managedBy: 'User' as const,
+      state,
+    });
+    for (const state of ['Present', 'Missing'] as const) {
+      expect(
+        isHttpProxyProvisioning(
+          proxy({
+            hostnames: ['app.example.com'],
+            hostnameStatuses: [
+              {
+                hostname: 'app.example.com',
+                // No DNSRecordProgrammed: the operator only reports it once Datum writes a record.
+                conditions: [
+                  {
+                    type: 'Available',
+                    status: 'True',
+                    reason: 'Claimed',
+                    message: '',
+                    lastTransitionTime: '2026-01-01T00:00:00Z',
+                  },
+                  {
+                    type: 'CertificateReady',
+                    status: 'True',
+                    reason: 'Ready',
+                    message: '',
+                    lastTransitionTime: '2026-01-01T00:00:00Z',
+                  },
+                ],
+                dnsRecords: [routing(state)],
+              },
+            ],
+            status: {
+              conditions: [{ type: 'Ready', status: 'True', reason: 'Ready', message: '' }],
+            },
+          })
+        )
+      ).toBe(false);
+    }
+  });
+
+  test('leaves a Datum-zone hostname awaiting its record to the watch stream', () => {
+    const cond = (type: string, status: 'True' | 'False', reason: string) => ({
+      type,
+      status,
+      reason,
+      message: '',
+      lastTransitionTime: '2026-01-01T00:00:00Z',
+    });
+    const status = (
+      dnsRecords: NonNullable<NonNullable<HttpProxy['hostnameStatuses']>[number]['dnsRecords']>
+    ) =>
+      proxy({
+        hostnames: ['app.example.com'],
+        hostnameStatuses: [
+          {
+            hostname: 'app.example.com',
+            conditions: [
+              cond('Available', 'True', 'Claimed'),
+              cond('CertificateReady', 'True', 'Ready'),
+            ],
+            dnsRecords,
+          },
+        ],
+        status: { conditions: [cond('Ready', 'True', 'Ready')] },
+      });
+
+    // Until Datum writes the record, the operator lists routing as the user's,
+    // which reads the same as external DNS. Skipping the poll is deliberate:
+    // the watch stream brings the record in.
+    expect(
+      isHttpProxyProvisioning(
+        status([
+          {
+            name: 'app.example.com',
+            type: 'ALIAS',
+            content: 'alb.datumproxy.net',
+            purpose: 'Routing',
+            managedBy: 'User',
+            state: 'Missing',
+          },
+        ])
+      )
+    ).toBe(false);
+    // With no routing record to go on, a missing DNS condition still polls.
+    expect(isHttpProxyProvisioning(status([]))).toBe(true);
+  });
+
   test('is false when DNS is conflicted — that only moves after a user action', () => {
     expect(
       isHttpProxyProvisioning(

@@ -327,17 +327,29 @@ export function getRecordsToPublish(
   return getUserDnsRecords(hostnameStatus, options).filter((record) => record.state === 'Missing');
 }
 
+/**
+ * The record that points the hostname at the ALB, when the user publishes it
+ * rather than Datum. Its state is what Datum sees in public DNS.
+ */
+export function getUserRoutingRecord(
+  hostnameStatus: HostnameStatusLike | null | undefined
+): HostnameDnsRecordLike | undefined {
+  return getUserDnsRecords(hostnameStatus).find((record) => record.purpose === 'Routing');
+}
+
 /** Per-hostname condition: whether Datum DNS has programmed a record for this hostname */
 export const HOSTNAME_CONDITION_DNS_RECORD_PROGRAMMED = 'DNSRecordProgrammed';
 
 export const DnsRecordProgrammedReason = {
-  /** Hostname is not served by a Datum DNS zone, so no record is ever created for it */
+  /** Hostname is not served by a Datum DNS zone, so no record is ever created for it. Set with status True. */
   NotApplicable: 'NotApplicable',
   DomainNotVerified: 'DomainNotVerified',
   DNSAuthorityMissing: 'DNSAuthorityMissing',
-  /** A record for this hostname already exists and is managed by something else */
+  /** DNS refused the record because another record holds the name (copied from the DNSRecordSet) */
   Conflict: 'Conflict',
-  Failed: 'Failed',
+  /** A record for this hostname already exists and is managed by something else */
+  ConflictWithUserRecord: 'ConflictWithUserRecord',
+  RecordCreationFailed: 'RecordCreationFailed',
 } as const;
 
 export type DnsRecordProgrammedReasonType =
@@ -365,8 +377,9 @@ export function getDnsRecordProgrammedCondition(
 export function getDnsRecordProgrammedDisplay(
   condition: ConditionLike | undefined
 ): 'programmed' | 'not-applicable' | 'pending' {
-  if (condition?.status === 'True') return 'programmed';
+  // NotApplicable comes with status True, so check it first.
   if (condition?.reason === DnsRecordProgrammedReason.NotApplicable) return 'not-applicable';
+  if (condition?.status === 'True') return 'programmed';
   return 'pending';
 }
 
@@ -381,7 +394,8 @@ export function isHostnameDnsInFlight(condition: ConditionLike | undefined): boo
   switch (condition.reason) {
     case DnsRecordProgrammedReason.NotApplicable:
     case DnsRecordProgrammedReason.Conflict:
-    case DnsRecordProgrammedReason.Failed:
+    case DnsRecordProgrammedReason.ConflictWithUserRecord:
+    case DnsRecordProgrammedReason.RecordCreationFailed:
     case DnsRecordProgrammedReason.DNSAuthorityMissing:
     case DnsRecordProgrammedReason.DomainNotVerified:
       return false;
@@ -403,7 +417,11 @@ export function getDnsRecordProgrammedIssue(
   if (!condition || condition.status === 'True') return undefined;
 
   const rrsetConflict = parseDnsRrsetConflict(condition.message ?? '');
-  if (condition.reason === DnsRecordProgrammedReason.Conflict || rrsetConflict) {
+  if (
+    condition.reason === DnsRecordProgrammedReason.Conflict ||
+    condition.reason === DnsRecordProgrammedReason.ConflictWithUserRecord ||
+    rrsetConflict
+  ) {
     return {
       label: 'DNS conflict',
       message: formatAlbHostnameDnsConflict(condition.message),
@@ -418,7 +436,7 @@ export function getDnsRecordProgrammedIssue(
           condition.message ||
           "The DNS zone for this hostname isn't delegated to Datum yet. Point the domain's nameservers at Datum to let it program records.",
       };
-    case DnsRecordProgrammedReason.Failed:
+    case DnsRecordProgrammedReason.RecordCreationFailed:
       return {
         label: 'DNS failed',
         message: formatDnsError(

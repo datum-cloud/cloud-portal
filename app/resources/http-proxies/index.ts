@@ -159,6 +159,7 @@ export {
   getUserDnsRecords,
   getRecordsToPublish,
   getActionableRecordsToPublish,
+  getUserRoutingRecord,
   getHttpProxyStatus,
 } from './http-proxy.conditions';
 export type {
