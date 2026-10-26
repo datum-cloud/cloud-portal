@@ -331,6 +331,7 @@ export type {
   IoK8sApimachineryPkgApisMetaV1OwnerReference,
   IoK8sApimachineryPkgApisMetaV1Patch,
   IoK8sApimachineryPkgApisMetaV1Preconditions,
+  IoK8sApimachineryPkgApisMetaV1ShardInfo,
   IoK8sApimachineryPkgApisMetaV1Status,
   IoK8sApimachineryPkgApisMetaV1StatusCause,
   IoK8sApimachineryPkgApisMetaV1StatusDetails,

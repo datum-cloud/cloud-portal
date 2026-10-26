@@ -354,7 +354,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountBindingSchema = {
@@ -516,7 +515,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountBindingSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountBindingListSchema = {
@@ -559,7 +557,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountBindingListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
@@ -602,7 +599,6 @@ export const com_miloapis_billing_v1alpha1_BillingAccountListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingArrangementSchema = {
@@ -833,7 +829,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingArrangementApplicationSchema = {
@@ -1104,7 +1099,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementApplicationSchema =
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingArrangementApplicationListSchema = {
@@ -1147,7 +1141,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementApplicationListSche
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingArrangementDeclineSchema = {
@@ -1222,7 +1215,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementDeclineSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingArrangementDeclineListSchema = {
@@ -1265,7 +1257,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementDeclineListSchema =
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingArrangementListSchema = {
@@ -1308,7 +1299,6 @@ export const com_miloapis_billing_v1alpha1_BillingArrangementListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingEntitlementSchema = {
@@ -1442,7 +1432,6 @@ export const com_miloapis_billing_v1alpha1_BillingEntitlementSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_BillingEntitlementListSchema = {
@@ -1485,7 +1474,6 @@ export const com_miloapis_billing_v1alpha1_BillingEntitlementListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
@@ -1684,7 +1672,6 @@ export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_InvoiceListSchema = {
@@ -1727,7 +1714,6 @@ export const com_miloapis_billing_v1alpha1_InvoiceListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MeterDefinitionSchema = {
@@ -1970,7 +1956,6 @@ export const com_miloapis_billing_v1alpha1_MeterDefinitionSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MeterDefinitionListSchema = {
@@ -2013,7 +1998,6 @@ export const com_miloapis_billing_v1alpha1_MeterDefinitionListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeSchema = {
@@ -2247,7 +2231,6 @@ export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeListSchema = {
@@ -2290,7 +2273,6 @@ export const com_miloapis_billing_v1alpha1_MonitoredResourceTypeListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_OfferSchema = {
@@ -2335,6 +2317,21 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
           },
           'x-kubernetes-list-type': 'set',
         },
+        discount: {
+          description:
+            'Discount specifies an optional default discount applied to all\nservices in this Offer that do not specify their own discount override.',
+          type: 'object',
+          required: ['percentage'],
+          properties: {
+            percentage: {
+              description: 'Percentage is a whole number from 0 to 100.',
+              type: 'integer',
+              format: 'int32',
+              maximum: 100,
+              minimum: 0,
+            },
+          },
+        },
         launchStage: {
           description:
             'LaunchStage is the Offer lifecycle stage. Draft Offers are mutable\nand not assignable; GA Offers are published and immutable except for\nthe display-name annotation.',
@@ -2359,6 +2356,21 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
             type: 'object',
             required: ['name'],
             properties: {
+              discount: {
+                description:
+                  'Discount specifies an optional discount override for this service pricing.',
+                type: 'object',
+                required: ['percentage'],
+                properties: {
+                  percentage: {
+                    description: 'Percentage is a whole number from 0 to 100.',
+                    type: 'integer',
+                    format: 'int32',
+                    maximum: 100,
+                    minimum: 0,
+                  },
+                },
+              },
               name: {
                 description: 'Name is the metadata.name of the ServicePricing.',
                 type: 'string',
@@ -2386,6 +2398,21 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
             type: 'object',
             required: ['name', 'spec'],
             properties: {
+              discount: {
+                description:
+                  'Discount is the resolved discount for this service pricing snapshot,\ncaptured when the Offer becomes GA.',
+                type: 'object',
+                required: ['percentage'],
+                properties: {
+                  percentage: {
+                    description: 'Percentage is a whole number from 0 to 100.',
+                    type: 'integer',
+                    format: 'int32',
+                    maximum: 100,
+                    minimum: 0,
+                  },
+                },
+              },
               name: {
                 description: 'Name is the metadata.name of the source ServicePricing.',
                 type: 'string',
@@ -2427,7 +2454,7 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
                   },
                   metric: {
                     description:
-                      'Metric is the full metric name for Usage charges (e.g.\n"compute.datumapis.com/instance/cpu-allocated"). Required when\nchargeType is Usage.',
+                      'Metric is the meterName of the MeterDefinition a Usage pricing\nselects (e.g. "compute.datumapis.com/instance/cpu-allocated").\nRequired when chargeType is Usage. The meter must exist and not be\nRetired, and serviceRef must name the service that owns it.',
                     type: 'string',
                     maxLength: 253,
                   },
@@ -2652,7 +2679,6 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_OfferListSchema = {
@@ -2695,7 +2721,6 @@ export const com_miloapis_billing_v1alpha1_OfferListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodSchema = {
@@ -2975,7 +3000,6 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodClassSchema = {
@@ -3114,7 +3138,6 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodClassSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodClassListSchema = {
@@ -3157,7 +3180,6 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodClassListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_PaymentMethodListSchema = {
@@ -3200,12 +3222,11 @@ export const com_miloapis_billing_v1alpha1_PaymentMethodListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
   description:
-    'ServicePricing is the Schema for the servicepricings API. One resource\nper priced metric or fixed charge, emitted by service-catalog into\nmilo-system.',
+    'ServicePricing is the Schema for the servicepricings API. One resource\nper price: a rate for one meter, or a fixed charge. Kept in GitOps and\napplied to milo-system.',
   type: 'object',
   properties: {
     apiVersion: {
@@ -3229,7 +3250,7 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
     },
     spec: {
       description:
-        'ServicePricingSpec defines the desired state of a ServicePricing.\n\nServicePricing resources are emitted by service-catalog fan-out\ncontrollers (PricingFanOut / ChargeFanOut) and must not be authored by\nhand. Providers watch this single shape — distinguished by chargeType —\nrather than parsing ServiceConfiguration.',
+        "ServicePricingSpec defines the desired state of a ServicePricing.\n\nA ServicePricing is a price the platform sets, authored as a manifest\nnext to the service's meters. A Usage pricing selects one meter by name;\nany number of pricings may select the same meter, and each Offer picks the\none it bills. OneTime and Recurring pricings name a service and carry a\nfixed amount. Providers read the Offer's snapshot of this shape,\ndistinguished by chargeType.\n\nThe spec is immutable: a new price is a new ServicePricing.",
       type: 'object',
       required: ['chargeType', 'currency', 'serviceRef'],
       properties: {
@@ -3261,7 +3282,7 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
         },
         metric: {
           description:
-            'Metric is the full metric name for Usage charges (e.g.\n"compute.datumapis.com/instance/cpu-allocated"). Required when\nchargeType is Usage.',
+            'Metric is the meterName of the MeterDefinition a Usage pricing\nselects (e.g. "compute.datumapis.com/instance/cpu-allocated").\nRequired when chargeType is Usage. The meter must exist and not be\nRetired, and serviceRef must name the service that owns it.',
           type: 'string',
           maxLength: 253,
         },
@@ -3381,6 +3402,10 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
       },
       'x-kubernetes-validations': [
         {
+          rule: 'self == oldSelf',
+          message: 'spec is immutable; create a new ServicePricing for a new price',
+        },
+        {
           rule: "self.chargeType != 'Usage' || (has(self.metric) && has(self.pricingUnit) && has(self.rates))",
           message: 'Usage ServicePricing requires metric, pricingUnit, and rates',
         },
@@ -3472,7 +3497,6 @@ export const com_miloapis_billing_v1alpha1_ServicePricingSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const com_miloapis_billing_v1alpha1_ServicePricingListSchema = {
@@ -3515,7 +3539,6 @@ export const com_miloapis_billing_v1alpha1_ServicePricingListSchema = {
       version: 'v1alpha1',
     },
   ],
-  'x-kubernetes-selectable-fields': [],
 } as const;
 
 export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
@@ -3533,7 +3556,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       type: 'array',
       items: {
         type: 'string',
-        default: '',
       },
       'x-kubernetes-list-type': 'atomic',
     },
@@ -3542,6 +3564,11 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
         'The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.',
       type: 'integer',
       format: 'int64',
+    },
+    ignoreStoreReadErrorWithClusterBreakingPotential: {
+      description:
+        'if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it',
+      type: 'boolean',
     },
     kind: {
       description:
@@ -3640,16 +3667,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       version: 'v2',
     },
     {
-      group: 'autoscaling',
-      kind: 'DeleteOptions',
-      version: 'v2beta1',
-    },
-    {
-      group: 'autoscaling',
-      kind: 'DeleteOptions',
-      version: 'v2beta2',
-    },
-    {
       group: 'batch',
       kind: 'DeleteOptions',
       version: 'v1',
@@ -3682,7 +3699,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'coordination.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1alpha2',
     },
     {
       group: 'coordination.k8s.io',
@@ -3740,14 +3757,14 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
       version: 'v1alpha1',
     },
     {
-      group: 'networking.k8s.io',
+      group: 'lifecycle.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1',
+      version: 'v1alpha1',
     },
     {
       group: 'networking.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1',
     },
     {
       group: 'networking.k8s.io',
@@ -3797,7 +3814,22 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'resource.k8s.io',
       kind: 'DeleteOptions',
+      version: 'v1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
       version: 'v1alpha3',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta1',
+    },
+    {
+      group: 'resource.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta2',
     },
     {
       group: 'scheduling.k8s.io',
@@ -3807,7 +3839,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'scheduling.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1alpha3',
     },
     {
       group: 'scheduling.k8s.io',
@@ -3832,7 +3864,12 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_DeleteOptionsSchema = {
     {
       group: 'storagemigration.k8s.io',
       kind: 'DeleteOptions',
-      version: 'v1alpha1',
+      version: 'v1',
+    },
+    {
+      group: 'storagemigration.k8s.io',
+      kind: 'DeleteOptions',
+      version: 'v1beta1',
     },
   ],
 } as const;
@@ -3868,6 +3905,15 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ListMetaSchema = {
       description:
         'Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.',
       type: 'string',
+    },
+    shardInfo: {
+      description:
+        'shardInfo is set when the list is a filtered subset of the full collection, as selected by a shard selector on the request. It echoes back the selector so clients can verify which shard they received and merge sharded responses. Clients should not cache sharded list responses as a full representation of the collection.\n\nThis is an alpha field and requires enabling the ShardedListAndWatch feature gate.',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ShardInfo',
+        },
+      ],
     },
   },
 } as const;
@@ -3933,7 +3979,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
       type: 'object',
       additionalProperties: {
         type: 'string',
-        default: '',
       },
     },
     creationTimestamp: {
@@ -3966,7 +4011,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
       type: 'array',
       items: {
         type: 'string',
-        default: '',
       },
       'x-kubernetes-list-type': 'set',
       'x-kubernetes-patch-strategy': 'merge',
@@ -3988,7 +4032,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
       type: 'object',
       additionalProperties: {
         type: 'string',
-        default: '',
       },
     },
     managedFields: {
@@ -3996,12 +4039,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
         "ManagedFields maps workflow-id and version to the set of fields that are managed by that workflow. This is mostly for internal housekeeping, and users typically shouldn't need to set or understand this field. A workflow can be the user's name, a controller's name, or the name of a specific apply path like \"ci-cd\". The set of fields is always in the version that the workflow used when modifying the object.",
       type: 'array',
       items: {
-        default: {},
-        allOf: [
-          {
-            $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ManagedFieldsEntry',
-          },
-        ],
+        $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ManagedFieldsEntry',
       },
       'x-kubernetes-list-type': 'atomic',
     },
@@ -4020,12 +4058,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_ObjectMetaSchema = {
         'List of objects depended by this object. If ALL objects in the list have been deleted, this object will be garbage collected. If this object is managed by a controller, then an entry in this list will point to this controller, with the controller field set to true. There cannot be more than one managing controller.',
       type: 'array',
       items: {
-        default: {},
-        allOf: [
-          {
-            $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.OwnerReference',
-          },
-        ],
+        $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.OwnerReference',
       },
       'x-kubernetes-list-map-keys': ['uid'],
       'x-kubernetes-list-type': 'map',
@@ -4114,6 +4147,21 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_PreconditionsSchema = {
   },
 } as const;
 
+export const io_k8s_apimachinery_pkg_apis_meta_v1_ShardInfoSchema = {
+  description:
+    'ShardInfo describes the shard selector that was applied to produce a list response. Its presence on a list response indicates the list is a filtered subset.',
+  type: 'object',
+  required: ['selector'],
+  properties: {
+    selector: {
+      description:
+        'selector is the shard selector string from the request, echoed back so clients can verify which shard they received and merge responses from multiple shards.',
+      type: 'string',
+      default: '',
+    },
+  },
+} as const;
+
 export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
   description: "Status is a return value for calls that don't return other objects.",
   type: 'object',
@@ -4136,7 +4184,6 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusSchema = {
           $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusDetails',
         },
       ],
-      'x-kubernetes-list-type': 'atomic',
     },
     kind: {
       description:
@@ -4210,12 +4257,7 @@ export const io_k8s_apimachinery_pkg_apis_meta_v1_StatusDetailsSchema = {
         'The Causes array includes more details associated with the StatusReason failure. Not all StatusReasons may provide detailed causes.',
       type: 'array',
       items: {
-        default: {},
-        allOf: [
-          {
-            $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusCause',
-          },
-        ],
+        $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.StatusCause',
       },
       'x-kubernetes-list-type': 'atomic',
     },

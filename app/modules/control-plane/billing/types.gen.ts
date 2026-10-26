@@ -1601,6 +1601,16 @@ export type ComMiloapisBillingV1Alpha1Offer = {
      */
     chargeTypes: Array<'Usage' | 'OneTime' | 'Recurring'>;
     /**
+     * Discount specifies an optional default discount applied to all
+     * services in this Offer that do not specify their own discount override.
+     */
+    discount?: {
+      /**
+       * Percentage is a whole number from 0 to 100.
+       */
+      percentage: number;
+    };
+    /**
      * LaunchStage is the Offer lifecycle stage. Draft Offers are mutable
      * and not assignable; GA Offers are published and immutable except for
      * the display-name annotation.
@@ -1612,6 +1622,15 @@ export type ComMiloapisBillingV1Alpha1Offer = {
      * rating uses servicePricings only.
      */
     servicePricingRefs?: Array<{
+      /**
+       * Discount specifies an optional discount override for this service pricing.
+       */
+      discount?: {
+        /**
+         * Percentage is a whole number from 0 to 100.
+         */
+        percentage: number;
+      };
       /**
        * Name is the metadata.name of the ServicePricing.
        */
@@ -1628,6 +1647,16 @@ export type ComMiloapisBillingV1Alpha1Offer = {
      * first becomes GA. Empty while Draft.
      */
     servicePricings?: Array<{
+      /**
+       * Discount is the resolved discount for this service pricing snapshot,
+       * captured when the Offer becomes GA.
+       */
+      discount?: {
+        /**
+         * Percentage is a whole number from 0 to 100.
+         */
+        percentage: number;
+      };
       /**
        * Name is the metadata.name of the source ServicePricing.
        */
@@ -1658,9 +1687,10 @@ export type ComMiloapisBillingV1Alpha1Offer = {
          */
         interval?: 'monthly';
         /**
-         * Metric is the full metric name for Usage charges (e.g.
-         * "compute.datumapis.com/instance/cpu-allocated"). Required when
-         * chargeType is Usage.
+         * Metric is the meterName of the MeterDefinition a Usage pricing
+         * selects (e.g. "compute.datumapis.com/instance/cpu-allocated").
+         * Required when chargeType is Usage. The meter must exist and not be
+         * Retired, and serviceRef must name the service that owns it.
          */
         metric?: string;
         /**
@@ -2211,8 +2241,8 @@ export type ComMiloapisBillingV1Alpha1PaymentMethodList = {
 
 /**
  * ServicePricing is the Schema for the servicepricings API. One resource
- * per priced metric or fixed charge, emitted by service-catalog into
- * milo-system.
+ * per price: a rate for one meter, or a fixed charge. Kept in GitOps and
+ * applied to milo-system.
  */
 export type ComMiloapisBillingV1Alpha1ServicePricing = {
   /**
@@ -2230,10 +2260,14 @@ export type ComMiloapisBillingV1Alpha1ServicePricing = {
   /**
    * ServicePricingSpec defines the desired state of a ServicePricing.
    *
-   * ServicePricing resources are emitted by service-catalog fan-out
-   * controllers (PricingFanOut / ChargeFanOut) and must not be authored by
-   * hand. Providers watch this single shape — distinguished by chargeType —
-   * rather than parsing ServiceConfiguration.
+   * A ServicePricing is a price the platform sets, authored as a manifest
+   * next to the service's meters. A Usage pricing selects one meter by name;
+   * any number of pricings may select the same meter, and each Offer picks the
+   * one it bills. OneTime and Recurring pricings name a service and carry a
+   * fixed amount. Providers read the Offer's snapshot of this shape,
+   * distinguished by chargeType.
+   *
+   * The spec is immutable: a new price is a new ServicePricing.
    */
   spec?: {
     /**
@@ -2258,9 +2292,10 @@ export type ComMiloapisBillingV1Alpha1ServicePricing = {
      */
     interval?: 'monthly';
     /**
-     * Metric is the full metric name for Usage charges (e.g.
-     * "compute.datumapis.com/instance/cpu-allocated"). Required when
-     * chargeType is Usage.
+     * Metric is the meterName of the MeterDefinition a Usage pricing
+     * selects (e.g. "compute.datumapis.com/instance/cpu-allocated").
+     * Required when chargeType is Usage. The meter must exist and not be
+     * Retired, and serviceRef must name the service that owns it.
      */
     metric?: string;
     /**
@@ -2430,6 +2465,10 @@ export type IoK8sApimachineryPkgApisMetaV1DeleteOptions = {
    */
   gracePeriodSeconds?: number;
   /**
+   * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+   */
+  ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
+  /**
    * Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
    */
   kind?: string;
@@ -2478,6 +2517,12 @@ export type IoK8sApimachineryPkgApisMetaV1ListMeta = {
    * Deprecated: selfLink is a legacy read-only field that is no longer populated by the system.
    */
   selfLink?: string;
+  /**
+   * shardInfo is set when the list is a filtered subset of the full collection, as selected by a shard selector on the request. It echoes back the selector so clients can verify which shard they received and merge sharded responses. Clients should not cache sharded list responses as a full representation of the collection.
+   *
+   * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+   */
+  shardInfo?: IoK8sApimachineryPkgApisMetaV1ShardInfo;
 };
 
 /**
@@ -2650,6 +2695,16 @@ export type IoK8sApimachineryPkgApisMetaV1Preconditions = {
 };
 
 /**
+ * ShardInfo describes the shard selector that was applied to produce a list response. Its presence on a list response indicates the list is a filtered subset.
+ */
+export type IoK8sApimachineryPkgApisMetaV1ShardInfo = {
+  /**
+   * selector is the shard selector string from the request, echoed back so clients can verify which shard they received and merge responses from multiple shards.
+   */
+  selector: string;
+};
+
+/**
  * Status is a return value for calls that don't return other objects.
  */
 export type IoK8sApimachineryPkgApisMetaV1Status = {
@@ -2805,6 +2860,31 @@ export type ListBillingMiloapisComV1Alpha1BillingAccountBindingForAllNamespacesD
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -2893,6 +2973,31 @@ export type ListBillingMiloapisComV1Alpha1BillingAccountForAllNamespacesData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -2983,6 +3088,31 @@ export type ListBillingMiloapisComV1Alpha1BillingArrangementApplicationForAllNam
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -3071,6 +3201,31 @@ export type ListBillingMiloapisComV1Alpha1BillingArrangementDeclineForAllNamespa
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -3161,6 +3316,31 @@ export type ListBillingMiloapisComV1Alpha1BillingArrangementForAllNamespacesData
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -3249,6 +3429,31 @@ export type ListBillingMiloapisComV1Alpha1BillingEntitlementForAllNamespacesData
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -3339,6 +3544,31 @@ export type ListBillingMiloapisComV1Alpha1InvoiceForAllNamespacesData = {
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -3428,6 +3658,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionMeterDefinitionData = {
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -3516,6 +3771,31 @@ export type ListBillingMiloapisComV1Alpha1MeterDefinitionData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -3615,6 +3895,10 @@ export type DeleteBillingMiloapisComV1Alpha1MeterDefinitionData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -3989,6 +4273,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionMonitoredResourceTypeData 
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -4077,6 +4386,31 @@ export type ListBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -4176,6 +4510,10 @@ export type DeleteBillingMiloapisComV1Alpha1MonitoredResourceTypeData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -4555,6 +4893,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountBi
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -4648,6 +5011,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData = 
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -4756,6 +5144,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountBindingData 
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -5159,6 +5551,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingAccountDa
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -5252,6 +5669,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedBillingAccountData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -5360,6 +5802,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedBillingAccountData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -5764,6 +6210,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingArrangeme
        */
       sendInitialEvents?: boolean;
       /**
+       * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+       *
+       * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+       * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+       *
+       * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+       * - object.metadata.uid
+       * - object.metadata.namespace
+       *
+       * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+       *
+       * Examples:
+       * 2-shard split:
+       * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+       * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+       * 4-shard split:
+       * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+       * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+       * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+       * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+       *
+       * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+       */
+      shardSelector?: string;
+      /**
        * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
        */
       timeoutSeconds?: number;
@@ -5859,6 +6330,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedBillingArrangementApplicatio
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -5967,6 +6463,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedBillingArrangementApplicat
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -6372,6 +6872,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingArrangeme
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -6466,6 +6991,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedBillingArrangementDeclineDat
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -6574,6 +7124,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedBillingArrangementDeclineD
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -6825,6 +7379,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingArrangeme
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -6918,6 +7497,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedBillingArrangementData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -7026,6 +7630,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedBillingArrangementData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -7429,6 +8037,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedBillingEntitleme
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -7522,6 +8155,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedBillingEntitlementData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -7630,6 +8288,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedBillingEntitlementData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -8033,6 +8695,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedInvoiceData = {
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -8126,6 +8813,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedInvoiceData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -8234,6 +8946,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedInvoiceData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -8637,6 +9353,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedPaymentMethodDat
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -8730,6 +9471,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -8838,6 +9604,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedPaymentMethodData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -9241,6 +10011,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionNamespacedServicePricingDa
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -9334,6 +10129,31 @@ export type ListBillingMiloapisComV1Alpha1NamespacedServicePricingData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -9442,6 +10262,10 @@ export type DeleteBillingMiloapisComV1Alpha1NamespacedServicePricingData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -9840,6 +10664,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionOfferData = {
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -9928,6 +10777,31 @@ export type ListBillingMiloapisComV1Alpha1OfferData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -10027,6 +10901,10 @@ export type DeleteBillingMiloapisComV1Alpha1OfferData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -10401,6 +11279,31 @@ export type DeleteBillingMiloapisComV1Alpha1CollectionPaymentMethodClassData = {
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -10489,6 +11392,31 @@ export type ListBillingMiloapisComV1Alpha1PaymentMethodClassData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
@@ -10588,6 +11516,10 @@ export type DeleteBillingMiloapisComV1Alpha1PaymentMethodClassData = {
      * The duration in seconds before the object should be deleted. Value must be non-negative integer. The value zero indicates delete immediately. If this value is nil, the default grace period for the specified type will be used. Defaults to a per object value if not specified. zero means delete immediately.
      */
     gracePeriodSeconds?: number;
+    /**
+     * if set to true, it will trigger an unsafe deletion of the resource in case the normal deletion flow fails with a corrupt object error. A resource is considered corrupt if it can not be retrieved from the underlying storage successfully because of a) its data can not be transformed e.g. decryption failure, or b) it fails to decode into an object. NOTE: unsafe deletion ignores finalizer constraints, skips precondition checks, and removes the object from the storage. WARNING: This may potentially break the cluster if the workload associated with the resource being unsafe-deleted relies on normal deletion flow. Use only if you REALLY know what you are doing. The default value is false, and the user must opt in to enable it
+     */
+    ignoreStoreReadErrorWithClusterBreakingPotential?: boolean;
     /**
      * Deprecated: please use the PropagationPolicy, this field will be deprecated in 1.7. Should the dependent objects be orphaned. If true/false, the "orphan" finalizer will be added to/removed from the object's finalizers list. Either this field or PropagationPolicy may be set, but not both.
      */
@@ -10962,6 +11894,31 @@ export type ListBillingMiloapisComV1Alpha1PaymentMethodForAllNamespacesData = {
      */
     sendInitialEvents?: boolean;
     /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
+    /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
     timeoutSeconds?: number;
@@ -11050,6 +12007,31 @@ export type ListBillingMiloapisComV1Alpha1ServicePricingForAllNamespacesData = {
      * Defaults to true if `resourceVersion=""` or `resourceVersion="0"` (for backward compatibility reasons) and to false otherwise.
      */
     sendInitialEvents?: boolean;
+    /**
+     * shardSelector restricts the list of returned objects using a CEL-based shard selector expression. The format uses the shardRange() function combined with || (logical OR) to specify one or more hash ranges:
+     *
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000')
+     * shardRange(object.metadata.uid, '0x0', '0x8000000000000000') || shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     *
+     * Field paths use CEL-style object-rooted syntax (e.g. "object.metadata.uid"), NOT the fieldSelector format ("metadata.uid"). Currently supported paths:
+     * - object.metadata.uid
+     * - object.metadata.namespace
+     *
+     * hexStart and hexEnd are single-quoted CEL string literals with a '0x' prefix, defining the inclusive lower and exclusive upper bounds over the 64-bit FNV-1a hash space. The full range is [0x0, 0x10000000000000000), where the exclusive upper bound equals 2^64.
+     *
+     * Examples:
+     * 2-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x8000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x8000000000000000', '0x10000000000000000')
+     * 4-shard split:
+     * shard 0: shardRange(object.metadata.uid, '0x0000000000000000', '0x4000000000000000')
+     * shard 1: shardRange(object.metadata.uid, '0x4000000000000000', '0x8000000000000000')
+     * shard 2: shardRange(object.metadata.uid, '0x8000000000000000', '0xc000000000000000')
+     * shard 3: shardRange(object.metadata.uid, '0xc000000000000000', '0x10000000000000000')
+     *
+     * This is an alpha field and requires enabling the ShardedListAndWatch feature gate.
+     */
+    shardSelector?: string;
     /**
      * Timeout for the list/watch call. This limits the duration of the call, regardless of any activity or inactivity.
      */
