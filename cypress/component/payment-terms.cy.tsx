@@ -162,7 +162,10 @@ describe('Apply for payment terms', () => {
     );
 
     cy.contains("We're reviewing your application").should('exist');
-    cy.contains('Under review · Submitted October 2, 2026').should('exist');
+    // innerText follows the rendered layout, so it catches a space the badge drops.
+    cy.contains('Under review · Submitted')
+      .invoke('prop', 'innerText')
+      .should('equal', 'Under review · Submitted October 2, 2026');
     cy.screenshot('payment-terms-under-review', { capture: 'fullPage' });
 
     cy.get('[data-e2e="payment-terms-withdraw"]').click();

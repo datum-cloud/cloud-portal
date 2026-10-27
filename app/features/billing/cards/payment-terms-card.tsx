@@ -157,9 +157,10 @@ export const PaymentTermsCard = ({
             </Text>
             <Badge type="warning" theme="light" className="rounded-full">
               {submitted ? (
-                <>
+                // One span, so the badge's flex layout keeps the space before the date.
+                <span>
                   Submitted <PaymentTermsDate date={submitted} />
-                </>
+                </span>
               ) : (
                 'Under review'
               )}
