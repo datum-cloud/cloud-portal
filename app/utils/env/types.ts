@@ -69,11 +69,10 @@ export interface ServerEnv {
 
   // Optional: External Integrations
   grafanaUrl?: string;
+  /** Secure-mode secret shared by the portal and datum.net Beacons. Also signs /api/website/profile identities. */
   helpscoutSecretKey?: string;
 
   // Optional: Website API CORS (datum.net marketing site)
-  /** Secure-mode secret for the datum.net Beacon. Signs /api/website/profile identities. */
-  websiteHelpscoutSecretKey?: string;
   /** Exact origins allowed to call /api/website/* with credentials. Empty disables the routes. */
   websiteOrigins: string[];
   /**
