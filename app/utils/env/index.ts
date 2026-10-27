@@ -35,6 +35,7 @@ const clientDefaults: PublicEnv = {
   otelEnabled: false,
   otelLogLevel: undefined,
   googleMapsApiKey: undefined,
+  paymentTermsEnabled: false,
 };
 
 // Get public env values - works on both server and client
@@ -75,6 +76,7 @@ function getPublicEnv(): PublicEnv {
     otelEnabled: source.OTEL_ENABLED === 'true' && !!source.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: source.OTEL_LOG_LEVEL as PublicEnv['otelLogLevel'],
     googleMapsApiKey: source.GOOGLE_MAPS_API_KEY || undefined,
+    paymentTermsEnabled: source.PAYMENT_TERMS_ENABLED === 'true',
   };
 }
 

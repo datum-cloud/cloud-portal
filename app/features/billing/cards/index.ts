@@ -16,3 +16,4 @@ export { InvoicePreviewCard } from './invoice-preview-card';
 export { LinkedProjectsCard, type ProjectBillingBinding } from './linked-projects-card';
 export { PastInvoicesCard } from './past-invoices-card';
 export { PaymentMethodsCard } from './payment-methods-card';
+export { PaymentTermsCard } from './payment-terms-card';

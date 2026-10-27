@@ -1,7 +1,7 @@
 /**
  * Naming helpers for billing-domain resources (slug/name generators).
  *
- * All three delegate to the shared `generateId` helper, which kebab-slugs
+ * All of them delegate to the shared `generateId` helper, which kebab-slugs
  * the input, caps the length, and validates the result — so a long or
  * punctuation-heavy display name can't slip through and produce a
  * `metadata.name` the API server rejects. `maxLength` is bumped to 63
@@ -45,3 +45,16 @@ export const newBindingName = (projectName: string): string =>
  */
 export const newPaymentMethodName = (displayName: string | undefined): string =>
   generateId(displayName ?? 'card', { prefix: 'pm', randomLength: 6, maxLength: 63 });
+
+/**
+ * Build a unique BillingArrangementApplication name. Customers can apply
+ * more than once (after a decline or a withdrawal), so the billing account
+ * name plus a base36 timestamp keeps each application distinct.
+ */
+export const newBillingArrangementApplicationName = (billingAccountName: string): string =>
+  generateId(billingAccountName, {
+    prefix: 'apply',
+    randomLength: 0,
+    includeTimestamp: true,
+    maxLength: 63,
+  });

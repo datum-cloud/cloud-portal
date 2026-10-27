@@ -14,6 +14,7 @@ import { OrgBillingSetupForm } from '@/features/organization/billing/org-billing
 import { logger } from '@/modules/logger';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import { paths } from '@/utils/config/paths.config';
+import { env } from '@/utils/env';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -103,6 +104,11 @@ export const BillingForm = ({
   // Legacy resume always has an org — either a full prior setup or a partial one.
   const resumeOrgId = initialSetup?.orgId ?? partialOrgId;
 
+  // Customers who can't pay by card can apply for payment terms instead,
+  // where PAYMENT_TERMS_ENABLED turns it on. Not offered once they're paying
+  // by invoice or already have a card.
+  const offerPaymentTerms = env.public.paymentTermsEnabled && !onInvoiceTerms && !initialPayment;
+
   const stepLabel = isLegacySetupResume ? 'Billing setup' : 'Step 2 / 2';
   const heading = isLegacySetupResume ? 'Complete organization setup' : 'Payment Verification';
   const submitLabel = isLegacySetupResume ? 'Continue' : 'Start free';
@@ -171,6 +177,11 @@ export const BillingForm = ({
               initialPaymentSummary={initialPayment}
               onInvoiceTerms={onInvoiceTerms}
               partialOrgId={partialOrgId}
+              paymentTerms={
+                offerPaymentTerms
+                  ? { entry: isLegacySetupResume ? 'setup' : 'onboarding' }
+                  : undefined
+              }
               submitLabel={submitLabel}
               onOrgProvisioned={({ orgId, accountName, contactInfo }) => {
                 trackAction(AnalyticsAction.ContactDetailsSaved, { orgId });

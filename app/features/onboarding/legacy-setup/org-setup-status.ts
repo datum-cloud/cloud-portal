@@ -29,6 +29,12 @@ const PAYMENT_READY_CONDITION = 'PaymentReady';
 /** PaymentReady reason when the account is billed by invoice, with no card needed. */
 const INVOICE_TERMS_REASON = 'InvoiceTerms';
 
+/**
+ * PaymentReady reason while a payment terms application awaits review and
+ * the account has no working card or active terms.
+ */
+const APPLICATION_PENDING_REASON = 'ApplicationPending';
+
 function findPaymentReadyCondition(account: BillingAccount | undefined) {
   return account?.status?.conditions?.find((c) => c.type === PAYMENT_READY_CONDITION);
 }
@@ -42,6 +48,26 @@ export function isBillingAccountPaymentReady(account: BillingAccount | undefined
 export function hasActiveInvoiceTerms(account: BillingAccount | undefined): boolean {
   const condition = findPaymentReadyCondition(account);
   return condition?.status === 'True' && condition.reason === INVOICE_TERMS_REASON;
+}
+
+/**
+ * Whether an application for payment terms is awaiting review on an account
+ * that can't otherwise be billed yet. Billing reports this on PaymentReady,
+ * so it's visible to anyone who can read the billing account, including
+ * members who can't read the application itself.
+ */
+export function isPaymentTermsApplicationPending(account: BillingAccount | undefined): boolean {
+  const condition = findPaymentReadyCondition(account);
+  return condition?.status === 'False' && condition.reason === APPLICATION_PENDING_REASON;
+}
+
+/** When the account started waiting on a payment terms application, if it is. */
+export function paymentTermsApplicationPendingSince(
+  account: BillingAccount | undefined
+): string | undefined {
+  return isPaymentTermsApplicationPending(account)
+    ? findPaymentReadyCondition(account)?.lastTransitionTime
+    : undefined;
 }
 
 /** Whether an active payment method backs the given billing account. */

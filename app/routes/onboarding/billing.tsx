@@ -1,3 +1,5 @@
+import { applicationPhase, latestApplication } from '@/features/billing/payment-terms';
+import { paymentTermsPath } from '@/features/billing/payment-terms-paths';
 import { type BillingAccount, selectDefaultOrgBillingAccount } from '@/features/billing/types';
 import { BillingPage, type BillingPageData } from '@/features/onboarding/billing/billing-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
@@ -10,11 +12,13 @@ import {
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
 import {
-  buildOrgContactDefaults,
-  orgContactInfoToFormValues,
-  type OrgContactInfoValues,
-} from '@/features/onboarding/schemas/org-contact-info-schema';
+  contactInfoFromBillingAccount,
+  contactInfoFromOrganization,
+} from '@/features/onboarding/schemas/contact-info-sources';
+import { type OrgContactInfoValues } from '@/features/onboarding/schemas/org-contact-info-schema';
+import { logger } from '@/modules/logger';
 import { createBillingAccountService } from '@/resources/billing-accounts';
+import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { createPaymentMethodService } from '@/resources/payment-methods';
@@ -30,35 +34,6 @@ import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } f
 export const meta: MetaFunction = mergeMeta(() => {
   return metaObject('Payment verification');
 });
-
-function contactInfoFromBillingAccount(account: BillingAccount): OrgContactInfoValues | undefined {
-  const contact = account.spec?.contactInfo;
-  if (!contact?.email?.trim() || !contact.name?.trim()) {
-    return undefined;
-  }
-
-  return buildOrgContactDefaults({
-    email: contact.email,
-    name: contact.name,
-    businessName: contact.businessName ?? '',
-    country: contact.address?.country ?? '',
-    line1: contact.address?.line1 ?? '',
-    line2: contact.address?.line2 ?? '',
-    city: contact.address?.city ?? '',
-    region: contact.address?.region ?? '',
-    postalCode: contact.address?.postalCode ?? '',
-  });
-}
-
-function contactInfoFromOrganization(
-  org: Awaited<ReturnType<ReturnType<typeof createOrganizationService>['get']>>
-): OrgContactInfoValues | undefined {
-  const values = orgContactInfoToFormValues(org.contactInfo);
-  if (!values.email?.trim() || !values.name?.trim()) {
-    return undefined;
-  }
-  return buildOrgContactDefaults(values);
-}
 
 export const loader = async ({ request, context }: LoaderFunctionArgs) => {
   const sub = await requireSessionSub(request, context);
@@ -115,6 +90,32 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
         : undefined;
       const hasActivePayment = Boolean(activePaymentMethod);
       const onInvoiceTerms = hasActiveInvoiceTerms(account);
+
+      // An owner who applied for payment terms sees the application's status
+      // instead of the card form: while it awaits review, and after a decline
+      // unless they chose "Add a card" (`method=card`).
+      if (account?.metadata?.name && !hasActivePayment && !onInvoiceTerms) {
+        const applications = await createBillingArrangementApplicationService()
+          .list(orgId)
+          .catch((error) => {
+            logger.warn('[onboarding/billing] Could not list payment terms applications', {
+              orgId,
+              fallback: 'showing the card form',
+              error: error instanceof Error ? error.message : String(error),
+            });
+            return [];
+          });
+        const application = latestApplication(applications, account.metadata.name);
+        const phase = application ? applicationPhase(application) : undefined;
+        if (
+          phase === 'Pending' ||
+          (phase === 'Declined' && url.searchParams.get('method') !== 'card')
+        ) {
+          return redirect(
+            paymentTermsPath({ orgId, entry: requestedOrgId ? 'setup' : 'onboarding' })
+          );
+        }
+      }
 
       // Staff have granted this org invoice terms, so there's no card to add.
       // Once contact info is saved, setup is complete: send them into the org

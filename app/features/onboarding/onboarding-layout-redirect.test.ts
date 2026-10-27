@@ -107,3 +107,29 @@ describe('resolveOnboardingLayoutRedirect (invitations step)', () => {
     ).toBe(paths.home);
   });
 });
+
+describe('resolveOnboardingLayoutRedirect (payment terms)', () => {
+  it('lets owners with orgs reach the payment terms page', () => {
+    expect(
+      resolveOnboardingLayoutRedirect({
+        pathname: paths.onboarding.paymentTerms,
+        hasExistingOrgs: true,
+        nameReviewRequired: false,
+        requestedOrgId: 'acme',
+        isOwnerOfRequestedOrg: true,
+      })
+    ).toBeNull();
+  });
+
+  it('sends non-owners to the setup-required page', () => {
+    expect(
+      resolveOnboardingLayoutRedirect({
+        pathname: paths.onboarding.paymentTerms,
+        hasExistingOrgs: true,
+        nameReviewRequired: false,
+        requestedOrgId: 'acme',
+        isOwnerOfRequestedOrg: false,
+      })
+    ).toBe(getPathWithParams(paths.org.detail.setupRequired, { orgId: 'acme' }));
+  });
+});

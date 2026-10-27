@@ -1,9 +1,11 @@
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
 import { CARD_BRAND_LABELS } from '@/features/billing/constants';
 import { AddPaymentMethodDialog } from '@/features/billing/dialogs/add-payment-method-dialog';
+import type { PaymentTermsEntry } from '@/features/billing/payment-terms-paths';
 import { normalizeCardBrand, type CardBrand } from '@/features/billing/types';
 import { useSetupOnboardingBilling } from '@/features/onboarding/billing/use-setup-onboarding-billing';
 import { OrgContactInfoDialog } from '@/features/onboarding/dialogs/org-contact-info-dialog';
+import { PaymentTermsHint } from '@/features/onboarding/payment-terms/payment-terms-hint';
 import {
   buildOrgContactDefaults,
   formatOrgContactPrimaryLine,
@@ -77,6 +79,13 @@ export interface OrgBillingSetupFormProps {
   /** Org exists from a prior partial setup — billing account create will be retried. */
   partialOrgId?: string;
   /**
+   * Offer "Can't pay by card? Apply for payment terms" under the payment
+   * method field, once contact info has created the org and billing account
+   * and while no card has been added. `onApply` replaces the link with a
+   * click handler, for callers that must act before navigating.
+   */
+  paymentTerms?: { entry: PaymentTermsEntry; onApply?: (orgId: string) => void };
+  /**
    * Show an explicit "Organization name" field at the top of the form. Used by
    * the standalone create-org flow so the user can name the org directly;
    * omitted in onboarding, where the name is derived from contact details.
@@ -110,6 +119,7 @@ export const OrgBillingSetupForm = ({
   initialPaymentSummary,
   onInvoiceTerms = false,
   partialOrgId,
+  paymentTerms,
   showDisplayNameField = false,
   submitLabel = 'Continue',
   onOrgProvisioned,
@@ -425,6 +435,15 @@ export const OrgBillingSetupForm = ({
             isLoading={isPaymentMethodPending}
             disabled={!billingReady || isPaymentMethodPending}
             openE2e="org-billing-payment-open"
+            hint={
+              paymentTerms && orgId && !paymentComplete ? (
+                <PaymentTermsHint
+                  orgId={orgId}
+                  entry={paymentTerms.entry}
+                  onApply={paymentTerms.onApply}
+                />
+              ) : undefined
+            }
             onOpen={() => billingReady && !isPaymentMethodPending && setPaymentDialogOpen(true)}>
             {paymentComplete && paymentSummary ? (
               <div
@@ -498,6 +517,8 @@ interface VerificationFieldProps {
   openE2e?: string;
   onOpen: () => void;
   children?: React.ReactNode;
+  /** A line under the field, after the description. */
+  hint?: React.ReactNode;
 }
 
 const VerificationField = ({
@@ -509,6 +530,7 @@ const VerificationField = ({
   openE2e,
   onOpen,
   children,
+  hint,
 }: VerificationFieldProps) => (
   <div className="flex flex-col gap-2">
     <Text as="p" size="xs" weight="semibold" textColor="default" className="opacity-80">
@@ -562,6 +584,7 @@ const VerificationField = ({
         {description}
       </Text>
     )}
+    {hint}
   </div>
 );
 

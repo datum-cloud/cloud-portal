@@ -87,6 +87,13 @@ const publicSchema = z.object({
   GOOGLE_MAPS_API_KEY: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
+  // Optional: Feature toggles
+  //   PAYMENT_TERMS_ENABLED: "true" offers customers "Apply for payment
+  //     terms" during setup and in billing settings. Off by default.
+  // ─────────────────────────────────────────────────────────
+  PAYMENT_TERMS_ENABLED: z.string().optional(),
+
+  // ─────────────────────────────────────────────────────────
   // Optional: Logging Configuration
   // ─────────────────────────────────────────────────────────
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).optional(),
@@ -262,6 +269,7 @@ export const env: Env = {
     otelEnabled: data.OTEL_ENABLED === true && !!data.OTEL_EXPORTER_OTLP_ENDPOINT,
     otelLogLevel: data.OTEL_LOG_LEVEL,
     googleMapsApiKey: data.GOOGLE_MAPS_API_KEY || undefined,
+    paymentTermsEnabled: data.PAYMENT_TERMS_ENABLED === 'true',
   },
   server: {
     sessionSecret: data.SESSION_SECRET,
