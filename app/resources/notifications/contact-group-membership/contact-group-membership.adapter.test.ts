@@ -30,6 +30,24 @@ describe('toContactGroupMembership', () => {
 });
 
 describe('toContactGroupMembershipList', () => {
+  it('leaves out a membership the controller is deleting', () => {
+    const list = toContactGroupMembershipList({
+      items: [
+        { metadata: rawMetadata({ uid: 'live', name: 'keep' }), spec: {} },
+        {
+          metadata: rawMetadata({
+            uid: 'going',
+            name: 'drop',
+            deletionTimestamp: '2026-10-23T10:00:00Z',
+          }),
+          spec: {},
+        },
+      ],
+    } as never);
+
+    expect(list.items.map((m) => m.name)).toEqual(['keep']);
+  });
+
   it('reads the cursor from metadata.continue', () => {
     const list = toContactGroupMembershipList({
       items: [{ metadata: { uid: 'a' }, spec: {} }],
