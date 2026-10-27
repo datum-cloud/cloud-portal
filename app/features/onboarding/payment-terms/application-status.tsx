@@ -405,9 +405,12 @@ export function ApplicationApproved({
 export function ApplicationDeclined({
   context,
   application,
+  canApplyAgain = true,
 }: {
   context: StatusContext;
   application: ApplicationSummary;
+  /** False while applying is turned off (`PAYMENT_TERMS_ENABLED`). */
+  canApplyAgain?: boolean;
 }) {
   const fromSettings = context.entry === 'settings';
   return (
@@ -437,8 +440,12 @@ export function ApplicationDeclined({
 
         <Text as="p" className="text-center leading-5">
           {fromSettings
-            ? 'You can keep paying by card, or apply again with more information.'
-            : 'You can add a card to get started now, or apply again with more information.'}
+            ? canApplyAgain
+              ? 'You can keep paying by card, or apply again with more information.'
+              : 'You can keep paying by card.'
+            : canApplyAgain
+              ? 'You can add a card to get started now, or apply again with more information.'
+              : 'You can add a card to get started now.'}
         </Text>
 
         <div className="flex flex-col gap-3">
@@ -454,20 +461,22 @@ export function ApplicationDeclined({
             className="w-full">
             {fromSettings ? 'Back to billing' : 'Add a card'}
           </LinkButton>
-          <LinkButton
-            as={Link}
-            href={paymentTermsPath({
-              orgId: context.orgId,
-              billingAccountName: context.billingAccountName,
-              entry: context.entry,
-              apply: true,
-            })}
-            type="secondary"
-            theme="outline"
-            className="w-full"
-            data-e2e="payment-terms-apply-again">
-            Apply again
-          </LinkButton>
+          {canApplyAgain ? (
+            <LinkButton
+              as={Link}
+              href={paymentTermsPath({
+                orgId: context.orgId,
+                billingAccountName: context.billingAccountName,
+                entry: context.entry,
+                apply: true,
+              })}
+              type="secondary"
+              theme="outline"
+              className="w-full"
+              data-e2e="payment-terms-apply-again">
+              Apply again
+            </LinkButton>
+          ) : null}
           <FooterLinks entry={context.entry} />
         </div>
       </CardContent>

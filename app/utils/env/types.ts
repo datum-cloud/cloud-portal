@@ -39,6 +39,10 @@ export interface PublicEnv {
   // Optional: Google Maps / Places (browser key; HTTP-referrer restricted)
   googleMapsApiKey?: string;
 
+  // Optional: Feature toggles
+  /** Offer customers "Apply for payment terms" (`PAYMENT_TERMS_ENABLED`). Off by default. */
+  paymentTermsEnabled: boolean;
+
   // Logging (always has defaults)
   logLevel: 'debug' | 'info' | 'warn' | 'error';
   logFormat: 'json' | 'pretty' | 'compact';

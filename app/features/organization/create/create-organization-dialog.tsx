@@ -3,6 +3,7 @@ import type { OrgContactInfoValues } from '@/features/onboarding/schemas/org-con
 import { OrgBillingSetupForm } from '@/features/organization/billing/org-billing-setup-form';
 import { logger } from '@/modules/logger';
 import { useDeleteOrganization } from '@/resources/organizations';
+import { env } from '@/utils/env';
 import { Dialog } from '@datum-cloud/datum-ui/dialog';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -89,7 +90,11 @@ export const CreateOrganizationDialog = ({
               contactDefaults={contactDefaults}
               stripePublishableKey={stripePublishableKey}
               showDisplayNameField
-              paymentTerms={{ entry: 'create', onApply: handleApplyForPaymentTerms }}
+              paymentTerms={
+                env.public.paymentTermsEnabled
+                  ? { entry: 'create', onApply: handleApplyForPaymentTerms }
+                  : undefined
+              }
               submitLabel="Create organization"
               onOrgProvisioned={(setup) => {
                 provisionedOrgIdRef.current = setup.orgId;

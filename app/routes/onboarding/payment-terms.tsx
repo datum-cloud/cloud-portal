@@ -23,6 +23,7 @@ import {
 } from '@/features/onboarding/payment-terms/application-status';
 import {
   billingSettingsPath,
+  cardSetupPath,
   readPaymentTermsSearch,
 } from '@/features/onboarding/payment-terms/payment-terms-paths';
 import {
@@ -35,6 +36,7 @@ import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
+import { env } from '@/utils/env';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
@@ -101,6 +103,13 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
             ? ('declined' as const)
             : ('pending' as const);
 
+    // With PAYMENT_TERMS_ENABLED off there's nothing to apply with, so send
+    // the customer to the card form. An existing application still shows.
+    const canApply = env.public.paymentTermsEnabled;
+    if (view === 'form' && !canApply) {
+      return redirect(cardSetupPath({ orgId, entry, billingAccountName }));
+    }
+
     const invoice = application?.spec?.invoice;
     const summary: ApplicationSummary | undefined =
       application?.metadata?.name && application.spec
@@ -131,6 +140,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       defaultLegalName: contact.businessName?.trim() || undefined,
       /** The account already pays by card, so applying doesn't block anything. */
       canBeBilled: isBillingAccountPaymentReady(account),
+      canApply,
     };
   } catch (error) {
     if (error instanceof NotFoundError || error instanceof AuthorizationError) {
@@ -178,7 +188,11 @@ export default function OnboardingPaymentTermsRoute() {
               contactInfo={data.contactInfo}
             />
           ) : data.view === 'declined' ? (
-            <ApplicationDeclined context={context} application={data.application} />
+            <ApplicationDeclined
+              context={context}
+              application={data.application}
+              canApplyAgain={data.canApply}
+            />
           ) : (
             <ApplicationUnderReview context={context} application={data.application} />
           )}

@@ -47,6 +47,11 @@ export interface PaymentTermsCardProps {
   /** The account's most recent application for payment terms. */
   application?: BillingArrangementApplication;
   currency: string;
+  /**
+   * Whether customers can apply (`PAYMENT_TERMS_ENABLED`). When false, terms
+   * and existing applications still show, without a way to apply.
+   */
+  canApply?: boolean;
 }
 
 /**
@@ -59,14 +64,16 @@ export const PaymentTermsCard = ({
   terms,
   application,
   currency,
+  canApply = true,
 }: PaymentTermsCardProps) => {
   const phase = application ? applicationPhase(application) : undefined;
   const applyPath = orgId
     ? paymentTermsPath({ orgId, billingAccountName, entry: 'settings' })
     : undefined;
-  const applyAgainPath = orgId
-    ? paymentTermsPath({ orgId, billingAccountName, entry: 'settings', apply: true })
-    : undefined;
+  const applyAgainPath =
+    orgId && canApply
+      ? paymentTermsPath({ orgId, billingAccountName, entry: 'settings', apply: true })
+      : undefined;
 
   if (terms) {
     const since = formatLongDate(terms.startsAt);
@@ -105,15 +112,18 @@ export const PaymentTermsCard = ({
             <Detail label="Pay by">Bank transfer, ACH or wire</Detail>
           </div>
         </CardContent>
-        {endingSoon && applyAgainPath ? (
+        {endingSoon ? (
           <CardFooter bordered className="flex flex-wrap items-center justify-between gap-2">
             <Text as="p" size="sm">
-              These terms end on {until}. Add a card or apply to renew to keep using Datum without
-              interruption.
+              {applyAgainPath
+                ? `These terms end on ${until}. Add a card or apply to renew to keep using Datum without interruption.`
+                : `These terms end on ${until}. Add a card to keep using Datum without interruption.`}
             </Text>
-            <Link to={applyAgainPath} className={linkClassName}>
-              Apply to renew
-            </Link>
+            {applyAgainPath ? (
+              <Link to={applyAgainPath} className={linkClassName}>
+                Apply to renew
+              </Link>
+            ) : null}
           </CardFooter>
         ) : null}
       </Card>
@@ -162,6 +172,9 @@ export const PaymentTermsCard = ({
       </Card>
     );
   }
+
+  // Nothing to show and no way to apply.
+  if (phase !== 'Declined' && !canApply) return null;
 
   return (
     <Card size="sm" sectioned data-e2e="payment-terms-card">

@@ -30,7 +30,11 @@ import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
-import { latestApplication, paymentTermsSummary } from '@/features/billing/payment-terms';
+import {
+  applicationPhase,
+  latestApplication,
+  paymentTermsSummary,
+} from '@/features/billing/payment-terms';
 import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
 import { RbacProvider, usePermission } from '@/modules/rbac';
 import { buildContactAddressPrefill } from '@/modules/stripe';
@@ -66,6 +70,7 @@ import {
 import { buildOrganizationNamespace, orgIdFromNamespace } from '@/utils/common';
 import { paths } from '@/utils/config/paths.config';
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
+import { env } from '@/utils/env';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
 import { PageTitle } from '@datum-cloud/datum-ui/page-title';
 import { toast } from '@datum-cloud/datum-ui/toast';
@@ -759,6 +764,17 @@ function AccountBillingAccountDetailPageInner() {
   );
 
   const paymentTerms = paymentTermsSummary(account);
+  // With PAYMENT_TERMS_ENABLED off, the section only reports terms or an
+  // application that already exist.
+  const canApplyForPaymentTerms = env.public.paymentTermsEnabled;
+  const paymentTermsPhase = paymentTermsApplication
+    ? applicationPhase(paymentTermsApplication)
+    : undefined;
+  const showPaymentTerms =
+    canApplyForPaymentTerms ||
+    !!paymentTerms ||
+    paymentTermsPhase === 'Pending' ||
+    paymentTermsPhase === 'Declined';
 
   const handleDownloadInvoice = useCallback((invoice: PastInvoiceRow) => {
     if (!invoice.downloadUrl) return;
@@ -771,21 +787,24 @@ function AccountBillingAccountDetailPageInner() {
       <PageTitle title={displayName} titleClassName="text-3xl" />
 
       <div className="border-border border-t">
-        <Section
-          title="Payment terms"
-          description={
-            paymentTerms
-              ? 'The payment terms our team approved for this billing account. To change them, contact support.'
-              : 'Pay by invoice instead of by card. Our team reviews every application.'
-          }>
-          <PaymentTermsCard
-            orgId={orgId}
-            billingAccountName={accountName}
-            terms={paymentTerms}
-            application={paymentTermsApplication}
-            currency={account.spec?.currencyCode ?? 'USD'}
-          />
-        </Section>
+        {showPaymentTerms ? (
+          <Section
+            title="Payment terms"
+            description={
+              paymentTerms
+                ? 'The payment terms our team approved for this billing account. To change them, contact support.'
+                : 'Pay by invoice instead of by card. Our team reviews every application.'
+            }>
+            <PaymentTermsCard
+              orgId={orgId}
+              billingAccountName={accountName}
+              terms={paymentTerms}
+              application={paymentTermsApplication}
+              currency={account.spec?.currencyCode ?? 'USD'}
+              canApply={canApplyForPaymentTerms}
+            />
+          </Section>
+        ) : null}
 
         <Section title="Name" description="Change the display name of this billing account">
           <DisplayNameFormCard

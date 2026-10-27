@@ -1,4 +1,5 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import { PaymentTermsCard } from '@/features/billing/cards/payment-terms-card';
 import { PaymentTermsApplicationForm } from '@/features/onboarding/payment-terms/application-form';
 import {
   ApplicationApproved,
@@ -217,6 +218,24 @@ describe('Apply for payment terms', () => {
     cy.screenshot('payment-terms-declined', { capture: 'fullPage' });
   });
 
+  it('leaves out "Apply again" while applying is turned off', () => {
+    cy.mountRemixRoute(
+      withProviders(
+        <div className="mx-auto max-w-[480px] p-6">
+          <ApplicationDeclined
+            context={{ ...context, entry: 'setup' }}
+            application={application}
+            canApplyAgain={false}
+          />
+        </div>
+      )
+    );
+
+    cy.contains('You can add a card to get started now.').should('exist');
+    cy.contains('Add a card').should('exist');
+    cy.get('[data-e2e="payment-terms-apply-again"]').should('not.exist');
+  });
+
   it('reads as a new org when applying from the create-organization dialog', () => {
     cy.mountRemixRoute(
       withProviders(
@@ -297,7 +316,8 @@ describe('Offering payment terms under the card form', () => {
     cy.get('@onApply').should('have.been.calledOnceWith', 'acme');
   });
 
-  it('waits for contact details in the create-organization dialog', () => {
+  // PAYMENT_TERMS_ENABLED is unset here, as it is by default.
+  it('is not offered in the create-organization dialog while turned off', () => {
     cy.mount(
       withProviders(
         <CreateOrganizationDialog
@@ -326,5 +346,41 @@ describe('Offering payment terms under the card form', () => {
       )
     );
     cy.get('[data-e2e="payment-terms-hint"]').should('not.exist');
+  });
+});
+
+describe('Payment terms in billing settings', () => {
+  const card = { orgId: 'acme', billingAccountName: 'acme-billing', currency: 'USD' };
+  const endingSoon = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString();
+  const terms = {
+    name: 'acme-terms',
+    netDays: 30,
+    invoiceRecipients: ['ap@acme.com'],
+    billingCycle: 'Monthly, on the 1st',
+    startsAt: '2026-01-01T00:00:00Z',
+    endsAt: endingSoon,
+  };
+
+  it('offers to apply when turned on', () => {
+    cy.mountRemixRoute(withProviders(<PaymentTermsCard {...card} />));
+    cy.get('[data-e2e="payment-terms-apply"]').should(
+      'have.attr',
+      'href',
+      '/onboarding/payment-terms?orgId=acme&account=acme-billing&from=settings'
+    );
+  });
+
+  it('shows nothing to apply with while turned off', () => {
+    cy.mountRemixRoute(withProviders(<PaymentTermsCard {...card} canApply={false} />));
+    cy.get('[data-e2e="payment-terms-card"]').should('not.exist');
+  });
+
+  it('still shows terms in effect while turned off, without "Apply to renew"', () => {
+    cy.mountRemixRoute(
+      withProviders(<PaymentTermsCard {...card} terms={terms} canApply={false} />)
+    );
+    cy.contains('Pay by invoice · Net 30').should('exist');
+    cy.contains('Add a card to keep using Datum without interruption.').should('exist');
+    cy.contains('Apply to renew').should('not.exist');
   });
 });
