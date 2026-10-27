@@ -1,4 +1,4 @@
-import { paymentTermsPath } from '@/features/onboarding/payment-terms/payment-terms-paths';
+import { paymentTermsPath } from '@/features/billing/payment-terms-paths';
 import type { OrgContactInfoValues } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { OrgBillingSetupForm } from '@/features/organization/billing/org-billing-setup-form';
 import { logger } from '@/modules/logger';
@@ -42,10 +42,17 @@ export const CreateOrganizationDialog = ({
   // Applying for payment terms instead of adding a card keeps the new org:
   // it waits for review like an onboarding org, so it mustn't be cleaned up
   // as abandoned when the dialog goes away.
-  const handleApplyForPaymentTerms = (orgId: string) => {
+  const handleApplyForPaymentTerms = async (orgId: string) => {
     completedRef.current = true;
     setIsFinishing(true);
-    navigate(paymentTermsPath({ orgId, entry: 'create' }));
+    try {
+      await navigate(paymentTermsPath({ orgId, entry: 'create' }));
+    } catch (error) {
+      // Leave the dialog usable. The org is still kept: the customer can
+      // close the dialog and finish setup from the organizations page.
+      logger.error('Failed to open the payment terms application', error as Error, { orgId });
+      setIsFinishing(false);
+    }
   };
 
   const handleOpenChange = (next: boolean) => {

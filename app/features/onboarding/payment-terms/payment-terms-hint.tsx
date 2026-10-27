@@ -1,4 +1,4 @@
-import { paymentTermsPath, type PaymentTermsEntry } from './payment-terms-paths';
+import { paymentTermsPath, type PaymentTermsEntry } from '@/features/billing/payment-terms-paths';
 import { Text } from '@datum-cloud/datum-ui/typography';
 import { Link } from 'react-router';
 

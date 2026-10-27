@@ -1,11 +1,16 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import {
   PAYMENT_OPTION_LABELS,
-  applicationPhase,
   estimatedSpendLabel,
   latestApplication,
   paymentTermsSummary,
+  paymentTermsView,
 } from '@/features/billing/payment-terms';
+import {
+  billingSettingsPath,
+  cardSetupPath,
+  readPaymentTermsSearch,
+} from '@/features/billing/payment-terms-paths';
 import { selectDefaultOrgBillingAccount } from '@/features/billing/types';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
@@ -22,24 +27,17 @@ import {
   type ApplicationSummary,
 } from '@/features/onboarding/payment-terms/application-status';
 import {
-  billingSettingsPath,
-  cardSetupPath,
-  readPaymentTermsSearch,
-} from '@/features/onboarding/payment-terms/payment-terms-paths';
-import {
   contactInfoFromBillingAccount,
   contactInfoFromOrganization,
 } from '@/features/onboarding/schemas/contact-info-sources';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
-import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import { loaderFailureRedirect, requireSessionSub } from '@/utils/auth/require-session.server';
 import { paths } from '@/utils/config/paths.config';
 import { env } from '@/utils/env';
 import { AuthorizationError, NotFoundError } from '@/utils/errors';
 import { mergeMeta, metaObject } from '@/utils/helpers/meta.helper';
-import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { type LoaderFunctionArgs, type MetaFunction, redirect, useLoaderData } from 'react-router';
 
 export const meta: MetaFunction = mergeMeta(() => metaObject('Payment terms'));
@@ -63,15 +61,12 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       return redirect(paths.onboarding.billing);
     }
 
-    // Finishing an org's setup is for owners, as on the billing step. From
-    // billing settings, billing's own permissions decide who can apply.
-    if (entry !== 'settings' && !(await isUserOrgOwner(orgId))) {
-      return redirect(getPathWithParams(paths.org.detail.setupRequired, { orgId }));
-    }
-
-    const [org, accounts] = await Promise.all([
+    // Only owners apply, wherever they start from. The onboarding layout
+    // checks that before this loader runs, as it does for the billing step.
+    const [org, accounts, applications] = await Promise.all([
       createOrganizationService().get(orgId),
       createBillingAccountService().list(orgId),
+      createBillingArrangementApplicationService().list(orgId),
     ]);
     const account = search.billingAccountName
       ? accounts.find((item) => item.metadata?.name === search.billingAccountName)
@@ -89,19 +84,9 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       );
     }
 
-    const applications = await createBillingArrangementApplicationService().list(orgId);
     const application = latestApplication(applications, billingAccountName);
-    const phase = application ? applicationPhase(application) : undefined;
     const currency = account.spec?.currencyCode ?? 'USD';
-
-    const view =
-      search.apply || !application || phase === 'Withdrawn'
-        ? ('form' as const)
-        : phase === 'Approved'
-          ? ('approved' as const)
-          : phase === 'Declined'
-            ? ('declined' as const)
-            : ('pending' as const);
+    const view = paymentTermsView(application, { applyAgain: search.apply });
 
     // With PAYMENT_TERMS_ENABLED off there's nothing to apply with, so send
     // the customer to the card form. An existing application still shows.

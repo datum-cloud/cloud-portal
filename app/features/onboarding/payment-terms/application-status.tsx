@@ -1,17 +1,26 @@
+import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
+import {
+  applicationPhase,
+  reviewPollInterval,
+  type PaymentTermsSummary,
+} from '@/features/billing/payment-terms';
+import { PaymentTermsDate } from '@/features/billing/payment-terms-date';
 import {
   billingSettingsPath,
   cardSetupPath,
   isNewOrgEntry,
   paymentTermsPath,
   type PaymentTermsEntry,
-} from './payment-terms-paths';
-import { useConfirmationDialog } from '@/components/confirmation-dialog/confirmation-dialog.provider';
-import { formatLongDate, type PaymentTermsSummary } from '@/features/billing/payment-terms';
+} from '@/features/billing/payment-terms-paths';
 import { useCompleteLegacyOrgSetup } from '@/features/onboarding/billing/use-setup-onboarding-project';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import type { OrgContactInfoValues } from '@/features/onboarding/schemas/org-contact-info-schema';
-import { useWithdrawBillingArrangementApplication } from '@/resources/billing-arrangement-applications';
+import {
+  useBillingArrangementApplications,
+  useWithdrawBillingArrangementApplication,
+} from '@/resources/billing-arrangement-applications';
 import { paths } from '@/utils/config/paths.config';
+import { parseK8sMessage } from '@/utils/errors';
 import { getPathWithParams } from '@/utils/helpers/path.helper';
 import { openSupportMessage } from '@/utils/open-support-message';
 import { Badge } from '@datum-cloud/datum-ui/badge';
@@ -24,9 +33,6 @@ import { cn } from '@datum-cloud/datum-ui/utils';
 import { CircleCheckIcon, CircleXIcon, HourglassIcon } from 'lucide-react';
 import { useEffect, type ReactNode } from 'react';
 import { Link, useNavigate, useRevalidator } from 'react-router';
-
-/** How often the review page checks for a decision. */
-const REVIEW_POLL_MS = 10_000;
 
 /** What the customer sent, as shown on the review and declined pages. */
 export interface ApplicationSummary {
@@ -150,22 +156,25 @@ export function ApplicationUnderReview({
   application: ApplicationSummary;
 }) {
   const navigate = useNavigate();
-  const revalidator = useRevalidator();
+  const { revalidate } = useRevalidator();
   const { confirm } = useConfirmationDialog();
   const withdraw = useWithdrawBillingArrangementApplication();
   const fromSettings = context.entry === 'settings';
 
-  // Check for a decision by re-running the loader, which shows the approved
-  // or declined page once staff decide. Onboarding pages sit outside the
-  // private layout, so there's no watch connection to lean on here.
+  // Check for a decision by polling just the org's applications, less often
+  // the longer the page stays open (and not at all while the tab is hidden).
+  // Onboarding pages sit outside the private layout, so there's no watch
+  // connection to lean on here. Once staff decide, re-run the loaders once
+  // to show the approved or declined page.
+  const applicationsQuery = useBillingArrangementApplications(context.orgId, {
+    refetchInterval: (query) => reviewPollInterval(query.state.dataUpdateCount),
+  });
+  const latest = applicationsQuery.data?.find((item) => item.metadata?.name === application.name);
+  const latestPhase = latest ? applicationPhase(latest) : undefined;
+  const decided = latestPhase === 'Approved' || latestPhase === 'Declined';
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (document.visibilityState === 'visible' && revalidator.state === 'idle') {
-        revalidator.revalidate();
-      }
-    }, REVIEW_POLL_MS);
-    return () => clearInterval(interval);
-  }, [revalidator]);
+    if (decided) revalidate();
+  }, [decided, revalidate]);
 
   const handleWithdraw = () =>
     confirm({
@@ -182,7 +191,9 @@ export function ApplicationUnderReview({
         } catch (error) {
           toast.error('Payment terms', {
             description:
-              error instanceof Error ? error.message : "We couldn't withdraw your application",
+              error instanceof Error && error.message
+                ? parseK8sMessage(error.message)
+                : "We couldn't withdraw your application",
           });
           throw error;
         }
@@ -204,7 +215,6 @@ export function ApplicationUnderReview({
         : "When it's approved, you'll go straight back into your organization.",
     'Your first invoice arrives at the end of your first billing cycle.',
   ];
-  const submitted = formatLongDate(application.submittedAt);
 
   return (
     <Card className={cardClassName} data-e2e="payment-terms-under-review">
@@ -229,7 +239,13 @@ export function ApplicationUnderReview({
           </Text>
           <div>
             <Badge type="warning" theme="light" className="rounded-full">
-              Under review{submitted ? ` · Submitted ${submitted}` : ''}
+              Under review
+              {application.submittedAt ? (
+                <>
+                  {' · Submitted '}
+                  <PaymentTermsDate date={application.submittedAt} />
+                </>
+              ) : null}
             </Badge>
           </div>
         </div>

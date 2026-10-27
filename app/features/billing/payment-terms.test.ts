@@ -3,9 +3,10 @@ import {
   billingCycleLabel,
   estimatedSpendLabel,
   formatCurrencyAmount,
-  formatLongDate,
   latestApplication,
   paymentTermsSummary,
+  paymentTermsView,
+  reviewPollInterval,
 } from './payment-terms';
 import type { BillingAccount, BillingArrangementApplication } from './types';
 import { describe, expect, it } from 'bun:test';
@@ -97,11 +98,43 @@ describe('formatting', () => {
     expect(estimatedSpendLabel('Over10000', 'EUR')).toBe('Over €10,000');
     expect(estimatedSpendLabel('NotSure')).toBe('Not sure yet');
   });
+});
 
-  it('formats dates the way the mockups do', () => {
-    expect(formatLongDate('2026-10-02T09:00:00Z')).toBe('2 October 2026');
-    expect(formatLongDate(undefined)).toBeUndefined();
-    expect(formatLongDate('not a date')).toBeUndefined();
+describe('reviewPollInterval', () => {
+  it('checks less often the longer the page is open', () => {
+    expect(reviewPollInterval(0)).toBe(10_000);
+    expect(reviewPollInterval(5)).toBe(10_000);
+    expect(reviewPollInterval(6)).toBe(30_000);
+    expect(reviewPollInterval(15)).toBe(30_000);
+    expect(reviewPollInterval(16)).toBe(60_000);
+    expect(reviewPollInterval(500)).toBe(60_000);
+  });
+});
+
+describe('paymentTermsView', () => {
+  const at = '2026-10-01T00:00:00Z';
+
+  it('shows the form with nothing to report on', () => {
+    expect(paymentTermsView(undefined, { applyAgain: false })).toBe('form');
+    expect(paymentTermsView(application('a', at, { withdrawn: true }), { applyAgain: false })).toBe(
+      'form'
+    );
+  });
+
+  it("shows the latest application's status", () => {
+    expect(paymentTermsView(application('a', at), { applyAgain: false })).toBe('pending');
+    expect(
+      paymentTermsView(application('a', at, { phase: 'Approved' }), { applyAgain: false })
+    ).toBe('approved');
+    expect(
+      paymentTermsView(application('a', at, { phase: 'Declined' }), { applyAgain: false })
+    ).toBe('declined');
+  });
+
+  it('shows the form when the customer applies again', () => {
+    expect(
+      paymentTermsView(application('a', at, { phase: 'Declined' }), { applyAgain: true })
+    ).toBe('form');
   });
 });
 

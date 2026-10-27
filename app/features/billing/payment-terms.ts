@@ -33,12 +33,12 @@ export const ORGANIZATION_TYPE_LABELS: Record<ApplicantOrganizationType, string>
 };
 
 /** Bounds of each spend band, in whole units of the account's currency. */
-const ESTIMATED_SPEND_BANDS: Record<EstimatedMonthlySpend, [number, number] | [number] | null> = {
-  Under500: [500],
-  From500To2500: [500, 2500],
-  From2500To10000: [2500, 10000],
-  Over10000: [10000],
-  NotSure: null,
+const ESTIMATED_SPEND_BANDS: Record<EstimatedMonthlySpend, { min?: number; max?: number }> = {
+  Under500: { max: 500 },
+  From500To2500: { min: 500, max: 2500 },
+  From2500To10000: { min: 2500, max: 10000 },
+  Over10000: { min: 10000 },
+  NotSure: {},
 };
 
 /** Spend bands in the order the form lists them. */
@@ -68,11 +68,13 @@ export function formatCurrencyAmount(amount: string | number, currency = 'USD'):
 
 /** "Under $500", "$500–$2,500", "Over $10,000" or "Not sure yet". */
 export function estimatedSpendLabel(spend: EstimatedMonthlySpend, currency = 'USD'): string {
-  const band = ESTIMATED_SPEND_BANDS[spend];
-  if (!band) return 'Not sure yet';
-  if (spend === 'Under500') return `Under ${formatCurrencyAmount(band[0], currency)}`;
-  if (band.length === 1) return `Over ${formatCurrencyAmount(band[0], currency)}`;
-  return `${formatCurrencyAmount(band[0], currency)}–${formatCurrencyAmount(band[1], currency)}`;
+  const { min, max } = ESTIMATED_SPEND_BANDS[spend];
+  if (min !== undefined && max !== undefined) {
+    return `${formatCurrencyAmount(min, currency)}–${formatCurrencyAmount(max, currency)}`;
+  }
+  if (max !== undefined) return `Under ${formatCurrencyAmount(max, currency)}`;
+  if (min !== undefined) return `Over ${formatCurrencyAmount(min, currency)}`;
+  return 'Not sure yet';
 }
 
 /**
@@ -85,6 +87,42 @@ export function applicationPhase(app: BillingArrangementApplication): Applicatio
   const phase = app.status?.phase;
   if (phase === 'Approved' || phase === 'Declined') return phase;
   return app.spec?.withdrawn ? 'Withdrawn' : 'Pending';
+}
+
+/**
+ * How long the review page waits before checking for a decision again:
+ * every 10 seconds for the first minute, every 30 seconds for the next five,
+ * then once a minute. `checks` is how many times it has already checked.
+ */
+export function reviewPollInterval(checks: number): number {
+  if (checks < 6) return 10_000;
+  if (checks < 16) return 30_000;
+  return 60_000;
+}
+
+/** Which payment terms page to show. */
+export type PaymentTermsView = 'form' | 'pending' | 'approved' | 'declined';
+
+/**
+ * The form when there's nothing to report on (no application, or it was
+ * withdrawn) or the customer chose to apply again; otherwise the latest
+ * application's status.
+ */
+export function paymentTermsView(
+  application: BillingArrangementApplication | undefined,
+  options: { applyAgain: boolean }
+): PaymentTermsView {
+  if (options.applyAgain || !application) return 'form';
+  switch (applicationPhase(application)) {
+    case 'Approved':
+      return 'approved';
+    case 'Declined':
+      return 'declined';
+    case 'Withdrawn':
+      return 'form';
+    default:
+      return 'pending';
+  }
 }
 
 /** The billing account's most recent application, ignoring ones being deleted. */
@@ -178,17 +216,4 @@ export function paymentTermsSummary(
     startsAt: arrangement.startsAt,
     endsAt: arrangement.endsAt,
   };
-}
-
-/** "2 October 2026". */
-export function formatLongDate(iso: string | undefined): string | undefined {
-  if (!iso) return undefined;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return undefined;
-  return new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  }).format(date);
 }

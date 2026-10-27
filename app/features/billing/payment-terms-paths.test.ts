@@ -3,7 +3,7 @@ import {
   isNewOrgEntry,
   paymentTermsPath,
   readPaymentTermsSearch,
-} from './payment-terms-paths';
+} from '@/features/billing/payment-terms-paths';
 import { describe, expect, it } from 'bun:test';
 
 describe('payment terms paths', () => {

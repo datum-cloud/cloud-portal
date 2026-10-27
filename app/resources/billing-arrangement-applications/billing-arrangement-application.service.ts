@@ -116,6 +116,9 @@ export function createBillingArrangementApplicationService() {
      */
     async withdraw(orgId: string, name: string): Promise<BillingArrangementApplication> {
       const startTime = Date.now();
+      const withdrawPatch: { spec: Required<Pick<ApplicationSpec, 'withdrawn'>> } = {
+        spec: { withdrawn: true },
+      };
       try {
         const namespace = buildOrganizationNamespace(orgId);
         const resp = await patchBillingMiloapisComV1Alpha1NamespacedBillingArrangementApplication({
@@ -123,7 +126,7 @@ export function createBillingArrangementApplicationService() {
           path: { namespace, name },
           // The SDK defaults to JSON Patch; a merge patch sets the one field.
           headers: { 'Content-Type': 'application/merge-patch+json' },
-          body: { spec: { withdrawn: true } } as never,
+          body: withdrawPatch,
         });
         const updated = resp.data as BillingArrangementApplication | undefined;
         if (!updated) {

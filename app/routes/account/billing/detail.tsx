@@ -36,6 +36,7 @@ import {
   paymentTermsSummary,
 } from '@/features/billing/payment-terms';
 import { requireBillingForAnyOrg } from '@/modules/feature-flags/billing-gate.server';
+import { logger } from '@/modules/logger';
 import { RbacProvider, usePermission } from '@/modules/rbac';
 import { buildContactAddressPrefill } from '@/modules/stripe';
 import { useApp } from '@/providers/app.provider';
@@ -52,6 +53,7 @@ import {
 } from '@/resources/billing-accounts';
 import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
 import { createInvoiceService, useInvoices, useInvoicesWatch } from '@/resources/invoices';
+import { isUserOrgOwner } from '@/resources/members/member-owner';
 import { createOrganizationService } from '@/resources/organizations/organization.service';
 import {
   createPaymentMethodService,
@@ -89,6 +91,10 @@ interface LoaderData {
   invoices: Invoice[];
   /** The account's most recent application for payment terms. */
   paymentTermsApplication: BillingArrangementApplication | undefined;
+  /** Only org owners can apply for payment terms or open an application. */
+  isOrgOwner: boolean;
+  /** When the loader ran, so server and browser agree on terms ending soon. */
+  renderedAt: number;
   orgs: Array<{ name: string; displayName: string }>;
   orgIds: string[];
   projectsByOrg: Record<string, Array<{ name: string; displayName: string }>>;
@@ -149,23 +155,32 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
   // Fan the remaining reads out together — they're independent and
   // the page renders meaningful partial state from any subset, so a
   // single failure doesn't blank the whole detail.
-  const [allBindings, stripeConfigs, paymentMethods, invoices, applications] = await Promise.all([
-    createBillingAccountBindingService().listForOrgs(orgIds),
-    createStripeProviderConfigService()
-      .list()
-      .catch(() => []),
-    orgId ? createPaymentMethodService().list(orgId) : Promise.resolve<PaymentMethod[]>([]),
-    orgId
-      ? createInvoiceService()
-          .list(orgId)
-          .catch(() => [] as Invoice[])
-      : Promise.resolve<Invoice[]>([]),
-    orgId
-      ? createBillingArrangementApplicationService()
-          .list(orgId)
-          .catch(() => [] as BillingArrangementApplication[])
-      : Promise.resolve<BillingArrangementApplication[]>([]),
-  ]);
+  const [allBindings, stripeConfigs, paymentMethods, invoices, applications, isOrgOwner] =
+    await Promise.all([
+      createBillingAccountBindingService().listForOrgs(orgIds),
+      createStripeProviderConfigService()
+        .list()
+        .catch(() => []),
+      orgId ? createPaymentMethodService().list(orgId) : Promise.resolve<PaymentMethod[]>([]),
+      orgId
+        ? createInvoiceService()
+            .list(orgId)
+            .catch(() => [] as Invoice[])
+        : Promise.resolve<Invoice[]>([]),
+      orgId
+        ? createBillingArrangementApplicationService()
+            .list(orgId)
+            .catch((error): BillingArrangementApplication[] => {
+              logger.warn('[account/billing] Could not list payment terms applications', {
+                orgId,
+                fallback: 'no application shown',
+                error: error instanceof Error ? error.message : String(error),
+              });
+              return [];
+            })
+        : Promise.resolve<BillingArrangementApplication[]>([]),
+      orgId ? isUserOrgOwner(orgId).catch(() => false) : Promise.resolve(false),
+    ]);
 
   // For each org that has a binding to this account, hydrate the
   // project display names — fan-out is bounded by the user's
@@ -213,6 +228,8 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     paymentMethods,
     invoices,
     paymentTermsApplication: latestApplication(applications, billingAccountId),
+    isOrgOwner,
+    renderedAt: Date.now(),
     orgs,
     orgIds,
     projectsByOrg,
@@ -295,6 +312,8 @@ function AccountBillingAccountDetailPageInner() {
     paymentMethods: initialPaymentMethods,
     invoices: initialInvoices,
     paymentTermsApplication,
+    isOrgOwner,
+    renderedAt,
     orgs,
     orgIds: initialOrgIds,
     projectsByOrg,
@@ -764,9 +783,10 @@ function AccountBillingAccountDetailPageInner() {
   );
 
   const paymentTerms = paymentTermsSummary(account);
-  // With PAYMENT_TERMS_ENABLED off, the section only reports terms or an
-  // application that already exist.
-  const canApplyForPaymentTerms = env.public.paymentTermsEnabled;
+  // Only org owners apply, and only while PAYMENT_TERMS_ENABLED is on.
+  // Otherwise the section only reports terms or an application that
+  // already exist.
+  const canApplyForPaymentTerms = env.public.paymentTermsEnabled && isOrgOwner;
   const paymentTermsPhase = paymentTermsApplication
     ? applicationPhase(paymentTermsApplication)
     : undefined;
@@ -796,12 +816,14 @@ function AccountBillingAccountDetailPageInner() {
                 : 'Pay by invoice instead of by card. Our team reviews every application.'
             }>
             <PaymentTermsCard
-              orgId={orgId}
+              // The application pages are for owners, so others get no links.
+              orgId={isOrgOwner ? orgId : undefined}
               billingAccountName={accountName}
               terms={paymentTerms}
               application={paymentTermsApplication}
               currency={account.spec?.currencyCode ?? 'USD'}
               canApply={canApplyForPaymentTerms}
+              now={renderedAt}
             />
           </Section>
         ) : null}

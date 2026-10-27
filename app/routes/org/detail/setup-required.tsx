@@ -1,8 +1,9 @@
 import { ProfileIdentity } from '@/components/profile-identity';
-import { formatLongDate } from '@/features/billing/payment-terms';
+import { PaymentTermsDate } from '@/features/billing/payment-terms-date';
 import { selectDefaultOrgBillingAccount } from '@/features/billing/types';
 import { paymentTermsApplicationPendingSince } from '@/features/onboarding/legacy-setup/org-setup-status';
 import { isOrgSetupComplete } from '@/features/onboarding/legacy-setup/org-setup-status.server';
+import { logger } from '@/modules/logger';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import {
   isUserOrgOwner,
@@ -54,16 +55,25 @@ export const loader = async ({ request, params, context }: LoaderFunctionArgs) =
       return redirect(`${paths.onboarding.billing}?orgId=${encodeURIComponent(orgId)}`);
     }
 
-    const org = await createOrganizationService()
-      .get(orgId)
-      .catch(() => null);
-    const owners = await listOrgOwners(orgId).catch(() => [] as OrgOwnerContact[]);
-    // Billing reports an owner's pending payment terms application on the
-    // account's PaymentReady condition. Members who can't read billing
-    // accounts just see the general setup message.
-    const accounts = await createBillingAccountService()
-      .list(orgId)
-      .catch(() => []);
+    // Each of these is optional for the page, so a failure falls back
+    // rather than failing the page. Billing reports an owner's pending
+    // payment terms application on the account's PaymentReady condition;
+    // members who can't read billing accounts just see the general setup
+    // message.
+    const fallBack =
+      <T,>(what: string, value: T) =>
+      (error: unknown): T => {
+        logger.warn(`[setup-required] Could not load ${what}`, {
+          orgId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return value;
+      };
+    const [org, owners, accounts] = await Promise.all([
+      createOrganizationService().get(orgId).catch(fallBack('the organization', null)),
+      listOrgOwners(orgId).catch(fallBack('the owners', [] as OrgOwnerContact[])),
+      createBillingAccountService().list(orgId).catch(fallBack('billing accounts', [])),
+    ]);
     const reviewSince = paymentTermsApplicationPendingSince(
       selectDefaultOrgBillingAccount(accounts)
     );
@@ -83,7 +93,6 @@ export const loader = async ({ request, params, context }: LoaderFunctionArgs) =
 
 export default function OrgSetupRequiredRoute() {
   const { orgDisplayName, owners, reviewSince } = useLoaderData<typeof loader>();
-  const appliedOn = formatLongDate(reviewSince ?? undefined);
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-6">
@@ -103,9 +112,15 @@ export default function OrgSetupRequiredRoute() {
               </Title>
               <Text as="p" textColor="muted">
                 An owner of <span className="text-foreground font-medium">{orgDisplayName}</span>{' '}
-                applied for payment terms{appliedOn ? ` on ${appliedOn}` : ''}. Our team usually
-                reviews applications within one business day, and you&apos;ll have access as soon as
-                it&apos;s approved.
+                applied for payment terms
+                {reviewSince ? (
+                  <>
+                    {' on '}
+                    <PaymentTermsDate date={reviewSince} />
+                  </>
+                ) : null}
+                . Our team usually reviews applications within one business day, and you&apos;ll
+                have access as soon as it&apos;s approved.
               </Text>
             </div>
           ) : (

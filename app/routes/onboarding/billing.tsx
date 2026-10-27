@@ -1,4 +1,5 @@
 import { applicationPhase, latestApplication } from '@/features/billing/payment-terms';
+import { paymentTermsPath } from '@/features/billing/payment-terms-paths';
 import { type BillingAccount, selectDefaultOrgBillingAccount } from '@/features/billing/types';
 import { BillingPage, type BillingPageData } from '@/features/onboarding/billing/billing-page';
 import { OnboardingLayout } from '@/features/onboarding/components/onboarding-layout';
@@ -10,12 +11,12 @@ import {
   loadOnboardingUser,
   onboardingAccessRedirect,
 } from '@/features/onboarding/onboarding-user.server';
-import { paymentTermsPath } from '@/features/onboarding/payment-terms/payment-terms-paths';
 import {
   contactInfoFromBillingAccount,
   contactInfoFromOrganization,
 } from '@/features/onboarding/schemas/contact-info-sources';
 import { type OrgContactInfoValues } from '@/features/onboarding/schemas/org-contact-info-schema';
+import { logger } from '@/modules/logger';
 import { createBillingAccountService } from '@/resources/billing-accounts';
 import { createBillingArrangementApplicationService } from '@/resources/billing-arrangement-applications';
 import { isUserOrgOwner } from '@/resources/members/member-owner';
@@ -96,7 +97,14 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       if (account?.metadata?.name && !hasActivePayment && !onInvoiceTerms) {
         const applications = await createBillingArrangementApplicationService()
           .list(orgId)
-          .catch(() => []);
+          .catch((error) => {
+            logger.warn('[onboarding/billing] Could not list payment terms applications', {
+              orgId,
+              fallback: 'showing the card form',
+              error: error instanceof Error ? error.message : String(error),
+            });
+            return [];
+          });
         const application = latestApplication(applications, account.metadata.name);
         const phase = application ? applicationPhase(application) : undefined;
         if (

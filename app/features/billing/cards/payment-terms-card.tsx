@@ -2,11 +2,11 @@ import {
   PAYMENT_OPTION_LABELS,
   applicationPhase,
   estimatedSpendLabel,
-  formatLongDate,
   type PaymentTermsSummary,
 } from '@/features/billing/payment-terms';
+import { PaymentTermsDate } from '@/features/billing/payment-terms-date';
+import { paymentTermsPath } from '@/features/billing/payment-terms-paths';
 import type { BillingArrangementApplication } from '@/features/billing/types';
-import { paymentTermsPath } from '@/features/onboarding/payment-terms/payment-terms-paths';
 import { Badge } from '@datum-cloud/datum-ui/badge';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
 import { Icon } from '@datum-cloud/datum-ui/icons';
@@ -33,9 +33,9 @@ function Detail({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-function endsWithinDays(endsAt: string | undefined, days: number): boolean {
+function endsWithinDays(endsAt: string | undefined, days: number, now: number): boolean {
   if (!endsAt) return false;
-  const remaining = Date.parse(endsAt) - Date.now();
+  const remaining = Date.parse(endsAt) - now;
   return remaining > 0 && remaining <= days * 24 * 60 * 60 * 1000;
 }
 
@@ -52,6 +52,11 @@ export interface PaymentTermsCardProps {
    * and existing applications still show, without a way to apply.
    */
   canApply?: boolean;
+  /**
+   * The current time for the renewal prompt. Pass the loader's timestamp so
+   * the server and the browser render the same thing.
+   */
+  now: number;
 }
 
 /**
@@ -65,6 +70,7 @@ export const PaymentTermsCard = ({
   application,
   currency,
   canApply = true,
+  now,
 }: PaymentTermsCardProps) => {
   const phase = application ? applicationPhase(application) : undefined;
   const applyPath = orgId
@@ -76,9 +82,7 @@ export const PaymentTermsCard = ({
       : undefined;
 
   if (terms) {
-    const since = formatLongDate(terms.startsAt);
-    const until = formatLongDate(terms.endsAt);
-    const endingSoon = endsWithinDays(terms.endsAt, ENDING_SOON_DAYS);
+    const endingSoon = endsWithinDays(terms.endsAt, ENDING_SOON_DAYS, now);
     return (
       <Card size="sm" sectioned className="overflow-hidden" data-e2e="payment-terms-card">
         <CardContent className="flex flex-col gap-5">
@@ -90,11 +94,21 @@ export const PaymentTermsCard = ({
               <Text as="p" weight="semibold">
                 Pay by invoice · Net {terms.netDays}
               </Text>
-              <Text as="p" size="xs" textColor="muted">
-                {[since && `Since ${since}`, until && `Valid until ${until}`]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </Text>
+              {terms.startsAt || terms.endsAt ? (
+                <Text as="p" size="xs" textColor="muted">
+                  {terms.startsAt ? (
+                    <>
+                      Since <PaymentTermsDate date={terms.startsAt} />
+                    </>
+                  ) : null}
+                  {terms.startsAt && terms.endsAt ? ' · ' : null}
+                  {terms.endsAt ? (
+                    <>
+                      Valid until <PaymentTermsDate date={terms.endsAt} />
+                    </>
+                  ) : null}
+                </Text>
+              ) : null}
             </div>
             <Badge type="success" theme="light" className="rounded-full">
               Active
@@ -112,12 +126,13 @@ export const PaymentTermsCard = ({
             <Detail label="Pay by">Bank transfer, ACH or wire</Detail>
           </div>
         </CardContent>
-        {endingSoon ? (
+        {endingSoon && terms.endsAt ? (
           <CardFooter bordered className="flex flex-wrap items-center justify-between gap-2">
             <Text as="p" size="sm">
+              These terms end on <PaymentTermsDate date={terms.endsAt} />.{' '}
               {applyAgainPath
-                ? `These terms end on ${until}. Add a card or apply to renew to keep using Datum without interruption.`
-                : `These terms end on ${until}. Add a card to keep using Datum without interruption.`}
+                ? 'Add a card or apply to renew to keep using Datum without interruption.'
+                : 'Add a card to keep using Datum without interruption.'}
             </Text>
             {applyAgainPath ? (
               <Link to={applyAgainPath} className={linkClassName}>
@@ -132,7 +147,7 @@ export const PaymentTermsCard = ({
 
   if (application && phase === 'Pending') {
     const invoice = application.spec?.invoice;
-    const submitted = formatLongDate(application.metadata?.creationTimestamp);
+    const submitted = application.metadata?.creationTimestamp;
     return (
       <Card size="sm" sectioned data-e2e="payment-terms-card">
         <CardContent className="flex flex-col gap-4">
@@ -141,7 +156,13 @@ export const PaymentTermsCard = ({
               Application under review
             </Text>
             <Badge type="warning" theme="light" className="rounded-full">
-              {submitted ? `Submitted ${submitted}` : 'Under review'}
+              {submitted ? (
+                <>
+                  Submitted <PaymentTermsDate date={submitted} />
+                </>
+              ) : (
+                'Under review'
+              )}
             </Badge>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

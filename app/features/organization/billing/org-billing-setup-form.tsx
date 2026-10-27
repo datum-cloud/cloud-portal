@@ -1,11 +1,11 @@
 import { CardBrandIcon } from '@/features/billing/components/card-brand-icon';
 import { CARD_BRAND_LABELS } from '@/features/billing/constants';
 import { AddPaymentMethodDialog } from '@/features/billing/dialogs/add-payment-method-dialog';
+import type { PaymentTermsEntry } from '@/features/billing/payment-terms-paths';
 import { normalizeCardBrand, type CardBrand } from '@/features/billing/types';
 import { useSetupOnboardingBilling } from '@/features/onboarding/billing/use-setup-onboarding-billing';
 import { OrgContactInfoDialog } from '@/features/onboarding/dialogs/org-contact-info-dialog';
 import { PaymentTermsHint } from '@/features/onboarding/payment-terms/payment-terms-hint';
-import type { PaymentTermsEntry } from '@/features/onboarding/payment-terms/payment-terms-paths';
 import {
   buildOrgContactDefaults,
   formatOrgContactPrimaryLine,

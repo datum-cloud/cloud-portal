@@ -3,7 +3,6 @@ import {
   toApplicationInput,
   type PaymentTermsApplicationValues,
 } from './application-schema';
-import { cardSetupPath, paymentTermsPath, type PaymentTermsEntry } from './payment-terms-paths';
 import { ProfileIdentity } from '@/components/profile-identity';
 import {
   ESTIMATED_SPEND_OPTIONS,
@@ -12,9 +11,15 @@ import {
   type ApplicantOrganizationType,
   type ApplicationPaymentOption,
 } from '@/features/billing/payment-terms';
+import {
+  cardSetupPath,
+  paymentTermsPath,
+  type PaymentTermsEntry,
+} from '@/features/billing/payment-terms-paths';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
 import { useCreateBillingArrangementApplication } from '@/resources/billing-arrangement-applications';
+import { parseK8sMessage } from '@/utils/errors';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
 import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
@@ -124,7 +129,7 @@ export function PaymentTermsApplicationForm({
     } catch (error) {
       setSubmitError(
         error instanceof Error && error.message
-          ? error.message
+          ? parseK8sMessage(error.message)
           : "We couldn't submit your application. Please try again."
       );
     }

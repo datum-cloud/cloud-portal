@@ -162,7 +162,7 @@ describe('Apply for payment terms', () => {
     );
 
     cy.contains("We're reviewing your application").should('exist');
-    cy.contains('Under review · Submitted 2 October 2026').should('exist');
+    cy.contains('Under review · Submitted October 2, 2026').should('exist');
     cy.screenshot('payment-terms-under-review', { capture: 'fullPage' });
 
     cy.get('[data-e2e="payment-terms-withdraw"]').click();
@@ -350,7 +350,12 @@ describe('Offering payment terms under the card form', () => {
 });
 
 describe('Payment terms in billing settings', () => {
-  const card = { orgId: 'acme', billingAccountName: 'acme-billing', currency: 'USD' };
+  const card = {
+    orgId: 'acme',
+    billingAccountName: 'acme-billing',
+    currency: 'USD',
+    now: Date.now(),
+  };
   const endingSoon = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString();
   const terms = {
     name: 'acme-terms',
