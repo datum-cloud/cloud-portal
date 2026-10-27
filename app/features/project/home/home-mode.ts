@@ -17,6 +17,13 @@ export function findNetworksPlugin(plugins: PublicPlugin[] | undefined): PublicP
   );
 }
 
+/**
+ * Whether the home page offers exposing a laptop or server through
+ * `datumctl connect`. Off until the connect plugin works end to end; the
+ * commands below stay ready for when it does.
+ */
+export const CONNECT_AVAILABLE = false;
+
 // ---------------------------------------------------------------------------
 // Patch prompts. Written as the user would say it, since that is how they
 // appear in the conversation.
@@ -30,8 +37,8 @@ export type GuidedStart = {
   prompt: (network: string | undefined, networkCount?: number) => string;
 };
 
-/** The "What do you want to connect first?" choices on the path picker. */
-export const GUIDED_STARTS: readonly GuidedStart[] = [
+/** Every "What do you want to connect first?" choice, offered or not. */
+const ALL_GUIDED_STARTS: readonly GuidedStart[] = [
   {
     key: 'app',
     label: 'An app or container I want to run',
@@ -60,6 +67,11 @@ export const GUIDED_STARTS: readonly GuidedStart[] = [
     prompt: () => 'I want to use a domain I own with Datum. Walk me through it step by step.',
   },
 ];
+
+/** The "What do you want to connect first?" choices on the path picker. */
+export const GUIDED_STARTS: readonly GuidedStart[] = ALL_GUIDED_STARTS.filter(
+  (start) => CONNECT_AVAILABLE || start.key !== 'machine'
+);
 
 /** Free text from the picker, with the network named so Patch has it. */
 export function freeTextPrompt(
@@ -240,13 +252,15 @@ export function suggestNextSteps(
   };
   // A first workload comes before connecting a machine; another one after.
   if (status('workload') === 'todo') suggestions.push(deploy);
-  suggestions.push({
-    tool: 'connect',
-    title: 'Connect a machine',
-    description: 'Expose a service from a laptop or your own servers.',
-    patchLabel: 'Connect something on my laptop',
-    patchPrompt: GUIDED_STARTS.find((start) => start.key === 'machine')!.prompt(network),
-  });
+  if (CONNECT_AVAILABLE) {
+    suggestions.push({
+      tool: 'connect',
+      title: 'Connect a machine',
+      description: 'Expose a service from a laptop or your own servers.',
+      patchLabel: 'Connect something on my laptop',
+      patchPrompt: ALL_GUIDED_STARTS.find((start) => start.key === 'machine')!.prompt(network),
+    });
+  }
   if (status('workload') !== 'todo') suggestions.push(deploy);
 
   // Fill to three with steps that fit any project, so the card never looks

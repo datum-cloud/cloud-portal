@@ -1,9 +1,20 @@
 import {
+  planSubscriptionSave,
+  subscriptionTicks,
+  type SubscriptionSavePlan,
+  type SubscriptionState,
+} from './notification-subscriptions';
+import {
   NotificationSettingsCard,
   NotificationSettingsCardSkeleton,
 } from '@/components/notification-settings';
 import type { NotificationPreference } from '@/components/notification-settings';
 import {
+  createNotificationContactGroupMembershipRemovalService,
+  createNotificationContactGroupMembershipService,
+  notificationContactGroupMembershipKeys,
+  notificationContactGroupMembershipRemovalKeys,
+  notificationScopeKey,
   useCreateNotificationContactGroupMembership,
   useCreateNotificationContactGroupMembershipRemoval,
   useNotificationContactGroupMemberships,
@@ -11,41 +22,33 @@ import {
   useNotificationContactGroups,
   useNotificationContacts,
   useDeleteNotificationContactGroupMembershipRemoval,
+  DEFAULT_NOTIFICATION_NAMESPACE,
+  type NotificationScope,
 } from '@/resources/notifications';
 import { generateId } from '@/utils/helpers/text.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
-import { useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 import { z } from 'zod';
 
 export const AccountNotificationSettingsCard = () => {
-  const scope = { type: 'user' as const };
+  const scope = useMemo((): NotificationScope => ({ type: 'user' }), []);
+  const scopeKey = notificationScopeKey(scope);
+  const queryClient = useQueryClient();
 
   const { data: contactGroups } = useNotificationContactGroups(scope);
   const { data: contactGroupMemberships } = useNotificationContactGroupMemberships(scope);
   const { data: contactGroupMembershipRemovals } =
     useNotificationContactGroupMembershipRemovals(scope);
   const { data: contacts } = useNotificationContacts(scope);
-  const createMembership = useCreateNotificationContactGroupMembership(scope, {
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSuccess: () => {
-      toast.success('Marketing & Events Notifications updated');
-    },
-  });
-  const createRemoval = useCreateNotificationContactGroupMembershipRemoval(scope, {
-    onError: (error) => {
-      toast.error(error.message);
-    },
-    onSuccess: () => {
-      toast.success('Marketing & Events Notifications updated');
-    },
-  });
-  const deleteRemoval = useDeleteNotificationContactGroupMembershipRemoval(scope, {
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+
+  // Mutations report through the single toast this card raises once the save
+  // has settled, so none of them announce a step of their own.
+  const createMembership = useCreateNotificationContactGroupMembership(scope);
+  const createRemoval = useCreateNotificationContactGroupMembershipRemoval(scope);
+  const deleteRemoval = useDeleteNotificationContactGroupMembershipRemoval(scope);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const contactGroupPreferences: NotificationPreference[] = useMemo(
     () =>
@@ -65,115 +68,120 @@ export const AccountNotificationSettingsCard = () => {
     return z.object(shape);
   }, [contactGroups]);
 
-  const defaultValues = useMemo(() => {
-    const membershipGroupNames = new Set(
-      (contactGroupMemberships ?? []).map((m) => m.contactGroupName)
-    );
-    const removalGroupNames = new Set(
-      (contactGroupMembershipRemovals ?? []).map((r) => r.contactGroupName)
-    );
+  const groupNames = useMemo(() => (contactGroups ?? []).map((g) => g.name), [contactGroups]);
 
-    return Object.fromEntries(
-      (contactGroups ?? []).map((group) => [
-        group.name,
-        membershipGroupNames.has(group.name) && !removalGroupNames.has(group.name),
-      ])
-    ) as Record<string, boolean>;
-  }, [contactGroups, contactGroupMemberships, contactGroupMembershipRemovals]);
+  const defaultValues = useMemo(
+    () =>
+      subscriptionTicks(groupNames, {
+        memberships: contactGroupMemberships ?? [],
+        removals: contactGroupMembershipRemovals ?? [],
+      }),
+    [groupNames, contactGroupMemberships, contactGroupMembershipRemovals]
+  );
+
+  // The form seeds itself from `defaultValues` once, at mount, so a save that
+  // stored something other than what was ticked would otherwise leave the
+  // boxes showing the ticks. Bumping this remounts it against what was just
+  // read, whether the save succeeded or failed.
+  const [formGeneration, setFormGeneration] = useState(0);
 
   const contactContext = useMemo(() => {
     const contactName = contacts?.[0]?.name;
     const namespace = contacts?.[0]?.namespace;
     return { contactName, namespace };
-  }, [contacts, contactGroupMemberships, contactGroupMembershipRemovals]);
-
-  const isSaving = createMembership.isPending || createRemoval.isPending || deleteRemoval.isPending;
+  }, [contacts]);
 
   const isReady =
     !!contactGroups &&
     contactGroupMemberships !== undefined &&
     contactGroupMembershipRemovals !== undefined;
 
-  const handleSubmit = async (data: Record<string, boolean>) => {
-    try {
-      const { contactName, namespace: contactNamespace } = contactContext;
+  /**
+   * What the control plane holds right now, rather than what the last render
+   * captured: a save planned from state read before the previous save
+   * finished is issue #1696.
+   */
+  const readStored = useCallback(async (): Promise<SubscriptionState> => {
+    // Called rather than fetched through the query cache: `fetchQuery` would
+    // hand back a request that a mutation's invalidate already had in flight,
+    // and this has to be an answer from after the write it follows.
+    const [memberships, removals] = await Promise.all([
+      createNotificationContactGroupMembershipService().list(scope),
+      createNotificationContactGroupMembershipRemovalService().list(scope),
+    ]);
 
-      if (!contactName || !contactNamespace) {
-        toast.error('Unable to update notification groups', {
-          description: 'No contact was found for this user.',
+    // Seeding the cache is what re-seeds the form: the boxes read from these
+    // two queries.
+    queryClient.setQueryData(
+      notificationContactGroupMembershipKeys.list(scopeKey, DEFAULT_NOTIFICATION_NAMESPACE),
+      memberships
+    );
+    queryClient.setQueryData(
+      notificationContactGroupMembershipRemovalKeys.list(scopeKey, DEFAULT_NOTIFICATION_NAMESPACE),
+      removals
+    );
+
+    return { memberships, removals };
+  }, [queryClient, scope, scopeKey]);
+
+  const handleSubmit = async (data: Record<string, boolean>) => {
+    const { contactName, namespace: contactNamespace } = contactContext;
+
+    if (!contactName || !contactNamespace) {
+      toast.error('Unable to update notification groups', {
+        description: 'No contact was found for this user.',
+      });
+      return;
+    }
+
+    const groupNamespaceByName = new Map(
+      (contactGroups ?? []).map((g) => [g.name, g.namespace] as const)
+    );
+    const applyPlan = async (plan: SubscriptionSavePlan) => {
+      // One write at a time, in plan order: a group's removal has to be gone
+      // before its membership is created, or the create is blocked.
+      for (const removal of plan.deleteRemovals) {
+        await deleteRemoval.mutateAsync({
+          name: removal.name,
+          namespace: removal.namespace ?? groupNamespaceByName.get(removal.contactGroupName),
         });
-        return;
       }
 
-      const allGroups = contactGroups ?? [];
-      const groupNamespaceByName = new Map(allGroups.map((g) => [g.name, g.namespace] as const));
+      for (const contactGroupName of plan.createMemberships) {
+        await createMembership.mutateAsync({
+          name: generateId(contactGroupName),
+          contactGroupName,
+          contactName,
+          namespace: groupNamespaceByName.get(contactGroupName),
+          contactNamespace,
+        });
+      }
 
-      const desiredGroupNames = Object.entries(data)
-        .filter(([, enabled]) => enabled === true)
-        .map(([groupName]) => groupName);
+      for (const contactGroupName of plan.createRemovals) {
+        await createRemoval.mutateAsync({
+          name: generateId(contactGroupName, { prefix: 'cgmr' }),
+          contactGroupName,
+          contactName,
+          namespace: groupNamespaceByName.get(contactGroupName),
+          contactNamespace,
+        });
+      }
+    };
 
-      const desiredSet = new Set(desiredGroupNames);
+    setIsSubmitting(true);
+    try {
+      const stored = await readStored();
+      await applyPlan(planSubscriptionSave(data, stored, groupNames));
 
-      const existingMembershipGroupNames = new Set(
-        (contactGroupMemberships ?? []).map((m) => m.contactGroupName)
-      );
-
-      const removalByGroupName = new Map(
-        (contactGroupMembershipRemovals ?? []).map((r) => [
-          r.contactGroupName,
-          { name: r.name, namespace: r.namespace },
-        ])
-      );
-
-      const toEnable = allGroups
-        .map((g) => g.name)
-        .filter((groupName) => desiredSet.has(groupName));
-      const toDisable = allGroups
-        .map((g) => g.name)
-        .filter((groupName) => !desiredSet.has(groupName));
-
-      await Promise.all(
-        toEnable.map(async (contactGroupName) => {
-          const removal = removalByGroupName.get(contactGroupName);
-          if (removal) {
-            const removalNamespace =
-              removal.namespace ?? groupNamespaceByName.get(contactGroupName);
-            await deleteRemoval.mutateAsync({
-              name: removal.name,
-              namespace: removalNamespace,
-            });
-          }
-
-          if (!existingMembershipGroupNames.has(contactGroupName)) {
-            const contactGroupNamespace = groupNamespaceByName.get(contactGroupName);
-            await createMembership.mutateAsync({
-              name: generateId(contactGroupName),
-              contactGroupName,
-              contactName,
-              namespace: contactGroupNamespace,
-              contactNamespace,
-            });
-          }
-        })
-      );
-
-      await Promise.all(
-        toDisable.map(async (contactGroupName) => {
-          if (!existingMembershipGroupNames.has(contactGroupName)) return;
-          if (removalByGroupName.has(contactGroupName)) return;
-
-          const contactGroupNamespace = groupNamespaceByName.get(contactGroupName);
-          await createRemoval.mutateAsync({
-            name: generateId(contactGroupName, { prefix: 'cgmr' }),
-            contactGroupName,
-            contactName,
-            namespace: contactGroupNamespace,
-            contactNamespace,
-          });
-        })
-      );
-    } catch {
-      // errors are surfaced via the mutation onError handlers
+      // Read once more so the boxes below are drawn from what the save left
+      // behind rather than from what was ticked.
+      await readStored();
+      toast.success('Marketing & Events Notifications updated');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to update notification groups');
+    } finally {
+      setIsSubmitting(false);
+      setFormGeneration((generation) => generation + 1);
     }
   };
 
@@ -189,11 +197,12 @@ export const AccountNotificationSettingsCard = () => {
 
   return (
     <NotificationSettingsCard
+      key={formGeneration}
       title="Marketing & Events Notifications"
       schema={schema}
       defaultValues={defaultValues}
       preferences={contactGroupPreferences}
-      isLoading={isSaving}
+      isLoading={isSubmitting}
       onSubmit={handleSubmit}
     />
   );

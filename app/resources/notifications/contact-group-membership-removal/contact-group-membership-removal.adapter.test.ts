@@ -29,6 +29,24 @@ describe('toContactGroupMembershipRemoval', () => {
 });
 
 describe('toContactGroupMembershipRemovalList', () => {
+  it('leaves out a removal the controller is deleting', () => {
+    const list = toContactGroupMembershipRemovalList({
+      items: [
+        { metadata: rawMetadata({ uid: 'live', name: 'keep' }), spec: {} },
+        {
+          metadata: rawMetadata({
+            uid: 'going',
+            name: 'drop',
+            deletionTimestamp: '2026-10-23T10:00:00Z',
+          }),
+          spec: {},
+        },
+      ],
+    } as never);
+
+    expect(list.items.map((r) => r.name)).toEqual(['keep']);
+  });
+
   it('reads the cursor from metadata.continue', () => {
     const list = toContactGroupMembershipRemovalList({
       items: [{ metadata: { uid: 'a' }, spec: {} }],

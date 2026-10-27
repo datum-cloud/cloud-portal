@@ -37,8 +37,13 @@ export function toContactGroupMembershipRemovalList(
   nextCursor?: string
 ): ContactGroupMembershipRemovalList {
   const cursor = nextCursor ?? raw.metadata?.continue ?? undefined;
+  // Same reasoning as the membership list: a removal on its way out must not
+  // hold a box unticked, or the save that re-subscribes finds nothing to do.
+  const live = (raw.items ?? []).filter(
+    (item) => typeof item.metadata?.deletionTimestamp === 'undefined'
+  );
   return {
-    items: (raw.items ?? []).map(toContactGroupMembershipRemoval),
+    items: live.map(toContactGroupMembershipRemoval),
     nextCursor: cursor ?? null,
     hasMore: !!cursor,
   };

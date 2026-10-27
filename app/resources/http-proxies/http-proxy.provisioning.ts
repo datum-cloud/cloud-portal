@@ -7,6 +7,7 @@ import {
   getHttpProxyStatus,
   getBlockedHostnames,
   getHostnameOwnershipDisplay,
+  getUserRoutingRecord,
   isHeldBackByCustomHostnames,
   isHostnameDnsInFlight,
   isHostnameOwnershipBlocked,
@@ -50,7 +51,12 @@ export function isHttpProxyProvisioning(proxy?: HttpProxy): boolean {
     // The certificate waits on a record the user publishes; the watch stream
     // brings the change in, so there's nothing to poll for meanwhile.
     if (blocked.awaitingDns.includes(hostnameStatus.hostname)) return false;
-    if (isHostnameDnsInFlight(getDnsRecordProgrammedCondition(hostnameStatus))) {
+    const dnsCondition = getDnsRecordProgrammedCondition(hostnameStatus);
+    // A hostname whose DNS runs elsewhere gets no DNS condition at all
+    // (network-services-operator#489). Its routing record is the user's to
+    // publish, and the watch stream brings in Datum seeing it.
+    const userRoutesIt = !dnsCondition && !!getUserRoutingRecord(hostnameStatus);
+    if (!userRoutesIt && isHostnameDnsInFlight(dnsCondition)) {
       return true;
     }
     const cert = getCertificateReadyDisplay(getCertificateReadyCondition(hostnameStatus));

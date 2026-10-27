@@ -15,7 +15,11 @@ export function useProxyZoneRecords(
   hostnames: string[],
   options?: { refetchInterval?: number | false | (() => number | false) }
 ) {
-  const { data: zones = [], isLoading: isLoadingZones } = useDnsZones(projectId ?? '', undefined, {
+  const {
+    data: zones = [],
+    isLoading: isLoadingZones,
+    isSuccess: zonesLoaded,
+  } = useDnsZones(projectId ?? '', undefined, {
     staleTime: QUERY_STALE_TIME,
     retry: false,
     enabled: !!projectId && hostnames.length > 0,
@@ -54,6 +58,8 @@ export function useProxyZoneRecords(
 
   return {
     zones,
+    /** The zone list loaded, so a hostname with no matching zone has none. */
+    zonesLoaded,
     matchedZones,
     zoneRecords,
     isLoading: isLoadingZones || recordQueries.some((query) => query.isLoading),
