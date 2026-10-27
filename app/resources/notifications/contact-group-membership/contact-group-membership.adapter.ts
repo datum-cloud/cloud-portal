@@ -29,6 +29,9 @@ export function toContactGroupMembership(
     contactGroupName,
     contactName,
     username: status?.username,
+    deletionTimestamp: metadata?.deletionTimestamp
+      ? new Date(metadata.deletionTimestamp)
+      : undefined,
   };
 }
 
@@ -37,8 +40,14 @@ export function toContactGroupMembershipList(
   nextCursor?: string
 ): ContactGroupMembershipList {
   const cursor = nextCursor ?? raw.metadata?.continue ?? undefined;
+  // A membership the controller is deleting is listed like any other, and a
+  // caller that counts it as live skips the create that would re-subscribe the
+  // contact. Leave it out, as the DNS zone list does.
+  const live = (raw.items ?? []).filter(
+    (item) => typeof item.metadata?.deletionTimestamp === 'undefined'
+  );
   return {
-    items: (raw.items ?? []).map(toContactGroupMembership),
+    items: live.map(toContactGroupMembership),
     nextCursor: cursor ?? null,
     hasMore: !!cursor,
   };
