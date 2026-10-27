@@ -1,5 +1,4 @@
 import {
-  isNoopPlan,
   planSubscriptionSave,
   subscriptionTicks,
   type SubscriptionSavePlan,
@@ -29,16 +28,8 @@ import {
 import { generateId } from '@/utils/helpers/text.helper';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { z } from 'zod';
-
-/**
- * How many rounds of writes one save may make. The second round exists so a
- * list that answered before the controller finished the first round still
- * ends up matching the boxes; a third would only spin against a control plane
- * that is not settling.
- */
-const MAX_WRITE_ROUNDS = 2;
 
 export const AccountNotificationSettingsCard = () => {
   const scope = useMemo((): NotificationScope => ({ type: 'user' }), []);
@@ -88,22 +79,11 @@ export const AccountNotificationSettingsCard = () => {
     [groupNames, contactGroupMemberships, contactGroupMembershipRemovals]
   );
 
-  // The form seeds itself from `defaultValues` once, at mount. Remounting it
-  // on a change is what puts the boxes back in step with what is stored after
-  // a save; holding the key still while submitting keeps the form from
-  // disappearing under its own in-flight save.
-  const storedKey = useMemo(
-    () =>
-      Object.entries(defaultValues)
-        .map(([name, on]) => `${name}:${on ? 1 : 0}`)
-        .join('|'),
-    [defaultValues]
-  );
-  const [formKey, setFormKey] = useState(storedKey);
-  useEffect(() => {
-    if (isSubmitting) return;
-    setFormKey(storedKey);
-  }, [isSubmitting, storedKey]);
+  // The form seeds itself from `defaultValues` once, at mount, so a save that
+  // stored something other than what was ticked would otherwise leave the
+  // boxes showing the ticks. Bumping this remounts it against what was just
+  // read, whether the save succeeded or failed.
+  const [formGeneration, setFormGeneration] = useState(0);
 
   const contactContext = useMemo(() => {
     const contactName = contacts?.[0]?.name;
@@ -117,9 +97,9 @@ export const AccountNotificationSettingsCard = () => {
     contactGroupMembershipRemovals !== undefined;
 
   /**
-   * What the control plane holds right now. Read on every pass rather than
-   * taken from the render: a save decided from state captured before the last
-   * one finished is the whole of issue #1696.
+   * What the control plane holds right now, rather than what the last render
+   * captured: a save planned from state read before the previous save
+   * finished is issue #1696.
    */
   const readStored = useCallback(async (): Promise<SubscriptionState> => {
     // Called rather than fetched through the query cache: `fetchQuery` would
@@ -157,8 +137,6 @@ export const AccountNotificationSettingsCard = () => {
     const groupNamespaceByName = new Map(
       (contactGroups ?? []).map((g) => [g.name, g.namespace] as const)
     );
-    const createdMemberships = new Set<string>();
-
     const applyPlan = async (plan: SubscriptionSavePlan) => {
       // One write at a time, in plan order: a group's removal has to be gone
       // before its membership is created, or the create is blocked.
@@ -177,7 +155,6 @@ export const AccountNotificationSettingsCard = () => {
           namespace: groupNamespaceByName.get(contactGroupName),
           contactNamespace,
         });
-        createdMemberships.add(contactGroupName);
       }
 
       for (const contactGroupName of plan.createRemovals) {
@@ -193,38 +170,18 @@ export const AccountNotificationSettingsCard = () => {
 
     setIsSubmitting(true);
     try {
-      let stored = await readStored();
-      let settled = false;
+      const stored = await readStored();
+      await applyPlan(planSubscriptionSave(data, stored, groupNames));
 
-      for (let round = 0; round <= MAX_WRITE_ROUNDS; round++) {
-        const plan = planSubscriptionSave(data, stored, groupNames, {
-          skipMembershipCreateFor: createdMemberships,
-        });
-
-        if (isNoopPlan(plan)) {
-          settled = true;
-          break;
-        }
-
-        if (round === MAX_WRITE_ROUNDS) break;
-
-        await applyPlan(plan);
-        stored = await readStored();
-      }
-
-      if (settled) {
-        toast.success('Marketing & Events Notifications updated');
-      } else {
-        toast.error('Marketing & Events Notifications may not be fully saved', {
-          description: 'Reload the page to see which lists were stored.',
-        });
-      }
+      // Read once more so the boxes below are drawn from what the save left
+      // behind rather than from what was ticked.
+      await readStored();
+      toast.success('Marketing & Events Notifications updated');
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to update notification groups');
     } finally {
-      // Clearing this last lets the effect above remount the form, which is
-      // what puts the boxes back in step with the state just read.
       setIsSubmitting(false);
+      setFormGeneration((generation) => generation + 1);
     }
   };
 
@@ -240,7 +197,7 @@ export const AccountNotificationSettingsCard = () => {
 
   return (
     <NotificationSettingsCard
-      key={formKey}
+      key={formGeneration}
       title="Marketing & Events Notifications"
       schema={schema}
       defaultValues={defaultValues}

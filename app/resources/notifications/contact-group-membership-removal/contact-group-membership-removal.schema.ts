@@ -7,7 +7,6 @@ export const contactGroupMembershipRemovalResourceSchema = resourceMetadataSchem
     contactGroupName: z.string(),
     contactName: z.string(),
     username: z.string().optional(),
-    deletionTimestamp: z.coerce.date().optional(),
   });
 
 export type ContactGroupMembershipRemoval = z.infer<

@@ -35,15 +35,6 @@ export interface SubscriptionSavePlan {
   createRemovals: string[];
 }
 
-export interface PlanOptions {
-  /**
-   * Groups whose membership this save already created. A list call made right
-   * after a create can still answer without it, and planning a second create
-   * from that answer would leave the contact with two memberships.
-   */
-  skipMembershipCreateFor?: ReadonlySet<string>;
-}
-
 /** How each box should read, given what is stored. */
 export function subscriptionTicks(
   groupNames: string[],
@@ -67,12 +58,10 @@ export function subscriptionTicks(
 export function planSubscriptionSave(
   desired: Record<string, boolean>,
   stored: SubscriptionState,
-  groupNames: string[],
-  options: PlanOptions = {}
+  groupNames: string[]
 ): SubscriptionSavePlan {
   const membershipGroups = new Set(stored.memberships.map((m) => m.contactGroupName));
   const removalsByGroup = new Map(stored.removals.map((r) => [r.contactGroupName, r]));
-  const skipCreate = options.skipMembershipCreateFor ?? new Set<string>();
 
   const plan: SubscriptionSavePlan = {
     deleteRemovals: [],
@@ -92,7 +81,7 @@ export function planSubscriptionSave(
           namespace: removal.namespace,
         });
       }
-      if (!isMember && !skipCreate.has(groupName)) {
+      if (!isMember) {
         plan.createMemberships.push(groupName);
       }
       continue;
@@ -105,13 +94,4 @@ export function planSubscriptionSave(
   }
 
   return plan;
-}
-
-/** True when what is stored already matches what was asked for. */
-export function isNoopPlan(plan: SubscriptionSavePlan): boolean {
-  return (
-    plan.deleteRemovals.length === 0 &&
-    plan.createMemberships.length === 0 &&
-    plan.createRemovals.length === 0
-  );
 }

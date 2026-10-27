@@ -1,7 +1,7 @@
 import {
-  isNoopPlan,
   planSubscriptionSave,
   subscriptionTicks,
+  type SubscriptionSavePlan,
   type SubscriptionState,
 } from './notification-subscriptions';
 import { describe, expect, it } from 'bun:test';
@@ -11,6 +11,11 @@ const membership = (contactGroupName: string, name = `m-${contactGroupName}`) =>
 
 const removal = (contactGroupName: string, name = `r-${contactGroupName}`) =>
   ({ name, contactGroupName, namespace: 'milo-system' }) as never;
+
+const isNoop = (plan: SubscriptionSavePlan) =>
+  plan.deleteRemovals.length === 0 &&
+  plan.createMemberships.length === 0 &&
+  plan.createRemovals.length === 0;
 
 const state = (
   memberships: SubscriptionState['memberships'],
@@ -55,7 +60,7 @@ describe('planSubscriptionSave', () => {
 
   it('leaves a membership alone when the group is already subscribed', () => {
     const plan = planSubscriptionSave({ events: true }, state([membership('events')]), ['events']);
-    expect(isNoopPlan(plan)).toBe(true);
+    expect(isNoop(plan)).toBe(true);
   });
 
   it('removes a subscribed group that was unticked', () => {
@@ -66,14 +71,7 @@ describe('planSubscriptionSave', () => {
   it('does not stack a second removal on a group that already has one', () => {
     const stored = state([membership('events')], [removal('events')]);
     const plan = planSubscriptionSave({ events: false }, stored, ['events']);
-    expect(isNoopPlan(plan)).toBe(true);
-  });
-
-  it('skips a membership this save already created', () => {
-    const plan = planSubscriptionSave({ events: true }, state([]), ['events'], {
-      skipMembershipCreateFor: new Set(['events']),
-    });
-    expect(isNoopPlan(plan)).toBe(true);
+    expect(isNoop(plan)).toBe(true);
   });
 
   it('plans each group on its own', () => {
@@ -90,6 +88,6 @@ describe('planSubscriptionSave', () => {
 
   it('ignores groups the form did not send', () => {
     const plan = planSubscriptionSave({}, state([]), ['events']);
-    expect(isNoopPlan(plan)).toBe(true);
+    expect(isNoop(plan)).toBe(true);
   });
 });

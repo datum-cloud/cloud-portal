@@ -29,9 +29,6 @@ export function toContactGroupMembershipRemoval(
     contactGroupName,
     contactName,
     username: status?.username,
-    deletionTimestamp: metadata?.deletionTimestamp
-      ? new Date(metadata.deletionTimestamp)
-      : undefined,
   };
 }
 
