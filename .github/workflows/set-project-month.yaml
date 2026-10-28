@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, ready_for_review, reopened]
 
+# The called workflow authenticates with the project-automation GitHub App
+# token and never uses GITHUB_TOKEN, so it gets no scopes.
+permissions: {}
+
 jobs:
   set-month:
     uses: datum-cloud/actions/.github/workflows/set-project-month.yaml@a4f8931a5accb27db097a68c06d67802a024a9c5 # v1.23.1

@@ -1,9 +1,14 @@
 name: Publish
 
-# Branch pushes publish branch-named GHCR tags for staging infra pins.
-# Tests run via pull_request in ci.yml — not duplicated here.
+# Pushes to main publish main-named GHCR tags for staging infra pins.
+# Tests run via pull_request in ci.yml — not duplicated here. Other branches
+# publish through ci.yml's `publish-image` PR label, after CI passes, and
+# release tags publish only from ci.yml's release path, so a tag push never
+# ships an image before release CI has passed.
 on:
   push:
+    branches: [main]
+    tags-ignore: ['**']
     paths-ignore:
       - 'docs/**'
       - 'README.md'
