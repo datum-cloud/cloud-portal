@@ -178,7 +178,10 @@ export interface PaymentTermsSummary {
   /** Name of the BillingArrangement in effect. */
   name: string;
   netDays: number;
-  /** Accounts payable email first, then the account's invoice recipients. */
+  /**
+   * The billing contact's email, then the accounts payable email given
+   * when applying for the terms.
+   */
   invoiceRecipients: string[];
   purchaseOrderNumber?: string;
   billingCycle: string;
@@ -197,14 +200,10 @@ export function paymentTermsSummary(
   const invoice = arrangement?.invoice;
   if (!arrangement || arrangement.type !== 'Invoice' || !invoice) return undefined;
 
-  const contact = account.spec?.contactInfo;
-  const accountRecipients = contact?.invoiceEmails?.length
-    ? contact.invoiceEmails
-    : contact?.email
-      ? [contact.email]
-      : [];
   const invoiceRecipients = [
-    ...new Set([invoice.accountsPayableEmail, ...accountRecipients].filter(Boolean) as string[]),
+    ...new Set(
+      [account.spec?.contactInfo?.email, invoice.accountsPayableEmail].filter(Boolean) as string[]
+    ),
   ];
 
   return {
