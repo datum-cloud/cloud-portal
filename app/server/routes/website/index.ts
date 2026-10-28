@@ -84,7 +84,7 @@ function liveProfileDeps() {
       const u = await users.get(sub);
       return { email: u.email, givenName: u.givenName, familyName: u.familyName };
     },
-    secret: env.server.websiteHelpscoutSecretKey,
+    secret: env.server.helpscoutSecretKey,
     timeoutMs: MILO_TIMEOUT_MS,
   };
 }
