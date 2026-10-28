@@ -17,7 +17,7 @@ import { useResourceQuota } from '@/modules/quota';
 import { useResourcePermissions } from '@/modules/rbac';
 import { defineResourceRoute } from '@/modules/rbac/define-resource-route';
 import { runListLoader } from '@/modules/rbac/run-resource-loader';
-import { queryClient as appQueryClient } from '@/modules/tanstack/query';
+import { getQueryClient } from '@/modules/tanstack/query';
 import { syncKey } from '@/modules/watch/sync-state';
 import { useApp } from '@/providers/app.provider';
 import {
@@ -110,7 +110,7 @@ export const meta = route.meta;
 export const shouldRevalidate = skipRevalidateWithinSameProject;
 
 export const clientLoader = createProjectListClientLoader<DomainsListData>((projectId) =>
-  readDomainsClientData(appQueryClient, projectId)
+  readDomainsClientData(getQueryClient(), projectId)
 );
 
 export default route.Page(({ data: { domains: initialDomains, dnsZones: initialDnsZones } }) => (

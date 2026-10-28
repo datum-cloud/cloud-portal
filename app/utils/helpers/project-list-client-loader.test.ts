@@ -1,15 +1,29 @@
-import { queryClient } from '@/modules/tanstack/query';
+import { getQueryClient } from '@/modules/tanstack/query';
 import {
   getValidCachedQueryData,
   readValidCachedQueryData,
 } from '@/utils/helpers/project-list-client-loader';
-import { QueryClient, QueryObserver } from '@tanstack/react-query';
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { QueryClient, QueryObserver, environmentManager } from '@tanstack/react-query';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 
 type TestListItem = { name: string };
 
+// clientLoaders run only in the browser, where getQueryClient() is the
+// provider's singleton. Bun has no window, so pretend to be the browser.
 describe('getValidCachedQueryData', () => {
+  const wasServer = environmentManager.isServer();
+  let queryClient: QueryClient;
+
+  beforeAll(() => {
+    environmentManager.setIsServer(() => false);
+  });
+
+  afterAll(() => {
+    environmentManager.setIsServer(() => wasServer);
+  });
+
   beforeEach(() => {
+    queryClient = getQueryClient();
     queryClient.clear();
   });
 

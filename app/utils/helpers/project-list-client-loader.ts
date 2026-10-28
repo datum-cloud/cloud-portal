@@ -1,5 +1,5 @@
 import type { DslLoaderData } from '@/modules/rbac/types';
-import { queryClient } from '@/modules/tanstack/query';
+import { getQueryClient } from '@/modules/tanstack/query';
 import type { QueryClient, QueryKey } from '@tanstack/react-query';
 import type { ClientLoaderFunctionArgs } from 'react-router';
 
@@ -18,7 +18,7 @@ export function readValidCachedQueryData<TData>(
 }
 
 export function getValidCachedQueryData<TData>(queryKey: QueryKey): TData | undefined {
-  return readValidCachedQueryData<TData>(queryClient, queryKey);
+  return readValidCachedQueryData<TData>(getQueryClient(), queryKey);
 }
 
 /**

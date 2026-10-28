@@ -1,6 +1,6 @@
 import { QUERY_STALE_TIME } from '@/utils/config/query.config';
 import { isUserFacingErrorStatus } from '@/utils/errors/app-error';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, environmentManager } from '@tanstack/react-query';
 
 /**
  * Retry predicate for queries.
@@ -32,12 +32,36 @@ export function shouldRetryQuery(failureCount: number, error: unknown): boolean 
  * retry: shouldRetryQuery — one retry for unexpected failures, none for
  * expected user-facing 4xx.
  */
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: QUERY_STALE_TIME,
-      refetchOnWindowFocus: false,
-      retry: shouldRetryQuery,
+export function createQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: QUERY_STALE_TIME,
+        refetchOnWindowFocus: false,
+        retry: shouldRetryQuery,
+      },
     },
-  },
-});
+  });
+}
+
+let browserQueryClient: QueryClient | undefined;
+
+/**
+ * The QueryClient for the current environment.
+ *
+ * Server: a new client on every call. The Bun process serves every user, and
+ * routes seed the cache with `initialData` during render. A shared client
+ * would render one user's cached data into the next user's HTML, and server
+ * gcTime is Infinity, so entries would never be collected. root.tsx calls
+ * this once per render tree, which makes the client request-scoped.
+ *
+ * Browser: one client for the page's lifetime, so the provider and the
+ * clientLoaders that read the cache before render share the same instance.
+ */
+export function getQueryClient(): QueryClient {
+  if (environmentManager.isServer()) {
+    return createQueryClient();
+  }
+  browserQueryClient ??= createQueryClient();
+  return browserQueryClient;
+}
