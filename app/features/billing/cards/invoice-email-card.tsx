@@ -13,23 +13,23 @@ const invoiceEmailSchema = z.object({
   email: z.email('Enter a valid email address').or(z.literal('')).optional(),
 });
 
-export type EmailRecipientValues = z.infer<typeof invoiceEmailSchema>;
+export type InvoiceEmailValues = z.infer<typeof invoiceEmailSchema>;
 
-interface EmailRecipientCardProps {
+interface InvoiceEmailCardProps {
   /** The current invoice email, when one is set. */
   defaultEmail?: string;
   /** The billing contact's email, used when the invoice email is empty. */
   contactEmail?: string;
   isSubmitting?: boolean;
-  onSubmit?: (values: EmailRecipientValues) => void | Promise<void>;
+  onSubmit?: (values: InvoiceEmailValues) => void | Promise<void>;
 }
 
-export const EmailRecipientCard = ({
+export const InvoiceEmailCard = ({
   defaultEmail = '',
   contactEmail,
   isSubmitting = false,
   onSubmit,
-}: EmailRecipientCardProps) => {
+}: InvoiceEmailCardProps) => {
   return (
     <Card size="sm" sectioned>
       <Form.Root

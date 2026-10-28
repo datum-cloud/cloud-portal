@@ -1,4 +1,4 @@
-import { EmailRecipientCard } from '@/features/billing/cards/email-recipient-card';
+import { InvoiceEmailCard } from '@/features/billing/cards/invoice-email-card';
 import { ConformAdapter } from '@datum-cloud/datum-ui/form/adapters/conform';
 
 // Stripe emails each invoice to one address, so billing settings edit a
@@ -8,7 +8,7 @@ describe('Invoice email', () => {
     const onSubmit = cy.spy().as('submit');
     cy.mount(
       <ConformAdapter>
-        <EmailRecipientCard
+        <InvoiceEmailCard
           defaultEmail={defaultEmail}
           contactEmail="jane@acme.com"
           onSubmit={onSubmit}

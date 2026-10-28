@@ -8,7 +8,7 @@ import {
   BillingAddressFieldsCard,
   BillingAddressForm,
   DisplayNameFormCard,
-  EmailRecipientCard,
+  InvoiceEmailCard,
   PastInvoicesCard,
   PaymentMethodsCard,
   PaymentTermsCard,
@@ -20,7 +20,7 @@ import {
   type BillingAddressValues,
   type BillingArrangementApplication,
   type DisplayNameFormValues,
-  type EmailRecipientValues,
+  type InvoiceEmailValues,
   type Invoice,
   type PastInvoiceRow,
   type PaymentMethod,
@@ -541,10 +541,9 @@ function AccountBillingAccountDetailPageInner() {
   const contactInfo = account.spec?.contactInfo;
   const address = contactInfo?.address;
   const taxIds = account.spec?.taxIds ?? [];
-  // Show whatever the account currently has on file. Empty → user
-  // hasn't customised the recipient list, so the controller will fall
-  // back to `contactInfo.email` at send time.
-  const invoiceEmails = contactInfo?.invoiceEmails ?? [];
+  // The invoice email on file. Empty means invoices go to the billing
+  // contact: stripe-provider falls back to `contactInfo.email`.
+  const invoiceEmailOnFile = contactInfo?.invoiceEmails?.[0];
   const displayName = getBillingAccountDisplayName(account);
 
   // Per-org floor for the destructive action below. We count the
@@ -743,7 +742,7 @@ function AccountBillingAccountDetailPageInner() {
     [addressMutation, orgId, accountName, contactInfo?.email, contactInfo?.invoiceEmails]
   );
 
-  const emailsMutation = useUpdateBillingAccount({
+  const invoiceEmailMutation = useUpdateBillingAccount({
     onSuccess: () => {
       toast.success('Invoice email updated', {});
     },
@@ -754,18 +753,18 @@ function AccountBillingAccountDetailPageInner() {
     },
   });
 
-  const handleSaveInvoiceEmails = useCallback(
-    async (values: EmailRecipientValues) => {
+  const handleSaveInvoiceEmail = useCallback(
+    async (values: InvoiceEmailValues) => {
       if (!orgId) return;
       // withInvoiceEmail carries the rest of the contact details forward,
       // as handleSaveBillingAddress does, so the patch drops nothing.
-      await emailsMutation.mutateAsync({
+      await invoiceEmailMutation.mutateAsync({
         orgId,
         name: accountName,
         contactInfo: withInvoiceEmail(contactInfo, values.email ?? ''),
       });
     },
-    [emailsMutation, orgId, accountName, contactInfo]
+    [invoiceEmailMutation, orgId, accountName, contactInfo]
   );
 
   const paymentTerms = paymentTermsSummary(account);
@@ -861,11 +860,11 @@ function AccountBillingAccountDetailPageInner() {
         <Section
           title="Invoice email"
           description="Where invoices and receipts are emailed, whether you pay by card or by invoice.">
-          <EmailRecipientCard
-            defaultEmail={invoiceEmails[0]}
+          <InvoiceEmailCard
+            defaultEmail={invoiceEmailOnFile}
             contactEmail={contactInfo?.email}
-            isSubmitting={emailsMutation.isPending}
-            onSubmit={handleSaveInvoiceEmails}
+            isSubmitting={invoiceEmailMutation.isPending}
+            onSubmit={handleSaveInvoiceEmail}
           />
         </Section>
 

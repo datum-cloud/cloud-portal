@@ -13,6 +13,7 @@ import {
   type ApplicationPaymentOption,
 } from '@/features/billing/payment-terms';
 import {
+  billingSettingsPath,
   cardSetupPath,
   paymentTermsPath,
   type PaymentTermsEntry,
@@ -150,6 +151,10 @@ export function PaymentTermsApplicationForm({
           // The application is in; only the invoice email didn't change.
           toast.error("We couldn't update your invoice email", {
             description: `Change it to ${apEmail} in billing settings so invoices reach accounts payable.`,
+            action: {
+              label: 'Billing settings',
+              onClick: () => navigate(billingSettingsPath(billingAccountName)),
+            },
           });
         }
       }
@@ -284,7 +289,7 @@ export function PaymentTermsApplicationForm({
                   <Form.Field
                     name="accountsPayableEmail"
                     label="Accounts payable email"
-                    description="Invoices are emailed here. This becomes your billing account's invoice email, which you can change in billing settings."
+                    description="Invoices are emailed here. Submitting makes this your billing account's invoice email straight away, for card payments too. You can change it in billing settings."
                     required>
                     <Form.Input
                       type="email"

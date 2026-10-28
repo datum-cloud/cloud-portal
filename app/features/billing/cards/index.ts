@@ -11,7 +11,7 @@ export {
   displayNameFormSchema,
   type DisplayNameFormValues,
 } from './display-name-card';
-export { EmailRecipientCard, type EmailRecipientValues } from './email-recipient-card';
+export { InvoiceEmailCard, type InvoiceEmailValues } from './invoice-email-card';
 export { InvoicePreviewCard } from './invoice-preview-card';
 export { LinkedProjectsCard, type ProjectBillingBinding } from './linked-projects-card';
 export { PastInvoicesCard } from './past-invoices-card';
