@@ -26,7 +26,10 @@ jobs:
     uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@a4f8931a5accb27db097a68c06d67802a024a9c5 # v1.23.1
     with:
       image-name: cloud-portal
-    secrets: inherit
+    # Token goes in as a BuildKit secret only; see the note in ci.yml.
+    secrets:
+      build-secrets: |
+        "sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}"
 
   publish-kustomize-bundles:
     name: Publish Kustomize Bundles
