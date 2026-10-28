@@ -133,10 +133,8 @@ const serverSchema = z.object({
   // Optional: External Integrations (graceful degradation)
   // ─────────────────────────────────────────────────────────
   GRAFANA_URL: urlSchemaOptional(),
+  // Secure-mode secret shared by the portal and datum.net HelpScout Beacons.
   HELPSCOUT_SECRET_KEY: isProdEnv ? z.string().min(1) : z.string().optional(),
-
-  // Secure-mode secret for the datum.net HelpScout Beacon (a different Beacon from the portal's).
-  WEBSITE_HELPSCOUT_SECRET_KEY: z.string().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Website API CORS (datum.net marketing site)
@@ -277,7 +275,6 @@ export const env: Env = {
     prometheusUrl: data.PROMETHEUS_URL,
     grafanaUrl: data.GRAFANA_URL,
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
-    websiteHelpscoutSecretKey: data.WEBSITE_HELPSCOUT_SECRET_KEY,
     websiteOrigins: parseOriginList(data.WEBSITE_ORIGINS, { requireHttps: isProdEnv }),
     websitePostLogoutRedirectUri: data.WEBSITE_POST_LOGOUT_REDIRECT_URI,
     assistantA2aUrl: data.ASSISTANT_A2A_URL,
