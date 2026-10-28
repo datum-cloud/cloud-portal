@@ -1,8 +1,8 @@
+# syntax=docker/dockerfile:1.10
+
 # ==========================================
 # BASE STAGE - Common dependencies and setup
 # ==========================================
-
-# syntax = docker/dockerfile:1
 
 # Use the latest Bun version
 FROM oven/bun:1.4.4@sha256:1d22548f177f4ff38e0c15baa3c2c46c6c2060ba2d1bc573bb4720b407548f1d AS base
@@ -31,12 +31,10 @@ ENV NODE_ENV=production \
 # ==========================================
 FROM base AS build
 
-ARG SENTRY_AUTH_TOKEN
 ARG VERSION=dev
 
 # Set environment variables
 ENV VERSION=${VERSION}
-ENV SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}
 
 # Install dependencies
 COPY --link package.json bun.lock ./
@@ -45,8 +43,10 @@ RUN bun install --frozen-lockfile
 # Copy application code
 COPY --link . .
 
-# Build application
-RUN bun run build && \
+# Build application. The Sentry auth token (for source map upload) arrives as a
+# BuildKit secret, so it never lands in image layers, history or provenance.
+RUN --mount=type=secret,id=sentry_auth_token,env=SENTRY_AUTH_TOKEN \
+    bun run build && \
     bun install --production --frozen-lockfile && \
     touch .env
 

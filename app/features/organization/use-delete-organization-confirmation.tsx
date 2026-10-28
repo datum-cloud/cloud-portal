@@ -4,6 +4,15 @@ import { useDeleteOrganization } from '@/resources/organizations';
 import { toast } from '@datum-cloud/datum-ui/toast';
 import { useCallback } from 'react';
 
+/**
+ * Navigation state for the organizations list after a delete. Milo removes the
+ * caller's membership some time after the org, so the list loader can still
+ * return the deleted org; the list hides `deletedOrgId` until then.
+ */
+export interface DeletedOrganizationState {
+  deletedOrgId: string;
+}
+
 interface UseDeleteOrganizationConfirmationOptions {
   orgId: string;
   orgDisplayName?: string;

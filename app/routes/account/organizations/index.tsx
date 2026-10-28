@@ -7,6 +7,7 @@ import {
   type OrgContactInfoValues,
 } from '@/features/onboarding/schemas/org-contact-info-schema';
 import { CreateOrganizationDialog } from '@/features/organization/create/create-organization-dialog';
+import type { DeletedOrganizationState } from '@/features/organization/use-delete-organization-confirmation';
 import { getRequestContext, oncePerRequest } from '@/modules/axios/request-context';
 import { AnalyticsAction, useAnalytics } from '@/modules/rybbit';
 import {
@@ -41,6 +42,7 @@ import {
   redirect,
   useFetcher,
   useLoaderData,
+  useLocation,
   useNavigate,
   useRevalidator,
 } from 'react-router';
@@ -138,13 +140,17 @@ export default function AccountOrganizations() {
   const { alertClosed, contactDefaults, stripePublishableKey, organizations } =
     useLoaderData<typeof loader>();
   const fallback = useOrganizationsGql(undefined, { enabled: organizations === null });
+  const deletedOrgId = (useLocation().state as DeletedOrganizationState | null)?.deletedOrgId;
   const orgNames = useMemo(() => (organizations ?? []).map((org) => org.name), [organizations]);
   const { data: avatarsByOrg } = useOrganizationMemberAvatars(orgNames);
 
   const orgs = useMemo<Organization[]>(() => {
-    if (organizations === null) return fallback.data?.items ?? [];
-    return organizations.map((org) => ({ ...org, memberAvatars: avatarsByOrg?.[org.name] }));
-  }, [organizations, avatarsByOrg, fallback.data]);
+    const rows =
+      organizations === null
+        ? (fallback.data?.items ?? [])
+        : organizations.map((org) => ({ ...org, memberAvatars: avatarsByOrg?.[org.name] }));
+    return rows.filter((org) => org.name !== deletedOrgId);
+  }, [organizations, avatarsByOrg, fallback.data, deletedOrgId]);
   const _isLoading = organizations === null && fallback.isLoading;
   const orgsError = organizations === null ? fallback.error : null;
   const navigate = useNavigate();

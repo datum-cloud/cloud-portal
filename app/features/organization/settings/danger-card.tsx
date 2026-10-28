@@ -1,6 +1,9 @@
 import { DangerCard } from '@/components/danger-card/danger-card';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
-import { useDeleteOrganizationConfirmation } from '@/features/organization/use-delete-organization-confirmation';
+import {
+  useDeleteOrganizationConfirmation,
+  type DeletedOrganizationState,
+} from '@/features/organization/use-delete-organization-confirmation';
 import { type Organization } from '@/resources/organizations';
 import { paths } from '@/utils/config/paths.config';
 import { LoaderOverlay } from '@datum-cloud/datum-ui/loader-overlay';
@@ -13,7 +16,9 @@ export const OrganizationDangerCard = ({ organization }: { organization: Organiz
     orgId: organization?.name ?? '',
     orgDisplayName: organization?.displayName || organization?.name,
     onSuccess: () => {
-      navigate(paths.account.organizations.root);
+      navigate(paths.account.organizations.root, {
+        state: { deletedOrgId: organization.name } satisfies DeletedOrganizationState,
+      });
     },
   });
 

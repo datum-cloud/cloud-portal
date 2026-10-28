@@ -403,11 +403,13 @@ jobs:
     uses: datum-cloud/actions/.github/workflows/publish-docker.yaml@a4f8931a5accb27db097a68c06d67802a024a9c5 # v1.23.1
     with:
       image-name: cloud-portal
-    # NOTE: `secrets: inherit` is required because the upstream workflow
-    # references `secrets.SENTRY_AUTH_TOKEN` without declaring it under
-    # `workflow_call.secrets`. Once upstream declares it, switch to an
-    # explicit `secrets:` block passing only SENTRY_AUTH_TOKEN.
-    secrets: inherit
+    # The Sentry token goes in only as a BuildKit secret, which the Dockerfile
+    # mounts for the build step. The upstream SENTRY_AUTH_TOKEN secret is left
+    # unset on purpose: upstream forwards it as a build arg, and build args are
+    # recorded in plaintext in the image's public provenance.
+    secrets:
+      build-secrets: |
+        "sentry_auth_token=${{ secrets.SENTRY_AUTH_TOKEN }}"
 
   publish-kustomize-bundles:
     name: Publish Kustomize Bundles
