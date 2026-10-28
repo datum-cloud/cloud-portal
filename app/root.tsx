@@ -5,7 +5,7 @@ import { DynamicFaviconLinks } from '@/components/misc/dynamic-favicon';
 import { useNonce } from '@/hooks/useNonce';
 import { GraphQLProvider } from '@/modules/graphql/provider';
 import { preloadStripeWhenIdle } from '@/modules/stripe/preload';
-import { queryClient } from '@/modules/tanstack/query';
+import { getQueryClient } from '@/modules/tanstack/query';
 // Import global CSS styles for the application
 // The ?url query parameter tells the bundler to handle this as a URL import
 import RootCSS from '@/styles/root.css?url';
@@ -23,7 +23,7 @@ import * as Sentry from '@sentry/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import type { SSRData } from '@urql/core';
 import { NuqsAdapter } from 'nuqs/adapters/react-router/v8';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Links,
   Meta,
@@ -176,6 +176,9 @@ const BACKGROUND_FETCHER_KEYS = ['session-cookies'] as const;
 
 export default function AppWithProviders() {
   const { toast, csrfToken } = useLoaderData<typeof loader>();
+
+  // Request-scoped on the server, one shared client in the browser.
+  const [queryClient] = useState(getQueryClient);
 
   const nonce = useNonce();
   const navigation = useNavigation();
