@@ -366,9 +366,14 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      # Every other job needs install, so if install did not succeed they are
+      # skipped, and skipped jobs count as passing below. Fail on that first.
       - name: Check Workflow Status
         run: |
-          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+          if [[ "${{ needs.install.result }}" != "success" ]]; then
+            echo "❌ Install Dependencies did not succeed (${{ needs.install.result }})"
+            exit 1
+          elif [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
             echo "❌ One or more jobs failed"
             exit 1
           elif [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
