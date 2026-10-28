@@ -239,13 +239,16 @@ export function ApplicationUnderReview({
           </Text>
           <div>
             <Badge type="warning" theme="light" className="rounded-full">
-              Under review
-              {application.submittedAt ? (
-                <>
-                  {' · Submitted '}
-                  <PaymentTermsDate date={application.submittedAt} />
-                </>
-              ) : null}
+              {/* One span, so the badge's flex layout keeps the space before the date. */}
+              <span>
+                Under review
+                {application.submittedAt ? (
+                  <>
+                    {' · Submitted '}
+                    <PaymentTermsDate date={application.submittedAt} />
+                  </>
+                ) : null}
+              </span>
             </Badge>
           </div>
         </div>
