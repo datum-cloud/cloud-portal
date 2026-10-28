@@ -123,6 +123,7 @@ export const loader = async ({ request, context }: LoaderFunctionArgs) => {
       terms: paymentTermsSummary(account),
       contactInfo: contactInfoFromOrganization(org) ?? contactInfoFromBillingAccount(account),
       defaultLegalName: contact.businessName?.trim() || undefined,
+      accountContact: contact,
       /** The account already pays by card, so applying doesn't block anything. */
       canBeBilled: isBillingAccountPaymentReady(account),
       canApply,
@@ -155,6 +156,7 @@ export default function OnboardingPaymentTermsRoute() {
           entry={data.entry}
           currency={data.currency}
           defaultLegalName={data.defaultLegalName}
+          accountContact={data.accountContact}
         />
       </OnboardingLayout>
     );

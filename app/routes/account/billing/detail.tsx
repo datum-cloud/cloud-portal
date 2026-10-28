@@ -30,6 +30,7 @@ import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
+import { withInvoiceEmail } from '@/features/billing/invoice-email';
 import {
   applicationPhase,
   latestApplication,
@@ -744,10 +745,10 @@ function AccountBillingAccountDetailPageInner() {
 
   const emailsMutation = useUpdateBillingAccount({
     onSuccess: () => {
-      toast.success('Invoice recipients updated', {});
+      toast.success('Invoice email updated', {});
     },
     onError: (error) => {
-      toast.error('Could not update invoice recipients', {
+      toast.error('Could not update the invoice email', {
         description: error.message || 'Please try again.',
       });
     },
@@ -756,30 +757,15 @@ function AccountBillingAccountDetailPageInner() {
   const handleSaveInvoiceEmails = useCallback(
     async (values: EmailRecipientValues) => {
       if (!orgId) return;
-      // Same defensive pattern as handleSaveBillingAddress: carry the
-      // existing contact + address forward so the patch doesn't drop
-      // anything the user didn't touch on this card.
+      // withInvoiceEmail carries the rest of the contact details forward,
+      // as handleSaveBillingAddress does, so the patch drops nothing.
       await emailsMutation.mutateAsync({
         orgId,
         name: accountName,
-        contactInfo: {
-          name: contactInfo?.name,
-          businessName: contactInfo?.businessName,
-          email: contactInfo?.email,
-          invoiceEmails: values.emails,
-          address: contactInfo?.address,
-        },
+        contactInfo: withInvoiceEmail(contactInfo, values.email ?? ''),
       });
     },
-    [
-      emailsMutation,
-      orgId,
-      accountName,
-      contactInfo?.name,
-      contactInfo?.businessName,
-      contactInfo?.email,
-      contactInfo?.address,
-    ]
+    [emailsMutation, orgId, accountName, contactInfo]
   );
 
   const paymentTerms = paymentTermsSummary(account);
@@ -873,10 +859,11 @@ function AccountBillingAccountDetailPageInner() {
         </Section>
 
         <Section
-          title="Invoice recipients"
-          description="Add one or more email addresses that should receive invoices and receipts. The first entry is the primary recipient; the rest are CC'd. Leave empty to fall back to the account contact email.">
+          title="Invoice email"
+          description="Where invoices and receipts are emailed, whether you pay by card or by invoice.">
           <EmailRecipientCard
-            defaultEmails={invoiceEmails}
+            defaultEmail={invoiceEmails[0]}
+            contactEmail={contactInfo?.email}
             isSubmitting={emailsMutation.isPending}
             onSubmit={handleSaveInvoiceEmails}
           />

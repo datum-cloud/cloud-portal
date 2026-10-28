@@ -4,6 +4,7 @@ import {
   type PaymentTermsApplicationValues,
 } from './application-schema';
 import { ProfileIdentity } from '@/components/profile-identity';
+import { invoiceEmail, withInvoiceEmail } from '@/features/billing/invoice-email';
 import {
   ESTIMATED_SPEND_OPTIONS,
   ORGANIZATION_TYPE_LABELS,
@@ -16,8 +17,10 @@ import {
   paymentTermsPath,
   type PaymentTermsEntry,
 } from '@/features/billing/payment-terms-paths';
+import type { BillingAccount } from '@/features/billing/types';
 import { OnboardingEntrance } from '@/features/onboarding/components/onboarding-entrance';
 import { onboardingCardClassName } from '@/features/onboarding/onboarding-layout';
+import { useUpdateBillingAccount } from '@/resources/billing-accounts';
 import { useCreateBillingArrangementApplication } from '@/resources/billing-arrangement-applications';
 import { parseK8sMessage } from '@/utils/errors';
 import { LinkButton } from '@datum-cloud/datum-ui/button';
@@ -25,6 +28,7 @@ import { Card, CardContent } from '@datum-cloud/datum-ui/card';
 import { Form } from '@datum-cloud/datum-ui/form';
 import { Icon } from '@datum-cloud/datum-ui/icons';
 import { RadioGroup, RadioGroupItem } from '@datum-cloud/datum-ui/radio-group';
+import { toast } from '@datum-cloud/datum-ui/toast';
 import { Text, Title } from '@datum-cloud/datum-ui/typography';
 import { CircleHelpIcon, ReceiptTextIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -99,12 +103,19 @@ export interface PaymentTermsApplicationFormProps {
   currency: string;
   /** Business name from the contact details, as a starting point for the legal name. */
   defaultLegalName?: string;
+  /**
+   * The billing account's contact details. Its invoice email starts the
+   * accounts payable email, which becomes the invoice email on submit.
+   */
+  accountContact?: NonNullable<BillingAccount['spec']>['contactInfo'];
 }
 
 /**
  * "Apply for payment terms": one page, with the invoice details shown when
  * the customer picks "Pay by invoice". Submitting creates a
- * BillingArrangementApplication for staff to review.
+ * BillingArrangementApplication for staff to review, and makes the
+ * accounts payable email the account's invoice email straight away: Stripe
+ * emails each invoice to that one address.
  */
 export function PaymentTermsApplicationForm({
   orgId,
@@ -113,10 +124,13 @@ export function PaymentTermsApplicationForm({
   entry,
   currency,
   defaultLegalName,
+  accountContact,
 }: PaymentTermsApplicationFormProps) {
   const navigate = useNavigate();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const createApplication = useCreateBillingArrangementApplication();
+  const updateAccount = useUpdateBillingAccount();
+  const currentInvoiceEmail = invoiceEmail(accountContact);
 
   const handleSubmit = async (values: PaymentTermsApplicationValues) => {
     setSubmitError(null);
@@ -124,6 +138,21 @@ export function PaymentTermsApplicationForm({
       await createApplication.mutateAsync(
         toApplicationInput(values, { orgId, billingAccountName })
       );
+      const apEmail = values.paymentOption === 'Invoice' ? values.accountsPayableEmail?.trim() : '';
+      if (apEmail && apEmail.toLowerCase() !== currentInvoiceEmail?.toLowerCase()) {
+        try {
+          await updateAccount.mutateAsync({
+            orgId,
+            name: billingAccountName,
+            contactInfo: withInvoiceEmail(accountContact, apEmail),
+          });
+        } catch {
+          // The application is in; only the invoice email didn't change.
+          toast.error("We couldn't update your invoice email", {
+            description: `Change it to ${apEmail} in billing settings so invoices reach accounts payable.`,
+          });
+        }
+      }
       // The loader now finds the pending application and shows its status.
       navigate(paymentTermsPath({ orgId, billingAccountName, entry }), { replace: true });
     } catch (error) {
@@ -173,9 +202,10 @@ export function PaymentTermsApplicationForm({
             defaultValues={{
               paymentOption: 'Invoice',
               legalName: defaultLegalName ?? '',
+              accountsPayableEmail: currentInvoiceEmail ?? '',
               authorized: false,
             }}
-            isSubmitting={createApplication.isPending}
+            isSubmitting={createApplication.isPending || updateAccount.isPending}
             onSubmit={handleSubmit}
             className="flex flex-col gap-8">
             <Form.Field name="paymentOption" label="How would you like to pay?" required>
@@ -254,7 +284,7 @@ export function PaymentTermsApplicationForm({
                   <Form.Field
                     name="accountsPayableEmail"
                     label="Accounts payable email"
-                    description="We'll send invoices here as well as to your billing contact."
+                    description="Invoices are emailed here. This becomes your billing account's invoice email, which you can change in billing settings."
                     required>
                     <Form.Input
                       type="email"

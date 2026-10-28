@@ -165,27 +165,13 @@ describe('paymentTermsSummary', () => {
     expect(paymentTermsSummary(account)).toEqual({
       name: 'acme-terms',
       netDays: 45,
-      // The billing contact, then the AP email from the application.
-      invoiceRecipients: ['jane@acme.com', 'ap@acme.com'],
+      // Stripe emails the invoice email, not the AP email on the terms.
+      invoiceEmail: 'finance@acme.com',
       purchaseOrderNumber: 'PO-4471',
       billingCycle: 'Monthly, on the 1st',
       startsAt: '2026-10-02T00:00:00Z',
       endsAt: undefined,
     });
-  });
-
-  it('lists the billing contact once when it is also the AP email, or alone without one', () => {
-    const terms = account.status!.paymentArrangement!;
-    const withAp = (accountsPayableEmail?: string): BillingAccount => ({
-      ...account,
-      status: {
-        paymentArrangement: { ...terms, invoice: { ...terms.invoice!, accountsPayableEmail } },
-      },
-    });
-    expect(paymentTermsSummary(withAp('jane@acme.com'))?.invoiceRecipients).toEqual([
-      'jane@acme.com',
-    ]);
-    expect(paymentTermsSummary(withAp(undefined))?.invoiceRecipients).toEqual(['jane@acme.com']);
   });
 
   it('is undefined without active terms', () => {
