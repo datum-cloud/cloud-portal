@@ -1,6 +1,9 @@
 import { ConfirmationDialogProvider } from '@/components/confirmation-dialog/confirmation-dialog.provider';
 import { RestrictedOverlay } from '@/components/restricted-overlay/restricted-overlay';
-import { useDeleteOrganizationConfirmation } from '@/features/organization/use-delete-organization-confirmation';
+import {
+  useDeleteOrganizationConfirmation,
+  type DeletedOrganizationState,
+} from '@/features/organization/use-delete-organization-confirmation';
 import { RbacProvider } from '@/modules/rbac';
 import { paths } from '@/utils/config/paths.config';
 import { Button } from '@datum-cloud/datum-ui/button';
@@ -30,7 +33,9 @@ function DeleteOrganizationDialogContent({
     orgDisplayName,
     onSuccess: () => {
       onClose();
-      navigate(paths.account.organizations.root);
+      navigate(paths.account.organizations.root, {
+        state: { deletedOrgId: orgId } satisfies DeletedOrganizationState,
+      });
     },
   });
 
