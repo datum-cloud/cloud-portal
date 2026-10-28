@@ -8,7 +8,7 @@ import {
   BillingAddressFieldsCard,
   BillingAddressForm,
   DisplayNameFormCard,
-  EmailRecipientCard,
+  InvoiceEmailCard,
   PastInvoicesCard,
   PaymentMethodsCard,
   PaymentTermsCard,
@@ -20,7 +20,7 @@ import {
   type BillingAddressValues,
   type BillingArrangementApplication,
   type DisplayNameFormValues,
-  type EmailRecipientValues,
+  type InvoiceEmailValues,
   type Invoice,
   type PastInvoiceRow,
   type PaymentMethod,
@@ -30,6 +30,7 @@ import type {
   AddPaymentMethodValues,
   CreatePaymentMethodResult,
 } from '@/features/billing/dialogs/add-payment-method-dialog';
+import { withInvoiceEmail } from '@/features/billing/invoice-email';
 import {
   applicationPhase,
   latestApplication,
@@ -540,10 +541,9 @@ function AccountBillingAccountDetailPageInner() {
   const contactInfo = account.spec?.contactInfo;
   const address = contactInfo?.address;
   const taxIds = account.spec?.taxIds ?? [];
-  // Show whatever the account currently has on file. Empty → user
-  // hasn't customised the recipient list, so the controller will fall
-  // back to `contactInfo.email` at send time.
-  const invoiceEmails = contactInfo?.invoiceEmails ?? [];
+  // The invoice email on file. Empty means invoices go to the billing
+  // contact: stripe-provider falls back to `contactInfo.email`.
+  const invoiceEmailOnFile = contactInfo?.invoiceEmails?.[0];
   const displayName = getBillingAccountDisplayName(account);
 
   // Per-org floor for the destructive action below. We count the
@@ -742,44 +742,29 @@ function AccountBillingAccountDetailPageInner() {
     [addressMutation, orgId, accountName, contactInfo?.email, contactInfo?.invoiceEmails]
   );
 
-  const emailsMutation = useUpdateBillingAccount({
+  const invoiceEmailMutation = useUpdateBillingAccount({
     onSuccess: () => {
-      toast.success('Invoice recipients updated', {});
+      toast.success('Invoice email updated', {});
     },
     onError: (error) => {
-      toast.error('Could not update invoice recipients', {
+      toast.error('Could not update the invoice email', {
         description: error.message || 'Please try again.',
       });
     },
   });
 
-  const handleSaveInvoiceEmails = useCallback(
-    async (values: EmailRecipientValues) => {
+  const handleSaveInvoiceEmail = useCallback(
+    async (values: InvoiceEmailValues) => {
       if (!orgId) return;
-      // Same defensive pattern as handleSaveBillingAddress: carry the
-      // existing contact + address forward so the patch doesn't drop
-      // anything the user didn't touch on this card.
-      await emailsMutation.mutateAsync({
+      // withInvoiceEmail carries the rest of the contact details forward,
+      // as handleSaveBillingAddress does, so the patch drops nothing.
+      await invoiceEmailMutation.mutateAsync({
         orgId,
         name: accountName,
-        contactInfo: {
-          name: contactInfo?.name,
-          businessName: contactInfo?.businessName,
-          email: contactInfo?.email,
-          invoiceEmails: values.emails,
-          address: contactInfo?.address,
-        },
+        contactInfo: withInvoiceEmail(contactInfo, values.email ?? ''),
       });
     },
-    [
-      emailsMutation,
-      orgId,
-      accountName,
-      contactInfo?.name,
-      contactInfo?.businessName,
-      contactInfo?.email,
-      contactInfo?.address,
-    ]
+    [invoiceEmailMutation, orgId, accountName, contactInfo]
   );
 
   const paymentTerms = paymentTermsSummary(account);
@@ -873,12 +858,13 @@ function AccountBillingAccountDetailPageInner() {
         </Section>
 
         <Section
-          title="Invoice recipients"
-          description="Add one or more email addresses that should receive invoices and receipts. The first entry is the primary recipient; the rest are CC'd. Leave empty to fall back to the account contact email.">
-          <EmailRecipientCard
-            defaultEmails={invoiceEmails}
-            isSubmitting={emailsMutation.isPending}
-            onSubmit={handleSaveInvoiceEmails}
+          title="Invoice email"
+          description="Where invoices and receipts are emailed, whether you pay by card or by invoice.">
+          <InvoiceEmailCard
+            defaultEmail={invoiceEmailOnFile}
+            contactEmail={contactInfo?.email}
+            isSubmitting={invoiceEmailMutation.isPending}
+            onSubmit={handleSaveInvoiceEmail}
           />
         </Section>
 

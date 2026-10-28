@@ -120,8 +120,8 @@ export const PaymentTermsCard = ({
             {terms.purchaseOrderNumber ? (
               <Detail label="Purchase order">{terms.purchaseOrderNumber}</Detail>
             ) : null}
-            {terms.invoiceRecipients.length ? (
-              <Detail label="Invoices sent to">{terms.invoiceRecipients.join(', ')}</Detail>
+            {terms.invoiceEmail ? (
+              <Detail label="Invoices sent to">{terms.invoiceEmail}</Detail>
             ) : null}
             <Detail label="Pay by">Bank transfer, ACH or wire</Detail>
           </div>

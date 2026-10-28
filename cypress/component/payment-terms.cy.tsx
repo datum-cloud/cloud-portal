@@ -94,11 +94,21 @@ describe('Apply for payment terms', () => {
     cy.contains("Confirm you're authorized to apply for your organization").should('exist');
   });
 
-  it('submits the application billing expects', () => {
+  const accountContact = {
+    name: 'Jane Doe',
+    email: 'jane@acme.com',
+    address: { country: 'US', line1: '1 Main St', city: 'Austin' },
+  };
+
+  it('submits the application billing expects and makes the AP email the invoice email', () => {
     cy.intercept('POST', '**/namespaces/organization-acme/billingarrangementapplications*', {
       statusCode: 201,
       body: { metadata: { name: 'apply-acme-billing-abc' } },
     }).as('create');
+    cy.intercept('PATCH', '**/namespaces/organization-acme/billingaccounts/acme-billing*', {
+      statusCode: 200,
+      body: { metadata: { name: 'acme-billing' } },
+    }).as('updateAccount');
 
     cy.mount(
       withProviders(
@@ -109,6 +119,7 @@ describe('Apply for payment terms', () => {
           entry="onboarding"
           currency="USD"
           defaultLegalName="Acme Corporation Ltd"
+          accountContact={accountContact}
         />
       )
     );
@@ -127,6 +138,8 @@ describe('Apply for payment terms', () => {
     fill('[data-e2e="payment-terms-website"]', 'acme.com');
     fill('[data-e2e="payment-terms-situation"]', 'We pay vendors by purchase order.');
     choose(/Estimated monthly spend/, '$2,500–$10,000');
+    // Starts from where invoices go today: the billing contact.
+    cy.get('[data-e2e="payment-terms-ap-email"]').should('have.value', 'jane@acme.com').clear();
     fill('[data-e2e="payment-terms-ap-email"]', 'ap@acme.com');
     fill('[data-e2e="payment-terms-po"]', 'PO-4471');
     cy.findByRole('checkbox').click();
@@ -150,6 +163,46 @@ describe('Apply for payment terms', () => {
         },
         authorized: true,
       });
+    cy.wait('@updateAccount')
+      .its('request.body.spec.contactInfo')
+      .should('deep.equal', { ...accountContact, invoiceEmails: ['ap@acme.com'] });
+  });
+
+  it("leaves the invoice email alone when the AP email doesn't change it", () => {
+    cy.intercept('POST', '**/namespaces/organization-acme/billingarrangementapplications*', {
+      statusCode: 201,
+      body: { metadata: { name: 'apply-acme-billing-abc' } },
+    }).as('create');
+    cy.intercept('PATCH', '**/billingaccounts/**', cy.spy().as('updateAccount'));
+
+    cy.mount(
+      withProviders(
+        <PaymentTermsApplicationForm
+          orgId="acme"
+          billingAccountName="acme-billing"
+          orgDisplayName="Acme Corp"
+          entry="onboarding"
+          currency="USD"
+          defaultLegalName="Acme Corporation Ltd"
+          accountContact={{ ...accountContact, invoiceEmails: ['ap@acme.com'] }}
+        />
+      )
+    );
+
+    cy.findByLabelText(/Organization type/).click();
+    cy.get('[role="option"]').contains('Company').click();
+    cy.get('[role="listbox"]').should('not.exist');
+    cy.get('[data-e2e="payment-terms-website"]').type('acme.com');
+    cy.get('[data-e2e="payment-terms-situation"]').type('We pay vendors by purchase order.');
+    cy.findByLabelText(/Estimated monthly spend/).click();
+    cy.get('[role="option"]').contains('$2,500–$10,000').click();
+    cy.get('[role="listbox"]').should('not.exist');
+    cy.get('[data-e2e="payment-terms-ap-email"]').should('have.value', 'ap@acme.com');
+    cy.findByRole('checkbox').click();
+    cy.get('[data-e2e="payment-terms-submit"]').click();
+
+    cy.wait('@create');
+    cy.get('@updateAccount').should('not.have.been.called');
   });
 
   it('shows what was sent while the application is under review', () => {
@@ -181,7 +234,7 @@ describe('Apply for payment terms', () => {
             terms={{
               name: 'acme-terms',
               netDays: 30,
-              invoiceRecipients: ['ap@acme.com', 'jane@acme.com'],
+              invoiceEmail: 'ap@acme.com',
               purchaseOrderNumber: 'PO-4471',
               billingCycle: 'Monthly, on the 1st',
             }}
@@ -363,7 +416,7 @@ describe('Payment terms in billing settings', () => {
   const terms = {
     name: 'acme-terms',
     netDays: 30,
-    invoiceRecipients: ['ap@acme.com'],
+    invoiceEmail: 'ap@acme.com',
     billingCycle: 'Monthly, on the 1st',
     startsAt: '2026-01-01T00:00:00Z',
     endsAt: endingSoon,

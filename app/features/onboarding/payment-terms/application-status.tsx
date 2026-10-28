@@ -354,8 +354,8 @@ export function ApplicationApproved({
     ? [
         ['Payment', `Invoice, due in ${terms.netDays} days`],
         ['Billing cycle', terms.billingCycle],
-        ...(terms.invoiceRecipients.length
-          ? ([['Invoices to', terms.invoiceRecipients.join(', ')]] as Array<[string, ReactNode]>)
+        ...(terms.invoiceEmail
+          ? ([['Invoices to', terms.invoiceEmail]] as Array<[string, ReactNode]>)
           : []),
         ...(terms.purchaseOrderNumber
           ? ([['Purchase order', terms.purchaseOrderNumber]] as Array<[string, ReactNode]>)

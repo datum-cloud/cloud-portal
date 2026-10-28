@@ -7,6 +7,7 @@
  * themselves; everything they need is copied onto the application's status
  * and the billing account's status.
  */
+import { invoiceEmail } from './invoice-email';
 import type { BillingAccount, BillingArrangementApplication } from './types';
 
 export type ApplicationSpec = NonNullable<BillingArrangementApplication['spec']>;
@@ -178,8 +179,8 @@ export interface PaymentTermsSummary {
   /** Name of the BillingArrangement in effect. */
   name: string;
   netDays: number;
-  /** Accounts payable email first, then the account's invoice recipients. */
-  invoiceRecipients: string[];
+  /** Where invoices are emailed: the account's invoice email. */
+  invoiceEmail?: string;
   purchaseOrderNumber?: string;
   billingCycle: string;
   startsAt?: string;
@@ -197,20 +198,10 @@ export function paymentTermsSummary(
   const invoice = arrangement?.invoice;
   if (!arrangement || arrangement.type !== 'Invoice' || !invoice) return undefined;
 
-  const contact = account.spec?.contactInfo;
-  const accountRecipients = contact?.invoiceEmails?.length
-    ? contact.invoiceEmails
-    : contact?.email
-      ? [contact.email]
-      : [];
-  const invoiceRecipients = [
-    ...new Set([invoice.accountsPayableEmail, ...accountRecipients].filter(Boolean) as string[]),
-  ];
-
   return {
     name: arrangement.name,
     netDays: invoice.netDays ?? 30,
-    invoiceRecipients,
+    invoiceEmail: invoiceEmail(account.spec?.contactInfo),
     purchaseOrderNumber: invoice.purchaseOrderNumber || undefined,
     billingCycle: billingCycleLabel(account),
     startsAt: arrangement.startsAt,

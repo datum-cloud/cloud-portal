@@ -143,7 +143,7 @@ describe('paymentTermsSummary', () => {
     metadata: { name: 'acme' },
     spec: {
       currencyCode: 'USD',
-      contactInfo: { email: 'jane@acme.com', invoiceEmails: ['jane@acme.com', 'ap@acme.com'] },
+      contactInfo: { email: 'jane@acme.com', invoiceEmails: ['finance@acme.com'] },
       paymentTerms: { invoiceFrequency: 'Monthly', invoiceDayOfMonth: 1 },
     },
     status: {
@@ -165,8 +165,8 @@ describe('paymentTermsSummary', () => {
     expect(paymentTermsSummary(account)).toEqual({
       name: 'acme-terms',
       netDays: 45,
-      // AP email first, without repeating it from the invoice recipients.
-      invoiceRecipients: ['ap@acme.com', 'jane@acme.com'],
+      // Stripe emails the invoice email, not the AP email on the terms.
+      invoiceEmail: 'finance@acme.com',
       purchaseOrderNumber: 'PO-4471',
       billingCycle: 'Monthly, on the 1st',
       startsAt: '2026-10-02T00:00:00Z',
