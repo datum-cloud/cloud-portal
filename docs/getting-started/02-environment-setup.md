@@ -118,12 +118,22 @@ bun run typecheck
 
 ### External Services
 
-| Variable              | Required | Default | Description              |
-| --------------------- | -------- | ------- | ------------------------ |
-| `RYBBIT_SITE_ID`      | No       | -       | Rybbit Analytics site ID |
-| `RYBBIT_TAG`          | No       | -       | Rybbit Analytics tag     |
-| `HELPSCOUT_BEACON_ID` | No       | -       | HelpScout support widget |
-| `REDIS_URL`           | No       | -       | Redis for rate limiting  |
+| Variable               | Required  | Default | Description                                      |
+| ---------------------- | --------- | ------- | ------------------------------------------------ |
+| `RYBBIT_SITE_ID`       | No        | -       | Rybbit Analytics site ID                         |
+| `RYBBIT_TAG`           | No        | -       | Rybbit Analytics tag                             |
+| `HELPSCOUT_BEACON_ID`  | No        | -       | HelpScout support widget                         |
+| `HELPSCOUT_SECRET_KEY` | Prod only | -       | Beacon secure-mode secret, shared with datum.net |
+| `REDIS_URL`            | No        | -       | Redis for rate limiting                          |
+
+### Website API
+
+These configure the `/api/website/*` routes that datum.net calls. See [Website API](../architecture/website-api.md).
+
+| Variable                           | Required | Default | Description                                                            |
+| ---------------------------------- | -------- | ------- | ---------------------------------------------------------------------- |
+| `WEBSITE_ORIGINS`                  | No       | -       | Comma-separated exact origins allowed to call the website API          |
+| `WEBSITE_POST_LOGOUT_REDIRECT_URI` | No       | -       | Landing page after website sign-out; register it on the Zitadel client |
 
 ---
 

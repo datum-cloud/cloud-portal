@@ -22,6 +22,7 @@ import {
 import { websiteCorsMiddleware } from '@/server/middleware/website-cors';
 import type { Variables } from '@/server/types';
 import { getOrgSession } from '@/utils/cookies/org.server';
+import { getProjectSession } from '@/utils/cookies/project.server';
 import { env } from '@/utils/env/env.server';
 import { Hono, type MiddlewareHandler } from 'hono';
 
@@ -39,8 +40,9 @@ export interface WebsiteRoutesOptions {
    * to exercise the real limiter without touching Redis.
    */
   rateLimiterOptions?: Pick<TrafficClassLimiterOptions, 'budgets' | 'redis'>;
-  deps?: () => Omit<SessionStatusDeps, 'preferredOrg'>;
+  deps?: () => Omit<SessionStatusDeps, 'preferredOrg' | 'preferredProject'>;
   readPreferredOrg?: (request: Request) => Promise<string | null>;
+  readPreferredProject?: (request: Request) => Promise<string | null>;
   profileDeps?: () => {
     getUserProfile(
       sub: string
@@ -55,7 +57,7 @@ export interface WebsiteRoutesOptions {
   feedbackCounter?: CounterLike | null;
 }
 
-function liveDeps(): Omit<SessionStatusDeps, 'preferredOrg'> {
+function liveDeps(): Omit<SessionStatusDeps, 'preferredOrg' | 'preferredProject'> {
   const users = createUserService();
   const orgs = createOrganizationService();
   const projects = createProjectService();
@@ -67,6 +69,15 @@ function liveDeps(): Omit<SessionStatusDeps, 'preferredOrg'> {
         displayName: o.displayName || o.name,
       })),
     hasProjects: async (orgName) => (await projects.list(orgName, { limit: 1 })).items.length > 0,
+    getProject: async (name) => {
+      const p = await projects.get(name);
+      return {
+        name: p.name,
+        displayName: p.displayName || p.name,
+        organizationId: p.organizationId,
+        deletionTimestamp: p.deletionTimestamp,
+      };
+    },
     appUrl: env.public.appUrl.replace(/\/+$/, ''),
     timeoutMs: MILO_TIMEOUT_MS,
   };
@@ -75,6 +86,11 @@ function liveDeps(): Omit<SessionStatusDeps, 'preferredOrg'> {
 async function livePreferredOrg(request: Request): Promise<string | null> {
   const { orgId } = await getOrgSession(request);
   return orgId ?? null;
+}
+
+async function livePreferredProject(request: Request): Promise<string | null> {
+  const { projectId } = await getProjectSession(request);
+  return projectId ?? null;
 }
 
 function liveProfileDeps() {
@@ -100,6 +116,7 @@ export function createWebsiteRoutes(options: WebsiteRoutesOptions = {}) {
   const cache = options.cache ?? createStatusCache<SessionStatus>(redisClient);
   const deps = options.deps ?? liveDeps;
   const readPreferredOrg = options.readPreferredOrg ?? livePreferredOrg;
+  const readPreferredProject = options.readPreferredProject ?? livePreferredProject;
   const profileDeps = options.profileDeps ?? liveProfileDeps;
   const feedbackSink =
     options.feedbackSink ??
@@ -128,17 +145,25 @@ export function createWebsiteRoutes(options: WebsiteRoutesOptions = {}) {
     const session = c.get('session');
     if (!session) return c.json({ signedIn: false } satisfies SessionStatus);
 
-    // The payload embeds `org` and an org-scoped `dashboardUrl`, so the org
-    // belongs in the key. Keyed on `sub` alone, switching orgs would keep
-    // serving — and linking to — the previous one until the TTL expired.
-    // Reading it is a local cookie decrypt, not an upstream call.
-    const preferredOrg = await readPreferredOrg(c.req.raw);
-    const cacheKey = `${session.sub}:${preferredOrg ?? ''}`;
+    // The payload embeds `org`, `project` and a `dashboardUrl` scoped to
+    // them, so both cookies belong in the key. Keyed on `sub` alone, switching
+    // orgs or projects would keep serving — and linking to — the previous one
+    // until the TTL expired. Reading them is a local cookie decrypt, not an
+    // upstream call.
+    const [preferredOrg, preferredProject] = await Promise.all([
+      readPreferredOrg(c.req.raw),
+      readPreferredProject(c.req.raw),
+    ]);
+    const cacheKey = `${session.sub}:${preferredOrg ?? ''}:${preferredProject ?? ''}`;
 
     const cached = await cache.get(cacheKey);
     if (cached) return c.json(cached);
 
-    const status = await buildSessionStatus(session.sub, { ...deps(), preferredOrg });
+    const status = await buildSessionStatus(session.sub, {
+      ...deps(),
+      preferredOrg,
+      preferredProject,
+    });
     await cache.set(cacheKey, status, STATUS_TTL_SECONDS);
     return c.json(status);
   });
