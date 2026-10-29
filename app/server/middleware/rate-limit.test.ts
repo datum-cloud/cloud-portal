@@ -146,6 +146,33 @@ describe('trafficClassLimiter', () => {
     ).toBe(before + 1);
   });
 
+  test('anonymous requests are keyed by the address Envoy appended, not a forged prefix', async () => {
+    const app = new Hono<{ Variables: Variables }>();
+    app.onError(errorHandler as never);
+    app.use(
+      '*',
+      trafficClassLimiter({ budgets: tiny, redis: null, penaltyBox: createMemoryPenaltyBox() })
+    );
+    app.get('/proxy/thing', (c) => c.json({ ok: true }));
+    const from = (xff: string) => ({ ...browser, 'X-Forwarded-For': xff });
+
+    // A new forged prefix per request does not buy a new bucket.
+    expect(
+      (await app.request('/proxy/thing', { headers: from('10.0.0.1, 203.0.113.7') })).status
+    ).toBe(200);
+    expect(
+      (await app.request('/proxy/thing', { headers: from('10.0.0.2, 203.0.113.7') })).status
+    ).toBe(200);
+    expect(
+      (await app.request('/proxy/thing', { headers: from('10.0.0.3, 203.0.113.7') })).status
+    ).toBe(429);
+
+    // A different trusted address is a different client.
+    expect(
+      (await app.request('/proxy/thing', { headers: from('10.0.0.1, 198.51.100.9') })).status
+    ).toBe(200);
+  });
+
   test('standard RateLimit headers are present on allowed responses', async () => {
     const res = await appFor(tiny).request('/proxy/thing', { headers: browser });
     expect(res.headers.get('RateLimit-Limit')).toBe(String(tiny.interactive));
