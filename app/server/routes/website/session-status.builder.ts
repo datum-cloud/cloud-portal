@@ -7,7 +7,19 @@ export type SessionStatus =
   | {
       signedIn: true;
       user: { id: string; displayName: string; email?: string; avatarUrl?: string };
-      org?: { name: string; displayName: string; hasProjects?: boolean };
+      org?: {
+        name: string;
+        displayName: string;
+        hasProjects?: boolean;
+        /**
+         * True when the org is known to be the one the user works in: it came
+         * from the `_org` cookie, it is the user's only org, or a valid project
+         * confirms it. False means `pickOrganization` fell back to the first
+         * membership, which is fine for a label but not for a pasted command.
+         */
+        selected: boolean;
+      };
+      project?: { name: string; displayName: string };
       dashboardUrl: string;
       state?: 'new' | 'active';
     };
@@ -22,13 +34,44 @@ export interface SessionStatusDeps {
   }>;
   listOrganizations(): Promise<Array<{ name: string; displayName: string }>>;
   hasProjects(orgName: string): Promise<boolean>;
+  getProject(name: string): Promise<ProjectCandidate>;
   /** Org name from the portal's last-used-org cookie, or null. */
   preferredOrg: string | null;
+  /** Project name from the portal's `_project` cookie, or null. */
+  preferredProject: string | null;
   /** Portal origin, no trailing slash. */
   appUrl: string;
   timeoutMs: number;
   /** Clock used to compute the shared deadline; defaults to `Date.now` (tests control it). */
   now?: () => number;
+}
+
+/** What the portal knows about the project named in the `_project` cookie. */
+export interface ProjectCandidate {
+  name: string;
+  displayName: string;
+  organizationId: string;
+  deletionTimestamp?: Date;
+}
+
+/**
+ * Decides whether the project from the `_project` cookie can be shown for
+ * `orgName`, the org this payload is about.
+ *
+ * The cookie is independent of the org pick: it can name a project in another
+ * org, one the user lost access to (the lookup then fails and `candidate` is
+ * undefined), or one that is being deleted. Returning undefined leaves
+ * `project` off the payload, and the docs keep their placeholder.
+ */
+export function pickProject(
+  candidate: ProjectCandidate | undefined,
+  orgName: string
+): { name: string; displayName: string } | undefined {
+  if (!candidate || candidate.deletionTimestamp) return undefined;
+  // The adapter falls back to '' when `spec.ownerRef` is missing, so an empty
+  // owner is treated as unknown rather than matched.
+  if (!candidate.organizationId || candidate.organizationId !== orgName) return undefined;
+  return { name: candidate.name, displayName: candidate.displayName };
 }
 
 export function pickOrganization<T extends { name: string }>(
@@ -61,9 +104,14 @@ export async function buildSessionStatus(
   const deadline = now() + deps.timeoutMs;
   const organizationsUrl = `${deps.appUrl}${paths.account.organizations.root}`;
 
-  const [rawUser, orgs] = await Promise.all([
+  // The project lookup needs only the cookie, not the org pick, so it runs
+  // alongside the others and adds nothing to the deadline.
+  const [rawUser, orgs, projectCandidate] = await Promise.all([
     settle(deps.getUser(sub), deps.timeoutMs),
     settle(deps.listOrganizations(), deps.timeoutMs),
+    deps.preferredProject
+      ? settle(deps.getProject(deps.preferredProject), deps.timeoutMs)
+      : Promise.resolve(undefined),
   ]);
 
   const user: { id: string; displayName: string; email?: string; avatarUrl?: string } = {
@@ -75,10 +123,31 @@ export async function buildSessionStatus(
 
   const memberships = orgs ?? [];
   const rawOrg = pickOrganization(memberships, deps.preferredOrg);
-  const org = rawOrg ? { name: rawOrg.name, displayName: rawOrg.displayName } : undefined;
+  const org = rawOrg
+    ? {
+        name: rawOrg.name,
+        displayName: rawOrg.displayName,
+        selected: rawOrg.name === deps.preferredOrg || memberships.length === 1,
+      }
+    : undefined;
 
   if (!org) {
     return { signedIn: true, user, dashboardUrl: organizationsUrl, state: 'new' };
+  }
+
+  // A project in the selected org already proves the org has one, so the
+  // hasProjects lookup is skipped.
+  const project = pickProject(projectCandidate, org.name);
+  if (project) {
+    return {
+      signedIn: true,
+      user,
+      // The user entered this project, and it belongs to this org.
+      org: { ...org, hasProjects: true, selected: true },
+      project,
+      dashboardUrl: `${deps.appUrl}${getPathWithParams(paths.project.detail.home, { projectId: project.name })}`,
+      state: 'active',
+    };
   }
 
   const projectsUrl = `${deps.appUrl}${getPathWithParams(paths.org.detail.projects.root, { orgId: org.name })}`;
