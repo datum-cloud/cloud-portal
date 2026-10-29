@@ -25,21 +25,14 @@ Sentry.init({
   integrations: [
     // Performance
     Sentry.reactRouterTracingIntegration(),
-    // Session replay with sensitive data masking
+    // Session replay masks all text, inputs and media. A selector list
+    // misses revealed passwords and secrets rendered as plain text, so
+    // nothing is unmasked by default.
     Sentry.replayIntegration({
-      maskAllText: false,
-      maskAllInputs: false,
-      blockAllMedia: false,
+      maskAllText: true,
+      maskAllInputs: true,
+      blockAllMedia: true,
 
-      // Mask sensitive fields
-      mask: [
-        '[data-sentry-mask]',
-        'input[type="password"]',
-        '[name*="secret"]',
-        '[name*="token"]',
-        '[name*="key"]',
-        '[name*="credential"]',
-      ],
       // Block entire sections from replay
       block: ['[data-sentry-block]'],
     }),
