@@ -21,3 +21,4 @@
 - Added the o11y-metrics service for queryapi's Prometheus routes with tests. Phase 1 complete.
 - Moved the metrics hooks and every caller onto queryapi with a required projectId. Phase 2 complete.
 - Deleted `/api/prometheus`, removed `PROMETHEUS_URL`, updated the metrics README and confirmed the role permissions. Phase 3 complete: after the restart the proxy metrics charts load through queryapi (200s) and the server log shows no `/api/prometheus` calls.
+- Validation: READY FOR PR. Fixed its suggestions: queryapi 400s are query errors, and query errors, timeouts, 401 and 403 aren't retried (`shouldRetryMetricsQuery`).

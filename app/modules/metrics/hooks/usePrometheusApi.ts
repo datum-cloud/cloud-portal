@@ -11,6 +11,7 @@ import { resolveChartStep } from '@/modules/metrics/utils/chart-axis';
 import { parseDurationToMs } from '@/modules/metrics/utils/date-parsers';
 import {
   executePrometheusRequest,
+  shouldRetryMetricsQuery,
   type PrometheusAPIRequest,
 } from '@/modules/metrics/utils/prometheus-request';
 import type {
@@ -77,14 +78,7 @@ export function usePrometheusAPIQuery<T>(
     refetchInterval: options.refetchInterval,
     staleTime: 30000, // 30 seconds
     gcTime: 300000, // 5 minutes
-    retry: (failureCount: number, error: PrometheusError) => {
-      // Permission/auth failures (403/401) and malformed queries won't change on
-      // retry — fail fast instead of hammering the telemetry endpoint.
-      if (error.type === 'query' || error.statusCode === 403 || error.statusCode === 401) {
-        return false;
-      }
-      return failureCount < 3;
-    },
+    retry: shouldRetryMetricsQuery,
     retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }

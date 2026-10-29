@@ -1,6 +1,7 @@
 /// <reference types="bun-types/test" />
 import {
   executePrometheusRequest,
+  shouldRetryMetricsQuery,
   toPrometheusError,
   type PrometheusRequestService,
 } from './prometheus-request';
@@ -212,6 +213,13 @@ describe('toPrometheusError', () => {
     expect(error.statusCode).toBe(503);
   });
 
+  it('maps a queryapi 400 (bad_data) to a query error that keeps the status', () => {
+    const error = toPrometheusError(new AppError('parse error at 1:5', { status: 400 }));
+    expect(error.type).toBe('query');
+    expect(error.statusCode).toBe(400);
+    expect(error.message).toBe('parse error at 1:5');
+  });
+
   it('maps a Prometheus error envelope to a query error', () => {
     const error = toPrometheusError(new ValidationError('parse error'));
     expect(error.type).toBe('query');
@@ -227,5 +235,24 @@ describe('toPrometheusError', () => {
   it('maps anything else to unknown', () => {
     expect(toPrometheusError(new Error('boom')).type).toBe('unknown');
     expect(toPrometheusError('boom').type).toBe('unknown');
+  });
+});
+
+describe('shouldRetryMetricsQuery', () => {
+  it.each([
+    ['a bad query', new PrometheusError('bad', 'query', 400)],
+    ['a response too large', new PrometheusError('big', 'query', 422)],
+    ['a timeout', new PrometheusError('slow', 'timeout', 503)],
+    ['a 401', PrometheusError.network('unauthorized', 401)],
+    ['a 403', PrometheusError.network('forbidden', 403)],
+  ])('does not retry %s', (_label, error) => {
+    expect(shouldRetryMetricsQuery(0, error)).toBe(false);
+  });
+
+  it('retries network errors up to three times', () => {
+    const error = PrometheusError.network('bad gateway', 502);
+    expect(shouldRetryMetricsQuery(0, error)).toBe(true);
+    expect(shouldRetryMetricsQuery(2, error)).toBe(true);
+    expect(shouldRetryMetricsQuery(3, error)).toBe(false);
   });
 });

@@ -15,7 +15,7 @@ import { QueryValidationError } from '@/modules/prometheus/errors';
 import { formatForCard, formatForChart } from '@/modules/prometheus/formatter';
 import { timeRangeToUnix, validateQueryOptions } from '@/modules/prometheus/validator';
 import type { O11yMetricsService } from '@/resources/o11y-metrics';
-import { AppError, ValidationError } from '@/utils/errors';
+import { AppError } from '@/utils/errors';
 
 export interface PrometheusAPIRequest {
   type: 'chart' | 'card' | 'labels';
@@ -50,13 +50,25 @@ export function toPrometheusError(error: unknown): PrometheusError {
 
   if (error instanceof AppError) {
     const { status, message } = error;
-    if (status === 422) return new PrometheusError(message, 'query', status);
+    // 400 is a malformed query (or an error envelope); 422 is a response too large.
+    if (status === 400 || status === 422) return new PrometheusError(message, 'query', status);
     if (status === 503 || status === 504) return new PrometheusError(message, 'timeout', status);
-    if (error instanceof ValidationError) return new PrometheusError(message, 'query', status);
     return PrometheusError.network(message, status);
   }
 
   return PrometheusError.unknown(error instanceof Error ? error.message : 'Unknown metrics error');
+}
+
+const MAX_METRICS_RETRIES = 3;
+
+/**
+ * Permission failures, bad queries and timeouts won't change on retry, and
+ * retrying a timed-out query only reruns the same expensive work in queryapi.
+ */
+export function shouldRetryMetricsQuery(failureCount: number, error: PrometheusError): boolean {
+  if (error.type === 'query' || error.type === 'timeout') return false;
+  if (error.statusCode === 401 || error.statusCode === 403) return false;
+  return failureCount < MAX_METRICS_RETRIES;
 }
 
 const toTimeRangeInput = (
