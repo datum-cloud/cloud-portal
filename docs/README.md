@@ -38,6 +38,7 @@ Understand how the system works:
 | [Data Flow](./architecture/data-flow.md)           | SSR, React Query, and mutations  |
 | [Domain Modules](./architecture/domain-modules.md) | Resource module structure        |
 | [Watch API](./architecture/watch-api.md)           | Real-time updates via SSE        |
+| [Website API](./architecture/website-api.md)       | Routes datum.net calls           |
 | [ADRs](./architecture/adrs/)                       | Architecture Decision Records    |
 
 ### 💻 Development
