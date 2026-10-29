@@ -24,6 +24,9 @@ Long-lived architectural decisions are recorded as ADRs in `docs/architecture/ad
 - **Async operations** (ADR-009): long-running K8s operations go through a task queue with timeout protection.
 - **URL state** with `nuqs`.
 - **Generated code** in `app/modules/control-plane/*` comes from `bun run openapi` / `bun run graphql`; don't hand-edit it.
+- **Telemetry reads go through queryapi.** Logs (`app/resources/o11y-logs`) and metrics (`app/resources/o11y-metrics`) call telemetry queryapi's Loki- and Prometheus-shaped routes under `/apis/o11y.miloapis.com/v1alpha1/` with the shared control-plane client and `getProjectScopedBase(projectId)`. In the browser that resolves to `/api/proxy`, which adds the token and refreshes it. queryapi enforces project isolation from the caller's identity, so queries need no project label matcher.
+- **Shared client conventions.** The control-plane client is created with `throwOnError: true`, so non-2xx responses throw and reach `mapApiError`. Form-encoded POSTs spread `urlSearchParamsBodySerializer` from `@/modules/control-plane/shared/client` and set `Content-Type` explicitly. `/api/proxy` forwards the raw body and `Content-Type` unchanged.
+- **Injectable clients in service tests.** Resource services take an optional `client` so tests inject spies instead of `mock.module`-ing the shared client, which is process-global in bun and breaks `getConfig` for other suites.
 
 ## Component relationships
 
