@@ -7,13 +7,16 @@ import {
   BILLING_ACCOUNT_DISPLAY_NAME_ANNOTATION,
   BillingAddressFieldsCard,
   BillingAddressForm,
+  DiscountsCard,
   DisplayNameFormCard,
   InvoiceEmailCard,
   PastInvoicesCard,
   PaymentMethodsCard,
   PaymentTermsCard,
   getBillingAccountDisplayName,
+  summarizeDiscounts,
   toPastInvoiceRow,
+  type AccountDiscount,
   type BillingAccount,
   type BillingAccountAssignment,
   type BillingAccountBinding,
@@ -92,6 +95,8 @@ interface LoaderData {
   invoices: Invoice[];
   /** The account's most recent application for payment terms. */
   paymentTermsApplication: BillingArrangementApplication | undefined;
+  /** Each service's resolved discount. Always empty until billing exposes them. */
+  discounts: AccountDiscount[];
   /** Only org owners can apply for payment terms or open an application. */
   isOrgOwner: boolean;
   /** When the loader ran, so server and browser agree on terms ending soon. */
@@ -101,6 +106,17 @@ interface LoaderData {
   projectsByOrg: Record<string, Array<{ name: string; displayName: string }>>;
   stripePublishableKey: string | undefined;
 }
+
+/**
+ * PLACEHOLDER — returns no discounts, so the Discounts section stays hidden.
+ *
+ * TODO: read `account.status.discounts` (`displayName` + `percentage`) once
+ * milo-os/billing#185 ships and the billing client is regenerated. Staff set discounts on cluster-scoped
+ * Offers, which customers can't read, so don't call Offer endpoints from
+ * here. Discounts are only charged once milo-os/openmeter-provider#61 is in
+ * production.
+ */
+const loadAccountDiscounts = async (): Promise<AccountDiscount[]> => [];
 
 /**
  * User-level billing account detail page.
@@ -156,32 +172,40 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
   // Fan the remaining reads out together — they're independent and
   // the page renders meaningful partial state from any subset, so a
   // single failure doesn't blank the whole detail.
-  const [allBindings, stripeConfigs, paymentMethods, invoices, applications, isOrgOwner] =
-    await Promise.all([
-      createBillingAccountBindingService().listForOrgs(orgIds),
-      createStripeProviderConfigService()
-        .list()
-        .catch(() => []),
-      orgId ? createPaymentMethodService().list(orgId) : Promise.resolve<PaymentMethod[]>([]),
-      orgId
-        ? createInvoiceService()
-            .list(orgId)
-            .catch(() => [] as Invoice[])
-        : Promise.resolve<Invoice[]>([]),
-      orgId
-        ? createBillingArrangementApplicationService()
-            .list(orgId)
-            .catch((error): BillingArrangementApplication[] => {
-              logger.warn('[account/billing] Could not list payment terms applications', {
-                orgId,
-                fallback: 'no application shown',
-                error: error instanceof Error ? error.message : String(error),
-              });
-              return [];
-            })
-        : Promise.resolve<BillingArrangementApplication[]>([]),
-      orgId ? isUserOrgOwner(orgId).catch(() => false) : Promise.resolve(false),
-    ]);
+  const [
+    allBindings,
+    stripeConfigs,
+    paymentMethods,
+    invoices,
+    applications,
+    isOrgOwner,
+    discounts,
+  ] = await Promise.all([
+    createBillingAccountBindingService().listForOrgs(orgIds),
+    createStripeProviderConfigService()
+      .list()
+      .catch(() => []),
+    orgId ? createPaymentMethodService().list(orgId) : Promise.resolve<PaymentMethod[]>([]),
+    orgId
+      ? createInvoiceService()
+          .list(orgId)
+          .catch(() => [] as Invoice[])
+      : Promise.resolve<Invoice[]>([]),
+    orgId
+      ? createBillingArrangementApplicationService()
+          .list(orgId)
+          .catch((error): BillingArrangementApplication[] => {
+            logger.warn('[account/billing] Could not list payment terms applications', {
+              orgId,
+              fallback: 'no application shown',
+              error: error instanceof Error ? error.message : String(error),
+            });
+            return [];
+          })
+      : Promise.resolve<BillingArrangementApplication[]>([]),
+    orgId ? isUserOrgOwner(orgId).catch(() => false) : Promise.resolve(false),
+    loadAccountDiscounts(),
+  ]);
 
   // For each org that has a binding to this account, hydrate the
   // project display names — fan-out is bounded by the user's
@@ -229,6 +253,7 @@ export const loader = async ({ params }: LoaderFunctionArgs): Promise<LoaderData
     paymentMethods,
     invoices,
     paymentTermsApplication: latestApplication(applications, billingAccountId),
+    discounts,
     isOrgOwner,
     renderedAt: Date.now(),
     orgs,
@@ -313,6 +338,7 @@ function AccountBillingAccountDetailPageInner() {
     paymentMethods: initialPaymentMethods,
     invoices: initialInvoices,
     paymentTermsApplication,
+    discounts,
     isOrgOwner,
     renderedAt,
     orgs,
@@ -856,6 +882,14 @@ function AccountBillingAccountDetailPageInner() {
         <Section title="Invoices" description="Past invoices for this billing account.">
           <PastInvoicesCard invoices={pastInvoices} onDownload={handleDownloadInvoice} />
         </Section>
+
+        {summarizeDiscounts(discounts) ? (
+          <Section
+            title="Discounts"
+            description="Discounts that apply to this billing account's usage.">
+            <DiscountsCard discounts={discounts} />
+          </Section>
+        ) : null}
 
         <Section
           title="Invoice email"

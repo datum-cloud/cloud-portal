@@ -6,6 +6,7 @@ export {
   type BillingAddressValues,
 } from './billing-address-card';
 export { CreditsCard } from './credits-card';
+export { DiscountsCard } from './discounts-card';
 export {
   DisplayNameFormCard,
   displayNameFormSchema,
