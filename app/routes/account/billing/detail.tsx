@@ -111,10 +111,10 @@ interface LoaderData {
  * PLACEHOLDER — returns no discounts, so the Discounts section stays hidden.
  *
  * TODO: read `account.status.discounts` (`displayName` + `percentage`) once
- * milo-os/billing#185 ships and the billing client is regenerated. Staff set discounts on cluster-scoped
- * Offers, which customers can't read, so don't call Offer endpoints from
- * here. Discounts are only charged once milo-os/openmeter-provider#61 is in
- * production.
+ * milo-os/billing#185 ships and the billing client is regenerated. Staff set
+ * discounts on cluster-scoped Offers, which customers can't read, so don't
+ * call Offer endpoints from here. Discounts are only charged once
+ * milo-os/openmeter-provider#61 is in production.
  */
 const loadAccountDiscounts = async (): Promise<AccountDiscount[]> => [];
 
