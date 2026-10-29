@@ -14,6 +14,8 @@ mock.module('@/utils/env/env.server', () => ({
 
 const { assistantChatRoutes } = await import('./assistant-chat');
 
+const CTX = '0f8fad5b-d9cb-469f-a165-70867728950e';
+
 function appWithSession() {
   const app = new Hono<{ Variables: Variables }>();
   app.use('*', async (c, next) => {
@@ -40,7 +42,7 @@ describe('assistant-chat', () => {
 
     const app = new Hono<{ Variables: Variables }>();
     app.route('/', assistantChatRoutes);
-    const res = await app.request('/conversations/c1/sendmessage', {
+    const res = await app.request(`/conversations/${CTX}/sendmessage`, {
       method: 'POST',
       body: JSON.stringify({ text: 'hi' }),
     });
@@ -64,7 +66,7 @@ describe('assistant-chat', () => {
     }) as unknown as typeof fetch;
 
     const res = await appWithSession().request(
-      '/conversations/ctx-1/sendmessage?projectId=proj-1',
+      `/conversations/${CTX}/sendmessage?projectId=proj-1`,
       {
         method: 'POST',
         body: JSON.stringify({ text: 'hello' }),
@@ -72,7 +74,7 @@ describe('assistant-chat', () => {
     );
 
     expect(seenUrl).toBe(
-      'http://assistant.internal.test/chat/conversations/ctx-1/sendmessage?projectId=proj-1'
+      `http://assistant.internal.test/chat/conversations/${CTX}/sendmessage?projectId=proj-1`
     );
     expect((seenInit.headers as Record<string, string>).Authorization).toBe('Bearer the-token');
     expect(seenInit.body).toBe(JSON.stringify({ text: 'hello' }));
@@ -86,7 +88,7 @@ describe('assistant-chat', () => {
       Promise.resolve(new Response(JSON.stringify({ error: 'text is required' }), { status: 400 }))
     ) as unknown as typeof fetch;
 
-    const res = await appWithSession().request('/conversations/c1/sendmessage?projectId=p1', {
+    const res = await appWithSession().request(`/conversations/${CTX}/sendmessage?projectId=p1`, {
       method: 'POST',
       body: JSON.stringify({ text: '' }),
     });
@@ -100,7 +102,7 @@ describe('assistant-chat', () => {
       Promise.reject(new Error('connect refused'))
     ) as unknown as typeof fetch;
 
-    const res = await appWithSession().request('/conversations/c1/sendmessage?projectId=p1', {
+    const res = await appWithSession().request(`/conversations/${CTX}/sendmessage?projectId=p1`, {
       method: 'POST',
       body: JSON.stringify({ text: 'hi' }),
     });
@@ -136,9 +138,13 @@ describe('assistant-chat upstream URL params', () => {
     '/conversations/..%2F..%2Fadmin/sendmessage?projectId=p1',
     '/conversations/%2e%2e%2Fadmin/sendmessage?projectId=p1',
     '/conversations/a%2Fb/sendmessage?projectId=p1',
-    '/conversations/c1%3Fx%3D1/sendmessage?projectId=p1',
-    '/conversations/c1%23frag/sendmessage?projectId=p1',
+    `/conversations/${CTX}%3Fx%3D1/sendmessage?projectId=p1`,
+    `/conversations/${CTX}%23frag/sendmessage?projectId=p1`,
     '/conversations/UPPER/sendmessage?projectId=p1',
+    `/conversations/${CTX.toUpperCase()}/sendmessage?projectId=p1`,
+    '/conversations/conv.v1/sendmessage?projectId=p1',
+    `/conversations/${CTX.replaceAll('-', '.')}/sendmessage?projectId=p1`,
+    '/conversations/ctx-1/sendmessage?projectId=p1',
   ])('rejects contextId in %s with 400 and never calls upstream', async (path) => {
     const seen = trackUpstream();
     const res = await send(path);
@@ -157,10 +163,10 @@ describe('assistant-chat upstream URL params', () => {
   });
 
   it.each([
-    '/conversations/c1/sendmessage?projectId=..%2Fother',
-    '/conversations/c1/sendmessage?projectId=p1%26admin%3Dtrue',
-    '/conversations/c1/sendmessage?projectId=p1%23x',
-    '/conversations/c1/sendmessage?projectId=',
+    `/conversations/${CTX}/sendmessage?projectId=..%2Fother`,
+    `/conversations/${CTX}/sendmessage?projectId=p1%26admin%3Dtrue`,
+    `/conversations/${CTX}/sendmessage?projectId=p1%23x`,
+    `/conversations/${CTX}/sendmessage?projectId=`,
   ])('rejects projectId in %s with 400 and never calls upstream', async (path) => {
     const seen = trackUpstream();
     const res = await send(path);
@@ -170,19 +176,21 @@ describe('assistant-chat upstream URL params', () => {
 
   it('forwards only projectId, never extra query params', async () => {
     const seen = trackUpstream();
-    const res = await send('/conversations/c1/sendmessage?projectId=p1&admin=true&url=http://evil');
+    const res = await send(
+      `/conversations/${CTX}/sendmessage?projectId=p1&admin=true&url=http://evil`
+    );
     expect(res.status).toBe(200);
     expect(seen.calls).toEqual([
-      'http://assistant.internal.test/chat/conversations/c1/sendmessage?projectId=p1',
+      `http://assistant.internal.test/chat/conversations/${CTX}/sendmessage?projectId=p1`,
     ]);
   });
 
-  it('accepts a dotted conversation name', async () => {
+  it('accepts a lowercase UUID context id', async () => {
     const seen = trackUpstream();
-    const res = await send('/conversations/conv.v1/sendmessage?projectId=p1');
+    const res = await send(`/conversations/${CTX}/sendmessage?projectId=p1`);
     expect(res.status).toBe(200);
     expect(seen.calls).toEqual([
-      'http://assistant.internal.test/chat/conversations/conv.v1/sendmessage?projectId=p1',
+      `http://assistant.internal.test/chat/conversations/${CTX}/sendmessage?projectId=p1`,
     ]);
   });
 });

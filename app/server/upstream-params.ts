@@ -9,7 +9,7 @@
 
 const DNS1123_LABEL = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/;
 const DNS1123_LABEL_MAX_LENGTH = 63;
-const DNS1123_SUBDOMAIN_MAX_LENGTH = 253;
+const LOWERCASE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 /** A Kubernetes name in its strictest form, an RFC 1123 label: projects, namespaces. */
 export function isDns1123Label(value: unknown): value is string {
@@ -20,16 +20,9 @@ export function isDns1123Label(value: unknown): value is string {
   );
 }
 
-/**
- * A Kubernetes object name, an RFC 1123 subdomain: labels joined by dots. An
- * empty label is never valid, so `.` and `..` are rejected.
- */
-export function isDns1123Subdomain(value: unknown): value is string {
-  return (
-    typeof value === 'string' &&
-    value.length <= DNS1123_SUBDOMAIN_MAX_LENGTH &&
-    value.split('.').every(isDns1123Label)
-  );
+/** A UUID in canonical lowercase 8-4-4-4-12 hex form. */
+export function isLowercaseUuid(value: unknown): value is string {
+  return typeof value === 'string' && LOWERCASE_UUID.test(value);
 }
 
 /** Joins path segments, encoding each one, so no segment can add a `/`, `?` or `#`. */

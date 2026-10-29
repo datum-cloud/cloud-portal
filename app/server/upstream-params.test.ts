@@ -1,4 +1,4 @@
-import { encodePathSegments, isDns1123Label, isDns1123Subdomain } from './upstream-params';
+import { encodePathSegments, isDns1123Label, isLowercaseUuid } from './upstream-params';
 import { describe, expect, it } from 'bun:test';
 
 const TRAVERSAL_AND_INJECTION = [
@@ -34,20 +34,25 @@ describe('isDns1123Label', () => {
   });
 });
 
-describe('isDns1123Subdomain', () => {
-  it.each(['ctx-1', 'a.b', 'conv.v1.example', '0f8fad5b-d9cb-469f-a165-70867728950e'])(
+describe('isLowercaseUuid', () => {
+  it.each(['0f8fad5b-d9cb-469f-a165-70867728950e', '00000000-0000-0000-0000-000000000000'])(
     'accepts %p',
     (value) => {
-      expect(isDns1123Subdomain(value)).toBe(true);
+      expect(isLowercaseUuid(value)).toBe(true);
     }
   );
 
-  it.each([...TRAVERSAL_AND_INJECTION, 'a..b', '.a', 'a.', `${'a'.repeat(63)}.`.repeat(4) + 'a'])(
-    'rejects %p',
-    (value) => {
-      expect(isDns1123Subdomain(value)).toBe(false);
-    }
-  );
+  it.each([
+    ...TRAVERSAL_AND_INJECTION,
+    '0F8FAD5B-D9CB-469F-A165-70867728950E',
+    '0f8fad5b.d9cb.469f.a165.70867728950e',
+    '0f8fad5bd9cb469fa16570867728950e',
+    '0f8fad5b-d9cb-469f-a165-70867728950e.evil',
+    '0f8fad5b-d9cb-469f-a165-70867728950e/..',
+    'ctx-1',
+  ])('rejects %p', (value) => {
+    expect(isLowercaseUuid(value)).toBe(false);
+  });
 });
 
 describe('encodePathSegments', () => {

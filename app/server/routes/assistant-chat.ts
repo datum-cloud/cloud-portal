@@ -33,7 +33,7 @@
  */
 import { logger } from '@/modules/logger';
 import type { Variables } from '@/server/types';
-import { encodePathSegments, isDns1123Label, isDns1123Subdomain } from '@/server/upstream-params';
+import { encodePathSegments, isDns1123Label, isLowercaseUuid } from '@/server/upstream-params';
 import { env } from '@/utils/env/env.server';
 import { Hono } from 'hono';
 
@@ -47,9 +47,9 @@ export const assistantChatRoutes = new Hono<{ Variables: Variables }>();
  * `projectId` query param, same bearer token. Streams the response back
  * unmodified.
  *
- * `contextId` names a conversation object, so it must be a Kubernetes object
- * name; `projectId` must be a project name. Anything else is refused before
- * the upstream URL is built, and only `projectId` is forwarded as a query.
+ * `contextId` must be a lowercase UUID and `projectId` a project name (an
+ * RFC 1123 label). Anything else is refused before the upstream URL is built,
+ * and only `projectId` is forwarded as a query.
  */
 assistantChatRoutes.post('/conversations/:contextId/sendmessage', async (c) => {
   const session = c.get('session');
@@ -61,7 +61,8 @@ assistantChatRoutes.post('/conversations/:contextId/sendmessage', async (c) => {
   }
 
   const contextId = c.req.param('contextId');
-  if (!isDns1123Subdomain(contextId)) {
+  // The assistant issues UUID context ids (assistant repo, internal/patchcli/chat_tui.go).
+  if (!isLowercaseUuid(contextId)) {
     return c.json({ error: 'Invalid conversation id' }, 400);
   }
   const projectId = c.req.query('projectId');
