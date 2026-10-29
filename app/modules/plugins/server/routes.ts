@@ -1,9 +1,11 @@
 /**
  * Plugin HTTP routes (same-origin mediation).
  *
- * Mounted at `/api/plugins`. These sit outside the blanket API auth guard so
- * the asset proxy can serve plugin bundles without a session (the browser only
- * ever talks to the portal origin). Trust-sensitive routes gate themselves.
+ * Mounted at `/api/plugins`, outside the `/api` sub-app, so this router applies
+ * the same session guard and per-user rate limiter that sub-app does. Every
+ * route needs a session: the browser loads plugin bundles with same-origin
+ * `import()`, which carries the session cookie, and plugins only render inside
+ * the authenticated project shell.
  *
  * - `GET /api/plugins`         → sanitized plugin list
  * - `ALL /api/plugins/:slug/*` → asset proxy
@@ -17,8 +19,11 @@ import { toPublicPlugin } from '../sanitize';
 import type { PublicPlugin } from '../types';
 import { getPlugin, getPlugins } from './index';
 import { withCaBundle } from './plugin-fetch';
+import { logger } from '@/modules/logger';
+import { authGuardMiddleware } from '@/server/middleware/auth';
+import { trafficClassLimiter } from '@/server/middleware/rate-limit';
 import type { Variables } from '@/server/types';
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 
 /** Strips a known prefix from a pathname; returns the remaining sub-path. */
 function subPathAfter(pathname: string, prefix: string): string {
@@ -63,19 +68,30 @@ function resolveAssetUrl(baseURL: string, assetPath: string, search: string): st
   return `${target.origin}${target.pathname}${search}`;
 }
 
-export function createPluginRoutes() {
+/** Answers every upstream failure; upstream text never reaches the browser. */
+const ASSET_UNAVAILABLE = { error: 'Plugin asset unavailable' } as const;
+
+export interface PluginRoutesOptions {
+  /** Defaults to the traffic-class limiter the `/api` sub-app uses; tests pass tiny budgets. */
+  rateLimiter?: MiddlewareHandler<{ Variables: Variables }>;
+}
+
+export function createPluginRoutes(options: PluginRoutesOptions = {}) {
   const routes = new Hono<{ Variables: Variables }>();
+
+  // Same order as createApiApp: auth first, so anonymous traffic never spends
+  // a budget, then the per-user limiter.
+  routes.use('*', authGuardMiddleware(), options.rateLimiter ?? trafficClassLimiter());
 
   // ── Sanitized list ───────────────────────────────────────────────────────
   routes.get('/', (c) => {
-    if (!c.get('session')) return c.json({ error: 'Unauthorized' }, 401);
     const plugins = getPlugins()
       .map(toPublicPlugin)
       .filter((p): p is PublicPlugin => p !== null);
     return c.json(plugins);
   });
 
-  // ── Asset proxy (no auth; only known slugs) ────────────────────────────────
+  // ── Asset proxy (session required; only known slugs) ─────────────────────
   routes.all('/:slug/*', async (c) => {
     if (c.req.method !== 'GET' && c.req.method !== 'HEAD') {
       return c.json({ error: 'Method not allowed' }, 405);
@@ -115,6 +131,19 @@ export function createPluginRoutes() {
         )
       );
 
+      if (upstream.status >= 400) {
+        logger.warn('[plugins] asset upstream returned an error', {
+          requestId: c.get('requestId'),
+          slug,
+          assetPath,
+          status: upstream.status,
+        });
+        await upstream.body?.cancel();
+        return upstream.status === 404
+          ? c.json({ error: 'Plugin asset not found' }, 404)
+          : c.json(ASSET_UNAVAILABLE, 502);
+      }
+
       const headers = new Headers();
       // Preserve content type + conditional-request validators from upstream.
       for (const name of [
@@ -148,7 +177,12 @@ export function createPluginRoutes() {
       if (error instanceof Error && error.name === 'AbortError') {
         return new Response(null, { status: 499 });
       }
-      return c.json({ error: error instanceof Error ? error.message : 'Asset proxy error' }, 502);
+      logger.error('[plugins] asset proxy fetch failed', error as Error, {
+        requestId: c.get('requestId'),
+        slug,
+        assetPath,
+      });
+      return c.json(ASSET_UNAVAILABLE, 502);
     }
   });
 

@@ -1,5 +1,16 @@
 import { type RouteConfig, index, layout, prefix, route } from '@react-router/dev/routes';
 
+/**
+ * Whether the /test/* playground pages are registered. They are development
+ * aids, so a production build leaves them out of the route tree entirely. The
+ * route table is compiled at build time, so this reads NODE_ENV during
+ * `react-router build` (production) or `react-router dev` (development); the
+ * route modules stay in place for development.
+ */
+export function isPlaygroundEnabled(nodeEnv: string | undefined = process.env.NODE_ENV): boolean {
+  return nodeEnv !== 'production';
+}
+
 export default [
   // Public Routes
   layout('layouts/public.layout.tsx', [
@@ -12,10 +23,14 @@ export default [
   layout('layouts/private.layout.tsx', [
     index('routes/index.tsx'),
 
-    // Test Playground
-    route('test/sentry', 'routes/test/sentry.tsx'),
-    route('test/demo', 'routes/test/demo.tsx'),
-    route('test/dns-record', 'routes/test/dns-record/dns-record.tsx'),
+    // Test Playground (never in production builds)
+    ...(isPlaygroundEnabled()
+      ? [
+          route('test/sentry', 'routes/test/sentry.tsx'),
+          route('test/demo', 'routes/test/demo.tsx'),
+          route('test/dns-record', 'routes/test/dns-record/dns-record.tsx'),
+        ]
+      : []),
 
     // Invitation
     route('invitation/:invitationId/accept', 'routes/invitation/index.tsx'),
