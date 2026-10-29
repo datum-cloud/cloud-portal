@@ -33,9 +33,9 @@ A comprehensive TypeScript-first module for Prometheus metrics visualization wit
 ```tsx
 import { MetricsProvider, MetricCard, MetricChart, MetricsToolbar } from '@/modules/metrics';
 
-function Dashboard() {
+function Dashboard({ projectId }: { projectId: string }) {
   return (
-    <MetricsProvider>
+    <MetricsProvider projectId={projectId}>
       <MetricsToolbar>
         <MetricsToolbar.CoreControls />
       </MetricsToolbar>
@@ -112,7 +112,7 @@ function AdvancedDashboard() {
   };
 
   return (
-    <MetricsProvider>
+    <MetricsProvider projectId={projectId}>
       <MetricsToolbar variant="card">
         <MetricsToolbar.Filters>
           <MetricsFilterSelect
@@ -165,12 +165,12 @@ function AdvancedDashboard() {
 
 ## Architecture Overview
 
-This module provides application-specific integration logic built on top of the core Prometheus library (`/app/modules/prometheus`). All data fetching is handled through hooks that query our internal `/api/prometheus` endpoint, never directly accessing Prometheus servers.
+This module provides application-specific integration logic built on top of the core Prometheus library (`/app/modules/prometheus`). All data fetching goes through telemetry queryapi's Prometheus-shaped routes (`/apis/o11y.miloapis.com/v1alpha1/metrics/api/v1/...`) on the project's control plane, using the o11y-metrics service (`app/resources/o11y-metrics`). In the browser those requests go through `/api/proxy`, which adds the session token and refreshes it when it expires.
 
 **Key Design Principles:**
 
-- **Security**: Prometheus endpoints are not exposed to the client
-- **Centralization**: Query logic and authentication are managed in the API route
+- **Project isolation**: queryapi scopes every query to the project from the caller's identity, so a query can't read another project's metrics
+- **One request path**: `executePrometheusRequest` (`utils/prometheus-request.ts`) validates each request, calls queryapi and formats the result for charts and cards
 - **Reusability**: The core `prometheus` library remains generic and reusable
 - **URL State Management**: All filter and control state is synchronized with URL parameters
 - **Component Self-Registration**: Filters automatically register themselves with the URL state registry
@@ -182,10 +182,10 @@ This module provides application-specific integration logic built on top of the 
 
 #### `MetricsProvider`
 
-Root provider that manages URL state and provides context to all child components.
+Root provider that manages URL state and provides context to all child components. `projectId` is required: `usePrometheusChart`, `usePrometheusCard` and `usePrometheusLabels` read it from the provider and send every query to that project's metrics. Components that call `usePrometheusAPIQuery` directly pass `projectId` in the request instead.
 
 ```tsx
-<MetricsProvider>{/* All metrics components go here */}</MetricsProvider>
+<MetricsProvider projectId={projectId}>{/* All metrics components go here */}</MetricsProvider>
 ```
 
 #### `MetricsToolbar`
@@ -576,7 +576,7 @@ The time range control automatically handles timezone conversion:
 
 1. **User Selection**: Dates are interpreted in the user's timezone preference (`userPreferences.timezone`)
 2. **UTC Conversion**: Start/end of day applied in user's timezone, then converted to UTC
-3. **API Format**: Sent as Unix timestamps (seconds) to the Prometheus API
+3. **API Format**: Sent as Unix timestamps (seconds) to queryapi
 4. **Display**: Results displayed back in user's timezone
 
 Example for a user in PST (UTC-7) selecting "Oct 9, 2025":
@@ -625,7 +625,7 @@ app/modules/metrics/
 │  └─ metrics.context.tsx       # Unified context provider
 ├─ hooks/
 │  ├─ index.ts
-│  ├─ usePrometheusApi.ts        # Core API integration hooks
+│  ├─ usePrometheusApi.ts        # Core query hooks (chart, card, generic)
 │  └─ usePrometheusLabels.ts     # Label fetching with transforms/filters
 ├─ types/
 │  ├─ metrics.type.ts          # Core type definitions
@@ -634,6 +634,8 @@ app/modules/metrics/
    ├─ index.ts
    ├─ date-parsers.ts           # Date/time parsing utilities
    ├─ url-parsers.ts            # URL parameter parsing
+   ├─ prometheus-request.ts     # Runs a request against queryapi and formats the result
+   ├─ format-metric-error.ts    # User-facing messages for metric errors
    └─ query-builders.ts         # Prometheus query building utilities
 ```
 
@@ -647,7 +649,7 @@ app/modules/metrics/
 - `recharts` - Chart rendering (via Shadcn UI)
 
 **API Integration:**
-All data fetching goes through `/api/prometheus` endpoint, never directly to Prometheus servers. This provides security, centralized authentication, and consistent error handling.
+All data fetching goes through queryapi via the shared control-plane client and `/api/proxy`. Failures become a `PrometheusError` that keeps the HTTP status, and `formatMetricError` turns it into a message: 401/403 show the "no permission" state, 422 means the response was too large, and 503/504 mean the query timed out.
 
 **Type Safety:**
 Complete TypeScript coverage with interfaces for:
