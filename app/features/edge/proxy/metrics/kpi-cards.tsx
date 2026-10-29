@@ -70,6 +70,7 @@ export function HttpProxyMetricsKpis({
   return (
     <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
       <SparklineStatCard
+        projectId={projectId}
         title="Requests"
         href={`${metricsBase}#traffic`}
         query={queries.rps}
@@ -81,6 +82,7 @@ export function HttpProxyMetricsKpis({
         refetchInterval={refetchInterval}
       />
       <SparklineStatCard
+        projectId={projectId}
         title="Error rate"
         href={`${metricsBase}#traffic`}
         query={queries.error}
@@ -92,6 +94,7 @@ export function HttpProxyMetricsKpis({
         refetchInterval={refetchInterval}
       />
       <SparklineStatCard
+        projectId={projectId}
         title="p95 latency"
         href={`${metricsBase}#latency`}
         query={queries.latency}
@@ -104,6 +107,7 @@ export function HttpProxyMetricsKpis({
         refetchInterval={refetchInterval}
       />
       <SparklineStatCard
+        projectId={projectId}
         title="WAF blocked"
         href={`${metricsBase}#protection`}
         query={queries.wafSpark}

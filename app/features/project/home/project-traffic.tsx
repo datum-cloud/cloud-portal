@@ -73,6 +73,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
       {!idle && (
         <div className="grid grid-cols-1 gap-4 @xl/main:grid-cols-3">
           <SparklineStatCard
+            projectId={projectId}
             title="Requests served"
             query={projectRpsQuery(projectId, STEP)}
             valueQuery={projectRequestCountQuery(projectId, '24h')}
@@ -81,6 +82,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             {...shared}
           />
           <SparklineStatCard
+            projectId={projectId}
             title="Error rate (4xx + 5xx)"
             query={projectErrorRateQuery(projectId, ERROR_RATE_WINDOW)}
             valueQuery={projectErrorRateQuery(projectId, '24h')}
@@ -89,6 +91,7 @@ export function ProjectTraffic({ projectId }: { projectId: string }) {
             {...shared}
           />
           <SparklineStatCard
+            projectId={projectId}
             title="Blocked by WAF"
             query={projectWafBlockedQuery(projectId, STEP)}
             valueQuery={projectWafBlockedQuery(projectId, '24h')}

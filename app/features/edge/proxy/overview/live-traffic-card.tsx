@@ -77,7 +77,7 @@ export function HttpProxyLiveTrafficCard({
 
   const { data, isLoading, error } = usePrometheusAPIQuery<FormattedMetricData>(
     ['alb-live-traffic', proxyId, query, start.getTime(), end.getTime(), range.step],
-    { type: 'chart', query, timeRange: range.timeRange, step: range.step },
+    { type: 'chart', projectId, query, timeRange: range.timeRange, step: range.step },
     { enabled: !!projectId && !!proxyId, refetchInterval: 30_000 }
   );
 

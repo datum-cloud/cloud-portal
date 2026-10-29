@@ -35,7 +35,7 @@ export function useAlbTrafficPresence(projectId: string, proxyId: string): AlbTr
   // No timeRange: the instant query evaluates at "now" on every refetch.
   const metrics = usePrometheusAPIQuery<MetricCardData>(
     ['alb-traffic-presence', projectId, proxyId, TRAFFIC_PRESENCE_WINDOW],
-    { type: 'card', query, metricFormat: 'number' },
+    { type: 'card', projectId, query, metricFormat: 'number' },
     { enabled: !!projectId && !!proxyId, refetchInterval: 30_000 }
   );
 

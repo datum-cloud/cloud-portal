@@ -14,13 +14,13 @@
 - [x] Add `o11y-metrics.service.test.ts` in the logs test style (injected client, no shared-client mock). Cover the project-scoped paths, the form-encoded body, `match[]`, the error envelope and status passthrough.
 
 ## Phase 2: Hooks and callers
-- [ ] In `app/modules/metrics/hooks/usePrometheusApi.ts`, make `projectId` required on `PrometheusAPIRequest`. Replace the `gatedFetch('/api/prometheus')` call with a pure request function that validates, calls the o11y-metrics service, and runs `formatForChart` / `formatForCard` for `chart`, `card` and `labels`.
-- [ ] Map service errors to `PrometheusError` with `statusCode`, so the existing no-retry rule for 401/403 and `format-metric-error.ts` keep working.
-- [ ] Add 422 (response too large) and 503 (timeout) messages to `app/modules/metrics/utils/format-metric-error.ts`, with a test.
-- [ ] Add a required `projectId` prop to `MetricsProvider`. `usePrometheusChart`, `usePrometheusCard` and `usePrometheusLabels` read it from context.
-- [ ] Pass `projectId` at every `MetricsProvider`: `app/routes/project/detail/edge/detail/metrics.tsx`, `.../overview.tsx`, `app/features/metric/export-policies/card/activity-card.tsx`, and `app/routes/test/metrics.tsx` (kept compiling until #1730 deletes it).
-- [ ] Pass `projectId` in callers that use `usePrometheusAPIQuery` directly: `sparkline-stat-card`, `proxy-sparkline`, `connector-sparkline`, `pool-stats`, `use-alb-traffic-presence`, `active-pops-card`, `live-traffic-card`, `waf-events`, `waf-top-rules`.
-- [ ] Add tests for the request function: each request type hits the right service method with `projectId`, results are formatted, and errors map to `PrometheusError` with status.
+- [x] In `app/modules/metrics/hooks/usePrometheusApi.ts`, make `projectId` required on `PrometheusAPIRequest`. Replace the `gatedFetch('/api/prometheus')` call with a pure request function that validates, calls the o11y-metrics service, and runs `formatForChart` / `formatForCard` for `chart`, `card` and `labels`.
+- [x] Map service errors to `PrometheusError` with `statusCode`, so the existing no-retry rule for 401/403 and `format-metric-error.ts` keep working.
+- [x] Add 422 (response too large) and 503 (timeout) messages to `app/modules/metrics/utils/format-metric-error.ts`, with a test.
+- [x] Add a required `projectId` prop to `MetricsProvider`. `usePrometheusChart`, `usePrometheusCard` and `usePrometheusLabels` read it from context.
+- [x] Pass `projectId` at every `MetricsProvider`: `app/routes/project/detail/edge/detail/metrics.tsx`, `.../overview.tsx`, `app/features/metric/export-policies/card/activity-card.tsx`, and `app/routes/test/metrics.tsx` (kept compiling until #1730 deletes it).
+- [x] Pass `projectId` in callers that use `usePrometheusAPIQuery` directly: `sparkline-stat-card`, `proxy-sparkline`, `connector-sparkline`, `pool-stats`, `use-alb-traffic-presence`, `active-pops-card`, `live-traffic-card`, `waf-events`, `waf-top-rules`.
+- [x] Add tests for the request function: each request type hits the right service method with `projectId`, results are formatted, and errors map to `PrometheusError` with status.
 
 ## Phase 3: Remove the direct path
 - [ ] Delete `app/server/routes/prometheus.ts` and its registration in `app/server/routes/api.ts`.
