@@ -40,7 +40,7 @@ Metric requests go from the browser to `/api/prometheus`, and the server forward
 - Local development against stock Prometheus: [#1729](https://github.com/datum-cloud/cloud-portal/issues/1729).
 - Removing the `buildinfo`/`connection` request types, `axios-curl.ts`, the unused query-builder exports, `getPrometheusService()` and `/test/metrics`: [#1730](https://github.com/datum-cloud/cloud-portal/issues/1730).
 - Closing the network path to VictoriaMetrics: infra#7922.
-- Changes to the compute plugin repo. Its `/api/prometheus` calls stop working when the route is deleted, so the plugin has to move to queryapi first or in step with this ticket.
+- Changes to the compute plugin repo. Its `/api/prometheus` calls stop working when the route is deleted. The plugin's move to queryapi is merged in datum-cloud/compute#568; compute must be released to production before or with the cloud-portal release that includes this ticket.
 
 ## Technical Approach
 

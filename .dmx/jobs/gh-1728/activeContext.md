@@ -19,3 +19,4 @@
 - Deleted `/api/prometheus`, removed `PROMETHEUS_URL`, updated the metrics README and confirmed the role permissions. Phase 3 complete: after the restart the proxy metrics charts load through queryapi (200s) and the server log shows no `/api/prometheus` calls.
 - Validation: READY FOR PR. Fixed its suggestions: queryapi 400s are query errors, and query errors, timeouts, 401 and 403 aren't retried (`shouldRetryMetricsQuery`).
 - PR opened for: Send portal metric queries to queryapi.
+- 2026-10-30: compute plugin moved to queryapi in datum-cloud/compute#568 (merged). Production only changes on a manual release, so this PR can merge; release compute first or together with it.
