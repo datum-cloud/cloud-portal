@@ -8,7 +8,9 @@ import { usageRoutes } from './usage';
 import { userRoutes } from './user';
 import { watchRoutes } from './watch';
 import { authGuardMiddleware } from '@/server/middleware/auth';
+import { apiBodyLimit } from '@/server/middleware/body-limit';
 import { emailVerifiedGuardMiddleware } from '@/server/middleware/email-verification';
+import { fetchMetadataGuard } from '@/server/middleware/fetch-metadata';
 import { trafficClassLimiter } from '@/server/middleware/rate-limit';
 import type { Variables } from '@/server/types';
 import { Hono } from 'hono';
@@ -16,7 +18,7 @@ import { Hono } from 'hono';
 /**
  * API sub-application with security middleware and explicit route registration.
  *
- * Middleware order: Auth → Traffic class rate limit → Route Handler
+ * Middleware order: Auth → Fetch metadata → Traffic class rate limit → Body limit → Route Handler
  * Unknown routes return 404 (prevents endpoint discovery attacks)
  */
 export function createApiApp() {
@@ -25,6 +27,11 @@ export function createApiApp() {
   // Auth required for all API routes
   api.use('*', authGuardMiddleware());
 
+  // Cross-site POST/PUT/PATCH/DELETE are refused on the browser's own fetch
+  // metadata, a second line behind SameSite=Lax cookies. Covers every route
+  // below; /api/plugins is mounted outside this sub-app and is GET-only.
+  api.use('*', fetchMetadataGuard());
+
   // Per-user budgets by traffic class, with a ceiling and a penalty box. The
   // profile comes from RATE_LIMIT_PROFILE, else production is `standard` and
   // everything else `development`, whose budgets are effectively unlimited:
@@ -32,6 +39,10 @@ export function createApiApp() {
   // navigation would trip real limits and fail on timeouts.
   // See datum-cloud/cloud-portal#1543.
   api.use('*', trafficClassLimiter());
+
+  // 413 above 1 MiB, or 3 MiB on the K8s passthrough (kube-apiserver's own
+  // cap). Bodies are buffered before forwarding, so this bounds memory too.
+  api.use('*', apiBodyLimit());
 
   // Endpoints that authenticate with a key the PORTAL holds rather than the
   // caller's token — nothing downstream can tell an unverified signup apart, so

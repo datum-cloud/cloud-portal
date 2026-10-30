@@ -4,8 +4,25 @@ import { createUserService, userSchema, userPreferencesSchema } from '@/resource
 import { paths } from '@/utils/config/paths.config';
 import { validateCSRF } from '@/utils/cookies';
 import { Hono } from 'hono';
+import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 const user = new Hono<{ Variables: Variables }>();
+
+/**
+ * Service errors carry `status`; `HttpError`, which a failed CSRF check
+ * throws, carries `statusCode`. Reading only the first turned every CSRF
+ * rejection into a 500.
+ */
+function errorStatus(error: any): ContentfulStatusCode {
+  return error?.status || error?.statusCode || 500;
+}
+
+/** Checks the `csrf` field of a JSON body against the CSRF cookie; 403 when it does not match. */
+async function validatePayloadCSRF(payload: { csrf?: unknown }, headers: Headers) {
+  const formData = new FormData();
+  formData.append('csrf', typeof payload?.csrf === 'string' ? payload.csrf : '');
+  await validateCSRF(formData, headers);
+}
 
 // GET /api/user - Get current user
 user.get('/', async (c) => {
@@ -22,7 +39,7 @@ user.get('/', async (c) => {
 
     return c.json({ success: true, data: userData });
   } catch (error: any) {
-    return c.json({ success: false, error: error.message }, error.status || 500);
+    return c.json({ success: false, error: error.message }, errorStatus(error));
   }
 });
 
@@ -35,14 +52,7 @@ user.patch('/', async (c) => {
     }
 
     const payload = await c.req.json();
-    const { csrf } = payload;
-
-    // Create FormData to validate CSRF token
-    const formData = new FormData();
-    formData.append('csrf', csrf);
-
-    // Validate the CSRF token against the request headers
-    await validateCSRF(formData, c.req.raw.headers);
+    await validatePayloadCSRF(payload, c.req.raw.headers);
 
     // Validate form data with Zod
     const parsed = userSchema.safeParse(payload);
@@ -56,7 +66,7 @@ user.patch('/', async (c) => {
 
     return c.json({ success: true, data: res });
   } catch (error: any) {
-    return c.json({ success: false, error: error.message }, error.status || 500);
+    return c.json({ success: false, error: error.message }, errorStatus(error));
   }
 });
 
@@ -68,12 +78,18 @@ user.delete('/', async (c) => {
       return c.redirect(paths.auth.logOut);
     }
 
+    // Irreversible, so a cookie alone is not enough: the caller must also echo
+    // the CSRF token from the root loader, as the PATCH routes do. The UI
+    // deletes accounts through the K8s proxy, so nothing calls this today.
+    const payload = await c.req.json().catch(() => ({}));
+    await validatePayloadCSRF(payload, c.req.raw.headers);
+
     const userService = createUserService();
     await userService.delete(session.sub);
 
     return c.redirect(paths.auth.logOut);
   } catch (error: any) {
-    return c.json({ success: false, error: error.message }, error.status || 500);
+    return c.json({ success: false, error: error.message }, errorStatus(error));
   }
 });
 
@@ -86,14 +102,7 @@ user.patch('/preferences', async (c) => {
     }
 
     const payload = await c.req.json();
-    const { csrf } = payload;
-
-    // Create FormData to validate CSRF token
-    const formData = new FormData();
-    formData.append('csrf', csrf);
-
-    // Validate the CSRF token against the request headers
-    await validateCSRF(formData, c.req.raw.headers);
+    await validatePayloadCSRF(payload, c.req.raw.headers);
 
     // Validate form data with Zod
     const parsed = userPreferencesSchema.safeParse(payload);
@@ -107,7 +116,7 @@ user.patch('/preferences', async (c) => {
 
     return c.json({ success: true, data: res });
   } catch (error: any) {
-    return c.json({ success: false, error: error.message }, error.status || 500);
+    return c.json({ success: false, error: error.message }, errorStatus(error));
   }
 });
 

@@ -181,9 +181,12 @@ const serverSchema = z.object({
   //     deriving them from NODE_ENV (useful for exercising real budgets locally).
   //   RATE_LIMIT_ENFORCE_BROWSER_ORIGIN: "true" rejects /api requests without
   //     browser fetch metadata with 403; off by default (log-only).
+  //   TRUSTED_PROXY_HOPS: proxies appending to X-Forwarded-For (default 1, the
+  //     Envoy Gateway). See server/middleware/client-ip.ts.
   // ─────────────────────────────────────────────────────────
   RATE_LIMIT_PROFILE: z.enum(['standard', 'development']).optional(),
   RATE_LIMIT_ENFORCE_BROWSER_ORIGIN: z.string().optional(),
+  TRUSTED_PROXY_HOPS: z.coerce.number().int().nonnegative().optional(),
 
   // ─────────────────────────────────────────────────────────
   // Optional: Portal Plugin System (dev-only)

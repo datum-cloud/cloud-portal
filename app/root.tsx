@@ -12,6 +12,7 @@ import RootCSS from '@/styles/root.css?url';
 import { csrf, getSidebarState, getToastSession } from '@/utils/cookies';
 import { env } from '@/utils/env/env.server';
 import { isUserFacingErrorStatus } from '@/utils/errors/app-error';
+import { serializeForInlineScript } from '@/utils/helpers/inline-script.helper';
 import { metaObject } from '@/utils/helpers/meta.helper';
 import { combineHeaders } from '@/utils/helpers/path.helper';
 import CanelaFont from '@datum-cloud/datum-ui/fonts/CanelaText-Regular.ttf?url';
@@ -162,7 +163,7 @@ function Document({ children, nonce }: { children: React.ReactNode; nonce: strin
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `window.ENV = ${JSON.stringify(data?.ENV)}`,
+            __html: `window.ENV = ${serializeForInlineScript(data?.ENV)}`,
           }}
         />
         <Scripts nonce={nonce} />
