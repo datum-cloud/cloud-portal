@@ -11,3 +11,9 @@
 - [x] Add the `loadAccountDiscounts` stub (returns `[]`, TODO naming the milo-os/billing API) to the detail loader
 - [x] Render a "Discounts" section next to Invoices only when a discount is above 0%
 - [x] Run typecheck, lint and tests
+
+## Phase 3 — Real data
+
+- [x] Regenerate the billing client from staging (developer ran `bun run openapi`)
+- [x] Replace the `loadAccountDiscounts` stub with `accountDiscounts(account)` reading `status.discounts`, with Bun tests
+- [x] Run typecheck, lint and tests

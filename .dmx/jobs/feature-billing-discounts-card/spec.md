@@ -22,7 +22,7 @@ Staff can set discounts on billing Offers (`billing.miloapis.com/v1alpha1`) in t
 - A read-only `DiscountsCard` in `app/features/billing/cards/`, taking a list of resolved discounts (service display name + percentage) as props.
 - It shows one line ("20% discount on all usage") when every service has the same percentage, otherwise a Service → % list without the services at 0%. A note says discounts are applied to invoices automatically.
 - A "Discounts" section on the billing account detail page (`app/routes/account/billing/detail.tsx`), next to Invoices, rendered only when at least one discount is above 0%.
-- A placeholder loader stub that returns an empty list, so nothing shows until the data exists.
+- Read the discounts from `BillingAccount.status.discounts` (milo-os/billing#185) through the regenerated billing client.
 - Unit tests for the summary logic and Cypress component tests for the card.
 
 ## Out of Scope
@@ -35,18 +35,13 @@ Staff can set discounts on billing Offers (`billing.miloapis.com/v1alpha1`) in t
 
 - `app/features/billing/discounts.ts` holds the pure logic: drop discounts at or below 0%, then return either `{ kind: 'uniform', percentage }` or `{ kind: 'perService', items }`, or `undefined` when nothing applies.
 - `DiscountsCard` renders that summary and returns `null` when it is `undefined`. The page also hides the section, so an empty list adds nothing.
-- The detail loader calls `loadAccountDiscounts()`, a stub that returns `[]`.
+- `accountDiscounts(account)` maps `status.discounts` to the card's props (`displayName`, falling back to `name`, plus `percentage`). The page computes it from the live account, so discounts follow the account watch.
 
 ### Data dependency
 
-There is no customer-readable API for resolved discounts yet. The stub in `detail.tsx` (`loadAccountDiscounts`) is marked with a TODO. It waits on milo-os/billing to publish `BillingAccount.status.discounts` (milo-os/billing#185, merged 2026-10-29, not yet released or deployed): one entry per service pricing in the account's Offer, with `name`, `serviceRef`, `displayName` and `percentage`, set only while at least one is above 0%. Customers' Billing Viewer role already reads `BillingAccount` status; `BillingEntitlement` was ruled out because customers can't read it and its spec names the Offer. The portal's billing client needs regenerating once that lands. Discounts are only charged once milo-os/openmeter-provider#61 reaches production, so the card should not be wired to real data before then.
+Billing publishes the discounts on `BillingAccount.status.discounts` (milo-os/billing#185): one entry per service pricing in the account's Offer, with `name`, `serviceRef`, `displayName` and `percentage`, set only while at least one is above 0%. Customers' Billing Viewer role already reads `BillingAccount` status; `BillingEntitlement` was ruled out because customers can't read it and its spec names the Offer. The billing client was regenerated from staging on 2026-10-30.
 
-Remaining steps, in order:
-
-1. Billing with #185 is released and deployed to staging.
-2. The developer runs `bun run openapi` against staging to regenerate the billing client (it needs their token).
-3. Replace `loadAccountDiscounts` with a typed read of `account.status.discounts` (`displayName`, falling back to `name`, plus `percentage`).
-4. Confirm milo-os/openmeter-provider#61 (merged 2026-10-27) is in production before this ships.
+Before this merges, confirm milo-os/openmeter-provider#61 (merged 2026-10-27) is in production. Discounts aren't charged until then, and once this ships the card shows any discount billing publishes.
 
 "All usage" is decided from the services listed: when every listed service has the same percentage, the card shows one line. Billing lists every pricing in the Offer, including those at 0%, so the list is complete.
 
@@ -55,7 +50,7 @@ Remaining steps, in order:
 ## Questions
 
 1. Which resource will carry the resolved discounts for customers?
-   Answer: `BillingAccount.status.discounts`, written by milo-os/billing. Built against props until it ships.
+   Answer: `BillingAccount.status.discounts`, written by milo-os/billing (milo-os/billing#185).
 
 2. Should services at 0% be listed when others are discounted?
    Answer: No. They are left out.

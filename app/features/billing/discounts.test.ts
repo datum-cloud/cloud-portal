@@ -1,4 +1,10 @@
-import { formatDiscountPercentage, summarizeDiscounts, type AccountDiscount } from './discounts';
+import {
+  accountDiscounts,
+  formatDiscountPercentage,
+  summarizeDiscounts,
+  type AccountDiscount,
+} from './discounts';
+import type { BillingAccount } from './types';
 import { describe, expect, it } from 'bun:test';
 
 const discount = (serviceDisplayName: string, percentage: number): AccountDiscount => ({
@@ -45,5 +51,35 @@ describe('formatDiscountPercentage', () => {
     expect(formatDiscountPercentage(20)).toBe('20%');
     expect(formatDiscountPercentage(12.5)).toBe('12.5%');
     expect(formatDiscountPercentage(33.333)).toBe('33.33%');
+  });
+});
+
+describe('accountDiscounts', () => {
+  const account = (
+    discounts?: NonNullable<BillingAccount['status']>['discounts']
+  ): BillingAccount => ({
+    metadata: { name: 'acme' },
+    spec: {
+      currencyCode: 'USD',
+      contactInfo: { email: 'jane@acme.com' },
+      paymentTerms: { invoiceFrequency: 'Monthly', invoiceDayOfMonth: 1 },
+    },
+    status: { discounts },
+  });
+
+  it('has nothing without published discounts', () => {
+    expect(accountDiscounts(undefined)).toEqual([]);
+    expect(accountDiscounts(account())).toEqual([]);
+  });
+
+  it('labels each pricing by its display name, falling back to its name', () => {
+    expect(
+      accountDiscounts(
+        account([
+          { name: 'networking-alb-requests-v1', displayName: 'ALB Requests', percentage: 20 },
+          { name: 'networking-alb-egress-v1', percentage: 0 },
+        ])
+      )
+    ).toEqual([discount('ALB Requests', 20), discount('networking-alb-egress-v1', 0)]);
   });
 });
