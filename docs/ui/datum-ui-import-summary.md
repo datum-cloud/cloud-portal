@@ -380,7 +380,6 @@
 | File                                                  | Imports                                                           |
 | ----------------------------------------------------- | ----------------------------------------------------------------- |
 | `test/demo.tsx`                                       | Button, Tooltip                                                   |
-| `test/metrics.tsx`                                    | Badge, Card, CardContent, CardHeader, CardTitle                   |
 | `test/dns-record/dns-record.tsx`                      | Button, toast                                                     |
 | `test/dns-record/components/dns-record-test-card.tsx` | Button, Card, CardContent, CardDescription, CardHeader, CardTitle |
 

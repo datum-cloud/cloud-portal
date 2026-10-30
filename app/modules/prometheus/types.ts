@@ -2,13 +2,6 @@
  * Type definitions for Prometheus integration
  */
 
-export interface PrometheusConfig {
-  readonly baseURL: string;
-  readonly timeout: number;
-  readonly retries: number;
-  readonly headers?: Record<string, string>;
-}
-
 export interface TimeRange {
   start: Date;
   end: Date;
@@ -20,25 +13,6 @@ export interface PrometheusQueryOptions {
   step?: string;
   enabled?: boolean;
   refetchInterval?: number;
-}
-
-export interface PrometheusInstantQueryParams {
-  query: string;
-  time?: string; // RFC3339 or Unix timestamp
-}
-
-export interface PrometheusRangeQueryParams {
-  query: string;
-  start: Date; // Parsed from RFC3339 string or Unix timestamp
-  end: Date; // Parsed from RFC3339 string or Unix timestamp
-  step: string; // Duration string (e.g., '15s', '1m', '5m')
-}
-
-export interface PrometheusRangeQueryRawParams {
-  query: string;
-  start: string; // RFC3339 or Unix timestamp string
-  end: string; // RFC3339 or Unix timestamp string
-  step: string; // Duration string (e.g., '15s', '1m', '5m')
 }
 
 export type PrometheusMetricValue = [number, string]; // [timestamp, value] tuple
@@ -118,14 +92,6 @@ export type MetricFormat =
   | 'duration'
   | 'rate'
   | 'short-number';
-
-export interface QueryBuilderOptions {
-  metric: string;
-  filters?: Record<string, string>;
-  functions?: string[];
-  groupBy?: string[];
-  aggregation?: 'sum' | 'avg' | 'max' | 'min' | 'count';
-}
 
 export interface PrometheusError extends Error {
   type: 'network' | 'query' | 'timeout' | 'unknown';

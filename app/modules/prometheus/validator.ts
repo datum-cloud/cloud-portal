@@ -1,14 +1,8 @@
 /**
- * Zod schemas for Prometheus query validation and sanitization
+ * Zod schemas for Prometheus query validation
  */
 import { QueryValidationError } from './errors';
-import type {
-  PrometheusQueryOptions,
-  PrometheusInstantQueryParams,
-  PrometheusRangeQueryParams,
-  TimeRange,
-  QueryBuilderOptions,
-} from './types';
+import type { PrometheusQueryOptions, TimeRange } from './types';
 import { z } from 'zod';
 
 /**
@@ -68,69 +62,6 @@ export const prometheusQueryOptionsSchema = z.object({
 });
 
 /**
- * Instant query parameters validation schema
- */
-export const instantQueryParamsSchema = z.object({
-  query: z.string().min(1, 'Query cannot be empty'),
-  time: z.string().optional(),
-});
-
-/**
- * Range query parameters validation schema
- * Primarily accepts Unix timestamps (seconds), with backward compatibility
- */
-export const rangeQueryParamsSchema = z
-  .object({
-    query: z.string().min(1, 'Query cannot be empty'),
-    start: z
-      .union([
-        z.number().int().positive(), // Primary: Unix timestamp in seconds
-        z.string().min(1, 'Start time is required'), // Backward compatibility
-        z.date(), // Backward compatibility
-      ])
-      .transform((val) => {
-        if (typeof val === 'number') {
-          // Unix timestamp (seconds) - convert to Date
-          return new Date(val * 1000);
-        }
-        if (val instanceof Date) return val;
-        if (typeof val === 'string') return new Date(val);
-        return new Date(); // Fallback
-      }),
-    end: z
-      .union([
-        z.number().int().positive(), // Primary: Unix timestamp in seconds
-        z.string().min(1, 'End time is required'), // Backward compatibility
-        z.date(), // Backward compatibility
-      ])
-      .transform((val) => {
-        if (typeof val === 'number') {
-          // Unix timestamp (seconds) - convert to Date
-          return new Date(val * 1000);
-        }
-        if (val instanceof Date) return val;
-        if (typeof val === 'string') return new Date(val);
-        return new Date(); // Fallback
-      }),
-    step: z.string().regex(/^\d+[smhd]$/, "Invalid step format (e.g., '15s', '1m')"),
-  })
-  .refine((data) => data.start < data.end, {
-    message: 'Start time must be before end time',
-    path: ['start'],
-  });
-
-/**
- * Query builder options validation schema
- */
-export const queryBuilderOptionsSchema = z.object({
-  metric: z.string().min(1, 'Metric name is required'),
-  filters: z.record(z.string(), z.string()).optional(),
-  functions: z.array(z.string()).optional(),
-  groupBy: z.array(z.string()).optional(),
-  aggregation: z.enum(['sum', 'avg', 'max', 'min', 'count']).optional(),
-});
-
-/**
  * Validate Prometheus query options
  */
 export function validateQueryOptions(options: unknown): PrometheusQueryOptions {
@@ -150,109 +81,12 @@ export function validateQueryOptions(options: unknown): PrometheusQueryOptions {
 }
 
 /**
- * Validate instant query parameters
- */
-export function validateInstantQueryParams(params: unknown): PrometheusInstantQueryParams {
-  try {
-    return instantQueryParamsSchema.parse(params);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = (error as z.ZodError).issues[0];
-      throw new QueryValidationError(
-        firstError.message,
-        firstError.path.join('.'),
-        JSON.stringify(params)
-      );
-    }
-    throw error;
-  }
-}
-
-/**
- * Validate range query parameters
- */
-export function validateRangeQueryParams(params: unknown): PrometheusRangeQueryParams {
-  try {
-    return rangeQueryParamsSchema.parse(params);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = (error as z.ZodError).issues[0];
-      throw new QueryValidationError(
-        firstError.message,
-        firstError.path.join('.'),
-        JSON.stringify(params)
-      );
-    }
-    throw error;
-  }
-}
-
-/**
- * Validate query builder options
- */
-export function validateQueryBuilderOptions(options: unknown): QueryBuilderOptions {
-  try {
-    return queryBuilderOptionsSchema.parse(options);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = (error as z.ZodError).issues[0];
-      throw new QueryValidationError(
-        firstError.message,
-        firstError.path.join('.'),
-        JSON.stringify(options)
-      );
-    }
-    throw error;
-  }
-}
-
-/**
- * Sanitize PromQL query string
- */
-export function sanitizeQuery(query: string): string {
-  // Remove potentially dangerous characters and normalize whitespace
-  return query
-    .trim()
-    .replace(/[\r\n\t]+/g, ' ')
-    .replace(/\s+/g, ' ');
-}
-
-/**
- * Validate time range
- */
-export function validateTimeRange(timeRange: unknown): TimeRange {
-  try {
-    return timeRangeSchema.parse(timeRange);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      const firstError = (error as z.ZodError).issues[0];
-      throw new QueryValidationError(
-        firstError.message,
-        firstError.path.join('.'),
-        JSON.stringify(timeRange)
-      );
-    }
-    throw error;
-  }
-}
-
-/**
  * Convert time range to Unix timestamps
  */
 export function timeRangeToUnix(timeRange: TimeRange): { start: number; end: number } {
   return {
     start: Math.floor(timeRange.start.getTime() / 1000),
     end: Math.floor(timeRange.end.getTime() / 1000),
-  };
-}
-
-/**
- * Convert time range to RFC3339 strings
- */
-export function timeRangeToRFC3339(timeRange: TimeRange): { start: string; end: string } {
-  return {
-    start: timeRange.start.toISOString(),
-    end: timeRange.end.toISOString(),
   };
 }
 
