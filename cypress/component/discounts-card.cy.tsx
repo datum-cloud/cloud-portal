@@ -41,12 +41,12 @@ describe('DiscountsCard', () => {
         ]}
       />
     );
-    cy.get('[data-e2e="discounts-list"] li').should('have.length', 2);
-    cy.get('[data-e2e="discounts-list"] li')
+    cy.get('[data-e2e="discounts-list"] tbody tr').should('have.length', 2);
+    cy.get('[data-e2e="discounts-list"] tbody tr')
       .eq(0)
       .should('contain.text', 'DNS')
       .and('contain.text', '25%');
-    cy.get('[data-e2e="discounts-list"] li')
+    cy.get('[data-e2e="discounts-list"] tbody tr')
       .eq(1)
       .should('contain.text', 'Edge')
       .and('contain.text', '10%');

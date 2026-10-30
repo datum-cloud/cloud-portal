@@ -4,9 +4,23 @@ import {
   type AccountDiscount,
 } from '@/features/billing/discounts';
 import { Card, CardContent, CardFooter } from '@datum-cloud/datum-ui/card';
-import { Icon } from '@datum-cloud/datum-ui/icons';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@datum-cloud/datum-ui/table';
 import { Text } from '@datum-cloud/datum-ui/typography';
-import { BadgePercentIcon } from 'lucide-react';
+import { cn } from '@datum-cloud/datum-ui/utils';
+
+// Line the first/last cells up with the card padding, as the other billing
+// tables do.
+const ROW_INSET =
+  '[&_th:first-child]:pl-5 [&_th:last-child]:pr-5 [&_td:first-child]:pl-5 [&_td:last-child]:pr-5';
+
+const HEADER_DIVIDERS = '[&_th:not(:last-child)]:border-r [&_th]:border-border';
 
 interface DiscountsCardProps {
   /** Each service's resolved discount. Services at 0% are left out. */
@@ -24,38 +38,36 @@ export const DiscountsCard = ({ discounts }: DiscountsCardProps) => {
 
   return (
     <Card size="sm" sectioned className="overflow-hidden" data-e2e="discounts-card">
-      <CardContent className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-md">
-            <Icon icon={BadgePercentIcon} className="text-primary size-4" />
-          </div>
-          <Text as="p" weight="semibold">
-            {summary.kind === 'uniform'
-              ? `${formatDiscountPercentage(summary.percentage)} discount on all usage`
-              : 'Discounts on your usage'}
+      {summary.kind === 'uniform' ? (
+        <CardContent>
+          <Text as="p" size="sm" weight="medium" textColor="default">
+            {formatDiscountPercentage(summary.percentage)} discount on all usage
           </Text>
-        </div>
-        {summary.kind === 'perService' ? (
-          <ul className="divide-border flex flex-col divide-y" data-e2e="discounts-list">
-            {summary.items.map((item) => (
-              <li
-                key={item.serviceDisplayName}
-                className="flex items-center justify-between gap-4 py-2 first:pt-0 last:pb-0">
-                <Text as="span" size="sm" className="min-w-0 break-words">
-                  {item.serviceDisplayName}
-                </Text>
-                <Text as="span" size="sm" weight="medium" className="shrink-0">
-                  {formatDiscountPercentage(item.percentage)}
-                </Text>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </CardContent>
-      <CardFooter bordered className="py-3">
-        <Text as="p" size="xs" textColor="muted">
-          Discounts are applied to your invoices automatically.
-        </Text>
+        </CardContent>
+      ) : (
+        <CardContent padding="none">
+          <Table className={cn(ROW_INSET, HEADER_DIVIDERS)} data-e2e="discounts-list">
+            <TableHeader>
+              <TableRow className="bg-background hover:bg-background">
+                <TableHead className="text-foreground text-xs font-medium">Service</TableHead>
+                <TableHead className="text-foreground w-32 text-xs font-medium">Discount</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {summary.items.map((item) => (
+                <TableRow key={item.serviceDisplayName}>
+                  <TableCell className="h-11 text-sm">{item.serviceDisplayName}</TableCell>
+                  <TableCell className="h-11 text-sm">
+                    {formatDiscountPercentage(item.percentage)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      )}
+      <CardFooter bordered className="text-muted-foreground bg-background py-3 text-xs">
+        Discounts are applied to your invoices automatically.
       </CardFooter>
     </Card>
   );
