@@ -10,7 +10,7 @@ import { createMiddleware } from 'hono/factory';
  * The page-level gate lives in the React Router private layout, so it covers
  * navigation and route actions but not this Hono API surface. Most routes here
  * forward the caller's own access token (`/graphql`, `/proxy`, `/watch`,
- * `/permissions`, `/user`, `/grafana`, `/prometheus`), which makes the upstream
+ * `/permissions`, `/user`, `/grafana`), which makes the upstream
  * API the enforcement point — re-deriving the same answer here would cost a
  * round trip per request to duplicate a check that already happens.
  *

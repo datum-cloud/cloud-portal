@@ -116,7 +116,7 @@ export default function HttpProxyOverviewPage() {
           />
         </div>
         <div className={cn(PANEL_HEIGHT, 'lg:col-start-2')}>
-          <MetricsProvider>
+          <MetricsProvider projectId={projectId}>
             <ActivePopsCard projectId={projectId} proxyId={resourceName} />
           </MetricsProvider>
         </div>

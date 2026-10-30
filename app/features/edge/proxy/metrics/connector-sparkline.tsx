@@ -51,6 +51,7 @@ export function ConnectorSparkline({
     ['connector-sparkline', projectId, proxyNamesKey],
     {
       type: 'chart',
+      projectId,
       query,
       timeRange: { start: startTime, end: endTime },
       step: '1m',

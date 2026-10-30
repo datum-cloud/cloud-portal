@@ -11,7 +11,7 @@ Datum Cloud exposes its platform as Kubernetes-style resources on a multi-tenant
 - **Resource management.** Each resource type (DNS zones, domains, HTTP proxies, networks, connectors, secrets, service accounts, export policies, etc.) has list, detail and create/edit flows. Mutations go through the control-plane API; the watch stream updates the cache when the resource's status changes.
 - **Real-time status.** The Watch API (`app/modules/watch`, `app/server/watch`) streams ADDED/MODIFIED/DELETED events over SSE into the React Query cache.
 - **Gating.** Write actions are gated on RBAC (`app/modules/rbac`), quota headroom (`app/modules/quota`) and project suspension / read-only mode.
-- **Billing and usage.** Stripe-backed billing accounts, payment methods and invoices; usage and metrics views backed by Prometheus/usage queries.
+- **Billing and usage.** Stripe-backed billing accounts, payment methods and invoices; usage and metrics views backed by Prometheus/usage queries. Metric charts read through telemetry queryapi, which limits every query to the caller's project on the server.
 - **Activity and insights.** Activity timelines via `@datum-cloud/activity-ui`; notes, notifications and search across resources.
 - **Assistant.** An AI assistant built on the Vercel AI SDK with the Anthropic provider, registered as a platform service (`config/services/*assistant*`).
 - **Plugins.** Platform services can ship UI as `PortalPlugin` resources loaded at runtime through Module Federation and a same-origin proxy (`docs/enhancements/portal-plugin-system.md`).

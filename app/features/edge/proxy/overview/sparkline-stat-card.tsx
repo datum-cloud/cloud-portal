@@ -18,6 +18,8 @@ import { Link } from 'react-router';
 import { Area, AreaChart, YAxis } from 'recharts';
 
 interface SparklineStatCardProps {
+  /** Project whose metrics to read. */
+  projectId: string;
   title: string;
   href?: string;
   query: string;
@@ -107,6 +109,7 @@ function PercentileRangeBar({
 const OVERVIEW_WINDOW_MS = 60 * 60 * 1000;
 
 export function SparklineStatCard({
+  projectId,
   title,
   href,
   query,
@@ -154,7 +157,7 @@ export function SparklineStatCard({
       timeRange.end.getTime(),
       resolvedStep,
     ],
-    { type: 'chart', query, timeRange, step: resolvedStep },
+    { type: 'chart', projectId, query, timeRange, step: resolvedStep },
     { enabled: !!query && !unavailable, refetchInterval }
   );
 
@@ -164,7 +167,7 @@ export function SparklineStatCard({
     error: cardError,
   } = usePrometheusAPIQuery<MetricCardData>(
     ['alb-stat', title, valueQuery, timeRange.start.getTime(), timeRange.end.getTime()],
-    { type: 'card', query: valueQuery, timeRange, metricFormat: format },
+    { type: 'card', projectId, query: valueQuery, timeRange, metricFormat: format },
     { enabled: !!valueQuery && !unavailable, refetchInterval }
   );
 

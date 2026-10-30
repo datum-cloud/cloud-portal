@@ -27,10 +27,25 @@ spec:
         app.kubernetes.io/instance: cloud-portal
         app.kubernetes.io/name: cloud-portal
     spec:
+      # Matches the datum user (uid/gid 1001) the Dockerfile switches to.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: cloud-portal
-          image: ghcr.io/datum-cloud/cloud-portal:latest
+          # CI stamps the release tag over this at bundle publish time
+          # (kustomize edit set image in config/base).
+          image: ghcr.io/datum-cloud/cloud-portal:v0.15.0
           imagePullPolicy: Always
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 3000
               name: http
@@ -46,8 +61,6 @@ spec:
               value: https://cloud.datum.net
             - name: TELEMETRY_URL
               value: https://loki-single-binary.telemetry-system.svc.cluster.local:3100
-            - name: PROMETHEUS_URL
-              value: http://vmsingle-datum-resource-metrics.datum-system.svc.cluster.local:8429
             - name: SENTRY_DSN
               value: https://5577e0a8a54d023d2c51092ee68041b3@sentry.prod.env.datum.net/5
           envFrom:
@@ -76,6 +89,15 @@ spec:
               path: /_readyz
               port: 3000
               scheme: HTTP
+          volumeMounts:
+            # Bun's transpiler cache (BUN_RUNTIME_TRANSPILER_CACHE_PATH in the
+            # Dockerfile) and any other temp files; the root filesystem is
+            # read-only.
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

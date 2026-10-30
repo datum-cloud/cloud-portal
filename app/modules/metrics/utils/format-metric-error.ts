@@ -17,8 +17,12 @@ export function formatMetricError(error: PrometheusError | Error | null | undefi
     return "You don't have permission to view these metrics";
   }
 
+  if (status === 422) {
+    return 'This chart has too much data to show. Try a shorter time range or fewer filters.';
+  }
+
   const type = 'type' in error ? error.type : undefined;
-  if (type === 'timeout' || status === 504 || status === 408) {
+  if (type === 'timeout' || status === 503 || status === 504 || status === 408) {
     return 'This chart took too long to load. Try a shorter time range.';
   }
   if (type === 'query') {

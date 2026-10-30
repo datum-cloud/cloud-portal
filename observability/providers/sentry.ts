@@ -5,6 +5,47 @@ import { trace } from '@opentelemetry/api';
 import * as Sentry from '@sentry/react-router';
 
 // ============================================================================
+// EVENT SCRUBBING
+// ============================================================================
+
+// Headers that carry session or access tokens. Matched case-insensitively.
+const SENSITIVE_HEADERS = new Set(['authorization', 'cookie', 'set-cookie']);
+
+function withoutSensitiveHeaders(headers: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(headers).filter(([name]) => !SENSITIVE_HEADERS.has(name.toLowerCase()))
+  );
+}
+
+/**
+ * Strip cookies and auth headers from an error or transaction event.
+ * The session cookie holds the raw access and refresh tokens, and
+ * `sendDefaultPii` makes the SDK attach it to every event.
+ * Returns a new event; the input is not modified.
+ */
+export function scrubSensitiveRequestData<T extends Record<string, any>>(event: T): T {
+  const { request, contexts } = event;
+  const scrubbed: Record<string, any> = { ...event };
+
+  if (request) {
+    const { cookies: _cookies, ...rest } = request;
+    scrubbed.request = rest.headers
+      ? { ...rest, headers: withoutSensitiveHeaders(rest.headers) }
+      : rest;
+  }
+
+  const responseHeaders = contexts?.response?.headers;
+  if (responseHeaders) {
+    scrubbed.contexts = {
+      ...contexts,
+      response: { ...contexts.response, headers: withoutSensitiveHeaders(responseHeaders) },
+    };
+  }
+
+  return scrubbed as T;
+}
+
+// ============================================================================
 // SENTRY PROVIDER
 // ============================================================================
 
@@ -150,6 +191,7 @@ export class SentryProvider extends BaseProvider {
 
       // Circuit breaker implementation
       beforeSend: this.createBeforeSendHandler(),
+      beforeSendTransaction: this.createBeforeSendTransactionHandler(),
       beforeBreadcrumb: this.createBeforeBreadcrumbHandler(),
     };
   }
@@ -185,13 +227,23 @@ export class SentryProvider extends BaseProvider {
           };
         }
 
-        // Redact sensitive headers
-        if (event.request?.headers) {
-          delete event.request.headers['authorization'];
-          delete event.request.headers['cookie'];
-        }
+        return scrubSensitiveRequestData(event);
+      } catch (error) {
+        this.handleBeforeSendError(error);
+        return null;
+      }
+    };
+  }
 
-        return event;
+  // Transactions skip beforeSend, so they need their own scrub.
+  private createBeforeSendTransactionHandler() {
+    return (event: any) => {
+      if (this.circuitBreakerOpen) {
+        return null;
+      }
+
+      try {
+        return scrubSensitiveRequestData(event);
       } catch (error) {
         this.handleBeforeSendError(error);
         return null;

@@ -28,6 +28,7 @@
 
 - `bun install`, then `bun run dev` (starts via `observability/dev-start.js`). Copy `.env.example` to `.env`; see `docs/getting-started/`.
 - `docker compose up` brings up the local observability stack (Grafana, Prometheus, Jaeger, OTEL collector).
+- The metrics pages read from telemetry queryapi through the control-plane API (`API_URL`), not from the local Prometheus. There is no `PROMETHEUS_URL`; pointing a local portal at staging gives the metrics pages real data (#1729 covers a fully local setup).
 - `task devenv:up` / `devenv:register` / `devenv:portal` run the local plugin registry on kwok (see `devenv/README.md`).
 - Codegen: `bun run openapi`, `bun run graphql`.
 - Quality: `bun run lint`, `bun run format`, `bun run typecheck`. Lefthook pre-commit runs eslint, prettier and tsc on staged files.
@@ -41,3 +42,4 @@
 - Generated control-plane clients must be regenerated, not edited by hand.
 - Bun coverage only instruments files that tests import, so the coverage number reflects the unit-tested surface, not the whole repo.
 - E2E flakes are retried once in CI and reported as a warning rather than a pass.
+- Metrics and logs permissions come from `telemetry.miloapis.com-viewer` (`milo-os/telemetry`, `config/operator/iam/roles/telemetry-viewer.yaml`). The assignable org roles `viewer`, `editor` and `owner` (`datum-cloud/datum`, `config/assignable-organization-roles/roles/`) all include it, directly or through `telemetry.miloapis.com-admin`.

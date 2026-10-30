@@ -119,11 +119,6 @@ const serverSchema = z.object({
   AUTH_OIDC_CLIENT_ID: isTestEnv ? z.string().default('test-client-id') : z.string().min(1),
 
   // ─────────────────────────────────────────────────────────
-  // Required: Feature Services
-  // ─────────────────────────────────────────────────────────
-  PROMETHEUS_URL: urlSchema('http://localhost:9090'),
-
-  // ─────────────────────────────────────────────────────────
   // Optional: Observability (graceful degradation)
   // ─────────────────────────────────────────────────────────
   OTEL_EXPORTER_OTLP_ENDPOINT: urlSchemaOptional(),
@@ -272,7 +267,6 @@ export const env: Env = {
   server: {
     sessionSecret: data.SESSION_SECRET,
     authOidcClientId: data.AUTH_OIDC_CLIENT_ID,
-    prometheusUrl: data.PROMETHEUS_URL,
     grafanaUrl: data.GRAFANA_URL,
     helpscoutSecretKey: data.HELPSCOUT_SECRET_KEY,
     websiteOrigins: parseOriginList(data.WEBSITE_ORIGINS, { requireHttps: isProdEnv }),

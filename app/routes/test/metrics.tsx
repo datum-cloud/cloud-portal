@@ -262,9 +262,12 @@ const MetricsContent = () => {
   );
 };
 
+// Debug route with hard-coded project names; removed in #1730.
+const PLAYGROUND_PROJECT_ID = 'jreese-test-5d2p7z';
+
 export default function MetricsPlayground() {
   return (
-    <MetricsProvider>
+    <MetricsProvider projectId={PLAYGROUND_PROJECT_ID}>
       <MetricsContent />
     </MetricsProvider>
   );

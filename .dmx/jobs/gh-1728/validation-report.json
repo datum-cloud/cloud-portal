@@ -1,0 +1,89 @@
+{
+  "commit": "dd7a9f1a0866b3b0d02a0640da42d8abf8744927",
+  "scope_items": [
+    {
+      "item": "The browser reads chart, card and labels data from queryapi at getProjectScopedBase(projectId) + /apis/o11y.miloapis.com/v1alpha1/metrics/api/v1/..., through /api/proxy",
+      "verdict": "covered",
+      "evidence": "app/resources/o11y-metrics/o11y-metrics.service.ts:107; app/modules/metrics/utils/prometheus-request.ts:116; app/modules/metrics/hooks/usePrometheusApi.ts:74"
+    },
+    {
+      "item": "query and query_range go as form-encoded POSTs",
+      "verdict": "covered",
+      "evidence": "app/resources/o11y-metrics/o11y-metrics.service.ts:22; app/resources/o11y-metrics/o11y-metrics.service.test.ts"
+    },
+    {
+      "item": "Delete the /api/prometheus server route and its registration",
+      "verdict": "covered",
+      "evidence": "app/server/routes/prometheus.ts (deleted); app/server/routes/api.ts"
+    },
+    {
+      "item": "The metrics hooks take a required projectId and every caller passes it",
+      "verdict": "covered",
+      "evidence": "app/modules/metrics/context/metrics.context.tsx:62; app/routes/project/detail/edge/detail/metrics.tsx; app/features/edge/proxy/overview/sparkline-stat-card.tsx"
+    },
+    {
+      "item": "The UI shows clear messages for queryapi's 422 (response too large) and 503 (timeout)",
+      "verdict": "covered",
+      "evidence": "app/modules/metrics/utils/format-metric-error.ts:20; app/modules/metrics/utils/format-metric-error.ts:25"
+    },
+    {
+      "item": "A user without metrics permissions sees the existing no-permission state",
+      "verdict": "covered",
+      "evidence": "app/modules/metrics/utils/format-metric-error.ts:16; app/modules/metrics/utils/prometheus-request.ts:56"
+    },
+    {
+      "item": "Project editor and owner roles grant metrics.query, metrics.getLabels, metrics/v1.get and metrics/v1.create",
+      "verdict": "covered",
+      "evidence": ".dmx/techContext.md (verified in datum-cloud/datum and milo-os/telemetry; no change needed)"
+    },
+    {
+      "item": "Tests for the o11y-metrics service and the request path in the hook",
+      "verdict": "covered",
+      "evidence": "app/resources/o11y-metrics/o11y-metrics.service.test.ts; app/modules/metrics/utils/prometheus-request.test.ts:62"
+    },
+    {
+      "item": "Remove PROMETHEUS_URL from env.server.ts, types.ts, .env.example and config/base/deployment.yaml",
+      "verdict": "covered",
+      "evidence": "app/utils/env/env.server.ts; app/utils/env/types.ts; .env.example; config/base/deployment.yaml"
+    },
+    {
+      "item": "Responses keep the Prometheus envelope, so formatter.ts, the charts and the existing queries stay as they are",
+      "verdict": "covered",
+      "evidence": "app/modules/metrics/utils/prometheus-request.ts:92 (formatForChart / formatForCard reused unchanged)"
+    }
+  ],
+  "scope_creep": [
+    {
+      "description": "Removed the 'connection' and 'buildinfo' members from the client-side request type, which #1730 lists; the server-side code for them is untouched",
+      "evidence": "app/modules/metrics/utils/prometheus-request.ts:21"
+    }
+  ],
+  "regressions": [],
+  "edge_cases": [
+    {
+      "description": "A malformed PromQL query (queryapi 400 bad_data) maps to a query error: no retries, query message shown",
+      "addressed": true,
+      "evidence": "app/modules/metrics/utils/prometheus-request.ts:54"
+    },
+    {
+      "description": "A queryapi 503/504 timeout is not retried, so the expensive query isn't rerun",
+      "addressed": true,
+      "evidence": "app/modules/metrics/utils/prometheus-request.ts:68"
+    },
+    {
+      "description": "Cached results could cross projects when two projects issue the same query",
+      "addressed": true,
+      "evidence": "app/modules/metrics/hooks/usePrometheusApi.ts:74"
+    },
+    {
+      "description": "Refresh control invalidates by the 'prometheus-api' prefix after projectId is appended to keys",
+      "addressed": true,
+      "evidence": "app/modules/metrics/components/controls/refresh-control.tsx:76"
+    },
+    {
+      "description": "Label names with reserved characters in the label-values path",
+      "addressed": true,
+      "evidence": "app/resources/o11y-metrics/o11y-metrics.service.ts:19"
+    }
+  ]
+}
