@@ -13,7 +13,6 @@ export default [
     index('routes/index.tsx'),
 
     // Test Playground
-    route('test/metrics', 'routes/test/metrics.tsx'),
     route('test/sentry', 'routes/test/sentry.tsx'),
     route('test/demo', 'routes/test/demo.tsx'),
     route('test/dns-record', 'routes/test/dns-record/dns-record.tsx'),

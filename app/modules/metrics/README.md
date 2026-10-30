@@ -165,13 +165,13 @@ function AdvancedDashboard() {
 
 ## Architecture Overview
 
-This module provides application-specific integration logic built on top of the core Prometheus library (`/app/modules/prometheus`). All data fetching goes through telemetry queryapi's Prometheus-shaped routes (`/apis/o11y.miloapis.com/v1alpha1/metrics/api/v1/...`) on the project's control plane, using the o11y-metrics service (`app/resources/o11y-metrics`). In the browser those requests go through `/api/proxy`, which adds the session token and refreshes it when it expires.
+This module provides application-specific integration logic built on top of the shared Prometheus types, validation and formatters (`/app/modules/prometheus`). All data fetching goes through telemetry queryapi's Prometheus-shaped routes (`/apis/o11y.miloapis.com/v1alpha1/metrics/api/v1/...`) on the project's control plane, using the o11y-metrics service (`app/resources/o11y-metrics`). In the browser those requests go through `/api/proxy`, which adds the session token and refreshes it when it expires.
 
 **Key Design Principles:**
 
 - **Project isolation**: queryapi scopes every query to the project from the caller's identity, so a query can't read another project's metrics
 - **One request path**: `executePrometheusRequest` (`utils/prometheus-request.ts`) validates each request, calls queryapi and formats the result for charts and cards
-- **Reusability**: The core `prometheus` library remains generic and reusable
+- **Reusability**: The `prometheus` module only holds types, validation and formatting, with no HTTP client
 - **URL State Management**: All filter and control state is synchronized with URL parameters
 - **Component Self-Registration**: Filters automatically register themselves with the URL state registry
 - **Type Safety**: Complete TypeScript coverage for all APIs and components

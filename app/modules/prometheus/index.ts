@@ -4,11 +4,8 @@
 
 // Core types
 export type {
-  PrometheusConfig,
   TimeRange,
   PrometheusQueryOptions,
-  PrometheusInstantQueryParams,
-  PrometheusRangeQueryParams,
   PrometheusMetricValue,
   PrometheusMetric,
   PrometheusQueryResult,
@@ -21,41 +18,13 @@ export type {
   MetricCardData,
   ChartType,
   MetricFormat,
-  QueryBuilderOptions,
 } from './types';
 
 // Error classes
 export { PrometheusError, QueryValidationError, ChartDataError } from './errors';
 
 // Validation utilities
-export {
-  validateQueryOptions,
-  validateInstantQueryParams,
-  validateRangeQueryParams,
-  validateQueryBuilderOptions,
-  validateTimeRange,
-  sanitizeQuery,
-  timeRangeToUnix,
-  timeRangeToRFC3339,
-  parseDuration,
-} from './validator';
-
-// Client utilities
-export {
-  createPrometheusClient,
-  executeInstantQuery,
-  executeRangeQuery,
-  testConnection,
-  getBuildInfo,
-  getLabels,
-  PROMETHEUS_CONFIG,
-} from './client';
-
-// Query builder
-export { PrometheusQueryBuilder, PromQLUtils } from './query-builder';
+export { validateQueryOptions, timeRangeToUnix, parseDuration } from './validator';
 
 // Data formatting
 export { formatForChart, formatForCard, formatValue, transformForRecharts } from './formatter';
-
-// Main service
-export { PrometheusService, getPrometheusService } from './service';
