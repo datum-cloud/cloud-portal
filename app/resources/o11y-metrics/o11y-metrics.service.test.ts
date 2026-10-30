@@ -1,4 +1,3 @@
-/// <reference types="bun-types/test" />
 import {
   createO11yMetricsService,
   O11Y_METRICS_QUERY_PATH,
@@ -9,16 +8,16 @@ import type {
   PrometheusRangeResponse,
 } from '@/modules/prometheus/types';
 import { AppError, ValidationError } from '@/utils/errors';
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const getSpy = mock();
-const postSpy = mock();
+const getSpy = vi.fn();
+const postSpy = vi.fn();
 
 // `mock.module` is process-global in bun. Keep these replacements faithful to
 // the real modules (and identical to the o11y-logs suite) so other suites still
 // see org/user scoped bases and a logger surface. Do not mock the shared
 // control-plane client: that strips `getConfig` and breaks `getOrgScopedBase`.
-mock.module('@/resources/base/utils', () => ({
+vi.mock('@/resources/base/utils', () => ({
   getProjectScopedBase: (id: string) =>
     `/apis/resourcemanager.miloapis.com/v1alpha1/projects/${id}/control-plane`,
   getOrgScopedBase: (id: string) =>
@@ -26,19 +25,19 @@ mock.module('@/resources/base/utils', () => ({
   getUserScopedBase: () => `/apis/iam.miloapis.com/v1alpha1/users/me/control-plane`,
 }));
 
-mock.module('@/utils/errors/error-mapper', () => ({
+vi.mock('@/utils/errors/error-mapper', () => ({
   mapApiError: (e: unknown) => e,
 }));
 
-mock.module('@/modules/logger', () => ({
+vi.mock('@/modules/logger', () => ({
   logger: {
-    debug: mock(() => {}),
-    info: mock(() => {}),
-    warn: mock(() => {}),
-    error: mock(() => {}),
-    request: mock(() => {}),
-    api: mock(() => {}),
-    service: mock(() => {}),
+    debug: vi.fn(() => {}),
+    info: vi.fn(() => {}),
+    warn: vi.fn(() => {}),
+    error: vi.fn(() => {}),
+    request: vi.fn(() => {}),
+    api: vi.fn(() => {}),
+    service: vi.fn(() => {}),
   },
 }));
 
@@ -82,7 +81,7 @@ interface RequestCall {
   query?: Record<string, unknown>;
 }
 
-const lastCall = (spy: ReturnType<typeof mock>): RequestCall =>
+const lastCall = (spy: ReturnType<typeof vi.fn>): RequestCall =>
   spy.mock.calls[spy.mock.calls.length - 1][0] as RequestCall;
 
 const service = () => createO11yMetricsService({ client: { get: getSpy, post: postSpy } });

@@ -120,7 +120,7 @@ describe('assistant-chat upstream URL params', () => {
 
   function trackUpstream(): { calls: string[] } {
     const seen = { calls: [] as string[] };
-    globalThis.fetch = mock((url: string) => {
+    globalThis.fetch = vi.fn((url: string) => {
       seen.calls.push(url);
       return Promise.resolve(new Response('', { status: 200 }));
     }) as unknown as typeof fetch;

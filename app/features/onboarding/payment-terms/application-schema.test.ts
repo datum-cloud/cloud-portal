@@ -4,7 +4,7 @@ import {
   toApplicationInput,
   type PaymentTermsApplicationValues,
 } from './application-schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const invoiceValues: PaymentTermsApplicationValues = {
   paymentOption: 'Invoice',

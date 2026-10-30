@@ -25,8 +25,8 @@ function payloadTooLarge(c: Context) {
 }
 
 /**
- * Caps request bodies under /api with 413. Bun's own ceiling is 128 MiB, and
- * the routes here buffer the body before forwarding it. A request with a
+ * Caps request bodies under /api with 413. Node's HTTP server sets no body
+ * ceiling of its own, and the routes here buffer the body before forwarding it. A request with a
  * Content-Length is refused before any byte is read; a chunked body is
  * counted as it streams.
  */

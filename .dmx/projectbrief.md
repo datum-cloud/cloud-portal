@@ -2,7 +2,7 @@
 
 ## Name and description
 
-**Datum Cloud Portal** (`datum-cloud/cloud-portal`) is the web console for Datum Cloud. It is a full-stack React Router app, server-rendered by a Hono server on Bun, that lets users manage organizations, projects and the cloud resources inside them: DNS zones and records, domains, HTTP proxies / edge (ALB) configuration, networks, connectors, secrets, service accounts, IAM, quotas, usage and billing.
+**Datum Cloud Portal** (`datum-cloud/cloud-portal`) is the web console for Datum Cloud. It is a full-stack React Router app, server-rendered by a Hono server on Node, that lets users manage organizations, projects and the cloud resources inside them: DNS zones and records, domains, HTTP proxies / edge (ALB) configuration, networks, connectors, secrets, service accounts, IAM, quotas, usage and billing.
 
 The portal talks to the Datum control plane (Milo, a Kubernetes-style API) through generated OpenAPI clients and GraphQL, and keeps the UI live through the Kubernetes Watch API streamed over SSE.
 
@@ -21,7 +21,7 @@ In scope for this codebase:
 
 - `app/` — the React Router application: routes, features, shared components, domain resource modules, infrastructure modules, and the Hono server (`app/server/`).
 - `observability/` — OTEL and Sentry bootstrapping for dev and prod start.
-- `cypress/` and `*.test.ts` — Cypress E2E/component tests and Bun unit tests.
+- `cypress/` and `*.test.ts` — Cypress E2E/component tests and vitest unit tests.
 - `config/` — Kustomize base, components and service-catalog manifests used to deploy the portal.
 - `devenv/`, `Taskfile.yml`, `examples/sample-plugin/` — local plugin-registry dev environment and a sample plugin.
 - `scripts/` — OpenAPI and GraphQL client generation, asset precompression, Lighthouse.

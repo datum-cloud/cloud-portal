@@ -1,5 +1,5 @@
 import { userSchema } from './user.schema';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 const parseName = (firstName: string, lastName: string) =>
   userSchema.safeParse({ firstName, lastName, email: 'jane@example.com' });

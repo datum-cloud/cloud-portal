@@ -1,8 +1,7 @@
-/// <reference types="bun-types/test" />
 import { apiBodyLimit, JSON_BODY_LIMIT_BYTES, PROXY_BODY_LIMIT_BYTES } from './body-limit';
 import type { Variables } from '@/server/types';
-import { describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, test } from 'vitest';
 
 function appWithLimit() {
   const app = new Hono<{ Variables: Variables }>();
@@ -26,7 +25,9 @@ const send = (method: string, path: string, size: number, chunked = false) => {
         })
       : body,
     headers: chunked ? {} : { 'Content-Length': String(size) },
-  });
+    // Node's fetch Request requires this for a streamed body.
+    ...(chunked && { duplex: 'half' }),
+  } as RequestInit);
 };
 
 describe('apiBodyLimit', () => {

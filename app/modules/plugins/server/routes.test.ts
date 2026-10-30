@@ -3,8 +3,8 @@ import { errorHandler } from '@/server/middleware/error-handler';
 import { trafficClassLimiter } from '@/server/middleware/rate-limit';
 import { createMemoryPenaltyBox } from '@/server/middleware/rate-limit-penalty';
 import type { Variables } from '@/server/types';
-import { afterEach, describe, expect, test, vi } from 'vitest';
 import { Hono } from 'hono';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 // The registry is the only collaborator; serve one known plugin from it.
 const PLUGIN = {

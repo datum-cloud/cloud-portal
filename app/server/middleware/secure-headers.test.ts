@@ -1,7 +1,7 @@
 import { secureHeadersMiddleware, sentryCspReportUri } from './secure-headers';
 import { EMPTY_PLUGIN_CSP_ADDITIONS, type PluginCspAdditions } from '@/modules/plugins/server/csp';
-import { describe, expect, test } from 'vitest';
 import { Hono } from 'hono';
+import { describe, expect, test } from 'vitest';
 
 const BASE_POLICY =
   "report-to ; default-src 'self'; connect-src 'self' https://api.example.com https://*.sentry.io https://*.datum.net https://*.cloudfront.net https://*.helpscout.net https://app.rybbit.io https://api.stripe.com https://maps.googleapis.com https://places.googleapis.com; font-src 'self' https://*.jsdelivr.net https://*.gstatic.com https://*.helpscout.net; frame-src 'self' https://*.sentry.io https://*.datum.net https://*.cloudfront.net https://*.helpscout.net https://js.stripe.com https://hooks.stripe.com; img-src 'self' data: https://*.googleusercontent.com https://*.githubusercontent.com https://avatars.githubusercontent.com https://*.cloudfront.net https://*.cartocdn.com https://*.basemaps.cartocdn.com https://*.stripe.com; script-src 'strict-dynamic' 'self' 'nonce-N' https://maps.googleapis.com https://*.gstatic.com; script-src-elem 'strict-dynamic' 'self' https://js.sentry-cdn.com https://browser.sentry-cdn.com https://js.stripe.com https://maps.googleapis.com https://*.gstatic.com 'nonce-N'; script-src-attr 'nonce-N'; style-src 'self' 'unsafe-inline' https://*.jsdelivr.net https://*.googleapis.com; upgrade-insecure-requests";

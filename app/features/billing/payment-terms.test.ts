@@ -9,7 +9,7 @@ import {
   reviewPollInterval,
 } from './payment-terms';
 import type { BillingAccount, BillingArrangementApplication } from './types';
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 function application(
   name: string,

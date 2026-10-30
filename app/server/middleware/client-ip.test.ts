@@ -1,12 +1,11 @@
-/// <reference types="bun-types/test" />
 import {
   DEFAULT_TRUSTED_PROXY_HOPS,
   getClientIP,
   resolveTrustedProxyHops,
   trustedForwardedAddress,
 } from './client-ip';
-import { describe, expect, test } from 'bun:test';
 import { Hono } from 'hono';
+import { describe, expect, test } from 'vitest';
 
 describe('resolveTrustedProxyHops', () => {
   test('defaults to the single Envoy hop and accepts non-negative integers', () => {

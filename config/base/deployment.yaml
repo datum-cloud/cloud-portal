@@ -90,9 +90,7 @@ spec:
               port: 3000
               scheme: HTTP
           volumeMounts:
-            # Bun's transpiler cache (BUN_RUNTIME_TRANSPILER_CACHE_PATH in the
-            # Dockerfile) and any other temp files; the root filesystem is
-            # read-only.
+            # Temp files; the root filesystem is read-only.
             - name: tmp
               mountPath: /tmp
       volumes:

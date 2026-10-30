@@ -1,7 +1,7 @@
 import { isPlaygroundEnabled } from './routes';
-import { describe, expect, it } from 'bun:test';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
 
 /**
  * The /test/* playground pages must never be part of a production route
