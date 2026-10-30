@@ -90,7 +90,7 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
             },
             invoiceEmails: {
               description:
-                "InvoiceEmails is the list of recipients that invoices and\nreceipts are sent to. The first entry is the primary recipient;\nsubsequent entries are CC'd. When the list is empty, Email is\nused as a single primary recipient.\n\nProvider support for multiple recipients varies: Stripe\nCustomer.email is single-valued, so the stripe-provider maps\nthe first entry onto it and CC's the rest via its own\ninvoice-sent webhook (when configured). Consumers should treat\nthe entire list as authoritative; the provider handles fan-out.\n\nDuplicate entries are rejected. Maximum 10 entries.",
+                'InvoiceEmails is where invoices and receipts are emailed. Only the\nfirst entry receives them: Stripe emails each invoice to a single\naddress, Customer.email, and the stripe-provider sets that to the\nfirst entry, or to Email when the list is empty. No provider sends\nto later entries, so clients should keep the list to one entry.\n\nDuplicate entries are rejected. Maximum 10 entries.',
               type: 'array',
               maxItems: 10,
               items: {
@@ -246,6 +246,47 @@ export const com_miloapis_billing_v1alpha1_BillingAccountSchema = {
             },
           },
           'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        discounts: {
+          description:
+            "Discounts lists the discount on each service pricing in the account's\nOffer, copied from the Offer's published snapshot so customers can see\ntheir discounts without reading the Offer. Set only while at least one\npricing has a discount above 0%; the others are listed at 0%. Cleared\nwhen the account has no discount.",
+          type: 'array',
+          items: {
+            description:
+              "BillingAccountDiscount is one service pricing's resolved discount,\npublished on the account from its Offer's snapshot. It deliberately\ndoesn't name the Offer or say whether staff set the discount for the\nwhole Offer or for this pricing.",
+            type: 'object',
+            required: ['name', 'percentage'],
+            properties: {
+              displayName: {
+                description:
+                  'DisplayName is the pricing\'s human-readable label (e.g. "ALB\nRequests").',
+                type: 'string',
+                maxLength: 128,
+              },
+              name: {
+                description:
+                  'Name is the metadata.name of the ServicePricing the discount applies\nto.',
+                type: 'string',
+                maxLength: 253,
+                minLength: 1,
+              },
+              percentage: {
+                description: 'Percentage is a whole number from 0 to 100.',
+                type: 'integer',
+                format: 'int32',
+                maximum: 100,
+                minimum: 0,
+              },
+              serviceRef: {
+                description:
+                  'ServiceRef is the service the pricing belongs to (e.g.\n"networking.datumapis.com").',
+                type: 'string',
+                maxLength: 253,
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['name'],
           'x-kubernetes-list-type': 'map',
         },
         latestInvoiceRef: {
@@ -1476,6 +1517,278 @@ export const com_miloapis_billing_v1alpha1_BillingEntitlementListSchema = {
   ],
 } as const;
 
+export const com_miloapis_billing_v1alpha1_CreditGrantSchema = {
+  description:
+    'CreditGrant is the Schema for the creditgrants API.\n\nA CreditGrant represents a dollar amount of credit given to a billing\naccount. Usage draws down credits before anything is charged to a payment\nmethod. The billing provider maintains the balance in its ledger; Milo\nholds no balance on the CreditGrant resource.',
+  type: 'object',
+  required: ['spec'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        "Standard object's metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#metadata",
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ObjectMeta',
+        },
+      ],
+    },
+    spec: {
+      description:
+        'CreditGrantSpec defines the desired state of a CreditGrant.\n\nA CreditGrant is mostly immutable once created. Only voided may change,\nand only from false to true. To change a grant, void it and create a new one.',
+      type: 'object',
+      required: ['amount', 'billingAccountRef', 'currency', 'description', 'reason'],
+      properties: {
+        amount: {
+          description:
+            'Amount is the dollar amount of credit granted, expressed as a positive\ndecimal string with at most 2 decimal places (e.g. "500.00"). Immutable once set.',
+          type: 'string',
+          maxLength: 18,
+          minLength: 1,
+          pattern: '^([1-9][0-9]*(\\.[0-9]{1,2})?|0\\.(0[1-9]|[1-9][0-9]?))$',
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'amount is immutable',
+            },
+          ],
+        },
+        billingAccountRef: {
+          description:
+            'BillingAccountRef references the BillingAccount this credit grant\nbelongs to. The BillingAccount must reside in the same namespace.\nImmutable once set.',
+          type: 'object',
+          required: ['name'],
+          properties: {
+            name: {
+              description: 'Name is the name of the BillingAccount.',
+              type: 'string',
+              minLength: 1,
+            },
+          },
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'billingAccountRef is immutable',
+            },
+          ],
+        },
+        currency: {
+          description:
+            'Currency is the ISO 4217 currency code for the grant. USD only.\nImmutable once set.',
+          type: 'string',
+          default: 'USD',
+          pattern: '^USD$',
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'currency is immutable',
+            },
+          ],
+        },
+        description: {
+          description:
+            'Description explains why the credit was granted. Free text, required.\nImmutable once set.',
+          type: 'string',
+          minLength: 1,
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'description is immutable',
+            },
+          ],
+        },
+        expiresAfter: {
+          description:
+            'ExpiresAfter is an optional duration after the effective time when\nthe grant expires. Omitted means the grant never expires.\nImmutable once set.',
+          type: 'string',
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'expiresAfter is immutable',
+            },
+          ],
+        },
+        reason: {
+          description: 'Reason is the business reason for the grant. Immutable once set.',
+          type: 'string',
+          allOf: [
+            {
+              enum: ['Promotional', 'Sponsorship', 'Goodwill'],
+            },
+            {
+              enum: ['Promotional', 'Sponsorship', 'Goodwill'],
+            },
+          ],
+          'x-kubernetes-validations': [
+            {
+              rule: 'self == oldSelf',
+              message: 'reason is immutable',
+            },
+          ],
+        },
+        voided: {
+          description:
+            "Voided marks the grant as voided. One-way: changing from false to\ntrue voids what is left of the credit in the billing provider's ledger.\nCredit already used stays used. A voided grant cannot be unvoided.",
+          type: 'boolean',
+          default: false,
+        },
+      },
+      'x-kubernetes-validations': [
+        {
+          rule: 'self.billingAccountRef == oldSelf.billingAccountRef && self.amount == oldSelf.amount && self.currency == oldSelf.currency && self.reason == oldSelf.reason && self.description == oldSelf.description && has(self.expiresAfter) == has(oldSelf.expiresAfter) && (!has(self.expiresAfter) || self.expiresAfter == oldSelf.expiresAfter)',
+          message: 'credit grant spec is immutable except voided',
+        },
+        {
+          rule: '!oldSelf.voided || self.voided',
+          message: 'a voided credit grant cannot be unvoided',
+        },
+      ],
+    },
+    status: {
+      description:
+        'CreditGrantStatus defines the observed state of a CreditGrant.\nPopulated exclusively by the billing provider.',
+      type: 'object',
+      properties: {
+        conditions: {
+          description:
+            "Conditions represent the latest available observations of the grant's state.\nSee CreditGrantConditionReady.",
+          type: 'array',
+          items: {
+            description:
+              'Condition contains details for one aspect of the current state of this API Resource.',
+            type: 'object',
+            required: ['lastTransitionTime', 'message', 'reason', 'status', 'type'],
+            properties: {
+              lastTransitionTime: {
+                description:
+                  'lastTransitionTime is the last time the condition transitioned from one status to another.\nThis should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.',
+                type: 'string',
+                format: 'date-time',
+              },
+              message: {
+                description:
+                  'message is a human readable message indicating details about the transition.\nThis may be an empty string.',
+                type: 'string',
+                maxLength: 32768,
+              },
+              observedGeneration: {
+                description:
+                  'observedGeneration represents the .metadata.generation that the condition was set based upon.\nFor instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date\nwith respect to the current state of the instance.',
+                type: 'integer',
+                format: 'int64',
+                minimum: 0,
+              },
+              reason: {
+                description:
+                  "reason contains a programmatic identifier indicating the reason for the condition's last transition.\nProducers of specific condition types may define expected values and meanings for this field,\nand whether the values are considered a guaranteed API.\nThe value should be a CamelCase string.\nThis field may not be empty.",
+                type: 'string',
+                maxLength: 1024,
+                minLength: 1,
+                pattern: '^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$',
+              },
+              status: {
+                description: 'status of the condition, one of True, False, Unknown.',
+                type: 'string',
+                enum: ['True', 'False', 'Unknown'],
+              },
+              type: {
+                description: 'type of condition in CamelCase or in foo.example.com/CamelCase.',
+                type: 'string',
+                maxLength: 316,
+                pattern:
+                  '^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$',
+              },
+            },
+          },
+          'x-kubernetes-list-map-keys': ['type'],
+          'x-kubernetes-list-type': 'map',
+        },
+        effectiveAt: {
+          description:
+            "EffectiveAt is when the grant became active in the billing provider's ledger.",
+          type: 'string',
+          format: 'date-time',
+        },
+        expiresAt: {
+          description:
+            'ExpiresAt is when the grant expires, computed from effectiveAt and spec.expiresAfter.',
+          type: 'string',
+          format: 'date-time',
+        },
+        observedGeneration: {
+          description:
+            'ObservedGeneration is the most recent generation observed by the\nreconciling provider controller.',
+          type: 'integer',
+          format: 'int64',
+        },
+        phase: {
+          description: 'Phase represents the current lifecycle phase of the grant.',
+          type: 'string',
+          enum: ['Pending', 'Active', 'Expired', 'Voided', 'Failed'],
+        },
+      },
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'CreditGrant',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
+export const com_miloapis_billing_v1alpha1_CreditGrantListSchema = {
+  description: 'CreditGrantList is a list of CreditGrant',
+  type: 'object',
+  required: ['items'],
+  properties: {
+    apiVersion: {
+      description:
+        'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources',
+      type: 'string',
+    },
+    items: {
+      description:
+        'List of creditgrants. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md',
+      type: 'array',
+      items: {
+        $ref: '#/components/schemas/com.miloapis.billing.v1alpha1.CreditGrant',
+      },
+    },
+    kind: {
+      description:
+        'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      type: 'string',
+    },
+    metadata: {
+      description:
+        'Standard list metadata. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds',
+      allOf: [
+        {
+          $ref: '#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.ListMeta',
+        },
+      ],
+    },
+  },
+  'x-kubernetes-group-version-kind': [
+    {
+      group: 'billing.miloapis.com',
+      kind: 'CreditGrantList',
+      version: 'v1alpha1',
+    },
+  ],
+} as const;
+
 export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
   description:
     "Invoice is the Schema for the invoices API.\n\nInvoice is the provider-written, vendor-agnostic record of a billing\naccount's invoice for a period. Names are deterministic\n(`<billing-account>-<year>-<month>`) so creation is idempotent.\nVendor identifiers live as provider-prefixed annotations, not typed\nfields.",
@@ -1623,6 +1936,12 @@ export const com_miloapis_billing_v1alpha1_InvoiceSchema = {
           },
           'x-kubernetes-list-map-keys': ['type'],
           'x-kubernetes-list-type': 'map',
+        },
+        creditsApplied: {
+          description:
+            'CreditsApplied is the total amount of credits applied to this invoice,\nexpressed as a decimal string (e.g. "50.00").',
+          type: 'string',
+          pattern: '^[0-9]+(\\.[0-9]+)?$',
         },
         currencyCode: {
           description:
@@ -2596,6 +2915,40 @@ export const com_miloapis_billing_v1alpha1_OfferSchema = {
           },
           'x-kubernetes-list-map-keys': ['name'],
           'x-kubernetes-list-type': 'map',
+        },
+        signupCredit: {
+          description:
+            "SignupCredit defines an optional promotional credit awarded to an\norganization's first billing account entitled to this Offer once a valid\npayment card is attached.",
+          type: 'object',
+          required: ['amount', 'description'],
+          properties: {
+            amount: {
+              description:
+                'Amount is the positive decimal dollar amount granted (e.g. "50.00").\nMust have at most 2 decimal places.',
+              type: 'string',
+              maxLength: 18,
+              minLength: 1,
+              pattern: '^([1-9][0-9]*(\\.[0-9]{1,2})?|0\\.(0[1-9]|[1-9][0-9]?))$',
+            },
+            currency: {
+              description: 'Currency is the ISO 4217 currency code for the grant. USD only.',
+              type: 'string',
+              default: 'USD',
+              pattern: '^USD$',
+            },
+            description: {
+              description:
+                'Description explains why the credit was granted, recorded on the resulting CreditGrant.',
+              type: 'string',
+              maxLength: 256,
+              minLength: 1,
+            },
+            expiresAfter: {
+              description:
+                'ExpiresAfter is an optional duration after the grant\'s effective time\nwhen any remaining credit expires (e.g. "720h"). Omitted means the grant never expires.',
+              type: 'string',
+            },
+          },
         },
       },
     },
